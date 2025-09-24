@@ -31,7 +31,7 @@ sections = ["FUTURE", "STDLIB", "THIRDPARTY", "DJANGO", "FIRSTPARTY", "LOCALFOLD
 skip_glob = ["*/migrations/*", "*/staticfiles/*", "*/media/*"]
 
 [tool.bandit]
-exclude_dirs = ["tests", "migrations", "staticfiles", "media", "venv", ".venv"]
+exclude_dirs = ["tests", "migrations", "staticfiles", "media", "venv", ".venv", "logs", ".git", "__pycache__", ".pytest_cache", ".coverage", "htmlcov", ".tox", ".mypy_cache", ".DS_Store"]
 skips = ["B101", "B601"]
 
 [tool.coverage.run]

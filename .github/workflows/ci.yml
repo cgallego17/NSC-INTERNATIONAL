@@ -67,8 +67,8 @@ jobs:
 
     - name: Run security checks (bandit)
       run: |
-        bandit -r . -f json -o bandit-report.json || true
-        bandit -r . -ll
+        bandit -r . -x venv,.venv,staticfiles,media,logs,.git,__pycache__,.pytest_cache,.coverage,htmlcov,.tox,.mypy_cache,.DS_Store -f json -o bandit-report.json || true
+        bandit -r . -x venv,.venv,staticfiles,media,logs,.git,__pycache__,.pytest_cache,.coverage,htmlcov,.tox,.mypy_cache,.DS_Store -ll
 
     - name: Check for security vulnerabilities (safety)
       run: |

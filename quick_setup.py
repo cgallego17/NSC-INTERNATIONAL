@@ -15,7 +15,11 @@ def run_command(command, description):
     """Ejecuta un comando y muestra el resultado"""
     print(f"\n🔄 {description}...")
     try:
-        result = subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
+        # Convert string command to list for security
+        if isinstance(command, str):
+            command = command.split()
+        
+        result = subprocess.run(command, check=True, capture_output=True, text=True)
         print(f"✅ {description} completado")
         return True
     except subprocess.CalledProcessError as e:
