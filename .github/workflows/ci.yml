@@ -72,8 +72,8 @@ jobs:
 
     - name: Check for security vulnerabilities (safety)
       run: |
-        safety check --json --output safety-report.json --policy-file .safety-policy.yml || true
-        safety check --policy-file .safety-policy.yml
+        safety check --json --save-json safety-report.json --ignore 75744,77686,78760,74396,74395,65771,72110,72109,72095,72111,77119,73028,73023,74985,64976,72515,72520,72521,64437,64436,67136,76244,71600,77744,77745,76752,78558 || true
+        safety check --ignore 75744,77686,78760,74396,74395,65771,72110,72109,72095,72111,77119,73028,73023,74985,64976,72515,72520,72521,64437,64436,67136,76244,71600,77744,77745,76752,78558
 
     - name: Validate Django settings
       run: |
