@@ -1,0 +1,51 @@
+[tool.black]
+line-length = 127
+target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | migrations
+  | staticfiles
+  | media
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 127
+known_django = "django"
+known_first_party = ["apps", "nsc_admin"]
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "DJANGO", "FIRSTPARTY", "LOCALFOLDER"]
+skip_glob = ["*/migrations/*", "*/staticfiles/*", "*/media/*"]
+
+[tool.bandit]
+exclude_dirs = ["tests", "migrations", "staticfiles", "media", "venv", ".venv"]
+skips = ["B101", "B601"]
+
+[tool.coverage.run]
+source = "."
+omit = [
+    "*/migrations/*",
+    "*/staticfiles/*",
+    "*/media/*",
+    "*/venv/*",
+    "manage.py",
+    "*/settings.py",
+    "*/wsgi.py",
+    "*/asgi.py",
+    "*/test_*.py",
+    "*/tests.py",
+    "*/__init__.py",
+]
