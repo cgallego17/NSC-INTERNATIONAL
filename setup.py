@@ -17,7 +17,7 @@ def run_command(command, description):
         # Convert string command to list for security
         if isinstance(command, str):
             command = command.split()
-        
+
         result = subprocess.run(command, check=True, capture_output=True, text=True)
         print(f"✅ {description} completado")
         return True
