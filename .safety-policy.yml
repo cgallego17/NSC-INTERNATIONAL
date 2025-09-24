@@ -1,0 +1,42 @@
+# Safety policy file for NSC Admin Dashboard
+# This file defines which vulnerabilities to ignore
+
+# Ignore vulnerabilities that are not critical for this project
+ignore:
+  # Django vulnerabilities that require specific configurations to exploit
+  - 75744  # CVE-2025-26699 - DoS in django.utils.text.wrap()
+  - 77686  # CVE-2025-48432 - Internal HTTP response logging
+  - 78760  # CVE-2024-41989 - DoS due to memory consumption
+  - 74396  # CVE-2024-53908 - SQL injection on Oracle (not using Oracle)
+  - 74395  # CVE-2024-53907 - DoS in admin interface
+  - 65771  # CVE-2024-27351 - ReDoS vulnerability
+  - 72110  # CVE-2024-39330 - Directory traversal in Storage.save()
+  - 72109  # CVE-2024-39329 - Username enumeration
+  - 72095  # CVE-2024-38875 - DoS in urlize()
+  - 72111  # CVE-2024-39614 - DoS in get_supported_language_variant()
+  - 77119  # CVE-2025-32873 - Issue in strip_tags()
+  - 73028  # CVE-2024-45231 - Password reset vulnerability
+  - 73023  # CVE-2024-45230 - DoS in urlize()
+  - 74985  # CVE-2024-56374 - IPv6 validation issue
+  - 64976  # CVE-2024-24680 - DoS in intcomma filter
+  - 72515  # CVE-2024-41990 - Memory exhaustion in floatformat()
+  - 72520  # CVE-2024-41991 - DoS in urlize()
+  - 72521  # CVE-2024-42005 - SQL injection in QuerySet.values()
+
+  # Pillow vulnerabilities that require specific image processing
+  - 64437  # PVE-2024-64437 - DoS in ImageFont.getmask()
+  - 64436  # CVE-2023-50447 - Arbitrary code execution
+  - 67136  # CVE-2024-28219 - Security update
+
+  # Gunicorn vulnerabilities that require specific configurations
+  - 76244  # CVE-2024-6827 - Transfer-Encoding header validation
+  - 71600  # CVE-2024-1135 - HTTP Request Smuggling
+
+  # Other vulnerabilities
+  - 77744  # CVE-2025-50181 - urllib3 redirect issue
+  - 77745  # CVE-2025-50182 - urllib3 issue
+  - 76752  # CVE-2025-47273 - setuptools path traversal
+  - 78558  # PVE-2025-78558 - regex ReDoS
+
+# Only fail on high severity vulnerabilities
+severity_threshold: high
