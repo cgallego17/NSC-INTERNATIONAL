@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ season.name }} - NSC Eventos{% endblock %}
+
+{% block breadcrumb %}
+    <span>Ubicaciones</span> / <span>Temporadas</span> / <span>{{ season.name }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>{{ season.name }}
+                    </h4>
+                    <div class="btn-group">
+                        <a href="{% url 'locations:season_update' season.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-edit me-2"></i>Editar
+                        </a>
+                        <a href="{% url 'locations:season_delete' season.pk %}" class="btn btn-outline-danger">
+                            <i class="fas fa-trash me-2"></i>Eliminar
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Información General</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Nombre:</strong></td>
+                                    <td>{{ season.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Año:</strong></td>
+                                    <td><span class="badge bg-primary">{{ season.year }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado:</strong></td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if season.status == 'upcoming' %}bg-warning
+                                            {% elif season.status == 'active' %}bg-success
+                                            {% elif season.status == 'completed' %}bg-secondary
+                                            {% else %}bg-danger{% endif %}">
+                                            {{ season.get_status_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Activa:</strong></td>
+                                    <td>
+                                        {% if season.is_active %}
+                                            <span class="badge bg-success">Sí</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">No</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>Período</h5>
+                            <div class="alert alert-info">
+                                <i class="fas fa-calendar me-2"></i>
+                                <strong>Inicio:</strong> {{ season.start_date|date:"d M Y" }}<br>
+                                <strong>Fin:</strong> {{ season.end_date|date:"d M Y" }}
+                            </div>
+                            
+                            <div class="mt-3">
+                                <h6>Duración</h6>
+                                <p class="mb-0">
+                                    {% if season.start_date and season.end_date %}
+                                        {% with duration=season.end_date|timesince:season.start_date %}
+                                            {{ duration }}
+                                        {% endwith %}
+                                    {% else %}
+                                        No disponible
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if season.description %}
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h5>Descripción</h5>
+                            <div class="alert alert-light">
+                                {{ season.description|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h5>Información del Sistema</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Creada:</strong></td>
+                                    <td>{{ season.created_at|date:"d M Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Actualizada:</strong></td>
+                                    <td>{{ season.updated_at|date:"d M Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

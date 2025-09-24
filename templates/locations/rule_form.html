@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Editar Regla{% else %}Crear Regla{% endif %} - NSC International
+{% endblock %}
+
+{% block breadcrumb %}
+    <span>Configuración</span> / <span>Reglas</span> / <span>{% if object %}Editar{% else %}Crear{% endif %}</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card rule-form-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">
+                                <i class="fas fa-gavel me-2"></i>
+                                {% if object %}Editar Regla{% else %}Crear Nueva Regla{% endif %}
+                            </h4>
+                            <p class="text-muted mb-0 mt-1">
+                                {% if object %}Modifica la información de la regla{% else %}Completa la información para crear una nueva regla{% endif %}
+                            </p>
+                        </div>
+                        <a href="{% url 'locations:rule_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Volver a Reglas
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- INFORMACIÓN BÁSICA -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-info-circle me-2"></i>Información Básica
+                            </h5>
+                            
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group mb-3">
+                                        <label for="name" class="form-label">
+                                            <i class="fas fa-gavel me-1"></i>Nombre de la Regla <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" 
+                                               id="name" 
+                                               name="name" 
+                                               class="form-control" 
+                                               value="{{ form.name.value|default:'' }}"
+                                               placeholder="Ej: Regla de Edad Mínima, Regla de Documentación"
+                                               required>
+                                        {% if form.name.errors %}
+                                            <div class="text-danger">{{ form.name.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="rule_type" class="form-label">
+                                            <i class="fas fa-tags me-1"></i>Tipo de Regla <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="rule_type" name="rule_type" class="form-select" required>
+                                            <option value="">Selecciona Tipo</option>
+                                            {% for choice in form.rule_type.field.choices %}
+                                                <option value="{{ choice.0 }}" 
+                                                        {% if form.rule_type.value == choice.0 %}selected{% endif %}>
+                                                    {{ choice.1 }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        {% if form.rule_type.errors %}
+                                            <div class="text-danger">{{ form.rule_type.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-10">
+                                    <div class="form-group mb-3">
+                                        <label for="description" class="form-label">
+                                            <i class="fas fa-align-left me-1"></i>Descripción
+                                        </label>
+                                        <textarea id="description" 
+                                                  name="description" 
+                                                  class="form-control" 
+                                                  rows="3"
+                                                  placeholder="Descripción detallada de la regla (opcional)">{{ form.description.value|default:'' }}</textarea>
+                                        {% if form.description.errors %}
+                                            <div class="text-danger">{{ form.description.errors.0 }}</div>
+                                        {% endif %}
+                                        <div class="form-text">
+                                            <i class="fas fa-question-circle me-1"></i>Descripción detallada de la regla (opcional)
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group mb-3">
+                                        <label for="is_active" class="form-label">
+                                            <i class="fas fa-toggle-on me-1"></i>Estado
+                                        </label>
+                                        <div class="form-check form-switch">
+                                            <input type="checkbox" 
+                                                   id="is_active" 
+                                                   name="is_active" 
+                                                   class="form-check-input" 
+                                                   {% if form.is_active.value %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_active">
+                                                Activo
+                                            </label>
+                                        </div>
+                                        {% if form.is_active.errors %}
+                                            <div class="text-danger">{{ form.is_active.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BOTONES DE ACCIÓN -->
+                        <div class="d-flex justify-content-end gap-3 mt-4">
+                            <a href="{% url 'locations:rule_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Volver a Reglas
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                {% if object %}Actualizar Regla{% else %}Crear Regla{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.rule-form-card {
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    border-radius: 0.35rem;
+}
+
+.rule-form-card .card-header {
+    background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
+    color: white;
+    border-radius: 0.35rem 0.35rem 0 0;
+    border: none;
+    padding: 1.5rem;
+}
+
+[data-theme="dark"] .rule-form-card .card-header {
+    background: linear-gradient(180deg, #0f1419 0%, #1a1a1a 100%);
+}
+
+.form-section {
+    border-left: 4px solid #e3e6f0;
+    padding-left: 1rem;
+    margin-bottom: 2rem;
+}
+
+[data-theme="dark"] .form-section {
+    border-left-color: #4a5568;
+}
+
+.section-title {
+    color: #5a5c69;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+[data-theme="dark"] .section-title {
+    color: #d1d5db;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #5a5c69;
+    margin-bottom: 0.5rem;
+}
+
+[data-theme="dark"] .form-label {
+    color: #d1d5db;
+}
+
+.form-control, .form-select {
+    border: 1px solid #d1d3e2;
+    border-radius: 0.35rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+}
+
+[data-theme="dark"] .form-control, 
+[data-theme="dark"] .form-select {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #4a5568;
+    box-shadow: 0 0 0 0.2rem rgba(74, 85, 104, 0.25);
+}
+
+[data-theme="dark"] .form-control:focus, 
+[data-theme="dark"] .form-select:focus {
+    border-color: #6b7280;
+    box-shadow: 0 0 0 0.2rem rgba(107, 114, 128, 0.25);
+}
+
+.btn-outline-secondary {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .btn-outline-secondary {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: white;
+}
+
+.form-check-input:checked {
+    background-color: #4a5568;
+    border-color: #4a5568;
+}
+
+.form-check-input:focus {
+    border-color: #4a5568;
+    box-shadow: 0 0 0 0.2rem rgba(74, 85, 104, 0.25);
+}
+
+.form-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+[data-theme="dark"] .form-text {
+    color: #9ca3af;
+}
+</style>
+{% endblock %}

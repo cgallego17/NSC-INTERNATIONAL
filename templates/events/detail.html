@@ -1,0 +1,286 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ event.title }} - {{ site_settings.site_name|default:"NSC Admin" }}{% endblock %}
+
+{% block breadcrumb %}
+    <span>Eventos</span> / <span>{{ event.title }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="event-detail-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h1>{{ event.title }}</h1>
+                <p class="text-muted">{{ event.short_description|default:event.description|truncatechars:150 }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'events:update' event.pk %}" class="btn btn-corporate-outline">
+                    <i class="fas fa-edit me-2"></i>Editar
+                </a>
+                <a href="{% url 'events:list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Event Image -->
+            {% if event.image %}
+                <div class="card mb-4">
+                    <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 300px; object-fit: cover;">
+                </div>
+            {% endif %}
+
+            <!-- Event Details -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Detalles del Evento</h5>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <i class="fas fa-calendar text-primary me-2"></i>
+                                <strong>Fecha:</strong> {{ event.start_date|date:"l, d F Y" }}
+                            </div>
+                            <div class="mb-3">
+                                <i class="fas fa-clock text-primary me-2"></i>
+                                <strong>Horario:</strong> 
+                                {% if event.all_day %}
+                                    Todo el día
+                                {% else %}
+                                    {{ event.start_date|time:"H:i" }} - {{ event.end_date|time:"H:i" }}
+                                {% endif %}
+                            </div>
+                            {% if event.location %}
+                                <div class="mb-3">
+                                    <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                    <strong>Ubicación:</strong> {{ event.location }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <i class="fas fa-user text-primary me-2"></i>
+                                <strong>Organizador:</strong> {{ event.organizer.get_full_name|default:event.organizer.username }}
+                            </div>
+                            <div class="mb-3">
+                                <i class="fas fa-tag text-primary me-2"></i>
+                                <strong>Categoría:</strong> 
+                                <span class="badge" style="background-color: {{ event.category.color }};">
+                                    {{ event.category.name }}
+                                </span>
+                            </div>
+                            <div class="mb-3">
+                                <i class="fas fa-info-circle text-primary me-2"></i>
+                                <strong>Estado:</strong> 
+                                {% if event.status == 'published' %}
+                                    <span class="badge bg-success">Publicado</span>
+                                {% elif event.status == 'draft' %}
+                                    <span class="badge bg-secondary">Borrador</span>
+                                {% elif event.status == 'cancelled' %}
+                                    <span class="badge bg-danger">Cancelado</span>
+                                {% elif event.status == 'completed' %}
+                                    <span class="badge bg-info">Completado</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if event.address %}
+                        <div class="mb-3">
+                            <i class="fas fa-map text-primary me-2"></i>
+                            <strong>Dirección:</strong><br>
+                            <span class="text-muted">{{ event.address }}</span>
+                        </div>
+                    {% endif %}
+
+                    {% if event.external_link %}
+                        <div class="mb-3">
+                            <i class="fas fa-external-link-alt text-primary me-2"></i>
+                            <strong>Enlace Externo:</strong><br>
+                            <a href="{{ event.external_link }}" target="_blank" class="text-decoration-none">
+                                {{ event.external_link }}
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Descripción</h5>
+                    <div class="event-description">
+                        {{ event.description|linebreaks }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comments -->
+            {% if comments %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Comentarios</h5>
+                        {% for comment in comments %}
+                            <div class="comment-item mb-3">
+                                <div class="d-flex align-items-start">
+                                    <div class="comment-avatar me-3">
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                            {{ comment.user.first_name|first|default:comment.user.username|first|upper }}
+                                        </div>
+                                    </div>
+                                    <div class="comment-content flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start mb-1">
+                                            <strong>{{ comment.user.get_full_name|default:comment.user.username }}</strong>
+                                            <small class="text-muted">{{ comment.created_at|timesince }} atrás</small>
+                                        </div>
+                                        <p class="mb-0">{{ comment.comment }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Event Status -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Estado del Evento</h5>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Asistentes:</span>
+                            <span class="badge bg-primary">{{ event.attendees_count }}</span>
+                        </div>
+                        {% if event.max_attendees %}
+                            <div class="progress mt-2" style="height: 8px;">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: {{ event.attendees_count|floatformat:0|div:event.max_attendees|mul:100 }}%">
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ event.attendees_count }} de {{ event.max_attendees }} lugares</small>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Duración:</span>
+                            <span class="text-muted">{{ event.duration }}</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>Tipo:</span>
+                            <span class="text-muted">
+                                {% if event.is_public %}Público{% else %}Privado{% endif %}
+                            </span>
+                        </div>
+                    </div>
+
+                    {% if event.requires_registration %}
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Registro:</span>
+                                <span class="badge bg-info">Requerido</span>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Attendees -->
+            {% if attendees %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Asistentes Confirmados</h5>
+                        <div class="attendees-list">
+                            {% for attendee in attendees %}
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="attendee-avatar me-3">
+                                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                            {{ attendee.first_name|first|default:attendee.username|first|upper }}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div class="fw-medium">{{ attendee.get_full_name|default:attendee.username }}</div>
+                                        <small class="text-muted">{{ attendee.email }}</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Actions -->
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Acciones</h5>
+                    
+                    {% if user_attendance %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-check-circle me-2"></i>
+                            Ya estás registrado en este evento
+                        </div>
+                    {% elif event.requires_registration and not event.is_full %}
+                        <a href="{% url 'events:attend' event.pk %}" class="btn btn-corporate w-100 mb-2">
+                            <i class="fas fa-user-plus me-2"></i>Registrarse
+                        </a>
+                    {% elif event.is_full %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Este evento está lleno
+                        </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'events:calendar' %}" class="btn btn-corporate-outline">
+                            <i class="fas fa-calendar-alt me-2"></i>Ver Calendario
+                        </a>
+                        <a href="{% url 'events:list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-list me-2"></i>Ver Todos los Eventos
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.event-description {
+    line-height: 1.6;
+}
+
+.comment-item {
+    border-bottom: 1px solid #e0e6ed;
+    padding-bottom: 1rem;
+}
+
+.comment-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.attendees-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.progress {
+    background-color: #e0e6ed;
+}
+</style>
+{% endblock %}
+

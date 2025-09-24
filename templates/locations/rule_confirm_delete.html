@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Rule - NSC International{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-exclamation-triangle me-2"></i>Delete Rule
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Warning!</strong> This action cannot be undone.
+                    </div>
+                    
+                    <p>Are you sure you want to delete the following rule?</p>
+                    
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="card-title">{{ rule.name }}</h6>
+                            <p class="card-text text-muted mb-2">
+                                <strong>Type:</strong> {{ rule.get_rule_type_display }}
+                            </p>
+                            {% if rule.description %}
+                                <p class="card-text">
+                                    <strong>Description:</strong> {{ rule.description|truncatechars:100 }}
+                                </p>
+                            {% endif %}
+                            <p class="card-text">
+                                <strong>Status:</strong> 
+                                {% if rule.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                {% endif %}
+                            </p>
+                            {% if rule.events_count > 0 %}
+                                <div class="alert alert-info mt-3" role="alert">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    This rule is currently being used by <strong>{{ rule.events_count }}</strong> event{{ rule.events_count|pluralize }}.
+                                    Deleting this rule will set the rule field to null for all associated events.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'locations:rule_detail' rule.pk %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-2"></i>Yes, Delete Rule
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.alert {
+    border-radius: 0.375rem;
+}
+
+.btn {
+    border-radius: 0.375rem;
+    font-weight: 500;
+}
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Editar Temporada{% else %}Crear Temporada{% endif %} - NSC International
+{% endblock %}
+
+{% block breadcrumb %}
+    <span>Configuración</span> / <span>Temporadas</span> / <span>{% if object %}Editar{% else %}Crear{% endif %}</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card season-form-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">
+                                <i class="fas fa-calendar-alt me-2"></i>
+                                {% if object %}Editar Temporada{% else %}Crear Nueva Temporada{% endif %}
+                            </h4>
+                            <p class="text-muted mb-0 mt-1">
+                                {% if object %}Modifica la información de la temporada{% else %}Completa la información para crear una nueva temporada{% endif %}
+                            </p>
+                        </div>
+                        <a href="{% url 'locations:season_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Volver a Temporadas
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- INFORMACIÓN BÁSICA -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-info-circle me-2"></i>Información Básica
+                            </h5>
+                            
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group mb-3">
+                                        <label for="name" class="form-label">
+                                            <i class="fas fa-calendar-alt me-1"></i>Nombre de la Temporada <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" 
+                                               id="name" 
+                                               name="name" 
+                                               class="form-control" 
+                                               value="{{ form.name.value|default:'' }}"
+                                               placeholder="Ej: Temporada Regular 2025, Liga Mexicana 2025"
+                                               required>
+                                        {% if form.name.errors %}
+                                            <div class="text-danger">{{ form.name.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="year" class="form-label">
+                                            <i class="fas fa-calendar me-1"></i>Año <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="number" 
+                                               id="year" 
+                                               name="year" 
+                                               class="form-control" 
+                                               value="{{ form.year.value|default:'' }}"
+                                               placeholder="2025"
+                                               min="1900"
+                                               max="2100"
+                                               required>
+                                        {% if form.year.errors %}
+                                            <div class="text-danger">{{ form.year.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-10">
+                                    <div class="form-group mb-3">
+                                        <label for="description" class="form-label">
+                                            <i class="fas fa-align-left me-1"></i>Descripción
+                                        </label>
+                                        <textarea id="description" 
+                                                  name="description" 
+                                                  class="form-control" 
+                                                  rows="3"
+                                                  placeholder="Descripción de la temporada (opcional)">{{ form.description.value|default:'' }}</textarea>
+                                        {% if form.description.errors %}
+                                            <div class="text-danger">{{ form.description.errors.0 }}</div>
+                                        {% endif %}
+                                        <div class="form-text">
+                                            <i class="fas fa-question-circle me-1"></i>Descripción de la temporada (opcional)
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group mb-3">
+                                        <label for="is_active" class="form-label">
+                                            <i class="fas fa-toggle-on me-1"></i>Estado
+                                        </label>
+                                        <div class="form-check form-switch">
+                                            <input type="checkbox" 
+                                                   id="is_active" 
+                                                   name="is_active" 
+                                                   class="form-check-input" 
+                                                   {% if form.is_active.value %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_active">
+                                                Activo
+                                            </label>
+                                        </div>
+                                        {% if form.is_active.errors %}
+                                            <div class="text-danger">{{ form.is_active.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FECHAS -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-calendar-check me-2"></i>Fechas de la Temporada
+                            </h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="start_date" class="form-label">
+                                            <i class="fas fa-play me-1"></i>Fecha de Inicio <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="date" 
+                                               id="start_date" 
+                                               name="start_date" 
+                                               class="form-control" 
+                                               value="{{ form.start_date.value|default:'' }}"
+                                               required>
+                                        {% if form.start_date.errors %}
+                                            <div class="text-danger">{{ form.start_date.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="end_date" class="form-label">
+                                            <i class="fas fa-stop me-1"></i>Fecha de Fin <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="date" 
+                                               id="end_date" 
+                                               name="end_date" 
+                                               class="form-control" 
+                                               value="{{ form.end_date.value|default:'' }}"
+                                               required>
+                                        {% if form.end_date.errors %}
+                                            <div class="text-danger">{{ form.end_date.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BOTONES DE ACCIÓN -->
+                        <div class="d-flex justify-content-end gap-3 mt-4">
+                            <a href="{% url 'locations:season_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Volver a Temporadas
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                {% if object %}Actualizar Temporada{% else %}Crear Temporada{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.season-form-card {
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    border-radius: 0.35rem;
+}
+
+.season-form-card .card-header {
+    background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
+    color: white;
+    border-radius: 0.35rem 0.35rem 0 0;
+    border: none;
+    padding: 1.5rem;
+}
+
+[data-theme="dark"] .season-form-card .card-header {
+    background: linear-gradient(180deg, #0f1419 0%, #1a1a1a 100%);
+}
+
+.form-section {
+    border-left: 4px solid #e3e6f0;
+    padding-left: 1rem;
+    margin-bottom: 2rem;
+}
+
+[data-theme="dark"] .form-section {
+    border-left-color: #4a5568;
+}
+
+.section-title {
+    color: #5a5c69;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+[data-theme="dark"] .section-title {
+    color: #d1d5db;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #5a5c69;
+    margin-bottom: 0.5rem;
+}
+
+[data-theme="dark"] .form-label {
+    color: #d1d5db;
+}
+
+.form-control, .form-select {
+    border: 1px solid #d1d3e2;
+    border-radius: 0.35rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+}
+
+[data-theme="dark"] .form-control, 
+[data-theme="dark"] .form-select {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #4a5568;
+    box-shadow: 0 0 0 0.2rem rgba(74, 85, 104, 0.25);
+}
+
+[data-theme="dark"] .form-control:focus, 
+[data-theme="dark"] .form-select:focus {
+    border-color: #6b7280;
+    box-shadow: 0 0 0 0.2rem rgba(107, 114, 128, 0.25);
+}
+
+.btn-outline-secondary {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .btn-outline-secondary {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: white;
+}
+
+.form-check-input:checked {
+    background-color: #4a5568;
+    border-color: #4a5568;
+}
+
+.form-check-input:focus {
+    border-color: #4a5568;
+    box-shadow: 0 0 0 0.2rem rgba(74, 85, 104, 0.25);
+}
+
+.form-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+[data-theme="dark"] .form-text {
+    color: #9ca3af;
+}
+</style>
+{% endblock %}

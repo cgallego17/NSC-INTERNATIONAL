@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ city.name }} - NSC Eventos{% endblock %}
+
+{% block breadcrumb %}
+    <span>Ubicaciones</span> / <span>Ciudades</span> / <span>{{ city.name }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-city me-2"></i>{{ city.name }}
+                    </h4>
+                    <div class="btn-group">
+                        <a href="{% url 'locations:city_update' city.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-edit me-2"></i>Editar
+                        </a>
+                        <a href="{% url 'locations:city_delete' city.pk %}" class="btn btn-outline-danger">
+                            <i class="fas fa-trash me-2"></i>Eliminar
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Información General</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Nombre:</strong></td>
+                                    <td>{{ city.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado:</strong></td>
+                                    <td><span class="badge bg-info">{{ city.state.name }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>País:</strong></td>
+                                    <td><span class="badge bg-secondary">{{ city.state.country.name }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado:</strong></td>
+                                    <td>
+                                        {% if city.is_active %}
+                                            <span class="badge bg-success">Activa</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactiva</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Código del Estado:</strong></td>
+                                    <td><span class="badge bg-primary">{{ city.state.code }}</span></td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>Ubicación Completa</h5>
+                            <div class="alert alert-info">
+                                <i class="fas fa-map-marker-alt me-2"></i>
+                                <strong>{{ city.name }}</strong><br>
+                                <small>{{ city.state.name }}, {{ city.state.country.name }}</small>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <h6>Información del Estado</h6>
+                                <p class="mb-1"><strong>Código:</strong> {{ city.state.code }}</p>
+                                <p class="mb-1"><strong>País:</strong> {{ city.state.country.name }} ({{ city.state.country.code }})</p>
+                                <p class="mb-0">
+                                    <strong>Estado del Estado:</strong> 
+                                    {% if city.state.is_active %}
+                                        <span class="badge bg-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactivo</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

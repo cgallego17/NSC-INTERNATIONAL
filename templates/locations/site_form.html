@@ -1,0 +1,593 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Editar Sitio{% else %}Crear Sitio{% endif %} - NSC International
+{% endblock %}
+
+{% block breadcrumb %}
+    <span>Ubicaciones</span> / <span>Sitios</span> / <span>{% if object %}Editar{% else %}Crear{% endif %}</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card site-form-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">
+                                <i class="fas fa-building me-2"></i>
+                                {% if object %}Editar Sitio{% else %}Crear Nuevo Sitio{% endif %}
+                            </h4>
+                            <p class="text-muted mb-0 mt-1">
+                                {% if object %}Modifica la información del sitio{% else %}Completa la información para crear un nuevo sitio{% endif %}
+                            </p>
+                        </div>
+                        <a href="{% url 'locations:site_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Volver a Sitios
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- INFORMACIÓN BÁSICA -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-info-circle me-2"></i>Información Básica
+                            </h5>
+                            
+                            <div class="row">
+                                <div class="col-md-9">
+                                    <div class="form-group mb-3">
+                                        <label for="site_name" class="form-label">
+                                            <i class="fas fa-building me-1"></i>Nombre del Sitio <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" 
+                                               id="site_name" 
+                                               name="site_name" 
+                                               class="form-control" 
+                                               value="{{ form.site_name.value|default:'' }}"
+                                               placeholder="Ej: Dodger Stadium, Yankee Stadium"
+                                               required>
+                                        {% if form.site_name.errors %}
+                                            <div class="text-danger">{{ form.site_name.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group mb-3">
+                                        <label for="abbreviation" class="form-label">
+                                            <i class="fas fa-tag me-1"></i>Abreviatura
+                                        </label>
+                                        <input type="text" 
+                                               id="abbreviation" 
+                                               name="abbreviation" 
+                                               class="form-control" 
+                                               value="{{ form.abbreviation.value|default:'' }}"
+                                               placeholder="Ej: DODG, YS">
+                                        {% if form.abbreviation.errors %}
+                                            <div class="text-danger">{{ form.abbreviation.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="website" class="form-label">
+                                            <i class="fas fa-globe me-1"></i>Sitio Web
+                                        </label>
+                                        <input type="url" 
+                                               id="website" 
+                                               name="website" 
+                                               class="form-control" 
+                                               value="{{ form.website.value|default:'' }}"
+                                               placeholder="https://ejemplo.com">
+                                        {% if form.website.errors %}
+                                            <div class="text-danger">{{ form.website.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="is_active" class="form-label">
+                                            <i class="fas fa-toggle-on me-1"></i>Estado
+                                        </label>
+                                        <div class="form-check form-switch">
+                                            <input type="checkbox" 
+                                                   id="is_active" 
+                                                   name="is_active" 
+                                                   class="form-check-input" 
+                                                   {% if form.is_active.value %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_active">
+                                                Activo
+                                            </label>
+                                        </div>
+                                        {% if form.is_active.errors %}
+                                            <div class="text-danger">{{ form.is_active.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- UBICACIÓN -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-map-marker-alt me-2"></i>Ubicación
+                            </h5>
+                            
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="form-group mb-3">
+                                        <label for="address_1" class="form-label">
+                                            <i class="fas fa-road me-1"></i>Dirección 1 <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" 
+                                               id="address_1" 
+                                               name="address_1" 
+                                               class="form-control" 
+                                               value="{{ form.address_1.value|default:'' }}"
+                                               placeholder="Dirección principal"
+                                               required>
+                                        {% if form.address_1.errors %}
+                                            <div class="text-danger">{{ form.address_1.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="address_2" class="form-label">
+                                            <i class="fas fa-road me-1"></i>Dirección 2
+                                        </label>
+                                        <input type="text" 
+                                               id="address_2" 
+                                               name="address_2" 
+                                               class="form-control" 
+                                               value="{{ form.address_2.value|default:'' }}"
+                                               placeholder="Dirección secundaria">
+                                        {% if form.address_2.errors %}
+                                            <div class="text-danger">{{ form.address_2.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group mb-3">
+                                        <label for="country" class="form-label">
+                                            <i class="fas fa-globe me-1"></i>País <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="country" name="country" class="form-select" required>
+                                            <option value="">Selecciona País</option>
+                                            {% for choice in form.country.field.queryset %}
+                                                <option value="{{ choice.id }}" 
+                                                        {% if form.country.value == choice.id %}selected{% endif %}>
+                                                    {{ choice.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        {% if form.country.errors %}
+                                            <div class="text-danger">{{ form.country.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group mb-3">
+                                        <label for="state" class="form-label">
+                                            <i class="fas fa-map me-1"></i>Estado <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="state" name="state" class="form-select" required>
+                                            <option value="">Selecciona Estado</option>
+                                            {% for choice in form.state.field.queryset %}
+                                                <option value="{{ choice.id }}" 
+                                                        {% if form.state.value == choice.id %}selected{% endif %}>
+                                                    {{ choice.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        {% if form.state.errors %}
+                                            <div class="text-danger">{{ form.state.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group mb-3">
+                                        <label for="city" class="form-label">
+                                            <i class="fas fa-city me-1"></i>Ciudad <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="city" name="city" class="form-select" required>
+                                            <option value="">Selecciona Ciudad</option>
+                                            {% for choice in form.city.field.queryset %}
+                                                <option value="{{ choice.id }}" 
+                                                        {% if form.city.value == choice.id %}selected{% endif %}>
+                                                    {{ choice.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        {% if form.city.errors %}
+                                            <div class="text-danger">{{ form.city.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group mb-3">
+                                        <label for="postal_code" class="form-label">
+                                            <i class="fas fa-mail-bulk me-1"></i>Código Postal <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" 
+                                               id="postal_code" 
+                                               name="postal_code" 
+                                               class="form-control" 
+                                               value="{{ form.postal_code.value|default:'' }}"
+                                               placeholder="Ej: 90012, 77002"
+                                               required>
+                                        {% if form.postal_code.errors %}
+                                            <div class="text-danger">{{ form.postal_code.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- INFORMACIÓN ADICIONAL -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-plus-circle me-2"></i>Información Adicional
+                            </h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="image" class="form-label">
+                                            <i class="fas fa-image me-1"></i>Imagen del Sitio
+                                        </label>
+                                        <input type="file" 
+                                               id="image" 
+                                               name="image" 
+                                               class="form-control" 
+                                               accept="image/*">
+                                        {% if form.image.errors %}
+                                            <div class="text-danger">{{ form.image.errors.0 }}</div>
+                                        {% endif %}
+                                        <div class="form-text">
+                                            <i class="fas fa-info-circle me-1"></i>Sube una imagen para este sitio (opcional)
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="additional_info" class="form-label">
+                                            <i class="fas fa-info me-1"></i>Información Adicional
+                                        </label>
+                                        <textarea id="additional_info" 
+                                                  name="additional_info" 
+                                                  class="form-control" 
+                                                  rows="4"
+                                                  placeholder="Ingresa cualquier información adicional sobre este sitio">{{ form.additional_info.value|default:'' }}</textarea>
+                                        {% if form.additional_info.errors %}
+                                            <div class="text-danger">{{ form.additional_info.errors.0 }}</div>
+                                        {% endif %}
+                                        <div class="form-text">
+                                            <i class="fas fa-question-circle me-1"></i>Información adicional sobre este sitio
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BOTONES DE ACCIÓN -->
+                        <div class="d-flex justify-content-end gap-3 mt-4">
+                            <a href="{% url 'locations:site_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Volver a Sitios
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                {% if object %}Actualizar Sitio{% else %}Crear Sitio{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.site-form-card {
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    border-radius: 0.35rem;
+}
+
+.site-form-card .card-header {
+    background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
+    color: white;
+    border-radius: 0.35rem 0.35rem 0 0;
+    border: none;
+    padding: 1.5rem;
+}
+
+[data-theme="dark"] .site-form-card .card-header {
+    background: linear-gradient(180deg, #0f1419 0%, #1a1a1a 100%);
+}
+
+.form-section {
+    border-left: 4px solid #e3e6f0;
+    padding-left: 1rem;
+    margin-bottom: 2rem;
+}
+
+[data-theme="dark"] .form-section {
+    border-left-color: #4a5568;
+}
+
+.section-title {
+    color: #5a5c69;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+[data-theme="dark"] .section-title {
+    color: #d1d5db;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #5a5c69;
+    margin-bottom: 0.5rem;
+}
+
+[data-theme="dark"] .form-label {
+    color: #d1d5db;
+}
+
+.form-control, .form-select {
+    border: 1px solid #d1d3e2;
+    border-radius: 0.35rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+}
+
+[data-theme="dark"] .form-control, 
+[data-theme="dark"] .form-select {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #4a5568;
+    box-shadow: 0 0 0 0.2rem rgba(74, 85, 104, 0.25);
+}
+
+[data-theme="dark"] .form-control:focus, 
+[data-theme="dark"] .form-select:focus {
+    border-color: #6b7280;
+    box-shadow: 0 0 0 0.2rem rgba(107, 114, 128, 0.25);
+}
+
+.btn-outline-secondary {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.9);
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .btn-outline-secondary {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .btn-outline-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    color: white;
+}
+
+.form-check-input:checked {
+    background-color: #4a5568;
+    border-color: #4a5568;
+}
+
+.form-check-input:focus {
+    border-color: #4a5568;
+    box-shadow: 0 0 0 0.2rem rgba(74, 85, 104, 0.25);
+}
+
+.form-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+}
+
+[data-theme="dark"] .form-text {
+    color: #9ca3af;
+}
+
+/* Estilos para campos de carga en cascada */
+.form-select:disabled {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+[data-theme="dark"] .form-select:disabled {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #9ca3af;
+}
+
+.form-select option:disabled {
+    color: #6c757d;
+    font-style: italic;
+}
+
+[data-theme="dark"] .form-select option:disabled {
+    color: #9ca3af;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const countrySelect = document.getElementById('country');
+    const stateSelect = document.getElementById('state');
+    const citySelect = document.getElementById('city');
+
+    // Cargar estados cuando se selecciona un país
+    countrySelect.addEventListener('change', function() {
+        const countryId = this.value;
+        
+        // Limpiar estados y ciudades
+        stateSelect.innerHTML = '<option value="">Selecciona Estado</option>';
+        citySelect.innerHTML = '<option value="">Selecciona Ciudad</option>';
+        stateSelect.disabled = true;
+        citySelect.disabled = true;
+        
+        if (countryId) {
+            loadStates(countryId);
+        }
+    });
+
+    // Cargar ciudades cuando se selecciona un estado
+    stateSelect.addEventListener('change', function() {
+        const stateId = this.value;
+        
+        // Limpiar ciudades
+        citySelect.innerHTML = '<option value="">Selecciona Ciudad</option>';
+        citySelect.disabled = true;
+        
+        if (stateId) {
+            loadCities(stateId);
+        }
+    });
+
+    // Cargar estados por país
+    async function loadStates(countryId) {
+        try {
+            console.log('Cargando estados para país:', countryId);
+            
+            // Mostrar indicador de carga
+            stateSelect.innerHTML = '<option value="">Cargando estados...</option>';
+            stateSelect.disabled = true;
+            
+            const response = await fetch(`/locations/ajax/states/${countryId}/`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const states = await response.json();
+            console.log('Estados recibidos:', states);
+            
+            stateSelect.innerHTML = '<option value="">Selecciona Estado</option>';
+            states.forEach(state => {
+                const option = document.createElement('option');
+                option.value = state.id;
+                option.textContent = state.name;
+                stateSelect.appendChild(option);
+            });
+            
+            stateSelect.disabled = false;
+            console.log('Estados cargados en el select');
+            
+            return states; // Devolver los estados para el .then()
+            
+        } catch (error) {
+            console.error('Error cargando estados:', error);
+            stateSelect.innerHTML = '<option value="">Error cargando estados</option>';
+            throw error; // Re-lanzar el error para el .catch()
+        }
+    }
+
+    // Cargar ciudades por estado
+    async function loadCities(stateId) {
+        try {
+            console.log('Cargando ciudades para estado:', stateId);
+            
+            // Mostrar indicador de carga
+            citySelect.innerHTML = '<option value="">Cargando ciudades...</option>';
+            citySelect.disabled = true;
+            
+            const response = await fetch(`/locations/ajax/cities/${stateId}/`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const cities = await response.json();
+            console.log('Ciudades recibidas:', cities);
+            
+            citySelect.innerHTML = '<option value="">Selecciona Ciudad</option>';
+            cities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city.id;
+                option.textContent = city.name;
+                citySelect.appendChild(option);
+            });
+            
+            citySelect.disabled = false;
+            console.log('Ciudades cargadas en el select');
+            
+            return cities; // Devolver las ciudades para el .then()
+            
+        } catch (error) {
+            console.error('Error cargando ciudades:', error);
+            citySelect.innerHTML = '<option value="">Error cargando ciudades</option>';
+            throw error; // Re-lanzar el error para el .catch()
+        }
+    }
+
+    // Cargar datos iniciales si hay valores preseleccionados
+    if (countrySelect.value) {
+        console.log('Cargando datos iniciales para país:', countrySelect.value);
+        const selectedStateId = stateSelect.value; // Guardar el estado seleccionado
+        const selectedCityId = citySelect.value; // Guardar la ciudad seleccionada
+        
+        loadStates(countrySelect.value).then(() => {
+            // Restaurar el estado seleccionado
+            if (selectedStateId) {
+                stateSelect.value = selectedStateId;
+                console.log('Estado restaurado:', selectedStateId);
+                
+                // Cargar ciudades para el estado seleccionado
+                loadCities(selectedStateId).then(() => {
+                    // Restaurar la ciudad seleccionada
+                    if (selectedCityId) {
+                        citySelect.value = selectedCityId;
+                        console.log('Ciudad restaurada:', selectedCityId);
+                    }
+                });
+            }
+        }).catch(error => {
+            console.error('Error cargando datos iniciales:', error);
+        });
+    }
+});
+</script>
+{% endblock %}

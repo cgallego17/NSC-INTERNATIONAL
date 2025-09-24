@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Rules - NSC International{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">Rules Management</h1>
+                    <p class="text-muted">Manage system rules and regulations</p>
+                </div>
+                <a href="{% url 'locations:rule_create' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Add New Rule
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-4">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ request.GET.search }}" placeholder="Search by name, description...">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="rule_type" class="form-label">Rule Type</label>
+                            <select class="form-select" id="rule_type" name="rule_type">
+                                <option value="">All Types</option>
+                                {% for value, label in rule_type_choices %}
+                                    <option value="{{ value }}" {% if request.GET.rule_type == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="is_active" class="form-label">Status</label>
+                            <select class="form-select" id="is_active" name="is_active">
+                                <option value="">All Status</option>
+                                <option value="true" {% if request.GET.is_active == 'true' %}selected{% endif %}>Active</option>
+                                <option value="false" {% if request.GET.is_active == 'false' %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-outline-primary">Filter</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rules Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    {% if rules %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Type</th>
+                                        <th>Description</th>
+                                        <th>Status</th>
+                                        <th>Events</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for rule in rules %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ rule.name }}</strong>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">{{ rule.get_rule_type_display }}</span>
+                                            </td>
+                                            <td>
+                                                {% if rule.description %}
+                                                    {{ rule.description|truncatechars:50 }}
+                                                {% else %}
+                                                    <span class="text-muted">No description</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if rule.is_active %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% else %}
+                                                    <span class="badge bg-secondary">Inactive</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary">{{ rule.events_count }}</span>
+                                            </td>
+                                            <td>{{ rule.created_at|date:"M d, Y" }}</td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'locations:rule_detail' rule.pk %}" 
+                                                       class="btn btn-sm btn-outline-info" title="View">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    <a href="{% url 'locations:rule_update' rule.pk %}" 
+                                                       class="btn btn-sm btn-outline-warning" title="Edit">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </a>
+                                                    <a href="{% url 'locations:rule_delete' rule.pk %}" 
+                                                       class="btn btn-sm btn-outline-danger" title="Delete">
+                                                        <i class="bi bi-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if is_paginated %}
+                            <nav aria-label="Rules pagination">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.rule_type %}&rule_type={{ request.GET.rule_type }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">First</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.rule_type %}&rule_type={{ request.GET.rule_type }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">Previous</a>
+                                        </li>
+                                    {% endif %}
+
+                                    <li class="page-item active">
+                                        <span class="page-link">
+                                            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                        </span>
+                                    </li>
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.rule_type %}&rule_type={{ request.GET.rule_type }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">Next</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.rule_type %}&rule_type={{ request.GET.rule_type }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">Last</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-rulers text-muted" style="font-size: 3rem;"></i>
+                            <h4 class="text-muted mt-3">No Rules Found</h4>
+                            <p class="text-muted">Get started by creating your first rule.</p>
+                            <a href="{% url 'locations:rule_create' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-2"></i>Create First Rule
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

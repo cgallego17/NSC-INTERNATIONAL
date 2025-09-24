@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ state.name }} - NSC Eventos{% endblock %}
+
+{% block breadcrumb %}
+    <span>Ubicaciones</span> / <span>Estados</span> / <span>{{ state.name }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-map-marked-alt me-2"></i>{{ state.name }}
+                    </h4>
+                    <div class="btn-group">
+                        <a href="{% url 'locations:state_update' state.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-edit me-2"></i>Editar
+                        </a>
+                        <a href="{% url 'locations:state_delete' state.pk %}" class="btn btn-outline-danger">
+                            <i class="fas fa-trash me-2"></i>Eliminar
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5>Información General</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Nombre:</strong></td>
+                                    <td>{{ state.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Código:</strong></td>
+                                    <td><span class="badge bg-secondary">{{ state.code }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>País:</strong></td>
+                                    <td><span class="badge bg-info">{{ state.country.name }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Estado:</strong></td>
+                                    <td>
+                                        {% if state.is_active %}
+                                            <span class="badge bg-success">Activo</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactivo</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Ciudades:</strong></td>
+                                    <td><span class="badge bg-primary">{{ cities_count }}</span></td>
+                                </tr>
+                            </table>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5>Ciudades</h5>
+                            {% if cities %}
+                                <div class="list-group">
+                                    {% for city in cities %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ city.name }}</strong>
+                                        </div>
+                                        <div>
+                                            <a href="{% url 'locations:city_detail' city.pk %}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted">No hay ciudades registradas para este estado.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

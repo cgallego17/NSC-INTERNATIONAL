@@ -1,0 +1,280 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ciudades - NSC Eventos{% endblock %}
+
+{% block breadcrumb %}
+    <span>Ubicaciones</span> / <span>Ciudades</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fas fa-city me-2"></i>Ciudades
+                    </h4>
+                    <a href="{% url 'locations:city_create' %}" class="btn btn-corporate">
+                        <i class="fas fa-plus me-2"></i>Nueva Ciudad
+                    </a>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Filtros -->
+                    <div class="row mb-3">
+                        <div class="col-md-2">
+                            <form method="get" class="d-flex">
+                                <input type="text" 
+                                       name="search" 
+                                       class="form-control me-2" 
+                                       placeholder="Buscar ciudades..."
+                                       value="{{ search }}">
+                                <button type="submit" class="btn btn-outline-secondary">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </form>
+                        </div>
+                        <div class="col-md-2">
+                            <form method="get" class="d-flex">
+                                <select name="country" class="form-select" onchange="this.form.submit()">
+                                    <option value="">Todos los países</option>
+                                    {% for country in countries %}
+                                    <option value="{{ country.id }}" {% if country_filter == country.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ country.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                {% if search %}
+                                    <input type="hidden" name="search" value="{{ search }}">
+                                {% endif %}
+                            </form>
+                        </div>
+                        <div class="col-md-2">
+                            <form method="get" class="d-flex">
+                                <select name="state" class="form-select" onchange="this.form.submit()">
+                                    <option value="">Todos los estados</option>
+                                    {% for state in states %}
+                                    <option value="{{ state.id }}" {% if state_filter == state.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ state.name }}, {{ state.country.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                                {% if search %}
+                                    <input type="hidden" name="search" value="{{ search }}">
+                                {% endif %}
+                                {% if country_filter %}
+                                    <input type="hidden" name="country" value="{{ country_filter }}">
+                                {% endif %}
+                            </form>
+                        </div>
+                        <div class="col-md-2">
+                            <form method="get" class="d-flex">
+                                <select name="status" class="form-select" onchange="this.form.submit()">
+                                    <option value="">Todos los estados</option>
+                                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Activas</option>
+                                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactivas</option>
+                                </select>
+                                {% if search %}
+                                    <input type="hidden" name="search" value="{{ search }}">
+                                {% endif %}
+                                {% if country_filter %}
+                                    <input type="hidden" name="country" value="{{ country_filter }}">
+                                {% endif %}
+                                {% if state_filter %}
+                                    <input type="hidden" name="state" value="{{ state_filter }}">
+                                {% endif %}
+                            </form>
+                        </div>
+                        <div class="col-md-2">
+                            <form method="get" class="d-flex">
+                                <select name="sort" class="form-select" onchange="this.form.submit()">
+                                    <option value="name" {% if sort_filter == 'name' %}selected{% endif %}>Ordenar por nombre</option>
+                                    <option value="state" {% if sort_filter == 'state' %}selected{% endif %}>Ordenar por estado</option>
+                                    <option value="country" {% if sort_filter == 'country' %}selected{% endif %}>Ordenar por país</option>
+                                    <option value="created" {% if sort_filter == 'created' %}selected{% endif %}>Ordenar por fecha</option>
+                                </select>
+                                {% if search %}
+                                    <input type="hidden" name="search" value="{{ search }}">
+                                {% endif %}
+                                {% if country_filter %}
+                                    <input type="hidden" name="country" value="{{ country_filter }}">
+                                {% endif %}
+                                {% if state_filter %}
+                                    <input type="hidden" name="state" value="{{ state_filter }}">
+                                {% endif %}
+                                {% if status_filter %}
+                                    <input type="hidden" name="status" value="{{ status_filter }}">
+                                {% endif %}
+                            </form>
+                        </div>
+                        <div class="col-md-2">
+                            <a href="{% url 'locations:city_list' %}" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-times me-1"></i>Limpiar
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Indicadores de filtros activos -->
+                    {% if search or country_filter or state_filter or status_filter or sort_filter != 'name' %}
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="alert alert-info d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-filter me-2"></i>
+                                    <strong>Filtros activos:</strong>
+                                    {% if search %}
+                                        <span class="badge bg-primary me-1">Búsqueda: "{{ search }}"</span>
+                                    {% endif %}
+                                    {% if country_filter and selected_country %}
+                                        <span class="badge bg-secondary me-1">País: {{ selected_country.name }}</span>
+                                    {% endif %}
+                                    {% if state_filter and selected_state %}
+                                        <span class="badge bg-warning me-1">Estado: {{ selected_state.name }}</span>
+                                    {% endif %}
+                                    {% if status_filter %}
+                                        <span class="badge bg-danger me-1">
+                                            Estado: {% if status_filter == 'active' %}Activas{% else %}Inactivas{% endif %}
+                                        </span>
+                                    {% endif %}
+                                    {% if sort_filter != 'name' %}
+                                        <span class="badge bg-info me-1">
+                                            Orden: {% if sort_filter == 'state' %}Estado{% elif sort_filter == 'country' %}País{% elif sort_filter == 'created' %}Fecha{% endif %}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <a href="{% url 'locations:city_list' %}" class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-times me-1"></i>Limpiar todos
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Contador de resultados -->
+                    <div class="row mb-2">
+                        <div class="col-12">
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Mostrando {{ page_obj.start_index|default:0 }}-{{ page_obj.end_index|default:0 }} de {{ page_obj.paginator.count|default:0 }} ciudades
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <!-- Tabla -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Estado</th>
+                                    <th>País</th>
+                                    <th>Activa</th>
+                                    <th>Creado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for city in cities %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ city.name }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ city.state.name }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ city.state.country.name }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if city.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {% if city.is_active %}Activa{% else %}Inactiva{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            {{ city.created_at|date:"d/m/Y" }}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'locations:city_detail' city.pk %}" 
+                                               class="btn btn-outline-primary btn-sm" 
+                                               title="Ver detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'locations:city_update' city.pk %}" 
+                                               class="btn btn-outline-secondary btn-sm" 
+                                               title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'locations:city_delete' city.pk %}" 
+                                               class="btn btn-outline-danger btn-sm" 
+                                               title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5">
+                                        <i class="fas fa-city fa-3x text-muted mb-3"></i>
+                                        <h4 class="text-muted">No hay ciudades</h4>
+                                        <p class="text-muted">No se encontraron ciudades con los filtros aplicados.</p>
+                                        <a href="{% url 'locations:city_create' %}" class="btn btn-primary">
+                                            <i class="fas fa-plus me-2"></i>Crear Primera Ciudad
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Paginación -->
+                    {% if is_paginated %}
+                    <nav aria-label="Paginación">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if country_filter %}&country={{ country_filter }}{% endif %}{% if state_filter %}&state={{ state_filter }}{% endif %}">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if country_filter %}&country={{ country_filter }}{% endif %}{% if state_filter %}&state={{ state_filter }}{% endif %}">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                            
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if country_filter %}&country={{ country_filter }}{% endif %}{% if state_filter %}&state={{ state_filter }}{% endif %}">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if country_filter %}&country={{ country_filter }}{% endif %}{% if state_filter %}&state={{ state_filter }}{% endif %}">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

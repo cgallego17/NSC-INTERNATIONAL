@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Site{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'locations:site_list' %}">Sites</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'locations:site_detail' site.pk %}">{{ site.site_name }}</a></li>
+            <li class="breadcrumb-item active">Delete</li>
+        </ol>
+    </nav>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle me-3"></i>
+                        <div>
+                            <h4 class="mb-0">Delete Site</h4>
+                            <small>This action cannot be undone</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning!</strong> You are about to permanently delete this site. This action cannot be undone.
+                    </div>
+
+                    <div class="mb-4">
+                        <h6>Site Information:</h6>
+                        <div class="d-flex align-items-center mb-3">
+                            {% if site.image %}
+                                <img src="{{ site.image.url }}" alt="{{ site.site_name }}" 
+                                     class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                            {% else %}
+                                <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center" 
+                                     style="width: 50px; height: 50px;">
+                                    <i class="fas fa-building text-muted"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <strong>{{ site.site_name }}</strong>
+                                {% if site.abbreviation %}
+                                    <span class="badge bg-secondary ms-2">{{ site.abbreviation }}</span>
+                                {% endif %}
+                                <br>
+                                <small class="text-muted">{{ site.city.name|default:"N/A" }}, {{ site.state.name|default:"N/A" }}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-light p-3 rounded">
+                            <strong>Full Address:</strong><br>
+                            <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                            {{ site.full_address }}
+                        </div>
+                    </div>
+
+                    {% if site.events_count > 0 %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        This site is currently associated with <strong>{{ site.events_count }}</strong> event(s). 
+                        Deleting this site may affect those events.
+                    </div>
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'locations:site_detail' site.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Yes, Delete Site
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

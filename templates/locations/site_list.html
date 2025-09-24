@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sites{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-building me-2"></i>Sites
+            </h1>
+            <p class="text-muted">Manage event sites and facilities</p>
+        </div>
+        <a href="{% url 'locations:site_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Add New Site
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           value="{{ request.GET.search }}" placeholder="Search sites...">
+                </div>
+                <div class="col-md-3">
+                    <label for="country" class="form-label">Country</label>
+                    <select class="form-select" id="country" name="country">
+                        <option value="">All Countries</option>
+                        {% for country in countries %}
+                            <option value="{{ country.id }}" 
+                                    {% if request.GET.country == country.id|stringformat:"s" %}selected{% endif %}>
+                                {{ country.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="state" class="form-label">State</label>
+                    <select class="form-select" id="state" name="state">
+                        <option value="">All States</option>
+                        {% for state in states %}
+                            <option value="{{ state.id }}" 
+                                    {% if request.GET.state == state.id|stringformat:"s" %}selected{% endif %}>
+                                {{ state.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">All</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                        <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-search me-1"></i>Filter
+                    </button>
+                    <a href="{% url 'locations:site_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Clear
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sites Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if sites %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Site Name</th>
+                                <th>Abbreviation</th>
+                                <th>City</th>
+                                <th>State</th>
+                                <th>Country</th>
+                                <th>Website</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for site in sites %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if site.image %}
+                                                <img src="{{ site.image.url }}" alt="{{ site.site_name }}" 
+                                                     class="rounded me-3" style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center" 
+                                                     style="width: 40px; height: 40px;">
+                                                    <i class="fas fa-building text-muted"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ site.site_name }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ site.address_1 }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if site.abbreviation %}
+                                            <span class="badge bg-secondary">{{ site.abbreviation }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ site.city.name|default:"-" }}</td>
+                                    <td>{{ site.state.name|default:"-" }}</td>
+                                    <td>{{ site.country.name|default:"-" }}</td>
+                                    <td>
+                                        {% if site.website %}
+                                            <a href="{{ site.website }}" target="_blank" class="text-decoration-none">
+                                                <i class="fas fa-external-link-alt me-1"></i>Visit
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if site.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'locations:site_detail' site.pk %}" 
+                                               class="btn btn-sm btn-outline-info" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'locations:site_update' site.pk %}" 
+                                               class="btn btn-sm btn-outline-warning" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'locations:site_delete' site.pk %}" 
+                                               class="btn btn-sm btn-outline-danger" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                    <nav aria-label="Sites pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.country %}&country={{ request.GET.country }}{% endif %}{% if request.GET.state %}&state={{ request.GET.state }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">First</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.country %}&country={{ request.GET.country }}{% endif %}{% if request.GET.state %}&state={{ request.GET.state }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Previous</a>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.country %}&country={{ request.GET.country }}{% endif %}{% if request.GET.state %}&state={{ request.GET.state }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Next</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.country %}&country={{ request.GET.country }}{% endif %}{% if request.GET.state %}&state={{ request.GET.state }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Last</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-building fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No sites found</h5>
+                    <p class="text-muted">Get started by creating your first site.</p>
+                    <a href="{% url 'locations:site_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add New Site
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
