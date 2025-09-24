@@ -248,3 +248,4 @@ class Command(BaseCommand):
                 self.stdout.write(f'Temporada creada: {season.name} {season.year}')
             else:
                 self.stdout.write(f'Temporada ya existe: {season.name} {season.year}')
+

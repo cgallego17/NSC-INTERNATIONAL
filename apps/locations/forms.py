@@ -120,3 +120,4 @@ class SeasonForm(forms.ModelForm):
             raise forms.ValidationError("La fecha de fin debe ser posterior a la fecha de inicio.")
         
         return cleaned_data
+
