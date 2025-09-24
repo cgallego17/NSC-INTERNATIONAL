@@ -1,10 +1,9 @@
 from django.contrib.auth.models import User
 from django.core.management import call_command
-from django.db import transaction
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from apps.locations.models import City, Country, League, Rule, Season, Site, State
+from apps.locations.models import City, Country, League, Season, Site, State
 
 from .models import Event
 

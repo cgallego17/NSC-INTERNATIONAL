@@ -1,9 +1,8 @@
 from django import forms
-from django.contrib.auth.models import User
 
-from apps.locations.models import City, Country, Season, Site, State
+from apps.locations.models import Country, Season, State
 
-from .models import Event, EventCategory
+from .models import Event
 
 
 class EventForm(forms.ModelForm):
