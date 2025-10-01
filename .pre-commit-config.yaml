@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v4.5.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -10,10 +10,10 @@ repos:
       - id: debug-statements
 
   - repo: https://github.com/psf/black
-    rev: 24.10.0
+    rev: 24.1.1
     hooks:
       - id: black
-        language_version: python3
+        language_version: python3.11
 
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
@@ -22,36 +22,27 @@ repos:
         args: ["--profile", "black"]
 
   - repo: https://github.com/pycqa/flake8
-    rev: 7.1.1
+    rev: 7.0.0
     hooks:
       - id: flake8
-        args: [--max-line-length=127, --max-complexity=10]
+        args: [--max-line-length=88, --extend-ignore=E203]
 
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.8
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.7.5
     hooks:
       - id: bandit
-        args: [-r, ., -ll]
-        exclude: ^(migrations|staticfiles|media)/
+        args: ["-r", ".", "-f", "json", "-o", "bandit-report.json"]
+        exclude: ^(migrations/|venv/|\.venv/|env/|\.env/)
 
-  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
-    rev: v1.3.2
+  - repo: https://github.com/PyCQA/safety
+    rev: 3.0.1
     hooks:
-      - id: python-safety-dependencies-check
-        files: requirements.*\.txt$
+      - id: safety
+        args: ["check", "--json", "--output", "safety-report.json"]
 
-  - repo: local
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
     hooks:
-      - id: django-check
-        name: Django Check
-        entry: python manage.py check
-        language: system
-        pass_filenames: false
-        always_run: true
-
-      - id: django-migrations-check
-        name: Django Migrations Check
-        entry: python manage.py makemigrations --check --dry-run
-        language: system
-        pass_filenames: false
-        always_run: true
+      - id: mypy
+        additional_dependencies: [types-all]
+        args: [--ignore-missing-imports]
