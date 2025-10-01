@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView
 
 from .forms import EventForm
-from .models import Event, EventAttendance, EventCategory, EventComment
+from .models import Division, Event, EventAttendance, EventCategory, EventComment
 
 
 class EventListView(LoginRequiredMixin, ListView):
@@ -194,7 +194,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         today_end = today_start + timedelta(days=1)
         today_events = (
             Event.objects.filter(start_date__gte=today_start, start_date__lt=today_end)
-            .select_related("category")
+            .select_related("category", "division")
             .order_by("start_date")
         )
 
@@ -202,12 +202,15 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         week_end = now + timedelta(days=7)
         upcoming_week = (
             Event.objects.filter(start_date__gt=now, start_date__lte=week_end)
-            .select_related("category")
+            .select_related("category", "division")
             .order_by("start_date")[:5]
         )
 
         # Eventos por categoría
         events_by_category = Event.objects.values("category__name").annotate(count=Count("id")).order_by("-count")[:5]
+
+        # Eventos por división
+        events_by_division = Event.objects.values("division__name").annotate(count=Count("id")).order_by("-count")[:5]
 
         # Eventos más populares (por número de asistentes)
         popular_events = Event.objects.annotate(attendee_count=Count("attendees")).order_by("-attendee_count")[:5]
@@ -228,6 +231,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "today_events": today_events,
                 "upcoming_week": upcoming_week,
                 "events_by_category": events_by_category,
+                "events_by_division": events_by_division,
                 "popular_events": popular_events,
                 "total_attendances": total_attendances,
                 "confirmed_attendances": confirmed_attendances,
@@ -236,3 +240,119 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         )
 
         return context
+
+
+# ===== DIVISION VIEWS =====
+class DivisionListView(LoginRequiredMixin, ListView):
+    model = Division
+    template_name = "events/division_list.html"
+    context_object_name = "divisions"
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = Division.objects.all()
+        search = self.request.GET.get("search")
+        skill_level = self.request.GET.get("skill_level")
+        status = self.request.GET.get("status")
+        sort = self.request.GET.get("sort", "name")
+
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search) | Q(description__icontains=search) | Q(skill_level__icontains=search)
+            )
+        if skill_level:
+            queryset = queryset.filter(skill_level__icontains=skill_level)
+        if status == "active":
+            queryset = queryset.filter(is_active=True)
+        elif status == "inactive":
+            queryset = queryset.filter(is_active=False)
+
+        # Ordenamiento
+        if sort == "name":
+            queryset = queryset.order_by("name")
+        elif sort == "age_min":
+            queryset = queryset.order_by("age_min")
+        elif sort == "skill_level":
+            queryset = queryset.order_by("skill_level")
+        elif sort == "created":
+            queryset = queryset.order_by("-created_at")
+        else:
+            queryset = queryset.order_by("name")
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["search"] = self.request.GET.get("search", "")
+        context["skill_level_filter"] = self.request.GET.get("skill_level", "")
+        context["status_filter"] = self.request.GET.get("status", "")
+        context["sort_filter"] = self.request.GET.get("sort", "name")
+        context["active_section"] = "configuration"
+        context["active_subsection"] = "division_list"
+        return context
+
+
+class DivisionDetailView(LoginRequiredMixin, DetailView):
+    model = Division
+    template_name = "events/division_detail.html"
+    context_object_name = "division"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["events"] = self.object.events.all().order_by("-start_date")[:10]
+        context["events_count"] = self.object.events.count()
+        context["active_section"] = "configuration"
+        context["active_subsection"] = "division_list"
+        return context
+
+
+class DivisionCreateView(LoginRequiredMixin, CreateView):
+    model = Division
+    template_name = "events/division_form.html"
+    fields = ["name", "description", "age_min", "age_max", "skill_level", "is_active"]
+    success_url = reverse_lazy("events:division_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["active_section"] = "configuration"
+        context["active_subsection"] = "division_list"
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, "División creada exitosamente.")
+        return super().form_valid(form)
+
+
+class DivisionUpdateView(LoginRequiredMixin, UpdateView):
+    model = Division
+    template_name = "events/division_form.html"
+    fields = ["name", "description", "age_min", "age_max", "skill_level", "is_active"]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["active_section"] = "configuration"
+        context["active_subsection"] = "division_list"
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy("events:division_detail", kwargs={"pk": self.object.pk})
+
+    def form_valid(self, form):
+        messages.success(self.request, "División actualizada exitosamente.")
+        return super().form_valid(form)
+
+
+class DivisionDeleteView(LoginRequiredMixin, DeleteView):
+    model = Division
+    template_name = "events/division_confirm_delete.html"
+    success_url = reverse_lazy("events:division_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["active_section"] = "configuration"
+        context["active_subsection"] = "division_list"
+        return context
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, "División eliminada exitosamente.")
+        return super().delete(request, *args, **kwargs)

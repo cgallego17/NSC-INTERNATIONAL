@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 
-from .models import Event, EventAttendance, EventCategory, EventComment, EventReminder
+from .models import Division, Event, EventAttendance, EventCategory, EventComment, EventReminder
 
 
 class EventAttendanceInline(admin.TabularInline):
@@ -35,11 +35,28 @@ class EventCategoryAdmin(admin.ModelAdmin):
     color_display.short_description = "Color"
 
 
+@admin.register(Division)
+class DivisionAdmin(admin.ModelAdmin):
+    list_display = ["name", "age_range", "skill_level", "is_active", "created_at"]
+    list_filter = ["is_active", "skill_level", "created_at"]
+    search_fields = ["name", "description", "skill_level"]
+    readonly_fields = ["created_at", "updated_at", "age_range"]
+    
+    fieldsets = (
+        ("Información Básica", {"fields": ("name", "description")}),
+        ("Configuración de Edad", {"fields": ("age_min", "age_max", "age_range")}),
+        ("Configuración de Habilidad", {"fields": ("skill_level",)}),
+        ("Estado", {"fields": ("is_active",)}),
+        ("Fechas del Sistema", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
+    )
+
+
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
     list_display = [
         "title",
         "category",
+        "division",
         "start_date",
         "end_date",
         "status",
@@ -48,7 +65,7 @@ class EventAdmin(admin.ModelAdmin):
         "attendees_count",
         "is_public",
     ]
-    list_filter = ["status", "priority", "category", "is_public", "requires_registration", "start_date"]
+    list_filter = ["status", "priority", "category", "division", "is_public", "requires_registration", "start_date"]
     search_fields = ["title", "description", "location", "organizer__username"]
     readonly_fields = ["created_at", "updated_at", "attendees_count", "is_past", "is_ongoing", "is_upcoming", "is_full"]
     inlines = [EventAttendanceInline, EventCommentInline]

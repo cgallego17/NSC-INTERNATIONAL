@@ -115,6 +115,20 @@
                                     <div class="text-danger">{{ form.description.errors.0 }}</div>
                             {% endif %}
                         </div>
+
+                        <!-- División -->
+                        <div class="form-group mb-3">
+                            <label for="{{ form.division.id_for_label }}" class="form-label">
+                                <i class="fas fa-trophy me-1"></i>{{ form.division.label }}
+                            </label>
+                            {{ form.division }}
+                            {% if form.division.errors %}
+                                <div class="text-danger">{{ form.division.errors.0 }}</div>
+                            {% endif %}
+                            <div class="form-text">
+                                <i class="fas fa-info-circle me-1"></i>Selecciona la división de baseball para este evento
+                            </div>
+                        </div>
                         </div>
 
                         <!-- UBICACIÓN -->

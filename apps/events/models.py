@@ -23,6 +23,43 @@ class EventCategory(models.Model):
         return self.name
 
 
+class Division(models.Model):
+    """Divisiones de eventos"""
+
+    name = models.CharField(max_length=100, unique=True, verbose_name="Nombre de la División")
+    description = models.TextField(blank=True, verbose_name="Descripción")
+    age_min = models.PositiveIntegerField(null=True, blank=True, verbose_name="Edad Mínima")
+    age_max = models.PositiveIntegerField(null=True, blank=True, verbose_name="Edad Máxima")
+    skill_level = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name="Nivel de Habilidad",
+        help_text="Ej: Principiante, Intermedio, Avanzado"
+    )
+    is_active = models.BooleanField(default=True, verbose_name="Activo")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "División"
+        verbose_name_plural = "Divisiones"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    @property
+    def age_range(self):
+        """Retorna el rango de edad como string"""
+        if self.age_min and self.age_max:
+            return f"{self.age_min}-{self.age_max} años"
+        elif self.age_min:
+            return f"{self.age_min}+ años"
+        elif self.age_max:
+            return f"Hasta {self.age_max} años"
+        return "Sin restricción de edad"
+
+
 class Event(models.Model):
     """Modelo de eventos"""
 
@@ -68,6 +105,14 @@ class Event(models.Model):
 
     # Categorización
     category = models.ForeignKey(EventCategory, on_delete=models.CASCADE, related_name="events")
+    division = models.ForeignKey(
+        Division, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name="events", 
+        verbose_name="División"
+    )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default="medium")
 

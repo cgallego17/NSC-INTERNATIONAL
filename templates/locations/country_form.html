@@ -2,102 +2,237 @@
 {% load static %}
 
 {% block title %}
-    {% if object %}Editar País{% else %}Nuevo País{% endif %} - NSC Eventos
-{% endblock %}
-
-{% block breadcrumb %}
-    <span>Ubicaciones</span> / <span>Países</span> / <span>{% if object %}Editar{% else %}Nuevo{% endif %}</span>
+    {% if object %}Editar País{% else %}Crear País{% endif %} - NSC International
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="mb-0">
-                        <i class="fas fa-globe-americas me-2"></i>
-                        {% if object %}Editar País{% else %}Nuevo País{% endif %}
-                    </h4>
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        {% if object %}Editar País{% else %}Crear Nuevo País{% endif %}
+                    </h1>
+                    <p class="text-muted">
+                        {% if object %}Modifica los datos del país{% else %}Agrega un nuevo país al sistema{% endif %}
+                    </p>
                 </div>
-                
+                <a href="{% url 'locations:country_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Volver a Países
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-globe me-2"></i>
+                        {% if object %}Editar País{% else %}Nuevo País{% endif %}
+                    </h5>
+                </div>
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
                         
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {{ form.non_field_errors }}
+                        <!-- Información Básica -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="bi bi-info-circle me-2"></i>Información Básica
+                                </h6>
                             </div>
-                        {% endif %}
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.name.id_for_label }}" class="form-label">
-                                Nombre del País *
-                            </label>
-                            <input type="text" 
-                                   id="{{ form.name.id_for_label }}" 
-                                   name="{{ form.name.name }}" 
-                                   class="form-control {% if form.name.errors %}is-invalid{% endif %}"
-                                   value="{{ form.name.value|default:'' }}"
-                                   placeholder="Ej: Estados Unidos"
-                                   required>
-                            {% if form.name.errors %}
-                                <div class="invalid-feedback">
-                                    {{ form.name.errors.0 }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.code.id_for_label }}" class="form-label">
-                                Código del País *
-                            </label>
-                            <input type="text" 
-                                   id="{{ form.code.id_for_label }}" 
-                                   name="{{ form.code.name }}" 
-                                   class="form-control {% if form.code.errors %}is-invalid{% endif %}"
-                                   value="{{ form.code.value|default:'' }}"
-                                   placeholder="Ej: US, MX, CO"
-                                   maxlength="3"
-                                   required>
-                            <div class="form-text">
-                                Código de 2-3 letras del país (ISO)
-                            </div>
-                            {% if form.code.errors %}
-                                <div class="invalid-feedback">
-                                    {{ form.code.errors.0 }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input type="checkbox" 
-                                       id="{{ form.is_active.id_for_label }}" 
-                                       name="{{ form.is_active.name }}" 
-                                       class="form-check-input"
-                                       {% if form.is_active.value %}checked{% endif %}>
-                                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                    País activo
+                            
+                            <!-- Nombre -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">
+                                    {{ form.name.label }} <span class="text-danger">*</span>
                                 </label>
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       id="{{ form.name.id_for_label }}" 
+                                       name="{{ form.name.name }}" 
+                                       value="{{ form.name.value|default:'' }}"
+                                       placeholder="Ej: Estados Unidos"
+                                       required>
+                                {% if form.name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.name.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Nombre oficial del país</div>
+                            </div>
+
+                            <!-- Código -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.code.id_for_label }}" class="form-label fw-bold">
+                                    {{ form.code.label }}
+                                </label>
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       id="{{ form.code.id_for_label }}" 
+                                       name="{{ form.code.name }}" 
+                                       value="{{ form.code.value|default:'' }}"
+                                       placeholder="Ej: US, MX, CA"
+                                       maxlength="3">
+                                {% if form.code.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.code.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Código ISO del país (opcional)</div>
                             </div>
                         </div>
-                        
-                        <div class="d-flex justify-content-between">
-                            <a href="{% url 'locations:country_list' %}" class="btn btn-outline-secondary">
-                                <i class="fas fa-arrow-left me-2"></i>Cancelar
-                            </a>
-                            <button type="submit" class="btn btn-corporate">
-                                <i class="fas fa-save me-2"></i>
-                                {% if object %}Actualizar{% else %}Crear{% endif %} País
-                            </button>
+
+                        <!-- Descripción -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="bi bi-file-text me-2"></i>Descripción
+                                </h6>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
+                                    {{ form.description.label }}
+                                </label>
+                                <textarea class="form-control" 
+                                          id="{{ form.description.id_for_label }}" 
+                                          name="{{ form.description.name }}" 
+                                          rows="4"
+                                          placeholder="Descripción opcional del país...">{{ form.description.value|default:'' }}</textarea>
+                                {% if form.description.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.description.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Información adicional sobre el país</div>
+                            </div>
+                        </div>
+
+                        <!-- Estado -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="bi bi-toggle-on me-2"></i>Estado
+                                </h6>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" 
+                                           type="checkbox" 
+                                           id="{{ form.is_active.id_for_label }}" 
+                                           name="{{ form.is_active.name }}"
+                                           {% if form.is_active.value %}checked{% endif %}>
+                                    <label class="form-check-label fw-bold" for="{{ form.is_active.id_for_label }}">
+                                        {{ form.is_active.label }}
+                                    </label>
+                                </div>
+                                {% if form.is_active.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.is_active.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Los países inactivos no aparecerán en los formularios</div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex gap-3 justify-content-end">
+                                    <a href="{% url 'locations:country_list' %}" class="btn btn-outline-secondary btn-lg">
+                                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="bi bi-check-circle me-2"></i>
+                                        {% if object %}Actualizar País{% else %}Crear País{% endif %}
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Consejos -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightbulb me-2"></i>Consejos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-light border-0 mb-0">
+                        <ul class="mb-0">
+                            <li class="mb-2"><strong>Nombre:</strong> Usa el nombre oficial del país</li>
+                            <li class="mb-2"><strong>Código:</strong> Código ISO de 2-3 caracteres (opcional)</li>
+                            <li class="mb-2"><strong>Estado:</strong> Mantén activos solo los países en uso</li>
+                            <li class="mb-0"><strong>Descripción:</strong> Información adicional opcional</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejemplos -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-list-ul me-2"></i>Ejemplos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="small">
+                        <div class="mb-2">
+                            <strong>Estados Unidos:</strong><br>
+                            <span class="text-muted">Código: US</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>México:</strong><br>
+                            <span class="text-muted">Código: MX</span>
+                        </div>
+                        <div class="mb-0">
+                            <strong>Canadá:</strong><br>
+                            <span class="text-muted">Código: CA</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if object %}
+            <!-- Estadísticas -->
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">
+                        <i class="bi bi-graph-up me-2"></i>Estadísticas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-primary mb-1">{{ object.states.count }}</h4>
+                                <small class="text-muted">Estados</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success mb-1">
+                                {% if object.is_active %}Activo{% else %}Inactivo{% endif %}
+                            </h4>
+                            <small class="text-muted">Estado</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
     </div>
 </div>
 {% endblock %}
-

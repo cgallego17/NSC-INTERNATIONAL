@@ -131,10 +131,13 @@
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div>
                                             <h6 class="mb-1">{{ event.title }}</h6>
-                                            <p class="text-muted mb-1">{{ event.short_description|truncatechars:100 }}</p>
+                                            <p class="text-muted mb-1">{{ event.description|truncatechars:100 }}</p>
                                             <small class="text-muted">
                                                 <i class="fas fa-clock me-1"></i>
                                                 {{ event.start_date|time:"H:i" }} - {{ event.end_date|time:"H:i" }}
+                                                {% if event.division %}
+                                                    <span class="badge bg-primary ms-2">{{ event.division.name }}</span>
+                                                {% endif %}
                                                 {% if event.location %}
                                                     <i class="fas fa-map-marker-alt ms-2 me-1"></i>{{ event.location }}
                                                 {% endif %}
@@ -175,6 +178,18 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Gráfico de Eventos por División -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Eventos por División</h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="divisionChart"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Sidebar -->
@@ -198,6 +213,9 @@
                                 <h6 class="mb-1">{{ event.title }}</h6>
                                 <small class="text-muted">
                                     {{ event.start_date|date:"M d, Y" }} a las {{ event.start_date|time:"H:i" }}
+                                    {% if event.division %}
+                                        <span class="badge bg-secondary ms-1">{{ event.division.name }}</span>
+                                    {% endif %}
                                 </small>
                             </div>
                         </div>
@@ -357,6 +375,45 @@ new Chart(ctx, {
                 '#1a202c',
                 '#718096',
                 '#a0aec0'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    usePointStyle: true
+                }
+            }
+        }
+    }
+});
+
+// Gráfico de eventos por división
+const divisionData = {{ events_by_division|safe }};
+const divisionLabels = divisionData.map(item => item.division__name || 'Sin división');
+const divisionCounts = divisionData.map(item => item.count);
+
+const ctxDivision = document.getElementById('divisionChart').getContext('2d');
+new Chart(ctxDivision, {
+    type: 'doughnut',
+    data: {
+        labels: divisionLabels,
+        datasets: [{
+            data: divisionCounts,
+            backgroundColor: [
+                '#e53e3e',
+                '#dd6b20',
+                '#d69e2e',
+                '#38a169',
+                '#3182ce',
+                '#805ad5'
             ],
             borderWidth: 2,
             borderColor: '#fff'

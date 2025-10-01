@@ -1,0 +1,366 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Editar División{% else %}Crear División{% endif %} - NSC International
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">
+                        {% if object %}Editar División{% else %}Crear Nueva División{% endif %}
+                    </h1>
+                    <p class="text-muted">
+                        {% if object %}Modifica los datos de la división{% else %}Agrega una nueva división de baseball{% endif %}
+                    </p>
+                </div>
+                <a href="{% url 'events:division_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Volver a Divisiones
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-trophy me-2"></i>
+                        {% if object %}Editar División{% else %}Nueva División{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Información Básica -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="bi bi-info-circle me-2"></i>Información Básica
+                                </h6>
+                            </div>
+                            
+                            <!-- Nombre -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">
+                                    {{ form.name.label }} <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" 
+                                       class="form-control form-control-lg" 
+                                       id="{{ form.name.id_for_label }}" 
+                                       name="{{ form.name.name }}" 
+                                       value="{{ form.name.value|default:'' }}"
+                                       placeholder="Ej: Baseball 10U D1"
+                                       required>
+                                {% if form.name.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.name.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Nombre único de la división</div>
+                            </div>
+
+                            <!-- Nivel de Habilidad -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.skill_level.id_for_label }}" class="form-label fw-bold">
+                                    {{ form.skill_level.label }}
+                                </label>
+                                <select class="form-select form-select-lg" 
+                                        id="{{ form.skill_level.id_for_label }}" 
+                                        name="{{ form.skill_level.name }}">
+                                    <option value="">Seleccionar nivel...</option>
+                                    <option value="T-Ball" {% if form.skill_level.value == "T-Ball" %}selected{% endif %}>T-Ball</option>
+                                    <option value="Coach Pitch" {% if form.skill_level.value == "Coach Pitch" %}selected{% endif %}>Coach Pitch</option>
+                                    <option value="Recreativo" {% if form.skill_level.value == "Recreativo" %}selected{% endif %}>Recreativo</option>
+                                    <option value="División 3" {% if form.skill_level.value == "División 3" %}selected{% endif %}>División 3</option>
+                                    <option value="División 2" {% if form.skill_level.value == "División 2" %}selected{% endif %}>División 2</option>
+                                    <option value="División 1" {% if form.skill_level.value == "División 1" %}selected{% endif %}>División 1</option>
+                                    <option value="Abierto" {% if form.skill_level.value == "Abierto" %}selected{% endif %}>Abierto</option>
+                                    <option value="Especial" {% if form.skill_level.value == "Especial" %}selected{% endif %}>Especial</option>
+                                    <option value="High School" {% if form.skill_level.value == "High School" %}selected{% endif %}>High School</option>
+                                </select>
+                                {% if form.skill_level.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.skill_level.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Nivel de competencia de la división</div>
+                            </div>
+                        </div>
+
+                        <!-- Configuración de Edad -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="bi bi-calendar-range me-2"></i>Configuración de Edad
+                                </h6>
+                            </div>
+
+                            <!-- Edad Mínima -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.age_min.id_for_label }}" class="form-label fw-bold">
+                                    {{ form.age_min.label }}
+                                </label>
+                                <input type="number" 
+                                       class="form-control form-control-lg" 
+                                       id="{{ form.age_min.id_for_label }}" 
+                                       name="{{ form.age_min.name }}" 
+                                       value="{{ form.age_min.value|default:'' }}"
+                                       min="4" 
+                                       max="19"
+                                       placeholder="Ej: 10">
+                                {% if form.age_min.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.age_min.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Edad mínima en años</div>
+                            </div>
+
+                            <!-- Edad Máxima -->
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.age_max.id_for_label }}" class="form-label fw-bold">
+                                    {{ form.age_max.label }}
+                                </label>
+                                <input type="number" 
+                                       class="form-control form-control-lg" 
+                                       id="{{ form.age_max.id_for_label }}" 
+                                       name="{{ form.age_max.name }}" 
+                                       value="{{ form.age_max.value|default:'' }}"
+                                       min="4" 
+                                       max="19"
+                                       placeholder="Ej: 11">
+                                {% if form.age_max.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.age_max.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Edad máxima en años</div>
+                            </div>
+
+                            <!-- Vista previa del rango -->
+                            <div class="col-12 mb-3">
+                                <div class="alert alert-info" id="ageRangePreview">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <strong>Vista previa:</strong> <span id="ageRangeText">Ingresa las edades para ver el rango</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="bi bi-file-text me-2"></i>Descripción
+                                </h6>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
+                                    {{ form.description.label }}
+                                </label>
+                                <textarea class="form-control" 
+                                          id="{{ form.description.id_for_label }}" 
+                                          name="{{ form.description.name }}" 
+                                          rows="4"
+                                          placeholder="Descripción opcional de la división...">{{ form.description.value|default:'' }}</textarea>
+                                {% if form.description.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.description.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Información adicional sobre la división</div>
+                            </div>
+                        </div>
+
+                        <!-- Estado -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary border-bottom pb-2 mb-3">
+                                    <i class="bi bi-toggle-on me-2"></i>Estado
+                                </h6>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" 
+                                           type="checkbox" 
+                                           id="{{ form.is_active.id_for_label }}" 
+                                           name="{{ form.is_active.name }}"
+                                           {% if form.is_active.value %}checked{% endif %}>
+                                    <label class="form-check-label fw-bold" for="{{ form.is_active.id_for_label }}">
+                                        {{ form.is_active.label }}
+                                    </label>
+                                </div>
+                                {% if form.is_active.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.is_active.errors %}{{ error }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">Las divisiones inactivas no aparecerán en los formularios</div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex gap-3 justify-content-end">
+                                    <a href="{% url 'events:division_list' %}" class="btn btn-outline-secondary btn-lg">
+                                        <i class="bi bi-x-circle me-2"></i>Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="bi bi-check-circle me-2"></i>
+                                        {% if object %}Actualizar División{% else %}Crear División{% endif %}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Consejos -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightbulb me-2"></i>Consejos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-light border-0 mb-0">
+                        <ul class="mb-0">
+                            <li class="mb-2"><strong>Nombre:</strong> Usa el formato estándar (ej: Baseball 10U D1)</li>
+                            <li class="mb-2"><strong>Edades:</strong> Define rangos claros para categorización</li>
+                            <li class="mb-2"><strong>Nivel:</strong> Selecciona el nivel de competencia apropiado</li>
+                            <li class="mb-0"><strong>Estado:</strong> Mantén activas solo las divisiones en uso</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejemplos de Nombres -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-list-ul me-2"></i>Ejemplos de Nombres
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="small">
+                        <div class="mb-2">
+                            <strong>T-Ball:</strong><br>
+                            <span class="text-muted">Baseball 5U Tball</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>Coach Pitch:</strong><br>
+                            <span class="text-muted">Baseball 8U D2 CP</span>
+                        </div>
+                        <div class="mb-2">
+                            <strong>División:</strong><br>
+                            <span class="text-muted">Baseball 12U D1</span>
+                        </div>
+                        <div class="mb-0">
+                            <strong>Abierto:</strong><br>
+                            <span class="text-muted">Baseball 16U OPEN</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if object %}
+            <!-- Estadísticas -->
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">
+                        <i class="bi bi-graph-up me-2"></i>Estadísticas
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="border-end">
+                                <h4 class="text-primary mb-1">{{ object.events.count }}</h4>
+                                <small class="text-muted">Eventos</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success mb-1">{{ object.age_range }}</h4>
+                            <small class="text-muted">Rango</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ageMinInput = document.getElementById('{{ form.age_min.id_for_label }}');
+    const ageMaxInput = document.getElementById('{{ form.age_max.id_for_label }}');
+    const ageRangeText = document.getElementById('ageRangeText');
+    
+    function updateAgeRangePreview() {
+        const min = ageMinInput.value;
+        const max = ageMaxInput.value;
+        
+        let rangeText = '';
+        if (min && max) {
+            if (parseInt(min) === parseInt(max)) {
+                rangeText = `${min} años`;
+            } else {
+                rangeText = `${min}-${max} años`;
+            }
+        } else if (min) {
+            rangeText = `${min}+ años`;
+        } else if (max) {
+            rangeText = `Hasta ${max} años`;
+        } else {
+            rangeText = 'Sin restricción de edad';
+        }
+        
+        ageRangeText.textContent = rangeText;
+    }
+    
+    // Actualizar vista previa cuando cambien los valores
+    ageMinInput.addEventListener('input', updateAgeRangePreview);
+    ageMaxInput.addEventListener('input', updateAgeRangePreview);
+    
+    // Actualizar vista previa inicial
+    updateAgeRangePreview();
+    
+    // Validación de edades
+    ageMinInput.addEventListener('change', function() {
+        const min = parseInt(this.value);
+        const max = parseInt(ageMaxInput.value);
+        
+        if (min && max && min > max) {
+            alert('La edad mínima no puede ser mayor que la edad máxima');
+            this.value = '';
+        }
+    });
+    
+    ageMaxInput.addEventListener('change', function() {
+        const min = parseInt(ageMinInput.value);
+        const max = parseInt(this.value);
+        
+        if (min && max && max < min) {
+            alert('La edad máxima no puede ser menor que la edad mínima');
+            this.value = '';
+        }
+    });
+});
+</script>
+{% endblock %}

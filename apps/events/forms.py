@@ -2,7 +2,7 @@ from django import forms
 
 from apps.locations.models import Country, Season, State
 
-from .models import Event
+from .models import Event, Division
 
 
 class EventForm(forms.ModelForm):
@@ -16,6 +16,7 @@ class EventForm(forms.ModelForm):
             "short_name",
             "description",
             "tags",
+            "division",
             "city",
             "state",
             "country",
@@ -49,6 +50,7 @@ class EventForm(forms.ModelForm):
             "short_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Event Short Name"}),
             "description": forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": "Short Description"}),
             "tags": forms.TextInput(attrs={"class": "form-control", "placeholder": "Tags"}),
+            "division": forms.Select(attrs={"class": "form-select", "placeholder": "Select Division"}),
             "city": forms.Select(attrs={"class": "form-select", "required": True, "placeholder": "Select City"}),
             "state": forms.Select(attrs={"class": "form-select", "required": True, "placeholder": "Select State"}),
             "country": forms.Select(attrs={"class": "form-select", "required": True, "placeholder": "Select Country"}),
@@ -90,6 +92,7 @@ class EventForm(forms.ModelForm):
             "short_name": "Event Short Name",
             "description": "Short Description",
             "tags": "Tags",
+            "division": "División",
             "city": "City *",
             "state": "State *",
             "country": "Country *",
@@ -124,6 +127,7 @@ class EventForm(forms.ModelForm):
 
         # Configurar opciones para los campos de selección
         self.fields["season"].queryset = Season.objects.filter(is_active=True).order_by("name")
+        self.fields["division"].queryset = Division.objects.filter(is_active=True).order_by("name")
         self.fields["state"].queryset = State.objects.filter(is_active=True).order_by("name")
         self.fields["country"].queryset = Country.objects.filter(is_active=True).order_by("name")
 

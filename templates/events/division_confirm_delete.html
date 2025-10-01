@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar División - NSC International{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">Eliminar División</h1>
+                    <p class="text-muted">Confirmar eliminación de la división</p>
+                </div>
+                <a href="{% url 'events:division_detail' division.pk %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Volver a Detalles
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <!-- Warning Alert -->
+                    <div class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>¡Advertencia!</strong> Esta acción no se puede deshacer.
+                    </div>
+
+                    <!-- Division Info -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h5>¿Estás seguro de que deseas eliminar esta división?</h5>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nombre</label>
+                            <p class="mb-0">{{ division.name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Rango de Edad</label>
+                            <p class="mb-0">
+                                <span class="badge bg-info">{{ division.age_range }}</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nivel de Habilidad</label>
+                            <p class="mb-0">
+                                {% if division.skill_level %}
+                                    <span class="badge bg-secondary">{{ division.skill_level }}</span>
+                                {% else %}
+                                    <span class="text-muted">No especificado</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Estado</label>
+                            <p class="mb-0">
+                                {% if division.is_active %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Descripción</label>
+                            <p class="mb-0">
+                                {% if division.description %}
+                                    {{ division.description }}
+                                {% else %}
+                                    <span class="text-muted">Sin descripción</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Impact Information -->
+                    <div class="alert alert-warning" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="bi bi-info-circle me-2"></i>Impacto de la Eliminación
+                        </h6>
+                        <ul class="mb-0">
+                            <li><strong>{{ division.events.count }} eventos</strong> perderán su asignación de división</li>
+                            <li>Los eventos seguirán existiendo pero sin división asignada</li>
+                            <li>Esta acción no se puede deshacer</li>
+                        </ul>
+                    </div>
+
+                    <!-- Form -->
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash me-2"></i>Sí, Eliminar División
+                            </button>
+                            <a href="{% url 'events:division_detail' division.pk %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

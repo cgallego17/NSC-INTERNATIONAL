@@ -59,7 +59,7 @@
                             </div>
                             <div class="progress mt-2" style="height: 8px;">
                                 <div class="progress-bar" role="progressbar" 
-                                     style="width: {{ event.attendees_count|floatformat:0|div:event.max_attendees|mul:100 }}%">
+                                     style="width: {% widthratio event.attendees_count event.max_attendees 100 %}%">
                                 </div>
                             </div>
                         </div>
