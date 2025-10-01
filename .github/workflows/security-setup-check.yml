@@ -1,0 +1,67 @@
+name: Security Setup Check
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Check security setup daily at 3 AM UTC
+    - cron: "0 3 * * *"
+
+jobs:
+  check-security-setup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install GitHub CLI
+        run: |
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt update
+          sudo apt install gh
+
+      - name: Check GitHub Security Features
+        run: |
+          python scripts/check_github_security.py
+
+      - name: Test Code Scanning API
+        run: |
+          echo "Testing code scanning API access..."
+          gh api repos/${{ github.repository }}/code-scanning/alerts --method GET || echo "Code scanning not enabled"
+
+      - name: Test Dependency Graph API
+        run: |
+          echo "Testing dependency graph API access..."
+          gh api repos/${{ github.repository }}/dependency-graph/sbom || echo "Dependency graph not enabled"
+
+      - name: Test Secret Scanning API
+        run: |
+          echo "Testing secret scanning API access..."
+          gh api repos/${{ github.repository }}/secret-scanning/alerts --method GET || echo "Secret scanning not enabled"
+
+      - name: Generate Security Setup Report
+        run: |
+          echo "## 🔒 Security Setup Status Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Repository: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "### Check Date: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Required Actions:" >> $GITHUB_STEP_SUMMARY
+          echo "1. **Enable Code Scanning**: Go to Settings → Security → Code scanning" >> $GITHUB_STEP_SUMMARY
+          echo "2. **Enable Dependency Graph**: Go to Settings → Security → Dependency graph" >> $GITHUB_STEP_SUMMARY
+          echo "3. **Enable Secret Scanning**: Go to Settings → Security → Secret scanning" >> $GITHUB_STEP_SUMMARY
+          echo "4. **Configure Actions Permissions**: Go to Settings → Actions → General" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Documentation:" >> $GITHUB_STEP_SUMMARY
+          echo "- [GITHUB_SECURITY_SETUP.md](GITHUB_SECURITY_SETUP.md)" >> $GITHUB_STEP_SUMMARY
+          echo "- [GitHub Code Scanning Docs](https://docs.github.com/en/code-security/code-scanning)" >> $GITHUB_STEP_SUMMARY
