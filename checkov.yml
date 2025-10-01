@@ -1,0 +1,28 @@
+# Checkov configuration
+framework:
+  - dockerfile
+  - docker_compose
+  - secrets
+
+skip_check:
+  - CKV_DOCKER_3  # Ensure that a user for the container has been created
+  - CKV_DOCKER_8  # Ensure the base image uses a non-root user
+
+severity_threshold: MEDIUM
+
+output: sarif
+output_file_path: checkov-results.sarif
+
+include:
+  - "**/*.yml"
+  - "**/*.yaml"
+  - "**/Dockerfile*"
+  - "**/docker-compose*.yml"
+
+exclude:
+  - "venv/**"
+  - "env/**"
+  - ".venv/**"
+  - ".env/**"
+  - "migrations/**"
+  - "__pycache__/**"

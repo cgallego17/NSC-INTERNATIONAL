@@ -1,32 +1,10 @@
-# Security-focused requirements with latest secure versions
-# This file should be used for production deployments
+# Security scanning tools
+safety>=2.3.5
+bandit>=1.7.5
+semgrep>=1.45.0
+pip-licenses>=4.3.0
 
-# Core Django framework - latest LTS with security patches
-Django>=4.2.23,<5.0
-
-# Image processing - latest secure version
-Pillow>=10.3.0
-
-# Web server - latest secure version
-gunicorn>=23.0.0
-
-# Database adapter
-psycopg2-binary>=2.9.9
-
-# Static files serving
-whitenoise>=6.6.0
-
-# Django extensions and utilities
-django-crispy-forms>=2.1
-crispy-bootstrap5>=0.7
-django-extensions>=3.2.3
-django-environ>=0.11.2
-django-widget-tweaks>=1.5.0
-django-import-export>=3.3.1
-django-filter>=23.3
-django-tables2>=2.6.0
-django-bootstrap5>=23.3
-
-# Security tools
-safety>=3.2.7
-bandit>=1.7.8
+# Additional security tools
+cryptography>=41.0.0
+pycryptodome>=3.19.0
+secure>=0.3.0

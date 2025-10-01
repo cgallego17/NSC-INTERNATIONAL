@@ -1,0 +1,108 @@
+name: Code Quality & Security
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements-security.txt
+        pip install flake8 black isort mypy pylint
+
+    - name: Run Black (Code formatting)
+      run: |
+        black --check --diff . || echo "Black formatting issues found"
+
+    - name: Run isort (Import sorting)
+      run: |
+        isort --check-only --diff . || echo "Import sorting issues found"
+
+    - name: Run Flake8 (Linting)
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Run MyPy (Type checking)
+      run: |
+        mypy . --ignore-missing-imports || echo "Type checking issues found"
+
+    - name: Run Pylint (Code analysis)
+      run: |
+        pylint apps/ nsc_admin/ --disable=C0114,C0116 || echo "Pylint issues found"
+
+    - name: Run Security-focused linting
+      run: |
+        bandit -r . -f json -o bandit-report.json || true
+        bandit -r . -ll
+
+    - name: Upload Bandit results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: bandit-report.json
+        category: bandit-lint
+
+  security-audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run Safety check
+      run: |
+        safety check --json --output safety-report.json || true
+        safety check
+
+    - name: Run pip-audit
+      run: |
+        pip install pip-audit
+        pip-audit --format=json --output=pip-audit-report.json || true
+        pip-audit
+
+    - name: Upload Safety results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: safety-report.json
+        category: safety-audit
+
+    - name: Upload pip-audit results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: pip-audit-report.json
+        category: pip-audit
