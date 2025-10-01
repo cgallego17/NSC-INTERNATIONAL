@@ -81,11 +81,17 @@ class Command(BaseCommand):
         ]
 
         for division_data in divisions_data:
-            division, created = Division.objects.get_or_create(name=division_data["name"], defaults=division_data)
+            division, created = Division.objects.get_or_create(
+                name=division_data["name"], defaults=division_data
+            )
             if created:
-                self.stdout.write(f"División creada: {division.name} ({division.age_range})")
+                self.stdout.write(
+                    f"División creada: {division.name} ({division.age_range})"
+                )
             else:
                 self.stdout.write(f"División ya existe: {division.name}")
 
-        self.stdout.write(self.style.SUCCESS(f"Total divisiones: {Division.objects.count()}"))
+        self.stdout.write(
+            self.style.SUCCESS(f"Total divisiones: {Division.objects.count()}")
+        )
         self.stdout.write(self.style.SUCCESS("Divisiones pobladas exitosamente!"))

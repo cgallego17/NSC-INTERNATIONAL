@@ -12,22 +12,62 @@ class Command(BaseCommand):
         # Get USA and some states for the sites
         try:
             usa = Country.objects.get(name__icontains="Estados Unidos")
-            california = State.objects.filter(country=usa, name__icontains="California").first()
+            california = State.objects.filter(
+                country=usa, name__icontains="California"
+            ).first()
             texas = State.objects.filter(country=usa, name__icontains="Texas").first()
-            florida = State.objects.filter(country=usa, name__icontains="Florida").first()
-            new_york = State.objects.filter(country=usa, name__icontains="New York").first()
+            florida = State.objects.filter(
+                country=usa, name__icontains="Florida"
+            ).first()
+            new_york = State.objects.filter(
+                country=usa, name__icontains="New York"
+            ).first()
 
             # Get some cities
-            los_angeles = City.objects.filter(state=california, name__icontains="Los Angeles").first() if california else None
-            houston = City.objects.filter(state=texas, name__icontains="Houston").first() if texas else None
-            miami = City.objects.filter(state=florida, name__icontains="Miami").first() if florida else None
-            new_york_city = City.objects.filter(state=new_york, name__icontains="New York").first() if new_york else None
-            anaheim = City.objects.filter(state=california, name__icontains="Anaheim").first() if california else None
-            austin = City.objects.filter(state=texas, name__icontains="Austin").first() if texas else None
-            tampa = City.objects.filter(state=florida, name__icontains="Tampa").first() if florida else None
+            los_angeles = (
+                City.objects.filter(
+                    state=california, name__icontains="Los Angeles"
+                ).first()
+                if california
+                else None
+            )
+            houston = (
+                City.objects.filter(state=texas, name__icontains="Houston").first()
+                if texas
+                else None
+            )
+            miami = (
+                City.objects.filter(state=florida, name__icontains="Miami").first()
+                if florida
+                else None
+            )
+            new_york_city = (
+                City.objects.filter(state=new_york, name__icontains="New York").first()
+                if new_york
+                else None
+            )
+            anaheim = (
+                City.objects.filter(state=california, name__icontains="Anaheim").first()
+                if california
+                else None
+            )
+            austin = (
+                City.objects.filter(state=texas, name__icontains="Austin").first()
+                if texas
+                else None
+            )
+            tampa = (
+                City.objects.filter(state=florida, name__icontains="Tampa").first()
+                if florida
+                else None
+            )
 
         except Country.DoesNotExist:
-            self.stdout.write(self.style.ERROR("USA country not found. Please run populate_complete_locations first."))
+            self.stdout.write(
+                self.style.ERROR(
+                    "USA country not found. Please run populate_complete_locations first."
+                )
+            )
             return
 
         sites_to_create = [
@@ -141,12 +181,16 @@ class Command(BaseCommand):
         updated_count = 0
 
         for site_data in sites_to_create:
-            site, created = Site.objects.update_or_create(site_name=site_data["site_name"], defaults=site_data)
+            site, created = Site.objects.update_or_create(
+                site_name=site_data["site_name"], defaults=site_data
+            )
             if created:
                 self.stdout.write(self.style.SUCCESS(f"Created site: {site.site_name}"))
                 created_count += 1
             else:
-                self.stdout.write(self.style.MIGRATE_HEADING(f"Updated site: {site.site_name}"))
+                self.stdout.write(
+                    self.style.MIGRATE_HEADING(f"Updated site: {site.site_name}")
+                )
                 updated_count += 1
 
         self.stdout.write(self.style.SUCCESS("\nSites population completed!"))

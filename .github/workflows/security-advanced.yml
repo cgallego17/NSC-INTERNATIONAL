@@ -2,12 +2,12 @@ name: Advanced Security Scan
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   schedule:
     # Run security scans daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
 
 env:
   REGISTRY: ghcr.io
@@ -23,68 +23,68 @@ jobs:
       actions: read
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install safety bandit semgrep
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety bandit semgrep
 
-    - name: Run Safety (Python dependencies)
-      run: |
-        # Run safety and capture output
-        safety check --json --output safety-report.json || echo "Safety completed with warnings"
-        # Validate and fix SARIF format
-        python scripts/validate_sarif.py safety-report.json
-        # Show text output for review
-        safety check --short-report || echo "Safety text output completed"
+      - name: Run Safety (Python dependencies)
+        run: |
+          # Run safety and capture output
+          safety check --json --output safety-report.json || echo "Safety completed with warnings"
+          # Validate and fix SARIF format
+          python scripts/validate_sarif.py safety-report.json
+          # Show text output for review
+          safety check --short-report || echo "Safety text output completed"
 
-    - name: Run Bandit (Python security linter)
-      run: |
-        # Run bandit and capture output
-        bandit -r . -f json -o bandit-original.json || echo "Bandit completed with warnings"
-        # Convert Bandit JSON to SARIF format
-        python scripts/bandit_to_sarif.py bandit-original.json bandit-report.json || echo "SARIF conversion failed"
-        # Validate SARIF format
-        python scripts/validate_sarif.py bandit-report.json
-        # Show text output for review
-        bandit -r . -f txt || echo "Bandit text output completed"
+      - name: Run Bandit (Python security linter)
+        run: |
+          # Run bandit and capture output
+          bandit -r . -f json -o bandit-original.json || echo "Bandit completed with warnings"
+          # Convert Bandit JSON to SARIF format
+          python scripts/bandit_to_sarif.py bandit-original.json bandit-report.json || echo "SARIF conversion failed"
+          # Validate SARIF format for GitHub compatibility
+          python scripts/validate_sarif_strict.py bandit-report.json || echo "SARIF validation failed"
+          # Show text output for review
+          bandit -r . -f txt || echo "Bandit text output completed"
 
-    - name: Run Semgrep (Static analysis)
-      run: |
-        # Run semgrep and capture output
-        semgrep --config=auto --json --output=semgrep-report.json . || echo "Semgrep completed with warnings"
-        # Validate and fix SARIF format
-        python scripts/validate_sarif.py semgrep-report.json
-        # Show text output for review
-        semgrep --config=auto . || echo "Semgrep text output completed"
+      - name: Run Semgrep (Static analysis)
+        run: |
+          # Run semgrep and capture output
+          semgrep --config=auto --json --output=semgrep-report.json . || echo "Semgrep completed with warnings"
+          # Validate and fix SARIF format
+          python scripts/validate_sarif.py semgrep-report.json
+          # Show text output for review
+          semgrep --config=auto . || echo "Semgrep text output completed"
 
-    - name: Upload Safety results to GitHub Security
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: safety-report.json
-        category: safety
+      - name: Upload Safety results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: safety-report.json
+          category: safety
 
-    - name: Upload Bandit results to GitHub Security
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: bandit-report.json
-        category: bandit
+      - name: Upload Bandit results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: bandit-report.json
+          category: bandit
 
-    - name: Upload Semgrep results to GitHub Security
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: semgrep-report.json
-        category: semgrep
+      - name: Upload Semgrep results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep-report.json
+          category: semgrep
 
   # Secrets Detection
   secrets-scan:
@@ -94,24 +94,24 @@ jobs:
       security-events: write
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0  # Full history for better detection
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for better detection
 
-    - name: Run TruffleHog (Secrets detection)
-      uses: trufflesecurity/trufflehog@main
-      with:
-        path: ./
-        base: main
-        head: HEAD
-        extra_args: --debug --only-verified
+      - name: Run TruffleHog (Secrets detection)
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
 
-    - name: Run GitLeaks (Secrets detection)
-      uses: gitleaks/gitleaks-action@v2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+      - name: Run GitLeaks (Secrets detection)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
   # Docker Security Scanning
   docker-security:
@@ -122,52 +122,52 @@ jobs:
       packages: write
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Build Docker image
-      run: |
-        docker build -t nsc-security-scan .
+      - name: Build Docker image
+        run: |
+          docker build -t nsc-security-scan .
 
-    - name: Run Trivy (Vulnerability scanner)
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: 'nsc-security-scan'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
+      - name: Run Trivy (Vulnerability scanner)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "nsc-security-scan"
+          format: "sarif"
+          output: "trivy-results.sarif"
 
-    - name: Run Trivy (Filesystem scan)
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-fs-results.sarif'
+      - name: Run Trivy (Filesystem scan)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-fs-results.sarif"
 
-    - name: Run Docker Scout (Container security)
-      uses: docker/scout-action@v1
-      with:
-        command: cves
-        image: nsc-security-scan
-        only-severities: critical,high,medium
-        write-comment: true
+      - name: Run Docker Scout (Container security)
+        uses: docker/scout-action@v1
+        with:
+          command: cves
+          image: nsc-security-scan
+          only-severities: critical,high,medium
+          write-comment: true
 
-    - name: Upload Trivy image results
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: trivy-results.sarif
-        category: trivy-image
+      - name: Upload Trivy image results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-image
 
-    - name: Upload Trivy filesystem results
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: trivy-fs-results.sarif
-        category: trivy-filesystem
+      - name: Upload Trivy filesystem results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-fs-results.sarif
+          category: trivy-filesystem
 
   # Infrastructure as Code Security
   iac-security:
@@ -177,24 +177,24 @@ jobs:
       security-events: write
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Run Checkov (IaC security)
-      uses: bridgecrewio/checkov-action@master
-      with:
-        directory: .
-        framework: dockerfile,docker_compose
-        output_format: sarif
-        output_file_path: checkov-results.sarif
-        skip_check: CKV_DOCKER_3,CKV_DOCKER_8  # Skip specific checks if needed
+      - name: Run Checkov (IaC security)
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: dockerfile,docker_compose
+          output_format: sarif
+          output_file_path: checkov-results.sarif
+          skip_check: CKV_DOCKER_3,CKV_DOCKER_8 # Skip specific checks if needed
 
-    - name: Upload Checkov results
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: checkov-results.sarif
-        category: checkov
+      - name: Upload Checkov results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: checkov-results.sarif
+          category: checkov
 
   # License Compliance
   license-scan:
@@ -204,33 +204,33 @@ jobs:
       security-events: write
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pip-licenses
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-licenses
 
-    - name: Generate license report
-      run: |
-        pip-licenses --format=json --output-file=licenses.json
-        pip-licenses --format=html --output-file=licenses.html
-        pip-licenses --format=csv --output-file=licenses.csv
+      - name: Generate license report
+        run: |
+          pip-licenses --format=json --output-file=licenses.json
+          pip-licenses --format=html --output-file=licenses.html
+          pip-licenses --format=csv --output-file=licenses.csv
 
-    - name: Upload license artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: license-reports
-        path: |
-          licenses.json
-          licenses.html
-          licenses.csv
+      - name: Upload license artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: license-reports
+          path: |
+            licenses.json
+            licenses.html
+            licenses.csv
 
   # Security Scorecard
   security-scorecard:
@@ -242,53 +242,61 @@ jobs:
       actions: read
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Run Scorecard
-      uses: ossf/scorecard-action@v2
-      with:
-        results_file: results.sarif
-        results_format: sarif
-        publish_results: true
+      - name: Run Scorecard
+        uses: ossf/scorecard-action@v2
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
 
-    - name: Upload Scorecard results
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: results.sarif
-        category: scorecard
+      - name: Upload Scorecard results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: results.sarif
+          category: scorecard
 
   # Security Summary
   security-summary:
     runs-on: ubuntu-latest
-    needs: [dependency-scan, secrets-scan, docker-security, iac-security, license-scan, security-scorecard]
+    needs:
+      [
+        dependency-scan,
+        secrets-scan,
+        docker-security,
+        iac-security,
+        license-scan,
+        security-scorecard,
+      ]
     if: always()
     permissions:
       contents: read
       pull-requests: write
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Generate Security Summary
-      run: |
-        echo "## 🔒 Security Scan Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Scans Completed:" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Dependency Vulnerability Scan (Safety, Bandit, Semgrep)" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Secrets Detection (TruffleHog, GitLeaks)" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Docker Security Scan (Trivy, Docker Scout)" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Infrastructure as Code Security (Checkov)" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ License Compliance Scan" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Security Scorecard" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 📊 Results:" >> $GITHUB_STEP_SUMMARY
-        echo "Check the Security tab for detailed results and recommendations." >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 🛡️ Security Best Practices:" >> $GITHUB_STEP_SUMMARY
-        echo "- Keep dependencies updated" >> $GITHUB_STEP_SUMMARY
-        echo "- Use strong secrets management" >> $GITHUB_STEP_SUMMARY
-        echo "- Regular security audits" >> $GITHUB_STEP_SUMMARY
-        echo "- Follow OWASP guidelines" >> $GITHUB_STEP_SUMMARY
+      - name: Generate Security Summary
+        run: |
+          echo "## 🔒 Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Scans Completed:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Dependency Vulnerability Scan (Safety, Bandit, Semgrep)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Secrets Detection (TruffleHog, GitLeaks)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Docker Security Scan (Trivy, Docker Scout)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Infrastructure as Code Security (Checkov)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ License Compliance Scan" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Security Scorecard" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Results:" >> $GITHUB_STEP_SUMMARY
+          echo "Check the Security tab for detailed results and recommendations." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🛡️ Security Best Practices:" >> $GITHUB_STEP_SUMMARY
+          echo "- Keep dependencies updated" >> $GITHUB_STEP_SUMMARY
+          echo "- Use strong secrets management" >> $GITHUB_STEP_SUMMARY
+          echo "- Regular security audits" >> $GITHUB_STEP_SUMMARY
+          echo "- Follow OWASP guidelines" >> $GITHUB_STEP_SUMMARY

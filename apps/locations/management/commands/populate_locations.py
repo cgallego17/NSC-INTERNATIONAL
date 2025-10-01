@@ -6,7 +6,9 @@ from apps.locations.models import City, Country, Season, State
 
 
 class Command(BaseCommand):
-    help = "Poblar la base de datos con países, estados, ciudades y temporadas de baseball"
+    help = (
+        "Poblar la base de datos con países, estados, ciudades y temporadas de baseball"
+    )
 
     def handle(self, *args, **options):
         self.stdout.write("Iniciando población de datos...")
@@ -33,7 +35,9 @@ class Command(BaseCommand):
         ]
 
         for country_data in countries_data:
-            country, created = Country.objects.get_or_create(code=country_data["code"], defaults=country_data)
+            country, created = Country.objects.get_or_create(
+                code=country_data["code"], defaults=country_data
+            )
             if created:
                 self.stdout.write(f"País creado: {country.name}")
             else:
@@ -88,21 +92,27 @@ class Command(BaseCommand):
 
         for state_data in us_states:
             state, created = State.objects.get_or_create(
-                country=us, name=state_data["name"], defaults={"code": state_data["code"]}
+                country=us,
+                name=state_data["name"],
+                defaults={"code": state_data["code"]},
             )
             if created:
                 self.stdout.write(f"Estado creado: {state.name}, {state.country.name}")
 
         for state_data in mx_states:
             state, created = State.objects.get_or_create(
-                country=mx, name=state_data["name"], defaults={"code": state_data["code"]}
+                country=mx,
+                name=state_data["name"],
+                defaults={"code": state_data["code"]},
             )
             if created:
                 self.stdout.write(f"Estado creado: {state.name}, {state.country.name}")
 
         for state_data in co_states:
             state, created = State.objects.get_or_create(
-                country=co, name=state_data["name"], defaults={"code": state_data["code"]}
+                country=co,
+                name=state_data["name"],
+                defaults={"code": state_data["code"]},
             )
             if created:
                 self.stdout.write(f"Estado creado: {state.name}, {state.country.name}")
@@ -110,7 +120,13 @@ class Command(BaseCommand):
     def create_cities(self):
         # Ciudades de Estados Unidos
         us_cities = {
-            "California": ["Los Angeles", "San Francisco", "San Diego", "Sacramento", "Oakland"],
+            "California": [
+                "Los Angeles",
+                "San Francisco",
+                "San Diego",
+                "Sacramento",
+                "Oakland",
+            ],
             "Texas": ["Houston", "Dallas", "Austin", "San Antonio", "Fort Worth"],
             "Florida": ["Miami", "Tampa", "Orlando", "Jacksonville", "Tallahassee"],
             "New York": ["New York City", "Buffalo", "Rochester", "Syracuse", "Albany"],
@@ -119,11 +135,29 @@ class Command(BaseCommand):
 
         # Ciudades de México
         mx_cities = {
-            "Baja California": ["Tijuana", "Mexicali", "Ensenada", "Rosarito", "Tecate"],
+            "Baja California": [
+                "Tijuana",
+                "Mexicali",
+                "Ensenada",
+                "Rosarito",
+                "Tecate",
+            ],
             "Sonora": ["Hermosillo", "Ciudad Obregón", "Nogales", "Guaymas", "Navojoa"],
-            "Chihuahua": ["Chihuahua", "Ciudad Juárez", "Delicias", "Parral", "Cuauhtémoc"],
+            "Chihuahua": [
+                "Chihuahua",
+                "Ciudad Juárez",
+                "Delicias",
+                "Parral",
+                "Cuauhtémoc",
+            ],
             "Coahuila": ["Saltillo", "Torreón", "Monclova", "Piedras Negras", "Acuña"],
-            "Nuevo León": ["Monterrey", "Guadalupe", "Apodaca", "San Nicolás", "Santa Catarina"],
+            "Nuevo León": [
+                "Monterrey",
+                "Guadalupe",
+                "Apodaca",
+                "San Nicolás",
+                "Santa Catarina",
+            ],
         }
 
         # Ciudades de Colombia
@@ -131,8 +165,20 @@ class Command(BaseCommand):
             "Antioquia": ["Medellín", "Bello", "Itagüí", "Envigado", "Apartadó"],
             "Valle del Cauca": ["Cali", "Palmira", "Buenaventura", "Tuluá", "Cartago"],
             "Cundinamarca": ["Bogotá", "Soacha", "Zipaquirá", "Chía", "Girardot"],
-            "Atlántico": ["Barranquilla", "Soledad", "Malambo", "Puerto Colombia", "Galapa"],
-            "Santander": ["Bucaramanga", "Floridablanca", "Girón", "Piedecuesta", "San Gil"],
+            "Atlántico": [
+                "Barranquilla",
+                "Soledad",
+                "Malambo",
+                "Puerto Colombia",
+                "Galapa",
+            ],
+            "Santander": [
+                "Bucaramanga",
+                "Floridablanca",
+                "Girón",
+                "Piedecuesta",
+                "San Gil",
+            ],
         }
 
         # Crear ciudades de Estados Unidos
@@ -140,7 +186,9 @@ class Command(BaseCommand):
             try:
                 state = State.objects.get(country__code="US", name=state_name)
                 for city_name in cities:
-                    city, created = City.objects.get_or_create(state=state, name=city_name)
+                    city, created = City.objects.get_or_create(
+                        state=state, name=city_name
+                    )
                     if created:
                         self.stdout.write(f"Ciudad creada: {city.name}, {state.name}")
             except State.DoesNotExist:
@@ -151,7 +199,9 @@ class Command(BaseCommand):
             try:
                 state = State.objects.get(country__code="MX", name=state_name)
                 for city_name in cities:
-                    city, created = City.objects.get_or_create(state=state, name=city_name)
+                    city, created = City.objects.get_or_create(
+                        state=state, name=city_name
+                    )
                     if created:
                         self.stdout.write(f"Ciudad creada: {city.name}, {state.name}")
             except State.DoesNotExist:
@@ -162,7 +212,9 @@ class Command(BaseCommand):
             try:
                 state = State.objects.get(country__code="CO", name=state_name)
                 for city_name in cities:
-                    city, created = City.objects.get_or_create(state=state, name=city_name)
+                    city, created = City.objects.get_or_create(
+                        state=state, name=city_name
+                    )
                     if created:
                         self.stdout.write(f"Ciudad creada: {city.name}, {state.name}")
             except State.DoesNotExist:

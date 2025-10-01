@@ -7,16 +7,28 @@ app_name = "locations"
 urlpatterns = [
     # Country URLs
     path("countries/", views.CountryListView.as_view(), name="country_list"),
-    path("countries/<int:pk>/", views.CountryDetailView.as_view(), name="country_detail"),
+    path(
+        "countries/<int:pk>/", views.CountryDetailView.as_view(), name="country_detail"
+    ),
     path("countries/create/", views.CountryCreateView.as_view(), name="country_create"),
-    path("countries/<int:pk>/edit/", views.CountryUpdateView.as_view(), name="country_update"),
-    path("countries/<int:pk>/delete/", views.CountryDeleteView.as_view(), name="country_delete"),
+    path(
+        "countries/<int:pk>/edit/",
+        views.CountryUpdateView.as_view(),
+        name="country_update",
+    ),
+    path(
+        "countries/<int:pk>/delete/",
+        views.CountryDeleteView.as_view(),
+        name="country_delete",
+    ),
     # State URLs
     path("states/", views.StateListView.as_view(), name="state_list"),
     path("states/<int:pk>/", views.StateDetailView.as_view(), name="state_detail"),
     path("states/create/", views.StateCreateView.as_view(), name="state_create"),
     path("states/<int:pk>/edit/", views.StateUpdateView.as_view(), name="state_update"),
-    path("states/<int:pk>/delete/", views.StateDeleteView.as_view(), name="state_delete"),
+    path(
+        "states/<int:pk>/delete/", views.StateDeleteView.as_view(), name="state_delete"
+    ),
     # City URLs
     path("cities/", views.CityListView.as_view(), name="city_list"),
     path("cities/<int:pk>/", views.CityDetailView.as_view(), name="city_detail"),
@@ -27,8 +39,14 @@ urlpatterns = [
     path("seasons/", views.SeasonListView.as_view(), name="season_list"),
     path("seasons/<int:pk>/", views.SeasonDetailView.as_view(), name="season_detail"),
     path("seasons/create/", views.SeasonCreateView.as_view(), name="season_create"),
-    path("seasons/<int:pk>/edit/", views.SeasonUpdateView.as_view(), name="season_update"),
-    path("seasons/<int:pk>/delete/", views.SeasonDeleteView.as_view(), name="season_delete"),
+    path(
+        "seasons/<int:pk>/edit/", views.SeasonUpdateView.as_view(), name="season_update"
+    ),
+    path(
+        "seasons/<int:pk>/delete/",
+        views.SeasonDeleteView.as_view(),
+        name="season_delete",
+    ),
     # Rule URLs
     path("rules/", views.RuleListView.as_view(), name="rule_list"),
     path("rules/<int:pk>/", views.RuleDetailView.as_view(), name="rule_detail"),
@@ -42,8 +60,16 @@ urlpatterns = [
     path("sites/<int:pk>/edit/", views.SiteUpdateView.as_view(), name="site_update"),
     path("sites/<int:pk>/delete/", views.SiteDeleteView.as_view(), name="site_delete"),
     # AJAX URLs
-    path("ajax/states/<int:country_id>/", views.get_states_by_country, name="get_states_by_country"),
-    path("ajax/cities/<int:state_id>/", views.get_cities_by_state, name="get_cities_by_state"),
+    path(
+        "ajax/states/<int:country_id>/",
+        views.get_states_by_country,
+        name="get_states_by_country",
+    ),
+    path(
+        "ajax/cities/<int:state_id>/",
+        views.get_cities_by_state,
+        name="get_cities_by_state",
+    ),
     # API URLs
     path("countries/api/", views.countries_api, name="countries_api"),
     path("states/api/", views.states_api, name="states_api"),

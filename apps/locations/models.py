@@ -7,11 +7,18 @@ class Country(models.Model):
 
     name = models.CharField(max_length=100, unique=True, verbose_name="Nombre del País")
     code = models.CharField(
-        max_length=3, unique=True, validators=[MinLengthValidator(2), MaxLengthValidator(3)], verbose_name="Código del País"
+        max_length=3,
+        unique=True,
+        validators=[MinLengthValidator(2), MaxLengthValidator(3)],
+        verbose_name="Código del País",
     )
     is_active = models.BooleanField(default=True, verbose_name="Activo")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Fecha de Actualización")
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Fecha de Creación"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, verbose_name="Fecha de Actualización"
+    )
 
     class Meta:
         verbose_name = "País"
@@ -40,14 +47,22 @@ class Country(models.Model):
 class State(models.Model):
     """Estados/Provincias de los países"""
 
-    country = models.ForeignKey(Country, on_delete=models.CASCADE, related_name="states", verbose_name="País")
+    country = models.ForeignKey(
+        Country, on_delete=models.CASCADE, related_name="states", verbose_name="País"
+    )
     name = models.CharField(max_length=100, verbose_name="Nombre del Estado")
     code = models.CharField(
-        max_length=10, validators=[MinLengthValidator(2), MaxLengthValidator(10)], verbose_name="Código del Estado"
+        max_length=10,
+        validators=[MinLengthValidator(2), MaxLengthValidator(10)],
+        verbose_name="Código del Estado",
     )
     is_active = models.BooleanField(default=True, verbose_name="Activo")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Fecha de Actualización")
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Fecha de Creación"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, verbose_name="Fecha de Actualización"
+    )
 
     class Meta:
         verbose_name = "Estado"
@@ -72,11 +87,17 @@ class State(models.Model):
 class City(models.Model):
     """Ciudades de los estados"""
 
-    state = models.ForeignKey(State, on_delete=models.CASCADE, related_name="cities", verbose_name="Estado")
+    state = models.ForeignKey(
+        State, on_delete=models.CASCADE, related_name="cities", verbose_name="Estado"
+    )
     name = models.CharField(max_length=100, verbose_name="Nombre de la Ciudad")
     is_active = models.BooleanField(default=True, verbose_name="Activo")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Fecha de Actualización")
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Fecha de Creación"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, verbose_name="Fecha de Actualización"
+    )
 
     class Meta:
         verbose_name = "Ciudad"
@@ -121,21 +142,37 @@ class Season(models.Model):
     name = models.CharField(max_length=100, verbose_name="Nombre de la Temporada")
     year = models.PositiveIntegerField(verbose_name="Año")
     season_type = models.CharField(
-        max_length=20, choices=SEASON_TYPE_CHOICES, default="regular", verbose_name="Tipo de Temporada"
+        max_length=20,
+        choices=SEASON_TYPE_CHOICES,
+        default="regular",
+        verbose_name="Tipo de Temporada",
     )
     start_date = models.DateField(verbose_name="Fecha de Inicio")
     end_date = models.DateField(verbose_name="Fecha de Fin")
-    status = models.CharField(max_length=20, choices=SEASON_STATUS_CHOICES, default="upcoming", verbose_name="Estado")
+    status = models.CharField(
+        max_length=20,
+        choices=SEASON_STATUS_CHOICES,
+        default="upcoming",
+        verbose_name="Estado",
+    )
     description = models.TextField(blank=True, null=True, verbose_name="Descripción")
     is_active = models.BooleanField(default=True, verbose_name="Activa")
 
     # Información adicional
-    total_games = models.PositiveIntegerField(null=True, blank=True, verbose_name="Total de Juegos")
-    teams_count = models.PositiveIntegerField(null=True, blank=True, verbose_name="Número de Equipos")
+    total_games = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name="Total de Juegos"
+    )
+    teams_count = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name="Número de Equipos"
+    )
     league = models.CharField(max_length=100, blank=True, verbose_name="Liga")
 
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Fecha de Actualización")
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Fecha de Creación"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, verbose_name="Fecha de Actualización"
+    )
 
     class Meta:
         verbose_name = "Temporada"
@@ -192,7 +229,9 @@ class Season(models.Model):
         from django.core.exceptions import ValidationError
 
         if self.start_date and self.end_date and self.start_date >= self.end_date:
-            raise ValidationError("La fecha de fin debe ser posterior a la fecha de inicio.")
+            raise ValidationError(
+                "La fecha de fin debe ser posterior a la fecha de inicio."
+            )
 
 
 class Rule(models.Model):
@@ -208,7 +247,12 @@ class Rule(models.Model):
 
     name = models.CharField(max_length=100, unique=True, verbose_name="Rule Name")
     description = models.TextField(blank=True, verbose_name="Description")
-    rule_type = models.CharField(max_length=20, choices=RULE_TYPE_CHOICES, default="standard", verbose_name="Rule Type")
+    rule_type = models.CharField(
+        max_length=20,
+        choices=RULE_TYPE_CHOICES,
+        default="standard",
+        verbose_name="Rule Type",
+    )
     is_active = models.BooleanField(default=True, verbose_name="Is Active")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Updated At")
@@ -231,34 +275,74 @@ class Site(models.Model):
     """Sitios/Instalaciones donde se realizan eventos"""
 
     # Información básica del sitio
-    site_name = models.CharField(max_length=200, verbose_name="Site Name", help_text="Nombre del sitio o instalación")
-    abbreviation = models.CharField(max_length=50, blank=True, verbose_name="Abbreviation", help_text="Abreviatura del sitio")
+    site_name = models.CharField(
+        max_length=200,
+        verbose_name="Site Name",
+        help_text="Nombre del sitio o instalación",
+    )
+    abbreviation = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name="Abbreviation",
+        help_text="Abreviatura del sitio",
+    )
 
     # Dirección
-    address_1 = models.CharField(max_length=200, verbose_name="Address 1", help_text="Dirección principal")
+    address_1 = models.CharField(
+        max_length=200, verbose_name="Address 1", help_text="Dirección principal"
+    )
     address_2 = models.CharField(
-        max_length=200, blank=True, verbose_name="Address 2", help_text="Dirección secundaria (opcional)"
+        max_length=200,
+        blank=True,
+        verbose_name="Address 2",
+        help_text="Dirección secundaria (opcional)",
     )
     city = models.ForeignKey(
-        "City", on_delete=models.SET_NULL, null=True, blank=True, related_name="sites", verbose_name="City", help_text="Ciudad"
+        "City",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="sites",
+        verbose_name="City",
+        help_text="Ciudad",
     )
     state = models.ForeignKey(
-        "State", on_delete=models.SET_NULL, null=True, blank=True, related_name="sites", verbose_name="State"
+        "State",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="sites",
+        verbose_name="State",
     )
-    postal_code = models.CharField(max_length=20, verbose_name="Postal Code", help_text="Código postal")
+    postal_code = models.CharField(
+        max_length=20, verbose_name="Postal Code", help_text="Código postal"
+    )
     country = models.ForeignKey(
-        "Country", on_delete=models.SET_NULL, null=True, blank=True, related_name="sites", verbose_name="Country"
+        "Country",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="sites",
+        verbose_name="Country",
     )
 
     # Información adicional
-    website = models.URLField(blank=True, verbose_name="Website", help_text="Sitio web del lugar")
+    website = models.URLField(
+        blank=True, verbose_name="Website", help_text="Sitio web del lugar"
+    )
     additional_info = models.TextField(
-        blank=True, verbose_name="Additional Info", help_text="Información adicional sobre el sitio (ej. Reglas del parque)"
+        blank=True,
+        verbose_name="Additional Info",
+        help_text="Información adicional sobre el sitio (ej. Reglas del parque)",
     )
 
     # Imágenes
     image = models.ImageField(
-        upload_to="sites/", blank=True, null=True, verbose_name="Site Image", help_text="Imagen principal del sitio"
+        upload_to="sites/",
+        blank=True,
+        null=True,
+        verbose_name="Site Image",
+        help_text="Imagen principal del sitio",
     )
 
     # Configuración
@@ -280,7 +364,13 @@ class Site(models.Model):
         address_parts = [self.address_1]
         if self.address_2:
             address_parts.append(self.address_2)
-        address_parts.extend([self.city.name if self.city else "", self.state.name if self.state else "", self.postal_code])
+        address_parts.extend(
+            [
+                self.city.name if self.city else "",
+                self.state.name if self.state else "",
+                self.postal_code,
+            ]
+        )
         return ", ".join(filter(None, address_parts))
 
     @property

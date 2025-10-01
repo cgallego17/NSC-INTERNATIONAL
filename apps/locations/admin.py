@@ -34,7 +34,15 @@ class CityAdmin(admin.ModelAdmin):
 
 @admin.register(Season)
 class SeasonAdmin(admin.ModelAdmin):
-    list_display = ["name", "year", "start_date", "end_date", "status", "is_active", "created_at"]
+    list_display = [
+        "name",
+        "year",
+        "start_date",
+        "end_date",
+        "status",
+        "is_active",
+        "created_at",
+    ]
     list_filter = ["status", "is_active", "year", "created_at"]
     search_fields = ["name", "description"]
     ordering = ["-year", "-start_date"]
@@ -52,7 +60,15 @@ class RuleAdmin(admin.ModelAdmin):
 
 @admin.register(Site)
 class SiteAdmin(admin.ModelAdmin):
-    list_display = ["site_name", "abbreviation", "get_city", "state", "country", "is_active", "created_at"]
+    list_display = [
+        "site_name",
+        "abbreviation",
+        "get_city",
+        "state",
+        "country",
+        "is_active",
+        "created_at",
+    ]
     list_filter = ["country", "state", "city", "is_active", "created_at"]
     search_fields = ["site_name", "abbreviation", "city__name", "address_1", "website"]
     ordering = ["site_name"]
@@ -65,7 +81,22 @@ class SiteAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ("Basic Information", {"fields": ("site_name", "abbreviation", "is_active")}),
-        ("Address", {"fields": ("address_1", "address_2", "city", "state", "postal_code", "country")}),
+        (
+            "Address",
+            {
+                "fields": (
+                    "address_1",
+                    "address_2",
+                    "city",
+                    "state",
+                    "postal_code",
+                    "country",
+                )
+            },
+        ),
         ("Additional Information", {"fields": ("website", "image", "additional_info")}),
-        ("Timestamps", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
+        (
+            "Timestamps",
+            {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
+        ),
     )

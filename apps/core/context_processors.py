@@ -32,9 +32,18 @@ def sidebar_context(request):
         "locations:city_create": {"section": "locations", "subsection": "cities"},
         "locations:city_update": {"section": "locations", "subsection": "cities"},
         "locations:city_delete": {"section": "locations", "subsection": "cities"},
-        "locations:season_create": {"section": "configuration", "subsection": "seasons"},
-        "locations:season_update": {"section": "configuration", "subsection": "seasons"},
-        "locations:season_delete": {"section": "configuration", "subsection": "seasons"},
+        "locations:season_create": {
+            "section": "configuration",
+            "subsection": "seasons",
+        },
+        "locations:season_update": {
+            "section": "configuration",
+            "subsection": "seasons",
+        },
+        "locations:season_delete": {
+            "section": "configuration",
+            "subsection": "seasons",
+        },
         "locations:rule_list": {"section": "configuration", "subsection": "rules"},
         "locations:rule_create": {"section": "configuration", "subsection": "rules"},
         "locations:rule_update": {"section": "configuration", "subsection": "rules"},

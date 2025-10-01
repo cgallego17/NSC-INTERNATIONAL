@@ -126,7 +126,9 @@ def main():
     run_command("python manage.py createsuperuser", "Creando superusuario")
 
     # Recopilar archivos estáticos
-    if not run_command("python manage.py collectstatic --noinput", "Recopilando archivos estáticos"):
+    if not run_command(
+        "python manage.py collectstatic --noinput", "Recopilando archivos estáticos"
+    ):
         print("⚠️  Advertencia: No se pudieron recopilar archivos estáticos")
 
     print("\n🎉 ¡Configuración completada!")

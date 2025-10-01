@@ -56,7 +56,9 @@ class Command(BaseCommand):
         updated_count = 0
 
         for rule_data in rules_data:
-            rule, created = Rule.objects.get_or_create(name=rule_data["name"], defaults=rule_data)
+            rule, created = Rule.objects.get_or_create(
+                name=rule_data["name"], defaults=rule_data
+            )
 
             if created:
                 created_count += 1

@@ -4,7 +4,13 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
-from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    UpdateView,
+)
 
 from .models import City, Country, Rule, Season, Site, State
 
@@ -23,7 +29,9 @@ class CountryListView(LoginRequiredMixin, ListView):
         sort = self.request.GET.get("sort", "name")
 
         if search:
-            queryset = queryset.filter(Q(name__icontains=search) | Q(code__icontains=search))
+            queryset = queryset.filter(
+                Q(name__icontains=search) | Q(code__icontains=search)
+            )
 
         if status == "active":
             queryset = queryset.filter(is_active=True)
@@ -59,7 +67,9 @@ class CountryDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context["states"] = self.object.states.filter(is_active=True).order_by("name")
         context["states_count"] = self.object.states.count()
-        context["cities_count"] = City.objects.filter(state__country=self.object).count()
+        context["cities_count"] = City.objects.filter(
+            state__country=self.object
+        ).count()
         return context
 
 
@@ -113,7 +123,9 @@ class StateListView(LoginRequiredMixin, ListView):
 
         if search:
             queryset = queryset.filter(
-                Q(name__icontains=search) | Q(code__icontains=search) | Q(country__name__icontains=search)
+                Q(name__icontains=search)
+                | Q(code__icontains=search)
+                | Q(country__name__icontains=search)
             )
         if country:
             queryset = queryset.filter(country_id=country)
@@ -147,7 +159,9 @@ class StateListView(LoginRequiredMixin, ListView):
         # Obtener el país seleccionado para mostrar en el filtro activo
         if context["country_filter"]:
             try:
-                context["selected_country"] = Country.objects.get(id=context["country_filter"])
+                context["selected_country"] = Country.objects.get(
+                    id=context["country_filter"]
+                )
             except Country.DoesNotExist:
                 context["selected_country"] = None
         else:
@@ -219,7 +233,9 @@ class CityListView(LoginRequiredMixin, ListView):
 
         if search:
             queryset = queryset.filter(
-                Q(name__icontains=search) | Q(state__name__icontains=search) | Q(state__country__name__icontains=search)
+                Q(name__icontains=search)
+                | Q(state__name__icontains=search)
+                | Q(state__country__name__icontains=search)
             )
         if country:
             queryset = queryset.filter(state__country_id=country)
@@ -252,12 +268,16 @@ class CityListView(LoginRequiredMixin, ListView):
         context["status_filter"] = self.request.GET.get("status", "")
         context["sort_filter"] = self.request.GET.get("sort", "name")
         context["countries"] = Country.objects.filter(is_active=True).order_by("name")
-        context["states"] = State.objects.filter(is_active=True).order_by("country__name", "name")
+        context["states"] = State.objects.filter(is_active=True).order_by(
+            "country__name", "name"
+        )
 
         # Obtener el país y estado seleccionados para mostrar en los filtros activos
         if context["country_filter"]:
             try:
-                context["selected_country"] = Country.objects.get(id=context["country_filter"])
+                context["selected_country"] = Country.objects.get(
+                    id=context["country_filter"]
+                )
             except Country.DoesNotExist:
                 context["selected_country"] = None
         else:
@@ -265,7 +285,9 @@ class CityListView(LoginRequiredMixin, ListView):
 
         if context["state_filter"]:
             try:
-                context["selected_state"] = State.objects.get(id=context["state_filter"])
+                context["selected_state"] = State.objects.get(
+                    id=context["state_filter"]
+                )
             except State.DoesNotExist:
                 context["selected_state"] = None
         else:
@@ -330,7 +352,9 @@ class SeasonListView(LoginRequiredMixin, ListView):
         sort = self.request.GET.get("sort", "year")
 
         if search:
-            queryset = queryset.filter(Q(name__icontains=search) | Q(description__icontains=search))
+            queryset = queryset.filter(
+                Q(name__icontains=search) | Q(description__icontains=search)
+            )
         if status:
             queryset = queryset.filter(status=status)
         if year:
@@ -364,7 +388,9 @@ class SeasonListView(LoginRequiredMixin, ListView):
         context["active_filter"] = self.request.GET.get("active", "")
         context["sort_filter"] = self.request.GET.get("sort", "year")
         context["status_choices"] = Season.SEASON_STATUS_CHOICES
-        context["years"] = Season.objects.values_list("year", flat=True).distinct().order_by("-year")
+        context["years"] = (
+            Season.objects.values_list("year", flat=True).distinct().order_by("-year")
+        )
         return context
 
 
@@ -377,7 +403,15 @@ class SeasonDetailView(LoginRequiredMixin, DetailView):
 class SeasonCreateView(LoginRequiredMixin, CreateView):
     model = Season
     template_name = "locations/season_form.html"
-    fields = ["name", "year", "start_date", "end_date", "status", "description", "is_active"]
+    fields = [
+        "name",
+        "year",
+        "start_date",
+        "end_date",
+        "status",
+        "description",
+        "is_active",
+    ]
     success_url = reverse_lazy("locations:season_list")
 
     def form_valid(self, form):
@@ -388,7 +422,15 @@ class SeasonCreateView(LoginRequiredMixin, CreateView):
 class SeasonUpdateView(LoginRequiredMixin, UpdateView):
     model = Season
     template_name = "locations/season_form.html"
-    fields = ["name", "year", "start_date", "end_date", "status", "description", "is_active"]
+    fields = [
+        "name",
+        "year",
+        "start_date",
+        "end_date",
+        "status",
+        "description",
+        "is_active",
+    ]
 
     def get_success_url(self):
         return reverse_lazy("locations:season_detail", kwargs={"pk": self.object.pk})
@@ -411,7 +453,9 @@ class SeasonDeleteView(LoginRequiredMixin, DeleteView):
 # ===== AJAX VIEWS =====
 def get_states_by_country(request, country_id):
     """Obtener estados por país para AJAX"""
-    states = State.objects.filter(country_id=country_id, is_active=True).order_by("name")
+    states = State.objects.filter(country_id=country_id, is_active=True).order_by(
+        "name"
+    )
     data = [{"id": state.id, "name": state.name} for state in states]
     return JsonResponse(data, safe=False)
 
@@ -427,7 +471,10 @@ def get_cities_by_state(request, state_id):
 def countries_api(request):
     """API para obtener países"""
     countries = Country.objects.filter(is_active=True).order_by("name")
-    data = [{"id": country.id, "name": country.name, "code": country.code} for country in countries]
+    data = [
+        {"id": country.id, "name": country.name, "code": country.code}
+        for country in countries
+    ]
     return JsonResponse(data, safe=False)
 
 
@@ -435,11 +482,16 @@ def states_api(request):
     """API para obtener estados"""
     country_id = request.GET.get("country")
     if country_id:
-        states = State.objects.filter(country_id=country_id, is_active=True).order_by("name")
+        states = State.objects.filter(country_id=country_id, is_active=True).order_by(
+            "name"
+        )
     else:
         states = State.objects.filter(is_active=True).order_by("country__name", "name")
 
-    data = [{"id": state.id, "name": state.name, "country_id": state.country.id} for state in states]
+    data = [
+        {"id": state.id, "name": state.name, "country_id": state.country.id}
+        for state in states
+    ]
     return JsonResponse(data, safe=False)
 
 
@@ -449,16 +501,23 @@ def cities_api(request):
     if state_id:
         cities = City.objects.filter(state_id=state_id, is_active=True).order_by("name")
     else:
-        cities = City.objects.filter(is_active=True).order_by("state__country__name", "state__name", "name")
+        cities = City.objects.filter(is_active=True).order_by(
+            "state__country__name", "state__name", "name"
+        )
 
-    data = [{"id": city.id, "name": city.name, "state_id": city.state.id} for city in cities]
+    data = [
+        {"id": city.id, "name": city.name, "state_id": city.state.id} for city in cities
+    ]
     return JsonResponse(data, safe=False)
 
 
 def seasons_api(request):
     """API para obtener temporadas"""
     seasons = Season.objects.filter(is_active=True).order_by("name")
-    data = [{"id": season.id, "name": season.name, "year": season.year} for season in seasons]
+    data = [
+        {"id": season.id, "name": season.name, "year": season.year}
+        for season in seasons
+    ]
     return JsonResponse(data, safe=False)
 
 
@@ -476,7 +535,9 @@ class RuleListView(LoginRequiredMixin, ListView):
         search = self.request.GET.get("search")
         if search:
             queryset = queryset.filter(
-                Q(name__icontains=search) | Q(description__icontains=search) | Q(rule_type__icontains=search)
+                Q(name__icontains=search)
+                | Q(description__icontains=search)
+                | Q(rule_type__icontains=search)
             )
 
         # Filtro por tipo de regla
@@ -540,7 +601,10 @@ class RuleDeleteView(LoginRequiredMixin, DeleteView):
 def rules_api(request):
     """API para obtener reglas"""
     rules = Rule.objects.filter(is_active=True).order_by("name")
-    data = [{"id": rule.id, "name": rule.name, "rule_type": rule.rule_type} for rule in rules]
+    data = [
+        {"id": rule.id, "name": rule.name, "rule_type": rule.rule_type}
+        for rule in rules
+    ]
     return JsonResponse(data, safe=False)
 
 
@@ -660,7 +724,16 @@ def sites_api(request):
     sites = (
         Site.objects.filter(is_active=True)
         .select_related("state", "city", "country")
-        .values("id", "site_name", "abbreviation", "state_id", "state__name", "city_id", "city__name", "country__name")
+        .values(
+            "id",
+            "site_name",
+            "abbreviation",
+            "state_id",
+            "state__name",
+            "city_id",
+            "city__name",
+            "country__name",
+        )
     )
 
     # Convert to list and add computed fields

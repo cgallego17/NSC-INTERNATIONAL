@@ -45,46 +45,135 @@ class EventForm(forms.ModelForm):
             "schedule_request_deadline",
         ]
         widgets = {
-            "season": forms.Select(attrs={"class": "form-select", "required": True, "placeholder": "Select Season"}),
-            "title": forms.TextInput(attrs={"class": "form-control", "required": True, "placeholder": "Event Name"}),
-            "short_name": forms.TextInput(attrs={"class": "form-control", "placeholder": "Event Short Name"}),
-            "description": forms.Textarea(attrs={"class": "form-control", "rows": 3, "placeholder": "Short Description"}),
-            "tags": forms.TextInput(attrs={"class": "form-control", "placeholder": "Tags"}),
-            "division": forms.Select(attrs={"class": "form-select", "placeholder": "Select Division"}),
-            "city": forms.Select(attrs={"class": "form-select", "required": True, "placeholder": "Select City"}),
-            "state": forms.Select(attrs={"class": "form-select", "required": True, "placeholder": "Select State"}),
-            "country": forms.Select(attrs={"class": "form-select", "required": True, "placeholder": "Select Country"}),
-            "primary_site": forms.Select(attrs={"class": "form-select", "placeholder": "Select Primary Site"}),
-            "additional_sites": forms.CheckboxSelectMultiple(attrs={"class": "additional-sites-checkbox-list"}),
-            "rule": forms.Select(attrs={"class": "form-select", "required": True, "placeholder": "Select Rule Set"}),
+            "season": forms.Select(
+                attrs={
+                    "class": "form-select",
+                    "required": True,
+                    "placeholder": "Select Season",
+                }
+            ),
+            "title": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "required": True,
+                    "placeholder": "Event Name",
+                }
+            ),
+            "short_name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Event Short Name"}
+            ),
+            "description": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Short Description",
+                }
+            ),
+            "tags": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Tags"}
+            ),
+            "division": forms.Select(
+                attrs={"class": "form-select", "placeholder": "Select Division"}
+            ),
+            "city": forms.Select(
+                attrs={
+                    "class": "form-select",
+                    "required": True,
+                    "placeholder": "Select City",
+                }
+            ),
+            "state": forms.Select(
+                attrs={
+                    "class": "form-select",
+                    "required": True,
+                    "placeholder": "Select State",
+                }
+            ),
+            "country": forms.Select(
+                attrs={
+                    "class": "form-select",
+                    "required": True,
+                    "placeholder": "Select Country",
+                }
+            ),
+            "primary_site": forms.Select(
+                attrs={"class": "form-select", "placeholder": "Select Primary Site"}
+            ),
+            "additional_sites": forms.CheckboxSelectMultiple(
+                attrs={"class": "additional-sites-checkbox-list"}
+            ),
+            "rule": forms.Select(
+                attrs={
+                    "class": "form-select",
+                    "required": True,
+                    "placeholder": "Select Rule Set",
+                }
+            ),
             "stature": forms.Select(attrs={"class": "form-select", "required": True}),
             "start_date": forms.DateInput(
-                attrs={"class": "form-control", "type": "date", "required": True, "placeholder": "dd/mm/aaaa"}
+                attrs={
+                    "class": "form-control",
+                    "type": "date",
+                    "required": True,
+                    "placeholder": "dd/mm/aaaa",
+                }
             ),
             "end_date": forms.DateInput(
-                attrs={"class": "form-control", "type": "date", "required": True, "placeholder": "dd/mm/aaaa"}
+                attrs={
+                    "class": "form-control",
+                    "type": "date",
+                    "required": True,
+                    "placeholder": "dd/mm/aaaa",
+                }
             ),
             "entry_deadline": forms.DateInput(
-                attrs={"class": "form-control", "type": "date", "required": True, "placeholder": "dd/mm/aaaa"}
+                attrs={
+                    "class": "form-control",
+                    "type": "date",
+                    "required": True,
+                    "placeholder": "dd/mm/aaaa",
+                }
             ),
-            "allow_withdrawals": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "withdraw_deadline": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "allow_withdrawals": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "withdraw_deadline": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
             "freeze_rosters": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "roster_freeze_date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
-            "default_entry_fee": forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "placeholder": "0.00"}),
-            "payment_deadline": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "roster_freeze_date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
+            "default_entry_fee": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.01", "placeholder": "0.00"}
+            ),
+            "payment_deadline": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
             "accept_deposits": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "default_deposit_amount": forms.NumberInput(
                 attrs={"class": "form-control", "step": "0.01", "placeholder": "0.00"}
             ),
-            "allow_online_pay": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "allow_online_pay": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
             "has_gate_fee": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "gate_fee_type": forms.Select(attrs={"class": "form-select"}),
-            "gate_fee_amount": forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "placeholder": "0.00"}),
-            "send_payment_reminders": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "payment_reminder_date": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
-            "accept_schedule_requests": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "schedule_request_deadline": forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "gate_fee_amount": forms.NumberInput(
+                attrs={"class": "form-control", "step": "0.01", "placeholder": "0.00"}
+            ),
+            "send_payment_reminders": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "payment_reminder_date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
+            "accept_schedule_requests": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "schedule_request_deadline": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
         }
         labels = {
             "season": "Season *",
@@ -126,10 +215,18 @@ class EventForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         # Configurar opciones para los campos de selección
-        self.fields["season"].queryset = Season.objects.filter(is_active=True).order_by("name")
-        self.fields["division"].queryset = Division.objects.filter(is_active=True).order_by("name")
-        self.fields["state"].queryset = State.objects.filter(is_active=True).order_by("name")
-        self.fields["country"].queryset = Country.objects.filter(is_active=True).order_by("name")
+        self.fields["season"].queryset = Season.objects.filter(is_active=True).order_by(
+            "name"
+        )
+        self.fields["division"].queryset = Division.objects.filter(
+            is_active=True
+        ).order_by("name")
+        self.fields["state"].queryset = State.objects.filter(is_active=True).order_by(
+            "name"
+        )
+        self.fields["country"].queryset = Country.objects.filter(
+            is_active=True
+        ).order_by("name")
 
         # Establecer valores por defecto
         if not self.instance.pk:
@@ -151,10 +248,14 @@ class EventForm(forms.ModelForm):
 
         # Validar que la fecha de fin sea posterior a la de inicio
         if start_date and end_date and start_date >= end_date:
-            raise forms.ValidationError("La fecha de fin debe ser posterior a la fecha de inicio.")
+            raise forms.ValidationError(
+                "La fecha de fin debe ser posterior a la fecha de inicio."
+            )
 
         # Validar que la fecha límite de inscripción sea anterior a la fecha de inicio
         if entry_deadline and start_date and entry_deadline >= start_date:
-            raise forms.ValidationError("La fecha límite de inscripción debe ser anterior a la fecha de inicio del evento.")
+            raise forms.ValidationError(
+                "La fecha límite de inscripción debe ser anterior a la fecha de inicio del evento."
+            )
 
         return cleaned_data

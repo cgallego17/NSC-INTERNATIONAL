@@ -102,14 +102,18 @@ class RuleModelTest(TestCase):
 
     def test_rule_creation(self):
         """Test rule creation"""
-        rule = Rule.objects.create(name="Test Rule", description="Test Description", rule_type="general")
+        rule = Rule.objects.create(
+            name="Test Rule", description="Test Description", rule_type="general"
+        )
         self.assertEqual(rule.name, "Test Rule")
         self.assertEqual(rule.description, "Test Description")
         self.assertEqual(rule.rule_type, "general")
 
     def test_rule_str_representation(self):
         """Test string representation of rule"""
-        rule = Rule.objects.create(name="Test Rule", description="Test Description", rule_type="general")
+        rule = Rule.objects.create(
+            name="Test Rule", description="Test Description", rule_type="general"
+        )
         self.assertEqual(str(rule), "Test Rule")
 
 
@@ -164,7 +168,9 @@ class LocationViewTest(TestCase):
     def setUp(self):
         """Set up test data"""
         self.client = Client()
-        self.user = User.objects.create_user(username="testuser", password="testpass123")
+        self.user = User.objects.create_user(
+            username="testuser", password="testpass123"
+        )
         self.country = Country.objects.create(name="México", code="MX")
         self.state = State.objects.create(name="Jalisco", country=self.country)
         self.city = City.objects.create(name="Guadalajara", state=self.state)
@@ -205,7 +211,9 @@ class LocationViewTest(TestCase):
     def test_country_detail_view(self):
         """Test country detail view"""
         self.client.login(username="testuser", password="testpass123")
-        response = self.client.get(reverse("locations:country_detail", args=[self.country.pk]))
+        response = self.client.get(
+            reverse("locations:country_detail", args=[self.country.pk])
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "México")
 
@@ -224,7 +232,9 @@ class LocationViewTest(TestCase):
     def test_state_detail_view(self):
         """Test state detail view"""
         self.client.login(username="testuser", password="testpass123")
-        response = self.client.get(reverse("locations:state_detail", args=[self.state.pk]))
+        response = self.client.get(
+            reverse("locations:state_detail", args=[self.state.pk])
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Jalisco")
 
@@ -243,7 +253,9 @@ class LocationViewTest(TestCase):
     def test_city_detail_view(self):
         """Test city detail view"""
         self.client.login(username="testuser", password="testpass123")
-        response = self.client.get(reverse("locations:city_detail", args=[self.city.pk]))
+        response = self.client.get(
+            reverse("locations:city_detail", args=[self.city.pk])
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Guadalajara")
 
@@ -262,7 +274,9 @@ class LocationViewTest(TestCase):
     def test_site_detail_view(self):
         """Test site detail view"""
         self.client.login(username="testuser", password="testpass123")
-        response = self.client.get(reverse("locations:site_detail", args=[self.site.pk]))
+        response = self.client.get(
+            reverse("locations:site_detail", args=[self.site.pk])
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Estadio Jalisco")
 
@@ -281,7 +295,9 @@ class LocationViewTest(TestCase):
     def test_season_detail_view(self):
         """Test season detail view"""
         self.client.login(username="testuser", password="testpass123")
-        response = self.client.get(reverse("locations:season_detail", args=[self.season.pk]))
+        response = self.client.get(
+            reverse("locations:season_detail", args=[self.season.pk])
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Apertura 2024")
 
@@ -300,7 +316,9 @@ class LocationViewTest(TestCase):
     def test_rule_detail_view(self):
         """Test rule detail view"""
         self.client.login(username="testuser", password="testpass123")
-        response = self.client.get(reverse("locations:rule_detail", args=[self.rule.pk]))
+        response = self.client.get(
+            reverse("locations:rule_detail", args=[self.rule.pk])
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Rule")
 
@@ -311,7 +329,9 @@ class LocationAPITest(TestCase):
     def setUp(self):
         """Set up test data"""
         self.client = Client()
-        self.user = User.objects.create_user(username="testuser", password="testpass123")
+        self.user = User.objects.create_user(
+            username="testuser", password="testpass123"
+        )
         self.country = Country.objects.create(name="México", code="MX")
         self.state = State.objects.create(name="Jalisco", country=self.country)
         self.city = City.objects.create(name="Guadalajara", state=self.state)
@@ -337,7 +357,9 @@ class LocationAPITest(TestCase):
     def test_states_api_with_country_filter(self):
         """Test states API endpoint with country filter"""
         self.client.login(username="testuser", password="testpass123")
-        response = self.client.get(reverse("locations:states_api"), {"country": self.country.id})
+        response = self.client.get(
+            reverse("locations:states_api"), {"country": self.country.id}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Jalisco")
 
@@ -351,7 +373,9 @@ class LocationAPITest(TestCase):
     def test_cities_api_with_state_filter(self):
         """Test cities API endpoint with state filter"""
         self.client.login(username="testuser", password="testpass123")
-        response = self.client.get(reverse("locations:cities_api"), {"state": self.state.id})
+        response = self.client.get(
+            reverse("locations:cities_api"), {"state": self.state.id}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Guadalajara")
 

@@ -7,8 +7,14 @@ class EventCategory(models.Model):
 
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
-    color = models.CharField(max_length=7, default="#6675ed", help_text="Color en formato hexadecimal")
-    icon = models.CharField(max_length=50, default="fas fa-calendar", help_text="Clase de icono Font Awesome")
+    color = models.CharField(
+        max_length=7, default="#6675ed", help_text="Color en formato hexadecimal"
+    )
+    icon = models.CharField(
+        max_length=50,
+        default="fas fa-calendar",
+        help_text="Clase de icono Font Awesome",
+    )
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -25,12 +31,21 @@ class EventCategory(models.Model):
 class Division(models.Model):
     """Divisiones de eventos"""
 
-    name = models.CharField(max_length=100, unique=True, verbose_name="Nombre de la División")
+    name = models.CharField(
+        max_length=100, unique=True, verbose_name="Nombre de la División"
+    )
     description = models.TextField(blank=True, verbose_name="Descripción")
-    age_min = models.PositiveIntegerField(null=True, blank=True, verbose_name="Edad Mínima")
-    age_max = models.PositiveIntegerField(null=True, blank=True, verbose_name="Edad Máxima")
+    age_min = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name="Edad Mínima"
+    )
+    age_max = models.PositiveIntegerField(
+        null=True, blank=True, verbose_name="Edad Máxima"
+    )
     skill_level = models.CharField(
-        max_length=50, blank=True, verbose_name="Nivel de Habilidad", help_text="Ej: Principiante, Intermedio, Avanzado"
+        max_length=50,
+        blank=True,
+        verbose_name="Nivel de Habilidad",
+        help_text="Ej: Principiante, Intermedio, Avanzado",
     )
     is_active = models.BooleanField(default=True, verbose_name="Activo")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -100,12 +115,21 @@ class Event(models.Model):
     tags = models.CharField(max_length=500, blank=True, verbose_name="Tags")
 
     # Categorización
-    category = models.ForeignKey(EventCategory, on_delete=models.CASCADE, related_name="events")
+    category = models.ForeignKey(
+        EventCategory, on_delete=models.CASCADE, related_name="events"
+    )
     division = models.ForeignKey(
-        Division, on_delete=models.SET_NULL, null=True, blank=True, related_name="events", verbose_name="División"
+        Division,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="events",
+        verbose_name="División",
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
-    priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default="medium")
+    priority = models.CharField(
+        max_length=10, choices=PRIORITY_CHOICES, default="medium"
+    )
 
     # Ubicación
     location = models.CharField(max_length=200, blank=True)
@@ -113,16 +137,36 @@ class Event(models.Model):
 
     # Relaciones con ubicaciones (requeridas)
     season = models.ForeignKey(
-        "locations.Season", on_delete=models.SET_NULL, null=True, blank=True, related_name="events", verbose_name="Season"
+        "locations.Season",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="events",
+        verbose_name="Season",
     )
     country = models.ForeignKey(
-        "locations.Country", on_delete=models.SET_NULL, null=True, blank=True, related_name="events", verbose_name="Country"
+        "locations.Country",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="events",
+        verbose_name="Country",
     )
     state = models.ForeignKey(
-        "locations.State", on_delete=models.SET_NULL, null=True, blank=True, related_name="events", verbose_name="State"
+        "locations.State",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="events",
+        verbose_name="State",
     )
     city = models.ForeignKey(
-        "locations.City", on_delete=models.SET_NULL, null=True, blank=True, related_name="events", verbose_name="City"
+        "locations.City",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="events",
+        verbose_name="City",
     )
 
     # Sitio primario del evento
@@ -146,34 +190,66 @@ class Event(models.Model):
     )
 
     # Configuración del evento
-    region = models.CharField(max_length=20, choices=REGION_CHOICES, blank=True, verbose_name="Region")
-    rule = models.ForeignKey(
-        "locations.Rule", on_delete=models.SET_NULL, null=True, blank=True, related_name="events", verbose_name="Rule Set"
+    region = models.CharField(
+        max_length=20, choices=REGION_CHOICES, blank=True, verbose_name="Region"
     )
-    stature = models.CharField(max_length=20, choices=STATURE_CHOICES, default="single_points", verbose_name="Stature")
+    rule = models.ForeignKey(
+        "locations.Rule",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="events",
+        verbose_name="Rule Set",
+    )
+    stature = models.CharField(
+        max_length=20,
+        choices=STATURE_CHOICES,
+        default="single_points",
+        verbose_name="Stature",
+    )
 
     # Fechas y horarios
     start_date = models.DateField(verbose_name="Start Date", null=True, blank=True)
     end_date = models.DateField(verbose_name="End Date", null=True, blank=True)
-    entry_deadline = models.DateField(verbose_name="Entry Deadline", null=True, blank=True)
+    entry_deadline = models.DateField(
+        verbose_name="Entry Deadline", null=True, blank=True
+    )
     all_day = models.BooleanField(default=False)
 
     # Configuración de participación
-    allow_withdrawals = models.BooleanField(default=False, verbose_name="Allow Withdrawals")
-    withdraw_deadline = models.DateField(verbose_name="Withdraw Deadline", null=True, blank=True)
+    allow_withdrawals = models.BooleanField(
+        default=False, verbose_name="Allow Withdrawals"
+    )
+    withdraw_deadline = models.DateField(
+        verbose_name="Withdraw Deadline", null=True, blank=True
+    )
     freeze_rosters = models.BooleanField(default=False, verbose_name="Freeze Rosters")
-    roster_freeze_date = models.DateField(verbose_name="Roster Freeze Date", null=True, blank=True)
+    roster_freeze_date = models.DateField(
+        verbose_name="Roster Freeze Date", null=True, blank=True
+    )
 
     # Tarifas y pagos
     default_entry_fee = models.DecimalField(
-        max_digits=10, decimal_places=2, verbose_name="Default Entry Fee", null=True, blank=True
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Default Entry Fee",
+        null=True,
+        blank=True,
     )
-    payment_deadline = models.DateField(verbose_name="Payment Deadline", null=True, blank=True)
+    payment_deadline = models.DateField(
+        verbose_name="Payment Deadline", null=True, blank=True
+    )
     accept_deposits = models.BooleanField(default=False, verbose_name="Accept Deposits")
     default_deposit_amount = models.DecimalField(
-        max_digits=10, decimal_places=2, verbose_name="Default Deposit Amount", null=True, blank=True
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Default Deposit Amount",
+        null=True,
+        blank=True,
     )
-    allow_online_pay = models.BooleanField(default=False, verbose_name="Allow Online Pay")
+    allow_online_pay = models.BooleanField(
+        default=False, verbose_name="Allow Online Pay"
+    )
 
     # Tarifas de entrada
     has_gate_fee = models.BooleanField(default=False, verbose_name="Has Gate Fee")
@@ -184,25 +260,47 @@ class Event(models.Model):
         ("flat_fee", "Flat Fee"),
     ]
     gate_fee_type = models.CharField(
-        max_length=20, choices=GATE_FEE_TYPE_CHOICES, null=True, blank=True, verbose_name="Gate Fee Type"
+        max_length=20,
+        choices=GATE_FEE_TYPE_CHOICES,
+        null=True,
+        blank=True,
+        verbose_name="Gate Fee Type",
     )
     gate_fee_amount = models.DecimalField(
-        max_digits=10, decimal_places=2, verbose_name="Gate Fee Amount", null=True, blank=True
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Gate Fee Amount",
+        null=True,
+        blank=True,
     )
 
     # Recordatorios y solicitudes
-    send_payment_reminders = models.BooleanField(default=False, verbose_name="Send Payment Reminders")
-    payment_reminder_date = models.DateField(verbose_name="Payment Reminder Date", null=True, blank=True)
-    accept_schedule_requests = models.BooleanField(default=False, verbose_name="Accept Schedule Requests")
-    schedule_request_deadline = models.DateField(verbose_name="Schedule Request Deadline", null=True, blank=True)
+    send_payment_reminders = models.BooleanField(
+        default=False, verbose_name="Send Payment Reminders"
+    )
+    payment_reminder_date = models.DateField(
+        verbose_name="Payment Reminder Date", null=True, blank=True
+    )
+    accept_schedule_requests = models.BooleanField(
+        default=False, verbose_name="Accept Schedule Requests"
+    )
+    schedule_request_deadline = models.DateField(
+        verbose_name="Schedule Request Deadline", null=True, blank=True
+    )
 
     # Organización
-    organizer = models.ForeignKey(User, on_delete=models.CASCADE, related_name="organized_events")
-    attendees = models.ManyToManyField(User, through="EventAttendance", related_name="attended_events")
+    organizer = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="organized_events"
+    )
+    attendees = models.ManyToManyField(
+        User, through="EventAttendance", related_name="attended_events"
+    )
 
     # Configuración
     is_public = models.BooleanField(default=False)
-    max_attendees = models.PositiveIntegerField(null=True, blank=True, help_text="Límite de asistentes (opcional)")
+    max_attendees = models.PositiveIntegerField(
+        null=True, blank=True, help_text="Límite de asistentes (opcional)"
+    )
     requires_registration = models.BooleanField(default=False)
 
     # Información adicional
@@ -290,7 +388,9 @@ class Event(models.Model):
 
         # Validar que la fecha de fin sea posterior a la de inicio
         if self.start_date and self.end_date and self.start_date >= self.end_date:
-            raise ValidationError("La fecha de fin debe ser posterior a la fecha de inicio.")
+            raise ValidationError(
+                "La fecha de fin debe ser posterior a la fecha de inicio."
+            )
 
         # Validar consistencia de ubicaciones
         if self.city and self.state and self.city.state != self.state:
@@ -335,7 +435,9 @@ class EventComment(models.Model):
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="comments")
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     comment = models.TextField()
-    is_internal = models.BooleanField(default=False, help_text="Comentario interno solo visible para organizadores")
+    is_internal = models.BooleanField(
+        default=False, help_text="Comentario interno solo visible para organizadores"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -359,7 +461,9 @@ class EventReminder(models.Model):
 
     event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="reminders")
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    reminder_type = models.CharField(max_length=20, choices=REMINDER_TYPES, default="notification")
+    reminder_type = models.CharField(
+        max_length=20, choices=REMINDER_TYPES, default="notification"
+    )
     minutes_before = models.PositiveIntegerField(help_text="Minutos antes del evento")
     sent = models.BooleanField(default=False)
     sent_at = models.DateTimeField(null=True, blank=True)

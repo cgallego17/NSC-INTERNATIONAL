@@ -22,7 +22,11 @@ def convert_bandit_to_sarif(bandit_file, sarif_file):
             "runs": [
                 {
                     "tool": {
-                        "driver": {"name": "Bandit", "version": "1.8.6", "informationUri": "https://bandit.readthedocs.io/"}
+                        "driver": {
+                            "name": "Bandit",
+                            "version": "1.8.6",
+                            "informationUri": "https://bandit.readthedocs.io/",
+                        }
                     },
                     "results": [],
                 }
@@ -33,25 +37,39 @@ def convert_bandit_to_sarif(bandit_file, sarif_file):
         converted_count = 0
         for issue in bandit_data.get("results", []):
             # Map severity levels
-            severity_map = {"LOW": "warning", "MEDIUM": "error", "HIGH": "error", "CRITICAL": "error"}
+            severity_map = {
+                "LOW": "warning",
+                "MEDIUM": "error",
+                "HIGH": "error",
+                "CRITICAL": "error",
+            }
 
             sarif_result = {
                 "ruleId": issue.get("test_id", "unknown"),
-                "level": severity_map.get(issue.get("issue_severity", "LOW"), "warning"),
+                "level": severity_map.get(
+                    issue.get("issue_severity", "LOW"), "warning"
+                ),
                 "message": {"text": issue.get("issue_text", "")},
                 "locations": [
                     {
                         "physicalLocation": {
-                            "artifactLocation": {"uri": issue.get("filename", "").replace("\\", "/")},
-                            "region": {"startLine": issue.get("line_number", 1), "startColumn": issue.get("col_offset", 1)},
+                            "artifactLocation": {
+                                "uri": issue.get("filename", "").replace("\\", "/")
+                            },
+                            "region": {
+                                "startLine": issue.get("line_number", 1),
+                                "startColumn": max(issue.get("col_offset", 1), 1),
+                            },
                         }
                     }
                 ],
             }
 
-            # Add rule information if available
+            # Add rule information in the correct SARIF format
             if "more_info" in issue:
-                sarif_result["helpUri"] = issue["more_info"]
+                sarif_result["help"] = {
+                    "text": f"More information: {issue['more_info']}"
+                }
 
             sarif_data["runs"][0]["results"].append(sarif_result)
             converted_count += 1
@@ -71,7 +89,9 @@ def convert_bandit_to_sarif(bandit_file, sarif_file):
 def main():
     """Main function."""
     if len(sys.argv) != 3:
-        print("Usage: python bandit_to_sarif.py <bandit_input.json> <sarif_output.json>")
+        print(
+            "Usage: python bandit_to_sarif.py <bandit_input.json> <sarif_output.json>"
+        )
         sys.exit(1)
 
     bandit_file = sys.argv[1]

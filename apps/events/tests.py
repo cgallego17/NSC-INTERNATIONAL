@@ -14,10 +14,14 @@ class EventModelTest(TestCase):
     def setUp(self):
         """Set up test data"""
         # Create test user
-        self.user = User.objects.create_user(username="testuser", password="testpass123")
+        self.user = User.objects.create_user(
+            username="testuser", password="testpass123"
+        )
 
         # Create test data
-        self.category = EventCategory.objects.create(name="Test Category", description="Test Description")
+        self.category = EventCategory.objects.create(
+            name="Test Category", description="Test Description"
+        )
         self.country = Country.objects.create(name="México", code="MX")
         self.state = State.objects.create(name="Jalisco", country=self.country)
         self.city = City.objects.create(name="Guadalajara", state=self.state)
@@ -87,10 +91,14 @@ class EventViewTest(TestCase):
     def setUp(self):
         """Set up test data"""
         self.client = Client()
-        self.user = User.objects.create_user(username="testuser", password="testpass123")
+        self.user = User.objects.create_user(
+            username="testuser", password="testpass123"
+        )
 
         # Create test data
-        self.category = EventCategory.objects.create(name="Test Category", description="Test Description")
+        self.category = EventCategory.objects.create(
+            name="Test Category", description="Test Description"
+        )
         self.country = Country.objects.create(name="México", code="MX")
         self.state = State.objects.create(name="Jalisco", country=self.country)
         self.city = City.objects.create(name="Guadalajara", state=self.state)
@@ -269,8 +277,12 @@ class EventAttendanceModelTest(TestCase):
 
     def setUp(self):
         """Set up test data"""
-        self.user = User.objects.create_user(username="testuser", password="testpass123")
-        self.category = EventCategory.objects.create(name="Test Category", description="Test Description")
+        self.user = User.objects.create_user(
+            username="testuser", password="testpass123"
+        )
+        self.category = EventCategory.objects.create(
+            name="Test Category", description="Test Description"
+        )
         self.country = Country.objects.create(name="México", code="MX")
         self.state = State.objects.create(name="Jalisco", country=self.country)
         self.city = City.objects.create(name="Guadalajara", state=self.state)
@@ -330,7 +342,9 @@ class EventFormTest(TestCase):
 
     def setUp(self):
         """Set up test data"""
-        self.category = EventCategory.objects.create(name="Test Category", description="Test Description")
+        self.category = EventCategory.objects.create(
+            name="Test Category", description="Test Description"
+        )
         self.country = Country.objects.create(name="México", code="MX")
         self.state = State.objects.create(name="Jalisco", country=self.country)
         self.city = City.objects.create(name="Guadalajara", state=self.state)
@@ -400,7 +414,9 @@ class DivisionViewTest(TestCase):
     def setUp(self):
         """Set up test data"""
         self.client = Client()
-        self.user = User.objects.create_user(username="testuser", password="testpass123")
+        self.user = User.objects.create_user(
+            username="testuser", password="testpass123"
+        )
         self.division = Division.objects.create(
             name="Test Division",
             description="Test Division Description",
@@ -424,7 +440,9 @@ class DivisionViewTest(TestCase):
     def test_division_detail_view(self):
         """Test division detail view"""
         self.client.login(username="testuser", password="testpass123")
-        response = self.client.get(reverse("events:division_detail", args=[self.division.pk]))
+        response = self.client.get(
+            reverse("events:division_detail", args=[self.division.pk])
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Division")
 
@@ -437,13 +455,17 @@ class DivisionViewTest(TestCase):
     def test_division_update_view(self):
         """Test division update view"""
         self.client.login(username="testuser", password="testpass123")
-        response = self.client.get(reverse("events:division_update", args=[self.division.pk]))
+        response = self.client.get(
+            reverse("events:division_update", args=[self.division.pk])
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Division")
 
     def test_division_delete_view(self):
         """Test division delete view"""
         self.client.login(username="testuser", password="testpass123")
-        response = self.client.get(reverse("events:division_delete", args=[self.division.pk]))
+        response = self.client.get(
+            reverse("events:division_delete", args=[self.division.pk])
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Division")

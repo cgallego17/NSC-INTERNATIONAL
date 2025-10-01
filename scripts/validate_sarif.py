@@ -85,7 +85,12 @@ def create_empty_sarif(file_path):
     empty_sarif = {
         "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
         "version": "2.1.0",
-        "runs": [{"tool": {"driver": {"name": "Security Scanner", "version": "1.0.0"}}, "results": []}],
+        "runs": [
+            {
+                "tool": {"driver": {"name": "Security Scanner", "version": "1.0.0"}},
+                "results": [],
+            }
+        ],
     }
 
     with open(file_path, "w", encoding="utf-8") as f:

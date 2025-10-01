@@ -24,7 +24,9 @@ class Command(BaseCommand):
         ]
 
         for country_data in countries_data:
-            country, created = Country.objects.get_or_create(code=country_data["code"], defaults=country_data)
+            country, created = Country.objects.get_or_create(
+                code=country_data["code"], defaults=country_data
+            )
             if created:
                 self.stdout.write(f"País creado: {country.name}")
             else:
@@ -56,7 +58,9 @@ class Command(BaseCommand):
         ]
 
         for state_data in us_states:
-            state, created = State.objects.get_or_create(country=us, code=state_data["code"], defaults=state_data)
+            state, created = State.objects.get_or_create(
+                country=us, code=state_data["code"], defaults=state_data
+            )
             if created:
                 self.stdout.write(f"Estado creado: {state.name}, {us.name}")
 
@@ -76,7 +80,9 @@ class Command(BaseCommand):
         ]
 
         for state_data in mx_states:
-            state, created = State.objects.get_or_create(country=mx, code=state_data["code"], defaults=state_data)
+            state, created = State.objects.get_or_create(
+                country=mx, code=state_data["code"], defaults=state_data
+            )
             if created:
                 self.stdout.write(f"Estado creado: {state.name}, {mx.name}")
 
@@ -96,7 +102,9 @@ class Command(BaseCommand):
         ]
 
         for state_data in co_states:
-            state, created = State.objects.get_or_create(country=co, code=state_data["code"], defaults=state_data)
+            state, created = State.objects.get_or_create(
+                country=co, code=state_data["code"], defaults=state_data
+            )
             if created:
                 self.stdout.write(f"Estado creado: {state.name}, {co.name}")
 
@@ -134,7 +142,9 @@ class Command(BaseCommand):
         for city_data in us_cities:
             try:
                 state = State.objects.get(country=us, code=city_data["state_code"])
-                city, created = City.objects.get_or_create(state=state, name=city_data["name"])
+                city, created = City.objects.get_or_create(
+                    state=state, name=city_data["name"]
+                )
                 if created:
                     self.stdout.write(f"Ciudad creada: {city.name}, {state.name}")
             except State.DoesNotExist:
@@ -166,7 +176,9 @@ class Command(BaseCommand):
         for city_data in mx_cities:
             try:
                 state = State.objects.get(country=mx, code=city_data["state_code"])
-                city, created = City.objects.get_or_create(state=state, name=city_data["name"])
+                city, created = City.objects.get_or_create(
+                    state=state, name=city_data["name"]
+                )
                 if created:
                     self.stdout.write(f"Ciudad creada: {city.name}, {state.name}")
             except State.DoesNotExist:
@@ -199,7 +211,9 @@ class Command(BaseCommand):
         for city_data in co_cities:
             try:
                 state = State.objects.get(country=co, code=city_data["state_code"])
-                city, created = City.objects.get_or_create(state=state, name=city_data["name"])
+                city, created = City.objects.get_or_create(
+                    state=state, name=city_data["name"]
+                )
                 if created:
                     self.stdout.write(f"Ciudad creada: {city.name}, {state.name}")
             except State.DoesNotExist:
@@ -437,7 +451,9 @@ class Command(BaseCommand):
         for country in Country.objects.all():
             states_count = State.objects.filter(country=country).count()
             cities_count = City.objects.filter(state__country=country).count()
-            self.stdout.write(f"{country.name} ({country.code}): {states_count} estados, {cities_count} ciudades")
+            self.stdout.write(
+                f"{country.name} ({country.code}): {states_count} estados, {cities_count} ciudades"
+            )
 
         self.stdout.write("\n=== TEMPORADAS POR AÑO ===")
         for year in sorted(Season.objects.values_list("year", flat=True).distinct()):

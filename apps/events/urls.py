@@ -15,8 +15,22 @@ urlpatterns = [
     path("<int:event_id>/attend/", views.EventAttendanceView.as_view(), name="attend"),
     # Division URLs
     path("divisions/", views.DivisionListView.as_view(), name="division_list"),
-    path("divisions/create/", views.DivisionCreateView.as_view(), name="division_create"),
-    path("divisions/<int:pk>/", views.DivisionDetailView.as_view(), name="division_detail"),
-    path("divisions/<int:pk>/edit/", views.DivisionUpdateView.as_view(), name="division_update"),
-    path("divisions/<int:pk>/delete/", views.DivisionDeleteView.as_view(), name="division_delete"),
+    path(
+        "divisions/create/", views.DivisionCreateView.as_view(), name="division_create"
+    ),
+    path(
+        "divisions/<int:pk>/",
+        views.DivisionDetailView.as_view(),
+        name="division_detail",
+    ),
+    path(
+        "divisions/<int:pk>/edit/",
+        views.DivisionUpdateView.as_view(),
+        name="division_update",
+    ),
+    path(
+        "divisions/<int:pk>/delete/",
+        views.DivisionDeleteView.as_view(),
+        name="division_delete",
+    ),
 ]

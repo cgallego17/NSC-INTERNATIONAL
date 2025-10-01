@@ -6,7 +6,14 @@ from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
-from django.views.generic import CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    TemplateView,
+    UpdateView,
+)
 
 from .forms import EventForm
 from .models import Division, Event, EventAttendance, EventCategory
@@ -29,7 +36,9 @@ class EventListView(LoginRequiredMixin, ListView):
 
         if search:
             queryset = queryset.filter(
-                Q(title__icontains=search) | Q(description__icontains=search) | Q(location__icontains=search)
+                Q(title__icontains=search)
+                | Q(description__icontains=search)
+                | Q(location__icontains=search)
             )
 
         if category:
@@ -49,7 +58,9 @@ class EventListView(LoginRequiredMixin, ListView):
             elif time_filter == "today":
                 today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
                 today_end = today_start + timedelta(days=1)
-                queryset = queryset.filter(start_date__gte=today_start, start_date__lt=today_end)
+                queryset = queryset.filter(
+                    start_date__gte=today_start, start_date__lt=today_end
+                )
 
         return queryset
 
@@ -73,15 +84,21 @@ class EventDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["attendees"] = self.object.attendees.filter(eventattendance__status="confirmed").select_related()
+        context["attendees"] = self.object.attendees.filter(
+            eventattendance__status="confirmed"
+        ).select_related()
         context["comments"] = (
-            self.object.comments.filter(is_internal=False).select_related("user").order_by("-created_at")[:10]
+            self.object.comments.filter(is_internal=False)
+            .select_related("user")
+            .order_by("-created_at")[:10]
         )
 
         # Verificar si el usuario está registrado
         if self.request.user.is_authenticated:
             try:
-                attendance = EventAttendance.objects.get(event=self.object, user=self.request.user)
+                attendance = EventAttendance.objects.get(
+                    event=self.object, user=self.request.user
+                )
                 context["user_attendance"] = attendance
             except EventAttendance.DoesNotExist:
                 context["user_attendance"] = None
@@ -133,7 +150,9 @@ class EventCalendarView(LoginRequiredMixin, ListView):
         # Obtener eventos del mes actual
         now = timezone.now()
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(
+            days=1
+        )
 
         return (
             Event.objects.filter(start_date__gte=month_start, start_date__lte=month_end)
@@ -186,7 +205,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         # Estadísticas generales
         total_events = Event.objects.count()
         upcoming_events = Event.objects.filter(start_date__gt=now).count()
-        ongoing_events = Event.objects.filter(start_date__lte=now, end_date__gte=now).count()
+        ongoing_events = Event.objects.filter(
+            start_date__lte=now, end_date__gte=now
+        ).count()
         past_events = Event.objects.filter(end_date__lt=now).count()
 
         # Eventos de hoy
@@ -207,17 +228,29 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         )
 
         # Eventos por categoría
-        events_by_category = Event.objects.values("category__name").annotate(count=Count("id")).order_by("-count")[:5]
+        events_by_category = (
+            Event.objects.values("category__name")
+            .annotate(count=Count("id"))
+            .order_by("-count")[:5]
+        )
 
         # Eventos por división
-        events_by_division = Event.objects.values("division__name").annotate(count=Count("id")).order_by("-count")[:5]
+        events_by_division = (
+            Event.objects.values("division__name")
+            .annotate(count=Count("id"))
+            .order_by("-count")[:5]
+        )
 
         # Eventos más populares (por número de asistentes)
-        popular_events = Event.objects.annotate(attendee_count=Count("attendees")).order_by("-attendee_count")[:5]
+        popular_events = Event.objects.annotate(
+            attendee_count=Count("attendees")
+        ).order_by("-attendee_count")[:5]
 
         # Estadísticas de asistencia
         total_attendances = EventAttendance.objects.count()
-        confirmed_attendances = EventAttendance.objects.filter(status="confirmed").count()
+        confirmed_attendances = EventAttendance.objects.filter(
+            status="confirmed"
+        ).count()
 
         # Eventos recientes
         recent_events = Event.objects.order_by("-created_at")[:5]
@@ -258,7 +291,9 @@ class DivisionListView(LoginRequiredMixin, ListView):
 
         if search:
             queryset = queryset.filter(
-                Q(name__icontains=search) | Q(description__icontains=search) | Q(skill_level__icontains=search)
+                Q(name__icontains=search)
+                | Q(description__icontains=search)
+                | Q(skill_level__icontains=search)
             )
         if skill_level:
             queryset = queryset.filter(skill_level__icontains=skill_level)
