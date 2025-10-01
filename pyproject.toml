@@ -35,7 +35,7 @@ exclude_dirs = ["tests", "migrations", "staticfiles", "media", "venv", ".venv", 
 skips = ["B101", "B601"]
 
 [tool.coverage.run]
-source = "."
+source = ["."]
 omit = [
     "*/migrations/*",
     "*/staticfiles/*",

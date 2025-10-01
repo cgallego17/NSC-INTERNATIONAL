@@ -1,5 +1,4 @@
 from django.contrib.auth.models import User
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
@@ -31,10 +30,7 @@ class Division(models.Model):
     age_min = models.PositiveIntegerField(null=True, blank=True, verbose_name="Edad Mínima")
     age_max = models.PositiveIntegerField(null=True, blank=True, verbose_name="Edad Máxima")
     skill_level = models.CharField(
-        max_length=50,
-        blank=True,
-        verbose_name="Nivel de Habilidad",
-        help_text="Ej: Principiante, Intermedio, Avanzado"
+        max_length=50, blank=True, verbose_name="Nivel de Habilidad", help_text="Ej: Principiante, Intermedio, Avanzado"
     )
     is_active = models.BooleanField(default=True, verbose_name="Activo")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -106,12 +102,7 @@ class Event(models.Model):
     # Categorización
     category = models.ForeignKey(EventCategory, on_delete=models.CASCADE, related_name="events")
     division = models.ForeignKey(
-        Division, 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
-        related_name="events", 
-        verbose_name="División"
+        Division, on_delete=models.SET_NULL, null=True, blank=True, related_name="events", verbose_name="División"
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default="medium")

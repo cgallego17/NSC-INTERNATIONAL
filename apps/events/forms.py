@@ -2,7 +2,7 @@ from django import forms
 
 from apps.locations.models import Country, Season, State
 
-from .models import Event, Division
+from .models import Division, Event
 
 
 class EventForm(forms.ModelForm):

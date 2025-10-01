@@ -1,15 +1,15 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Avg, Count, Q
-from django.shortcuts import get_object_or_404, render
+from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, TemplateView, UpdateView
 
 from .forms import EventForm
-from .models import Division, Event, EventAttendance, EventCategory, EventComment
+from .models import Division, Event, EventAttendance, EventCategory
 
 
 class EventListView(LoginRequiredMixin, ListView):

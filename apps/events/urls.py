@@ -13,7 +13,6 @@ urlpatterns = [
     path("<int:pk>/delete/", views.EventDeleteView.as_view(), name="delete"),
     path("calendar/", views.EventCalendarView.as_view(), name="calendar"),
     path("<int:event_id>/attend/", views.EventAttendanceView.as_view(), name="attend"),
-    
     # Division URLs
     path("divisions/", views.DivisionListView.as_view(), name="division_list"),
     path("divisions/create/", views.DivisionCreateView.as_view(), name="division_create"),

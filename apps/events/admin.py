@@ -41,7 +41,7 @@ class DivisionAdmin(admin.ModelAdmin):
     list_filter = ["is_active", "skill_level", "created_at"]
     search_fields = ["name", "description", "skill_level"]
     readonly_fields = ["created_at", "updated_at", "age_range"]
-    
+
     fieldsets = (
         ("Información Básica", {"fields": ("name", "description")}),
         ("Configuración de Edad", {"fields": ("age_min", "age_max", "age_range")}),

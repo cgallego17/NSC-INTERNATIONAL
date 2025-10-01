@@ -77,4 +77,3 @@ class Command(BaseCommand):
                 f"Total rules: {Rule.objects.count()}"
             )
         )
-
