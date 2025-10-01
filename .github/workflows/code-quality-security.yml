@@ -12,6 +12,8 @@ jobs:
     permissions:
       contents: read
       security-events: write
+      actions: read
+      security-events: write
       pull-requests: write
 
     steps:
@@ -72,6 +74,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      security-events: write
+      actions: read
       security-events: write
 
     steps:

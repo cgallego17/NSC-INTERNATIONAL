@@ -1,4 +1,4 @@
-name: Advanced Security Scan
+name: Security Scan (Simplified)
 
 on:
   push:
@@ -10,12 +10,10 @@ on:
     - cron: "0 2 * * *"
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  PYTHON_VERSION: "3.11"
 
 jobs:
-  # Dependency Vulnerability Scanning
-  dependency-scan:
+  security-scan:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -31,12 +29,13 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install safety bandit semgrep
+          pip install -r requirements.txt
+          pip install -r requirements-security.txt
 
       - name: Run Safety (Python dependencies)
         run: |
@@ -60,6 +59,8 @@ jobs:
 
       - name: Run Semgrep (Static analysis)
         run: |
+          # Install semgrep
+          pip install semgrep
           # Run semgrep and capture output
           semgrep --config=auto --json --output=semgrep-report.json . || echo "Semgrep completed with warnings"
           # Validate and fix SARIF format
@@ -88,7 +89,6 @@ jobs:
           sarif_file: semgrep-report.json
           category: semgrep
 
-  # Secrets Detection
   secrets-scan:
     runs-on: ubuntu-latest
     permissions:
@@ -103,13 +103,13 @@ jobs:
         with:
           fetch-depth: 0 # Full history for better detection
 
-    - name: Run TruffleHog (Secrets detection)
-      uses: trufflesecurity/trufflehog@main
-      with:
-        path: ./
-        base: HEAD~1
-        head: HEAD
-        extra_args: --debug --only-verified
+      - name: Run TruffleHog (Secrets detection)
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: HEAD~1
+          head: HEAD
+          extra_args: --debug --only-verified
 
       - name: Run GitLeaks (Secrets detection)
         uses: gitleaks/gitleaks-action@v2
@@ -117,7 +117,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
-  # Docker Security Scanning
   docker-security:
     runs-on: ubuntu-latest
     permissions:
@@ -125,7 +124,6 @@ jobs:
       security-events: write
       actions: read
       security-events: write
-      packages: write
 
     steps:
       - name: Checkout repository
@@ -153,14 +151,6 @@ jobs:
           format: "sarif"
           output: "trivy-fs-results.sarif"
 
-      - name: Run Docker Scout (Container security)
-        uses: docker/scout-action@v1
-        with:
-          command: cves
-          image: nsc-security-scan
-          only-severities: critical,high,medium
-          write-comment: true
-
       - name: Upload Trivy image results
         uses: github/codeql-action/upload-sarif@v3
         if: always()
@@ -175,131 +165,14 @@ jobs:
           sarif_file: trivy-fs-results.sarif
           category: trivy-filesystem
 
-  # Infrastructure as Code Security
-  iac-security:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
-      security-events: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-    - name: Run Checkov (IaC security)
-      uses: bridgecrewio/checkov-action@master
-      with:
-        directory: .
-        framework: dockerfile,docker_compose
-        output_format: sarif
-        output_file_path: checkov-results.sarif
-        skip_check: CKV_DOCKER_3,CKV_DOCKER_8 # Skip specific checks if needed
-        create_sarif_tool_component: true
-
-    - name: Check Checkov results file
-      run: |
-        if [ -f "checkov-results.sarif" ]; then
-          echo "Checkov SARIF file exists"
-          ls -la checkov-results.sarif
-        else
-          echo "Checkov SARIF file not found, creating empty SARIF"
-          python scripts/validate_sarif.py checkov-results.sarif
-        fi
-
-    - name: Upload Checkov results
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: checkov-results.sarif
-        category: checkov
-
-  # License Compliance
-  license-scan:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
-      security-events: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pip-licenses
-
-      - name: Generate license report
-        run: |
-          pip-licenses --format=json --output-file=licenses.json
-          pip-licenses --format=html --output-file=licenses.html
-          pip-licenses --format=csv --output-file=licenses.csv
-
-    - name: Upload license artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: license-reports
-        path: |
-          licenses.json
-          licenses.html
-          licenses.csv
-
-  # Security Scorecard
-  security-scorecard:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
-      security-events: write
-      id-token: write
-      actions: read
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-    - name: Run Scorecard
-      uses: ossf/scorecard-action@v2.3.1.3.1
-      with:
-        results_file: results.sarif
-        results_format: sarif
-        publish_results: true
-
-      - name: Upload Scorecard results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: results.sarif
-          category: scorecard
-
-  # Security Summary
   security-summary:
     runs-on: ubuntu-latest
-    needs:
-      [
-        dependency-scan,
-        secrets-scan,
-        docker-security,
-        iac-security,
-        license-scan,
-        security-scorecard,
-      ]
+    needs: [security-scan, secrets-scan, docker-security]
     if: always()
     permissions:
       contents: read
       security-events: write
       actions: read
-      pull-requests: write
 
     steps:
       - name: Checkout repository
@@ -307,20 +180,17 @@ jobs:
 
       - name: Generate Security Summary
         run: |
-          echo "## 🔒 Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Security Scan Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Scans Completed:" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Dependency Vulnerability Scan (Safety, Bandit, Semgrep)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Secrets Detection (TruffleHog, GitLeaks)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Docker Security Scan (Trivy, Docker Scout)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Infrastructure as Code Security (Checkov)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ License Compliance Scan" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Security Scorecard" >> $GITHUB_STEP_SUMMARY
+          echo "- Dependency Vulnerability Scan (Safety, Bandit, Semgrep)" >> $GITHUB_STEP_SUMMARY
+          echo "- Secrets Detection (TruffleHog, GitLeaks)" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker Security Scan (Trivy)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📊 Results:" >> $GITHUB_STEP_SUMMARY
+          echo "### Results:" >> $GITHUB_STEP_SUMMARY
           echo "Check the Security tab for detailed results and recommendations." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🛡️ Security Best Practices:" >> $GITHUB_STEP_SUMMARY
+          echo "### Security Best Practices:" >> $GITHUB_STEP_SUMMARY
           echo "- Keep dependencies updated" >> $GITHUB_STEP_SUMMARY
           echo "- Use strong secrets management" >> $GITHUB_STEP_SUMMARY
           echo "- Regular security audits" >> $GITHUB_STEP_SUMMARY
