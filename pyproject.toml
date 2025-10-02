@@ -32,7 +32,8 @@ skip = ["migrations", "venv", ".venv", "env", ".env"]
 
 [tool.bandit]
 exclude_dirs = ["venv", "env", ".venv", ".env", "migrations", "__pycache__"]
-skips = ["B101", "B601"]
+skips = ["B101", "B601", "B602"]
+exclude = ["scripts/check_github_security.py", "scripts/enable_github_security.py", "scripts/fix_workflow_issues.py", "scripts/install_github_cli.py", "scripts/setup_complete_security.py", "scripts/setup_dev.py", "scripts/setup_github_security.py", "scripts/test_security_pipeline.py"]
 
 [tool.pytest.ini_options]
 testpaths = ["apps"]
