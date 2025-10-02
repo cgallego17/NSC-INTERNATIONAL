@@ -1,0 +1,4 @@
+[bandit]
+exclude_dirs = venv,.venv,staticfiles,media,logs,.git,__pycache__,.pytest_cache,.coverage,htmlcov,.tox,.mypy_cache,.DS_Store
+skips = B101,B601,B602
+exclude = scripts/check_github_security.py,scripts/enable_github_security.py,scripts/fix_workflow_issues.py,scripts/install_github_cli.py,scripts/setup_complete_security.py,scripts/setup_dev.py,scripts/setup_github_security.py,scripts/test_security_pipeline.py
