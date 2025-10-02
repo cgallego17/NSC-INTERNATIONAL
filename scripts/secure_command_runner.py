@@ -3,10 +3,10 @@
 Secure command runner utility to avoid shell injection vulnerabilities.
 """
 
-import subprocess
 import shlex
+import subprocess
 import sys
-from typing import Tuple, Optional, List
+from typing import List, Optional, Tuple
 
 
 def run_command_secure(command: str, description: str = "") -> Tuple[bool, str, str]:

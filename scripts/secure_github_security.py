@@ -6,7 +6,8 @@ Secure GitHub Security setup script without shell injection vulnerabilities.
 import json
 import sys
 from pathlib import Path
-from secure_command_runner import run_gh_command, run_command_secure
+
+from secure_command_runner import run_command_secure, run_gh_command
 
 
 def check_github_cli():

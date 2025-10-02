@@ -3,9 +3,9 @@
 Run Bandit security scan with proper configuration.
 """
 
+import json
 import subprocess
 import sys
-import json
 from pathlib import Path
 
 
