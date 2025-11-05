@@ -1,0 +1,799 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - NSC International</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --mlb-blue: #0d2c54;
+            --mlb-red: #d50032;
+            --mlb-light-blue: #132448;
+            --mlb-gold: #ffd700;
+            --mlb-dark: #1a1a1a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            background: var(--mlb-dark);
+            color: white;
+            padding: 8px 0;
+            font-size: 0.85rem;
+        }
+        
+        .top-bar a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .top-bar a:hover {
+            color: white;
+        }
+        
+        /* Navbar MLB Style */
+        .navbar-mlb {
+            background: var(--mlb-blue) !important;
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .navbar-mlb .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white !important;
+            padding: 15px 20px;
+            background: var(--mlb-red);
+        }
+        
+        .navbar-mlb .nav-link {
+            color: white !important;
+            font-weight: 600;
+            padding: 20px 15px !important;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            transition: background 0.3s;
+        }
+        
+        .navbar-mlb .nav-link:hover {
+            background: var(--mlb-light-blue);
+        }
+        
+        .navbar-mlb .nav-link.active {
+            background: var(--mlb-red);
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 60px 0;
+            min-height: calc(100vh - 400px);
+        }
+        
+        /* Register Card */
+        .register-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border-top: 4px solid var(--mlb-red);
+        }
+        
+        .register-header {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .register-header h2 {
+            font-size: 2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        
+        .register-header p {
+            opacity: 0.9;
+            margin: 0;
+        }
+        
+        .register-body {
+            padding: 40px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--mlb-blue);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 4px;
+            padding: 12px 15px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--mlb-blue);
+            box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.25);
+        }
+        
+        .form-check-input {
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #e9ecef;
+            margin-top: 0.3rem;
+        }
+        
+        .form-check-input:checked {
+            background-color: var(--mlb-red);
+            border-color: var(--mlb-red);
+        }
+        
+        .form-check-label {
+            font-weight: 500;
+            color: #555;
+            margin-left: 8px;
+        }
+        
+        .user-type-selector {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .user-type-option {
+            flex: 1;
+            position: relative;
+        }
+        
+        .user-type-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .user-type-option label {
+            display: block;
+            padding: 20px;
+            border: 3px solid #e9ecef;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+        
+        .user-type-option input[type="radio"]:checked + label {
+            border-color: var(--mlb-blue);
+            background: var(--mlb-blue);
+            color: white;
+            box-shadow: 0 4px 15px rgba(13, 44, 84, 0.3);
+        }
+        
+        .user-type-option label:hover {
+            border-color: var(--mlb-light-blue);
+        }
+        
+        .user-type-icon {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            display: block;
+        }
+        
+        .user-type-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .user-type-desc {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+        
+        .btn-mlb {
+            background: var(--mlb-red);
+            color: white;
+            padding: 15px 40px;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 4px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(213, 0, 50, 0.3);
+            width: 100%;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+        
+        .btn-mlb:hover {
+            background: #b30029;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(213, 0, 50, 0.4);
+            color: white;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .form-section:last-child {
+            border-bottom: none;
+        }
+        
+        .form-section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--mlb-blue);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--mlb-red);
+            display: inline-block;
+        }
+        
+        .error-message {
+            color: var(--mlb-red);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+        
+        .help-text {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .photo-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--mlb-blue);
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .photo-upload-area {
+            border: 2px dashed var(--mlb-blue);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .photo-upload-area:hover {
+            background: #f8f9fa;
+            border-color: var(--mlb-red);
+        }
+        
+        /* Footer MLB Style */
+        .footer-mlb {
+            background: var(--mlb-dark);
+            color: #ccc;
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+        
+        .footer-mlb h5 {
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+        
+        .footer-mlb a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .footer-mlb a:hover {
+            color: var(--mlb-gold);
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid #333;
+            padding-top: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .login-link a {
+            color: var(--mlb-blue);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .login-link a:hover {
+            color: var(--mlb-red);
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <span><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</span>
+                    <span class="ms-4"><i class="fas fa-envelope me-2"></i>info@nscinternational.com</span>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="{% url 'accounts:login' %}">Iniciar Sesión</a>
+                    <span class="mx-2">|</span>
+                    <a href="/">Volver al Inicio</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar MLB Style -->
+    <nav class="navbar navbar-expand-lg navbar-mlb">
+        <div class="container-fluid px-0">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-baseball-ball me-2"></i>NSC
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: white;">
+                <span style="color: white;"><i class="fas fa-bars"></i></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/accounts/register/">Registro</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:login' %}">Iniciar Sesión</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10 col-xl-9">
+                    <div class="register-card">
+                        <div class="register-header">
+                            <h2><i class="fas fa-user-plus me-2"></i>Registro de Usuario</h2>
+                            <p>Completa tu perfil para unirte a la mejor plataforma de gestión de béisbol profesional</p>
+                        </div>
+                        
+                        <div class="register-body">
+                            <form method="post" enctype="multipart/form-data" id="registerForm">
+                                {% csrf_token %}
+                                
+                                {% if form.non_field_errors %}
+                                    <div class="alert alert-danger">
+                                        {{ form.non_field_errors }}
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Tipo de Usuario -->
+                                <div class="form-section">
+                                    <div class="form-section-title">Tipo de Registro</div>
+                                    <div class="user-type-selector">
+                                        <div class="user-type-option">
+                                            <input type="radio" name="user_type" value="player" id="player_type" {% if form.user_type.value == 'player' %}checked{% endif %} required>
+                                            <label for="player_type">
+                                                <span class="user-type-icon">
+                                                    <i class="fas fa-user"></i>
+                                                </span>
+                                                <span class="user-type-title">Jugador</span>
+                                                <span class="user-type-desc">Regístrate como jugador</span>
+                                            </label>
+                                        </div>
+                                        <div class="user-type-option">
+                                            <input type="radio" name="user_type" value="team_manager" id="manager_type" {% if form.user_type.value == 'team_manager' %}checked{% endif %} required>
+                                            <label for="manager_type">
+                                                <span class="user-type-icon">
+                                                    <i class="fas fa-user-tie"></i>
+                                                </span>
+                                                <span class="user-type-title">Manager</span>
+                                                <span class="user-type-desc">Gestiona equipos</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    {% if form.user_type.errors %}
+                                        <div class="error-message">{{ form.user_type.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Información de Cuenta -->
+                                <div class="form-section">
+                                    <div class="form-section-title">Información de Cuenta</div>
+                                    <div class="mb-3">
+                                        <label for="{{ form.email.id_for_label }}" class="form-label">
+                                            <i class="fas fa-envelope me-1"></i>Email *
+                                        </label>
+                                        {{ form.email }}
+                                        {% if form.email.errors %}
+                                            <div class="error-message">{{ form.email.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="{{ form.password1.id_for_label }}" class="form-label">
+                                                <i class="fas fa-lock me-1"></i>Contraseña *
+                                            </label>
+                                            {{ form.password1 }}
+                                            {% if form.password1.errors %}
+                                                <div class="error-message">{{ form.password1.errors }}</div>
+                                            {% endif %}
+                                            {% if form.password1.help_text %}
+                                                <div class="help-text">{{ form.password1.help_text }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="{{ form.password2.id_for_label }}" class="form-label">
+                                                <i class="fas fa-lock me-1"></i>Confirmar Contraseña *
+                                            </label>
+                                            {{ form.password2 }}
+                                            {% if form.password2.errors %}
+                                                <div class="error-message">{{ form.password2.errors }}</div>
+                                            {% endif %}
+                                            {% if form.password2.help_text %}
+                                                <div class="help-text">{{ form.password2.help_text }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Información Personal -->
+                                <div class="form-section">
+                                    <div class="form-section-title">Información Personal</div>
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                                <i class="fas fa-user me-1"></i>Nombre *
+                                            </label>
+                                            {{ form.first_name }}
+                                            {% if form.first_name.errors %}
+                                                <div class="error-message">{{ form.first_name.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                                <i class="fas fa-user me-1"></i>Primer Apellido *
+                                            </label>
+                                            {{ form.last_name }}
+                                            {% if form.last_name.errors %}
+                                                <div class="error-message">{{ form.last_name.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="{{ form.last_name2.id_for_label }}" class="form-label">
+                                                <i class="fas fa-user me-1"></i>Segundo Apellido
+                                            </label>
+                                            {{ form.last_name2 }}
+                                            {% if form.last_name2.errors %}
+                                                <div class="error-message">{{ form.last_name2.errors }}</div>
+                                            {% endif %}
+                                            <div class="help-text">Opcional</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label for="{{ form.birth_date.id_for_label }}" class="form-label">
+                                                <i class="fas fa-calendar me-1"></i>Fecha de Nacimiento
+                                            </label>
+                                            {{ form.birth_date }}
+                                            {% if form.birth_date.errors %}
+                                                <div class="error-message">{{ form.birth_date.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="{{ form.phone.id_for_label }}" class="form-label">
+                                                <i class="fas fa-phone me-1"></i>Teléfono
+                                            </label>
+                                            {{ form.phone }}
+                                            {% if form.phone.errors %}
+                                                <div class="error-message">{{ form.phone.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="{{ form.phone_secondary.id_for_label }}" class="form-label">
+                                                <i class="fas fa-phone-alt me-1"></i>Teléfono Secundario
+                                            </label>
+                                            {{ form.phone_secondary }}
+                                            {% if form.phone_secondary.errors %}
+                                                <div class="error-message">{{ form.phone_secondary.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Foto de Perfil -->
+                                    <div class="mb-3">
+                                        <label for="{{ form.profile_picture.id_for_label }}" class="form-label">
+                                            <i class="fas fa-camera me-1"></i>Foto de Perfil
+                                        </label>
+                                        <div class="photo-upload-area" onclick="document.getElementById('id_profile_picture').click()">
+                                            <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--mlb-blue);"></i>
+                                            <p class="mb-0">Haz clic para subir tu foto</p>
+                                            <small class="text-muted">JPG, PNG o GIF (máx. 5MB)</small>
+                                        </div>
+                                        {{ form.profile_picture }}
+                                        <img id="photoPreview" class="photo-preview" alt="Vista previa">
+                                        {% if form.profile_picture.errors %}
+                                            <div class="error-message">{{ form.profile_picture.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Ubicación -->
+                                <div class="form-section">
+                                    <div class="form-section-title">Ubicación</div>
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label for="{{ form.country.id_for_label }}" class="form-label">
+                                                <i class="fas fa-globe me-1"></i>País
+                                            </label>
+                                            {{ form.country }}
+                                            {% if form.country.errors %}
+                                                <div class="error-message">{{ form.country.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="{{ form.state.id_for_label }}" class="form-label">
+                                                <i class="fas fa-map-marked-alt me-1"></i>Estado
+                                            </label>
+                                            {{ form.state }}
+                                            {% if form.state.errors %}
+                                                <div class="error-message">{{ form.state.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="{{ form.city.id_for_label }}" class="form-label">
+                                                <i class="fas fa-city me-1"></i>Ciudad
+                                            </label>
+                                            {{ form.city }}
+                                            {% if form.city.errors %}
+                                                <div class="error-message">{{ form.city.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-8 mb-3">
+                                            <label for="{{ form.address.id_for_label }}" class="form-label">
+                                                <i class="fas fa-map-marker-alt me-1"></i>Dirección
+                                            </label>
+                                            {{ form.address }}
+                                            {% if form.address.errors %}
+                                                <div class="error-message">{{ form.address.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="{{ form.postal_code.id_for_label }}" class="form-label">
+                                                <i class="fas fa-mail-bulk me-1"></i>Código Postal
+                                            </label>
+                                            {{ form.postal_code }}
+                                            {% if form.postal_code.errors %}
+                                                <div class="error-message">{{ form.postal_code.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-12 mb-3">
+                                            <label for="{{ form.address_line_2.id_for_label }}" class="form-label">
+                                                <i class="fas fa-building me-1"></i>Dirección Línea 2 (Apartamento, Suite, etc.)
+                                            </label>
+                                            {{ form.address_line_2 }}
+                                            {% if form.address_line_2.errors %}
+                                                <div class="error-message">{{ form.address_line_2.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Información Adicional -->
+                                <div class="form-section">
+                                    <div class="form-section-title">Información Adicional</div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="{{ form.website.id_for_label }}" class="form-label">
+                                                <i class="fas fa-globe me-1"></i>Sitio Web
+                                            </label>
+                                            {{ form.website }}
+                                            {% if form.website.errors %}
+                                                <div class="error-message">{{ form.website.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="{{ form.social_media.id_for_label }}" class="form-label">
+                                                <i class="fas fa-share-alt me-1"></i>Redes Sociales
+                                            </label>
+                                            {{ form.social_media }}
+                                            {% if form.social_media.errors %}
+                                                <div class="error-message">{{ form.social_media.errors }}</div>
+                                            {% endif %}
+                                            <div class="help-text">Ej: @usuario_instagram, @usuario_twitter</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="{{ form.bio.id_for_label }}" class="form-label">
+                                            <i class="fas fa-user-edit me-1"></i>Biografía / Sobre Ti
+                                        </label>
+                                        {{ form.bio }}
+                                        {% if form.bio.errors %}
+                                            <div class="error-message">{{ form.bio.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-mlb">
+                                    <i class="fas fa-user-plus me-2"></i>Crear Cuenta
+                                </button>
+                                
+                                <div class="login-link">
+                                    <p class="mb-0">¿Ya tienes cuenta? <a href="{% url 'accounts:login' %}">Inicia sesión aquí</a></p>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer MLB Style -->
+    <footer class="footer-mlb">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5>
+                        <i class="fas fa-baseball-ball me-2"></i>NSC International
+                    </h5>
+                    <p style="line-height: 1.8;">
+                        La plataforma profesional para gestionar torneos, equipos y jugadores de béisbol.
+                        Sistema completo de gestión deportiva.
+                    </p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Enlaces Rápidos</h5>
+                    <a href="/">Inicio</a>
+                    <a href="/accounts/register/">Registrarse</a>
+                    <a href="{% url 'accounts:login' %}">Iniciar Sesión</a>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Contacto</h5>
+                    <p style="line-height: 1.8;">
+                        <i class="fas fa-envelope me-2"></i>info@nscinternational.com<br>
+                        <i class="fas fa-phone me-2"></i>+1 (555) 123-4567<br>
+                        <i class="fas fa-map-marker-alt me-2"></i>México
+                    </p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="mb-0">&copy; 2024 NSC International. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Preview de foto
+        document.getElementById('id_profile_picture').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('photoPreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Cargar estados cuando se selecciona un país
+        document.getElementById('id_country').addEventListener('change', function() {
+            const countryId = this.value;
+            const stateSelect = document.getElementById('id_state');
+            const citySelect = document.getElementById('id_city');
+            
+            // Limpiar estados y ciudades
+            stateSelect.innerHTML = '<option value="">Selecciona un estado</option>';
+            citySelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
+            
+            if (countryId) {
+                fetch(`/locations/states/api/?country=${countryId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(state => {
+                            const option = document.createElement('option');
+                            option.value = state.id;
+                            option.textContent = state.name;
+                            stateSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+        });
+        
+        // Cargar ciudades cuando se selecciona un estado
+        document.getElementById('id_state').addEventListener('change', function() {
+            const stateId = this.value;
+            const citySelect = document.getElementById('id_city');
+            
+            // Limpiar ciudades
+            citySelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
+            
+            if (stateId) {
+                fetch(`/locations/cities/api/?state=${stateId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city.id;
+                            option.textContent = city.name;
+                            citySelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+        });
+    </script>
+</body>
+</html>

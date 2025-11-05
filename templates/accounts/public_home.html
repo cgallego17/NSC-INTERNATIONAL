@@ -1,0 +1,799 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NSC International - Béisbol Profesional</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --mlb-blue: #0d2c54;
+            --mlb-red: #d50032;
+            --mlb-light-blue: #132448;
+            --mlb-gold: #ffd700;
+            --mlb-dark: #1a1a1a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            background: var(--mlb-dark);
+            color: white;
+            padding: 8px 0;
+            font-size: 0.85rem;
+        }
+        
+        .top-bar a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .top-bar a:hover {
+            color: white;
+        }
+        
+        /* Navbar MLB Style */
+        .navbar-mlb {
+            background: var(--mlb-blue) !important;
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .navbar-mlb .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white !important;
+            padding: 15px 20px;
+            background: var(--mlb-red);
+        }
+        
+        .navbar-mlb .nav-link {
+            color: white !important;
+            font-weight: 600;
+            padding: 20px 15px !important;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            transition: background 0.3s;
+        }
+        
+        .navbar-mlb .nav-link:hover {
+            background: var(--mlb-light-blue);
+        }
+        
+        .navbar-mlb .nav-link.active {
+            background: var(--mlb-red);
+        }
+        
+        /* Hero Section MLB Style */
+        .hero-mlb {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            padding: 60px 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-mlb::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            margin-bottom: 2rem;
+        }
+        
+        .btn-mlb {
+            background: var(--mlb-red);
+            color: white;
+            padding: 12px 30px;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 4px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(213, 0, 50, 0.3);
+        }
+        
+        .btn-mlb:hover {
+            background: #b30029;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(213, 0, 50, 0.4);
+            color: white;
+        }
+        
+        .btn-mlb-outline {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            padding: 12px 30px;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+        
+        .btn-mlb-outline:hover {
+            background: white;
+            color: var(--mlb-blue);
+        }
+        
+        /* Main Content */
+        .main-content {
+            padding: 40px 0;
+        }
+        
+        /* Section Headers */
+        .section-header {
+            background: var(--mlb-blue);
+            color: white;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .section-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin: 0;
+            letter-spacing: 1px;
+        }
+        
+        .section-header .view-all {
+            color: var(--mlb-gold);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .section-header .view-all:hover {
+            text-decoration: underline;
+        }
+        
+        /* Game/Event Cards MLB Style */
+        .game-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            border-top: 4px solid var(--mlb-red);
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .game-card-header {
+            background: var(--mlb-blue);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .game-card-header .date {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+        
+        .game-card-header .status {
+            background: var(--mlb-red);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        .game-card-body {
+            padding: 20px;
+        }
+        
+        .game-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--mlb-blue);
+            margin-bottom: 10px;
+        }
+        
+        .game-info {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .game-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .game-info-item i {
+            color: var(--mlb-red);
+        }
+        
+        .game-description {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .game-card-footer {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-top: 4px solid var(--mlb-blue);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--mlb-blue);
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        /* Feature Cards */
+        .feature-card {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+            height: 100%;
+            border-top: 4px solid var(--mlb-red);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--mlb-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 1.8rem;
+        }
+        
+        .feature-card h4 {
+            color: var(--mlb-blue);
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            font-size: 1.1rem;
+        }
+        
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+        }
+        
+        .cta-section h2 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+        
+        .cta-section p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.95;
+        }
+        
+        /* Footer MLB Style */
+        .footer-mlb {
+            background: var(--mlb-dark);
+            color: #ccc;
+            padding: 40px 0 20px;
+        }
+        
+        .footer-mlb h5 {
+            color: white;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            font-size: 1rem;
+        }
+        
+        .footer-mlb a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .footer-mlb a:hover {
+            color: var(--mlb-gold);
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid #333;
+            padding-top: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        /* Badge */
+        .badge-mlb {
+            background: var(--mlb-red);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <span><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</span>
+                    <span class="ms-4"><i class="fas fa-envelope me-2"></i>info@nscinternational.com</span>
+                </div>
+                <div class="col-md-6 text-end">
+                    {% if user.is_authenticated %}
+                        <a href="/accounts/dashboard/"><i class="fas fa-user me-1"></i>Mi Cuenta</a>
+                        <span class="mx-2">|</span>
+                        <a href="{% url 'accounts:logout' %}">Cerrar Sesión</a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}">Iniciar Sesión</a>
+                        <span class="mx-2">|</span>
+                        <a href="/accounts/register/">Registrarse</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar MLB Style -->
+    <nav class="navbar navbar-expand-lg navbar-mlb">
+        <div class="container-fluid px-0">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-baseball-ball me-2"></i>NSC
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: white;">
+                <span style="color: white;"><i class="fas fa-bars"></i></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#eventos">Eventos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#equipos">Equipos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#jugadores">Jugadores</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/accounts/dashboard/">Dashboard</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/accounts/register/">
+                                <span class="badge-mlb">Registrarse</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section MLB Style -->
+    <section class="hero-mlb">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8 hero-content">
+                    <h1 class="hero-title">NSC International</h1>
+                    <p class="hero-subtitle">
+                        La plataforma profesional para gestionar torneos, equipos y jugadores de béisbol.
+                        Únete a la mejor liga de béisbol.
+                    </p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        {% if not user.is_authenticated %}
+                            <a href="/accounts/register/" class="btn btn-mlb">
+                                <i class="fas fa-user-plus me-2"></i>Registrarse Ahora
+                            </a>
+                            <a href="{% url 'accounts:login' %}" class="btn btn-mlb-outline">
+                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                            </a>
+                        {% else %}
+                            <a href="/accounts/dashboard/" class="btn btn-mlb">
+                                <i class="fas fa-tachometer-alt me-2"></i>Ir al Dashboard
+                            </a>
+                            <a href="{% url 'events:list' %}" class="btn btn-mlb-outline">
+                                <i class="fas fa-calendar-alt me-2"></i>Ver Eventos
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-lg-4 text-center mt-4 mt-lg-0">
+                    <i class="fas fa-baseball-ball" style="font-size: 12rem; opacity: 0.2;"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <!-- Stats Section -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_teams }}</div>
+                    <div class="stat-label">Equipos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_players }}</div>
+                    <div class="stat-label">Jugadores</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">
+                        {% if upcoming_events %}{{ upcoming_events|length }}{% else %}0{% endif %}
+                    </div>
+                    <div class="stat-label">Eventos</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">
+                        {% if today_events %}{{ today_events|length }}{% else %}0{% endif %}
+                    </div>
+                    <div class="stat-label">Hoy</div>
+                </div>
+            </div>
+
+            <!-- Events Section -->
+            <div id="eventos" class="mb-5">
+                <div class="section-header">
+                    <h2><i class="fas fa-calendar-alt me-2"></i>Próximos Eventos y Torneos</h2>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'events:list' %}" class="view-all">Ver Todos <i class="fas fa-arrow-right ms-1"></i></a>
+                    {% endif %}
+                </div>
+                
+                {% if upcoming_events %}
+                    <div class="row">
+                        {% for event in upcoming_events %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="game-card">
+                                    <div class="game-card-header">
+                                        <div class="date">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            {% if event.start_date %}
+                                                {{ event.start_date|date:"d M Y" }}
+                                            {% endif %}
+                                        </div>
+                                        <div class="status">{{ event.get_status_display }}</div>
+                                    </div>
+                                    <div class="game-card-body">
+                                        <h3 class="game-title">{{ event.title }}</h3>
+                                        <div class="game-info">
+                                            {% if event.location %}
+                                                <div class="game-info-item">
+                                                    <i class="fas fa-map-marker-alt"></i>
+                                                    <span>{{ event.location }}</span>
+                                                </div>
+                                            {% endif %}
+                                            {% if event.category %}
+                                                <div class="game-info-item">
+                                                    <i class="fas fa-tag"></i>
+                                                    <span>{{ event.category.name }}</span>
+                                                </div>
+                                            {% endif %}
+                                            {% if event.division %}
+                                                <div class="game-info-item">
+                                                    <i class="fas fa-users"></i>
+                                                    <span>{{ event.division.name }}</span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        {% if event.description %}
+                                            <p class="game-description">{{ event.description|truncatewords:25 }}</p>
+                                        {% endif %}
+                                    </div>
+                                    {% if user.is_authenticated %}
+                                        <div class="game-card-footer">
+                                            <a href="{% url 'events:detail' event.pk %}" class="btn btn-sm btn-mlb">
+                                                Ver Detalles
+                                            </a>
+                                            <span class="text-muted small">
+                                                <i class="fas fa-eye me-1"></i>Detalles
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No hay eventos programados en este momento.
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Today's Events -->
+            {% if today_events %}
+            <div class="mb-5">
+                <div class="section-header">
+                    <h2><i class="fas fa-clock me-2"></i>Eventos de Hoy</h2>
+                </div>
+                <div class="row">
+                    {% for event in today_events %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="game-card" style="border-top-color: var(--mlb-gold);">
+                                <div class="game-card-header" style="background: var(--mlb-red);">
+                                    <div class="date">
+                                        <i class="fas fa-clock me-1"></i>HOY
+                                    </div>
+                                    <div class="status" style="background: var(--mlb-gold); color: var(--mlb-dark);">
+                                        EN VIVO
+                                    </div>
+                                </div>
+                                <div class="game-card-body">
+                                    <h3 class="game-title">{{ event.title }}</h3>
+                                    <div class="game-info">
+                                        {% if event.location %}
+                                            <div class="game-info-item">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                <span>{{ event.location }}</span>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if user.is_authenticated %}
+                                    <div class="game-card-footer">
+                                        <a href="{% url 'events:detail' event.pk %}" class="btn btn-sm btn-mlb">
+                                            Ver Ahora
+                                        </a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Features Section -->
+            <div id="equipos" class="mb-5">
+                <div class="section-header">
+                    <h2><i class="fas fa-star me-2"></i>Características Principales</h2>
+                </div>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h4>Gestión de Equipos</h4>
+                            <p class="text-muted">
+                                Crea y gestiona equipos completos. Organiza jugadores, estadísticas y toda la información de tu equipo.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <h4>Torneos y Eventos</h4>
+                            <p class="text-muted">
+                                Organiza torneos profesionales. Gestiona inscripciones, horarios y resultados de manera eficiente.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h4>Estadísticas</h4>
+                            <p class="text-muted">
+                                Registra y analiza estadísticas detalladas de jugadores y equipos. Toma decisiones basadas en datos.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>¿Listo para Comenzar?</h2>
+            <p>Únete a la mejor plataforma de gestión de béisbol profesional</p>
+            {% if not user.is_authenticated %}
+                <a href="/accounts/register/" class="btn btn-mlb me-3">
+                    <i class="fas fa-user-plus me-2"></i>Registrarse Ahora
+                </a>
+                <a href="{% url 'login' %}" class="btn btn-mlb-outline">
+                    <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                </a>
+            {% else %}
+                <a href="/accounts/dashboard/" class="btn btn-mlb">
+                    <i class="fas fa-tachometer-alt me-2"></i>Ir al Dashboard
+                </a>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Footer MLB Style -->
+    <footer class="footer-mlb">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5>
+                        <i class="fas fa-baseball-ball me-2"></i>NSC International
+                    </h5>
+                    <p style="line-height: 1.8;">
+                        La plataforma profesional para gestionar torneos, equipos y jugadores de béisbol.
+                        Sistema completo de gestión deportiva.
+                    </p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Enlaces Rápidos</h5>
+                    <a href="/">Inicio</a>
+                    {% if user.is_authenticated %}
+                        <a href="/accounts/dashboard/">Dashboard</a>
+                        <a href="{% url 'events:list' %}">Eventos</a>
+                        <a href="/accounts/teams/">Equipos</a>
+                    {% else %}
+                        <a href="/accounts/register/">Registrarse</a>
+                        <a href="{% url 'accounts:login' %}">Iniciar Sesión</a>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h5>Contacto</h5>
+                    <p style="line-height: 1.8;">
+                        <i class="fas fa-envelope me-2"></i>info@nscinternational.com<br>
+                        <i class="fas fa-phone me-2"></i>+1 (555) 123-4567<br>
+                        <i class="fas fa-map-marker-alt me-2"></i>México
+                    </p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="mb-0">&copy; 2024 NSC International. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

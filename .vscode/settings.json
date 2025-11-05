@@ -5,10 +5,13 @@
     "python.linting.banditEnabled": true,
     "python.linting.mypyEnabled": true,
     "python.formatting.provider": "black",
-    "python.sortImports.args": ["--profile", "black"],
+    "python.sortImports.args": [
+        "--profile",
+        "black"
+    ],
     "editor.formatOnSave": true,
     "editor.codeActionsOnSave": {
-        "source.organizeImports": true
+        "source.organizeImports": "explicit"
     },
     "files.exclude": {
         "**/__pycache__": true,
@@ -37,5 +40,11 @@
     "django.templates": [
         "templates"
     ],
-    "django.settingsModule": "nsc_admin.settings"
+    "django.settingsModule": "nsc_admin.settings",
+    "cursorpyright.analysis.autoImportCompletions": true,
+    "cursorpyright.analysis.extraPaths": [
+        "./apps",
+        "./nsc_admin"
+    ],
+    "cursorpyright.analysis.typeCheckingMode": "basic"
 }

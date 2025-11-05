@@ -1,0 +1,538 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar Jugador - NSC International</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --mlb-blue: #0d2c54;
+            --mlb-red: #d50032;
+            --mlb-light-blue: #132448;
+            --mlb-gold: #ffd700;
+            --mlb-dark: #1a1a1a;
+        }
+        
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .top-bar {
+            background: var(--mlb-dark);
+            color: white;
+            padding: 8px 0;
+            font-size: 0.85rem;
+        }
+        
+        .top-bar a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .top-bar a:hover {
+            color: white;
+        }
+        
+        .navbar-mlb {
+            background: var(--mlb-blue) !important;
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .navbar-mlb .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white !important;
+            padding: 15px 20px;
+            background: var(--mlb-red);
+        }
+        
+        .navbar-mlb .nav-link {
+            color: white !important;
+            font-weight: 600;
+            padding: 20px 15px !important;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            transition: background 0.3s;
+        }
+        
+        .navbar-mlb .nav-link:hover,
+        .navbar-mlb .nav-link.active {
+            background: var(--mlb-red);
+        }
+        
+        .page-hero {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            padding: 40px 0;
+            margin-bottom: 40px;
+        }
+        
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border-top: 5px solid var(--mlb-red);
+            margin-bottom: 40px;
+        }
+        
+        .form-header {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .form-header h2 {
+            font-size: 2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        
+        .form-body {
+            padding: 40px;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .form-section:last-child {
+            border-bottom: none;
+        }
+        
+        .form-section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--mlb-blue);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--mlb-red);
+            display: inline-block;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--mlb-blue);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 15px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--mlb-blue);
+            box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.25);
+        }
+        
+        .btn-mlb {
+            background: var(--mlb-red);
+            color: white;
+            padding: 15px 40px;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(213, 0, 50, 0.3);
+        }
+        
+        .btn-mlb:hover {
+            background: #b30029;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(213, 0, 50, 0.4);
+            color: white;
+        }
+        
+        .btn-secondary-mlb {
+            background: #6c757d;
+            color: white;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+        
+        .btn-secondary-mlb:hover {
+            background: #5a6268;
+            color: white;
+        }
+        
+        .error-message {
+            color: var(--mlb-red);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+        
+        .help-text {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .footer-mlb {
+            background: var(--mlb-dark);
+            color: #ccc;
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <span><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</span>
+                    <span class="ms-4"><i class="fas fa-envelope me-2"></i>info@nscinternational.com</span>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="/accounts/dashboard/">Dashboard</a>
+                    <span class="mx-2">|</span>
+                    <a href="{% url 'accounts:logout' %}">Cerrar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-mlb">
+        <div class="container-fluid px-0">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-baseball-ball me-2"></i>NSC
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span style="color: white;"><i class="fas fa-bars"></i></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'events:list' %}">Eventos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:player_list' %}">Jugadores</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:team_list' %}">Equipos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/accounts/dashboard/">Dashboard</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Hero -->
+    <div class="page-hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-12 text-center">
+                    <h1 class="display-4 mb-3" style="font-weight: 900; text-transform: uppercase;">
+                        <i class="fas fa-user-plus me-3"></i>Registrar Nuevo Jugador
+                    </h1>
+                    <p class="lead">Agrega un nuevo jugador a tu equipo</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-9">
+                <div class="form-card">
+                    <div class="form-header">
+                        <h2><i class="fas fa-user-plus me-2"></i>Registrar Nuevo Jugador</h2>
+                        <p class="mb-0">Completa la información del jugador</p>
+                    </div>
+                    
+                    <div class="form-body">
+                        <form method="post" enctype="multipart/form-data" id="playerForm">
+                            {% csrf_token %}
+                            
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.non_field_errors }}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Información de Usuario -->
+                            <div class="form-section">
+                                <div class="form-section-title"><i class="fas fa-user me-2"></i>Información de Usuario</div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                            <i class="fas fa-user me-1"></i>Nombre *
+                                        </label>
+                                        {{ form.first_name }}
+                                        {% if form.first_name.errors %}
+                                            <div class="error-message">{{ form.first_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                            <i class="fas fa-user me-1"></i>Primer Apellido *
+                                        </label>
+                                        {{ form.last_name }}
+                                        {% if form.last_name.errors %}
+                                            <div class="error-message">{{ form.last_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.last_name2.id_for_label }}" class="form-label">
+                                            <i class="fas fa-user me-1"></i>Segundo Apellido
+                                        </label>
+                                        {{ form.last_name2 }}
+                                        {% if form.last_name2.errors %}
+                                            <div class="error-message">{{ form.last_name2.errors }}</div>
+                                        {% endif %}
+                                        <div class="help-text">Opcional</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.email.id_for_label }}" class="form-label">
+                                            <i class="fas fa-envelope me-1"></i>Email *
+                                        </label>
+                                        {{ form.email }}
+                                        {% if form.email.errors %}
+                                            <div class="error-message">{{ form.email.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.password.id_for_label }}" class="form-label">
+                                            <i class="fas fa-lock me-1"></i>Contraseña Temporal *
+                                        </label>
+                                        {{ form.password }}
+                                        {% if form.password.help_text %}
+                                            <div class="help-text">{{ form.password.help_text }}</div>
+                                        {% endif %}
+                                        {% if form.password.errors %}
+                                            <div class="error-message">{{ form.password.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.phone.id_for_label }}" class="form-label">
+                                            <i class="fas fa-phone me-1"></i>Teléfono
+                                        </label>
+                                        {{ form.phone }}
+                                        {% if form.phone.errors %}
+                                            <div class="error-message">{{ form.phone.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.birth_date.id_for_label }}" class="form-label">
+                                            <i class="fas fa-calendar-alt me-1"></i>Fecha de Nacimiento
+                                        </label>
+                                        {{ form.birth_date }}
+                                        {% if form.birth_date.errors %}
+                                            <div class="error-message">{{ form.birth_date.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Información Deportiva -->
+                            <div class="form-section">
+                                <div class="form-section-title"><i class="fas fa-baseball-ball me-2"></i>Información Deportiva</div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.team.id_for_label }}" class="form-label">
+                                            <i class="fas fa-users me-1"></i>Equipo *
+                                        </label>
+                                        {{ form.team }}
+                                        {% if form.team.errors %}
+                                            <div class="error-message">{{ form.team.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.jersey_number.id_for_label }}" class="form-label">
+                                            <i class="fas fa-hashtag me-1"></i>Número de Jersey
+                                        </label>
+                                        {{ form.jersey_number }}
+                                        {% if form.jersey_number.errors %}
+                                            <div class="error-message">{{ form.jersey_number.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.position.id_for_label }}" class="form-label">
+                                            <i class="fas fa-map-marker-alt me-1"></i>Posición
+                                        </label>
+                                        {{ form.position }}
+                                        {% if form.position.errors %}
+                                            <div class="error-message">{{ form.position.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.height.id_for_label }}" class="form-label">
+                                            <i class="fas fa-ruler-vertical me-1"></i>Estatura
+                                        </label>
+                                        {{ form.height }}
+                                        {% if form.height.errors %}
+                                            <div class="error-message">{{ form.height.errors }}</div>
+                                        {% endif %}
+                                        <div class="help-text">Ej: 6'2"</div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.weight.id_for_label }}" class="form-label">
+                                            <i class="fas fa-weight me-1"></i>Peso (lbs)
+                                        </label>
+                                        {{ form.weight }}
+                                        {% if form.weight.errors %}
+                                            <div class="error-message">{{ form.weight.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.batting_hand.id_for_label }}" class="form-label">
+                                            <i class="fas fa-hand-paper me-1"></i>Bateo
+                                        </label>
+                                        {{ form.batting_hand }}
+                                        {% if form.batting_hand.errors %}
+                                            <div class="error-message">{{ form.batting_hand.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="{{ form.throwing_hand.id_for_label }}" class="form-label">
+                                            <i class="fas fa-hand-rock me-1"></i>Lanzamiento
+                                        </label>
+                                        {{ form.throwing_hand }}
+                                        {% if form.throwing_hand.errors %}
+                                            <div class="error-message">{{ form.throwing_hand.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Contacto de Emergencia -->
+                            <div class="form-section">
+                                <div class="form-section-title"><i class="fas fa-phone-alt me-2"></i>Contacto de Emergencia</div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.emergency_contact_name.id_for_label }}" class="form-label">
+                                            <i class="fas fa-user me-1"></i>Nombre
+                                        </label>
+                                        {{ form.emergency_contact_name }}
+                                        {% if form.emergency_contact_name.errors %}
+                                            <div class="error-message">{{ form.emergency_contact_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.emergency_contact_phone.id_for_label }}" class="form-label">
+                                            <i class="fas fa-phone me-1"></i>Teléfono
+                                        </label>
+                                        {{ form.emergency_contact_phone }}
+                                        {% if form.emergency_contact_phone.errors %}
+                                            <div class="error-message">{{ form.emergency_contact_phone.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.emergency_contact_relation.id_for_label }}" class="form-label">
+                                            <i class="fas fa-users me-1"></i>Relación
+                                        </label>
+                                        {{ form.emergency_contact_relation }}
+                                        {% if form.emergency_contact_relation.errors %}
+                                            <div class="error-message">{{ form.emergency_contact_relation.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.medical_conditions.id_for_label }}" class="form-label">
+                                        <i class="fas fa-heartbeat me-1"></i>Condiciones Médicas
+                                    </label>
+                                    {{ form.medical_conditions }}
+                                    {% if form.medical_conditions.errors %}
+                                        <div class="error-message">{{ form.medical_conditions.errors }}</div>
+                                    {% endif %}
+                                    <div class="help-text">Especifica cualquier condición médica relevante o "Ninguna"</div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="{% url 'accounts:player_list' %}" class="btn btn-secondary-mlb">
+                                    <i class="fas fa-times me-1"></i>Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-mlb">
+                                    <i class="fas fa-save me-1"></i>Registrar Jugador
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer-mlb">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5 style="color: white; margin-bottom: 20px;"><i class="fas fa-baseball-ball me-2"></i>NSC International</h5>
+                    <p>Plataforma profesional de gestión de béisbol.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5 style="color: white; margin-bottom: 20px;">Enlaces Rápidos</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/">Inicio</a></li>
+                        <li><a href="{% url 'events:list' %}">Eventos</a></li>
+                        <li><a href="{% url 'accounts:player_list' %}">Jugadores</a></li>
+                        <li><a href="{% url 'accounts:team_list' %}">Equipos</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5 style="color: white; margin-bottom: 20px;">Contacto</h5>
+                    <p><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</p>
+                    <p><i class="fas fa-envelope me-2"></i>info@nscinternational.com</p>
+                </div>
+            </div>
+            <hr style="border-color: #444; margin: 30px 0;">
+            <p class="text-center mb-0">&copy; 2024 NSC International. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

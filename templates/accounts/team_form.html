@@ -1,0 +1,479 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if object %}Editar{% else %}Crear{% endif %} Equipo - NSC International</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --mlb-blue: #0d2c54;
+            --mlb-red: #d50032;
+            --mlb-light-blue: #132448;
+            --mlb-gold: #ffd700;
+            --mlb-dark: #1a1a1a;
+        }
+        
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .top-bar {
+            background: var(--mlb-dark);
+            color: white;
+            padding: 8px 0;
+            font-size: 0.85rem;
+        }
+        
+        .top-bar a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .top-bar a:hover {
+            color: white;
+        }
+        
+        .navbar-mlb {
+            background: var(--mlb-blue) !important;
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .navbar-mlb .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white !important;
+            padding: 15px 20px;
+            background: var(--mlb-red);
+        }
+        
+        .navbar-mlb .nav-link {
+            color: white !important;
+            font-weight: 600;
+            padding: 20px 15px !important;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            transition: background 0.3s;
+        }
+        
+        .navbar-mlb .nav-link:hover {
+            background: var(--mlb-light-blue);
+        }
+        
+        .main-content {
+            padding: 60px 0;
+        }
+        
+        .form-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border-top: 4px solid var(--mlb-red);
+        }
+        
+        .form-header {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .form-header h2 {
+            font-size: 2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        
+        .form-body {
+            padding: 40px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--mlb-blue);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 4px;
+            padding: 12px 15px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--mlb-blue);
+            box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.25);
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .form-section:last-child {
+            border-bottom: none;
+        }
+        
+        .form-section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--mlb-blue);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--mlb-red);
+            display: inline-block;
+        }
+        
+        .btn-mlb {
+            background: var(--mlb-red);
+            color: white;
+            padding: 15px 40px;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 4px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(213, 0, 50, 0.3);
+        }
+        
+        .btn-mlb:hover {
+            background: #b30029;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(213, 0, 50, 0.4);
+            color: white;
+        }
+        
+        .btn-secondary-mlb {
+            background: #6c757d;
+            color: white;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 4px;
+        }
+        
+        .btn-secondary-mlb:hover {
+            background: #5a6268;
+            color: white;
+        }
+        
+        .logo-preview {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 4px solid var(--mlb-blue);
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .logo-upload-area {
+            border: 2px dashed var(--mlb-blue);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .logo-upload-area:hover {
+            background: #f8f9fa;
+            border-color: var(--mlb-red);
+        }
+        
+        .error-message {
+            color: var(--mlb-red);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <span><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</span>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="/accounts/dashboard/">Dashboard</a>
+                    <span class="mx-2">|</span>
+                    <a href="{% url 'accounts:logout' %}">Cerrar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-mlb">
+        <div class="container-fluid px-0">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-baseball-ball me-2"></i>NSC
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span style="color: white;"><i class="fas fa-bars"></i></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/accounts/dashboard/">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'accounts:team_list' %}">Mis Equipos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:player_list' %}">Jugadores</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-10 col-xl-9">
+                    <div class="form-card">
+                        <div class="form-header">
+                            <h2>
+                                <i class="fas fa-{% if object %}edit{% else %}plus{% endif %} me-2"></i>
+                                {% if object %}Editar Equipo{% else %}Crear Nuevo Equipo{% endif %}
+                            </h2>
+                            <p class="mb-0">Completa la información de tu equipo</p>
+                        </div>
+                        
+                        <div class="form-body">
+                            <form method="post" enctype="multipart/form-data" id="teamForm">
+                                {% csrf_token %}
+                                
+                                {% if form.non_field_errors %}
+                                    <div class="alert alert-danger">
+                                        {{ form.non_field_errors }}
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Información Básica -->
+                                <div class="form-section">
+                                    <div class="form-section-title">Información Básica</div>
+                                    <div class="mb-3">
+                                        <label for="{{ form.name.id_for_label }}" class="form-label">
+                                            <i class="fas fa-users me-1"></i>Nombre del Equipo *
+                                        </label>
+                                        {{ form.name }}
+                                        {% if form.name.errors %}
+                                            <div class="error-message">{{ form.name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                                            <i class="fas fa-align-left me-1"></i>Descripción del Equipo
+                                        </label>
+                                        {{ form.description }}
+                                        {% if form.description.errors %}
+                                            <div class="error-message">{{ form.description.errors }}</div>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="{{ form.logo.id_for_label }}" class="form-label">
+                                            <i class="fas fa-image me-1"></i>Logo del Equipo
+                                        </label>
+                                        <div class="logo-upload-area" onclick="document.getElementById('id_logo').click()">
+                                            <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--mlb-blue);"></i>
+                                            <p class="mb-0">Haz clic para subir el logo</p>
+                                            <small class="text-muted">JPG, PNG o GIF (máx. 5MB)</small>
+                                        </div>
+                                        {{ form.logo }}
+                                        {% if object and object.logo %}
+                                            <img src="{{ object.logo.url }}" alt="{{ object.name }}" class="logo-preview" id="logoPreview" style="display: block;">
+                                        {% else %}
+                                            <img id="logoPreview" class="logo-preview" alt="Vista previa">
+                                        {% endif %}
+                                        {% if form.logo.errors %}
+                                            <div class="error-message">{{ form.logo.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <!-- Ubicación -->
+                                <div class="form-section">
+                                    <div class="form-section-title">Ubicación</div>
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label for="{{ form.country.id_for_label }}" class="form-label">
+                                                <i class="fas fa-globe me-1"></i>País
+                                            </label>
+                                            {{ form.country }}
+                                            {% if form.country.errors %}
+                                                <div class="error-message">{{ form.country.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="{{ form.state.id_for_label }}" class="form-label">
+                                                <i class="fas fa-map-marked-alt me-1"></i>Estado
+                                            </label>
+                                            {{ form.state }}
+                                            {% if form.state.errors %}
+                                                <div class="error-message">{{ form.state.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="{{ form.city.id_for_label }}" class="form-label">
+                                                <i class="fas fa-city me-1"></i>Ciudad
+                                            </label>
+                                            {{ form.city }}
+                                            {% if form.city.errors %}
+                                                <div class="error-message">{{ form.city.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Información de Contacto -->
+                                <div class="form-section">
+                                    <div class="form-section-title">Información de Contacto</div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="{{ form.contact_email.id_for_label }}" class="form-label">
+                                                <i class="fas fa-envelope me-1"></i>Email de Contacto
+                                            </label>
+                                            {{ form.contact_email }}
+                                            {% if form.contact_email.errors %}
+                                                <div class="error-message">{{ form.contact_email.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="{{ form.contact_phone.id_for_label }}" class="form-label">
+                                                <i class="fas fa-phone me-1"></i>Teléfono de Contacto
+                                            </label>
+                                            {{ form.contact_phone }}
+                                            {% if form.contact_phone.errors %}
+                                                <div class="error-message">{{ form.contact_phone.errors }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="{{ form.website.id_for_label }}" class="form-label">
+                                            <i class="fas fa-globe me-1"></i>Sitio Web
+                                        </label>
+                                        {{ form.website }}
+                                        {% if form.website.errors %}
+                                            <div class="error-message">{{ form.website.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between mt-4">
+                                    <a href="{% url 'accounts:team_list' %}" class="btn btn-secondary-mlb">
+                                        <i class="fas fa-times me-1"></i>Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-mlb">
+                                        <i class="fas fa-save me-1"></i>{% if object %}Actualizar{% else %}Crear{% endif %} Equipo
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Preview de logo
+        document.getElementById('id_logo').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('logoPreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Cargar estados cuando se selecciona un país
+        document.getElementById('id_team_country').addEventListener('change', function() {
+            const countryId = this.value;
+            const stateSelect = document.getElementById('id_team_state');
+            const citySelect = document.getElementById('id_team_city');
+            
+            // Limpiar estados y ciudades
+            stateSelect.innerHTML = '<option value="">Selecciona un estado</option>';
+            citySelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
+            
+            if (countryId) {
+                fetch(`/locations/states/api/?country=${countryId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(state => {
+                            const option = document.createElement('option');
+                            option.value = state.id;
+                            option.textContent = state.name;
+                            stateSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+        });
+        
+        // Cargar ciudades cuando se selecciona un estado
+        document.getElementById('id_team_state').addEventListener('change', function() {
+            const stateId = this.value;
+            const citySelect = document.getElementById('id_team_city');
+            
+            // Limpiar ciudades
+            citySelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
+            
+            if (stateId) {
+                fetch(`/locations/cities/api/?state=${stateId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city.id;
+                            option.textContent = city.name;
+                            citySelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+        });
+    </script>
+</body>
+</html>

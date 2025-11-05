@@ -1,0 +1,389 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Jugadores - NSC International</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --mlb-blue: #0d2c54;
+            --mlb-red: #d50032;
+            --mlb-light-blue: #132448;
+            --mlb-gold: #ffd700;
+            --mlb-dark: #1a1a1a;
+        }
+        
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .top-bar {
+            background: var(--mlb-dark);
+            color: white;
+            padding: 8px 0;
+            font-size: 0.85rem;
+        }
+        
+        .top-bar a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .top-bar a:hover {
+            color: white;
+        }
+        
+        .navbar-mlb {
+            background: var(--mlb-blue) !important;
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .navbar-mlb .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white !important;
+            padding: 15px 20px;
+            background: var(--mlb-red);
+        }
+        
+        .navbar-mlb .nav-link {
+            color: white !important;
+            font-weight: 600;
+            padding: 20px 15px !important;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            transition: background 0.3s;
+        }
+        
+        .navbar-mlb .nav-link:hover,
+        .navbar-mlb .nav-link.active {
+            background: var(--mlb-red);
+        }
+        
+        .page-hero {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            padding: 40px 0;
+            margin-bottom: 40px;
+        }
+        
+        .search-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border-left: 4px solid var(--mlb-blue);
+        }
+        
+        .player-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--mlb-red);
+            transition: all 0.3s;
+        }
+        
+        .player-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .btn-mlb {
+            background: var(--mlb-red);
+            color: white;
+            padding: 12px 25px;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(213, 0, 50, 0.3);
+        }
+        
+        .btn-mlb:hover {
+            background: #b30029;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(213, 0, 50, 0.4);
+            color: white;
+        }
+        
+        .btn-outline-mlb {
+            background: transparent;
+            color: var(--mlb-blue);
+            border: 2px solid var(--mlb-blue);
+            padding: 8px 15px;
+            font-weight: 600;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        
+        .btn-outline-mlb:hover {
+            background: var(--mlb-blue);
+            color: white;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 15px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--mlb-blue);
+            box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.25);
+        }
+        
+        .footer-mlb {
+            background: var(--mlb-dark);
+            color: #ccc;
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+        
+        .pagination .page-link {
+            color: var(--mlb-blue);
+            border-color: var(--mlb-blue);
+        }
+        
+        .pagination .page-item.active .page-link {
+            background: var(--mlb-red);
+            border-color: var(--mlb-red);
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <span><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</span>
+                    <span class="ms-4"><i class="fas fa-envelope me-2"></i>info@nscinternational.com</span>
+                </div>
+                <div class="col-md-6 text-end">
+                    {% if user.is_authenticated %}
+                        <a href="/accounts/dashboard/"><i class="fas fa-user me-1"></i>Mi Cuenta</a>
+                        <span class="mx-2">|</span>
+                        <a href="{% url 'accounts:logout' %}">Cerrar Sesión</a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}">Iniciar Sesión</a>
+                        <span class="mx-2">|</span>
+                        <a href="/accounts/register/">Registrarse</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-mlb">
+        <div class="container-fluid px-0">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-baseball-ball me-2"></i>NSC
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span style="color: white;"><i class="fas fa-bars"></i></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'events:list' %}">Eventos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'accounts:player_list' %}">Jugadores</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:team_list' %}">Equipos</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/accounts/dashboard/">Dashboard</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Hero -->
+    <div class="page-hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4 mb-3" style="font-weight: 900; text-transform: uppercase;">
+                        <i class="fas fa-user-friends me-3"></i>Jugadores
+                    </h1>
+                </div>
+                {% if user.is_authenticated and user.profile.is_team_manager %}
+                    <div class="col-md-4 text-end">
+                        <a href="{% url 'accounts:player_register' %}" class="btn btn-mlb">
+                            <i class="fas fa-user-plus me-1"></i>Registrar Jugador
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Search Card -->
+        <div class="search-card">
+            <form method="get">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <input type="text" name="search" class="form-control" placeholder="Buscar por nombre..." value="{{ request.GET.search }}">
+                    </div>
+                    {% if user.is_authenticated and user.profile.is_team_manager %}
+                        <div class="col-md-4 mb-3">
+                            <select name="team" class="form-select">
+                                <option value="">Todos los equipos</option>
+                                {% for team in user.managed_teams.all %}
+                                    <option value="{{ team.pk }}" {% if request.GET.team == team.pk|stringformat:"s" %}selected{% endif %}>
+                                        {{ team.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    {% endif %}
+                    <div class="col-md-{% if user.is_authenticated and user.profile.is_team_manager %}2{% else %}6{% endif %} mb-3">
+                        <button type="submit" class="btn btn-mlb w-100">
+                            <i class="fas fa-search me-1"></i>Buscar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Players List -->
+        {% if players %}
+            {% for player in players %}
+                <div class="player-card">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 5px;">
+                                {{ player.user.get_full_name|default:player.user.username }}
+                            </h5>
+                            {% if player.position %}
+                                <small class="text-muted">{{ player.get_position_display }}</small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-2 text-center">
+                            {% if player.team %}
+                                <span class="badge" style="background: var(--mlb-blue); color: white; padding: 8px 15px;">
+                                    {{ player.team.name }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">Sin equipo</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-2 text-center">
+                            {% if player.jersey_number %}
+                                <span class="badge" style="background: var(--mlb-red); color: white; padding: 8px 15px; font-size: 1rem;">
+                                    #{{ player.jersey_number }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{% url 'accounts:player_detail' player.pk %}" class="btn btn-outline-mlb">
+                                <i class="fas fa-eye me-1"></i>Ver Perfil
+                            </a>
+                            {% if user.is_authenticated and user.profile.is_team_manager and player.team and player.team.manager == user %}
+                                <a href="{% url 'accounts:player_edit' player.pk %}" class="btn btn-outline-mlb">
+                                    <i class="fas fa-edit me-1"></i>Editar
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.team %}&team={{ request.GET.team }}{% endif %}">Primera</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.team %}&team={{ request.GET.team }}{% endif %}">Anterior</a>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="page-item active">
+                            <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                        </li>
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.team %}&team={{ request.GET.team }}{% endif %}">Siguiente</a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.team %}&team={{ request.GET.team }}{% endif %}">Última</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="alert alert-info" style="background: #e3f2fd; border-left: 4px solid var(--mlb-blue); color: var(--mlb-blue); padding: 20px; border-radius: 8px;">
+                <i class="fas fa-info-circle me-2"></i>No se encontraron jugadores.
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer-mlb">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5 style="color: white; margin-bottom: 20px;"><i class="fas fa-baseball-ball me-2"></i>NSC International</h5>
+                    <p>Plataforma profesional de gestión de béisbol.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5 style="color: white; margin-bottom: 20px;">Enlaces Rápidos</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/">Inicio</a></li>
+                        <li><a href="{% url 'events:list' %}">Eventos</a></li>
+                        <li><a href="{% url 'accounts:player_list' %}">Jugadores</a></li>
+                        <li><a href="{% url 'accounts:team_list' %}">Equipos</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5 style="color: white; margin-bottom: 20px;">Contacto</h5>
+                    <p><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</p>
+                    <p><i class="fas fa-envelope me-2"></i>info@nscinternational.com</p>
+                </div>
+            </div>
+            <hr style="border-color: #444; margin: 30px 0;">
+            <p class="text-center mb-0">&copy; 2024 NSC International. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

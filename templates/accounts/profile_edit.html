@@ -1,0 +1,552 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Perfil - NSC International</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --mlb-blue: #0d2c54;
+            --mlb-red: #d50032;
+            --mlb-light-blue: #132448;
+            --mlb-gold: #ffd700;
+            --mlb-dark: #1a1a1a;
+        }
+        
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .top-bar {
+            background: var(--mlb-dark);
+            color: white;
+            padding: 8px 0;
+            font-size: 0.85rem;
+        }
+        
+        .top-bar a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .top-bar a:hover {
+            color: white;
+        }
+        
+        .navbar-mlb {
+            background: var(--mlb-blue) !important;
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .navbar-mlb .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white !important;
+            padding: 15px 20px;
+            background: var(--mlb-red);
+        }
+        
+        .navbar-mlb .nav-link {
+            color: white !important;
+            font-weight: 600;
+            padding: 20px 15px !important;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            transition: background 0.3s;
+        }
+        
+        .navbar-mlb .nav-link:hover,
+        .navbar-mlb .nav-link.active {
+            background: var(--mlb-red);
+        }
+        
+        .page-hero {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            padding: 40px 0;
+            margin-bottom: 40px;
+        }
+        
+        .form-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border-top: 5px solid var(--mlb-red);
+            margin-bottom: 40px;
+        }
+        
+        .form-header {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .form-header h2 {
+            font-size: 2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+        
+        .form-body {
+            padding: 40px;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .form-section:last-child {
+            border-bottom: none;
+        }
+        
+        .form-section-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--mlb-blue);
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--mlb-red);
+            display: inline-block;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--mlb-blue);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 15px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--mlb-blue);
+            box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.25);
+        }
+        
+        .photo-preview {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--mlb-blue);
+            margin-top: 15px;
+            display: none;
+        }
+        
+        .photo-upload-area {
+            border: 2px dashed var(--mlb-blue);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .photo-upload-area:hover {
+            background: #f8f9fa;
+            border-color: var(--mlb-red);
+        }
+        
+        .btn-mlb {
+            background: var(--mlb-red);
+            color: white;
+            padding: 15px 40px;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: none;
+            border-radius: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(213, 0, 50, 0.3);
+        }
+        
+        .btn-mlb:hover {
+            background: #b30029;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(213, 0, 50, 0.4);
+            color: white;
+        }
+        
+        .btn-secondary-mlb {
+            background: #6c757d;
+            color: white;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+        
+        .btn-secondary-mlb:hover {
+            background: #5a6268;
+            color: white;
+        }
+        
+        .error-message {
+            color: var(--mlb-red);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+        
+        .footer-mlb {
+            background: var(--mlb-dark);
+            color: #ccc;
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <span><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</span>
+                    <span class="ms-4"><i class="fas fa-envelope me-2"></i>info@nscinternational.com</span>
+                </div>
+                <div class="col-md-6 text-end">
+                    <a href="/accounts/dashboard/">Dashboard</a>
+                    <span class="mx-2">|</span>
+                    <a href="{% url 'accounts:logout' %}">Cerrar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-mlb">
+        <div class="container-fluid px-0">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-baseball-ball me-2"></i>NSC
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span style="color: white;"><i class="fas fa-bars"></i></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'events:list' %}">Eventos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:player_list' %}">Jugadores</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:team_list' %}">Equipos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/accounts/dashboard/">Dashboard</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Hero -->
+    <div class="page-hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-12 text-center">
+                    <h1 class="display-4 mb-3" style="font-weight: 900; text-transform: uppercase;">
+                        <i class="fas fa-user-edit me-3"></i>Editar Perfil
+                    </h1>
+                    <p class="lead">Actualiza tu información personal</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-9">
+                <div class="form-card">
+                    <div class="form-header">
+                        <h2><i class="fas fa-user-edit me-2"></i>Editar Perfil</h2>
+                        <p class="mb-0">Actualiza tu información personal</p>
+                    </div>
+                    
+                    <div class="form-body">
+                        <form method="post" enctype="multipart/form-data" id="profileForm">
+                            {% csrf_token %}
+                            
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.non_field_errors }}
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Foto de Perfil -->
+                            <div class="form-section">
+                                <div class="form-section-title"><i class="fas fa-camera me-2"></i>Foto de Perfil</div>
+                                <div class="photo-upload-area" onclick="document.getElementById('id_profile_picture').click()">
+                                    {% if object.profile_picture %}
+                                        <img src="{{ object.profile_picture.url }}" alt="Foto actual" class="photo-preview" id="photoPreview" style="display: block; margin: 0 auto;">
+                                    {% else %}
+                                        <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--mlb-blue);"></i>
+                                        <p class="mb-0">Haz clic para subir una foto</p>
+                                        <small class="text-muted">JPG, PNG o GIF (máx. 5MB)</small>
+                                        <img id="photoPreview" class="photo-preview" alt="Vista previa">
+                                    {% endif %}
+                                </div>
+                                {{ form.profile_picture }}
+                                {% if form.profile_picture.errors %}
+                                    <div class="error-message">{{ form.profile_picture.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Información de Contacto -->
+                            <div class="form-section">
+                                <div class="form-section-title"><i class="fas fa-phone me-2"></i>Información de Contacto</div>
+                                <div class="mb-3">
+                                    <label for="{{ form.phone.id_for_label }}" class="form-label">
+                                        <i class="fas fa-phone me-1"></i>Teléfono
+                                    </label>
+                                    {{ form.phone }}
+                                    {% if form.phone.errors %}
+                                        <div class="error-message">{{ form.phone.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.birth_date.id_for_label }}" class="form-label">
+                                        <i class="fas fa-calendar-alt me-1"></i>Fecha de Nacimiento
+                                    </label>
+                                    {{ form.birth_date }}
+                                    {% if form.birth_date.errors %}
+                                        <div class="error-message">{{ form.birth_date.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Ubicación -->
+                            <div class="form-section">
+                                <div class="form-section-title"><i class="fas fa-map-marker-alt me-2"></i>Ubicación</div>
+                                <div class="mb-3">
+                                    <label for="{{ form.address.id_for_label }}" class="form-label">
+                                        <i class="fas fa-road me-1"></i>Dirección
+                                    </label>
+                                    {{ form.address }}
+                                    {% if form.address.errors %}
+                                        <div class="error-message">{{ form.address.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.country.id_for_label }}" class="form-label">
+                                            <i class="fas fa-globe me-1"></i>País
+                                        </label>
+                                        {{ form.country }}
+                                        {% if form.country.errors %}
+                                            <div class="error-message">{{ form.country.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.state.id_for_label }}" class="form-label">
+                                            <i class="fas fa-map me-1"></i>Estado
+                                        </label>
+                                        {{ form.state }}
+                                        {% if form.state.errors %}
+                                            <div class="error-message">{{ form.state.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.city.id_for_label }}" class="form-label">
+                                            <i class="fas fa-city me-1"></i>Ciudad
+                                        </label>
+                                        {{ form.city }}
+                                        {% if form.city.errors %}
+                                            <div class="error-message">{{ form.city.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.postal_code.id_for_label }}" class="form-label">
+                                        <i class="fas fa-mail-bulk me-1"></i>Código Postal
+                                    </label>
+                                    {{ form.postal_code }}
+                                    {% if form.postal_code.errors %}
+                                        <div class="error-message">{{ form.postal_code.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Biografía -->
+                            <div class="form-section">
+                                <div class="form-section-title"><i class="fas fa-book me-2"></i>Biografía</div>
+                                <div class="mb-3">
+                                    <label for="{{ form.bio.id_for_label }}" class="form-label">
+                                        <i class="fas fa-align-left me-1"></i>Sobre Ti
+                                    </label>
+                                    {{ form.bio }}
+                                    {% if form.bio.errors %}
+                                        <div class="error-message">{{ form.bio.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary-mlb">
+                                    <i class="fas fa-times me-1"></i>Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-mlb">
+                                    <i class="fas fa-save me-1"></i>Guardar Cambios
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer-mlb">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5 style="color: white; margin-bottom: 20px;"><i class="fas fa-baseball-ball me-2"></i>NSC International</h5>
+                    <p>Plataforma profesional de gestión de béisbol.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5 style="color: white; margin-bottom: 20px;">Enlaces Rápidos</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/">Inicio</a></li>
+                        <li><a href="{% url 'events:list' %}">Eventos</a></li>
+                        <li><a href="{% url 'accounts:player_list' %}">Jugadores</a></li>
+                        <li><a href="{% url 'accounts:team_list' %}">Equipos</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5 style="color: white; margin-bottom: 20px;">Contacto</h5>
+                    <p><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</p>
+                    <p><i class="fas fa-envelope me-2"></i>info@nscinternational.com</p>
+                </div>
+            </div>
+            <hr style="border-color: #444; margin: 30px 0;">
+            <p class="text-center mb-0">&copy; 2024 NSC International. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Preview de foto
+        document.getElementById('id_profile_picture').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('photoPreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Cargar estados cuando se selecciona un país
+        const countrySelect = document.getElementById('id_country');
+        const stateSelect = document.getElementById('id_state');
+        const citySelect = document.getElementById('id_city');
+        
+        if (countrySelect) {
+            countrySelect.addEventListener('change', function() {
+                const countryId = this.value;
+                stateSelect.innerHTML = '<option value="">Selecciona un estado</option>';
+                citySelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
+                
+                if (countryId) {
+                    fetch(`/locations/states/api/?country=${countryId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(state => {
+                                const option = document.createElement('option');
+                                option.value = state.id;
+                                option.textContent = state.name;
+                                stateSelect.appendChild(option);
+                            });
+                            // Si hay un estado pre-seleccionado, cargar ciudades
+                            if (stateSelect.dataset.initialValue) {
+                                stateSelect.value = stateSelect.dataset.initialValue;
+                                updateCities();
+                            }
+                        });
+                }
+            });
+        }
+        
+        // Cargar ciudades cuando se selecciona un estado
+        function updateCities() {
+            const stateId = stateSelect.value;
+            citySelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
+            
+            if (stateId) {
+                fetch(`/locations/cities/api/?state=${stateId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city.id;
+                            option.textContent = city.name;
+                            citySelect.appendChild(option);
+                        });
+                        // Si hay una ciudad pre-seleccionada, establecerla
+                        if (citySelect.dataset.initialValue) {
+                            citySelect.value = citySelect.dataset.initialValue;
+                        }
+                    });
+            }
+        }
+        
+        if (stateSelect) {
+            stateSelect.addEventListener('change', updateCities);
+            
+            // Guardar valores iniciales para re-selección en caso de error
+            if (stateSelect.value) {
+                stateSelect.dataset.initialValue = stateSelect.value;
+            }
+            if (citySelect.value) {
+                citySelect.dataset.initialValue = citySelect.value;
+            }
+            
+            // Cargar ciudades si hay un estado seleccionado
+            if (stateSelect.value) {
+                updateCities();
+            }
+        }
+    </script>
+</body>
+</html>

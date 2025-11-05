@@ -21,12 +21,16 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import RedirectView
 
+from apps.accounts.views import PublicHomeView
+
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", RedirectView.as_view(url="/events/", permanent=False)),
+    path("admin/login/", admin.site.login, name='admin_login'),  # Login admin separado
+    path("", PublicHomeView.as_view(), name='home'),  # Home público
     path("events/", include("apps.events.urls")),
     path("locations/", include("apps.locations.urls")),
-    path("users/", include("django.contrib.auth.urls")),
+    path("accounts/", include("apps.accounts.urls")),  # Login público aquí
+    path("users/", include("django.contrib.auth.urls")),  # Mantener para compatibilidad
 ]
 
 # Serve media files in development

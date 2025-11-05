@@ -1,0 +1,189 @@
+{% extends 'accounts/base_public.html' %}
+
+{% block title %}Panel de Usuario - NSC{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="mb-4">
+            <i class="fas fa-tachometer-alt me-2"></i>Panel de Usuario
+        </h2>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <!-- Información del Usuario -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-user me-2"></i>Mi Perfil</h5>
+            </div>
+            <div class="card-body text-center">
+                {% if profile.profile_picture %}
+                    <img src="{{ profile.profile_picture.url }}" alt="Foto de perfil" class="rounded-circle mb-3" style="width: 120px; height: 120px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 120px; height: 120px; font-size: 3rem;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                {% endif %}
+                <h4>{{ user.get_full_name|default:user.username }}</h4>
+                <p class="text-muted mb-2">
+                    <i class="fas fa-tag me-1"></i>{{ profile.get_user_type_display }}
+                </p>
+                {% if profile.city %}
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-map-marker-alt me-1"></i>{{ profile.city }}, {{ profile.state }}
+                    </p>
+                {% endif %}
+                <a href="{% url 'accounts:profile_edit' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-edit me-1"></i>Editar Perfil
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Estadísticas</h5>
+            </div>
+            <div class="card-body">
+                {% if profile.is_team_manager %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h3>{{ teams|length }}</h3>
+                                    <p class="mb-0">Equipos</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h3>{{ total_players }}</h3>
+                                    <p class="mb-0">Jugadores</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{% url 'accounts:team_create' %}" class="btn btn-primary me-2">
+                            <i class="fas fa-plus me-1"></i>Crear Equipo
+                        </a>
+                        <a href="{% url 'accounts:player_register' %}" class="btn btn-success">
+                            <i class="fas fa-user-plus me-1"></i>Registrar Jugador
+                        </a>
+                    </div>
+                {% elif profile.is_player %}
+                    <div class="row">
+                        {% if player %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body">
+                                        <h3>{{ player.team.name|default:"Sin Equipo" }}</h3>
+                                        <p class="mb-0">Equipo</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="card bg-secondary text-white">
+                                    <div class="card-body">
+                                        <h3>{{ player.position|default:"N/A" }}</h3>
+                                        <p class="mb-0">Posición</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="col-12">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Tu perfil de jugador está siendo configurado.
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% if player %}
+                        <div class="mt-3">
+                            <a href="{% url 'accounts:player_detail' player.pk %}" class="btn btn-primary">
+                                <i class="fas fa-eye me-1"></i>Ver Mi Perfil Completo
+                            </a>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contenido específico según tipo de usuario -->
+{% if profile.is_team_manager %}
+    <!-- Equipos del Manager -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>Mis Equipos</h5>
+                    <a href="{% url 'accounts:team_create' %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-plus me-1"></i>Nuevo Equipo
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if teams %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Ciudad</th>
+                                        <th>Jugadores</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for team in teams %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ team.name }}</strong>
+                                                {% if team.logo %}
+                                                    <img src="{{ team.logo.url }}" alt="{{ team.name }}" class="ms-2" style="width: 30px; height: 30px; border-radius: 50%;">
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if team.city %}
+                                                    {{ team.city.name }}{% if team.state %}, {{ team.state.name }}{% endif %}
+                                                {% else %}
+                                                    -
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary">{{ team.players_count }}</span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'accounts:team_detail' team.pk %}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'accounts:team_edit' team.pk %}" class="btn btn-sm btn-outline-secondary">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No tienes equipos registrados. <a href="{% url 'accounts:team_create' %}">Crea tu primer equipo</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+{% endblock %}
+
