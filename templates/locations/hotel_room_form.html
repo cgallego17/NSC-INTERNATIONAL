@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Editar Habitación{% else %}Crear Habitación{% endif %} - NSC International
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card site-form-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">
+                                <i class="fas fa-bed me-2"></i>
+                                {% if object %}Editar Habitación{% else %}Crear Nueva Habitación{% endif %}
+                            </h4>
+                            <p class="text-muted mb-0 mt-1">
+                                {% if object %}Modifica la información de la habitación{% else %}Completa la información para crear una nueva habitación{% endif %}
+                            </p>
+                        </div>
+                        <a href="{% url 'locations:admin_hotel_room_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Volver a Habitaciones
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- INFORMACIÓN BÁSICA -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-info-circle me-2"></i>Información Básica
+                            </h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="hotel" class="form-label">
+                                            <i class="fas fa-hotel me-1"></i>Hotel <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="hotel" name="hotel" class="form-select" required>
+                                            <option value="">Selecciona Hotel</option>
+                                            {% for choice in form.hotel.field.queryset %}
+                                                <option value="{{ choice.id }}" 
+                                                        {% if form.hotel.value == choice.id %}selected{% endif %}>
+                                                    {{ choice.hotel_name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        {% if form.hotel.errors %}
+                                            <div class="text-danger">{{ form.hotel.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="room_number" class="form-label">
+                                            <i class="fas fa-hashtag me-1"></i>Número de Habitación <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" 
+                                               id="room_number" 
+                                               name="room_number" 
+                                               class="form-control" 
+                                               value="{{ form.room_number.value|default:'' }}"
+                                               placeholder="Ej: 101, 205, Suite A"
+                                               required>
+                                        {% if form.room_number.errors %}
+                                            <div class="text-danger">{{ form.room_number.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="room_type" class="form-label">
+                                            <i class="fas fa-list me-1"></i>Tipo de Habitación <span class="text-danger">*</span>
+                                        </label>
+                                        <select id="room_type" name="room_type" class="form-select" required>
+                                            {% for value, label in form.room_type.field.choices %}
+                                                {% if value %}
+                                                    <option value="{{ value }}" 
+                                                            {% if form.room_type.value == value %}selected{% endif %}>
+                                                        {{ label }}
+                                                    </option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                        {% if form.room_type.errors %}
+                                            <div class="text-danger">{{ form.room_type.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="capacity" class="form-label">
+                                            <i class="fas fa-users me-1"></i>Capacidad <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="number" 
+                                               id="capacity" 
+                                               name="capacity" 
+                                               class="form-control" 
+                                               value="{{ form.capacity.value|default:'' }}"
+                                               min="1"
+                                               placeholder="Número de personas"
+                                               required>
+                                        {% if form.capacity.errors %}
+                                            <div class="text-danger">{{ form.capacity.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="price_per_night" class="form-label">
+                                            <i class="fas fa-dollar-sign me-1"></i>Precio por Noche <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="number" 
+                                               id="price_per_night" 
+                                               name="price_per_night" 
+                                               class="form-control" 
+                                               value="{{ form.price_per_night.value|default:'' }}"
+                                               step="0.01"
+                                               min="0"
+                                               placeholder="0.00"
+                                               required>
+                                        {% if form.price_per_night.errors %}
+                                            <div class="text-danger">{{ form.price_per_night.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- INFORMACIÓN ADICIONAL -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-plus-circle me-2"></i>Información Adicional
+                            </h5>
+                            
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group mb-3">
+                                        <label for="description" class="form-label">
+                                            <i class="fas fa-info me-1"></i>Descripción
+                                        </label>
+                                        <textarea id="description" 
+                                                  name="description" 
+                                                  class="form-control" 
+                                                  rows="4"
+                                                  placeholder="Descripción de la habitación (amenidades, vista, etc.)">{{ form.description.value|default:'' }}</textarea>
+                                        {% if form.description.errors %}
+                                            <div class="text-danger">{{ form.description.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="is_available" class="form-label">
+                                            <i class="fas fa-toggle-on me-1"></i>Disponibilidad
+                                        </label>
+                                        <div class="form-check form-switch">
+                                            <input type="checkbox" 
+                                                   id="is_available" 
+                                                   name="is_available" 
+                                                   class="form-check-input" 
+                                                   {% if form.is_available.value %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_available">
+                                                Habitación disponible para reservas
+                                            </label>
+                                        </div>
+                                        {% if form.is_available.errors %}
+                                            <div class="text-danger">{{ form.is_available.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BOTONES DE ACCIÓN -->
+                        <div class="d-flex justify-content-end gap-3 mt-4">
+                            <a href="{% url 'locations:admin_hotel_room_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Volver a Habitaciones
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                {% if object %}Actualizar Habitación{% else %}Crear Habitación{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.site-form-card {
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    border-radius: 0.35rem;
+}
+
+.site-form-card .card-header {
+    background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
+    color: white;
+    border-radius: 0.35rem 0.35rem 0 0;
+    border: none;
+    padding: 1.5rem;
+}
+
+[data-theme="dark"] .site-form-card .card-header {
+    background: linear-gradient(180deg, #0f1419 0%, #1a1a1a 100%);
+}
+
+.form-section {
+    border-left: 4px solid #e3e6f0;
+    padding-left: 1rem;
+    margin-bottom: 2rem;
+}
+
+[data-theme="dark"] .form-section {
+    border-left-color: #4a5568;
+}
+
+.section-title {
+    color: #5a5c69;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+[data-theme="dark"] .section-title {
+    color: #d1d5db;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #5a5c69;
+    margin-bottom: 0.5rem;
+}
+
+[data-theme="dark"] .form-label {
+    color: #d1d5db;
+}
+
+.form-control, .form-select {
+    border: 1px solid #d1d3e2;
+    border-radius: 0.35rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+}
+
+[data-theme="dark"] .form-control, 
+[data-theme="dark"] .form-select {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #4a5568;
+    box-shadow: 0 0 0 0.2rem rgba(74, 85, 104, 0.25);
+}
+
+[data-theme="dark"] .form-control:focus, 
+[data-theme="dark"] .form-select:focus {
+    border-color: #6b7280;
+    box-shadow: 0 0 0 0.2rem rgba(107, 114, 128, 0.25);
+}
+</style>
+{% endblock %}
+
+
+
+
+

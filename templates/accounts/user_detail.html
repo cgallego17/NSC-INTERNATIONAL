@@ -1,0 +1,442 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Usuario - NSC International{% endblock %}
+
+{% block breadcrumb %}
+    <span>Usuarios</span>
+    <span>Detalle</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="fas fa-user-circle me-2 text-primary"></i>Detalle de Usuario
+                    </h1>
+                    <p class="text-muted mb-0">Información completa del usuario</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Volver
+                    </a>
+                    <a href="{% url 'accounts:user_edit' user_obj.pk %}" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Editar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Info - Credencial de Acceso -->
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 col-xl-8">
+            <div class="credential-card">
+                <!-- Header de la credencial -->
+                <div class="credential-header">
+                    <div class="credential-header-bg"></div>
+                    <div class="credential-header-content">
+                        <div class="credential-logo">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h3 class="credential-title">Usuario del Sistema</h3>
+                        <p class="credential-subtitle">NSC International</p>
+                    </div>
+                </div>
+                
+                <!-- Cuerpo de la credencial -->
+                <div class="credential-body">
+                    <div class="row g-4">
+                        <!-- Foto de perfil -->
+                        <div class="col-12 col-md-4 text-center">
+                            <div class="credential-photo-wrapper">
+                                {% if user_obj.profile and user_obj.profile.profile_picture %}
+                                    <img src="{{ user_obj.profile.profile_picture.url }}" 
+                                         alt="{{ user_obj.get_full_name }}" 
+                                         class="credential-photo">
+                                {% else %}
+                                    <div class="credential-photo-placeholder">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                {% endif %}
+                                <div class="credential-status-indicator {% if user_obj.is_active %}active{% else %}inactive{% endif %}"></div>
+                            </div>
+                            <div class="credential-badges mt-3">
+                                {% if user_obj.is_active %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactivo</span>
+                                {% endif %}
+                                {% if user_obj.is_staff %}
+                                    <span class="badge bg-primary ms-1">Staff</span>
+                                {% endif %}
+                                {% if user_obj.is_superuser %}
+                                    <span class="badge bg-dark ms-1">Admin</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Información del usuario -->
+                        <div class="col-12 col-md-8">
+                            <div class="credential-info">
+                                <div class="credential-info-item">
+                                    <div class="credential-info-label">
+                                        <i class="fas fa-user-tie"></i>
+                                        <span>Nombre Completo</span>
+                                    </div>
+                                    <div class="credential-info-value">
+                                        {{ user_obj.get_full_name|default:"-" }}
+                                    </div>
+                                </div>
+                                
+                                <div class="credential-info-item">
+                                    <div class="credential-info-label">
+                                        <i class="fas fa-at"></i>
+                                        <span>Usuario</span>
+                                    </div>
+                                    <div class="credential-info-value">
+                                        {{ user_obj.username }}
+                                    </div>
+                                </div>
+                                
+                                <div class="credential-info-item">
+                                    <div class="credential-info-label">
+                                        <i class="fas fa-envelope"></i>
+                                        <span>Email</span>
+                                    </div>
+                                    <div class="credential-info-value">
+                                        {% if user_obj.email %}
+                                            <a href="mailto:{{ user_obj.email }}">{{ user_obj.email }}</a>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="credential-info-item">
+                                    <div class="credential-info-label">
+                                        <i class="fas fa-user-tag"></i>
+                                        <span>Tipo de Usuario</span>
+                                    </div>
+                                    <div class="credential-info-value">
+                                        {% if user_obj.profile %}
+                                            <span class="badge bg-info">{{ user_obj.profile.get_user_type_display }}</span>
+                                        {% else %}
+                                            <span class="text-muted">Sin perfil</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="credential-info-item">
+                                    <div class="credential-info-label">
+                                        <i class="fas fa-calendar-check"></i>
+                                        <span>Fecha de Registro</span>
+                                    </div>
+                                    <div class="credential-info-value">
+                                        {{ user_obj.date_joined|date:"d/m/Y" }}
+                                    </div>
+                                </div>
+                                
+                                <div class="credential-info-item">
+                                    <div class="credential-info-label">
+                                        <i class="fas fa-clock"></i>
+                                        <span>Último Acceso</span>
+                                    </div>
+                                    <div class="credential-info-value">
+                                        {% if user_obj.last_login %}
+                                            {{ user_obj.last_login|date:"d/m/Y H:i" }}
+                                        {% else %}
+                                            <span class="text-muted">Nunca</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer de la credencial -->
+                <div class="credential-footer">
+                    <div class="credential-id">
+                        <span class="credential-id-label">ID:</span>
+                        <span class="credential-id-value">#{{ user_obj.id|stringformat:"06d" }}</span>
+                    </div>
+                    <div class="credential-date">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        {{ user_obj.date_joined|date:"Y" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .credential-card {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 2rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .credential-header {
+        position: relative;
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 50%, #1a202c 100%);
+        padding: 2.5rem 2rem;
+        color: #ffffff;
+        text-align: center;
+        overflow: hidden;
+    }
+    
+    .credential-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
+        pointer-events: none;
+    }
+    
+    .credential-header-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M 20 0 L 0 0 0 20" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+        opacity: 0.3;
+    }
+    
+    .credential-header-content {
+        position: relative;
+        z-index: 2;
+    }
+    
+    .credential-logo {
+        width: 90px;
+        height: 90px;
+        margin: 0 auto 1.25rem;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.75rem;
+        backdrop-filter: blur(15px);
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 2px 8px rgba(255, 255, 255, 0.2);
+        transition: transform 0.3s ease;
+    }
+    
+    .credential-logo:hover {
+        transform: scale(1.05);
+    }
+    
+    .credential-logo i {
+        color: #ffffff;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    }
+    
+    .credential-title {
+        font-size: 1.875rem;
+        font-weight: 700;
+        margin: 0 0 0.5rem;
+        color: #ffffff;
+        text-shadow: 0 3px 10px rgba(0, 0, 0, 0.6), 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 0, 0, 0.3);
+        letter-spacing: 0.5px;
+        opacity: 1;
+    }
+    
+    .credential-subtitle {
+        font-size: 1.05rem;
+        margin: 0;
+        color: #ffffff;
+        opacity: 1;
+        font-weight: 500;
+        text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6), 0 1px 2px rgba(0, 0, 0, 0.8);
+        letter-spacing: 0.3px;
+    }
+    
+    .credential-body {
+        padding: 2.5rem;
+        background: #ffffff;
+    }
+    
+    .credential-photo-wrapper {
+        position: relative;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+    
+    .credential-photo,
+    .credential-photo-placeholder {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        border: 5px solid #4a5568;
+        object-fit: cover;
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        color: white;
+        box-shadow: 0 8px 20px rgba(74, 85, 104, 0.3);
+    }
+    
+    .credential-photo-placeholder {
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+    }
+    
+    .credential-status-indicator {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .credential-status-indicator.active {
+        background: #28a745;
+    }
+    
+    .credential-status-indicator.inactive {
+        background: #dc3545;
+    }
+    
+    .credential-badges {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .credential-info {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+    
+    .credential-info-item {
+        padding-bottom: 1.25rem;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .credential-info-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    
+    .credential-info-label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+    
+    .credential-info-label i {
+        font-size: 0.9rem;
+        color: #4a5568;
+    }
+    
+    .credential-info-value {
+        font-size: 1.1rem;
+        color: #212529;
+        font-weight: 500;
+        padding-left: 1.75rem;
+    }
+    
+    .credential-info-value a {
+        color: #4a5568;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    .credential-info-value a:hover {
+        color: #2d3748;
+        text-decoration: underline;
+    }
+    
+    .credential-footer {
+        background: #f8f9fa;
+        padding: 1.25rem 2.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .credential-id {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .credential-id-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .credential-id-value {
+        font-size: 1.1rem;
+        color: #4a5568;
+        font-weight: 700;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .credential-date {
+        font-size: 0.9rem;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+    }
+    
+    @media (max-width: 768px) {
+        .credential-body {
+            padding: 1.5rem;
+        }
+        
+        .credential-header {
+            padding: 1.5rem;
+        }
+        
+        .credential-photo,
+        .credential-photo-placeholder {
+            width: 120px;
+            height: 120px;
+            font-size: 3rem;
+        }
+        
+        .credential-footer {
+            flex-direction: column;
+            gap: 0.75rem;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
+
+
+
+

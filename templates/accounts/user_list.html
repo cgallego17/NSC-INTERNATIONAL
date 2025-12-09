@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Lista de Usuarios - NSC International{% endblock %}
+
+{% block breadcrumb %}
+    <span>Usuarios</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">Lista de Usuarios</h1>
+                    <p class="text-muted">Administra los usuarios del sistema</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'accounts:user_create' %}" class="btn btn-corporate">
+                        <i class="fas fa-plus me-2"></i>Crear Usuario
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h6 class="mb-0 text-primary">
+                        <i class="fas fa-filter me-2"></i>Filtros de Búsqueda
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <!-- Búsqueda general -->
+                        <div class="col-md-12 col-lg-6">
+                            <label for="search" class="form-label">
+                                <i class="fas fa-search me-1"></i>Buscar
+                            </label>
+                            <input type="text" class="form-control" id="search" name="search" 
+                                   value="{{ current_filters.search }}" 
+                                   placeholder="Buscar por nombre de usuario, nombre, apellido o email...">
+                        </div>
+                        
+                        <!-- Filtro por tipo de usuario -->
+                        <div class="col-md-6 col-lg-3">
+                            <label for="user_type" class="form-label">
+                                <i class="fas fa-user-tag me-1"></i>Tipo de Usuario
+                            </label>
+                            <select class="form-select" id="user_type" name="user_type">
+                                <option value="">Todos</option>
+                                {% for value, label in user_type_choices %}
+                                    <option value="{{ value }}" {% if current_filters.user_type == value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Filtro por estado -->
+                        <div class="col-md-6 col-lg-3">
+                            <label for="is_active" class="form-label">
+                                <i class="fas fa-toggle-on me-1"></i>Estado
+                            </label>
+                            <select class="form-select" id="is_active" name="is_active">
+                                <option value="">Todos</option>
+                                <option value="true" {% if current_filters.is_active == "true" %}selected{% endif %}>Activo</option>
+                                <option value="false" {% if current_filters.is_active == "false" %}selected{% endif %}>Inactivo</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Botones de acción -->
+                        <div class="col-12">
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-search me-2"></i>Filtrar
+                                </button>
+                                <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times me-2"></i>Limpiar Filtros
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">Usuarios Registrados</h6>
+                    <div class="text-muted">
+                        {% if is_paginated %}
+                            Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} usuarios
+                        {% else %}
+                            Total: {{ users|length }} usuarios
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if users %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <th>Nombre Completo</th>
+                                        <th>Email</th>
+                                        <th>Tipo de Usuario</th>
+                                        <th>Estado</th>
+                                        <th>Último Acceso</th>
+                                        <th>Fecha Registro</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user_obj in users %}
+                                        <tr>
+                                            <td>
+                                                <strong>{{ user_obj.username }}</strong>
+                                            </td>
+                                            <td>
+                                                {{ user_obj.get_full_name|default:"-" }}
+                                            </td>
+                                            <td>
+                                                {{ user_obj.email|default:"-" }}
+                                            </td>
+                                            <td>
+                                                {% if user_obj.profile %}
+                                                    {{ user_obj.profile.get_user_type_display }}
+                                                {% else %}
+                                                    <span class="text-muted">Sin perfil</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if user_obj.is_active %}
+                                                    <span class="badge bg-success">Activo</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Inactivo</span>
+                                                {% endif %}
+                                                {% if user_obj.is_staff %}
+                                                    <span class="badge bg-primary ms-1">Staff</span>
+                                                {% endif %}
+                                                {% if user_obj.is_superuser %}
+                                                    <span class="badge bg-dark ms-1">Admin</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if user_obj.last_login %}
+                                                    {{ user_obj.last_login|date:"M d, Y H:i" }}
+                                                {% else %}
+                                                    <span class="text-muted">Nunca</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {{ user_obj.date_joined|date:"M d, Y" }}
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a href="{% url 'accounts:user_detail' user_obj.pk %}" 
+                                                       class="btn btn-sm btn-outline-info" title="Ver Detalles">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{% url 'accounts:user_edit' user_obj.pk %}" 
+                                                       class="btn btn-sm btn-outline-warning" title="Editar">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a href="{% url 'accounts:user_delete' user_obj.pk %}" 
+                                                       class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if is_paginated %}
+                            <nav aria-label="Usuarios pagination">
+                                <ul class="pagination justify-content-center">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1{% if current_filters.search %}&search={{ current_filters.search }}{% endif %}{% if current_filters.user_type %}&user_type={{ current_filters.user_type }}{% endif %}{% if current_filters.is_active %}&is_active={{ current_filters.is_active }}{% endif %}">Primera</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_filters.search %}&search={{ current_filters.search }}{% endif %}{% if current_filters.user_type %}&user_type={{ current_filters.user_type }}{% endif %}{% if current_filters.is_active %}&is_active={{ current_filters.is_active }}{% endif %}">Anterior</a>
+                                        </li>
+                                    {% endif %}
+
+                                    <li class="page-item active">
+                                        <span class="page-link">
+                                            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                        </span>
+                                    </li>
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_filters.search %}&search={{ current_filters.search }}{% endif %}{% if current_filters.user_type %}&user_type={{ current_filters.user_type }}{% endif %}{% if current_filters.is_active %}&is_active={{ current_filters.is_active }}{% endif %}">Siguiente</a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if current_filters.search %}&search={{ current_filters.search }}{% endif %}{% if current_filters.user_type %}&user_type={{ current_filters.user_type }}{% endif %}{% if current_filters.is_active %}&is_active={{ current_filters.is_active }}{% endif %}">Última</a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-users text-gray-300" style="font-size: 3rem;"></i>
+                            <h4 class="text-gray-500 mt-3">No se encontraron usuarios</h4>
+                            <p class="text-muted">No hay usuarios que coincidan con tu búsqueda.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estilos personalizados -->
+<style>
+.text-gray-300 {
+    color: #dddfeb !important;
+}
+
+.text-gray-400 {
+    color: #858796 !important;
+}
+
+.text-gray-500 {
+    color: #6c757d !important;
+}
+
+.text-gray-800 {
+    color: #5a5c69 !important;
+}
+</style>
+{% endblock %}
+
+
+
+
+

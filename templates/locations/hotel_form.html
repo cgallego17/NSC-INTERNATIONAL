@@ -1,0 +1,585 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Editar Hotel{% else %}Crear Hotel{% endif %} - NSC International
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card site-form-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="mb-0">
+                                <i class="fas fa-hotel me-2"></i>
+                                {% if object %}Editar Hotel{% else %}Crear Nuevo Hotel{% endif %}
+                            </h4>
+                            <p class="text-muted mb-0 mt-1">
+                                {% if object %}Modifica la información del hotel{% else %}Completa la información para crear un nuevo hotel{% endif %}
+                            </p>
+                        </div>
+                        <a href="{% url 'locations:admin_hotel_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Volver a Hoteles
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- INFORMACIÓN BÁSICA -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-info-circle me-2"></i>Información Básica
+                            </h5>
+                            
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group mb-3">
+                                        <label for="hotel_name" class="form-label">
+                                            <i class="fas fa-hotel me-1"></i>Nombre del Hotel <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" 
+                                               id="hotel_name" 
+                                               name="hotel_name" 
+                                               class="form-control" 
+                                               value="{{ form.hotel_name.value|default:'' }}"
+                                               placeholder="Ej: Hotel Grand Plaza"
+                                               required>
+                                        {% if form.hotel_name.errors %}
+                                            <div class="text-danger">{{ form.hotel_name.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group mb-3">
+                                        <label for="address" class="form-label">
+                                            <i class="fas fa-map-marker-alt me-1"></i>Dirección <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" 
+                                               id="address" 
+                                               name="address" 
+                                               class="form-control" 
+                                               value="{{ form.address.value|default:'' }}"
+                                               placeholder="Dirección completa del hotel"
+                                               required>
+                                        {% if form.address.errors %}
+                                            <div class="text-danger">{{ form.address.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- UBICACIÓN -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-globe me-2"></i>Ubicación
+                            </h5>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="country" class="form-label">
+                                            <i class="fas fa-flag me-1"></i>País
+                                        </label>
+                                        <select id="country" name="country" class="form-select">
+                                            <option value="">Selecciona País</option>
+                                            {% for choice in form.country.field.queryset %}
+                                                <option value="{{ choice.id }}" 
+                                                        {% if form.country.value == choice.id %}selected{% endif %}>
+                                                    {{ choice.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        {% if form.country.errors %}
+                                            <div class="text-danger">{{ form.country.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="state" class="form-label">
+                                            <i class="fas fa-map me-1"></i>Estado
+                                        </label>
+                                        <select id="state" name="state" class="form-select">
+                                            <option value="">Selecciona Estado</option>
+                                            {% for choice in form.state.field.queryset %}
+                                                <option value="{{ choice.id }}" 
+                                                        {% if form.state.value == choice.id %}selected{% endif %}>
+                                                    {{ choice.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        {% if form.state.errors %}
+                                            <div class="text-danger">{{ form.state.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="city" class="form-label">
+                                            <i class="fas fa-city me-1"></i>Ciudad
+                                        </label>
+                                        <select id="city" name="city" class="form-select">
+                                            <option value="">Selecciona Ciudad</option>
+                                            {% for choice in form.city.field.queryset %}
+                                                <option value="{{ choice.id }}" 
+                                                        {% if form.city.value == choice.id %}selected{% endif %}>
+                                                    {{ choice.name }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        {% if form.city.errors %}
+                                            <div class="text-danger">{{ form.city.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CONTACTO Y CAPACIDAD -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-phone me-2"></i>Contacto y Capacidad
+                            </h5>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="contact_name" class="form-label">
+                                            <i class="fas fa-user me-1"></i>Nombre de Contacto
+                                        </label>
+                                        <input type="text" 
+                                               id="contact_name" 
+                                               name="contact_name" 
+                                               class="form-control" 
+                                               value="{{ form.contact_name.value|default:'' }}"
+                                               placeholder="Nombre del contacto">
+                                        {% if form.contact_name.errors %}
+                                            <div class="text-danger">{{ form.contact_name.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="contact_email" class="form-label">
+                                            <i class="fas fa-envelope me-1"></i>Email de Contacto
+                                        </label>
+                                        <input type="email" 
+                                               id="contact_email" 
+                                               name="contact_email" 
+                                               class="form-control" 
+                                               value="{{ form.contact_email.value|default:'' }}"
+                                               placeholder="contacto@hotel.com">
+                                        {% if form.contact_email.errors %}
+                                            <div class="text-danger">{{ form.contact_email.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="contact_phone" class="form-label">
+                                            <i class="fas fa-phone me-1"></i>Teléfono de Contacto
+                                        </label>
+                                        <input type="text" 
+                                               id="contact_phone" 
+                                               name="contact_phone" 
+                                               class="form-control" 
+                                               value="{{ form.contact_phone.value|default:'' }}"
+                                               placeholder="+1 (555) 123-4567">
+                                        {% if form.contact_phone.errors %}
+                                            <div class="text-danger">{{ form.contact_phone.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="capacity" class="form-label">
+                                            <i class="fas fa-users me-1"></i>Capacidad
+                                        </label>
+                                        <input type="number" 
+                                               id="capacity" 
+                                               name="capacity" 
+                                               class="form-control" 
+                                               value="{{ form.capacity.value|default:'' }}"
+                                               min="1"
+                                               placeholder="Número de habitaciones o personas">
+                                        {% if form.capacity.errors %}
+                                            <div class="text-danger">{{ form.capacity.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label for="registration_url" class="form-label">
+                                            <i class="fas fa-link me-1"></i>URL de Registro
+                                        </label>
+                                        <input type="url" 
+                                               id="registration_url" 
+                                               name="registration_url" 
+                                               class="form-control" 
+                                               value="{{ form.registration_url.value|default:'' }}"
+                                               placeholder="https://ejemplo.com/registro">
+                                        {% if form.registration_url.errors %}
+                                            <div class="text-danger">{{ form.registration_url.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- INFORMACIÓN ADICIONAL -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-plus-circle me-2"></i>Información Adicional
+                            </h5>
+                            
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group mb-3">
+                                        <label for="photo" class="form-label">
+                                            <i class="fas fa-image me-1"></i>Foto del Hotel
+                                        </label>
+                                        
+                                        <!-- Foto Actual -->
+                                        {% if object.photo %}
+                                            <div class="current-photo-container mb-3 p-3" style="background: #f8f9fa; border-radius: 12px; border: 2px dashed #dee2e6;">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="photo-preview-wrapper">
+                                                        <img src="{{ object.photo.url }}" 
+                                                             alt="{{ object.hotel_name }}" 
+                                                             id="currentPhotoPreview"
+                                                             class="img-fluid rounded shadow-sm" 
+                                                             style="max-width: 300px; max-height: 200px; object-fit: cover; cursor: pointer;"
+                                                             onclick="document.getElementById('photo').click();">
+                                                        <div class="photo-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); border-radius: 8px; display: none; align-items: center; justify-content: center; color: white; cursor: pointer;" 
+                                                             onclick="document.getElementById('photo').click();">
+                                                            <i class="fas fa-camera fa-2x"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="mb-2">
+                                                            <i class="fas fa-image me-2" style="color: var(--mlb-blue);"></i>Foto Actual
+                                                        </h6>
+                                                        <p class="text-muted small mb-2">
+                                                            <i class="fas fa-info-circle me-1"></i>
+                                                            Haz clic en la imagen para cambiarla o selecciona un nuevo archivo abajo.
+                                                        </p>
+                                                        <div class="d-flex gap-2">
+                                                            <button type="button" class="btn btn-sm btn-outline-primary" onclick="document.getElementById('photo').click();">
+                                                                <i class="fas fa-upload me-1"></i>Cambiar Foto
+                                                            </button>
+                                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeCurrentPhoto();">
+                                                                <i class="fas fa-trash me-1"></i>Eliminar Foto
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <div class="no-photo-container mb-3 p-4 text-center" style="background: #f8f9fa; border-radius: 12px; border: 2px dashed #dee2e6; cursor: pointer;" onclick="document.getElementById('photo').click();">
+                                                <i class="fas fa-image fa-4x mb-3" style="color: #ccc;"></i>
+                                                <p class="text-muted mb-2">
+                                                    <strong>No hay foto del hotel</strong>
+                                                </p>
+                                                <p class="text-muted small mb-0">
+                                                    Haz clic aquí o usa el botón para subir una foto
+                                                </p>
+                                            </div>
+                                        {% endif %}
+                                        
+                                        <!-- Input de Archivo -->
+                                        <div class="file-input-wrapper">
+                                            <input type="file" 
+                                                   id="photo" 
+                                                   name="photo" 
+                                                   class="form-control" 
+                                                   accept="image/*"
+                                                   onchange="previewPhoto(this);">
+                                            <small class="form-text text-muted d-block mt-2">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                Formatos aceptados: JPG, PNG, GIF. Tamaño máximo recomendado: 2MB
+                                            </small>
+                                        </div>
+                                        
+                                        <!-- Previsualización de Nueva Foto -->
+                                        <div id="newPhotoPreview" class="mt-3" style="display: none;">
+                                            <div class="card border-0 shadow-sm">
+                                                <div class="card-header d-flex justify-content-between align-items-center" style="background: var(--mlb-blue); color: white;">
+                                                    <h6 class="mb-0">
+                                                        <i class="fas fa-eye me-2"></i>Vista Previa de Nueva Foto
+                                                    </h6>
+                                                    <button type="button" class="btn btn-sm btn-light" onclick="clearPhotoPreview();">
+                                                        <i class="fas fa-times"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="card-body text-center p-3">
+                                                    <img id="photoPreviewImg" src="" alt="Vista previa" 
+                                                         class="img-fluid rounded shadow-sm" 
+                                                         style="max-width: 100%; max-height: 400px; object-fit: contain;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Campo oculto para eliminar foto -->
+                                        <input type="hidden" id="remove_photo" name="remove_photo" value="0">
+                                        
+                                        {% if form.photo.errors %}
+                                            <div class="text-danger mt-2">
+                                                <i class="fas fa-exclamation-triangle me-1"></i>
+                                                {{ form.photo.errors.0 }}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group mb-3">
+                                        <label for="is_active" class="form-label">
+                                            <i class="fas fa-toggle-on me-1"></i>Estado
+                                        </label>
+                                        <div class="form-check form-switch">
+                                            <input type="checkbox" 
+                                                   id="is_active" 
+                                                   name="is_active" 
+                                                   class="form-check-input" 
+                                                   {% if form.is_active.value %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_active">
+                                                Activo
+                                            </label>
+                                        </div>
+                                        {% if form.is_active.errors %}
+                                            <div class="text-danger">{{ form.is_active.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group mb-3">
+                                        <label for="information" class="form-label">
+                                            <i class="fas fa-info me-1"></i>Información Adicional
+                                        </label>
+                                        <textarea id="information" 
+                                                  name="information" 
+                                                  class="form-control" 
+                                                  rows="4"
+                                                  placeholder="Información adicional sobre el hotel">{{ form.information.value|default:'' }}</textarea>
+                                        {% if form.information.errors %}
+                                            <div class="text-danger">{{ form.information.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BOTONES DE ACCIÓN -->
+                        <div class="d-flex justify-content-end gap-3 mt-4">
+                            <a href="{% url 'locations:admin_hotel_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Volver a Hoteles
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>
+                                {% if object %}Actualizar Hotel{% else %}Crear Hotel{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.site-form-card {
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    border-radius: 0.35rem;
+}
+
+.site-form-card .card-header {
+    background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
+    color: white;
+    border-radius: 0.35rem 0.35rem 0 0;
+    border: none;
+    padding: 1.5rem;
+}
+
+[data-theme="dark"] .site-form-card .card-header {
+    background: linear-gradient(180deg, #0f1419 0%, #1a1a1a 100%);
+}
+
+.form-section {
+    border-left: 4px solid #e3e6f0;
+    padding-left: 1rem;
+    margin-bottom: 2rem;
+}
+
+[data-theme="dark"] .form-section {
+    border-left-color: #4a5568;
+}
+
+.section-title {
+    color: #5a5c69;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+[data-theme="dark"] .section-title {
+    color: #d1d5db;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #5a5c69;
+    margin-bottom: 0.5rem;
+}
+
+[data-theme="dark"] .form-label {
+    color: #d1d5db;
+}
+
+.form-control, .form-select {
+    border: 1px solid #d1d3e2;
+    border-radius: 0.35rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+}
+
+[data-theme="dark"] .form-control, 
+[data-theme="dark"] .form-select {
+    background-color: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #4a5568;
+    box-shadow: 0 0 0 0.2rem rgba(74, 85, 104, 0.25);
+}
+
+[data-theme="dark"] .form-control:focus, 
+[data-theme="dark"] .form-select:focus {
+    border-color: #6b7280;
+    box-shadow: 0 0 0 0.2rem rgba(107, 114, 128, 0.25);
+}
+
+.photo-preview-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.photo-preview-wrapper:hover .photo-overlay {
+    display: flex !important;
+}
+
+.current-photo-container:hover {
+    border-color: var(--mlb-blue) !important;
+    background: #f0f4ff !important;
+}
+
+.no-photo-container:hover {
+    border-color: var(--mlb-blue) !important;
+    background: #f0f4ff !important;
+}
+</style>
+
+<script>
+function previewPhoto(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const previewDiv = document.getElementById('newPhotoPreview');
+            const previewImg = document.getElementById('photoPreviewImg');
+            
+            previewImg.src = e.target.result;
+            previewDiv.style.display = 'block';
+            
+            // Ocultar foto actual si existe
+            const currentPhotoContainer = document.querySelector('.current-photo-container');
+            if (currentPhotoContainer) {
+                currentPhotoContainer.style.opacity = '0.5';
+            }
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function clearPhotoPreview() {
+    const input = document.getElementById('photo');
+    const previewDiv = document.getElementById('newPhotoPreview');
+    const currentPhotoContainer = document.querySelector('.current-photo-container');
+    
+    input.value = '';
+    previewDiv.style.display = 'none';
+    
+    if (currentPhotoContainer) {
+        currentPhotoContainer.style.opacity = '1';
+    }
+}
+
+function removeCurrentPhoto() {
+    if (confirm('¿Estás seguro de que deseas eliminar la foto actual del hotel?')) {
+        document.getElementById('remove_photo').value = '1';
+        const currentPhotoContainer = document.querySelector('.current-photo-container');
+        if (currentPhotoContainer) {
+            currentPhotoContainer.style.display = 'none';
+        }
+        document.getElementById('photo').value = '';
+        document.getElementById('newPhotoPreview').style.display = 'none';
+    }
+}
+
+// Validar tamaño de archivo
+document.getElementById('photo').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            alert('El archivo es demasiado grande. Por favor, selecciona una imagen de menos de 5MB.');
+            this.value = '';
+            clearPhotoPreview();
+            return false;
+        }
+        
+        // Validar tipo de archivo
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            alert('Formato de archivo no válido. Por favor, selecciona una imagen JPG, PNG, GIF o WEBP.');
+            this.value = '';
+            clearPhotoPreview();
+            return false;
+        }
+    }
+});
+</script>
+{% endblock %}
+
+
+
+
+

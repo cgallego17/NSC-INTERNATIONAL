@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ contact.name }} - NSC International{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">{{ contact.name }}</h1>
+                    <p class="text-muted">Detalles del contacto</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'events:eventcontact_update' contact.pk %}" class="btn btn-warning">
+                        <i class="bi bi-pencil me-2"></i>Editar
+                    </a>
+                    <a href="{% url 'events:eventcontact_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información Principal -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">Información General</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nombre</label>
+                            <p class="mb-0">{{ contact.name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Estado</label>
+                            <p class="mb-0">
+                                {% if contact.is_active %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactivo</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Email</label>
+                            <p class="mb-0">{{ contact.email|default:"-" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Teléfono</label>
+                            <p class="mb-0">{{ contact.phone|default:"-" }}</p>
+                        </div>
+                        {% if contact.city or contact.state or contact.country %}
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Ubicación</label>
+                            <p class="mb-0">
+                                {% if contact.city %}{{ contact.city.name }}{% endif %}
+                                {% if contact.state %}{% if contact.city %}, {% endif %}{{ contact.state.name }}{% endif %}
+                                {% if contact.country %}{% if contact.state or contact.city %}, {% endif %}{{ contact.country.name }}{% endif %}
+                            </p>
+                        </div>
+                        {% endif %}
+                        {% if contact.information %}
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Información Adicional</label>
+                            <p class="mb-0">{{ contact.information|linebreaks }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            {% if contact.photo %}
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <img src="{{ contact.photo.url }}" alt="{{ contact.name }}" 
+                         class="img-fluid rounded-circle" style="max-width: 200px;">
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Información del Sistema</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <small class="text-muted">Creado:</small><br>
+                        <strong>{{ contact.created_at|date:"d M Y, H:i" }}</strong>
+                    </div>
+                    <div>
+                        <small class="text-muted">Actualizado:</small><br>
+                        <strong>{{ contact.updated_at|date:"d M Y, H:i" }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

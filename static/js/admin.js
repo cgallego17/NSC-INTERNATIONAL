@@ -34,6 +34,9 @@ class AdminDashboard {
         
         // Initialize theme toggle (only if it exists)
         this.initializeThemeToggle();
+        
+        // Convert Django messages to modern toasts
+        this.convertDjangoMessagesToToasts();
     }
 
     initializeThemeToggle() {
@@ -571,6 +574,11 @@ class AdminDashboard {
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.getElementById('mainContent');
         
+        // Only proceed if both elements exist
+        if (!sidebar || !mainContent) {
+            return;
+        }
+        
         if (window.innerWidth <= 768) {
             sidebar.classList.remove('collapsed');
             mainContent.classList.remove('sidebar-collapsed');
@@ -588,38 +596,149 @@ class AdminDashboard {
     }
 
     // Utility methods
-    showToast(message, type = 'info') {
-        // Toast notification implementation
+    showToast(message, type = 'info', title = null, duration = 5000) {
+        // Modern toast notification implementation
         const toastContainer = document.getElementById('toastContainer') || this.createToastContainer();
         
+        // Generate unique ID for this toast
+        const toastId = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Get icon based on type
+        const icons = {
+            'success': 'fa-check-circle',
+            'error': 'fa-exclamation-circle',
+            'warning': 'fa-exclamation-triangle',
+            'info': 'fa-info-circle',
+            'primary': 'fa-bell'
+        };
+        
+        const icon = icons[type] || icons['info'];
+        
+        // Create toast element
         const toast = document.createElement('div');
-        toast.className = `toast align-items-center text-white bg-${type} border-0`;
+        toast.id = toastId;
+        toast.className = `modern-toast toast-${type}`;
         toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        
         toast.innerHTML = `
-            <div class="d-flex">
-                <div class="toast-body">${message}</div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            <div class="toast-content">
+                <div class="toast-icon">
+                    <i class="fas ${icon}"></i>
+                </div>
+                <div class="toast-body-wrapper">
+                    ${title ? `<div class="toast-title">${title}</div>` : ''}
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button type="button" class="toast-close" aria-label="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="toast-progress">
+                <div class="toast-progress-bar"></div>
             </div>
         `;
         
         toastContainer.appendChild(toast);
         
-        const bsToast = new bootstrap.Toast(toast);
-        bsToast.show();
+        // Animate in
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
         
-        // Remove toast element after it's hidden
-        toast.addEventListener('hidden.bs.toast', () => {
-            toast.remove();
+        // Start progress bar animation
+        const progressBar = toast.querySelector('.toast-progress-bar');
+        if (progressBar && duration > 0) {
+            progressBar.style.animationDuration = `${duration}ms`;
+            progressBar.style.animationPlayState = 'running';
+        }
+        
+        // Auto-remove after duration
+        let autoRemoveTimer;
+        if (duration > 0) {
+            autoRemoveTimer = setTimeout(() => {
+                this.hideToast(toast);
+            }, duration);
+        }
+        
+        // Close button handler
+        const closeBtn = toast.querySelector('.toast-close');
+        closeBtn.addEventListener('click', () => {
+            if (autoRemoveTimer) clearTimeout(autoRemoveTimer);
+            this.hideToast(toast);
         });
+        
+        // Pause progress on hover
+        toast.addEventListener('mouseenter', () => {
+            if (progressBar) {
+                progressBar.style.animationPlayState = 'paused';
+            }
+            if (autoRemoveTimer) {
+                clearTimeout(autoRemoveTimer);
+            }
+        });
+        
+        // Resume progress on leave
+        toast.addEventListener('mouseleave', () => {
+            if (progressBar && duration > 0) {
+                const toastTimestamp = parseInt(toastId.split('-')[1]);
+                const elapsed = Date.now() - toastTimestamp;
+                const remaining = duration - elapsed;
+                if (remaining > 0) {
+                    // Calculate remaining percentage
+                    const remainingPercent = (remaining / duration) * 100;
+                    progressBar.style.animationPlayState = 'running';
+                    progressBar.style.animationDuration = `${remaining}ms`;
+                    autoRemoveTimer = setTimeout(() => {
+                        this.hideToast(toast);
+                    }, remaining);
+                }
+            }
+        });
+        
+        return toast;
+    }
+    
+    hideToast(toast) {
+        toast.classList.remove('show');
+        toast.classList.add('hide');
+        
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.parentNode.removeChild(toast);
+            }
+        }, 300);
     }
 
     createToastContainer() {
-        const container = document.createElement('div');
-        container.id = 'toastContainer';
-        container.className = 'toast-container position-fixed top-0 end-0 p-3';
-        container.style.zIndex = '9999';
-        document.body.appendChild(container);
-        return container;
+        const container = document.getElementById('toastContainer');
+        if (container) return container;
+        
+        const newContainer = document.createElement('div');
+        newContainer.id = 'toastContainer';
+        newContainer.className = 'modern-toast-container';
+        document.body.appendChild(newContainer);
+        return newContainer;
+    }
+    
+    convertDjangoMessagesToToasts() {
+        // Find all Django messages and convert them to toasts
+        const messages = document.querySelectorAll('.django-message');
+        messages.forEach(msg => {
+            const tag = msg.getAttribute('data-tag');
+            const message = msg.getAttribute('data-message');
+            
+            // Map Django message tags to toast types
+            let toastType = 'info';
+            if (tag === 'success') toastType = 'success';
+            else if (tag === 'error' || tag === 'danger') toastType = 'error';
+            else if (tag === 'warning') toastType = 'warning';
+            else if (tag === 'info') toastType = 'info';
+            
+            // Show toast
+            this.showToast(message, toastType);
+        });
     }
 
     confirmDialog(message, callback) {

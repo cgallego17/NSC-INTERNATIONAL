@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Habitaciones de Hoteles{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-bed me-2"></i>Habitaciones de Hoteles
+            </h1>
+            <p class="text-muted">Gestiona las habitaciones de los hoteles</p>
+        </div>
+        <a href="{% url 'locations:admin_hotel_room_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nueva Habitación
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Buscar</label>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           value="{{ request.GET.search }}" placeholder="Número, hotel...">
+                </div>
+                <div class="col-md-3">
+                    <label for="hotel" class="form-label">Hotel</label>
+                    <select class="form-select" id="hotel" name="hotel">
+                        <option value="">Todos los Hoteles</option>
+                        {% for hotel in hotels %}
+                            <option value="{{ hotel.id }}" 
+                                    {% if request.GET.hotel == hotel.id|stringformat:"s" %}selected{% endif %}>
+                                {{ hotel.hotel_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="available" class="form-label">Disponibilidad</label>
+                    <select class="form-select" id="available" name="available">
+                        <option value="">Todas</option>
+                        <option value="yes" {% if request.GET.available == 'yes' %}selected{% endif %}>Disponibles</option>
+                        <option value="no" {% if request.GET.available == 'no' %}selected{% endif %}>No Disponibles</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div>
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-search me-1"></i>Filtrar
+                        </button>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <a href="{% url 'locations:admin_hotel_room_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Rooms Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if rooms %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Habitación</th>
+                                <th>Hotel</th>
+                                <th>Tipo</th>
+                                <th>Capacidad</th>
+                                <th>Precio/Noche</th>
+                                <th>Disponible</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for room in rooms %}
+                                <tr>
+                                    <td>
+                                        <strong>#{{ room.room_number }}</strong>
+                                        {% if room.description %}
+                                            <br>
+                                            <small class="text-muted">{{ room.description|truncatewords:8 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if room.hotel.photo %}
+                                                <img src="{{ room.hotel.photo.url }}" alt="{{ room.hotel.hotel_name }}" 
+                                                     class="rounded me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" 
+                                                     style="width: 30px; height: 30px;">
+                                                    <i class="fas fa-hotel text-muted" style="font-size: 0.8rem;"></i>
+                                                </div>
+                                            {% endif %}
+                                            <span>{{ room.hotel.hotel_name }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ room.get_room_type_display }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ room.capacity }} personas</span>
+                                    </td>
+                                    <td>
+                                        <strong>${{ room.price_per_night|floatformat:2 }}</strong>
+                                    </td>
+                                    <td>
+                                        {% if room.is_available %}
+                                            <span class="badge bg-success">Disponible</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">No Disponible</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'locations:admin_hotel_room_update' room.pk %}" 
+                                               class="btn btn-sm btn-outline-warning" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'locations:admin_hotel_room_delete' room.pk %}" 
+                                               class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                    <nav aria-label="Rooms pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.hotel %}&hotel={{ request.GET.hotel }}{% endif %}{% if request.GET.available %}&available={{ request.GET.available }}{% endif %}">Primera</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.hotel %}&hotel={{ request.GET.hotel }}{% endif %}{% if request.GET.available %}&available={{ request.GET.available }}{% endif %}">Anterior</a>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.hotel %}&hotel={{ request.GET.hotel }}{% endif %}{% if request.GET.available %}&available={{ request.GET.available }}{% endif %}">Siguiente</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.hotel %}&hotel={{ request.GET.hotel }}{% endif %}{% if request.GET.available %}&available={{ request.GET.available }}{% endif %}">Última</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-bed fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No se encontraron habitaciones</h5>
+                    <p class="text-muted">Comienza creando tu primera habitación.</p>
+                    <a href="{% url 'locations:admin_hotel_room_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Nueva Habitación
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+

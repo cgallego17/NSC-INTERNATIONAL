@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Jugador - NSC International{% endblock %}
+
+{% block breadcrumb %}
+    <span>Jugadores</span>
+    <span>Eliminar</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="fas fa-exclamation-triangle me-2 text-danger"></i>Eliminar Jugador
+                    </h1>
+                    <p class="text-muted mb-0">Confirma la eliminación del jugador</p>
+                </div>
+                <a href="{% url 'accounts:player_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Card -->
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-danger text-white py-3">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>¡Advertencia!</strong> Esta acción no se puede deshacer. El jugador será eliminado permanentemente del sistema.
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-3">Información del Jugador a Eliminar:</h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-user me-2 text-muted"></i>
+                                        <strong>Nombre Completo</strong>
+                                    </div>
+                                    <div class="info-value">
+                                        {{ player.user.get_full_name|default:player.user.username }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-at me-2 text-muted"></i>
+                                        <strong>Usuario</strong>
+                                    </div>
+                                    <div class="info-value">{{ player.user.username }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-envelope me-2 text-muted"></i>
+                                        <strong>Email</strong>
+                                    </div>
+                                    <div class="info-value">
+                                        {{ player.user.email|default:"-" }}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {% if player.team %}
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-users me-2 text-muted"></i>
+                                        <strong>Equipo</strong>
+                                    </div>
+                                    <div class="info-value">
+                                        <span class="badge bg-primary">{{ player.team.name }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if player.position %}
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <div class="info-label">
+                                        <i class="fas fa-baseball-ball me-2 text-muted"></i>
+                                        <strong>Posición</strong>
+                                    </div>
+                                    <div class="info-value">
+                                        <span class="badge bg-info">{{ player.get_position_display }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'accounts:player_list' %}" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-trash me-2"></i>Eliminar Jugador
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .info-item {
+        padding: 0.75rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 3px solid #dc3545;
+    }
+    
+    .info-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .info-value {
+        font-size: 1rem;
+        color: #212529;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+
+
+
+

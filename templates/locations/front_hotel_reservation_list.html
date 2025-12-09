@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mis Reservas - NSC International{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-calendar-check me-2"></i>Mis Reservas
+            </h1>
+            <p class="text-muted">Gestiona tus reservas de hoteles</p>
+        </div>
+        <a href="{% url 'locations:front_hotel_list' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nueva Reserva
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="status" class="form-label">Estado</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">Todos</option>
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" 
+                                    {% if request.GET.status == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div>
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-search me-1"></i>Filtrar
+                        </button>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <a href="{% url 'locations:front_hotel_reservation_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reservations Cards -->
+    <div class="row g-4">
+        {% if reservations %}
+            {% for reservation in reservations %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-{% if reservation.status == 'confirmed' %}success{% elif reservation.status == 'pending' %}warning{% elif reservation.status == 'cancelled' %}danger{% else %}info{% endif %} text-white">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong>Reserva #{{ reservation.id }}</strong>
+                                <span class="badge bg-light text-dark">{{ reservation.get_status_display }}</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title">
+                                <i class="fas fa-hotel me-2"></i>{{ reservation.hotel.hotel_name }}
+                            </h6>
+                            <p class="card-text">
+                                <i class="fas fa-bed me-2"></i>Habitación #{{ reservation.room.room_number }}<br>
+                                <i class="fas fa-calendar me-2"></i>{{ reservation.check_in|date:"d/m/Y" }} - {{ reservation.check_out|date:"d/m/Y" }}<br>
+                                <i class="fas fa-moon me-2"></i>{{ reservation.number_of_nights }} noche{{ reservation.number_of_nights|pluralize }}<br>
+                                <i class="fas fa-users me-2"></i>{{ reservation.number_of_guests }} persona{{ reservation.number_of_guests|pluralize }}
+                            </p>
+                            <hr>
+                            <h5 class="text-primary mb-0">${{ reservation.total_amount|floatformat:2 }}</h5>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <a href="{% url 'locations:front_hotel_reservation_detail' reservation.pk %}" 
+                               class="btn btn-sm btn-outline-primary w-100">
+                                <i class="fas fa-eye me-1"></i>Ver Detalle
+                            </a>
+                            {% if reservation.status == 'pending' %}
+                                <a href="{% url 'locations:front_hotel_reservation_checkout' reservation.pk %}" 
+                                   class="btn btn-sm btn-success w-100 mt-2">
+                                    <i class="fas fa-credit-card me-1"></i>Pagar
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No tienes reservas</h5>
+                    <p class="text-muted">Comienza haciendo tu primera reserva.</p>
+                    <a href="{% url 'locations:front_hotel_list' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Nueva Reserva
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+        <nav aria-label="Reservations pagination" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Primera</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Anterior</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">
+                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Siguiente</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Última</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+
+
+
+

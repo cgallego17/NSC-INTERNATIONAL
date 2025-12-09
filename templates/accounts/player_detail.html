@@ -1,504 +1,1309 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ player.user.get_full_name }} - NSC International</title>
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
-    <style>
-        :root {
-            --mlb-blue: #0d2c54;
-            --mlb-red: #d50032;
-            --mlb-light-blue: #132448;
-            --mlb-gold: #ffd700;
-            --mlb-dark: #1a1a1a;
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Arial', 'Helvetica', sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
-        }
-        
-        /* Top Bar */
-        .top-bar {
-            background: var(--mlb-dark);
-            color: white;
-            padding: 8px 0;
-            font-size: 0.85rem;
-        }
-        
-        .top-bar a {
-            color: #ccc;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-        
-        .top-bar a:hover {
-            color: white;
-        }
-        
-        /* Navbar MLB Style */
-        .navbar-mlb {
-            background: var(--mlb-blue) !important;
-            padding: 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-        
-        .navbar-mlb .navbar-brand {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: white !important;
-            padding: 15px 20px;
-            background: var(--mlb-red);
-        }
-        
-        .navbar-mlb .nav-link {
-            color: white !important;
-            font-weight: 600;
-            padding: 20px 15px !important;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            letter-spacing: 0.5px;
-            transition: background 0.3s;
-        }
-        
-        .navbar-mlb .nav-link:hover,
-        .navbar-mlb .nav-link.active {
-            background: var(--mlb-red);
-        }
-        
-        /* Hero Section */
-        .player-hero {
-            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
-            color: white;
-            padding: 40px 0;
-            margin-bottom: 40px;
-        }
-        
-        .player-hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.1) 0%, transparent 50%);
-        }
-        
-        /* Profile Card */
-        .profile-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-            border-top: 5px solid var(--mlb-red);
-            margin-bottom: 30px;
-        }
-        
-        .profile-header {
-            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
-            color: white;
-            padding: 40px;
-            text-align: center;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .profile-header .btn-mlb {
-            position: relative;
-            z-index: 100;
-            pointer-events: auto;
-        }
-        
-        .profile-picture {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 5px solid white;
-            margin: 0 auto 20px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-        }
-        
-        .profile-placeholder {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 5rem;
-            border: 5px solid white;
-        }
-        
-        .info-card {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-            border-left: 4px solid var(--mlb-blue);
-        }
-        
-        .info-card h5 {
-            color: var(--mlb-blue);
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--mlb-red);
-        }
-        
-        .info-item {
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .info-item:last-child {
-            border-bottom: none;
-        }
-        
-        .info-label {
-            font-weight: 600;
-            color: var(--mlb-blue);
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
-        }
-        
-        .info-value {
-            color: #555;
-            font-size: 1rem;
-        }
-        
-        .jersey-badge {
-            background: var(--mlb-red);
-            color: white;
-            font-size: 3rem;
-            font-weight: 900;
-            padding: 20px 40px;
-            border-radius: 10px;
-            display: inline-block;
-            margin: 20px 0;
-        }
-        
-        .btn-mlb {
-            background: var(--mlb-red);
-            color: white !important;
-            padding: 12px 25px;
-            font-weight: 700;
-            text-transform: uppercase;
-            border: none;
-            border-radius: 8px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(213, 0, 50, 0.3);
-            text-decoration: none;
-            display: inline-block;
-            cursor: pointer;
-            position: relative;
-            z-index: 10;
-        }
-        
-        .btn-mlb:hover {
-            background: #b30029;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(213, 0, 50, 0.4);
-            color: white !important;
-            text-decoration: none;
-        }
-        
-        a.btn-mlb {
-            text-decoration: none;
-        }
-        
-        a.btn-mlb:visited {
-            color: white !important;
-        }
-        
-        .footer-mlb {
-            background: var(--mlb-dark);
-            color: #ccc;
-            padding: 40px 0 20px;
-            margin-top: 60px;
-        }
-        
-        .footer-mlb h5 {
-            color: white;
-            margin-bottom: 20px;
-        }
-        
-        .footer-mlb a {
-            color: #ccc;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-        
-        .footer-mlb a:hover {
-            color: white;
-        }
-    </style>
-</head>
-<body>
-    <!-- Top Bar -->
-    <div class="top-bar">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <span><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</span>
-                    <span class="ms-4"><i class="fas fa-envelope me-2"></i>info@nscinternational.com</span>
-                </div>
-                <div class="col-md-6 text-end">
-                    {% if user.is_authenticated %}
-                        <a href="/accounts/dashboard/"><i class="fas fa-user me-1"></i>Mi Cuenta</a>
-                        <span class="mx-2">|</span>
-                        <a href="{% url 'accounts:logout' %}">Cerrar Sesión</a>
-                    {% else %}
-                        <a href="{% url 'accounts:login' %}">Iniciar Sesión</a>
-                        <span class="mx-2">|</span>
-                        <a href="/accounts/register/">Registrarse</a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-mlb">
-        <div class="container-fluid px-0">
-            <a class="navbar-brand" href="/">
-                <i class="fas fa-baseball-ball me-2"></i>NSC
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span style="color: white;"><i class="fas fa-bars"></i></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">Inicio</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'events:list' %}">Eventos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link active" href="{% url 'accounts:player_list' %}">Jugadores</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:team_list' %}">Equipos</a>
-                    </li>
-                    {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="/accounts/dashboard/">Dashboard</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
+{% block title %}{{ player.user.get_full_name|default:player.user.username }} - NSC International{% endblock %}
 
-    <!-- Player Hero -->
-    <div class="player-hero">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-12 text-center">
-                    <h1 class="display-4 mb-3" style="font-weight: 900; text-transform: uppercase;">
-                        {{ player.user.get_full_name|default:player.user.username }}
-                    </h1>
-                    {% if player.team %}
-                        <p class="lead">{{ player.team.name }}</p>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
+{% block breadcrumb %}
+    <span>Jugadores</span>
+    <span>Perfil</span>
+{% endblock %}
 
-    <!-- Main Content -->
-    <div class="container">
-        <div class="row">
-            <!-- Profile Card -->
-            <div class="col-md-4">
-                <div class="profile-card">
-                    <div class="profile-header">
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Hero Banner del Jugador -->
+    <div class="player-profile-hero">
+        <div class="player-hero-overlay"></div>
+        <div class="container-fluid px-4">
+            <div class="row align-items-center py-5">
+                <div class="col-lg-4 text-center mb-4 mb-lg-0">
+                    <div class="player-avatar-wrapper">
                         {% if player.user.profile.profile_picture %}
-                            <img src="{{ player.user.profile.profile_picture.url }}" alt="{{ player.user.get_full_name }}" class="profile-picture">
+                            <img src="{{ player.user.profile.profile_picture.url }}" 
+                                 alt="{{ player.user.get_full_name }}" 
+                                 class="player-avatar">
                         {% else %}
-                            <div class="profile-placeholder">
+                            <div class="player-avatar-placeholder">
                                 <i class="fas fa-user"></i>
                             </div>
                         {% endif %}
-                        <h3 style="margin-top: 20px;">{{ player.user.get_full_name|default:player.user.username }}</h3>
-                        {% if player.jersey_number %}
-                            <div class="jersey-badge">#{{ player.jersey_number }}</div>
+                        {% if player.is_active %}
+                            <div class="player-status-indicator active">
+                                <i class="fas fa-circle"></i>
+                            </div>
+                        {% else %}
+                            <div class="player-status-indicator inactive">
+                                <i class="fas fa-circle"></i>
+                            </div>
                         {% endif %}
-                        {% if user.is_authenticated %}
-                            {% if user.id == player.user.id %}
-                                <a href="{% url 'accounts:player_edit' player.pk %}" class="btn btn-mlb mt-3" style="display: inline-block; text-decoration: none;">
-                                    <i class="fas fa-edit me-1"></i>Editar Mi Perfil
+                        {% if player.jersey_number %}
+                            <div class="jersey-display">#{{ player.jersey_number }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="player-hero-info">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h1 class="player-hero-name">{{ player.user.get_full_name|default:player.user.username }}</h1>
+                                {% if player.team %}
+                                    <p class="player-hero-team">
+                                        <i class="fas fa-users me-2"></i>{{ player.team.name }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                            <div class="player-actions">
+                                <a href="{% url 'accounts:player_list' %}" class="btn btn-light btn-sm">
+                                    <i class="fas fa-arrow-left me-1"></i>Volver
                                 </a>
-                            {% else %}
-                                {% if user.profile.is_team_manager %}
-                                    {% if player.team %}
-                                        {% if player.team.manager.id == user.id %}
-                                            <a href="{% url 'accounts:player_edit' player.pk %}" class="btn btn-mlb mt-3" style="display: inline-block; text-decoration: none;">
-                                                <i class="fas fa-edit me-1"></i>Editar Jugador
+                                {% if user.is_authenticated %}
+                                    {% if user.id == player.user.id or user.profile.is_team_manager or user.is_staff or user.is_superuser %}
+                                        {% if player.team and player.team.manager.id == user.id or user.is_staff or user.is_superuser or user.id == player.user.id %}
+                                            <a href="{% url 'accounts:player_edit' player.pk %}" class="btn btn-primary btn-sm">
+                                                <i class="fas fa-edit me-1"></i>Editar
                                             </a>
                                         {% endif %}
                                     {% endif %}
                                 {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="player-quick-stats">
+                            {% if player.position %}
+                            <div class="quick-stat-item">
+                                <div class="quick-stat-icon position-icon">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                </div>
+                                <div class="quick-stat-content">
+                                    <div class="quick-stat-label">Posición</div>
+                                    <div class="quick-stat-value">{{ player.get_position_display }}</div>
+                                </div>
+                            </div>
                             {% endif %}
-                        {% endif %}
+                            
+                            {% if player.user.profile.birth_date %}
+                                {% with age=player.calculate_age_as_of_april_30 %}
+                                    {% if age %}
+                                    <div class="quick-stat-item">
+                                        <div class="quick-stat-icon age-icon">
+                                            <i class="fas fa-birthday-cake"></i>
+                                        </div>
+                                        <div class="quick-stat-content">
+                                            <div class="quick-stat-label">Edad</div>
+                                            <div class="quick-stat-value">{{ age }} años</div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endif %}
+                            
+                            {% if player.division %}
+                            <div class="quick-stat-item">
+                                <div class="quick-stat-icon division-icon">
+                                    <i class="fas fa-trophy"></i>
+                                </div>
+                                <div class="quick-stat-content">
+                                    <div class="quick-stat-label">División</div>
+                                    <div class="quick-stat-value">{{ player.division }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if player.height %}
+                            <div class="quick-stat-item">
+                                <div class="quick-stat-icon height-icon">
+                                    <i class="fas fa-ruler-vertical"></i>
+                                </div>
+                                <div class="quick-stat-content">
+                                    <div class="quick-stat-label">Estatura</div>
+                                    <div class="quick-stat-value">{{ player.height }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if player.weight %}
+                            <div class="quick-stat-item">
+                                <div class="quick-stat-icon weight-icon">
+                                    <i class="fas fa-weight"></i>
+                                </div>
+                                <div class="quick-stat-content">
+                                    <div class="quick-stat-label">Peso</div>
+                                    <div class="quick-stat-value">{{ player.weight }} lbs</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if player.batting_hand %}
+                            <div class="quick-stat-item">
+                                <div class="quick-stat-icon batting-icon">
+                                    <i class="fas fa-hand-paper"></i>
+                                </div>
+                                <div class="quick-stat-content">
+                                    <div class="quick-stat-label">Bateo</div>
+                                    <div class="quick-stat-value">{{ player.get_batting_hand_display }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if player.throwing_hand %}
+                            <div class="quick-stat-item">
+                                <div class="quick-stat-icon throwing-icon">
+                                    <i class="fas fa-hand-rock"></i>
+                                </div>
+                                <div class="quick-stat-content">
+                                    <div class="quick-stat-label">Lanzamiento</div>
+                                    <div class="quick-stat-value">{{ player.get_throwing_hand_display }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Information Cards -->
-            <div class="col-md-8">
-                <!-- Personal Information -->
-                <div class="info-card">
-                    <h5><i class="fas fa-id-card me-2"></i>Información Personal</h5>
-                    <div class="info-item">
-                        <div class="info-label">Email</div>
-                        <div class="info-value">{{ player.user.email }}</div>
-                    </div>
-                    {% if player.user.profile.phone %}
-                        <div class="info-item">
-                            <div class="info-label">Teléfono</div>
-                            <div class="info-value">{{ player.user.profile.phone }}</div>
-                        </div>
-                    {% endif %}
-                    {% if player.user.profile.birth_date %}
-                        <div class="info-item">
-                            <div class="info-label">Fecha de Nacimiento</div>
-                            <div class="info-value">{{ player.user.profile.birth_date|date:"d M Y" }}</div>
-                        </div>
-                    {% endif %}
-                    {% if player.user.profile.city %}
-                        <div class="info-item">
-                            <div class="info-label">Ubicación</div>
-                            <div class="info-value">
-                                {{ player.user.profile.city.name }}{% if player.user.profile.state %}, {{ player.user.profile.state.name }}{% endif %}{% if player.user.profile.country %}, {{ player.user.profile.country.name }}{% endif %}
-                            </div>
-                        </div>
-                    {% endif %}
-                    {% if player.height %}
-                        <div class="info-item">
-                            <div class="info-label">Estatura</div>
-                            <div class="info-value">{{ player.height }}</div>
-                        </div>
-                    {% endif %}
-                    {% if player.weight %}
-                        <div class="info-item">
-                            <div class="info-label">Peso</div>
-                            <div class="info-value">{{ player.weight }} lbs</div>
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Sports Information -->
-                <div class="info-card">
-                    <h5><i class="fas fa-baseball-ball me-2"></i>Información Deportiva</h5>
-                    {% if player.position %}
-                        <div class="info-item">
-                            <div class="info-label">Posición</div>
-                            <div class="info-value">{{ player.get_position_display }}</div>
-                        </div>
-                    {% endif %}
-                    {% if player.batting_hand %}
-                        <div class="info-item">
-                            <div class="info-label">Bateo</div>
-                            <div class="info-value">{{ player.get_batting_hand_display }}</div>
-                        </div>
-                    {% endif %}
-                    {% if player.throwing_hand %}
-                        <div class="info-item">
-                            <div class="info-label">Lanzamiento</div>
-                            <div class="info-value">{{ player.get_throwing_hand_display }}</div>
-                        </div>
-                    {% endif %}
-                    {% if player.team %}
-                        <div class="info-item">
-                            <div class="info-label">Equipo</div>
-                            <div class="info-value">
-                                <a href="{% url 'accounts:team_detail' player.team.pk %}" style="color: var(--mlb-blue); font-weight: 600;">
-                                    {{ player.team.name }}
-                                </a>
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
-
-                <!-- Emergency Contact -->
-                {% if player.emergency_contact_name %}
-                    <div class="info-card">
-                        <h5><i class="fas fa-phone-alt me-2"></i>Contacto de Emergencia</h5>
-                        <div class="info-item">
-                            <div class="info-label">Nombre</div>
-                            <div class="info-value">{{ player.emergency_contact_name }}</div>
-                        </div>
-                        {% if player.emergency_contact_phone %}
-                            <div class="info-item">
-                                <div class="info-label">Teléfono</div>
-                                <div class="info-value">{{ player.emergency_contact_phone }}</div>
-                            </div>
-                        {% endif %}
-                        {% if player.emergency_contact_relation %}
-                            <div class="info-item">
-                                <div class="info-label">Relación</div>
-                                <div class="info-value">{{ player.emergency_contact_relation }}</div>
-                            </div>
-                        {% endif %}
-                    </div>
-                {% endif %}
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer-mlb">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4">
-                    <h5><i class="fas fa-baseball-ball me-2"></i>NSC International</h5>
-                    <p>Plataforma profesional de gestión de béisbol.</p>
+    <!-- Contenido Principal -->
+    <div class="container-fluid px-4 py-4">
+        <div class="row g-4">
+            <!-- Columna Principal -->
+            <div class="col-lg-8">
+                <!-- Elegibilidad y División -->
+                {% if player.user.profile.birth_date or player.grade or player.division or player.age_verification_status %}
+                <div class="profile-section-card mb-4">
+                    {% if player.user.profile.birth_date %}
+                        {% with age=player.calculate_age_as_of_april_30 age_division=player.get_age_based_division grade_division=player.get_grade_based_division eligible=player.get_eligible_divisions %}
+                            {% if age or age_division or grade_division or eligible %}
+                            <div class="eligibility-section-premium">
+                                <div class="eligibility-header-premium">
+                                    <div class="eligibility-header-content">
+                                        <div class="eligibility-header-icon">
+                                            <i class="fas fa-certificate"></i>
+                                        </div>
+                                        <div>
+                                            <h5 class="eligibility-header-title mb-0">Información de Elegibilidad</h5>
+                                            <p class="eligibility-header-subtitle mb-0">Cálculo basado en fecha de nacimiento y grado escolar</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="eligibility-body-premium">
+                                    <div class="row g-4">
+                                        {% if age %}
+                                        <div class="col-md-6 col-lg-4">
+                                            <div class="eligibility-card-premium age-card-premium">
+                                                <div class="eligibility-card-background age-bg"></div>
+                                                <div class="eligibility-card-content">
+                                                    <div class="eligibility-icon-premium">
+                                                        <i class="fas fa-birthday-cake"></i>
+                                                    </div>
+                                                    <div class="eligibility-info-premium">
+                                                        <div class="eligibility-label-premium">Edad al 30 de abril</div>
+                                                        <div class="eligibility-value-premium">
+                                                            <span class="value-number">{{ age }}</span>
+                                                            <span class="value-unit">años</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if age_division %}
+                                        <div class="col-md-6 col-lg-4">
+                                            <div class="eligibility-card-premium division-card-premium">
+                                                <div class="eligibility-card-background division-bg"></div>
+                                                <div class="eligibility-card-content">
+                                                    <div class="eligibility-icon-premium">
+                                                        <i class="fas fa-calendar-check"></i>
+                                                    </div>
+                                                    <div class="eligibility-info-premium">
+                                                        <div class="eligibility-label-premium">División por Edad</div>
+                                                        <div class="eligibility-badge-premium division-badge">
+                                                            {{ age_division }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if grade_division %}
+                                        <div class="col-md-6 col-lg-4">
+                                            <div class="eligibility-card-premium grade-card-premium">
+                                                <div class="eligibility-card-background grade-bg"></div>
+                                                <div class="eligibility-card-content">
+                                                    <div class="eligibility-icon-premium">
+                                                        <i class="fas fa-graduation-cap"></i>
+                                                    </div>
+                                                    <div class="eligibility-info-premium">
+                                                        <div class="eligibility-label-premium">División por Grado</div>
+                                                        <div class="eligibility-badge-premium grade-badge">
+                                                            {{ grade_division }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                        
+                                        {% if eligible %}
+                                        <div class="col-12">
+                                            <div class="eligible-divisions-premium">
+                                                <div class="eligible-divisions-header-premium">
+                                                    <div class="eligible-header-icon">
+                                                        <i class="fas fa-check-double"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h6 class="eligible-header-title mb-0">Divisiones Elegibles</h6>
+                                                        <p class="eligible-header-subtitle mb-0">El jugador puede participar en estas divisiones</p>
+                                                    </div>
+                                                </div>
+                                                <div class="eligible-divisions-list-premium">
+                                                    {% for div in eligible %}
+                                                        <div class="eligible-badge-premium">
+                                                            <span class="badge-number">{{ div|slice:":2" }}</span>
+                                                            <span class="badge-text">{{ div|slice:"2:" }}</span>
+                                                        </div>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        {% endwith %}
+                    {% endif %}
+                    
+                    {% if player.grade or player.division or player.age_verification_status %}
+                    <div class="profile-section-divider"></div>
+                    <div class="profile-section-body p-4">
+                        <div class="row g-3">
+                            {% if player.grade %}
+                            <div class="col-md-6">
+                                <div class="profile-info-item">
+                                    <div class="profile-info-icon">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                    <div class="profile-info-content">
+                                        <div class="profile-info-label">Grado Actual</div>
+                                        <div class="profile-info-value">{{ player.get_grade_display }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if player.division %}
+                            <div class="col-md-6">
+                                <div class="profile-info-item">
+                                    <div class="profile-info-icon">
+                                        <i class="fas fa-trophy"></i>
+                                    </div>
+                                    <div class="profile-info-content">
+                                        <div class="profile-info-label">División Asignada</div>
+                                        <div class="profile-info-value">
+                                            <span class="badge bg-primary fs-6">{{ player.division }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if player.age_verification_status %}
+                            <div class="col-md-6">
+                                <div class="profile-info-item">
+                                    <div class="profile-info-icon">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div class="profile-info-content">
+                                        <div class="profile-info-label">Estado de Verificación</div>
+                                        <div class="profile-info-value">
+                                            {% if player.age_verification_status == 'approved' %}
+                                                <span class="badge bg-success">{{ player.get_age_verification_status_display }}</span>
+                                            {% elif player.age_verification_status == 'rejected' %}
+                                                <span class="badge bg-danger">{{ player.get_age_verification_status_display }}</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">{{ player.get_age_verification_status_display }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
-                <div class="col-md-4">
-                    <h5>Enlaces Rápidos</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="/">Inicio</a></li>
-                        <li><a href="{% url 'events:list' %}">Eventos</a></li>
-                        <li><a href="{% url 'accounts:player_list' %}">Jugadores</a></li>
-                        <li><a href="{% url 'accounts:team_list' %}">Equipos</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h5>Contacto</h5>
-                    <p><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</p>
-                    <p><i class="fas fa-envelope me-2"></i>info@nscinternational.com</p>
-                </div>
-            </div>
-            <hr style="border-color: #444; margin: 30px 0;">
-            <p class="text-center mb-0">&copy; 2024 NSC International. Todos los derechos reservados.</p>
-        </div>
-    </footer>
+                {% endif %}
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+                <!-- Información Deportiva -->
+                <div class="profile-section-card mb-4">
+                    <div class="profile-section-header">
+                        <div class="profile-section-icon">
+                            <i class="fas fa-baseball-ball"></i>
+                        </div>
+                        <h5 class="profile-section-title mb-0">Información Deportiva</h5>
+                    </div>
+                    <div class="profile-section-body p-4">
+                        <div class="row g-3">
+                            {% if player.position %}
+                            <div class="col-md-6">
+                                <div class="profile-info-item">
+                                    <div class="profile-info-icon">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </div>
+                                    <div class="profile-info-content">
+                                        <div class="profile-info-label">Posición Principal</div>
+                                        <div class="profile-info-value">{{ player.get_position_display }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if player.height %}
+                            <div class="col-md-6">
+                                <div class="profile-info-item">
+                                    <div class="profile-info-icon">
+                                        <i class="fas fa-ruler-vertical"></i>
+                                    </div>
+                                    <div class="profile-info-content">
+                                        <div class="profile-info-label">Estatura</div>
+                                        <div class="profile-info-value">{{ player.height }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if player.weight %}
+                            <div class="col-md-6">
+                                <div class="profile-info-item">
+                                    <div class="profile-info-icon">
+                                        <i class="fas fa-weight"></i>
+                                    </div>
+                                    <div class="profile-info-content">
+                                        <div class="profile-info-label">Peso</div>
+                                        <div class="profile-info-value">{{ player.weight }} lbs</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if player.batting_hand %}
+                            <div class="col-md-6">
+                                <div class="profile-info-item">
+                                    <div class="profile-info-icon">
+                                        <i class="fas fa-hand-paper"></i>
+                                    </div>
+                                    <div class="profile-info-content">
+                                        <div class="profile-info-label">Bateo</div>
+                                        <div class="profile-info-value">{{ player.get_batting_hand_display }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if player.throwing_hand %}
+                            <div class="col-md-6">
+                                <div class="profile-info-item">
+                                    <div class="profile-info-icon">
+                                        <i class="fas fa-hand-rock"></i>
+                                    </div>
+                                    <div class="profile-info-content">
+                                        <div class="profile-info-label">Lanzamiento</div>
+                                        <div class="profile-info-value">{{ player.get_throwing_hand_display }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if player.team %}
+                            <div class="col-md-6">
+                                <div class="profile-info-item">
+                                    <div class="profile-info-icon">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <div class="profile-info-content">
+                                        <div class="profile-info-label">Equipo</div>
+                                        <div class="profile-info-value">
+                                            <a href="{% url 'accounts:team_detail' player.team.pk %}" class="text-primary text-decoration-none fw-bold">
+                                                {{ player.team.name }}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contacto de Emergencia -->
+                {% if player.emergency_contact_name %}
+                <div class="profile-section-card mb-4">
+                    <div class="profile-section-header">
+                        <div class="profile-section-icon">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <h5 class="profile-section-title mb-0">Contacto de Emergencia</h5>
+                    </div>
+                    <div class="profile-section-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="profile-info-item">
+                                    <div class="profile-info-icon">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="profile-info-content">
+                                        <div class="profile-info-label">Nombre</div>
+                                        <div class="profile-info-value">{{ player.emergency_contact_name }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% if player.emergency_contact_phone %}
+                            <div class="col-md-6">
+                                <div class="profile-info-item">
+                                    <div class="profile-info-icon">
+                                        <i class="fas fa-phone"></i>
+                                    </div>
+                                    <div class="profile-info-content">
+                                        <div class="profile-info-label">Teléfono</div>
+                                        <div class="profile-info-value">
+                                            <a href="tel:{{ player.emergency_contact_phone }}" class="text-decoration-none">
+                                                {{ player.emergency_contact_phone }}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if player.emergency_contact_relation %}
+                            <div class="col-md-6">
+                                <div class="profile-info-item">
+                                    <div class="profile-info-icon">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                    <div class="profile-info-content">
+                                        <div class="profile-info-label">Relación</div>
+                                        <div class="profile-info-value">{{ player.emergency_contact_relation }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Información Personal -->
+                <div class="profile-section-card mb-4">
+                    <div class="profile-section-header">
+                        <div class="profile-section-icon">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                        <h5 class="profile-section-title mb-0">Información Personal</h5>
+                    </div>
+                    <div class="profile-section-body p-4">
+                        {% if player.user.email and '@nsc-temp.local' not in player.user.email %}
+                        <div class="profile-sidebar-item mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-envelope text-muted me-2"></i>
+                                <span class="text-muted small">Email</span>
+                            </div>
+                            <div class="fw-semibold">
+                                <a href="mailto:{{ player.user.email }}" class="text-decoration-none">
+                                    {{ player.user.email }}
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if player.user.profile.phone %}
+                        <div class="profile-sidebar-item mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-phone text-muted me-2"></i>
+                                <span class="text-muted small">Teléfono</span>
+                            </div>
+                            <div class="fw-semibold">
+                                <a href="tel:{{ player.user.profile.phone }}" class="text-decoration-none">
+                                    {{ player.user.profile.phone }}
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if player.user.profile.birth_date %}
+                        <div class="profile-sidebar-item mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-birthday-cake text-muted me-2"></i>
+                                <span class="text-muted small">Fecha de Nacimiento</span>
+                            </div>
+                            <div class="fw-semibold">{{ player.user.profile.birth_date|date:"d M Y" }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if player.user.profile.city %}
+                        <div class="profile-sidebar-item mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-map-marker-alt text-muted me-2"></i>
+                                <span class="text-muted small">Ubicación</span>
+                            </div>
+                            <div class="fw-semibold">
+                                {{ player.user.profile.city.name }}{% if player.user.profile.state %}, {{ player.user.profile.state.name }}{% endif %}{% if player.user.profile.country %}, {{ player.user.profile.country.name }}{% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Tallas de Uniformes -->
+                {% if player.jersey_size or player.hat_size or player.batting_glove_size or player.batting_helmet_size or player.shorts_size %}
+                <div class="profile-section-card mb-4">
+                    <div class="profile-section-header">
+                        <div class="profile-section-icon">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <h5 class="profile-section-title mb-0">Tallas de Uniformes</h5>
+                    </div>
+                    <div class="profile-section-body p-4">
+                        {% if player.jersey_size %}
+                        <div class="profile-sidebar-item mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-tshirt text-muted me-2"></i>
+                                <span class="text-muted small">Jersey</span>
+                            </div>
+                            <div class="fw-semibold">{{ player.get_jersey_size_display }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if player.hat_size %}
+                        <div class="profile-sidebar-item mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-hat-cowboy text-muted me-2"></i>
+                                <span class="text-muted small">Gorra</span>
+                            </div>
+                            <div class="fw-semibold">{{ player.get_hat_size_display }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if player.batting_glove_size %}
+                        <div class="profile-sidebar-item mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-hand-paper text-muted me-2"></i>
+                                <span class="text-muted small">Guante de Bateo</span>
+                            </div>
+                            <div class="fw-semibold">{{ player.get_batting_glove_size_display }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if player.batting_helmet_size %}
+                        <div class="profile-sidebar-item mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-hard-hat text-muted me-2"></i>
+                                <span class="text-muted small">Casco de Bateo</span>
+                            </div>
+                            <div class="fw-semibold">{{ player.get_batting_helmet_size_display }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if player.shorts_size %}
+                        <div class="profile-sidebar-item mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-tshirt text-muted me-2"></i>
+                                <span class="text-muted small">Pantalones</span>
+                            </div>
+                            <div class="fw-semibold">{{ player.get_shorts_size_display }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Condiciones Médicas -->
+                {% if player.medical_conditions %}
+                <div class="profile-section-card mb-4">
+                    <div class="profile-section-header">
+                        <div class="profile-section-icon">
+                            <i class="fas fa-heartbeat"></i>
+                        </div>
+                        <h5 class="profile-section-title mb-0">Condiciones Médicas</h5>
+                    </div>
+                    <div class="profile-section-body p-4">
+                        <p class="mb-0">{{ player.medical_conditions }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Hero Section */
+    .player-profile-hero {
+        position: relative;
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 50%, #1a202c 100%);
+        overflow: hidden;
+        margin-bottom: 0;
+    }
+    
+    .player-hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 70%, rgba(74, 85, 104, 0.3) 0%, transparent 50%);
+        pointer-events: none;
+    }
+    
+    .player-avatar-wrapper {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .player-avatar {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 6px solid white;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        position: relative;
+        z-index: 1;
+    }
+    
+    .player-avatar-placeholder {
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.15);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 5rem;
+        border: 6px solid white;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    
+    .player-status-indicator {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 3px solid white;
+        z-index: 2;
+    }
+    
+    .player-status-indicator.active {
+        background: #28a745;
+    }
+    
+    .player-status-indicator.inactive {
+        background: #dc3545;
+    }
+    
+    .jersey-display {
+        position: absolute;
+        bottom: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        color: #1a202c;
+        font-size: 2.5rem;
+        font-weight: 900;
+        padding: 0.5rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        z-index: 2;
+        letter-spacing: 2px;
+    }
+    
+    .player-hero-info {
+        position: relative;
+        z-index: 1;
+        color: white;
+    }
+    
+    .player-hero-name {
+        font-size: 3rem;
+        font-weight: 900;
+        color: white;
+        margin-bottom: 0.5rem;
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        letter-spacing: -0.5px;
+    }
+    
+    .player-hero-team {
+        font-size: 1.3rem;
+        color: rgba(255,255,255,0.9);
+        margin-bottom: 0;
+    }
+    
+    .player-actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+    
+    .player-quick-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .quick-stat-item {
+        background: rgba(255,255,255,0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border: 1px solid rgba(255,255,255,0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .quick-stat-item:hover {
+        background: rgba(255,255,255,0.15);
+        transform: translateY(-2px);
+    }
+    
+    .quick-stat-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .position-icon { background: linear-gradient(135deg, #007bff 0%, #0056b3 100%); }
+    .age-icon { background: linear-gradient(135deg, #17a2b8 0%, #138496 100%); }
+    .division-icon { background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%); }
+    .height-icon { background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); }
+    .weight-icon { background: linear-gradient(135deg, #e83e8c 0%, #d91a72 100%); }
+    .batting-icon { background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%); }
+    .throwing-icon { background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); }
+    
+    .quick-stat-content {
+        flex: 1;
+    }
+    
+    .quick-stat-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.7);
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+    
+    .quick-stat-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: white;
+    }
+    
+    /* Profile Section Cards */
+    .profile-section-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+        border: 1px solid #e9ecef;
+    }
+    
+    .profile-section-header {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        padding: 1.25rem 1.5rem;
+        border-bottom: 2px solid #e9ecef;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .profile-section-icon {
+        width: 45px;
+        height: 45px;
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.25rem;
+    }
+    
+    .profile-section-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #212529;
+    }
+    
+    .profile-section-divider {
+        height: 1px;
+        background: #e9ecef;
+        margin: 0 1.5rem;
+    }
+    
+    .profile-section-body {
+        background: white;
+    }
+    
+    .profile-info-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #4a5568;
+        transition: all 0.3s ease;
+    }
+    
+    .profile-info-item:hover {
+        background: #e9ecef;
+        transform: translateX(5px);
+    }
+    
+    .profile-info-icon {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        border-radius: 10px;
+        margin-right: 1rem;
+        font-size: 1.25rem;
+        color: #4a5568;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    
+    .profile-info-content {
+        flex: 1;
+    }
+    
+    .profile-info-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #6c757d;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+    }
+    
+    .profile-info-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #212529;
+    }
+    
+    .profile-sidebar-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .profile-sidebar-item:last-child {
+        border-bottom: none;
+    }
+    
+    /* Estilos Premium para Elegibilidad (mantener los anteriores) */
+    .eligibility-section-premium {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+    }
+    
+    .eligibility-header-premium {
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+        padding: 1.5rem 2rem;
+        color: white;
+    }
+    
+    .eligibility-header-content {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+    }
+    
+    .eligibility-header-icon {
+        width: 60px;
+        height: 60px;
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        flex-shrink: 0;
+    }
+    
+    .eligibility-header-title {
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: white;
+        letter-spacing: 0.3px;
+    }
+    
+    .eligibility-header-subtitle {
+        font-size: 0.875rem;
+        color: rgba(255,255,255,0.8);
+        margin-top: 0.25rem;
+    }
+    
+    .eligibility-body-premium {
+        padding: 2rem;
+        background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+    }
+    
+    .eligibility-card-premium {
+        position: relative;
+        background: white;
+        border-radius: 14px;
+        padding: 1.75rem;
+        height: 100%;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 2px solid transparent;
+    }
+    
+    .eligibility-card-premium:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    }
+    
+    .eligibility-card-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        transition: height 0.4s ease;
+    }
+    
+    .eligibility-card-premium:hover .eligibility-card-background {
+        height: 100%;
+        opacity: 0.05;
+    }
+    
+    .age-bg {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    }
+    
+    .division-bg {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    }
+    
+    .grade-bg {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+    }
+    
+    .eligibility-card-content {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .eligibility-icon-premium {
+        width: 80px;
+        height: 80px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.25rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        transition: all 0.4s ease;
+    }
+    
+    .eligibility-card-premium:hover .eligibility-icon-premium {
+        transform: scale(1.1) rotate(5deg);
+    }
+    
+    .age-card-premium .eligibility-icon-premium {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        color: white;
+    }
+    
+    .division-card-premium .eligibility-icon-premium {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+    }
+    
+    .grade-card-premium .eligibility-icon-premium {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        color: white;
+    }
+    
+    .eligibility-info-premium {
+        width: 100%;
+    }
+    
+    .eligibility-label-premium {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        color: #6c757d;
+        letter-spacing: 1px;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .eligibility-value-premium {
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: 0.5rem;
+    }
+    
+    .value-number {
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: #212529;
+        line-height: 1;
+    }
+    
+    .value-unit {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #6c757d;
+    }
+    
+    .eligibility-badge-premium {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-weight: 800;
+        font-size: 1.5rem;
+        letter-spacing: 1px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+    }
+    
+    .division-badge {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+    }
+    
+    .grade-badge {
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        color: white;
+    }
+    
+    .eligibility-card-premium:hover .eligibility-badge-premium {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    
+    .eligible-divisions-premium {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        border-radius: 14px;
+        padding: 2rem;
+        border: 2px solid #e9ecef;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
+    
+    .eligible-divisions-header-premium {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.25rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .eligible-header-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.75rem;
+        color: white;
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+        flex-shrink: 0;
+    }
+    
+    .eligible-header-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #212529;
+        letter-spacing: 0.3px;
+    }
+    
+    .eligible-header-subtitle {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    .eligible-divisions-list-premium {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        justify-content: center;
+    }
+    
+    .eligible-badge-premium {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 1rem 1.75rem;
+        background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+        color: white;
+        border-radius: 12px;
+        font-weight: 800;
+        font-size: 1.35rem;
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.35);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        letter-spacing: 1px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .eligible-badge-premium::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .eligible-badge-premium:hover::before {
+        left: 100%;
+    }
+    
+    .eligible-badge-premium:hover {
+        transform: translateY(-5px) scale(1.05);
+        box-shadow: 0 10px 30px rgba(40, 167, 69, 0.5);
+    }
+    
+    .badge-number {
+        font-size: 1.5rem;
+        font-weight: 900;
+    }
+    
+    .badge-text {
+        font-size: 1.1rem;
+        font-weight: 700;
+        opacity: 0.95;
+    }
+    
+    @media (max-width: 768px) {
+        .player-hero-name {
+            font-size: 2rem;
+        }
+        
+        .player-quick-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .player-avatar, .player-avatar-placeholder {
+            width: 150px;
+            height: 150px;
+        }
+        
+        .jersey-display {
+            font-size: 2rem;
+            padding: 0.4rem 1.2rem;
+        }
+        
+        .eligibility-header-premium {
+            padding: 1.25rem 1.5rem;
+        }
+        
+        .eligibility-header-content {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+        
+        .eligibility-header-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+        }
+        
+        .eligibility-body-premium {
+            padding: 1.5rem;
+        }
+        
+        .eligibility-card-premium {
+            margin-bottom: 1rem;
+            padding: 1.5rem;
+        }
+        
+        .eligibility-icon-premium {
+            width: 60px;
+            height: 60px;
+            font-size: 1.75rem;
+            margin-bottom: 1rem;
+        }
+        
+        .value-number {
+            font-size: 2rem;
+        }
+        
+        .value-unit {
+            font-size: 1rem;
+        }
+        
+        .eligibility-badge-premium {
+            font-size: 1.1rem;
+            padding: 0.75rem 1.25rem;
+        }
+        
+        .eligible-divisions-premium {
+            padding: 1.5rem;
+        }
+        
+        .eligible-divisions-header-premium {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+        
+        .eligible-header-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 1.5rem;
+        }
+        
+        .eligible-badge-premium {
+            font-size: 1.1rem;
+            padding: 0.875rem 1.5rem;
+        }
+        
+        .badge-number {
+            font-size: 1.25rem;
+        }
+        
+        .badge-text {
+            font-size: 0.95rem;
+        }
+    }
+</style>
+{% endblock %}

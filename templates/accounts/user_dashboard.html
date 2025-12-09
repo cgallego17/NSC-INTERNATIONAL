@@ -118,18 +118,18 @@
         
         .stat-card {
             background: white;
-            border-radius: 12px;
-            padding: 25px;
+            border-radius: 10px;
+            padding: 15px 20px;
             text-align: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             transition: all 0.3s;
-            border-top: 4px solid var(--mlb-blue);
+            border-top: 3px solid var(--mlb-blue);
             height: 100%;
         }
         
         .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
         }
         
         .stat-card.primary {
@@ -149,16 +149,16 @@
         }
         
         .stat-icon {
-            width: 60px;
-            height: 60px;
+            width: 45px;
+            height: 45px;
             background: var(--mlb-blue);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 15px;
+            margin: 0 auto 10px;
             color: white;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
         }
         
         .stat-card.success .stat-icon {
@@ -174,17 +174,17 @@
         }
         
         .stat-number {
-            font-size: 2.5rem;
+            font-size: 1.8rem;
             font-weight: 900;
             color: var(--mlb-blue);
-            margin-bottom: 5px;
+            margin-bottom: 6px;
         }
         
         .stat-label {
-            font-size: 0.9rem;
+            font-size: 0.75rem;
             color: #666;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             font-weight: 600;
         }
         
@@ -277,16 +277,16 @@
         
         .quick-actions {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
         }
         
         .quick-action-btn {
             background: white;
             border: 2px solid var(--mlb-blue);
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 10px;
+            padding: 12px 15px;
             text-align: center;
             text-decoration: none;
             color: var(--mlb-blue);
@@ -297,22 +297,273 @@
         .quick-action-btn:hover {
             background: var(--mlb-blue);
             color: white;
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        }
+        
+        /* Estilos para Tabs */
+        .nav-tabs .nav-link {
+            transition: all 0.3s;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            border-bottom-color: var(--mlb-blue) !important;
+            color: var(--mlb-red) !important;
+        }
+        
+        .nav-tabs .nav-link.active {
+            border-bottom-color: var(--mlb-blue) !important;
+            color: var(--mlb-blue) !important;
+            background: transparent;
+        }
+        
+        .tab-content {
+            padding: 20px 0;
+        }
+        
+        
+        /* Mejorar apariencia de cards */
+        .card {
+            border: none;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            transition: all 0.3s;
+        }
+        
+        .card:hover {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        }
+        
+        .card-header {
+            border-bottom: 2px solid rgba(0,0,0,0.1);
+            font-weight: 700;
+        }
+        
+        /* Botones consistentes */
+        .btn-primary, .btn[style*="var(--mlb-blue)"] {
+            background: var(--mlb-blue) !important;
+            color: white !important;
+            border: none !important;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary:hover, .btn[style*="var(--mlb-blue)"]:hover {
+            background: var(--mlb-light-blue) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13, 44, 84, 0.3);
+        }
+        
+        .btn-outline-primary, .btn[style*="border: 2px solid var(--mlb-blue)"] {
+            border: 2px solid var(--mlb-blue) !important;
+            color: var(--mlb-blue) !important;
+            background: transparent !important;
+            transition: all 0.3s;
+        }
+        
+        .btn-outline-primary:hover, .btn[style*="border: 2px solid var(--mlb-blue)"]:hover {
+            background: var(--mlb-blue) !important;
+            color: white !important;
+        }
+        
+        /* Botón Flotante del Carrito */
+        .cart-floating-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            border: 4px solid white;
+            box-shadow: 0 6px 25px rgba(13, 44, 84, 0.4), 0 0 0 0 rgba(213, 0, 50, 0.4);
+            font-size: 1.8rem;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulseCart 2s infinite;
+        }
+        
+        .cart-floating-btn:hover {
+            background: linear-gradient(135deg, var(--mlb-red) 0%, #b30028 100%);
+            transform: scale(1.15) rotate(5deg);
+            box-shadow: 0 8px 30px rgba(213, 0, 50, 0.6), 0 0 0 8px rgba(213, 0, 50, 0.1);
+            animation: none;
+        }
+        
+        @keyframes pulseCart {
+            0% {
+                box-shadow: 0 6px 25px rgba(13, 44, 84, 0.4), 0 0 0 0 rgba(213, 0, 50, 0.4);
+            }
+            50% {
+                box-shadow: 0 6px 25px rgba(13, 44, 84, 0.4), 0 0 0 10px rgba(213, 0, 50, 0);
+            }
+            100% {
+                box-shadow: 0 6px 25px rgba(13, 44, 84, 0.4), 0 0 0 0 rgba(213, 0, 50, 0);
+            }
+        }
+        
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: var(--mlb-red);
+            color: white;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 3px solid white;
+            box-shadow: 0 2px 8px rgba(213, 0, 50, 0.5);
+            animation: bounceBadge 1s infinite;
+        }
+        
+        @keyframes bounceBadge {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+        
+        .stat-badge {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .stat-badge:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        /* Sidebar del Carrito */
+        .cart-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -2px 0 20px rgba(0,0,0,0.2);
+            z-index: 1001;
+            transition: right 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .cart-sidebar.open {
+            right: 0;
+        }
+        
+        .cart-sidebar-header {
+            background: var(--mlb-blue);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+        
+        .cart-sidebar-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .cart-sidebar-footer {
+            padding: 20px;
+            border-top: 2px solid #eee;
+            background: #f9f9f9;
+        }
+        
+        /* Overlay */
+        .cart-sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .cart-sidebar-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+        
+        /* Item del carrito en el sidebar */
+        .cart-item-sidebar {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        }
+        
+        .cart-item-sidebar:last-child {
+            border-bottom: none;
+        }
+        
+        .cart-item-sidebar h6 {
+            color: var(--mlb-blue);
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .cart-item-sidebar .cart-item-details {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .cart-item-sidebar .cart-item-total {
+            font-weight: 700;
+            color: var(--mlb-blue);
+            font-size: 1.1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .cart-sidebar {
+                width: 100%;
+                right: -100%;
+            }
+            
+            .cart-floating-btn {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+        }
+        
+        /* Asegurar que el botón flotante siempre esté visible */
+        .cart-floating-btn {
+            position: fixed !important;
         }
         
         .quick-action-btn i {
-            font-size: 2rem;
-            margin-bottom: 10px;
+            font-size: 1.4rem;
+            margin-bottom: 8px;
             display: block;
         }
         
         .quick-action-btn span {
             font-weight: 700;
             text-transform: uppercase;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
         }
+        
         
         .event-card {
             background: white;
@@ -398,10 +649,16 @@
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'accounts:player_list' %}">Jugadores</a>
                         </li>
-                    {% else %}
+                    {% elif profile.is_parent %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:player_detail' user.player_profile.pk %}">Mi Perfil</a>
+                            <a class="nav-link" href="{% url 'accounts:parent_player_register' %}">Registrar Jugador</a>
                         </li>
+                    {% else %}
+                        {% if user.player_profile %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'accounts:player_detail' user.player_profile.pk %}">Mi Perfil</a>
+                            </li>
+                        {% endif %}
                     {% endif %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'events:list' %}">Eventos</a>
@@ -411,13 +668,11 @@
         </div>
     </nav>
 
-    <!-- Messages -->
+    <!-- Messages (hidden, converted to toasts) -->
     {% if messages %}
-        <div class="container mt-3">
+        <div class="messages-container" style="display: none;">
             {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                <div class="django-message" data-tag="{{ message.tags }}" data-message="{{ message|escapejs }}">
                 </div>
             {% endfor %}
         </div>
@@ -469,9 +724,10 @@
                     </div>
                 </div>
                 
-                <!-- Estadísticas -->
+                <!-- Estadísticas y Acciones Rápidas -->
                 <div class="col-md-8">
-                    <div class="row g-3">
+                    <!-- Contadores/Estadísticas -->
+                    <div class="row g-3 mb-4">
                         {% if profile.is_team_manager %}
                             <div class="col-md-4">
                                 <div class="stat-card primary">
@@ -502,6 +758,36 @@
                                     <div class="stat-label">Eventos</div>
                                 </div>
                             </div>
+                        {% elif profile.is_parent %}
+                            <div class="col-md-4">
+                                <div class="stat-card primary">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-child"></i>
+                                    </div>
+                                    <div class="stat-number">{{ total_children|default:0 }}</div>
+                                    <div class="stat-label">Hijos/Jugadores</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stat-card success">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </div>
+                                    <div class="stat-number">
+                                        {% if upcoming_events %}{{ upcoming_events|length }}{% else %}0{% endif %}
+                                    </div>
+                                    <div class="stat-label">Eventos</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stat-card warning">
+                                    <div class="stat-icon">
+                                        <i class="fas fa-calendar-check"></i>
+                                    </div>
+                                    <div class="stat-number">{{ total_reservations|default:0 }}</div>
+                                    <div class="stat-label">Número de Reservas</div>
+                                </div>
+                            </div>
                         {% else %}
                             {% if player %}
                                 <div class="col-md-6">
@@ -525,16 +811,13 @@
                             {% endif %}
                         {% endif %}
                     </div>
-                </div>
-            </div>
-            
-            <!-- Acciones Rápidas -->
-            <div class="row mb-4">
-                <div class="col-12">
-                    <h3 class="mb-3" style="color: var(--mlb-blue); font-weight: 700; text-transform: uppercase;">
-                        <i class="fas fa-bolt me-2"></i>Acciones Rápidas
-                    </h3>
-                    <div class="quick-actions">
+                    
+                    <!-- Acciones Rápidas -->
+                    <div>
+                        <h4 class="mb-2" style="color: var(--mlb-blue); font-weight: 700; text-transform: uppercase; font-size: 1.1rem;">
+                            <i class="fas fa-bolt me-2"></i>Acciones Rápidas
+                        </h4>
+                        <div class="quick-actions">
                         {% if profile.is_team_manager %}
                             <a href="{% url 'accounts:team_create' %}" class="quick-action-btn">
                                 <i class="fas fa-plus-circle"></i>
@@ -552,10 +835,10 @@
                                 <i class="fas fa-users"></i>
                                 <span>Ver Jugadores</span>
                             </a>
-                        {% else %}
-                            <a href="{% url 'accounts:player_detail' user.player_profile.pk %}" class="quick-action-btn">
-                                <i class="fas fa-user"></i>
-                                <span>Mi Perfil</span>
+                        {% elif profile.is_parent %}
+                            <a href="{% url 'accounts:parent_player_register' %}" class="quick-action-btn">
+                                <i class="fas fa-user-plus"></i>
+                                <span>Registrar Hijo/Jugador</span>
                             </a>
                             <a href="{% url 'events:list' %}" class="quick-action-btn">
                                 <i class="fas fa-calendar"></i>
@@ -565,114 +848,676 @@
                                 <i class="fas fa-edit"></i>
                                 <span>Editar Perfil</span>
                             </a>
+                        {% else %}
+                            {% if user.player_profile %}
+                                <a href="{% url 'accounts:player_detail' user.player_profile.pk %}" class="quick-action-btn">
+                                    <i class="fas fa-user"></i>
+                                    <span>Mi Perfil</span>
+                                </a>
+                            {% endif %}
+                            <a href="{% url 'events:list' %}" class="quick-action-btn">
+                                <i class="fas fa-calendar"></i>
+                                <span>Ver Eventos</span>
+                            </a>
+                            <a href="{% url 'accounts:profile_edit' %}" class="quick-action-btn">
+                                <i class="fas fa-edit"></i>
+                                <span>Editar Perfil</span>
+                            </a>
                         {% endif %}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Contenido Específico -->
-            {% if profile.is_team_manager %}
-                <!-- Equipos del Manager -->
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <div class="action-card">
-                            <h5><i class="fas fa-users me-2"></i>Mis Equipos</h5>
-                            {% if teams %}
-                                <ul class="list-unstyled mb-0">
-                                    {% for team in teams %}
-                                        <li class="mb-3 pb-3 border-bottom">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <strong>{{ team.name }}</strong>
-                                                    <br>
-                                                    <small class="text-muted">
-                                                        <i class="fas fa-user-friends me-1"></i>{{ team.players_count }} jugadores
-                                                    </small>
-                                                </div>
-                                                <a href="{% url 'accounts:team_detail' team.pk %}" class="btn btn-sm btn-outline-mlb">
-                                                    Ver
-                                                </a>
-                                            </div>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                                <a href="{% url 'accounts:team_list' %}" class="btn btn-mlb w-100 mt-3">
-                                    Ver Todos los Equipos
-                                </a>
-                            {% else %}
-                                <p class="text-muted">No tienes equipos registrados.</p>
-                                <a href="{% url 'accounts:team_create' %}" class="btn btn-mlb w-100">
-                                    <i class="fas fa-plus me-1"></i>Crear Primer Equipo
-                                </a>
-                            {% endif %}
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="action-card">
-                            <h5><i class="fas fa-user-friends me-2"></i>Jugadores Recientes</h5>
-                            {% if recent_players %}
-                                <ul class="list-unstyled mb-0">
-                                    {% for player in recent_players %}
-                                        <li class="mb-3 pb-3 border-bottom">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <strong>{{ player.user.get_full_name|default:player.user.username }}</strong>
-                                                    {% if player.team %}
-                                                        <br>
-                                                        <small class="text-muted">{{ player.team.name }}</small>
-                                                    {% endif %}
-                                                </div>
-                                                <a href="{% url 'accounts:player_detail' player.pk %}" class="btn btn-sm btn-outline-mlb">
-                                                    Ver
-                                                </a>
-                                            </div>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                                <a href="{% url 'accounts:player_list' %}" class="btn btn-mlb w-100 mt-3">
-                                    Ver Todos los Jugadores
-                                </a>
-                            {% else %}
-                                <p class="text-muted">No hay jugadores registrados.</p>
-                                <a href="{% url 'accounts:player_register' %}" class="btn btn-mlb w-100">
-                                    <i class="fas fa-user-plus me-1"></i>Registrar Jugador
-                                </a>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
-            
-            <!-- Eventos Próximos -->
-            {% if upcoming_events %}
-                <div class="row">
-                    <div class="col-12">
-                        <div class="action-card">
-                            <h5><i class="fas fa-calendar-alt me-2"></i>Próximos Eventos</h5>
-                            {% for event in upcoming_events %}
-                                <div class="event-card">
-                                    <h6>{{ event.title }}</h6>
-                                    <div class="event-date">
-                                        <i class="fas fa-calendar me-1"></i>
-                                        {% if event.start_date %}{{ event.start_date|date:"d M Y" }}{% endif %}
-                                    </div>
-                                    {% if event.location %}
-                                        <div class="event-location">
-                                            <i class="fas fa-map-marker-alt me-1"></i>{{ event.location }}
-                                        </div>
-                                    {% endif %}
-                                    <a href="{% url 'events:detail' event.pk %}" class="btn btn-sm btn-outline-mlb mt-2">
-                                        Ver Detalles
-                                    </a>
-                                </div>
-                            {% endfor %}
-                            <a href="{% url 'events:list' %}" class="btn btn-mlb w-100 mt-3">
-                                Ver Todos los Eventos
+                            <a href="{% url 'locations:front_hotel_list' %}" class="quick-action-btn">
+                                <i class="fas fa-hotel"></i>
+                                <span>Reservar Hotel</span>
+                            </a>
+                            <a href="{% url 'locations:front_hotel_reservation_list' %}" class="quick-action-btn">
+                                <i class="fas fa-calendar-check"></i>
+                                <span>Mis Reservas</span>
                             </a>
                         </div>
                     </div>
                 </div>
-            {% endif %}
+            </div>
+            
+            <!-- Tabs de Contenido -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <ul class="nav nav-tabs mb-3" id="dashboardTabs" role="tablist" style="border-bottom: 3px solid var(--mlb-blue);">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true" style="color: var(--mlb-blue); font-weight: 600; border: none; border-bottom: 3px solid transparent;">
+                                <i class="fas fa-home me-2"></i>Inicio
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="events-tab" data-bs-toggle="tab" data-bs-target="#events" type="button" role="tab" aria-controls="events" aria-selected="false" style="color: var(--mlb-blue); font-weight: 600; border: none; border-bottom: 3px solid transparent;">
+                                <i class="fas fa-calendar-alt me-2"></i>Eventos
+                                {% if upcoming_events %}
+                                    <span class="badge ms-1" style="background: var(--mlb-red); color: white;">{{ upcoming_events|length }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                        {% if profile.is_parent %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="children-tab" data-bs-toggle="tab" data-bs-target="#children" type="button" role="tab" aria-controls="children" aria-selected="false" style="color: var(--mlb-blue); font-weight: 600; border: none; border-bottom: 3px solid transparent;">
+                                <i class="fas fa-child me-2"></i>Mis Hijos/Jugadores
+                            </button>
+                        </li>
+                        {% elif profile.is_team_manager %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="teams-tab" data-bs-toggle="tab" data-bs-target="#teams" type="button" role="tab" aria-controls="teams" aria-selected="false" style="color: var(--mlb-blue); font-weight: 600; border: none; border-bottom: 3px solid transparent;">
+                                <i class="fas fa-users me-2"></i>Mis Equipos
+                            </button>
+                        </li>
+                        {% endif %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="hotels-explore-tab" data-bs-toggle="tab" data-bs-target="#hotels-explore" type="button" role="tab" aria-controls="hotels-explore" aria-selected="false" style="color: var(--mlb-blue); font-weight: 600; border: none; border-bottom: 3px solid transparent;">
+                                <i class="fas fa-hotel me-2"></i>Explorar Hoteles
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="hotels-reservations-tab" data-bs-toggle="tab" data-bs-target="#hotels-reservations" type="button" role="tab" aria-controls="hotels-reservations" aria-selected="false" style="color: var(--mlb-blue); font-weight: 600; border: none; border-bottom: 3px solid transparent;">
+                                <i class="fas fa-calendar-check me-2"></i>Mis Reservas
+                                {% if pending_reservations > 0 %}
+                                    <span class="badge ms-1" style="background: var(--mlb-red); color: white;">{{ pending_reservations }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="hotels-cart-tab" data-bs-toggle="tab" data-bs-target="#hotels-cart" type="button" role="tab" aria-controls="hotels-cart" aria-selected="false" style="color: var(--mlb-blue); font-weight: 600; border: none; border-bottom: 3px solid transparent;">
+                                <i class="fas fa-shopping-cart me-2"></i>Carrito
+                                {% if cart_count > 0 %}
+                                    <span class="badge ms-1" style="background: var(--mlb-red); color: white;">{{ cart_count }}</span>
+                                {% endif %}
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="dashboardTabsContent">
+                        <!-- Tab Inicio -->
+                        <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                            <!-- Contenido del Admin -->
+                            {% if dashboard_content %}
+                                {% for content in dashboard_content %}
+                                    <div class="action-card mb-4">
+                                        <h4 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 20px;">
+                                            <i class="fas fa-info-circle me-2"></i>{{ content.title }}
+                                        </h4>
+                                        <div style="line-height: 1.8; color: #555;">
+                                            {{ content.content|safe }}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="action-card mb-4">
+                                    <h4 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 20px;">
+                                        <i class="fas fa-info-circle me-2"></i>Bienvenido
+                                    </h4>
+                                    <p style="line-height: 1.8; color: #555;">
+                                        Bienvenido a tu panel de control. Aquí podrás gestionar tu información, ver eventos próximos y realizar diferentes acciones.
+                                    </p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Tab Eventos -->
+                        <!-- Tab: Eventos -->
+                        <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="events-tab">
+                            <div class="row">
+                                <div class="col-12">
+                                    <!-- Header de Eventos -->
+                                    <div class="card shadow-sm border-0 mb-4">
+                                        <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; border: none; padding: 20px;">
+                                            <div>
+                                                <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Eventos y Torneos</h5>
+                                                <small class="opacity-75">Descubre los próximos eventos y torneos disponibles</small>
+                                            </div>
+                                            <a href="{% url 'events:list' %}" class="btn btn-sm" style="background: var(--mlb-red); color: white; border: none;">
+                                                <i class="fas fa-list me-1"></i>Ver Todos
+                                            </a>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Próximos Eventos -->
+                                    {% if upcoming_events %}
+                                        <div class="row mb-4">
+                                            <div class="col-12">
+                                                <h4 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
+                                                    <i class="fas fa-clock me-2"></i>Próximos Eventos
+                                                </h4>
+                                            </div>
+                                        </div>
+                                        <div class="row g-3 mb-4">
+                                            {% for event in upcoming_events %}
+                                                <div class="col-md-6 col-lg-4">
+                                                    <div class="event-card">
+                                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                                            <h6 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 0;">{{ event.title }}</h6>
+                                                            {% if event.category %}
+                                                                <span class="badge" style="background: var(--mlb-blue); color: white;">{{ event.category.name }}</span>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="event-date mb-2">
+                                                            <i class="fas fa-calendar me-1" style="color: var(--mlb-red);"></i>
+                                                            <strong>Fecha:</strong> 
+                                                            {% if event.start_date %}{{ event.start_date|date:"d M Y" }}{% endif %}
+                                                            {% if event.end_date and event.end_date != event.start_date %}
+                                                                - {{ event.end_date|date:"d M Y" }}
+                                                            {% endif %}
+                                                        </div>
+                                                        {% if event.location or event.site %}
+                                                            <div class="event-location mb-2">
+                                                                <i class="fas fa-map-marker-alt me-1" style="color: var(--mlb-red);"></i>
+                                                                <strong>Ubicación:</strong> 
+                                                                {% if event.site %}
+                                                                    {{ event.site.site_name }}
+                                                                    {% if event.site.city %}, {{ event.site.city.name }}{% endif %}
+                                                                {% elif event.location %}
+                                                                    {{ event.location }}
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endif %}
+                                                        {% if event.divisions.all %}
+                                                            <div class="mb-2">
+                                                                {% for division in event.divisions.all %}
+                                                                    <span class="badge bg-info me-1">
+                                                                        <i class="fas fa-users me-1"></i>{{ division.name }}
+                                                                    </span>
+                                                                {% endfor %}
+                                                            </div>
+                                                        {% endif %}
+                                                        {% if event.description %}
+                                                            <p class="text-muted mb-3" style="font-size: 0.9rem; line-height: 1.6;">{{ event.description|truncatewords:25 }}</p>
+                                                        {% endif %}
+                                                        <div class="d-flex gap-2">
+                                                            <a href="{% url 'events:detail' event.pk %}" class="btn btn-sm flex-grow-1" style="background: var(--mlb-blue); color: white; border: none;">
+                                                                <i class="fas fa-eye me-1"></i>Ver Detalles
+                                                            </a>
+                                                            {% if event.registration_url %}
+                                                                <a href="{{ event.registration_url }}" target="_blank" class="btn btn-sm" style="background: var(--mlb-red); color: white; border: none;">
+                                                                    <i class="fas fa-external-link-alt"></i>
+                                                                </a>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="card shadow-sm border-0">
+                                            <div class="card-body text-center py-5">
+                                                <i class="fas fa-calendar-times fa-4x mb-3" style="color: #ccc;"></i>
+                                                <h5 class="text-muted mb-2">No hay eventos próximos</h5>
+                                                <p class="text-muted">No hay eventos programados en este momento. Vuelve pronto para ver nuevos eventos.</p>
+                                                <a href="{% url 'events:list' %}" class="btn mt-3" style="background: var(--mlb-blue); color: white; border: none;">
+                                                    <i class="fas fa-list me-2"></i>Ver Todos los Eventos
+                                                </a>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <!-- Acciones Rápidas de Eventos -->
+                                    <div class="row mt-4">
+                                        <div class="col-12">
+                                            <div class="card shadow-sm border-0">
+                                                <div class="card-body">
+                                                    <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
+                                                        <i class="fas fa-bolt me-2"></i>Acciones Rápidas
+                                                    </h5>
+                                                    <div class="row g-3">
+                                                        <div class="col-md-4">
+                                                            <a href="{% url 'events:list' %}" class="quick-action-btn d-block text-center">
+                                                                <i class="fas fa-list"></i>
+                                                                <span>Ver Todos los Eventos</span>
+                                                            </a>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <a href="{% url 'events:list' %}?status=upcoming" class="quick-action-btn d-block text-center">
+                                                                <i class="fas fa-clock"></i>
+                                                                <span>Eventos Próximos</span>
+                                                            </a>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <a href="{% url 'events:list' %}?status=past" class="quick-action-btn d-block text-center">
+                                                                <i class="fas fa-history"></i>
+                                                                <span>Eventos Pasados</span>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tab Hijos/Jugadores (Padres) -->
+                        {% if profile.is_parent %}
+                        <div class="tab-pane fade" id="children" role="tabpanel" aria-labelledby="children-tab">
+                            <div class="action-card">
+                                <h5><i class="fas fa-child me-2"></i>Mis Hijos/Jugadores</h5>
+                                {% if children %}
+                                    <ul class="list-unstyled mb-0">
+                                        {% for child_relation in children %}
+                                            {% if child_relation.player and child_relation.player.pk %}
+                                                <li class="mb-3 pb-3 border-bottom">
+                                                    <div class="d-flex justify-content-between align-items-center">
+                                                        <div>
+                                                            <strong>{{ child_relation.player.user.get_full_name|default:child_relation.player.user.username }}</strong>
+                                                            <br>
+                                                            <small class="text-muted">
+                                                                <i class="fas fa-user-tag me-1"></i>{{ child_relation.get_relationship_display }}
+                                                                {% if child_relation.player.team %}
+                                                                    | <i class="fas fa-users me-1"></i>{{ child_relation.player.team.name }}
+                                                                {% endif %}
+                                                            </small>
+                                                        </div>
+                                                        <div>
+                                                            <a href="{% url 'accounts:player_detail' child_relation.player.pk %}" class="btn btn-sm btn-outline-mlb me-2">
+                                                                Ver
+                                                            </a>
+                                                            <a href="{% url 'accounts:player_edit' child_relation.player.pk %}" class="btn btn-sm btn-mlb">
+                                                                <i class="fas fa-edit me-1"></i>Editar
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p class="text-muted">No has registrado ningún jugador aún.</p>
+                                    <a href="{% url 'accounts:parent_player_register' %}" class="btn btn-mlb w-100">
+                                        <i class="fas fa-user-plus me-1"></i>Registrar Primer Hijo/Jugador
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Tab Equipos (Managers) -->
+                        {% if profile.is_team_manager %}
+                        <div class="tab-pane fade" id="teams" role="tabpanel" aria-labelledby="teams-tab">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="action-card">
+                                        <h5><i class="fas fa-users me-2"></i>Mis Equipos</h5>
+                                        {% if teams %}
+                                            <ul class="list-unstyled mb-0">
+                                                {% for team in teams %}
+                                                    <li class="mb-3 pb-3 border-bottom">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <strong>{{ team.name }}</strong>
+                                                                <br>
+                                                                <small class="text-muted">
+                                                                    <i class="fas fa-user-friends me-1"></i>{{ team.players_count }} jugadores
+                                                                </small>
+                                                            </div>
+                                                            <a href="{% url 'accounts:team_detail' team.pk %}" class="btn btn-sm btn-outline-mlb">
+                                                                Ver
+                                                            </a>
+                                                        </div>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                            <a href="{% url 'accounts:team_list' %}" class="btn btn-mlb w-100 mt-3">
+                                                Ver Todos los Equipos
+                                            </a>
+                                        {% else %}
+                                            <p class="text-muted">No tienes equipos registrados.</p>
+                                            <a href="{% url 'accounts:team_create' %}" class="btn btn-mlb w-100">
+                                                <i class="fas fa-plus me-1"></i>Crear Primer Equipo
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="action-card">
+                                        <h5><i class="fas fa-user-friends me-2"></i>Jugadores Recientes</h5>
+                                        {% if recent_players %}
+                                            <ul class="list-unstyled mb-0">
+                                                {% for player in recent_players %}
+                                                    <li class="mb-3 pb-3 border-bottom">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <strong>{{ player.user.get_full_name|default:player.user.username }}</strong>
+                                                                {% if player.team %}
+                                                                    <br>
+                                                                    <small class="text-muted">{{ player.team.name }}</small>
+                                                                {% endif %}
+                                                            </div>
+                                                            {% if player.pk %}
+                                                                <a href="{% url 'accounts:player_detail' player.pk %}" class="btn btn-sm btn-outline-mlb">
+                                                                    Ver
+                                                                </a>
+                                                            {% endif %}
+                                                        </div>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                            <a href="{% url 'accounts:player_list' %}" class="btn btn-mlb w-100 mt-3">
+                                                Ver Todos los Jugadores
+                                            </a>
+                                        {% else %}
+                                            <p class="text-muted">No hay jugadores registrados.</p>
+                                            <a href="{% url 'accounts:player_register' %}" class="btn btn-mlb w-100">
+                                                <i class="fas fa-user-plus me-1"></i>Registrar Jugador
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Tab: Explorar Hoteles -->
+                        <div class="tab-pane fade" id="hotels-explore" role="tabpanel" aria-labelledby="hotels-explore-tab">
+                                    <!-- Estadísticas y Filtros Superiores -->
+                                    <div class="row mb-4">
+                                        <div class="col-md-12">
+                                            <div class="card shadow-sm border-0">
+                                                <div class="card-body">
+                                                    <div class="row align-items-center">
+                                                        <div class="col-md-8">
+                                                            <form method="get" id="hotelSearchForm" class="row g-2">
+                                                                <div class="col-md-6">
+                                                                    <div class="input-group">
+                                                                        <span class="input-group-text" style="background: var(--mlb-blue); color: white; border: none;">
+                                                                            <i class="fas fa-search"></i>
+                                                                        </span>
+                                                                        <input type="text" class="form-control" id="hotel_search" name="search" 
+                                                                               value="{{ request.GET.search }}" placeholder="Buscar por nombre, dirección, ciudad...">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-md-4">
+                                                                    <select class="form-select" id="hotel_country" name="country">
+                                                                        <option value="">Todos los Países</option>
+                                                                        {% for country in countries %}
+                                                                            <option value="{{ country.id }}" 
+                                                                                    {% if request.GET.country == country.id|stringformat:"s" %}selected{% endif %}>
+                                                                                {{ country.name }}
+                                                                            </option>
+                                                                        {% endfor %}
+                                                                    </select>
+                                                                </div>
+                                                                <div class="col-md-2">
+                                                                    <button type="submit" class="btn w-100" style="background: var(--mlb-blue); color: white; border: none;">
+                                                                        <i class="fas fa-search me-1"></i>Buscar
+                                                                    </button>
+                                                                </div>
+                                                            </form>
+                                                        </div>
+                                                        <div class="col-md-4">
+                                                            <div class="d-flex justify-content-end gap-3">
+                                                                <div class="text-center">
+                                                                    <div class="stat-badge" style="background: var(--mlb-blue); color: white; padding: 10px 15px; border-radius: 8px; min-width: 80px;">
+                                                                        <div class="fw-bold fs-4">{{ total_reservations }}</div>
+                                                                        <small>Reservas</small>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="text-center">
+                                                                    <div class="stat-badge" style="background: var(--mlb-gold); color: #333; padding: 10px 15px; border-radius: 8px; min-width: 80px;">
+                                                                        <div class="fw-bold fs-4">{{ pending_reservations }}</div>
+                                                                        <small>Pendientes</small>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="text-center">
+                                                                    <div class="stat-badge" style="background: var(--mlb-red); color: white; padding: 10px 15px; border-radius: 8px; min-width: 80px; cursor: pointer;" onclick="toggleCartSidebar()">
+                                                                        <div class="fw-bold fs-4">{{ cart_count }}</div>
+                                                                        <small>En Carrito</small>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Lista de Hoteles -->
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <!-- Lista de Hoteles -->
+                                            <div class="card shadow-sm border-0">
+                                                <div class="card-header d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; border: none; padding: 20px;">
+                                                    <div>
+                                                        <h5 class="mb-0"><i class="fas fa-hotel me-2"></i>Hoteles Disponibles</h5>
+                                                        <small class="opacity-75">Encuentra el hotel perfecto para tu estadía</small>
+                                                    </div>
+                                                    <span class="badge px-3 py-2" style="background: var(--mlb-red); font-size: 0.9rem;">{{ hotels|length }} hoteles</span>
+                                                </div>
+                                                <div class="card-body p-4">
+                                                    {% if hotels %}
+                                                        <div class="row g-4" id="hotelsGrid">
+                                                            {% for hotel in hotels %}
+                                                                <div class="col-md-6 col-lg-4">
+                                                                    <div class="card h-100 shadow-sm hotel-card-dashboard border-0" style="transition: all 0.3s ease; border-radius: 15px; overflow: hidden; cursor: pointer;" onclick="event.stopPropagation();">
+                                                                        <div class="position-relative">
+                                                                            {% if hotel.photo %}
+                                                                                <img src="{{ hotel.photo.url }}" class="card-img-top" alt="{{ hotel.hotel_name }}" 
+                                                                                     style="height: 200px; object-fit: cover; transition: transform 0.3s ease;">
+                                                                            {% else %}
+                                                                                <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center" 
+                                                                                     style="height: 200px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);">
+                                                                                    <i class="fas fa-hotel fa-4x text-white opacity-50"></i>
+                                                                                </div>
+                                                                            {% endif %}
+                                                                            <div class="position-absolute top-0 end-0 m-2">
+                                                                                {% if hotel.capacity %}
+                                                                                    <span class="badge px-3 py-2" style="background: rgba(255,255,255,0.9); color: var(--mlb-blue); font-weight: 600;">
+                                                                                        <i class="fas fa-users me-1"></i>{{ hotel.capacity }}
+                                                                                    </span>
+                                                                                {% endif %}
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="card-body">
+                                                                            <h5 class="card-title mb-2" style="color: var(--mlb-blue); font-weight: 700; font-size: 1.1rem;">
+                                                                                {{ hotel.hotel_name }}
+                                                                            </h5>
+                                                                            <p class="card-text text-muted mb-3" style="font-size: 0.9rem;">
+                                                                                <i class="fas fa-map-marker-alt me-1" style="color: var(--mlb-red);"></i>
+                                                                                {% if hotel.city %}
+                                                                                    {{ hotel.city.name }}
+                                                                                    {% if hotel.state %}, {{ hotel.state.name }}{% endif %}
+                                                                                {% else %}
+                                                                                    {{ hotel.address|truncatewords:5 }}
+                                                                                {% endif %}
+                                                                            </p>
+                                                                        </div>
+                                                                        <div class="card-footer bg-white border-0 p-3">
+                                                                            <button type="button" 
+                                                                                    class="btn w-100 view-hotel-btn" 
+                                                                                    style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; border: none; padding: 12px; font-weight: 600; border-radius: 8px; transition: all 0.3s ease;"
+                                                                                    data-hotel-id="{{ hotel.pk }}"
+                                                                                    data-bs-toggle="modal"
+                                                                                    data-bs-target="#hotelDetailModal"
+                                                                                    onclick="loadHotelInModal({{ hotel.pk }}); return false;"
+                                                                                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 15px rgba(13, 44, 84, 0.3)';"
+                                                                                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                                                                <i class="fas fa-eye me-2"></i>Ver y Reservar
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                        
+                                                        <!-- Paginación si es necesaria -->
+                                                        {% if is_paginated %}
+                                                            <nav aria-label="Hotels pagination" class="mt-4">
+                                                                <ul class="pagination justify-content-center pagination-sm">
+                                                                    {% if page_obj.has_previous %}
+                                                                        <li class="page-item">
+                                                                            <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.country %}&country={{ request.GET.country }}{% endif %}">Primera</a>
+                                                                        </li>
+                                                                        <li class="page-item">
+                                                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.country %}&country={{ request.GET.country }}{% endif %}">Anterior</a>
+                                                                        </li>
+                                                                    {% endif %}
+                                                                    <li class="page-item active">
+                                                                        <span class="page-link">
+                                                                            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                                                        </span>
+                                                                    </li>
+                                                                    {% if page_obj.has_next %}
+                                                                        <li class="page-item">
+                                                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.country %}&country={{ request.GET.country }}{% endif %}">Siguiente</a>
+                                                                        </li>
+                                                                        <li class="page-item">
+                                                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.country %}&country={{ request.GET.country }}{% endif %}">Última</a>
+                                                                        </li>
+                                                                    {% endif %}
+                                                                </ul>
+                                                            </nav>
+                                                        {% endif %}
+                                                    {% else %}
+                                                        <div class="text-center py-5">
+                                                            <div class="mb-4">
+                                                                <i class="fas fa-hotel fa-5x" style="color: #ddd;"></i>
+                                                            </div>
+                                                            <h5 class="text-muted mb-3">No se encontraron hoteles</h5>
+                                                            <p class="text-muted mb-4">Intenta ajustar tus filtros de búsqueda o limpiar los filtros actuales.</p>
+                                                            <button type="button" class="btn px-4" style="background: var(--mlb-blue); color: white; border: none; border-radius: 8px;" onclick="document.getElementById('hotelSearchForm').reset(); document.getElementById('hotelSearchForm').submit();">
+                                                                <i class="fas fa-redo me-2"></i>Limpiar Filtros
+                                                            </button>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                        </div>
+                        
+                        <!-- Tab: Mis Reservas -->
+                        <div class="tab-pane fade" id="hotels-reservations" role="tabpanel" aria-labelledby="hotels-reservations-tab">
+                                    <div class="card shadow-sm">
+                                        <div class="card-header d-flex justify-content-between align-items-center" style="background: var(--mlb-blue); color: white; border: none;">
+                                            <h5 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Mis Reservas</h5>
+                                            <a href="{% url 'locations:front_hotel_reservation_create' %}" class="btn btn-sm" style="background: var(--mlb-red); color: white; border: none;">
+                                                <i class="fas fa-plus me-1"></i>Nueva Reserva
+                                            </a>
+                                        </div>
+                                        <div class="card-body">
+                                            {% if user_reservations %}
+                                                <div class="table-responsive">
+                                                    <table class="table table-hover">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>ID</th>
+                                                                <th>Hotel</th>
+                                                                <th>Habitación</th>
+                                                                <th>Fechas</th>
+                                                                <th>Huéspedes</th>
+                                                                <th>Total</th>
+                                                                <th>Estado</th>
+                                                                <th>Acciones</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {% for reservation in user_reservations %}
+                                                                <tr>
+                                                                    <td>#{{ reservation.id }}</td>
+                                                                    <td>{{ reservation.hotel.hotel_name }}</td>
+                                                                    <td>#{{ reservation.room.room_number }}</td>
+                                                                    <td>
+                                                                        <small>
+                                                                            {{ reservation.check_in|date:"d/m/Y" }}<br>
+                                                                            {{ reservation.check_out|date:"d/m/Y" }}
+                                                                        </small>
+                                                                    </td>
+                                                                    <td>{{ reservation.number_of_guests }}</td>
+                                                                    <td><strong>${{ reservation.total_amount|floatformat:2 }}</strong></td>
+                                                                    <td>
+                                                                        <span class="badge" style="background: {% if reservation.status == 'confirmed' %}#28a745{% elif reservation.status == 'pending' %}var(--mlb-gold){% elif reservation.status == 'cancelled' %}var(--mlb-red){% else %}var(--mlb-blue){% endif %}; color: white;">
+                                                                            {{ reservation.get_status_display }}
+                                                                        </span>
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="btn-group btn-group-sm">
+                                                                            <a href="{% url 'locations:front_hotel_reservation_detail' reservation.pk %}" 
+                                                                               class="btn" style="border: 1px solid var(--mlb-blue); color: var(--mlb-blue); background: transparent;" title="Ver">
+                                                                                <i class="fas fa-eye"></i>
+                                                                            </a>
+                                                                            {% if reservation.status == 'pending' %}
+                                                                                <a href="{% url 'locations:front_hotel_reservation_checkout' reservation.pk %}" 
+                                                                                   class="btn" style="border: 1px solid #28a745; color: #28a745; background: transparent;" title="Pagar">
+                                                                                    <i class="fas fa-credit-card"></i>
+                                                                                </a>
+                                                                            {% endif %}
+                                                                        </div>
+                                                                    </td>
+                                                                </tr>
+                                                            {% endfor %}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <div class="mt-3">
+                                                    <a href="{% url 'locations:front_hotel_reservation_list' %}" class="btn" style="background: var(--mlb-blue); color: white; border: none;">
+                                                        <i class="fas fa-list me-2"></i>Ver Todas las Reservas
+                                                    </a>
+                                                </div>
+                                            {% else %}
+                                                <div class="text-center py-5">
+                                                    <i class="fas fa-calendar-check fa-4x mb-3" style="color: #ccc;"></i>
+                                                    <h5 class="text-muted">No tienes reservas</h5>
+                                                    <p class="text-muted">Comienza explorando hoteles y haciendo tu primera reserva.</p>
+                                                    <a href="{% url 'locations:front_hotel_list' %}" class="btn" style="background: var(--mlb-blue); color: white; border: none;">
+                                                        <i class="fas fa-hotel me-2"></i>Explorar Hoteles
+                                                    </a>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                        </div>
+                        
+                        <!-- Tab: Carrito -->
+                        <div class="tab-pane fade" id="hotels-cart" role="tabpanel" aria-labelledby="hotels-cart-tab">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            {% if cart_count > 0 %}
+                                                <div class="card shadow-sm">
+                                                    <div class="card-header d-flex justify-content-between align-items-center" style="background: var(--mlb-blue); color: white; border: none;">
+                                                        <h5 class="mb-0"><i class="fas fa-shopping-cart me-2"></i>Carrito de Reservas</h5>
+                                                        <form method="post" action="{% url 'locations:clear_cart' %}" class="d-inline">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-sm" style="background: var(--mlb-red); color: white; border: none;" onclick="return confirm('¿Estás seguro de limpiar el carrito?');">
+                                                                <i class="fas fa-trash me-1"></i>Limpiar
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <p class="text-muted">Tienes <strong style="color: var(--mlb-blue);">{{ cart_count }}</strong> item(s) en tu carrito con un total de <strong style="color: var(--mlb-blue); font-size: 1.2rem;">${{ cart_total|floatformat:2 }}</strong></p>
+                                                        <div class="d-grid gap-2">
+                                                            <a href="{% url 'locations:hotel_cart' %}" class="btn btn-lg" style="background: var(--mlb-blue); color: white; border: none;">
+                                                                <i class="fas fa-shopping-cart me-2"></i>Ver Carrito Completo
+                                                            </a>
+                                                            <form method="post" action="{% url 'locations:checkout_cart' %}" class="d-inline">
+                                                                {% csrf_token %}
+                                                                <button type="submit" class="btn btn-lg w-100" style="background: #28a745; color: white; border: none;">
+                                                                    <i class="fas fa-credit-card me-2"></i>Proceder al Pago
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <div class="card shadow-sm">
+                                                    <div class="card-body text-center py-5">
+                                                        <i class="fas fa-shopping-cart fa-4x mb-3" style="color: #ccc;"></i>
+                                                        <h5 class="text-muted">Tu carrito está vacío</h5>
+                                                        <p class="text-muted">Agrega reservas de hoteles a tu carrito para continuar.</p>
+                                                        <a href="{% url 'locations:front_hotel_list' %}" class="btn" style="background: var(--mlb-blue); color: white; border: none;">
+                                                            <i class="fas fa-hotel me-2"></i>Explorar Hoteles
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -682,9 +1527,355 @@
             <p>&copy; 2024 NSC International. Todos los derechos reservados.</p>
         </div>
     </footer>
+    
+    <!-- Botón Flotante del Carrito -->
+    <button id="cartFloatingBtn" class="cart-floating-btn" onclick="toggleCartSidebar()">
+        <i class="fas fa-shopping-cart"></i>
+        {% if cart_count > 0 %}
+            <span class="cart-badge">{{ cart_count }}</span>
+        {% endif %}
+    </button>
+    
+    <!-- Sidebar del Carrito -->
+    <div id="cartSidebar" class="cart-sidebar">
+        <div class="cart-sidebar-header">
+            <h5 class="mb-0">
+                <i class="fas fa-shopping-cart me-2"></i>Carrito de Reservas
+                {% if cart_count > 0 %}
+                    <span class="badge ms-2" style="background: var(--mlb-red); color: white;">{{ cart_count }}</span>
+                {% endif %}
+            </h5>
+            <button class="btn-close btn-close-white" onclick="toggleCartSidebar()" aria-label="Cerrar"></button>
+        </div>
+        <div class="cart-sidebar-body">
+            {% if cart_count > 0 %}
+                <div id="cartSidebarContent">
+                    <!-- El contenido se cargará dinámicamente -->
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-shopping-cart fa-4x mb-3" style="color: #ccc;"></i>
+                    <h5 class="text-muted">Tu carrito está vacío</h5>
+                    <p class="text-muted">Agrega reservas de hoteles a tu carrito.</p>
+                    <a href="{% url 'locations:front_hotel_list' %}" class="btn" style="background: var(--mlb-blue); color: white; border: none;" onclick="toggleCartSidebar()">
+                        <i class="fas fa-hotel me-2"></i>Explorar Hoteles
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        {% if cart_count > 0 %}
+        <div class="cart-sidebar-footer">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <strong style="color: #666;">Total:</strong>
+                <h4 class="mb-0" style="color: var(--mlb-blue); font-weight: 700;">${{ cart_total|floatformat:2 }}</h4>
+            </div>
+            <div class="d-grid gap-2">
+                <a href="{% url 'locations:hotel_cart' %}" class="btn" style="background: var(--mlb-blue); color: white; border: none;" onclick="toggleCartSidebar()">
+                    <i class="fas fa-shopping-cart me-2"></i>Ver Carrito Completo
+                </a>
+                <form method="post" action="{% url 'locations:checkout_cart' %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn w-100" style="background: #28a745; color: white; border: none;">
+                        <i class="fas fa-credit-card me-2"></i>Proceder al Pago
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Overlay para cerrar el sidebar -->
+    <div id="cartSidebarOverlay" class="cart-sidebar-overlay" onclick="toggleCartSidebar()"></div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{% static 'js/admin.js' %}"></script>
+    <script>
+        // Convert Django messages to modern toasts (after adminDashboard is initialized)
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait a bit for adminDashboard to be ready
+            setTimeout(function() {
+                if (window.adminDashboard) {
+                    window.adminDashboard.convertDjangoMessagesToToasts();
+                }
+            }, 100);
+            
+            // Cargar contenido del carrito en el sidebar
+            {% if cart_count > 0 %}
+                loadCartSidebarContent();
+            {% endif %}
+        });
+        
+        // Función para abrir/cerrar el sidebar del carrito
+        function toggleCartSidebar() {
+            const sidebar = document.getElementById('cartSidebar');
+            const overlay = document.getElementById('cartSidebarOverlay');
+            
+            if (sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('show');
+            } else {
+                sidebar.classList.add('open');
+                overlay.classList.add('show');
+                // Recargar contenido del carrito
+                if ({{ cart_count }} > 0) {
+                    loadCartSidebarContent();
+                }
+            }
+        }
+        
+        // Cargar contenido del carrito en el sidebar
+        function loadCartSidebarContent() {
+            const container = document.getElementById('cartSidebarContent');
+            if (!container) return;
+            
+            container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div>';
+            
+            // Usar AJAX para obtener el contenido del carrito
+            fetch('{% url "locations:get_cart_json" %}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.items && data.items.length > 0) {
+                        let itemsHTML = '';
+                        data.items.forEach((item, index) => {
+                            if (index < 5) { // Mostrar máximo 5 items en el sidebar
+                                itemsHTML += `
+                                    <div class="cart-item-sidebar">
+                                        <h6><i class="fas fa-hotel me-1"></i>${item.hotel_name}</h6>
+                                        <div class="cart-item-details">
+                                            <i class="fas fa-bed me-1"></i>Habitación #${item.room_number}<br>
+                                            <i class="fas fa-calendar me-1"></i>${item.check_in} - ${item.check_out}<br>
+                                            <i class="fas fa-users me-1"></i>${item.guests} persona${item.guests > 1 ? 's' : ''}
+                                        </div>
+                                        <div class="cart-item-total">$${parseFloat(item.total).toFixed(2)}</div>
+                                    </div>
+                                `;
+                            }
+                        });
+                        
+                        if (data.items.length > 5) {
+                            itemsHTML += `<div class="text-center mt-3"><small class="text-muted">Y ${data.items.length - 5} más...</small></div>`;
+                        }
+                        
+                        container.innerHTML = itemsHTML;
+                    } else {
+                        container.innerHTML = '<div class="text-center py-4"><i class="fas fa-shopping-cart fa-3x mb-3" style="color: #ccc;"></i><p class="text-muted">No hay items en el carrito.</p></div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cargando carrito:', error);
+                    container.innerHTML = '<div class="text-center py-4"><p class="text-danger">Error al cargar el carrito.</p></div>';
+                });
+        }
+        
+        // Cerrar sidebar con ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const sidebar = document.getElementById('cartSidebar');
+                if (sidebar && sidebar.classList.contains('open')) {
+                    toggleCartSidebar();
+                }
+            }
+        });
+        
+        // Función para actualizar el badge del carrito (se puede llamar desde otras páginas)
+        function updateCartBadge(count) {
+            const badge = document.querySelector('.cart-badge');
+            const floatingBtn = document.getElementById('cartFloatingBtn');
+            
+            if (count > 0) {
+                if (badge) {
+                    badge.textContent = count;
+                    badge.style.display = 'flex';
+                } else if (floatingBtn) {
+                    // Crear badge si no existe
+                    const newBadge = document.createElement('span');
+                    newBadge.className = 'cart-badge';
+                    newBadge.textContent = count;
+                    floatingBtn.appendChild(newBadge);
+                }
+            } else {
+                if (badge) {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+        
+        // Escuchar eventos de actualización del carrito (desde otras páginas)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'cart_updated') {
+                loadCartSidebarContent();
+            }
+        });
+        
+        // Función global para cargar hotel en el modal
+        function loadHotelInModal(hotelId) {
+            console.log('loadHotelInModal llamado con ID:', hotelId);
+            const modalBody = document.getElementById('hotelDetailModalBody');
+            
+            if (!modalBody) {
+                console.error('Modal body no encontrado');
+                return;
+            }
+            
+            if (!hotelId) {
+                console.error('No se proporcionó el ID del hotel');
+                modalBody.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error: No se pudo obtener el ID del hotel.
+                    </div>
+                `;
+                return;
+            }
+            
+            // Mostrar loading
+            modalBody.innerHTML = `
+                <div class="text-center py-5" id="hotelLoadingSpinner">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-3 text-muted">Cargando información del hotel...</p>
+                </div>
+            `;
+            
+            // Construir la URL correctamente
+            const baseUrl = '{% url "locations:front_hotel_detail" 0 %}';
+            const hotelUrl = baseUrl.replace('0', hotelId);
+            console.log('URL del hotel:', hotelUrl);
+            
+            // Cargar contenido del hotel usando AJAX
+            fetch(hotelUrl, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'text/html',
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Content-Type:', response.headers.get('Content-Type'));
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(html => {
+                console.log('HTML recibido, longitud:', html.length);
+                
+                if (!html || html.trim().length === 0) {
+                    throw new Error('El servidor devolvió una respuesta vacía');
+                }
+                
+                // El template AJAX ya devuelve solo el contenido sin layout
+                // Simplemente insertarlo directamente
+                modalBody.innerHTML = html;
+                
+                // Reinicializar cualquier JavaScript necesario después de un pequeño delay
+                setTimeout(() => {
+                    initializeHotelModalContent();
+                    // Ejecutar scripts que puedan estar en el HTML cargado
+                    const scripts = modalBody.querySelectorAll('script');
+                    scripts.forEach(oldScript => {
+                        const newScript = document.createElement('script');
+                        Array.from(oldScript.attributes).forEach(attr => {
+                            newScript.setAttribute(attr.name, attr.value);
+                        });
+                        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                        oldScript.parentNode.replaceChild(newScript, oldScript);
+                    });
+                }, 100);
+            })
+            .catch(error => {
+                console.error('Error completo al cargar el hotel:', error);
+                modalBody.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Error al cargar la información del hotel.</strong>
+                        <p class="mb-2"><strong>Error:</strong> ${error.message}</p>
+                        <p class="mb-2"><small>Por favor, revisa la consola del navegador (F12) para más detalles.</small></p>
+                        <a href="${hotelUrl}" target="_blank" class="btn btn-sm mt-2" style="background: var(--mlb-blue); color: white;">
+                            <i class="fas fa-external-link-alt me-1"></i>Abrir en nueva pestaña
+                        </a>
+                    </div>
+                `;
+            });
+        }
+        
+        // También escuchar el evento de Bootstrap como respaldo
+        document.addEventListener('DOMContentLoaded', function() {
+            const hotelModal = document.getElementById('hotelDetailModal');
+            if (hotelModal) {
+                hotelModal.addEventListener('show.bs.modal', function(event) {
+                    const button = event.relatedTarget;
+                    if (button) {
+                        const hotelId = button.getAttribute('data-hotel-id');
+                        if (hotelId) {
+                            loadHotelInModal(hotelId);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Función para inicializar el contenido del modal después de cargar
+        function initializeHotelModalContent() {
+            // El script del template AJAX ya maneja toda la funcionalidad
+            // Solo necesitamos asegurarnos de que los scripts se ejecuten
+            console.log('Contenido del modal inicializado');
+        }
+        
+        // Efecto hover mejorado en las tarjetas de hoteles
+        document.querySelectorAll('.hotel-card-dashboard').forEach(card => {
+            const img = card.querySelector('.card-img-top');
+            
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px)';
+                this.style.boxShadow = '0 15px 40px rgba(13, 44, 84, 0.2)';
+                if (img && img.tagName === 'IMG') {
+                    img.style.transform = 'scale(1.05)';
+                }
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '';
+                if (img && img.tagName === 'IMG') {
+                    img.style.transform = 'scale(1)';
+                }
+            });
+        });
+    </script>
+    
+    <!-- Modal para Detalles del Hotel y Reserva -->
+    <div class="modal fade" id="hotelDetailModal" tabindex="-1" aria-labelledby="hotelDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen-lg-down modal-dialog-scrollable" style="max-width: 95vw; width: 95vw;">
+            <div class="modal-content border-0" style="border-radius: 15px; overflow: hidden; max-height: 95vh;">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; border: none; padding: 25px 35px;">
+                    <h4 class="modal-title" id="hotelDetailModalLabel" style="font-weight: 700; font-size: 1.5rem;">
+                        <i class="fas fa-hotel me-2"></i>Ver y Reservar Hotel
+                    </h4>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="font-size: 1.3rem; opacity: 0.9;"></button>
+                </div>
+                <div class="modal-body" id="hotelDetailModalBody" style="background: #f8f9fa; padding: 0; max-height: calc(95vh - 100px); overflow-y: auto;">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Cargando información del hotel...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 

@@ -1,0 +1,1033 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ player.user.get_full_name|default:player.user.username }} - NSC International</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --mlb-blue: #0d2c54;
+            --mlb-red: #d50032;
+            --mlb-light-blue: #132448;
+            --mlb-gold: #ffd700;
+            --mlb-dark: #1a1a1a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            background: var(--mlb-dark);
+            color: white;
+            padding: 8px 0;
+            font-size: 0.85rem;
+        }
+        
+        .top-bar a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .top-bar a:hover {
+            color: white;
+        }
+        
+        /* Navbar */
+        .navbar-mlb {
+            background: var(--mlb-blue) !important;
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .navbar-mlb .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white !important;
+            padding: 15px 20px;
+            background: var(--mlb-red);
+        }
+        
+        .navbar-mlb .nav-link {
+            color: white !important;
+            font-weight: 600;
+            padding: 20px 15px !important;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            transition: background 0.3s;
+        }
+        
+        .navbar-mlb .nav-link:hover,
+        .navbar-mlb .nav-link.active {
+            background: var(--mlb-red);
+        }
+        
+        /* Profile Container */
+        .profile-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        /* Action Buttons */
+        .action-buttons-bar {
+            background: white;
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .btn-mlb-action {
+            background: var(--mlb-blue);
+            color: white;
+            border: 2px solid var(--mlb-blue);
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .btn-mlb-action:hover {
+            background: var(--mlb-light-blue);
+            border-color: var(--mlb-light-blue);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13, 44, 84, 0.3);
+        }
+        
+        .btn-mlb-edit {
+            background: var(--mlb-red);
+            color: white;
+            border: 2px solid var(--mlb-red);
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+        
+        .btn-mlb-edit:hover {
+            background: #b30029;
+            border-color: #b30029;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(213, 0, 50, 0.4);
+        }
+        
+        /* Profile Sheet */
+        .profile-sheet {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .sheet-title {
+            text-align: center;
+            color: #666;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 12px 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        /* Enhanced Header */
+        .profile-header {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            padding: 40px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .profile-header::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(213, 0, 50, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 25px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .player-number {
+            background: linear-gradient(135deg, var(--mlb-gold) 0%, #ffed4e 100%);
+            color: var(--mlb-dark);
+            font-size: 4.5rem;
+            font-weight: 900;
+            width: 140px;
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 5px solid white;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            border-radius: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .logo-section {
+            flex: 1;
+            text-align: center;
+            padding: 0 30px;
+        }
+        
+        .logo-placeholder {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            padding: 25px;
+            border-radius: 15px;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .logo-icon {
+            font-size: 3rem;
+            color: var(--mlb-red);
+            margin-bottom: 12px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+        
+        .player-photo-section {
+            width: 200px;
+            height: 200px;
+            position: relative;
+        }
+        
+        .player-photo {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 6px solid white;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+        
+        .player-photo-placeholder {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 6px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: white;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+        
+        .player-name-section {
+            margin-top: 25px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .player-first-name {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: white;
+            background: rgba(255,255,255,0.2);
+            padding: 12px 25px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            border-radius: 10px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .player-last-name {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        }
+        
+        .section-title {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--mlb-red);
+            border-radius: 2px;
+        }
+        
+        .player-info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            border: 3px solid var(--mlb-blue);
+            background: white;
+        }
+        
+        .info-column {
+            padding: 25px;
+            border-right: 3px solid var(--mlb-blue);
+            background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+        }
+        
+        .info-column:last-child {
+            border-right: none;
+        }
+        
+        .info-column:nth-child(2) {
+            background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+        }
+        
+        .info-item {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .info-label {
+            font-size: 0.7rem;
+            color: var(--mlb-blue);
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .info-label::before {
+            content: '▸';
+            color: var(--mlb-red);
+            font-size: 0.9rem;
+        }
+        
+        .info-value {
+            font-size: 1rem;
+            color: #212529;
+            font-weight: 600;
+            line-height: 1.6;
+        }
+        
+        .stats-section {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            padding: 25px;
+            border: 3px solid var(--mlb-blue);
+            border-top: none;
+        }
+        
+        .stats-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--mlb-blue);
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .stats-title::before {
+            content: '⚾';
+            font-size: 1.2rem;
+        }
+        
+        .stats-content {
+            font-size: 0.95rem;
+            color: #333;
+            line-height: 2;
+            font-weight: 500;
+        }
+        
+        .bottom-sections {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            border: 3px solid var(--mlb-blue);
+            border-top: none;
+            background: white;
+        }
+        
+        .bottom-section {
+            border-right: 3px solid var(--mlb-blue);
+            min-height: 350px;
+        }
+        
+        .bottom-section:last-child {
+            border-right: none;
+        }
+        
+        .bottom-section:nth-child(1) {
+            background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+        }
+        
+        .bottom-section:nth-child(2) {
+            background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+        }
+        
+        .bottom-section:nth-child(3) {
+            background: linear-gradient(to bottom, #ffffff 0%, #f8f9fa 100%);
+        }
+        
+        .bottom-section-content {
+            padding: 25px;
+        }
+        
+        .schedule-item {
+            padding: 12px 0;
+            border-bottom: 2px solid #e9ecef;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .schedule-item:hover {
+            background: #f8f9fa;
+            padding-left: 10px;
+            border-left: 3px solid var(--mlb-red);
+        }
+        
+        .schedule-item:last-child {
+            border-bottom: none;
+        }
+        
+        .schedule-item strong {
+            color: var(--mlb-blue);
+            font-size: 1rem;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .achievement-item {
+            padding: 10px 0;
+            font-size: 0.9rem;
+            color: #333;
+            border-left: 3px solid transparent;
+            padding-left: 12px;
+            transition: all 0.3s;
+        }
+        
+        .achievement-item:hover {
+            border-left-color: var(--mlb-red);
+            padding-left: 15px;
+        }
+        
+        .achievement-title {
+            font-weight: 700;
+            color: var(--mlb-blue);
+            margin-top: 20px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--mlb-red);
+            display: inline-block;
+        }
+        
+        .footer-logo {
+            text-align: center;
+            padding: 25px;
+            color: #999;
+            font-size: 0.85rem;
+            background: #f8f9fa;
+            border-top: 2px solid #e9ecef;
+        }
+        
+        .footer-mlb {
+            background: var(--mlb-dark);
+            color: #ccc;
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+        
+        .footer-mlb h5 {
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        .footer-mlb a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .footer-mlb a:hover {
+            color: white;
+        }
+        
+        /* Badge Styles */
+        .info-badge {
+            display: inline-block;
+            background: var(--mlb-blue);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .player-number {
+                width: 100px;
+                height: 100px;
+                font-size: 3rem;
+            }
+            
+            .player-photo-section {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .player-info-grid,
+            .bottom-sections {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-column,
+            .bottom-section {
+                border-right: none;
+                border-bottom: 3px solid var(--mlb-blue);
+            }
+            
+            .info-column:last-child,
+            .bottom-section:last-child {
+                border-bottom: none;
+            }
+            
+            .player-name-section {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .player-first-name,
+            .player-last-name {
+                font-size: 1.8rem;
+            }
+            
+            .action-buttons-bar {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <span><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</span>
+                    <span class="ms-4"><i class="fas fa-envelope me-2"></i>info@nscinternational.com</span>
+                </div>
+                <div class="col-md-6 text-end">
+                    {% if user.is_authenticated %}
+                        <a href="/accounts/dashboard/"><i class="fas fa-user me-1"></i>Mi Cuenta</a>
+                        <span class="mx-2">|</span>
+                        <a href="{% url 'accounts:logout' %}">Cerrar Sesión</a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}">Iniciar Sesión</a>
+                        <span class="mx-2">|</span>
+                        <a href="/accounts/register/">Registrarse</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-mlb">
+        <div class="container-fluid px-0">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-baseball-ball me-2"></i>NSC
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span style="color: white;"><i class="fas fa-bars"></i></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'events:list' %}">Eventos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'accounts:public_player_list' %}">Jugadores</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:team_list' %}">Equipos</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/accounts/dashboard/">Dashboard</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Profile Container -->
+    <div class="profile-container">
+        <!-- Action Buttons -->
+        <div class="action-buttons-bar">
+            <a href="{% url 'accounts:public_player_list' %}" class="btn-mlb-action">
+                <i class="fas fa-arrow-left me-2"></i>Volver a Jugadores
+            </a>
+            {% if user.is_authenticated %}
+                {% if user.id == player.user.id or user.profile.is_team_manager or user.is_staff or user.is_superuser %}
+                    {% if player.team and player.team.manager.id == user.id or user.is_staff or user.is_superuser or user.id == player.user.id %}
+                        <a href="{% url 'accounts:front_player_edit' player.pk %}" class="btn-mlb-edit">
+                            <i class="fas fa-edit me-2"></i>Editar Perfil
+                        </a>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        </div>
+        
+        <div class="profile-sheet">
+            <div class="sheet-title">EDITABLE SPORTS PROFILE SHEET</div>
+            
+            <!-- Header -->
+            <div class="profile-header">
+                <div class="header-top">
+                    <div class="player-number">
+                        {% if player.jersey_number %}{{ player.jersey_number }}{% else %}#{% endif %}
+                    </div>
+                    
+                    <div class="logo-section">
+                        <div class="logo-placeholder">
+                            <div class="logo-icon">
+                                <i class="fas fa-baseball-ball"></i>
+                            </div>
+                            <div>NSC INTERNATIONAL</div>
+                        </div>
+                    </div>
+                    
+                    <div class="player-photo-section">
+                        {% if player.user.profile.profile_picture %}
+                            <img src="{{ player.user.profile.profile_picture.url }}" 
+                                 alt="{{ player.user.get_full_name }}" 
+                                 class="player-photo">
+                        {% else %}
+                            <div class="player-photo-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="player-name-section">
+                    {% if player.user.first_name %}
+                        <div class="player-first-name">{{ player.user.first_name|upper }}</div>
+                    {% endif %}
+                    {% if player.user.last_name %}
+                        <div class="player-last-name">{{ player.user.last_name|upper }}</div>
+                    {% elif not player.user.first_name %}
+                        <div class="player-first-name">{{ player.user.username|upper }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Section Title -->
+            <div class="section-title">
+                <i class="fas fa-info-circle me-2"></i>PLAYER INFORMATION
+            </div>
+            
+            <!-- Player Information Grid -->
+            <div class="player-info-grid">
+                <!-- Left Column -->
+                <div class="info-column">
+                    {% if player.user.profile.phone %}
+                    <div class="info-item">
+                        <div class="info-label">Phone</div>
+                        <div class="info-value">
+                            <a href="tel:{{ player.user.profile.phone }}" style="color: inherit; text-decoration: none;">
+                                {{ player.user.profile.phone }}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if player.user.email and '@nsc-temp.local' not in player.user.email %}
+                    <div class="info-item">
+                        <div class="info-label">Email</div>
+                        <div class="info-value">
+                            <a href="mailto:{{ player.user.email }}" style="color: inherit; text-decoration: none;">
+                                {{ player.user.email }}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if player.parents.all %}
+                    <div class="info-item">
+                        <div class="info-label">Parents</div>
+                        {% for parent_rel in player.parents.all %}
+                            <div class="info-value" style="margin-bottom: 8px;">
+                                <strong>{{ parent_rel.parent.get_full_name }}</strong>
+                                {% if parent_rel.parent.profile.phone %}
+                                    <br><span style="font-size: 0.9rem; color: #666;">{{ parent_rel.parent.profile.phone }}</span>
+                                {% endif %}
+                                {% if parent_rel.parent.email %}
+                                    <br><span style="font-size: 0.9rem; color: #666;">{{ parent_rel.parent.email }}</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Middle Column -->
+                <div class="info-column">
+                    {% if player.team and player.team.manager %}
+                    <div class="info-item">
+                        <div class="info-label">Club Coach</div>
+                        <div class="info-value">
+                            <strong>{{ player.team.manager.get_full_name }}</strong>
+                            {% if player.team.manager.profile.phone %}
+                                <br><span style="font-size: 0.9rem; color: #666;">{{ player.team.manager.profile.phone }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="info-item">
+                        <div class="info-label">Offensive Stats</div>
+                        <div class="info-value" style="font-size: 0.9rem; line-height: 2;">
+                            {% if player.position %}
+                                <strong>Position:</strong> {{ player.get_position_display }}<br>
+                            {% endif %}
+                            {% if player.batting_hand %}
+                                <strong>Bats:</strong> {{ player.get_batting_hand_display }}<br>
+                            {% endif %}
+                            {% if player.throwing_hand %}
+                                <strong>Throws:</strong> {{ player.get_throwing_hand_display }}<br>
+                            {% endif %}
+                            {% if player.height %}
+                                <strong>Height:</strong> {{ player.height }}<br>
+                            {% endif %}
+                            {% if player.weight %}
+                                <strong>Weight:</strong> {{ player.weight }} lbs
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div class="info-column">
+                    {% if player.user.profile.birth_date %}
+                    <div class="info-item">
+                        <div class="info-label">DOB</div>
+                        <div class="info-value">{{ player.user.profile.birth_date|date:"m/d/Y" }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if player.user.profile.birth_date %}
+                        {% with age=player.calculate_age_as_of_april_30 %}
+                            {% if age %}
+                            <div class="info-item">
+                                <div class="info-label">Age</div>
+                                <div class="info-value">{{ age }} years</div>
+                            </div>
+                            {% endif %}
+                        {% endwith %}
+                    {% endif %}
+                    
+                    {% if player.position %}
+                    <div class="info-item">
+                        <div class="info-label">Position</div>
+                        <div class="info-value">
+                            <span class="info-badge">{{ player.get_position_display }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if player.division %}
+                    <div class="info-item">
+                        <div class="info-label">Division</div>
+                        <div class="info-value">
+                            <span class="info-badge" style="background: var(--mlb-red);">{{ player.division }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if player.team %}
+                    <div class="info-item">
+                        <div class="info-label">Team</div>
+                        <div class="info-value">
+                            <a href="{% url 'accounts:team_detail' player.team.pk %}" style="color: var(--mlb-blue); text-decoration: none; font-weight: 700;">
+                                {{ player.team.name }}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Defensive Stats -->
+            <div class="stats-section">
+                <div class="stats-title">Defensive Stats</div>
+                <div class="stats-content">
+                    {% if player.position %}
+                        <strong>Primary Position:</strong> {{ player.get_position_display }}<br>
+                    {% endif %}
+                    {% if player.batting_hand %}
+                        <strong>Batting:</strong> {{ player.get_batting_hand_display }}<br>
+                    {% endif %}
+                    {% if player.throwing_hand %}
+                        <strong>Throwing:</strong> {{ player.get_throwing_hand_display }}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Bottom Sections -->
+            <div class="bottom-sections">
+                <!-- School & Academics -->
+                <div class="bottom-section">
+                    <div class="section-title">
+                        <i class="fas fa-graduation-cap me-2"></i>School & Academics
+                    </div>
+                    <div class="bottom-section-content">
+                        {% if player.grade %}
+                        <div class="info-item">
+                            <div class="info-label">Grade</div>
+                            <div class="info-value">{{ player.get_grade_display }}</div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if player.user.profile.city %}
+                        <div class="info-item">
+                            <div class="info-label">School District</div>
+                            <div class="info-value">
+                                {{ player.user.profile.city.name }}
+                                {% if player.user.profile.state %}
+                                    , {{ player.user.profile.state.name }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if player.team and player.team.manager %}
+                        <div class="info-item">
+                            <div class="info-label">School Coach</div>
+                            <div class="info-value">
+                                <strong>{{ player.team.manager.get_full_name }}</strong>
+                                {% if player.team.manager.profile.phone %}
+                                    <br><span style="font-size: 0.9rem; color: #666;">{{ player.team.manager.profile.phone }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Match Schedule -->
+                <div class="bottom-section">
+                    <div class="section-title">
+                        <i class="fas fa-calendar-alt me-2"></i>Match Schedule
+                    </div>
+                    <div class="bottom-section-content">
+                        {% if upcoming_events %}
+                            {% for event in upcoming_events %}
+                            <div class="schedule-item">
+                                <strong>{{ event.start_date|date:"F d" }}</strong>
+                                {{ event.title }}<br>
+                                {% if event.location %}
+                                    <span style="color: #666; font-size: 0.85rem;"><i class="fas fa-map-marker-alt me-1"></i>{{ event.location }}</span>
+                                {% else %}
+                                    <span style="color: #999; font-size: 0.85rem;">Location: TBD</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="schedule-item" style="text-align: center; padding: 30px 0; color: #999;">
+                                <i class="fas fa-calendar-times fa-2x mb-3" style="display: block;"></i>
+                                <em>No upcoming matches scheduled</em>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Achievements -->
+                <div class="bottom-section">
+                    <div class="section-title">
+                        <i class="fas fa-trophy me-2"></i>Achievements
+                    </div>
+                    <div class="bottom-section-content">
+                        {% if player.division %}
+                        <div class="achievement-item">
+                            <strong>Division:</strong> <span class="info-badge" style="background: var(--mlb-red);">{{ player.division }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if player.user.profile.birth_date %}
+                            {% with eligible=player.get_eligible_divisions %}
+                                {% if eligible %}
+                                <div class="achievement-title">Eligible Divisions</div>
+                                {% for div in eligible %}
+                                <div class="achievement-item">
+                                    <i class="fas fa-check-circle me-2" style="color: var(--mlb-red);"></i>{{ div }}
+                                </div>
+                                {% endfor %}
+                                {% endif %}
+                            {% endwith %}
+                        {% endif %}
+                        
+                        {% if player.is_active %}
+                        <div class="achievement-item">
+                            <strong>Status:</strong> <span style="color: #28a745; font-weight: 700;">Active Player</span>
+                        </div>
+                        {% endif %}
+                        
+                        {% if player.team %}
+                        <div class="achievement-item">
+                            <strong>Team:</strong> 
+                            <a href="{% url 'accounts:team_detail' player.team.pk %}" style="color: var(--mlb-blue); text-decoration: none; font-weight: 600;">
+                                {{ player.team.name }}
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-logo">
+                <i class="fas fa-baseball-ball me-2" style="color: var(--mlb-red);"></i>
+                <strong>NSC International</strong> - Player Profile
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer-mlb">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5><i class="fas fa-baseball-ball me-2"></i>NSC International</h5>
+                    <p>Plataforma profesional de gestión de béisbol.</p>
+                </div>
+                <div class="col-md-4">
+                    <h5>Enlaces Rápidos</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/">Inicio</a></li>
+                        <li><a href="{% url 'events:list' %}">Eventos</a></li>
+                        <li><a href="{% url 'accounts:public_player_list' %}">Jugadores</a></li>
+                        <li><a href="{% url 'accounts:team_list' %}">Equipos</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5>Contacto</h5>
+                    <p><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</p>
+                    <p><i class="fas fa-envelope me-2"></i>info@nscinternational.com</p>
+                </div>
+            </div>
+            <hr style="border-color: #444; margin: 30px 0;">
+            <p class="text-center mb-0">&copy; 2024 NSC International. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+
+
+
+

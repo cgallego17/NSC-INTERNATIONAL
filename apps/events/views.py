@@ -26,6 +26,7 @@ class EventListView(LoginRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
+        # Forzar consulta fresca desde la base de datos
         queryset = Event.objects.select_related("category", "organizer").all()
 
         # Filtros
@@ -107,9 +108,11 @@ class EventDetailView(LoginRequiredMixin, DetailView):
 
 
 class EventCreateView(LoginRequiredMixin, CreateView):
+    """Vista para crear eventos"""
+
     model = Event
     form_class = EventForm
-    template_name = "events/form.html"
+    template_name = "events/event_form.html"
     success_url = reverse_lazy("events:list")
 
     def form_valid(self, form):
@@ -120,7 +123,15 @@ class EventCreateView(LoginRequiredMixin, CreateView):
 
 class EventUpdateView(LoginRequiredMixin, UpdateView):
     model = Event
-    form_class = EventForm
+    fields = [
+        "title",
+        "description",
+        "start_date",
+        "end_date",
+        "location",
+        "category",
+        "status",
+    ]
     template_name = "events/form.html"
 
     def get_success_url(self):
@@ -213,19 +224,39 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         # Eventos de hoy
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = today_start + timedelta(days=1)
-        today_events = (
-            Event.objects.filter(start_date__gte=today_start, start_date__lt=today_end)
-            .select_related("category", "division")
-            .order_by("start_date")
-        )
+        try:
+            today_events = (
+                Event.objects.filter(
+                    start_date__gte=today_start, start_date__lt=today_end
+                )
+                .select_related("category")
+                .prefetch_related("divisions")
+                .order_by("start_date")
+            )
+        except Exception:
+            today_events = (
+                Event.objects.filter(
+                    start_date__gte=today_start, start_date__lt=today_end
+                )
+                .select_related("category")
+                .order_by("start_date")
+            )
 
         # Próximos eventos (próximos 7 días)
         week_end = now + timedelta(days=7)
-        upcoming_week = (
-            Event.objects.filter(start_date__gt=now, start_date__lte=week_end)
-            .select_related("category", "division")
-            .order_by("start_date")[:5]
-        )
+        try:
+            upcoming_week = (
+                Event.objects.filter(start_date__gt=now, start_date__lte=week_end)
+                .select_related("category")
+                .prefetch_related("divisions")
+                .order_by("start_date")[:5]
+            )
+        except Exception:
+            upcoming_week = (
+                Event.objects.filter(start_date__gt=now, start_date__lte=week_end)
+                .select_related("category")
+                .order_by("start_date")[:5]
+            )
 
         # Eventos por categoría
         events_by_category = (
@@ -235,11 +266,15 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         )
 
         # Eventos por división
-        events_by_division = (
-            Event.objects.values("division__name")
-            .annotate(count=Count("id"))
-            .order_by("-count")[:5]
-        )
+        try:
+            events_by_division = (
+                Event.objects.values("divisions__name")
+                .annotate(count=Count("id"))
+                .order_by("-count")[:5]
+            )
+        except Exception:
+            # Si la tabla no existe aún, retornar lista vacía
+            events_by_division = []
 
         # Eventos más populares (por número de asistentes)
         popular_events = Event.objects.annotate(

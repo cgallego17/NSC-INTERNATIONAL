@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Carrito de Reservas - NSC International{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-shopping-cart me-2"></i>Carrito de Reservas
+            </h1>
+            <p class="text-muted">Revisa tus reservas antes de confirmar</p>
+        </div>
+        <div>
+            <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+            </a>
+            <a href="{% url 'locations:front_hotel_list' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Agregar Más Reservas
+            </a>
+        </div>
+    </div>
+
+    {% if cart_items %}
+        <div class="row">
+            <!-- Items del Carrito -->
+            <div class="col-lg-8">
+                {% for item in cart_items %}
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">
+                                <i class="fas fa-hotel me-2"></i>{{ item.hotel.hotel_name }}
+                            </h5>
+                            <button class="btn btn-sm btn-light remove-item-btn" data-item-id="{{ item.id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong><i class="fas fa-bed me-2"></i>Habitación:</strong><br>
+                                    #{{ item.room.room_number }} - {{ item.room.get_room_type_display }}</p>
+                                    <p><strong><i class="fas fa-sign-in-alt me-2"></i>Check-in:</strong><br>
+                                    {{ item.check_in }}</p>
+                                    <p><strong><i class="fas fa-sign-out-alt me-2"></i>Check-out:</strong><br>
+                                    {{ item.check_out }}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong><i class="fas fa-moon me-2"></i>Noches:</strong><br>
+                                    {{ item.nights }} noche{{ item.nights|pluralize }}</p>
+                                    <p><strong><i class="fas fa-users me-2"></i>Huéspedes:</strong><br>
+                                    {{ item.guests }} persona{{ item.guests|pluralize }}</p>
+                                </div>
+                            </div>
+                            
+                            {% if item.services %}
+                                <hr>
+                                <h6><i class="fas fa-concierge-bell me-2"></i>Servicios Adicionales:</h6>
+                                <ul class="list-unstyled">
+                                    {% for service_item in item.services %}
+                                        <li class="mb-2">
+                                            <i class="fas fa-check text-success me-2"></i>
+                                            {{ service_item.service.service_name }} 
+                                            (x{{ service_item.quantity }})
+                                            <span class="float-end">${{ service_item.price|floatformat:2 }}</span>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% endif %}
+                            
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <small class="text-muted">Habitación: ${{ item.room_total|floatformat:2 }}</small><br>
+                                    {% if item.services_total > 0 %}
+                                        <small class="text-muted">Servicios: ${{ item.services_total|floatformat:2 }}</small>
+                                    {% endif %}
+                                </div>
+                                <h5 class="text-primary mb-0">Total: ${{ item.total|floatformat:2 }}</h5>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Resumen y Checkout -->
+            <div class="col-lg-4">
+                <div class="card sticky-top" style="top: 20px;">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>Resumen</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Items:</span>
+                                <strong>{{ cart_count }}</strong>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between mb-3">
+                                <strong>TOTAL:</strong>
+                                <strong class="text-primary" style="font-size: 1.5rem;">${{ cart_total|floatformat:2 }}</strong>
+                            </div>
+                        </div>
+                        
+                        <form method="post" action="{% url 'locations:checkout_cart' %}" id="checkoutForm">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success w-100 btn-lg mb-2">
+                                <i class="fas fa-credit-card me-2"></i>Proceder al Pago
+                            </button>
+                        </form>
+                        
+                        <form method="post" action="{% url 'locations:clear_cart' %}" id="clearForm">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('¿Estás seguro de limpiar el carrito?');">
+                                <i class="fas fa-trash me-2"></i>Limpiar Carrito
+                            </button>
+                        </form>
+                        
+                        <hr>
+                        <a href="{% url 'locations:front_hotel_list' %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-plus me-2"></i>Agregar Más Reservas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-shopping-cart fa-4x text-muted mb-3"></i>
+            <h5 class="text-muted">Tu carrito está vacío</h5>
+            <p class="text-muted">Comienza agregando reservas de hoteles a tu carrito.</p>
+            <a href="{% url 'locations:front_hotel_list' %}" class="btn btn-primary">
+                <i class="fas fa-hotel me-2"></i>Explorar Hoteles
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Manejar eliminación de items
+    document.querySelectorAll('.remove-item-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const itemId = this.dataset.itemId;
+            if (confirm('¿Estás seguro de eliminar esta reserva del carrito?')) {
+                fetch('{% url "locations:remove_from_cart" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({ item_id: itemId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al eliminar el item');
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+
+
+
+
+

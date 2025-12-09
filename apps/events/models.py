@@ -28,6 +28,32 @@ class EventCategory(models.Model):
         return self.name
 
 
+class EventType(models.Model):
+    """Tipos de eventos (LIGA, SHOWCASES, TORNEO, WORLD SERIES)"""
+
+    name = models.CharField(max_length=100, unique=True, verbose_name="Nombre del Tipo")
+    description = models.TextField(blank=True, verbose_name="Descripción")
+    color = models.CharField(
+        max_length=7, default="#0d2c54", help_text="Color en formato hexadecimal"
+    )
+    icon = models.CharField(
+        max_length=50,
+        default="fas fa-calendar",
+        help_text="Clase de icono Font Awesome",
+    )
+    is_active = models.BooleanField(default=True, verbose_name="Activo")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Tipo de Evento"
+        verbose_name_plural = "Tipos de Eventos"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
 class Division(models.Model):
     """Divisiones de eventos"""
 
@@ -69,6 +95,24 @@ class Division(models.Model):
         elif self.age_max:
             return f"Hasta {self.age_max} años"
         return "Sin restricción de edad"
+
+
+class GateFeeType(models.Model):
+    """Tipos de tarifa de entrada"""
+
+    name = models.CharField(max_length=100, unique=True, verbose_name="Nombre del Tipo")
+    description = models.TextField(blank=True, verbose_name="Descripción")
+    is_active = models.BooleanField(default=True, verbose_name="Activo")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Tipo de Tarifa de Entrada"
+        verbose_name_plural = "Tipos de Tarifas de Entrada"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
 
 
 class Event(models.Model):
@@ -116,15 +160,26 @@ class Event(models.Model):
 
     # Categorización
     category = models.ForeignKey(
-        EventCategory, on_delete=models.CASCADE, related_name="events"
-    )
-    division = models.ForeignKey(
-        Division,
-        on_delete=models.SET_NULL,
+        EventCategory,
+        on_delete=models.CASCADE,
+        related_name="events",
         null=True,
         blank=True,
+    )
+    event_type = models.ForeignKey(
+        "EventType",
+        on_delete=models.SET_NULL,
         related_name="events",
-        verbose_name="División",
+        verbose_name="Tipo de Evento",
+        null=True,
+        blank=True,
+    )
+    divisions = models.ManyToManyField(
+        Division,
+        blank=True,
+        related_name="events",
+        verbose_name="Divisiones",
+        help_text="Puedes seleccionar una o más divisiones para este evento",
     )
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="draft")
     priority = models.CharField(
@@ -253,18 +308,14 @@ class Event(models.Model):
 
     # Tarifas de entrada
     has_gate_fee = models.BooleanField(default=False, verbose_name="Has Gate Fee")
-    GATE_FEE_TYPE_CHOICES = [
-        ("per_person", "Per Person"),
-        ("per_car", "Per Car"),
-        ("per_day", "Per Day"),
-        ("flat_fee", "Flat Fee"),
-    ]
-    gate_fee_type = models.CharField(
-        max_length=20,
-        choices=GATE_FEE_TYPE_CHOICES,
+    gate_fee_type = models.ForeignKey(
+        "GateFeeType",
+        on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name="Gate Fee Type",
+        related_name="events",
+        verbose_name="Tipo de Tarifa de Entrada",
+        help_text="Tipo de tarifa de entrada (Player Gate Fee, Spectator Gate Fee, etc.)",
     )
     gate_fee_amount = models.DecimalField(
         max_digits=10,
@@ -307,6 +358,57 @@ class Event(models.Model):
     image = models.ImageField(upload_to="events/", blank=True, null=True)
     external_link = models.URLField(blank=True, help_text="Enlace externo relacionado")
     notes = models.TextField(blank=True, help_text="Notas internas")
+
+    # Campos restaurados
+    stripe_payment_profile = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="ID del perfil de pago de Stripe para este evento",
+        verbose_name="Perfil de Pago Stripe",
+    )
+    display_player_list = models.BooleanField(
+        default=False,
+        help_text="Mostrar lista de jugadores en el evento",
+        verbose_name="Display Player List",
+    )
+    hotel = models.ForeignKey(
+        "locations.Hotel",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="primary_events",
+        help_text="Hotel sede principal donde se alojarán los participantes del evento",
+        verbose_name="Hotel Sede",
+    )
+    additional_hotels = models.ManyToManyField(
+        "locations.Hotel",
+        blank=True,
+        related_name="additional_events",
+        help_text="Hoteles adicionales donde se alojarán los participantes del evento",
+        verbose_name="Hoteles Adicionales",
+    )
+    event_contact = models.ForeignKey(
+        "events.EventContact",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="events",
+        help_text="Persona de contacto para el evento",
+        verbose_name="Contacto del Evento",
+    )
+    email_welcome_body = models.TextField(
+        blank=True,
+        null=True,
+        help_text="Contenido HTML del correo de bienvenida que se enviará a los participantes",
+        verbose_name="Cuerpo del Correo de Bienvenida (HTML)",
+    )
+    video_url = models.URLField(
+        blank=True,
+        null=True,
+        help_text="URL del video del evento (YouTube, Vimeo, etc.)",
+        verbose_name="Video del Evento",
+    )
 
     # Fechas del sistema
     created_at = models.DateTimeField(auto_now_add=True)
@@ -476,3 +578,80 @@ class EventReminder(models.Model):
 
     def __str__(self):
         return f"Recordatorio para {self.user.get_full_name()} - {self.event.title}"
+
+
+class EventContact(models.Model):
+    """Contacto para eventos"""
+
+    name = models.CharField(
+        max_length=200,
+        help_text="Nombre completo de la persona de contacto",
+        verbose_name="Nombre",
+    )
+    photo = models.ImageField(
+        upload_to="event_contacts/",
+        blank=True,
+        null=True,
+        help_text="Foto de la persona de contacto",
+        verbose_name="Foto",
+    )
+    phone = models.CharField(
+        max_length=20,
+        blank=True,
+        help_text="Número de teléfono de contacto",
+        verbose_name="Teléfono",
+    )
+    email = models.EmailField(
+        blank=True,
+        help_text="Correo electrónico de contacto",
+        verbose_name="Email",
+    )
+    information = models.TextField(
+        blank=True,
+        help_text="Información adicional sobre el contacto",
+        verbose_name="Información",
+    )
+    is_active = models.BooleanField(default=True, verbose_name="Activo")
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Fecha de Creación"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, verbose_name="Fecha de Actualización"
+    )
+
+    # Ubicación
+    city = models.ForeignKey(
+        "locations.City",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="event_contacts",
+        help_text="Ciudad de la persona de contacto",
+        verbose_name="Ciudad",
+    )
+    state = models.ForeignKey(
+        "locations.State",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="event_contacts",
+        help_text="Estado de la persona de contacto",
+        verbose_name="Estado",
+    )
+    country = models.ForeignKey(
+        "locations.Country",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="event_contacts",
+        help_text="País de la persona de contacto",
+        verbose_name="País",
+    )
+
+    class Meta:
+        verbose_name = "Contacto de Evento"
+        verbose_name_plural = "Contactos de Eventos"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name

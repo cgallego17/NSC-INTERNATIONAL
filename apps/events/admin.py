@@ -7,7 +7,9 @@ from .models import (
     EventAttendance,
     EventCategory,
     EventComment,
+    EventContact,
     EventReminder,
+    EventType,
 )
 
 
@@ -42,16 +44,33 @@ class EventCategoryAdmin(admin.ModelAdmin):
     color_display.short_description = "Color"
 
 
+@admin.register(EventType)
+class EventTypeAdmin(admin.ModelAdmin):
+    list_display = ["name", "color_display", "icon", "is_active", "created_at"]
+    list_filter = ["is_active", "created_at"]
+    search_fields = ["name", "description"]
+    readonly_fields = ["created_at", "updated_at"]
+
+    def color_display(self, obj):
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 2px 8px; border-radius: 4px;">{}</span>',
+            obj.color,
+            obj.color,
+        )
+
+    color_display.short_description = "Color"
+
+
 @admin.register(Division)
 class DivisionAdmin(admin.ModelAdmin):
-    list_display = ["name", "age_range", "skill_level", "is_active", "created_at"]
+    list_display = ["name", "get_age_range", "skill_level", "is_active", "created_at"]
     list_filter = ["is_active", "skill_level", "created_at"]
     search_fields = ["name", "description", "skill_level"]
-    readonly_fields = ["created_at", "updated_at", "age_range"]
+    readonly_fields = ["created_at", "updated_at", "get_age_range"]
 
     fieldsets = (
         ("Información Básica", {"fields": ("name", "description")}),
-        ("Configuración de Edad", {"fields": ("age_min", "age_max", "age_range")}),
+        ("Configuración de Edad", {"fields": ("age_min", "age_max", "get_age_range")}),
         ("Configuración de Habilidad", {"fields": ("skill_level",)}),
         ("Estado", {"fields": ("is_active",)}),
         (
@@ -60,13 +79,25 @@ class DivisionAdmin(admin.ModelAdmin):
         ),
     )
 
+    def get_age_range(self, obj):
+        """Retorna el rango de edad como string"""
+        if obj.age_min and obj.age_max:
+            return f"{obj.age_min}-{obj.age_max} años"
+        elif obj.age_min:
+            return f"{obj.age_min}+ años"
+        elif obj.age_max:
+            return f"Hasta {obj.age_max} años"
+        return "Sin restricción de edad"
+
+    get_age_range.short_description = "Rango de Edad"
+
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
     list_display = [
         "title",
         "category",
-        "division",
+        "divisions_display",
         "start_date",
         "end_date",
         "status",
@@ -79,7 +110,7 @@ class EventAdmin(admin.ModelAdmin):
         "status",
         "priority",
         "category",
-        "division",
+        "divisions",
         "is_public",
         "requires_registration",
         "start_date",
@@ -105,6 +136,7 @@ class EventAdmin(admin.ModelAdmin):
                     "description",
                     "short_description",
                     "category",
+                    "divisions",
                     "image",
                 )
             },
@@ -148,6 +180,15 @@ class EventAdmin(admin.ModelAdmin):
 
     attendees_count.short_description = "Asistentes"
 
+    def divisions_display(self, obj):
+        """Muestra las divisiones del evento"""
+        divisions = obj.divisions.all()
+        if divisions:
+            return ", ".join([division.name for division in divisions])
+        return "-"
+
+    divisions_display.short_description = "Divisiones"
+
 
 @admin.register(EventAttendance)
 class EventAttendanceAdmin(admin.ModelAdmin):
@@ -188,3 +229,10 @@ class EventReminderAdmin(admin.ModelAdmin):
     list_filter = ["reminder_type", "sent", "created_at"]
     search_fields = ["event__title", "user__username"]
     readonly_fields = ["created_at", "sent_at"]
+
+
+# EventContact no se registra en el admin de Django
+# Se gestiona desde el dashboard propio del sistema
+# @admin.register(EventContact)
+# class EventContactAdmin(admin.ModelAdmin):
+#     ...

@@ -588,6 +588,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error cargando datos iniciales:', error);
         });
     }
+    
+    // La notificación WebSocket se maneja en el servidor (views.py)
+    // No necesitamos JavaScript aquí ya que Channels lo maneja automáticamente
 });
 </script>
 {% endblock %}

@@ -240,13 +240,13 @@
                     
                     <div class="mb-3">
                         <label for="id_username" class="form-label">
-                            <i class="fas fa-user me-1"></i>Nombre de Usuario
+                            <i class="fas fa-envelope me-1"></i>Correo Electrónico
                         </label>
-                        <input type="text" 
+                        <input type="email" 
                                id="id_username" 
                                name="username" 
                                class="form-control" 
-                               placeholder="Ingresa tu usuario"
+                               placeholder="tu@email.com"
                                value="{{ form.username.value|default:'' }}"
                                required
                                autofocus>

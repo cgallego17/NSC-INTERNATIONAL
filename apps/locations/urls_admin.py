@@ -1,0 +1,255 @@
+"""
+URLs administrativas de ubicaciones - CRUD completo, solo staff/superuser
+"""
+
+from django.urls import path
+from . import views_admin
+
+# No usar app_name - estas URLs usan un path diferente (admin-panel/locations/)
+
+urlpatterns = [
+    # Country URLs (admin)
+    path(
+        "admin/countries/",
+        views_admin.AdminCountryListView.as_view(),
+        name="admin_country_list",
+    ),
+    path(
+        "admin/countries/<int:pk>/",
+        views_admin.AdminCountryDetailView.as_view(),
+        name="admin_country_detail",
+    ),
+    path(
+        "admin/countries/create/",
+        views_admin.AdminCountryCreateView.as_view(),
+        name="admin_country_create",
+    ),
+    path(
+        "admin/countries/<int:pk>/edit/",
+        views_admin.AdminCountryUpdateView.as_view(),
+        name="admin_country_update",
+    ),
+    path(
+        "admin/countries/<int:pk>/delete/",
+        views_admin.AdminCountryDeleteView.as_view(),
+        name="admin_country_delete",
+    ),
+    # State URLs (admin)
+    path(
+        "admin/states/",
+        views_admin.AdminStateListView.as_view(),
+        name="admin_state_list",
+    ),
+    path(
+        "admin/states/<int:pk>/",
+        views_admin.AdminStateDetailView.as_view(),
+        name="admin_state_detail",
+    ),
+    path(
+        "admin/states/create/",
+        views_admin.AdminStateCreateView.as_view(),
+        name="admin_state_create",
+    ),
+    path(
+        "admin/states/<int:pk>/edit/",
+        views_admin.AdminStateUpdateView.as_view(),
+        name="admin_state_update",
+    ),
+    path(
+        "admin/states/<int:pk>/delete/",
+        views_admin.AdminStateDeleteView.as_view(),
+        name="admin_state_delete",
+    ),
+    # City URLs (admin)
+    path(
+        "admin/cities/", views_admin.AdminCityListView.as_view(), name="admin_city_list"
+    ),
+    path(
+        "admin/cities/<int:pk>/",
+        views_admin.AdminCityDetailView.as_view(),
+        name="admin_city_detail",
+    ),
+    path(
+        "admin/cities/create/",
+        views_admin.AdminCityCreateView.as_view(),
+        name="admin_city_create",
+    ),
+    path(
+        "admin/cities/<int:pk>/edit/",
+        views_admin.AdminCityUpdateView.as_view(),
+        name="admin_city_update",
+    ),
+    path(
+        "admin/cities/<int:pk>/delete/",
+        views_admin.AdminCityDeleteView.as_view(),
+        name="admin_city_delete",
+    ),
+    # Season URLs (admin)
+    path(
+        "admin/seasons/",
+        views_admin.AdminSeasonListView.as_view(),
+        name="admin_season_list",
+    ),
+    path(
+        "admin/seasons/<int:pk>/",
+        views_admin.AdminSeasonDetailView.as_view(),
+        name="admin_season_detail",
+    ),
+    path(
+        "admin/seasons/create/",
+        views_admin.AdminSeasonCreateView.as_view(),
+        name="admin_season_create",
+    ),
+    path(
+        "admin/seasons/<int:pk>/edit/",
+        views_admin.AdminSeasonUpdateView.as_view(),
+        name="admin_season_update",
+    ),
+    path(
+        "admin/seasons/<int:pk>/delete/",
+        views_admin.AdminSeasonDeleteView.as_view(),
+        name="admin_season_delete",
+    ),
+    # Rule URLs (admin)
+    path(
+        "admin/rules/", views_admin.AdminRuleListView.as_view(), name="admin_rule_list"
+    ),
+    path(
+        "admin/rules/<int:pk>/",
+        views_admin.AdminRuleDetailView.as_view(),
+        name="admin_rule_detail",
+    ),
+    path(
+        "admin/rules/create/",
+        views_admin.AdminRuleCreateView.as_view(),
+        name="admin_rule_create",
+    ),
+    path(
+        "admin/rules/<int:pk>/edit/",
+        views_admin.AdminRuleUpdateView.as_view(),
+        name="admin_rule_update",
+    ),
+    path(
+        "admin/rules/<int:pk>/delete/",
+        views_admin.AdminRuleDeleteView.as_view(),
+        name="admin_rule_delete",
+    ),
+    # Site URLs (admin)
+    path(
+        "admin/sites/", views_admin.AdminSiteListView.as_view(), name="admin_site_list"
+    ),
+    path(
+        "admin/sites/<int:pk>/",
+        views_admin.AdminSiteDetailView.as_view(),
+        name="admin_site_detail",
+    ),
+    path(
+        "admin/sites/create/",
+        views_admin.AdminSiteCreateView.as_view(),
+        name="admin_site_create",
+    ),
+    path(
+        "admin/sites/<int:pk>/edit/",
+        views_admin.AdminSiteUpdateView.as_view(),
+        name="admin_site_update",
+    ),
+    path(
+        "admin/sites/<int:pk>/delete/",
+        views_admin.AdminSiteDeleteView.as_view(),
+        name="admin_site_delete",
+    ),
+    # Hotel URLs (admin)
+    path(
+        "admin/hotels/",
+        views_admin.AdminHotelListView.as_view(),
+        name="admin_hotel_list",
+    ),
+    path(
+        "admin/hotels/<int:pk>/",
+        views_admin.AdminHotelDetailView.as_view(),
+        name="admin_hotel_detail",
+    ),
+    path(
+        "admin/hotels/create/",
+        views_admin.AdminHotelCreateView.as_view(),
+        name="admin_hotel_create",
+    ),
+    path(
+        "admin/hotels/<int:pk>/edit/",
+        views_admin.AdminHotelUpdateView.as_view(),
+        name="admin_hotel_update",
+    ),
+    path(
+        "admin/hotels/<int:pk>/delete/",
+        views_admin.AdminHotelDeleteView.as_view(),
+        name="admin_hotel_delete",
+    ),
+    # Hotel Room URLs (admin)
+    path(
+        "admin/hotel-rooms/",
+        views_admin.AdminHotelRoomListView.as_view(),
+        name="admin_hotel_room_list",
+    ),
+    path(
+        "admin/hotel-rooms/create/",
+        views_admin.AdminHotelRoomCreateView.as_view(),
+        name="admin_hotel_room_create",
+    ),
+    path(
+        "admin/hotel-rooms/<int:pk>/edit/",
+        views_admin.AdminHotelRoomUpdateView.as_view(),
+        name="admin_hotel_room_update",
+    ),
+    path(
+        "admin/hotel-rooms/<int:pk>/delete/",
+        views_admin.AdminHotelRoomDeleteView.as_view(),
+        name="admin_hotel_room_delete",
+    ),
+    # Hotel Service URLs (admin)
+    path(
+        "admin/hotel-services/",
+        views_admin.AdminHotelServiceListView.as_view(),
+        name="admin_hotel_service_list",
+    ),
+    path(
+        "admin/hotel-services/create/",
+        views_admin.AdminHotelServiceCreateView.as_view(),
+        name="admin_hotel_service_create",
+    ),
+    path(
+        "admin/hotel-services/<int:pk>/edit/",
+        views_admin.AdminHotelServiceUpdateView.as_view(),
+        name="admin_hotel_service_update",
+    ),
+    path(
+        "admin/hotel-services/<int:pk>/delete/",
+        views_admin.AdminHotelServiceDeleteView.as_view(),
+        name="admin_hotel_service_delete",
+    ),
+    # Hotel Reservation URLs (admin)
+    path(
+        "admin/hotel-reservations/",
+        views_admin.AdminHotelReservationListView.as_view(),
+        name="admin_hotel_reservation_list",
+    ),
+    path(
+        "admin/hotel-reservations/<int:pk>/",
+        views_admin.AdminHotelReservationDetailView.as_view(),
+        name="admin_hotel_reservation_detail",
+    ),
+    path(
+        "admin/hotel-reservations/create/",
+        views_admin.AdminHotelReservationCreateView.as_view(),
+        name="admin_hotel_reservation_create",
+    ),
+    path(
+        "admin/hotel-reservations/<int:pk>/edit/",
+        views_admin.AdminHotelReservationUpdateView.as_view(),
+        name="admin_hotel_reservation_update",
+    ),
+    path(
+        "admin/hotel-reservations/<int:pk>/delete/",
+        views_admin.AdminHotelReservationDeleteView.as_view(),
+        name="admin_hotel_reservation_delete",
+    ),
+]

@@ -11,6 +11,7 @@ def sidebar_context(request):
 
     # Mapeo de rutas a secciones del sidebar
     route_mapping = {
+        "dashboard": {"section": "dashboard", "subsection": None},
         "events:dashboard": {"section": "dashboard", "subsection": None},
         "events:list": {"section": "events", "subsection": "list"},
         "events:create": {"section": "events", "subsection": "create"},
@@ -53,6 +54,79 @@ def sidebar_context(request):
         "locations:site_create": {"section": "locations", "subsection": "sites"},
         "locations:site_update": {"section": "locations", "subsection": "sites"},
         "locations:site_delete": {"section": "locations", "subsection": "sites"},
+        "locations:admin_hotel_list": {"section": "hotels", "subsection": "hotel_list"},
+        "locations:admin_hotel_detail": {
+            "section": "hotels",
+            "subsection": "hotel_list",
+        },
+        "locations:admin_hotel_create": {
+            "section": "hotels",
+            "subsection": "hotel_list",
+        },
+        "locations:admin_hotel_update": {
+            "section": "hotels",
+            "subsection": "hotel_list",
+        },
+        "locations:admin_hotel_delete": {
+            "section": "hotels",
+            "subsection": "hotel_list",
+        },
+        "locations:admin_hotel_room_list": {
+            "section": "hotels",
+            "subsection": "hotel_room_list",
+        },
+        "locations:admin_hotel_room_create": {
+            "section": "hotels",
+            "subsection": "hotel_room_list",
+        },
+        "locations:admin_hotel_room_update": {
+            "section": "hotels",
+            "subsection": "hotel_room_list",
+        },
+        "locations:admin_hotel_room_delete": {
+            "section": "hotels",
+            "subsection": "hotel_room_list",
+        },
+        "locations:admin_hotel_service_list": {
+            "section": "hotels",
+            "subsection": "hotel_service_list",
+        },
+        "locations:admin_hotel_service_create": {
+            "section": "hotels",
+            "subsection": "hotel_service_list",
+        },
+        "locations:admin_hotel_service_update": {
+            "section": "hotels",
+            "subsection": "hotel_service_list",
+        },
+        "locations:admin_hotel_service_delete": {
+            "section": "hotels",
+            "subsection": "hotel_service_list",
+        },
+        "locations:admin_hotel_reservation_list": {
+            "section": "hotels",
+            "subsection": "hotel_reservation_list",
+        },
+        "locations:admin_hotel_reservation_detail": {
+            "section": "hotels",
+            "subsection": "hotel_reservation_list",
+        },
+        "locations:admin_hotel_reservation_create": {
+            "section": "hotels",
+            "subsection": "hotel_reservation_list",
+        },
+        "locations:admin_hotel_reservation_update": {
+            "section": "hotels",
+            "subsection": "hotel_reservation_list",
+        },
+        "locations:admin_hotel_reservation_delete": {
+            "section": "hotels",
+            "subsection": "hotel_reservation_list",
+        },
+        "accounts:player_list": {"section": "players", "subsection": "player_list"},
+        "accounts:player_detail": {"section": "players", "subsection": "player_list"},
+        "accounts:player_register": {"section": "players", "subsection": "player_list"},
+        "accounts:player_edit": {"section": "players", "subsection": "player_list"},
     }
 
     try:
@@ -67,15 +141,14 @@ def sidebar_context(request):
             active_subsection = mapping["subsection"]
         else:
             # Fallback: determinar por la ruta
-            if current_path.startswith("/events/"):
+            if current_path == "/dashboard/" or current_path == "/dashboard":
+                active_section = "dashboard"
+            elif current_path.startswith("/events/"):
                 if current_path == "/events/" or current_path == "/events":
                     active_section = "dashboard"
                 elif "/list" in current_path:
                     active_section = "events"
                     active_subsection = "list"
-                elif "/create" in current_path:
-                    active_section = "events"
-                    active_subsection = "create"
                 elif "/calendar" in current_path:
                     active_section = "events"
                     active_subsection = "calendar"
@@ -83,7 +156,25 @@ def sidebar_context(request):
                     active_section = "events"
                     active_subsection = "list"
             elif current_path.startswith("/locations/"):
-                if "/seasons" in current_path or "/rules" in current_path:
+                if "/hotels" in current_path or "/hotel" in current_path:
+                    active_section = "hotels"
+                    if (
+                        "/hotel-reservations" in current_path
+                        or "/hotel_reservations" in current_path
+                    ):
+                        active_subsection = "hotel_reservation_list"
+                    elif (
+                        "/hotel-rooms" in current_path or "/hotel_rooms" in current_path
+                    ):
+                        active_subsection = "hotel_room_list"
+                    elif (
+                        "/hotel-services" in current_path
+                        or "/hotel_services" in current_path
+                    ):
+                        active_subsection = "hotel_service_list"
+                    else:
+                        active_subsection = "hotel_list"
+                elif "/seasons" in current_path or "/rules" in current_path:
                     active_section = "configuration"
                     if "/seasons" in current_path:
                         active_subsection = "seasons"
@@ -99,16 +190,29 @@ def sidebar_context(request):
                         active_subsection = "cities"
                     else:
                         active_subsection = "countries"
+            elif current_path.startswith("/accounts/"):
+                if "/players" in current_path:
+                    active_section = "players"
+                    active_subsection = "player_list"
 
     except Resolver404:
         # Si no se puede resolver la URL, usar fallback por ruta
-        if current_path.startswith("/events/"):
+        if current_path == "/dashboard/" or current_path == "/dashboard":
+            active_section = "dashboard"
+        elif current_path.startswith("/events/"):
             active_section = "events"
         elif current_path.startswith("/locations/"):
-            if "/seasons" in current_path or "/rules" in current_path:
+            if "/hotels" in current_path or "/hotel" in current_path:
+                active_section = "hotels"
+            elif "/seasons" in current_path or "/rules" in current_path:
                 active_section = "configuration"
             else:
                 active_section = "locations"
+        elif current_path.startswith("/accounts/"):
+            if "/users" in current_path:
+                active_section = "users"
+            elif "/players" in current_path:
+                active_section = "players"
 
     return {
         "active_section": active_section,

@@ -177,7 +177,7 @@
             <div class="sb-label hide-mini">Sistema</div>
 
             <!-- Dashboard -->
-            <a href="{% url 'events:dashboard' %}" class="sb-item{% if active_section == 'dashboard' %} active{% endif %}" data-bs-title="Dashboard">
+            <a href="{% url 'dashboard' %}" class="sb-item{% if active_section == 'dashboard' %} active{% endif %}" data-bs-title="Dashboard">
                 <i class="sb-ico bi bi-speedometer2"></i>
                 <span class="hide-mini">Dashboard</span>
             </a>
@@ -207,6 +207,31 @@
             <a class="link{% if active_subsection == 'sites' %} active{% endif %}" href="{% url 'locations:site_list' %}">Sitios</a>
         </div>
 
+        <!-- Hoteles -->
+        <button class="sb-item w-100{% if active_section == 'hotels' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbHotels" aria-expanded="{% if active_section == 'hotels' %}true{% else %}false{% endif %}" data-bs-title="Hoteles">
+            <i class="sb-ico bi bi-building"></i>
+            <span class="hide-mini">Hoteles</span>
+            <i class="sb-right bi {% if active_section == 'hotels' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
+        </button>
+        <div id="sbHotels" class="collapse sb-sub{% if active_section == 'hotels' %} show{% endif %}">
+            <a class="link{% if active_subsection == 'hotel_list' %} active{% endif %}" href="{% url 'locations:admin_hotel_list' %}">Lista de Hoteles</a>
+            <a class="link{% if active_subsection == 'hotel_room_list' %} active{% endif %}" href="{% url 'locations:admin_hotel_room_list' %}">Habitaciones</a>
+            <a class="link{% if active_subsection == 'hotel_service_list' %} active{% endif %}" href="{% url 'locations:admin_hotel_service_list' %}">Servicios</a>
+            <a class="link{% if active_subsection == 'hotel_reservation_list' %} active{% endif %}" href="{% url 'locations:admin_hotel_reservation_list' %}">Reservas</a>
+        </div>
+
+        <!-- Gestión de Datos -->
+        <button class="sb-item w-100{% if active_section == 'data_management' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbDataManagement" aria-expanded="{% if active_section == 'data_management' %}true{% else %}false{% endif %}" data-bs-title="Gestión de Datos">
+            <i class="sb-ico bi bi-database"></i>
+            <span class="hide-mini">Gestión de Datos</span>
+            <i class="sb-right bi {% if active_section == 'data_management' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
+        </button>
+        <div id="sbDataManagement" class="collapse sb-sub{% if active_section == 'data_management' %} show{% endif %}">
+            <a class="link{% if active_subsection == 'event_contacts' %} active{% endif %}" href="{% url 'events:eventcontact_list' %}">Contactos de Eventos</a>
+            <a class="link{% if active_subsection == 'event_types' %} active{% endif %}" href="{% url 'events:eventtype_list' %}">Tipos de Evento</a>
+            <a class="link{% if active_subsection == 'gate_fee_types' %} active{% endif %}" href="{% url 'events:gatefeetype_list' %}">Tipos de Gate Fee</a>
+        </div>
+
         <!-- Configuración -->
         <button class="sb-item w-100{% if active_section == 'configuration' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbConfiguration" aria-expanded="{% if active_section == 'configuration' %}true{% else %}false{% endif %}" data-bs-title="Configuración">
             <i class="sb-ico bi bi-gear"></i>
@@ -217,6 +242,16 @@
             <a class="link{% if active_subsection == 'seasons' %} active{% endif %}" href="{% url 'locations:season_list' %}">Temporadas</a>
             <a class="link{% if active_subsection == 'rules' %} active{% endif %}" href="{% url 'locations:rule_list' %}">Reglas</a>
             <a class="link{% if active_subsection == 'division_list' %} active{% endif %}" href="{% url 'events:division_list' %}">Divisiones</a>
+        </div>
+
+        <!-- Jugadores -->
+        <button class="sb-item w-100{% if active_section == 'players' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbPlayers" aria-expanded="{% if active_section == 'players' %}true{% else %}false{% endif %}" data-bs-title="Jugadores">
+            <i class="sb-ico bi bi-person-badge"></i>
+            <span class="hide-mini">Jugadores</span>
+            <i class="sb-right bi {% if active_section == 'players' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
+        </button>
+        <div id="sbPlayers" class="collapse sb-sub{% if active_section == 'players' %} show{% endif %}">
+            <a class="link{% if active_subsection == 'player_list' %} active{% endif %}" href="{% url 'accounts:player_list' %}">Lista de Jugadores</a>
         </div>
 
             <div class="sb-label hide-mini">Administración</div>

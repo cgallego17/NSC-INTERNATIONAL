@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reserva #{{ reservation.id }} - Detalle{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-calendar-check me-2"></i>Reserva #{{ reservation.id }}
+            </h1>
+            <p class="text-muted">Detalle de la reserva</p>
+        </div>
+        <div>
+            <a href="{% url 'locations:admin_hotel_reservation_update' reservation.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit me-2"></i>Editar
+            </a>
+            <a href="{% url 'locations:admin_hotel_reservation_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información Principal -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información de la Reserva</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong><i class="fas fa-hotel me-2"></i>Hotel:</strong><br>
+                            <a href="{% url 'locations:admin_hotel_detail' reservation.hotel.pk %}">
+                                {{ reservation.hotel.hotel_name }}
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong><i class="fas fa-bed me-2"></i>Habitación:</strong><br>
+                            #{{ reservation.room.room_number }} - {{ reservation.room.get_room_type_display }}
+                            <br>
+                            <small class="text-muted">Capacidad: {{ reservation.room.capacity }} personas</small>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong><i class="fas fa-sign-in-alt me-2"></i>Check-in:</strong><br>
+                            {{ reservation.check_in|date:"d/m/Y" }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong><i class="fas fa-sign-out-alt me-2"></i>Check-out:</strong><br>
+                            {{ reservation.check_out|date:"d/m/Y" }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong><i class="fas fa-moon me-2"></i>Noches:</strong><br>
+                            {{ reservation.number_of_nights }} noche{{ reservation.number_of_nights|pluralize }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong><i class="fas fa-info-circle me-2"></i>Estado:</strong><br>
+                            <span class="badge bg-{% if reservation.status == 'confirmed' %}success{% elif reservation.status == 'pending' %}warning{% elif reservation.status == 'cancelled' %}danger{% else %}info{% endif %}">
+                                {{ reservation.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información del Huésped -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>Información del Huésped</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <strong>Nombre:</strong><br>
+                            {{ reservation.guest_name }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Email:</strong><br>
+                            <a href="mailto:{{ reservation.guest_email }}">{{ reservation.guest_email }}</a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Teléfono:</strong><br>
+                            <a href="tel:{{ reservation.guest_phone }}">{{ reservation.guest_phone }}</a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Número de Huéspedes:</strong><br>
+                            {{ reservation.number_of_guests }} persona{{ reservation.number_of_guests|pluralize }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Usuario del Sistema:</strong><br>
+                            {{ reservation.user.get_full_name|default:reservation.user.username }}
+                            <br>
+                            <small class="text-muted">{{ reservation.user.email }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Servicios Adicionales -->
+            {% if services %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-concierge-bell me-2"></i>Servicios Adicionales</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Servicio</th>
+                                    <th>Tipo</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio Unitario</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for service_reservation in services %}
+                                <tr>
+                                    <td>{{ service_reservation.service.service_name }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ service_reservation.service.get_service_type_display }}</span>
+                                    </td>
+                                    <td>{{ service_reservation.quantity }}</td>
+                                    <td>${{ service_reservation.service.price|floatformat:2 }}</td>
+                                    <td>
+                                        {% if service_reservation.service.is_per_person %}
+                                            ${{ service_reservation.service.price|floatformat:2 }} × {{ reservation.number_of_guests }} × {{ service_reservation.quantity }}
+                                        {% elif service_reservation.service.is_per_night %}
+                                            ${{ service_reservation.service.price|floatformat:2 }} × {{ reservation.number_of_nights }} × {{ service_reservation.quantity }}
+                                        {% else %}
+                                            ${{ service_reservation.service.price|floatformat:2 }} × {{ service_reservation.quantity }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Notas -->
+            {% if reservation.notes %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-sticky-note me-2"></i>Notas</h5>
+                </div>
+                <div class="card-body">
+                    <p>{{ reservation.notes|linebreaks }}</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-dollar-sign me-2"></i>Resumen de Costos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Habitación:</strong><br>
+                        ${{ reservation.room.price_per_night|floatformat:2 }} × {{ reservation.number_of_nights }} noches<br>
+                        <strong class="text-primary">
+                            {% widthratio reservation.room.price_per_night 1 reservation.number_of_nights as room_total %}
+                            ${{ room_total|floatformat:2 }}
+                        </strong>
+                    </div>
+                    
+                    {% if services %}
+                    <div class="mb-3 border-top pt-3">
+                        <strong>Servicios Adicionales:</strong><br>
+                        {% for service_reservation in services %}
+                            <small>
+                                {{ service_reservation.service.service_name }}: 
+                                ${{ service_reservation.service.price|floatformat:2 }}
+                                {% if service_reservation.service.is_per_person %}
+                                    × {{ reservation.number_of_guests }} personas
+                                {% endif %}
+                                {% if service_reservation.service.is_per_night %}
+                                    × {{ reservation.number_of_nights }} noches
+                                {% endif %}
+                                × {{ service_reservation.quantity }}
+                            </small><br>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="border-top pt-3">
+                        <h4 class="mb-0">
+                            <strong>Total:</strong> 
+                            <span class="text-primary">${{ reservation.total_amount|floatformat:2 }}</span>
+                        </h4>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Información del Sistema</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong>Creada:</strong><br>
+                        <small>{{ reservation.created_at|date:"d/m/Y H:i" }}</small>
+                    </p>
+                    <p class="mb-0">
+                        <strong>Última Actualización:</strong><br>
+                        <small>{{ reservation.updated_at|date:"d/m/Y H:i" }}</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+

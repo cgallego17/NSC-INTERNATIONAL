@@ -1,0 +1,43 @@
+{% load static %}
+<!-- Widget del Carrito de Hoteles para el Dashboard -->
+<div class="card mb-4 shadow-sm">
+    <div class="card-header" style="background: var(--mlb-blue); color: white; border: none;">
+        <h5 class="mb-0 d-flex justify-content-between align-items-center">
+            <span>
+                <i class="fas fa-shopping-cart me-2"></i>Carrito de Reservas
+            </span>
+            <span class="badge" style="background: var(--mlb-red); color: white;">{{ cart_count }} item{{ cart_count|pluralize }}</span>
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if cart_count > 0 %}
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <strong style="color: #666;">Total:</strong>
+                    <h4 class="mb-0" style="color: var(--mlb-blue); font-weight: 700;">${{ cart_total|floatformat:2 }}</h4>
+                </div>
+                <a href="{% url 'locations:hotel_cart' %}" class="btn" style="background: var(--mlb-blue); color: white; border: none;">
+                    <i class="fas fa-shopping-cart me-2"></i>Ver Carrito
+                </a>
+            </div>
+            <div class="d-grid gap-2">
+                <a href="{% url 'locations:front_hotel_list' %}" class="btn" style="border: 2px solid var(--mlb-blue); color: var(--mlb-blue); background: transparent;">
+                    <i class="fas fa-plus me-2"></i>Agregar Más Reservas
+                </a>
+            </div>
+        {% else %}
+            <div class="text-center py-3">
+                <i class="fas fa-shopping-cart fa-3x mb-3" style="color: #ccc;"></i>
+                <p class="text-muted mb-3">Tu carrito está vacío</p>
+                <a href="{% url 'locations:front_hotel_list' %}" class="btn" style="background: var(--mlb-blue); color: white; border: none;">
+                    <i class="fas fa-hotel me-2"></i>Explorar Hoteles
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+
+
+
+

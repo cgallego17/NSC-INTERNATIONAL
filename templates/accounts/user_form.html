@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Editar Usuario{% else %}Crear Usuario{% endif %} - NSC International
+{% endblock %}
+
+{% block breadcrumb %}
+    <span>Usuarios</span>
+    <span>{% if object %}Editar{% else %}Crear{% endif %}</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="fas fa-user-edit me-2 text-primary"></i>
+                        {% if object %}Editar Usuario{% else %}Crear Nuevo Usuario{% endif %}
+                    </h1>
+                    <p class="text-muted mb-0">
+                        {% if object %}Modifica los datos del usuario{% else %}Agrega un nuevo usuario al sistema{% endif %}
+                    </p>
+                </div>
+                <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a Usuarios
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 text-primary">
+                        <i class="fas fa-user-circle me-2"></i>
+                        {% if object %}Información del Usuario{% else %}Datos del Nuevo Usuario{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Información Básica -->
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                                <i class="fas fa-info-circle text-primary me-2"></i>
+                                <h6 class="mb-0 text-primary fw-bold">Información Básica</h6>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.username.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-user me-1 text-muted"></i>
+                                        {{ form.username.label }}
+                                        {% if form.username.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.username }}
+                                    {% if form.username.errors %}
+                                        <div class="text-danger small mt-1">{{ form.username.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-envelope me-1 text-muted"></i>
+                                        {{ form.email.label }}
+                                        {% if form.email.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="text-danger small mt-1">{{ form.email.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="{{ form.first_name.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-id-card me-1 text-muted"></i>
+                                        {{ form.first_name.label }}
+                                        {% if form.first_name.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        <div class="text-danger small mt-1">{{ form.first_name.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="{{ form.last_name.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-id-card me-1 text-muted"></i>
+                                        {{ form.last_name.label }}
+                                        {% if form.last_name.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        <div class="text-danger small mt-1">{{ form.last_name.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contraseña (solo al crear) -->
+                        {% if not object %}
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                                <i class="fas fa-lock text-primary me-2"></i>
+                                <h6 class="mb-0 text-primary fw-bold">Contraseña</h6>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.password1.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-key me-1 text-muted"></i>
+                                        {{ form.password1.label }}
+                                        {% if form.password1.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.password1 }}
+                                    {% if form.password1.errors %}
+                                        <div class="text-danger small mt-1">{{ form.password1.errors }}</div>
+                                    {% endif %}
+                                    {% if form.password1.help_text %}
+                                        <small class="form-text text-muted d-block mt-1">{{ form.password1.help_text }}</small>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="{{ form.password2.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-key me-1 text-muted"></i>
+                                        {{ form.password2.label }}
+                                        {% if form.password2.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.password2 }}
+                                    {% if form.password2.errors %}
+                                        <div class="text-danger small mt-1">{{ form.password2.errors }}</div>
+                                    {% endif %}
+                                    {% if form.password2.help_text %}
+                                        <small class="form-text text-muted d-block mt-1">{{ form.password2.help_text }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Tipo y Permisos -->
+                        <div class="mb-4">
+                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                                <i class="fas fa-user-tag text-primary me-2"></i>
+                                <h6 class="mb-0 text-primary fw-bold">Tipo y Permisos</h6>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.user_type.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-users-cog me-1 text-muted"></i>
+                                        {{ form.user_type.label }}
+                                        {% if form.user_type.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.user_type }}
+                                    {% if form.user_type.errors %}
+                                        <div class="text-danger small mt-1">{{ form.user_type.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if object %}
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold d-block">
+                                        <i class="fas fa-toggle-on me-1 text-muted"></i>
+                                        {{ form.is_active.label }}
+                                    </label>
+                                    <div class="form-check form-switch form-switch-lg mt-2">
+                                        {{ form.is_active }}
+                                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                            {% if object.is_active %}
+                                                <span class="badge bg-success">Activo</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Inactivo</span>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                    {% if form.is_active.errors %}
+                                        <div class="text-danger small mt-1">{{ form.is_active.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold d-block">
+                                        <i class="fas fa-user-shield me-1 text-muted"></i>
+                                        {{ form.is_staff.label }}
+                                    </label>
+                                    <div class="form-check form-switch form-switch-lg mt-2">
+                                        {{ form.is_staff }}
+                                        <label class="form-check-label" for="{{ form.is_staff.id_for_label }}">
+                                            Acceso al panel de administración
+                                        </label>
+                                    </div>
+                                    {% if form.is_staff.errors %}
+                                        <div class="text-danger small mt-1">{{ form.is_staff.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold d-block">
+                                        <i class="fas fa-crown me-1 text-muted"></i>
+                                        {{ form.is_superuser.label }}
+                                    </label>
+                                    <div class="form-check form-switch form-switch-lg mt-2">
+                                        {{ form.is_superuser }}
+                                        <label class="form-check-label" for="{{ form.is_superuser.id_for_label }}">
+                                            Permisos de superusuario
+                                        </label>
+                                    </div>
+                                    {% if form.is_superuser.errors %}
+                                        <div class="text-danger small mt-1">{{ form.is_superuser.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="row mt-4 pt-3 border-top">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary btn-lg">
+                                        <i class="fas fa-times me-2"></i>Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-save me-2"></i>{% if object %}Actualizar{% else %}Crear{% endif %} Usuario
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-switch-lg .form-check-input {
+        width: 3rem;
+        height: 1.5rem;
+        cursor: pointer;
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+</style>
+{% endblock %}
+
+
+
+
+

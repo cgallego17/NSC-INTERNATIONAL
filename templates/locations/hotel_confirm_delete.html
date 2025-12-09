@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Hotel{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">¿Estás seguro de que deseas eliminar este hotel?</p>
+                    
+                    <div class="alert alert-warning">
+                        <strong>Hotel:</strong> {{ object.hotel_name }}<br>
+                        {% if object.address %}
+                            <strong>Dirección:</strong> {{ object.address }}<br>
+                        {% endif %}
+                        {% if object.city %}
+                            <strong>Ubicación:</strong> {{ object.city.name }}{% if object.state %}, {{ object.state.name }}{% endif %}<br>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>Advertencia:</strong> Esta acción eliminará también todas las habitaciones, servicios y reservas asociadas a este hotel.
+                    </div>
+                    
+                    <p class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Esta acción no se puede deshacer.
+                    </p>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="{% url 'locations:admin_hotel_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Eliminar Hotel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+

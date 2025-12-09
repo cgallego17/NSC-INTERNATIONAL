@@ -1,0 +1,355 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ hotel.hotel_name }} - Detalle{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-hotel me-2"></i>{{ hotel.hotel_name }}
+            </h1>
+            <p class="text-muted">Información del hotel y habitaciones disponibles</p>
+        </div>
+        <a href="{% url 'locations:front_hotel_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver a Hoteles
+        </a>
+    </div>
+
+    <div class="row">
+        <!-- Información del Hotel -->
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-body">
+                    {% if hotel.photo %}
+                        <img src="{{ hotel.photo.url }}" alt="{{ hotel.hotel_name }}" 
+                             class="img-fluid rounded mb-3" style="max-height: 400px; width: 100%; object-fit: cover;">
+                    {% endif %}
+                    
+                    <h4 class="mb-3">{{ hotel.hotel_name }}</h4>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-map-marker-alt me-2"></i>Dirección:</strong><br>
+                            {{ hotel.address }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong><i class="fas fa-globe me-2"></i>Ubicación:</strong><br>
+                            {% if hotel.city %}
+                                {{ hotel.city.name }}
+                                {% if hotel.state %}, {{ hotel.state.name }}{% endif %}
+                                {% if hotel.country %}<br>{{ hotel.country.name }}{% endif %}
+                            {% else %}
+                                -
+                            {% endif %}</p>
+                        </div>
+                    </div>
+                    
+                    {% if hotel.information %}
+                        <div class="mb-3">
+                            <strong>Información:</strong>
+                            <p>{{ hotel.information|linebreaks }}</p>
+                        </div>
+                    {% endif %}
+                    
+                    {% if hotel.contact_name or hotel.contact_email or hotel.contact_phone %}
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-phone me-2"></i>Contacto:</h6>
+                            {% if hotel.contact_name %}<p class="mb-1"><strong>Nombre:</strong> {{ hotel.contact_name }}</p>{% endif %}
+                            {% if hotel.contact_email %}<p class="mb-1"><strong>Email:</strong> <a href="mailto:{{ hotel.contact_email }}">{{ hotel.contact_email }}</a></p>{% endif %}
+                            {% if hotel.contact_phone %}<p class="mb-0"><strong>Teléfono:</strong> <a href="tel:{{ hotel.contact_phone }}">{{ hotel.contact_phone }}</a></p>{% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Habitaciones Disponibles -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-bed me-2"></i>Habitaciones Disponibles</h5>
+                </div>
+                <div class="card-body">
+                    {% if rooms %}
+                        <div class="row g-3">
+                            {% for room in rooms %}
+                                <div class="col-md-6">
+                                    <div class="card h-100">
+                                        <div class="card-body">
+                                            <h6 class="card-title">
+                                                <i class="fas fa-hashtag me-1"></i>Habitación #{{ room.room_number }}
+                                            </h6>
+                                            <p class="card-text">
+                                                <span class="badge bg-primary">{{ room.get_room_type_display }}</span>
+                                                <span class="badge bg-info">{{ room.capacity }} personas</span>
+                                            </p>
+                                            {% if room.description %}
+                                                <p class="card-text text-muted small">{{ room.description|truncatewords:15 }}</p>
+                                            {% endif %}
+                                            <h5 class="text-primary mb-3">${{ room.price_per_night|floatformat:2 }}<small class="text-muted">/noche</small></h5>
+                                            <div class="d-grid gap-2">
+                                                <button class="btn btn-primary add-to-cart-btn" 
+                                                        data-room-id="{{ room.id }}"
+                                                        data-hotel-id="{{ hotel.id }}"
+                                                        data-room-number="{{ room.room_number }}"
+                                                        data-price="{{ room.price_per_night }}">
+                                                    <i class="fas fa-cart-plus me-2"></i>Agregar al Carrito
+                                                </button>
+                                                <a href="{% url 'locations:front_hotel_reservation_create' %}?hotel={{ hotel.id }}&room={{ room.id }}" 
+                                                   class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-calendar-check me-2"></i>Reservar Directamente
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No hay habitaciones disponibles en este momento.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Servicios Disponibles -->
+            {% if services %}
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-concierge-bell me-2"></i>Servicios Adicionales</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for service in services %}
+                            <div class="col-md-6">
+                                <div class="border rounded p-3">
+                                    <h6>{{ service.service_name }}</h6>
+                                    <p class="text-muted small mb-2">{{ service.get_service_type_display }}</p>
+                                    {% if service.description %}
+                                        <p class="small mb-2">{{ service.description|truncatewords:10 }}</p>
+                                    {% endif %}
+                                    <h5 class="text-success mb-0">
+                                        ${{ service.price|floatformat:2 }}
+                                        {% if service.is_per_person %}<small class="text-muted">/persona</small>{% endif %}
+                                        {% if service.is_per_night %}<small class="text-muted">/noche</small>{% endif %}
+                                    </h5>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información</h5>
+                </div>
+                <div class="card-body">
+                    {% if hotel.capacity %}
+                        <p><strong>Capacidad:</strong><br>{{ hotel.capacity }}</p>
+                    {% endif %}
+                    {% if hotel.registration_url %}
+                        <p><strong>URL de Registro:</strong><br>
+                        <a href="{{ hotel.registration_url }}" target="_blank">{{ hotel.registration_url|truncatewords:5 }}</a></p>
+                    {% endif %}
+                    <hr>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'locations:front_hotel_reservation_create' %}?hotel={{ hotel.id }}" 
+                           class="btn btn-primary">
+                            <i class="fas fa-calendar-check me-2"></i>Hacer Reserva
+                        </a>
+                        <a href="{% url 'locations:hotel_cart' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-shopping-cart me-2"></i>Ver Carrito
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Agregar al Carrito -->
+<div class="modal fade" id="addToCartModal" tabindex="-1" aria-labelledby="addToCartModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="addToCartModalLabel">
+                    <i class="fas fa-cart-plus me-2"></i>Agregar al Carrito
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addToCartForm">
+                <div class="modal-body">
+                    <input type="hidden" id="cart_room_id" name="room_id">
+                    <div class="mb-3">
+                        <label for="cart_check_in" class="form-label">Check-in <span class="text-danger">*</span></label>
+                        <input type="date" id="cart_check_in" name="check_in" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cart_check_out" class="form-label">Check-out <span class="text-danger">*</span></label>
+                        <input type="date" id="cart_check_out" name="check_out" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cart_guests" class="form-label">Número de Huéspedes <span class="text-danger">*</span></label>
+                        <input type="number" id="cart_guests" name="guests" class="form-control" min="1" value="1" required>
+                    </div>
+                    <div id="cartServicesContainer">
+                        <!-- Los servicios se cargarán dinámicamente -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-cart-plus me-2"></i>Agregar al Carrito
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = new bootstrap.Modal(document.getElementById('addToCartModal'));
+    let currentHotelId = null;
+    
+    // Manejar clic en "Agregar al Carrito"
+    document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const roomId = this.dataset.roomId;
+            const hotelId = this.dataset.hotelId;
+            currentHotelId = hotelId;
+            
+            document.getElementById('cart_room_id').value = roomId;
+            
+            // Cargar servicios del hotel
+            loadHotelServices(hotelId);
+            
+            // Establecer fecha mínima (hoy)
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('cart_check_in').min = today;
+            document.getElementById('cart_check_out').min = today;
+            
+            modal.show();
+        });
+    });
+    
+    // Actualizar fecha mínima de check-out cuando cambia check-in
+    document.getElementById('cart_check_in').addEventListener('change', function() {
+        const checkIn = this.value;
+        if (checkIn) {
+            const nextDay = new Date(checkIn);
+            nextDay.setDate(nextDay.getDate() + 1);
+            document.getElementById('cart_check_out').min = nextDay.toISOString().split('T')[0];
+        }
+    });
+    
+    // Cargar servicios del hotel
+    function loadHotelServices(hotelId) {
+        fetch(`/locations/ajax/hotels/${hotelId}/services/`)
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('cartServicesContainer');
+                if (data.services && data.services.length > 0) {
+                    container.innerHTML = '<h6 class="mb-3">Servicios Adicionales (Opcional):</h6>';
+                    data.services.forEach(service => {
+                        const serviceDiv = document.createElement('div');
+                        serviceDiv.className = 'form-check mb-2';
+                        serviceDiv.innerHTML = `
+                            <input class="form-check-input service-checkbox" type="checkbox" 
+                                   value="${service.id}" id="service_${service.id}">
+                            <label class="form-check-label w-100" for="service_${service.id}">
+                                <div class="d-flex justify-content-between">
+                                    <span>${service.service_name} - $${parseFloat(service.price).toFixed(2)}
+                                        ${service.is_per_person ? '/persona' : ''}
+                                        ${service.is_per_night ? '/noche' : ''}
+                                    </span>
+                                </div>
+                            </label>
+                            <input type="number" class="form-control form-control-sm mt-1 service-quantity" 
+                                   value="1" min="1" style="display: none;" data-service-id="${service.id}">
+                        `;
+                        container.appendChild(serviceDiv);
+                        
+                        // Mostrar/ocultar cantidad cuando se selecciona
+                        const checkbox = serviceDiv.querySelector('.service-checkbox');
+                        const quantityInput = serviceDiv.querySelector('.service-quantity');
+                        checkbox.addEventListener('change', function() {
+                            quantityInput.style.display = this.checked ? 'block' : 'none';
+                            if (!this.checked) quantityInput.value = 1;
+                        });
+                    });
+                } else {
+                    container.innerHTML = '<p class="text-muted small">No hay servicios disponibles.</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error cargando servicios:', error);
+            });
+    }
+    
+    // Manejar envío del formulario
+    document.getElementById('addToCartForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const roomId = document.getElementById('cart_room_id').value;
+        const checkIn = document.getElementById('cart_check_in').value;
+        const checkOut = document.getElementById('cart_check_out').value;
+        const guests = parseInt(document.getElementById('cart_guests').value);
+        
+        // Recopilar servicios seleccionados
+        const services = [];
+        document.querySelectorAll('.service-checkbox:checked').forEach(checkbox => {
+            const serviceId = checkbox.value;
+            const quantityInput = document.querySelector(`.service-quantity[data-service-id="${serviceId}"]`);
+            const quantity = parseInt(quantityInput ? quantityInput.value : 1);
+            services.push({
+                service_id: serviceId,
+                quantity: quantity
+            });
+        });
+        
+        // Enviar al servidor
+        fetch('{% url "locations:add_to_cart" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({
+                room_id: roomId,
+                check_in: checkIn,
+                check_out: checkOut,
+                guests: guests,
+                services: services
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                modal.hide();
+                // Mostrar mensaje de éxito
+                alert('¡Agregado al carrito exitosamente!');
+                // Recargar la página para actualizar el contador del carrito
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al agregar al carrito');
+        });
+    });
+});
+</script>
+{% endblock %}
+
+
+
+
+

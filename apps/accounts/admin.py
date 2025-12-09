@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 
-from .models import UserProfile, Team, Player
+from .models import UserProfile, Team, Player, PlayerParent, DashboardContent
 
 
 @admin.register(UserProfile)
@@ -34,3 +34,31 @@ class PlayerAdmin(admin.ModelAdmin):
         'user__email', 'team__name', 'jersey_number'
     ]
     readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(PlayerParent)
+class PlayerParentAdmin(admin.ModelAdmin):
+    list_display = ['parent', 'player', 'relationship', 'is_primary', 'can_pickup', 'created_at']
+    list_filter = ['relationship', 'is_primary', 'can_pickup', 'created_at']
+    search_fields = [
+        'parent__username', 'parent__first_name', 'parent__last_name',
+        'player__user__username', 'player__user__first_name', 'player__user__last_name'
+    ]
+    readonly_fields = ['created_at', 'updated_at']
+
+
+@admin.register(DashboardContent)
+class DashboardContentAdmin(admin.ModelAdmin):
+    list_display = ['title', 'is_active', 'order', 'created_at']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['title', 'content']
+    readonly_fields = ['created_at', 'updated_at']
+    fieldsets = (
+        ('Información', {
+            'fields': ('title', 'content', 'is_active', 'order')
+        }),
+        ('Auditoría', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )

@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reservas de Hoteles{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-calendar-check me-2"></i>Reservas de Hoteles
+            </h1>
+            <p class="text-muted">Gestiona las reservas de hoteles</p>
+        </div>
+        <a href="{% url 'locations:admin_hotel_reservation_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nueva Reserva
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label for="search" class="form-label">Buscar</label>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           value="{{ request.GET.search }}" placeholder="Nombre, email, hotel...">
+                </div>
+                <div class="col-md-3">
+                    <label for="hotel" class="form-label">Hotel</label>
+                    <select class="form-select" id="hotel" name="hotel">
+                        <option value="">Todos los Hoteles</option>
+                        {% for hotel in hotels %}
+                            <option value="{{ hotel.id }}" 
+                                    {% if request.GET.hotel == hotel.id|stringformat:"s" %}selected{% endif %}>
+                                {{ hotel.hotel_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Estado</label>
+                    <select class="form-select" id="status" name="status">
+                        <option value="">Todos</option>
+                        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>Pendiente</option>
+                        <option value="confirmed" {% if request.GET.status == 'confirmed' %}selected{% endif %}>Confirmada</option>
+                        <option value="checked_in" {% if request.GET.status == 'checked_in' %}selected{% endif %}>Check-in</option>
+                        <option value="checked_out" {% if request.GET.status == 'checked_out' %}selected{% endif %}>Check-out</option>
+                        <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelada</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div>
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-search me-1"></i>Filtrar
+                        </button>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <a href="{% url 'locations:admin_hotel_reservation_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-1"></i>Limpiar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reservations Table -->
+    <div class="card">
+        <div class="card-body">
+            {% if reservations %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Hotel</th>
+                                <th>Habitación</th>
+                                <th>Huésped</th>
+                                <th>Check-in</th>
+                                <th>Check-out</th>
+                                <th>Noches</th>
+                                <th>Huéspedes</th>
+                                <th>Total</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reservation in reservations %}
+                                <tr>
+                                    <td>
+                                        <strong>#{{ reservation.id }}</strong>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if reservation.hotel.photo %}
+                                                <img src="{{ reservation.hotel.photo.url }}" alt="{{ reservation.hotel.hotel_name }}" 
+                                                     class="rounded me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" 
+                                                     style="width: 40px; height: 40px;">
+                                                    <i class="fas fa-hotel text-muted"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ reservation.hotel.hotel_name }}</strong>
+                                                <br>
+                                                <small class="text-muted">{{ reservation.room.room_number }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ reservation.room.room_number }}</span>
+                                        <br>
+                                        <small class="text-muted">{{ reservation.room.get_room_type_display }}</small>
+                                    </td>
+                                    <td>
+                                        <strong>{{ reservation.guest_name }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ reservation.guest_email }}</small>
+                                    </td>
+                                    <td>{{ reservation.check_in|date:"d/m/Y" }}</td>
+                                    <td>{{ reservation.check_out|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ reservation.number_of_nights }}</span>
+                                    </td>
+                                    <td>{{ reservation.number_of_guests }}</td>
+                                    <td>
+                                        <strong>${{ reservation.total_amount|floatformat:2 }}</strong>
+                                    </td>
+                                    <td>
+                                        {% if reservation.status == 'pending' %}
+                                            <span class="badge bg-warning">Pendiente</span>
+                                        {% elif reservation.status == 'confirmed' %}
+                                            <span class="badge bg-success">Confirmada</span>
+                                        {% elif reservation.status == 'checked_in' %}
+                                            <span class="badge bg-primary">Check-in</span>
+                                        {% elif reservation.status == 'checked_out' %}
+                                            <span class="badge bg-info">Check-out</span>
+                                        {% elif reservation.status == 'cancelled' %}
+                                            <span class="badge bg-danger">Cancelada</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{% url 'locations:admin_hotel_reservation_detail' reservation.pk %}" 
+                                               class="btn btn-sm btn-outline-info" title="Ver">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'locations:admin_hotel_reservation_update' reservation.pk %}" 
+                                               class="btn btn-sm btn-outline-warning" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'locations:admin_hotel_reservation_delete' reservation.pk %}" 
+                                               class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if is_paginated %}
+                    <nav aria-label="Reservations pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.hotel %}&hotel={{ request.GET.hotel }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Primera</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.hotel %}&hotel={{ request.GET.hotel }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Anterior</a>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.hotel %}&hotel={{ request.GET.hotel }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Siguiente</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.hotel %}&hotel={{ request.GET.hotel }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">Última</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No se encontraron reservas</h5>
+                    <p class="text-muted">Comienza creando tu primera reserva.</p>
+                    <a href="{% url 'locations:admin_hotel_reservation_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Nueva Reserva
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+

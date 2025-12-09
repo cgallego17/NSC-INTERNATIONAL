@@ -1,6 +1,7 @@
 from django.urls import path
 
 from . import views
+from . import views_data_management
 
 app_name = "events"
 
@@ -32,5 +33,83 @@ urlpatterns = [
         "divisions/<int:pk>/delete/",
         views.DivisionDeleteView.as_view(),
         name="division_delete",
+    ),
+    # Event Contact URLs
+    path(
+        "event-contacts/",
+        views_data_management.EventContactListView.as_view(),
+        name="eventcontact_list",
+    ),
+    path(
+        "event-contacts/create/",
+        views_data_management.EventContactCreateView.as_view(),
+        name="eventcontact_create",
+    ),
+    path(
+        "event-contacts/<int:pk>/",
+        views_data_management.EventContactDetailView.as_view(),
+        name="eventcontact_detail",
+    ),
+    path(
+        "event-contacts/<int:pk>/edit/",
+        views_data_management.EventContactUpdateView.as_view(),
+        name="eventcontact_update",
+    ),
+    path(
+        "event-contacts/<int:pk>/delete/",
+        views_data_management.EventContactDeleteView.as_view(),
+        name="eventcontact_delete",
+    ),
+    # Event Type URLs
+    path(
+        "event-types/",
+        views_data_management.EventTypeListView.as_view(),
+        name="eventtype_list",
+    ),
+    path(
+        "event-types/create/",
+        views_data_management.EventTypeCreateView.as_view(),
+        name="eventtype_create",
+    ),
+    path(
+        "event-types/<int:pk>/",
+        views_data_management.EventTypeDetailView.as_view(),
+        name="eventtype_detail",
+    ),
+    path(
+        "event-types/<int:pk>/edit/",
+        views_data_management.EventTypeUpdateView.as_view(),
+        name="eventtype_update",
+    ),
+    path(
+        "event-types/<int:pk>/delete/",
+        views_data_management.EventTypeDeleteView.as_view(),
+        name="eventtype_delete",
+    ),
+    # Gate Fee Type URLs
+    path(
+        "gate-fee-types/",
+        views_data_management.GateFeeTypeListView.as_view(),
+        name="gatefeetype_list",
+    ),
+    path(
+        "gate-fee-types/create/",
+        views_data_management.GateFeeTypeCreateView.as_view(),
+        name="gatefeetype_create",
+    ),
+    path(
+        "gate-fee-types/<int:pk>/",
+        views_data_management.GateFeeTypeDetailView.as_view(),
+        name="gatefeetype_detail",
+    ),
+    path(
+        "gate-fee-types/<int:pk>/edit/",
+        views_data_management.GateFeeTypeUpdateView.as_view(),
+        name="gatefeetype_update",
+    ),
+    path(
+        "gate-fee-types/<int:pk>/delete/",
+        views_data_management.GateFeeTypeDeleteView.as_view(),
+        name="gatefeetype_delete",
     ),
 ]

@@ -12,7 +12,7 @@ from django.views.generic import (
     UpdateView,
 )
 
-from .models import City, Country, Rule, Season, Site, State
+from .models import City, Country, Hotel, Rule, Season, Site, State
 
 
 # ===== COUNTRY VIEWS =====
@@ -470,10 +470,25 @@ def get_cities_by_state(request, state_id):
 # ===== API VIEWS =====
 def countries_api(request):
     """API para obtener países"""
-    countries = Country.objects.filter(is_active=True).order_by("name")
+    import unicodedata
+
+    all_countries = Country.objects.filter(is_active=True).order_by("name")
+
+    # Normalizar nombres y eliminar duplicados
+    seen_normalized = set()
+    unique_countries = []
+    for country in all_countries:
+        # Normalizar nombre (remover acentos)
+        nfd = unicodedata.normalize("NFD", country.name.lower().strip())
+        normalized = "".join(c for c in nfd if unicodedata.category(c) != "Mn")
+
+        if normalized not in seen_normalized:
+            seen_normalized.add(normalized)
+            unique_countries.append(country)
+
     data = [
         {"id": country.id, "name": country.name, "code": country.code}
-        for country in countries
+        for country in unique_countries
     ]
     return JsonResponse(data, safe=False)
 
@@ -721,19 +736,28 @@ class SiteDeleteView(LoginRequiredMixin, DeleteView):
 
 def sites_api(request):
     """API para obtener sitios con información de ubicación"""
-    sites = (
-        Site.objects.filter(is_active=True)
-        .select_related("state", "city", "country")
-        .values(
-            "id",
-            "site_name",
-            "abbreviation",
-            "state_id",
-            "state__name",
-            "city_id",
-            "city__name",
-            "country__name",
-        )
+    city_id = request.GET.get("city")
+
+    sites_query = Site.objects.filter(is_active=True)
+
+    # Filtrar por ciudad si se proporciona
+    if city_id:
+        try:
+            city_id = int(city_id)
+            # Filtrar estrictamente por ciudad
+            sites_query = sites_query.filter(city_id=city_id)
+        except (ValueError, TypeError):
+            pass
+
+    sites = sites_query.select_related("state", "city", "country").values(
+        "id",
+        "site_name",
+        "abbreviation",
+        "state_id",
+        "state__name",
+        "city_id",
+        "city__name",
+        "country__name",
     )
 
     # Convert to list and add computed fields
@@ -753,3 +777,34 @@ def sites_api(request):
         )
 
     return JsonResponse(sites_list, safe=False)
+
+
+def hotels_api(request):
+    """API para obtener hoteles"""
+    city_id = request.GET.get("city")
+    if city_id:
+        try:
+            city_id = int(city_id)
+            # Filtrar estrictamente por ciudad
+            hotels = Hotel.objects.filter(city_id=city_id, is_active=True).order_by(
+                "hotel_name"
+            )
+        except (ValueError, TypeError):
+            hotels = Hotel.objects.filter(is_active=True).order_by(
+                "city__name", "hotel_name"
+            )
+    else:
+        hotels = Hotel.objects.filter(is_active=True).order_by(
+            "city__name", "hotel_name"
+        )
+
+    data = [
+        {
+            "id": hotel.id,
+            "name": hotel.hotel_name,
+            "hotel_name": hotel.hotel_name,  # Incluir ambos campos para compatibilidad
+            "city_id": hotel.city.id if hotel.city else None,
+        }
+        for hotel in hotels
+    ]
+    return JsonResponse(data, safe=False)

@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Usuario - NSC International{% endblock %}
+
+{% block breadcrumb %}
+    <span>Usuarios</span>
+    <span>Eliminar</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0 text-gray-800">Eliminar Usuario</h1>
+                    <p class="text-muted">Confirma la eliminación del usuario</p>
+                </div>
+                <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h6 class="m-0 font-weight-bold">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar Eliminación
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-4">¿Estás seguro de que deseas eliminar el siguiente usuario?</p>
+                    
+                    <div class="alert alert-warning">
+                        <strong>Usuario:</strong> {{ user_obj.username }}<br>
+                        <strong>Nombre:</strong> {{ user_obj.get_full_name|default:"-" }}<br>
+                        <strong>Email:</strong> {{ user_obj.email|default:"-" }}
+                    </div>
+                    
+                    <p class="text-danger"><strong>Esta acción no se puede deshacer.</strong></p>
+                    
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-2"></i>Eliminar Usuario
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+

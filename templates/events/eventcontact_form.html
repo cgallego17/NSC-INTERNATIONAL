@@ -1,0 +1,417 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Editar Contacto{% else %}Crear Contacto{% endif %} - NSC International
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section-card {
+        background: #ffffff;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .form-section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .form-section-title i {
+        color: #4a5568;
+        margin-right: 0.5rem;
+    }
+    
+    .photo-preview {
+        max-width: 150px;
+        max-height: 150px;
+        border-radius: 0.5rem;
+        border: 2px solid #e9ecef;
+        padding: 0.5rem;
+        background: #f8f9fa;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="bi bi-person-fill text-primary me-2"></i>
+                        {% if object %}Editar Contacto{% else %}Crear Nuevo Contacto{% endif %}
+                    </h1>
+                    <p class="text-muted mb-0">
+                        {% if object %}Modifica los datos del contacto{% else %}Agrega un nuevo contacto para eventos{% endif %}
+                    </p>
+                </div>
+                <a href="{% url 'events:eventcontact_list' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-lg-9">
+            <form method="post" enctype="multipart/form-data" id="contactForm" onsubmit="enableDisabledFields(); return true;">
+                {% csrf_token %}
+                
+                <!-- Información Personal -->
+                <div class="form-section-card">
+                    <div class="form-section-title">
+                        <i class="bi bi-person-circle"></i>Información Personal
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="{{ form.name.id_for_label }}" class="form-label fw-semibold">
+                                {{ form.name.label }} <span class="text-danger">*</span>
+                            </label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.name.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ form.phone.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-telephone me-1 text-muted"></i>{{ form.phone.label }}
+                            </label>
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.phone.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-envelope me-1 text-muted"></i>{{ form.email.label }}
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.email.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="{{ form.photo.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-image me-1 text-muted"></i>{{ form.photo.label }}
+                            </label>
+                            <input type="file" 
+                                   class="form-control" 
+                                   id="{{ form.photo.id_for_label }}" 
+                                   name="{{ form.photo.name }}"
+                                   accept="image/*">
+                            {% if object.photo %}
+                                <div class="mt-2">
+                                    <img src="{{ object.photo.url }}" alt="{{ object.name }}" 
+                                         class="photo-preview">
+                                </div>
+                            {% endif %}
+                            {% if form.photo.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.photo.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">Formatos: JPG, PNG. Tamaño máximo: 5MB</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ubicación -->
+                <div class="form-section-card">
+                    <div class="form-section-title">
+                        <i class="bi bi-geo-alt"></i>Ubicación
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="{{ form.country.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-flag me-1 text-muted"></i>{{ form.country.label }}
+                            </label>
+                            {{ form.country }}
+                            {% if form.country.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.country.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="{{ form.state.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-map me-1 text-muted"></i>{{ form.state.label }}
+                            </label>
+                            {{ form.state }}
+                            {% if form.state.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.state.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                            <div id="state-loading" class="text-muted small mt-1" style="display: none;">
+                                <i class="bi bi-hourglass-split"></i> Cargando estados...
+                            </div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="{{ form.city.id_for_label }}" class="form-label fw-semibold">
+                                <i class="bi bi-building me-1 text-muted"></i>{{ form.city.label }}
+                            </label>
+                            {{ form.city }}
+                            {% if form.city.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.city.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                            <div id="city-loading" class="text-muted small mt-1" style="display: none;">
+                                <i class="bi bi-hourglass-split"></i> Cargando ciudades...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información Adicional -->
+                <div class="form-section-card">
+                    <div class="form-section-title">
+                        <i class="bi bi-file-text"></i>Información Adicional
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <label for="{{ form.information.id_for_label }}" class="form-label fw-semibold">
+                                {{ form.information.label }}
+                            </label>
+                            {{ form.information }}
+                            {% if form.information.errors %}
+                                <div class="text-danger small mt-1">
+                                    {% for error in form.information.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                            <small class="text-muted">Información adicional sobre el contacto</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Estado -->
+                <div class="form-section-card">
+                    <div class="form-section-title">
+                        <i class="bi bi-toggle-on"></i>Estado
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="form-check form-switch form-switch-lg">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="{{ form.is_active.id_for_label }}" 
+                                       name="{{ form.is_active.name }}"
+                                       {% if form.is_active.value or not object %}checked{% endif %}>
+                                <label class="form-check-label fw-semibold" for="{{ form.is_active.id_for_label }}">
+                                    {{ form.is_active.label }}
+                                </label>
+                            </div>
+                            <small class="text-muted">Los contactos inactivos no aparecerán en los formularios de eventos</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-section-card">
+                    <div class="d-flex gap-2 justify-content-end">
+                        <a href="{% url 'events:eventcontact_list' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>
+                            {% if object %}Actualizar Contacto{% else %}Crear Contacto{% endif %}
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i>Información
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted mb-2">
+                        <strong>Campos requeridos:</strong> Solo el nombre es obligatorio. Los demás campos son opcionales.
+                    </p>
+                    <p class="small text-muted mb-2">
+                        <strong>Ubicación:</strong> Selecciona primero el país, luego el estado y finalmente la ciudad.
+                    </p>
+                    <p class="small text-muted mb-0">
+                        <strong>Foto:</strong> Se recomienda una imagen cuadrada de al menos 200x200 píxeles.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const countrySelect = document.getElementById('{{ form.country.id_for_label }}');
+    const stateSelect = document.getElementById('{{ form.state.id_for_label }}');
+    const citySelect = document.getElementById('{{ form.city.id_for_label }}');
+    const stateLoading = document.getElementById('state-loading');
+    const cityLoading = document.getElementById('city-loading');
+    
+    // Función para habilitar campos disabled antes de enviar el formulario
+    window.enableDisabledFields = function() {
+        // Crear campos ocultos con los valores si los selects están disabled
+        if (countrySelect) {
+            if (countrySelect.disabled && countrySelect.value) {
+                // Crear input oculto con el valor
+                let hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'country_hidden';
+                hiddenInput.value = countrySelect.value;
+                document.getElementById('contactForm').appendChild(hiddenInput);
+            }
+            countrySelect.removeAttribute('disabled');
+        }
+        if (stateSelect) {
+            if (stateSelect.disabled && stateSelect.value) {
+                // Crear input oculto con el valor
+                let hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'state_hidden';
+                hiddenInput.value = stateSelect.value;
+                document.getElementById('contactForm').appendChild(hiddenInput);
+            }
+            stateSelect.removeAttribute('disabled');
+        }
+        if (citySelect) {
+            if (citySelect.disabled && citySelect.value) {
+                // Crear input oculto con el valor
+                let hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'city_hidden';
+                hiddenInput.value = citySelect.value;
+                document.getElementById('contactForm').appendChild(hiddenInput);
+            }
+            citySelect.removeAttribute('disabled');
+        }
+    };
+    
+    // Cargar estados cuando cambie el país
+    if (countrySelect && stateSelect) {
+        countrySelect.addEventListener('change', function() {
+            const countryId = this.value;
+            
+            if (countryId) {
+                stateSelect.innerHTML = '<option value="">Cargando...</option>';
+                stateSelect.disabled = true;
+                stateLoading.style.display = 'block';
+                
+                citySelect.innerHTML = '<option value="">Seleccione un estado primero</option>';
+                citySelect.disabled = true;
+                
+                fetch(`/locations/states/api/?country=${countryId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        stateSelect.innerHTML = '<option value="">Seleccione un estado</option>';
+                        data.forEach(state => {
+                            const option = document.createElement('option');
+                            option.value = state.id;
+                            option.textContent = state.name;
+                            stateSelect.appendChild(option);
+                        });
+                        stateSelect.disabled = false;
+                        stateLoading.style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        stateSelect.innerHTML = '<option value="">Error al cargar estados</option>';
+                        stateLoading.style.display = 'none';
+                    });
+            } else {
+                stateSelect.innerHTML = '<option value="">Seleccione un país primero</option>';
+                stateSelect.disabled = true;
+                stateLoading.style.display = 'none';
+                
+                citySelect.innerHTML = '<option value="">Seleccione un estado primero</option>';
+                citySelect.disabled = true;
+            }
+        });
+    }
+    
+    // Cargar ciudades cuando cambie el estado
+    if (stateSelect && citySelect) {
+        stateSelect.addEventListener('change', function() {
+            const stateId = this.value;
+            
+            if (stateId) {
+                citySelect.innerHTML = '<option value="">Cargando...</option>';
+                citySelect.disabled = true;
+                cityLoading.style.display = 'block';
+                
+                fetch(`/locations/cities/api/?state=${stateId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        citySelect.innerHTML = '<option value="">Seleccione una ciudad</option>';
+                        data.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city.id;
+                            option.textContent = city.name;
+                            citySelect.appendChild(option);
+                        });
+                        citySelect.disabled = false;
+                        cityLoading.style.display = 'none';
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        citySelect.innerHTML = '<option value="">Error al cargar ciudades</option>';
+                        cityLoading.style.display = 'none';
+                    });
+            } else {
+                citySelect.innerHTML = '<option value="">Seleccione un estado primero</option>';
+                citySelect.disabled = true;
+                cityLoading.style.display = 'none';
+            }
+        });
+        
+        // Si hay un estado seleccionado al cargar (modo edición), cargar sus ciudades
+        {% if object and object.state %}
+        if (stateSelect.value) {
+            stateSelect.dispatchEvent(new Event('change'));
+        }
+        {% endif %}
+    }
+    
+    // Si hay un país seleccionado al cargar (modo edición), cargar sus estados
+    {% if object and object.country %}
+    if (countrySelect && countrySelect.value) {
+        countrySelect.dispatchEvent(new Event('change'));
+    }
+    {% endif %}
+});
+</script>
+{% endblock %}
+

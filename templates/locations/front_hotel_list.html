@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Hoteles Disponibles - NSC International{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-hotel me-2"></i>Hoteles Disponibles
+            </h1>
+            <p class="text-muted">Selecciona un hotel para hacer tu reserva</p>
+        </div>
+        <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <label for="search" class="form-label">Buscar</label>
+                    <input type="text" class="form-control" id="search" name="search" 
+                           value="{{ request.GET.search }}" placeholder="Nombre, dirección, ciudad...">
+                </div>
+                <div class="col-md-4">
+                    <label for="country" class="form-label">País</label>
+                    <select class="form-select" id="country" name="country">
+                        <option value="">Todos los Países</option>
+                        {% for country in countries %}
+                            <option value="{{ country.id }}" 
+                                    {% if request.GET.country == country.id|stringformat:"s" %}selected{% endif %}>
+                                {{ country.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-1"></i>Buscar
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Hotels Grid -->
+    <div class="row g-4">
+        {% if hotels %}
+            {% for hotel in hotels %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm hotel-card">
+                        {% if hotel.photo %}
+                            <img src="{{ hotel.photo.url }}" class="card-img-top" alt="{{ hotel.hotel_name }}" 
+                                 style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                                 style="height: 200px;">
+                                <i class="fas fa-hotel fa-4x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h5 class="card-title">{{ hotel.hotel_name }}</h5>
+                            <p class="card-text text-muted">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                {% if hotel.city %}
+                                    {{ hotel.city.name }}
+                                    {% if hotel.state %}, {{ hotel.state.name }}{% endif %}
+                                {% else %}
+                                    {{ hotel.address|truncatewords:5 }}
+                                {% endif %}
+                            </p>
+                            {% if hotel.capacity %}
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        <i class="fas fa-users me-1"></i>Capacidad: {{ hotel.capacity }}
+                                    </small>
+                                </p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-white">
+                            <a href="{% url 'locations:front_hotel_detail' hotel.pk %}" class="btn btn-primary w-100">
+                                <i class="fas fa-eye me-2"></i>Ver Detalles y Reservar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <i class="fas fa-hotel fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No se encontraron hoteles</h5>
+                    <p class="text-muted">Intenta ajustar tus filtros de búsqueda.</p>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+        <nav aria-label="Hotels pagination" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.country %}&country={{ request.GET.country }}{% endif %}">Primera</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.country %}&country={{ request.GET.country }}{% endif %}">Anterior</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">
+                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.country %}&country={{ request.GET.country }}{% endif %}">Siguiente</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.country %}&country={{ request.GET.country }}{% endif %}">Última</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+
+<style>
+.hotel-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.hotel-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+</style>
+{% endblock %}
+
+
+
+
+

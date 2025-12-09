@@ -354,6 +354,257 @@
             color: var(--mlb-red);
             text-decoration: underline;
         }
+        
+        /* Password Strength Indicator */
+        .password-strength-container {
+            margin-top: 10px;
+        }
+        
+        .password-strength-bar {
+            height: 5px;
+            border-radius: 3px;
+            background: #e9ecef;
+            margin-top: 8px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .password-strength-fill {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s ease;
+            border-radius: 3px;
+        }
+        
+        .password-strength-fill.weak {
+            width: 33%;
+            background: #dc3545;
+        }
+        
+        .password-strength-fill.medium {
+            width: 66%;
+            background: #ffc107;
+        }
+        
+        .password-strength-fill.strong {
+            width: 100%;
+            background: #28a745;
+        }
+        
+        .password-strength-text {
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .password-strength-text.weak {
+            color: #dc3545;
+        }
+        
+        .password-strength-text.medium {
+            color: #ffc107;
+        }
+        
+        .password-strength-text.strong {
+            color: #28a745;
+        }
+        
+        .password-requirements {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            border-left: 3px solid var(--mlb-blue);
+        }
+        
+        .password-requirements-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--mlb-blue);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .password-requirement {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .password-requirement.valid {
+            color: #28a745;
+        }
+        
+        .password-requirement.valid i {
+            color: #28a745;
+        }
+        
+        .password-requirement.invalid i {
+            color: #dc3545;
+        }
+        
+        .password-requirement i {
+            font-size: 0.7rem;
+            width: 16px;
+        }
+        
+        /* Field Validation Styles */
+        .field-wrapper {
+            position: relative;
+        }
+        
+        .field-validation-icon {
+            position: absolute;
+            right: 15px;
+            top: 38px;
+            font-size: 1.1rem;
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .field-validation-icon.show {
+            opacity: 1;
+        }
+        
+        .field-validation-icon.valid {
+            color: #28a745;
+        }
+        
+        .field-validation-icon.invalid {
+            color: #dc3545;
+        }
+        
+        .form-control.is-valid,
+        .form-select.is-valid {
+            border-color: #28a745;
+            padding-right: 40px;
+        }
+        
+        .form-control.is-invalid,
+        .form-select.is-invalid {
+            border-color: #dc3545;
+            padding-right: 40px;
+        }
+        
+        /* Phone Prefix Styles */
+        .input-group {
+            position: relative;
+        }
+        
+        .input-group-text {
+            border: 2px solid #e9ecef;
+            border-right: none;
+            border-radius: 4px 0 0 4px;
+            color: var(--mlb-blue);
+            font-weight: 600;
+        }
+        
+        .input-group .form-select {
+            border-left: none;
+            border-radius: 0;
+            max-width: 100px;
+            flex: 0 0 auto;
+            min-width: 80px;
+            display: block;
+            visibility: visible;
+            opacity: 1;
+            font-weight: 600;
+            text-align: center;
+        }
+        
+        .input-group .form-select:focus {
+            border-left: 1px solid #e9ecef;
+            outline: none;
+        }
+        
+        .input-group .form-select option {
+            display: block;
+            padding: 8px;
+        }
+        
+        .input-group .form-control {
+            border-left: none;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .input-group .form-control:focus {
+            border-left: 1px solid var(--mlb-blue);
+        }
+        
+        .input-group .form-select.is-valid {
+            border-left: 1px solid #28a745;
+        }
+        
+        .input-group .form-control.is-valid {
+            border-left: 1px solid #28a745;
+        }
+        
+        .input-group .form-select.is-invalid {
+            border-left: 1px solid #dc3545;
+        }
+        
+        .input-group .form-control.is-invalid {
+            border-left: 1px solid #dc3545;
+        }
+        
+        .field-validation-message {
+            font-size: 0.85rem;
+            margin-top: 5px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        
+        .field-validation-message.show {
+            display: block;
+        }
+        
+        .field-validation-message.valid {
+            background: #d4edda;
+            color: #155724;
+            border-left: 3px solid #28a745;
+        }
+        
+        .field-validation-message.invalid {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 3px solid #dc3545;
+        }
+        
+        .field-validation-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 3px solid #17a2b8;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .required-field {
+            color: var(--mlb-red);
+        }
+        
+        .optional-field {
+            color: #6c757d;
+            font-size: 0.8rem;
+            font-weight: normal;
+        }
     </style>
 </head>
 <body>
@@ -407,7 +658,7 @@
                     <div class="register-card">
                         <div class="register-header">
                             <h2><i class="fas fa-user-plus me-2"></i>Registro de Usuario</h2>
-                            <p>Completa tu perfil para unirte a la mejor plataforma de gestión de béisbol profesional</p>
+                            <p>Regístrate como padre/acudiente o manager de equipo para gestionar jugadores y equipos</p>
                         </div>
                         
                         <div class="register-body">
@@ -423,15 +674,20 @@
                                 <!-- Tipo de Usuario -->
                                 <div class="form-section">
                                     <div class="form-section-title">Tipo de Registro</div>
+                                    <div class="alert alert-info" id="parentInfoAlert" style="background: #e3f2fd; border-left: 4px solid var(--mlb-blue); padding: 15px; margin-bottom: 20px; display: none;">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Importante:</strong> Este formulario es para registrar tu información como padre/acudiente. 
+                                        Después de completar el registro, podrás registrar a tu(s) hijo(s) o acudido(s) como jugadores desde tu dashboard.
+                                    </div>
                                     <div class="user-type-selector">
                                         <div class="user-type-option">
-                                            <input type="radio" name="user_type" value="player" id="player_type" {% if form.user_type.value == 'player' %}checked{% endif %} required>
-                                            <label for="player_type">
+                                            <input type="radio" name="user_type" value="parent" id="parent_type" {% if form.user_type.value == 'parent' %}checked{% endif %} required>
+                                            <label for="parent_type">
                                                 <span class="user-type-icon">
-                                                    <i class="fas fa-user"></i>
+                                                    <i class="fas fa-users"></i>
                                                 </span>
-                                                <span class="user-type-title">Jugador</span>
-                                                <span class="user-type-desc">Regístrate como jugador</span>
+                                                <span class="user-type-title">Padre/Acudiente</span>
+                                                <span class="user-type-desc">Soy padre o acudiente de un jugador</span>
                                             </label>
                                         </div>
                                         <div class="user-type-option">
@@ -440,8 +696,8 @@
                                                 <span class="user-type-icon">
                                                     <i class="fas fa-user-tie"></i>
                                                 </span>
-                                                <span class="user-type-title">Manager</span>
-                                                <span class="user-type-desc">Gestiona equipos</span>
+                                                <span class="user-type-title">Manager de Equipo</span>
+                                                <span class="user-type-desc">Gestiono equipos de béisbol</span>
                                             </label>
                                         </div>
                                     </div>
@@ -454,13 +710,18 @@
                                 <div class="form-section">
                                     <div class="form-section-title">Información de Cuenta</div>
                                     <div class="mb-3">
-                                        <label for="{{ form.email.id_for_label }}" class="form-label">
-                                            <i class="fas fa-envelope me-1"></i>Email *
-                                        </label>
-                                        {{ form.email }}
-                                        {% if form.email.errors %}
-                                            <div class="error-message">{{ form.email.errors }}</div>
-                                        {% endif %}
+                                        <div class="field-wrapper">
+                                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                                <i class="fas fa-envelope me-1"></i>Email <span class="required-field">*</span>
+                                            </label>
+                                            {{ form.email }}
+                                            <i class="field-validation-icon fas fa-check-circle valid" id="emailIcon"></i>
+                                            <i class="field-validation-icon fas fa-times-circle invalid" id="emailErrorIcon"></i>
+                                            <div class="field-validation-message" id="emailMessage"></div>
+                                            {% if form.email.errors %}
+                                                <div class="error-message">{{ form.email.errors }}</div>
+                                            {% endif %}
+                                        </div>
                                     </div>
                                     
                                     <div class="row">
@@ -472,93 +733,198 @@
                                             {% if form.password1.errors %}
                                                 <div class="error-message">{{ form.password1.errors }}</div>
                                             {% endif %}
-                                            {% if form.password1.help_text %}
-                                                <div class="help-text">{{ form.password1.help_text }}</div>
-                                            {% endif %}
+                                            
+                                            <!-- Password Strength Indicator -->
+                                            <div class="password-strength-container">
+                                                <div class="password-strength-bar">
+                                                    <div class="password-strength-fill" id="passwordStrengthFill"></div>
+                                                </div>
+                                                <div class="password-strength-text" id="passwordStrengthText">
+                                                    <i class="fas fa-info-circle me-1"></i>Ingresa una contraseña
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Password Requirements -->
+                                            <div class="password-requirements">
+                                                <div class="password-requirements-title">
+                                                    <i class="fas fa-shield-alt me-1"></i>Requisitos de Seguridad:
+                                                </div>
+                                                <div class="password-requirement" id="reqLength">
+                                                    <i class="fas fa-circle"></i>
+                                                    <span>Al menos 8 caracteres</span>
+                                                </div>
+                                                <div class="password-requirement" id="reqUpper">
+                                                    <i class="fas fa-circle"></i>
+                                                    <span>Al menos una letra mayúscula</span>
+                                                </div>
+                                                <div class="password-requirement" id="reqLower">
+                                                    <i class="fas fa-circle"></i>
+                                                    <span>Al menos una letra minúscula</span>
+                                                </div>
+                                                <div class="password-requirement" id="reqNumber">
+                                                    <i class="fas fa-circle"></i>
+                                                    <span>Al menos un número</span>
+                                                </div>
+                                                <div class="password-requirement" id="reqSpecial">
+                                                    <i class="fas fa-circle"></i>
+                                                    <span>Al menos un carácter especial (!@#$%^&*)</span>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
-                                            <label for="{{ form.password2.id_for_label }}" class="form-label">
-                                                <i class="fas fa-lock me-1"></i>Confirmar Contraseña *
-                                            </label>
-                                            {{ form.password2 }}
-                                            {% if form.password2.errors %}
-                                                <div class="error-message">{{ form.password2.errors }}</div>
-                                            {% endif %}
-                                            {% if form.password2.help_text %}
-                                                <div class="help-text">{{ form.password2.help_text }}</div>
-                                            {% endif %}
+                                            <div class="field-wrapper">
+                                                <label for="{{ form.password2.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-lock me-1"></i>Confirmar Contraseña <span class="required-field">*</span>
+                                                </label>
+                                                {{ form.password2 }}
+                                                <i class="field-validation-icon fas fa-check-circle valid" id="password2Icon"></i>
+                                                <i class="field-validation-icon fas fa-times-circle invalid" id="password2ErrorIcon"></i>
+                                                <div class="field-validation-message" id="password2Message"></div>
+                                                {% if form.password2.errors %}
+                                                    <div class="error-message">{{ form.password2.errors }}</div>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                                 
                                 <!-- Información Personal -->
                                 <div class="form-section">
-                                    <div class="form-section-title">Información Personal</div>
+                                    <div class="form-section-title">Información Personal del Padre/Acudiente</div>
+                                    <p class="help-text mb-3" style="font-size: 0.9rem; color: #666;">
+                                        <i class="fas fa-info-circle me-1"></i>Completa tu información personal. Esta es tu información como padre/acudiente.
+                                    </p>
                                     <div class="row">
                                         <div class="col-md-4 mb-3">
-                                            <label for="{{ form.first_name.id_for_label }}" class="form-label">
-                                                <i class="fas fa-user me-1"></i>Nombre *
-                                            </label>
-                                            {{ form.first_name }}
-                                            {% if form.first_name.errors %}
-                                                <div class="error-message">{{ form.first_name.errors }}</div>
-                                            {% endif %}
+                                            <div class="field-wrapper">
+                                                <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-user me-1"></i>Tu Nombre <span class="required-field">*</span>
+                                                </label>
+                                                {{ form.first_name }}
+                                                <i class="field-validation-icon fas fa-check-circle valid" id="firstNameIcon"></i>
+                                                <i class="field-validation-icon fas fa-times-circle invalid" id="firstNameErrorIcon"></i>
+                                                <div class="field-validation-message" id="firstNameMessage"></div>
+                                                {% if form.first_name.errors %}
+                                                    <div class="error-message">{{ form.first_name.errors }}</div>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                         <div class="col-md-4 mb-3">
-                                            <label for="{{ form.last_name.id_for_label }}" class="form-label">
-                                                <i class="fas fa-user me-1"></i>Primer Apellido *
-                                            </label>
-                                            {{ form.last_name }}
-                                            {% if form.last_name.errors %}
-                                                <div class="error-message">{{ form.last_name.errors }}</div>
-                                            {% endif %}
+                                            <div class="field-wrapper">
+                                                <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-user me-1"></i>Tu Primer Apellido <span class="required-field">*</span>
+                                                </label>
+                                                {{ form.last_name }}
+                                                <i class="field-validation-icon fas fa-check-circle valid" id="lastNameIcon"></i>
+                                                <i class="field-validation-icon fas fa-times-circle invalid" id="lastNameErrorIcon"></i>
+                                                <div class="field-validation-message" id="lastNameMessage"></div>
+                                                {% if form.last_name.errors %}
+                                                    <div class="error-message">{{ form.last_name.errors }}</div>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                         <div class="col-md-4 mb-3">
-                                            <label for="{{ form.last_name2.id_for_label }}" class="form-label">
-                                                <i class="fas fa-user me-1"></i>Segundo Apellido
-                                            </label>
-                                            {{ form.last_name2 }}
-                                            {% if form.last_name2.errors %}
-                                                <div class="error-message">{{ form.last_name2.errors }}</div>
-                                            {% endif %}
-                                            <div class="help-text">Opcional</div>
+                                            <div class="field-wrapper">
+                                                <label for="{{ form.last_name2.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-user me-1"></i>Tu Segundo Apellido <span class="optional-field">(Opcional)</span>
+                                                </label>
+                                                {{ form.last_name2 }}
+                                                <i class="field-validation-icon fas fa-check-circle valid" id="lastName2Icon"></i>
+                                                <div class="field-validation-message" id="lastName2Message"></div>
+                                                {% if form.last_name2.errors %}
+                                                    <div class="error-message">{{ form.last_name2.errors }}</div>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </div>
                                     
                                     <div class="row">
                                         <div class="col-md-4 mb-3">
-                                            <label for="{{ form.birth_date.id_for_label }}" class="form-label">
-                                                <i class="fas fa-calendar me-1"></i>Fecha de Nacimiento
-                                            </label>
-                                            {{ form.birth_date }}
-                                            {% if form.birth_date.errors %}
-                                                <div class="error-message">{{ form.birth_date.errors }}</div>
-                                            {% endif %}
+                                            <div class="field-wrapper">
+                                                <label for="{{ form.birth_date.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-calendar me-1"></i>Tu Fecha de Nacimiento <span class="optional-field">(Opcional)</span>
+                                                </label>
+                                                {{ form.birth_date }}
+                                                <i class="field-validation-icon fas fa-check-circle valid" id="birthDateIcon"></i>
+                                                <i class="field-validation-icon fas fa-times-circle invalid" id="birthDateErrorIcon"></i>
+                                                <div class="field-validation-message" id="birthDateMessage"></div>
+                                                {% if form.birth_date.errors %}
+                                                    <div class="error-message">{{ form.birth_date.errors }}</div>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                         <div class="col-md-4 mb-3">
-                                            <label for="{{ form.phone.id_for_label }}" class="form-label">
-                                                <i class="fas fa-phone me-1"></i>Teléfono
-                                            </label>
-                                            {{ form.phone }}
-                                            {% if form.phone.errors %}
-                                                <div class="error-message">{{ form.phone.errors }}</div>
-                                            {% endif %}
+                                            <div class="field-wrapper">
+                                                <label for="{{ form.phone.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-phone me-1"></i>Tu Teléfono <span class="required-field">*</span>
+                                                </label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text" style="background: #f8f9fa; border-right: none; border: 2px solid #e9ecef; border-right: none;">
+                                                        <i class="fas fa-globe me-1"></i>
+                                                    </span>
+                                                    <select name="phone_prefix" id="id_phone_prefix" class="form-select" required>
+                                                        <option value="">Selecciona</option>
+                                                        <option value="+1" data-display="+1" {% if form.phone_prefix.value == '+1' %}selected{% endif %}>+1 (USA/Canadá)</option>
+                                                        <option value="+52" data-display="+52" {% if form.phone_prefix.value == '+52' %}selected{% endif %}>+52 (México)</option>
+                                                        <option value="+57" data-display="+57" {% if form.phone_prefix.value == '+57' %}selected{% endif %}>+57 (Colombia)</option>
+                                                        <option value="+51" data-display="+51" {% if form.phone_prefix.value == '+51' %}selected{% endif %}>+51 (Perú)</option>
+                                                        <option value="+56" data-display="+56" {% if form.phone_prefix.value == '+56' %}selected{% endif %}>+56 (Chile)</option>
+                                                        <option value="+54" data-display="+54" {% if form.phone_prefix.value == '+54' %}selected{% endif %}>+54 (Argentina)</option>
+                                                        <option value="+55" data-display="+55" {% if form.phone_prefix.value == '+55' %}selected{% endif %}>+55 (Brasil)</option>
+                                                        <option value="+58" data-display="+58" {% if form.phone_prefix.value == '+58' %}selected{% endif %}>+58 (Venezuela)</option>
+                                                        <option value="+593" data-display="+593" {% if form.phone_prefix.value == '+593' %}selected{% endif %}>+593 (Ecuador)</option>
+                                                        <option value="+506" data-display="+506" {% if form.phone_prefix.value == '+506' %}selected{% endif %}>+506 (Costa Rica)</option>
+                                                        <option value="+507" data-display="+507" {% if form.phone_prefix.value == '+507' %}selected{% endif %}>+507 (Panamá)</option>
+                                                        <option value="+502" data-display="+502" {% if form.phone_prefix.value == '+502' %}selected{% endif %}>+502 (Guatemala)</option>
+                                                        <option value="+504" data-display="+504" {% if form.phone_prefix.value == '+504' %}selected{% endif %}>+504 (Honduras)</option>
+                                                        <option value="+505" data-display="+505" {% if form.phone_prefix.value == '+505' %}selected{% endif %}>+505 (Nicaragua)</option>
+                                                        <option value="+503" data-display="+503" {% if form.phone_prefix.value == '+503' %}selected{% endif %}>+503 (El Salvador)</option>
+                                                        <option value="+34" data-display="+34" {% if form.phone_prefix.value == '+34' %}selected{% endif %}>+34 (España)</option>
+                                                        <option value="+44" data-display="+44" {% if form.phone_prefix.value == '+44' %}selected{% endif %}>+44 (Reino Unido)</option>
+                                                        <option value="+33" data-display="+33" {% if form.phone_prefix.value == '+33' %}selected{% endif %}>+33 (Francia)</option>
+                                                        <option value="+49" data-display="+49" {% if form.phone_prefix.value == '+49' %}selected{% endif %}>+49 (Alemania)</option>
+                                                        <option value="+39" data-display="+39" {% if form.phone_prefix.value == '+39' %}selected{% endif %}>+39 (Italia)</option>
+                                                        <option value="+81" data-display="+81" {% if form.phone_prefix.value == '+81' %}selected{% endif %}>+81 (Japón)</option>
+                                                        <option value="+86" data-display="+86" {% if form.phone_prefix.value == '+86' %}selected{% endif %}>+86 (China)</option>
+                                                        <option value="+82" data-display="+82" {% if form.phone_prefix.value == '+82' %}selected{% endif %}>+82 (Corea del Sur)</option>
+                                                        <option value="+61" data-display="+61" {% if form.phone_prefix.value == '+61' %}selected{% endif %}>+61 (Australia)</option>
+                                                        <option value="+64" data-display="+64" {% if form.phone_prefix.value == '+64' %}selected{% endif %}>+64 (Nueva Zelanda)</option>
+                                                        <option value="+27" data-display="+27" {% if form.phone_prefix.value == '+27' %}selected{% endif %}>+27 (Sudáfrica)</option>
+                                                        <option value="+91" data-display="+91" {% if form.phone_prefix.value == '+91' %}selected{% endif %}>+91 (India)</option>
+                                                    </select>
+                                                    {{ form.phone }}
+                                                </div>
+                                                <i class="field-validation-icon fas fa-check-circle valid" id="phoneIcon" style="top: 38px; right: 15px;"></i>
+                                                <i class="field-validation-icon fas fa-times-circle invalid" id="phoneErrorIcon" style="top: 38px; right: 15px;"></i>
+                                                <div class="field-validation-message" id="phoneMessage"></div>
+                                                {% if form.phone_prefix.errors %}
+                                                    <div class="error-message">{{ form.phone_prefix.errors }}</div>
+                                                {% endif %}
+                                                {% if form.phone.errors %}
+                                                    <div class="error-message">{{ form.phone.errors }}</div>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                         <div class="col-md-4 mb-3">
-                                            <label for="{{ form.phone_secondary.id_for_label }}" class="form-label">
-                                                <i class="fas fa-phone-alt me-1"></i>Teléfono Secundario
-                                            </label>
-                                            {{ form.phone_secondary }}
-                                            {% if form.phone_secondary.errors %}
-                                                <div class="error-message">{{ form.phone_secondary.errors }}</div>
-                                            {% endif %}
+                                            <div class="field-wrapper">
+                                                <label for="{{ form.phone_secondary.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-phone-alt me-1"></i>Teléfono Secundario <span class="optional-field">(Opcional)</span>
+                                                </label>
+                                                {{ form.phone_secondary }}
+                                                <i class="field-validation-icon fas fa-check-circle valid" id="phoneSecondaryIcon"></i>
+                                                <i class="field-validation-icon fas fa-times-circle invalid" id="phoneSecondaryErrorIcon"></i>
+                                                <div class="field-validation-message" id="phoneSecondaryMessage"></div>
+                                                {% if form.phone_secondary.errors %}
+                                                    <div class="error-message">{{ form.phone_secondary.errors }}</div>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </div>
                                     
                                     <!-- Foto de Perfil -->
                                     <div class="mb-3">
                                         <label for="{{ form.profile_picture.id_for_label }}" class="form-label">
-                                            <i class="fas fa-camera me-1"></i>Foto de Perfil
+                                            <i class="fas fa-camera me-1"></i>Tu Foto de Perfil
                                         </label>
                                         <div class="photo-upload-area" onclick="document.getElementById('id_profile_picture').click()">
                                             <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--mlb-blue);"></i>
@@ -570,12 +936,16 @@
                                         {% if form.profile_picture.errors %}
                                             <div class="error-message">{{ form.profile_picture.errors }}</div>
                                         {% endif %}
+                                        <div class="help-text">Foto del padre/acudiente</div>
                                     </div>
                                 </div>
                                 
                                 <!-- Ubicación -->
                                 <div class="form-section">
-                                    <div class="form-section-title">Ubicación</div>
+                                    <div class="form-section-title">Tu Ubicación</div>
+                                    <p class="help-text mb-3" style="font-size: 0.9rem; color: #666;">
+                                        <i class="fas fa-info-circle me-1"></i>Ubicación del padre/acudiente
+                                    </p>
                                     <div class="row">
                                         <div class="col-md-4 mb-3">
                                             <label for="{{ form.country.id_for_label }}" class="form-label">
@@ -617,13 +987,18 @@
                                             {% endif %}
                                         </div>
                                         <div class="col-md-4 mb-3">
-                                            <label for="{{ form.postal_code.id_for_label }}" class="form-label">
-                                                <i class="fas fa-mail-bulk me-1"></i>Código Postal
-                                            </label>
-                                            {{ form.postal_code }}
-                                            {% if form.postal_code.errors %}
-                                                <div class="error-message">{{ form.postal_code.errors }}</div>
-                                            {% endif %}
+                                            <div class="field-wrapper">
+                                                <label for="{{ form.postal_code.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-mail-bulk me-1"></i>Código Postal <span class="optional-field">(Opcional)</span>
+                                                </label>
+                                                {{ form.postal_code }}
+                                                <i class="field-validation-icon fas fa-check-circle valid" id="postalCodeIcon"></i>
+                                                <i class="field-validation-icon fas fa-times-circle invalid" id="postalCodeErrorIcon"></i>
+                                                <div class="field-validation-message" id="postalCodeMessage"></div>
+                                                {% if form.postal_code.errors %}
+                                                    <div class="error-message">{{ form.postal_code.errors }}</div>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                     </div>
                                     
@@ -642,16 +1017,24 @@
                                 
                                 <!-- Información Adicional -->
                                 <div class="form-section">
-                                    <div class="form-section-title">Información Adicional</div>
+                                    <div class="form-section-title">Información Adicional del Padre/Acudiente</div>
+                                    <p class="help-text mb-3" style="font-size: 0.9rem; color: #666;">
+                                        <i class="fas fa-info-circle me-1"></i>Información adicional sobre ti como padre/acudiente
+                                    </p>
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
-                                            <label for="{{ form.website.id_for_label }}" class="form-label">
-                                                <i class="fas fa-globe me-1"></i>Sitio Web
-                                            </label>
-                                            {{ form.website }}
-                                            {% if form.website.errors %}
-                                                <div class="error-message">{{ form.website.errors }}</div>
-                                            {% endif %}
+                                            <div class="field-wrapper">
+                                                <label for="{{ form.website.id_for_label }}" class="form-label">
+                                                    <i class="fas fa-globe me-1"></i>Sitio Web <span class="optional-field">(Opcional)</span>
+                                                </label>
+                                                {{ form.website }}
+                                                <i class="field-validation-icon fas fa-check-circle valid" id="websiteIcon"></i>
+                                                <i class="field-validation-icon fas fa-times-circle invalid" id="websiteErrorIcon"></i>
+                                                <div class="field-validation-message" id="websiteMessage"></div>
+                                                {% if form.website.errors %}
+                                                    <div class="error-message">{{ form.website.errors }}</div>
+                                                {% endif %}
+                                            </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label for="{{ form.social_media.id_for_label }}" class="form-label">
@@ -673,10 +1056,16 @@
                                         {% if form.bio.errors %}
                                             <div class="error-message">{{ form.bio.errors }}</div>
                                         {% endif %}
+                                        <div class="help-text">Información sobre ti como padre/acudiente (opcional)</div>
                                     </div>
                                 </div>
                                 
-                                <button type="submit" class="btn btn-mlb">
+                                <div class="alert alert-success" style="background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin-bottom: 20px;">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    <strong>Después del registro:</strong> Una vez completado tu registro como padre/acudiente, podrás acceder a tu dashboard y registrar a tu(s) hijo(s) o acudido(s) como jugadores.
+                                </div>
+                                
+                                <button type="submit" class="btn btn-mlb" id="submitBtn">
                                     <i class="fas fa-user-plus me-2"></i>Crear Cuenta
                                 </button>
                                 
@@ -744,56 +1133,610 @@
         });
         
         // Cargar estados cuando se selecciona un país
-        document.getElementById('id_country').addEventListener('change', function() {
-            const countryId = this.value;
-            const stateSelect = document.getElementById('id_state');
-            const citySelect = document.getElementById('id_city');
-            
-            // Limpiar estados y ciudades
-            stateSelect.innerHTML = '<option value="">Selecciona un estado</option>';
-            citySelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
-            
-            if (countryId) {
-                fetch(`/locations/states/api/?country=${countryId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(state => {
-                            const option = document.createElement('option');
-                            option.value = state.id;
-                            option.textContent = state.name;
-                            stateSelect.appendChild(option);
+        const countrySelect = document.getElementById('id_country');
+        if (countrySelect) {
+            countrySelect.addEventListener('change', function() {
+                const countryId = this.value;
+                const stateSelect = document.getElementById('id_state');
+                const citySelect = document.getElementById('id_city');
+                
+                // Limpiar estados y ciudades
+                if (stateSelect) {
+                    stateSelect.innerHTML = '<option value="">Selecciona un estado</option>';
+                    stateSelect.disabled = !countryId;
+                }
+                if (citySelect) {
+                    citySelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
+                    citySelect.disabled = true;
+                }
+                
+                if (countryId) {
+                    fetch(`/locations/api/states/?country=${countryId}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (stateSelect && data && Array.isArray(data)) {
+                                data.forEach(state => {
+                                    const option = document.createElement('option');
+                                    option.value = state.id;
+                                    option.textContent = state.name;
+                                    stateSelect.appendChild(option);
+                                });
+                                stateSelect.disabled = false;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error cargando estados:', error);
+                            if (stateSelect) {
+                                stateSelect.innerHTML = '<option value="">Error al cargar estados</option>';
+                            }
                         });
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
-            }
-        });
+                }
+            });
+        }
         
         // Cargar ciudades cuando se selecciona un estado
-        document.getElementById('id_state').addEventListener('change', function() {
-            const stateId = this.value;
-            const citySelect = document.getElementById('id_city');
-            
-            // Limpiar ciudades
-            citySelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
-            
-            if (stateId) {
-                fetch(`/locations/cities/api/?state=${stateId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(city => {
-                            const option = document.createElement('option');
-                            option.value = city.id;
-                            option.textContent = city.name;
-                            citySelect.appendChild(option);
+        const stateSelectElement = document.getElementById('id_state');
+        if (stateSelectElement) {
+            stateSelectElement.addEventListener('change', function() {
+                const stateId = this.value;
+                const citySelect = document.getElementById('id_city');
+                
+                // Limpiar ciudades
+                if (citySelect) {
+                    citySelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
+                    citySelect.disabled = !stateId;
+                }
+                
+                if (stateId) {
+                    fetch(`/locations/api/cities/?state=${stateId}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (citySelect && data && Array.isArray(data)) {
+                                data.forEach(city => {
+                                    const option = document.createElement('option');
+                                    option.value = city.id;
+                                    option.textContent = city.name;
+                                    citySelect.appendChild(option);
+                                });
+                                citySelect.disabled = false;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error cargando ciudades:', error);
+                            if (citySelect) {
+                                citySelect.innerHTML = '<option value="">Error al cargar ciudades</option>';
+                            }
                         });
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
-            }
+                }
+            });
+        }
+        
+        // Actualizar texto del botón y mostrar/ocultar alertas según el tipo de registro seleccionado
+        const userTypeInputs = document.querySelectorAll('input[name="user_type"]');
+        const submitBtn = document.getElementById('submitBtn');
+        const parentInfoAlert = document.getElementById('parentInfoAlert');
+        const successAlert = document.querySelector('.alert-success');
+        
+        userTypeInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                if (this.value === 'parent') {
+                    submitBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>Registrarme como Padre/Acudiente';
+                    if (parentInfoAlert) {
+                        parentInfoAlert.style.display = 'block';
+                    }
+                    if (successAlert) {
+                        successAlert.style.display = 'block';
+                    }
+                } else if (this.value === 'team_manager') {
+                    submitBtn.innerHTML = '<i class="fas fa-user-tie me-2"></i>Registrarme como Manager';
+                    if (parentInfoAlert) {
+                        parentInfoAlert.style.display = 'none';
+                    }
+                    if (successAlert) {
+                        successAlert.style.display = 'none';
+                    }
+                }
+            });
         });
+        
+        // Establecer estado inicial
+        const checkedType = document.querySelector('input[name="user_type"]:checked');
+        if (checkedType && checkedType.value === 'parent') {
+            submitBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>Registrarme como Padre/Acudiente';
+            if (parentInfoAlert) {
+                parentInfoAlert.style.display = 'block';
+            }
+            if (successAlert) {
+                successAlert.style.display = 'block';
+            }
+        } else {
+            if (parentInfoAlert) {
+                parentInfoAlert.style.display = 'none';
+            }
+            if (successAlert) {
+                successAlert.style.display = 'none';
+            }
+        }
+        
+        // Password Strength Indicator
+        const passwordInput = document.getElementById('id_password1');
+        const strengthFill = document.getElementById('passwordStrengthFill');
+        const strengthText = document.getElementById('passwordStrengthText');
+        
+        // Requisitos de contraseña
+        const reqLength = document.getElementById('reqLength');
+        const reqUpper = document.getElementById('reqUpper');
+        const reqLower = document.getElementById('reqLower');
+        const reqNumber = document.getElementById('reqNumber');
+        const reqSpecial = document.getElementById('reqSpecial');
+        
+        function checkPasswordStrength(password) {
+            if (!password) {
+                return {
+                    strength: 0,
+                    level: 'none',
+                    text: 'Ingresa una contraseña',
+                    checks: {
+                        length: false,
+                        upper: false,
+                        lower: false,
+                        number: false,
+                        special: false
+                    }
+                };
+            }
+            
+            let strength = 0;
+            const checks = {
+                length: password.length >= 8,
+                upper: /[A-Z]/.test(password),
+                lower: /[a-z]/.test(password),
+                number: /[0-9]/.test(password),
+                special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+            };
+            
+            // Calcular fuerza
+            if (checks.length) strength++;
+            if (checks.upper) strength++;
+            if (checks.lower) strength++;
+            if (checks.number) strength++;
+            if (checks.special) strength++;
+            
+            let level = 'weak';
+            let text = 'Débil';
+            
+            if (strength <= 2) {
+                level = 'weak';
+                text = 'Débil';
+            } else if (strength <= 3) {
+                level = 'medium';
+                text = 'Media';
+            } else if (strength >= 4) {
+                level = 'strong';
+                text = 'Fuerte';
+            }
+            
+            return {
+                strength: strength,
+                level: level,
+                text: text,
+                checks: checks
+            };
+        }
+        
+        function updatePasswordStrength() {
+            const password = passwordInput.value;
+            const result = checkPasswordStrength(password);
+            
+            // Actualizar barra
+            strengthFill.className = 'password-strength-fill';
+            if (result.level !== 'none') {
+                strengthFill.classList.add(result.level);
+            }
+            
+            // Actualizar texto
+            strengthText.className = 'password-strength-text';
+            if (result.level !== 'none') {
+                strengthText.classList.add(result.level);
+                strengthText.innerHTML = `<i class="fas fa-${result.level === 'strong' ? 'check-circle' : result.level === 'medium' ? 'exclamation-circle' : 'times-circle'} me-1"></i>Contraseña ${result.text}`;
+            } else {
+                strengthText.innerHTML = '<i class="fas fa-info-circle me-1"></i>Ingresa una contraseña';
+            }
+            
+            // Actualizar requisitos
+            updateRequirement(reqLength, result.checks.length);
+            updateRequirement(reqUpper, result.checks.upper);
+            updateRequirement(reqLower, result.checks.lower);
+            updateRequirement(reqNumber, result.checks.number);
+            updateRequirement(reqSpecial, result.checks.special);
+        }
+        
+        function updateRequirement(element, isValid) {
+            element.className = 'password-requirement';
+            if (isValid) {
+                element.classList.add('valid');
+                element.querySelector('i').className = 'fas fa-check-circle';
+            } else {
+                element.classList.add('invalid');
+                element.querySelector('i').className = 'fas fa-circle';
+            }
+        }
+        
+        if (passwordInput) {
+            passwordInput.addEventListener('input', updatePasswordStrength);
+            passwordInput.addEventListener('keyup', updatePasswordStrength);
+            passwordInput.addEventListener('paste', function() {
+                setTimeout(updatePasswordStrength, 10);
+            });
+        }
+        
+        // ===== VALIDACIONES EN TIEMPO REAL =====
+        
+        // Función helper para mostrar validación
+        function showValidation(field, isValid, message, iconId, errorIconId, messageId) {
+            const fieldElement = document.getElementById(field);
+            const icon = document.getElementById(iconId);
+            const errorIcon = document.getElementById(errorIconId);
+            const messageDiv = document.getElementById(messageId);
+            
+            if (!fieldElement) return;
+            
+            fieldElement.classList.remove('is-valid', 'is-invalid');
+            
+            if (fieldElement.value.trim() === '') {
+                if (icon) icon.classList.remove('show');
+                if (errorIcon) errorIcon.classList.remove('show');
+                if (messageDiv) {
+                    messageDiv.classList.remove('show', 'valid', 'invalid');
+                }
+                return;
+            }
+            
+            if (isValid) {
+                fieldElement.classList.add('is-valid');
+                if (icon) {
+                    icon.classList.add('show');
+                    icon.classList.remove('invalid');
+                }
+                if (errorIcon) errorIcon.classList.remove('show');
+                if (messageDiv) {
+                    messageDiv.textContent = message || '✓ Campo válido';
+                    messageDiv.className = 'field-validation-message show valid';
+                }
+            } else {
+                fieldElement.classList.add('is-invalid');
+                if (icon) icon.classList.remove('show');
+                if (errorIcon) {
+                    errorIcon.classList.add('show');
+                }
+                if (messageDiv) {
+                    messageDiv.textContent = message || '✗ Campo inválido';
+                    messageDiv.className = 'field-validation-message show invalid';
+                }
+            }
+        }
+        
+        // Validación de Email
+        const emailField = document.getElementById('id_email');
+        if (emailField) {
+            emailField.addEventListener('blur', function() {
+                const email = this.value.trim();
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (email === '') {
+                    showValidation('id_email', false, 'El email es requerido', 'emailIcon', 'emailErrorIcon', 'emailMessage');
+                } else if (!emailRegex.test(email)) {
+                    showValidation('id_email', false, 'Por favor, ingresa un email válido (ej: usuario@dominio.com)', 'emailIcon', 'emailErrorIcon', 'emailMessage');
+                } else {
+                    showValidation('id_email', true, '✓ Email válido', 'emailIcon', 'emailErrorIcon', 'emailMessage');
+                }
+            });
+            emailField.addEventListener('input', function() {
+                if (this.value.trim() === '') {
+                    showValidation('id_email', false, '', 'emailIcon', 'emailErrorIcon', 'emailMessage');
+                }
+            });
+        }
+        
+        // Validación de Confirmar Contraseña
+        const password2Field = document.getElementById('id_password2');
+        if (password2Field && passwordInput) {
+            function validatePasswordMatch() {
+                const password = passwordInput.value;
+                const password2 = password2Field.value;
+                
+                if (password2 === '') {
+                    showValidation('id_password2', false, 'Por favor, confirma tu contraseña', 'password2Icon', 'password2ErrorIcon', 'password2Message');
+                } else if (password !== password2) {
+                    showValidation('id_password2', false, 'Las contraseñas no coinciden', 'password2Icon', 'password2ErrorIcon', 'password2Message');
+                } else {
+                    showValidation('id_password2', true, '✓ Las contraseñas coinciden', 'password2Icon', 'password2ErrorIcon', 'password2Message');
+                }
+            }
+            
+            password2Field.addEventListener('input', validatePasswordMatch);
+            password2Field.addEventListener('blur', validatePasswordMatch);
+            passwordInput.addEventListener('input', validatePasswordMatch);
+        }
+        
+        // Validación de Nombre
+        const firstNameField = document.getElementById('id_first_name');
+        if (firstNameField) {
+            firstNameField.addEventListener('blur', function() {
+                const name = this.value.trim();
+                const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{2,30}$/;
+                if (name === '') {
+                    showValidation('id_first_name', false, 'El nombre es requerido', 'firstNameIcon', 'firstNameErrorIcon', 'firstNameMessage');
+                } else if (!nameRegex.test(name)) {
+                    showValidation('id_first_name', false, 'El nombre solo puede contener letras y espacios (2-30 caracteres)', 'firstNameIcon', 'firstNameErrorIcon', 'firstNameMessage');
+                } else {
+                    showValidation('id_first_name', true, '✓ Nombre válido', 'firstNameIcon', 'firstNameErrorIcon', 'firstNameMessage');
+                }
+            });
+        }
+        
+        // Validación de Primer Apellido
+        const lastNameField = document.getElementById('id_last_name');
+        if (lastNameField) {
+            lastNameField.addEventListener('blur', function() {
+                const name = this.value.trim();
+                const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{2,30}$/;
+                if (name === '') {
+                    showValidation('id_last_name', false, 'El primer apellido es requerido', 'lastNameIcon', 'lastNameErrorIcon', 'lastNameMessage');
+                } else if (!nameRegex.test(name)) {
+                    showValidation('id_last_name', false, 'El apellido solo puede contener letras y espacios (2-30 caracteres)', 'lastNameIcon', 'lastNameErrorIcon', 'lastNameMessage');
+                } else {
+                    showValidation('id_last_name', true, '✓ Apellido válido', 'lastNameIcon', 'lastNameErrorIcon', 'lastNameMessage');
+                }
+            });
+        }
+        
+        // Validación de Segundo Apellido (opcional)
+        const lastName2Field = document.getElementById('id_last_name2');
+        if (lastName2Field) {
+            lastName2Field.addEventListener('blur', function() {
+                const name = this.value.trim();
+                if (name === '') {
+                    document.getElementById('lastName2Icon').classList.remove('show');
+                    document.getElementById('lastName2Message').classList.remove('show');
+                    return;
+                }
+                const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{2,30}$/;
+                if (!nameRegex.test(name)) {
+                    showValidation('id_last_name2', false, 'El segundo apellido solo puede contener letras y espacios (2-30 caracteres)', 'lastName2Icon', null, 'lastName2Message');
+                } else {
+                    showValidation('id_last_name2', true, '✓ Válido', 'lastName2Icon', null, 'lastName2Message');
+                }
+            });
+        }
+        
+        // Validación de Fecha de Nacimiento
+        const birthDateField = document.getElementById('id_birth_date');
+        if (birthDateField) {
+            birthDateField.addEventListener('blur', function() {
+                const dateValue = this.value;
+                if (dateValue === '') {
+                    document.getElementById('birthDateIcon').classList.remove('show');
+                    document.getElementById('birthDateErrorIcon').classList.remove('show');
+                    document.getElementById('birthDateMessage').classList.remove('show');
+                    return;
+                }
+                const birthDate = new Date(dateValue);
+                const today = new Date();
+                const age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+                
+                let actualAge = age;
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    actualAge--;
+                }
+                
+                if (birthDate > today) {
+                    showValidation('id_birth_date', false, 'La fecha de nacimiento no puede ser futura', 'birthDateIcon', 'birthDateErrorIcon', 'birthDateMessage');
+                } else if (actualAge < 18) {
+                    showValidation('id_birth_date', false, 'Debes ser mayor de 18 años para registrarte', 'birthDateIcon', 'birthDateErrorIcon', 'birthDateMessage');
+                } else if (actualAge > 120) {
+                    showValidation('id_birth_date', false, 'Por favor, verifica tu fecha de nacimiento', 'birthDateIcon', 'birthDateErrorIcon', 'birthDateMessage');
+                } else {
+                    showValidation('id_birth_date', true, `✓ Fecha válida (${actualAge} años)`, 'birthDateIcon', 'birthDateErrorIcon', 'birthDateMessage');
+                }
+            });
+        }
+        
+        // Validación de Teléfono con Prefijo (Requerido)
+        function validatePhone(phoneField, prefixField, iconId, errorIconId, messageId, isRequired = false) {
+            if (!phoneField) return;
+            
+            function validatePhoneNumber() {
+                const prefix = prefixField ? prefixField.value : '';
+                const phone = phoneField.value.trim();
+                
+                if (phone === '') {
+                    if (isRequired) {
+                        showValidation(phoneField.id, false, 'El número de teléfono es requerido', iconId, errorIconId, messageId);
+                        if (prefixField && prefixField.value === '') {
+                            prefixField.classList.add('is-invalid');
+                        }
+                    } else {
+                        document.getElementById(iconId).classList.remove('show');
+                        document.getElementById(errorIconId).classList.remove('show');
+                        document.getElementById(messageId).classList.remove('show');
+                    }
+                    return;
+                }
+                
+                if (isRequired && prefix === '') {
+                    showValidation(phoneField.id, false, 'Por favor, selecciona el prefijo del país', iconId, errorIconId, messageId);
+                    if (prefixField) {
+                        prefixField.classList.add('is-invalid');
+                        prefixField.classList.remove('is-valid');
+                    }
+                    return;
+                }
+                
+                // Acepta números, espacios, guiones
+                const phoneRegex = /^[\d\s\-]{7,15}$/;
+                const digitsOnly = phone.replace(/\D/g, '');
+                
+                if (!phoneRegex.test(phone)) {
+                    showValidation(phoneField.id, false, 'El número de teléfono debe contener entre 7 y 15 dígitos', iconId, errorIconId, messageId);
+                    if (prefixField) {
+                        prefixField.classList.add('is-invalid');
+                    }
+                } else if (digitsOnly.length < 7) {
+                    showValidation(phoneField.id, false, 'El número debe tener al menos 7 dígitos', iconId, errorIconId, messageId);
+                    if (prefixField) {
+                        prefixField.classList.add('is-invalid');
+                    }
+                } else {
+                    showValidation(phoneField.id, true, '✓ Teléfono válido', iconId, errorIconId, messageId);
+                    if (prefixField) {
+                        prefixField.classList.add('is-valid');
+                        prefixField.classList.remove('is-invalid');
+                    }
+                }
+            }
+            
+            phoneField.addEventListener('blur', validatePhoneNumber);
+            if (prefixField) {
+                prefixField.addEventListener('change', validatePhoneNumber);
+            }
+        }
+        
+        // Teléfono principal (requerido con prefijo)
+        const phonePrefixField = document.getElementById('id_phone_prefix');
+        const phoneField = document.getElementById('id_phone');
+        
+        // Cambiar el texto mostrado en el selector: mostrar país en dropdown, solo código cuando está seleccionado
+        if (phonePrefixField) {
+            // Guardar el texto original de todas las opciones al cargar
+            Array.from(phonePrefixField.options).forEach(option => {
+                if (option.value && option.dataset.display) {
+                    option.setAttribute('data-original-text', option.textContent);
+                }
+            });
+            
+            // Cuando se abre el dropdown (focus), restaurar el texto completo en todas las opciones
+            phonePrefixField.addEventListener('focus', function() {
+                Array.from(this.options).forEach(option => {
+                    if (option.dataset.originalText) {
+                        option.textContent = option.dataset.originalText;
+                    }
+                });
+            });
+            
+            // Cuando se selecciona una opción (change), mostrar solo el código
+            phonePrefixField.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption && selectedOption.dataset.display) {
+                    // Guardar el texto original si no está guardado
+                    if (!selectedOption.dataset.originalText) {
+                        selectedOption.setAttribute('data-original-text', selectedOption.textContent);
+                    }
+                    // Cambiar a solo el código
+                    selectedOption.textContent = selectedOption.dataset.display;
+                }
+            });
+            
+            // Cuando se cierra el dropdown (blur), asegurar que la opción seleccionada muestre solo el código
+            phonePrefixField.addEventListener('blur', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                if (selectedOption && selectedOption.dataset.display) {
+                    if (!selectedOption.dataset.originalText) {
+                        selectedOption.setAttribute('data-original-text', selectedOption.textContent);
+                    }
+                    selectedOption.textContent = selectedOption.dataset.display;
+                }
+            });
+            
+            // Inicializar el texto de la opción seleccionada si hay una seleccionada al cargar
+            if (phonePrefixField.selectedIndex > 0) {
+                const selectedOption = phonePrefixField.options[phonePrefixField.selectedIndex];
+                if (selectedOption && selectedOption.dataset.display) {
+                    if (!selectedOption.dataset.originalText) {
+                        selectedOption.setAttribute('data-original-text', selectedOption.textContent);
+                    }
+                    selectedOption.textContent = selectedOption.dataset.display;
+                }
+            }
+        }
+        
+        if (phoneField && phonePrefixField) {
+            validatePhone(phoneField, phonePrefixField, 'phoneIcon', 'phoneErrorIcon', 'phoneMessage', true);
+        }
+        
+        // Teléfono secundario (opcional, sin prefijo)
+        validatePhone(document.getElementById('id_phone_secondary'), null, 'phoneSecondaryIcon', 'phoneSecondaryErrorIcon', 'phoneSecondaryMessage', false);
+        
+        // Validación de URL (Website)
+        const websiteField = document.getElementById('id_website');
+        if (websiteField) {
+            websiteField.addEventListener('blur', function() {
+                const url = this.value.trim();
+                if (url === '') {
+                    return;
+                }
+                const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+                if (!urlRegex.test(url)) {
+                    showValidation('id_website', false, 'Por favor, ingresa una URL válida (ej: https://www.ejemplo.com)', 'websiteIcon', 'websiteErrorIcon', 'websiteMessage');
+                } else {
+                    showValidation('id_website', true, '✓ URL válida', 'websiteIcon', 'websiteErrorIcon', 'websiteMessage');
+                }
+            });
+        }
+        
+        // Validación de Código Postal
+        const postalCodeField = document.getElementById('id_postal_code');
+        if (postalCodeField) {
+            postalCodeField.addEventListener('blur', function() {
+                const code = this.value.trim();
+                if (code === '') {
+                    return;
+                }
+                const postalRegex = /^[A-Z0-9\s\-]{3,10}$/i;
+                if (!postalRegex.test(code)) {
+                    showValidation('id_postal_code', false, 'El código postal debe tener entre 3 y 10 caracteres (letras, números, espacios o guiones)', 'postalCodeIcon', 'postalCodeErrorIcon', 'postalCodeMessage');
+                } else {
+                    showValidation('id_postal_code', true, '✓ Código postal válido', 'postalCodeIcon', 'postalCodeErrorIcon', 'postalCodeMessage');
+                }
+            });
+        }
+        
+        // Validación de Imagen
+        const profilePictureField = document.getElementById('id_profile_picture');
+        if (profilePictureField) {
+            profilePictureField.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                
+                if (!allowedTypes.includes(file.type)) {
+                    alert('Por favor, selecciona una imagen válida (JPG, PNG o GIF)');
+                    this.value = '';
+                    return;
+                }
+                
+                if (file.size > maxSize) {
+                    alert('La imagen es demasiado grande. El tamaño máximo es 5MB');
+                    this.value = '';
+                    return;
+                }
+                
+                // Si pasa las validaciones, mostrar preview (ya existe en el código)
+            });
+        }
     </script>
 </body>
 </html>
+

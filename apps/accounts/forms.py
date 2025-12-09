@@ -1,173 +1,341 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 import re
 
 from apps.locations.models import Country, State, City
 
-from .models import UserProfile, Team, Player
+from .models import UserProfile, Team, Player, PlayerParent
+
+
+class EmailAuthenticationForm(AuthenticationForm):
+    """
+    Formulario de autenticación que usa correo electrónico en vez de username
+    """
+
+    username = forms.EmailField(
+        label="Correo Electrónico",
+        widget=forms.EmailInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "tu@email.com",
+                "autofocus": True,
+            }
+        ),
+        error_messages={
+            "required": "Por favor, ingresa tu correo electrónico.",
+            "invalid": "Por favor, ingresa un correo electrónico válido.",
+        },
+    )
+
+    password = forms.CharField(
+        label="Contraseña",
+        widget=forms.PasswordInput(
+            attrs={"class": "form-control", "placeholder": "Ingresa tu contraseña"}
+        ),
+        error_messages={"required": "Por favor, ingresa tu contraseña."},
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Cambiar el label del campo username a Email
+        self.fields["username"].label = "Correo Electrónico"
+        self.fields["password"].label = "Contraseña"
+
+    def clean_username(self):
+        """
+        Limpiar el campo username (que ahora es email) y buscar el usuario
+        Convierte el email a username para la autenticación
+        """
+        email = self.cleaned_data.get("username")
+
+        if not email:
+            raise forms.ValidationError("El correo electrónico es requerido.")
+
+        # Buscar usuario por email (case-insensitive)
+        try:
+            user = User.objects.get(email__iexact=email)
+            # Retornar el username para que Django pueda autenticar
+            return user.username
+        except User.DoesNotExist:
+            # No revelar que el email no existe por seguridad
+            # Usar un username que no existe para que la autenticación falle
+            # y Django muestre un mensaje genérico
+            raise forms.ValidationError(
+                "Por favor, ingresa un correo electrónico y contraseña correctos."
+            )
+        except User.MultipleObjectsReturned:
+            # Si hay múltiples usuarios con el mismo email (no debería pasar)
+            # Usar el primero
+            user = User.objects.filter(email__iexact=email).first()
+            return user.username
 
 
 class PublicRegistrationForm(UserCreationForm):
     """Formulario de registro público completo"""
-    
+
     USER_TYPE_CHOICES = [
-        ('player', 'Jugador'),
-        ('team_manager', 'Manager de Equipo'),
+        ("parent", "Padre/Acudiente"),
+        ("team_manager", "Manager de Equipo"),
     ]
-    
+
     # Información básica de usuario
     email = forms.EmailField(
         required=True,
-        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'})
+        widget=forms.EmailInput(
+            attrs={"class": "form-control", "placeholder": "Email"}
+        ),
     )
     first_name = forms.CharField(
         max_length=30,
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre'})
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Nombre"}
+        ),
     )
     last_name = forms.CharField(
         max_length=30,
         required=True,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Primer Apellido'})
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Primer Apellido"}
+        ),
     )
     last_name2 = forms.CharField(
         max_length=30,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Segundo Apellido (opcional)'})
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Segundo Apellido (opcional)",
+            }
+        ),
     )
     user_type = forms.ChoiceField(
-        choices=USER_TYPE_CHOICES,
-        widget=forms.RadioSelect(),
-        label='Tipo de Registro'
+        choices=USER_TYPE_CHOICES, widget=forms.RadioSelect(), label="Tipo de Registro"
     )
-    
+
     # Información de contacto
+    phone_prefix = forms.ChoiceField(
+        required=True,
+        choices=[
+            ("", "Selecciona"),
+            ("+1", "+1 (USA/Canadá)"),
+            ("+52", "+52 (México)"),
+            ("+57", "+57 (Colombia)"),
+            ("+51", "+51 (Perú)"),
+            ("+56", "+56 (Chile)"),
+            ("+54", "+54 (Argentina)"),
+            ("+55", "+55 (Brasil)"),
+            ("+58", "+58 (Venezuela)"),
+            ("+593", "+593 (Ecuador)"),
+            ("+506", "+506 (Costa Rica)"),
+            ("+507", "+507 (Panamá)"),
+            ("+502", "+502 (Guatemala)"),
+            ("+504", "+504 (Honduras)"),
+            ("+505", "+505 (Nicaragua)"),
+            ("+503", "+503 (El Salvador)"),
+            ("+34", "+34 (España)"),
+            ("+44", "+44 (Reino Unido)"),
+            ("+33", "+33 (Francia)"),
+            ("+49", "+49 (Alemania)"),
+            ("+39", "+39 (Italia)"),
+            ("+81", "+81 (Japón)"),
+            ("+86", "+86 (China)"),
+            ("+82", "+82 (Corea del Sur)"),
+            ("+61", "+61 (Australia)"),
+            ("+64", "+64 (Nueva Zelanda)"),
+            ("+27", "+27 (Sudáfrica)"),
+            ("+91", "+91 (India)"),
+        ],
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_phone_prefix"}),
+    )
     phone = forms.CharField(
         max_length=20,
-        required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono'})
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Número de teléfono",
+                "id": "id_phone",
+            }
+        ),
     )
     phone_secondary = forms.CharField(
         max_length=20,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono Secundario (opcional)'})
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Teléfono Secundario (opcional)",
+            }
+        ),
     )
     birth_date = forms.DateField(
         required=False,
-        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
     )
-    
+
     # Foto de perfil
     profile_picture = forms.ImageField(
         required=False,
-        widget=forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'})
+        widget=forms.FileInput(attrs={"class": "form-control", "accept": "image/*"}),
     )
-    
+
     # Ubicación
     country = forms.ModelChoiceField(
-        queryset=Country.objects.filter(is_active=True).order_by('name'),
+        queryset=Country.objects.filter(is_active=True).order_by("name"),
         required=False,
-        empty_label='Selecciona un país',
-        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_country'})
+        empty_label="Selecciona un país",
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_country"}),
     )
     state = forms.ModelChoiceField(
         queryset=State.objects.none(),
         required=False,
-        empty_label='Selecciona un estado',
-        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_state'})
+        empty_label="Selecciona un estado",
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_state"}),
     )
     city = forms.ModelChoiceField(
         queryset=City.objects.none(),
         required=False,
-        empty_label='Selecciona una ciudad',
-        widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_city'})
+        empty_label="Selecciona una ciudad",
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_city"}),
     )
-    
+
     # Dirección
     address = forms.CharField(
         required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Dirección completa'})
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "Dirección completa",
+            }
+        ),
     )
     address_line_2 = forms.CharField(
         max_length=200,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Apartamento, suite, etc. (opcional)'})
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Apartamento, suite, etc. (opcional)",
+            }
+        ),
     )
     postal_code = forms.CharField(
         max_length=10,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Código Postal'})
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Código Postal"}
+        ),
     )
-    
+
     # Información adicional
     bio = forms.CharField(
         required=False,
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Cuéntanos sobre ti...'})
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control",
+                "rows": 4,
+                "placeholder": "Cuéntanos sobre ti...",
+            }
+        ),
     )
     website = forms.URLField(
         required=False,
-        widget=forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://tu-sitio-web.com'})
+        widget=forms.URLInput(
+            attrs={"class": "form-control", "placeholder": "https://tu-sitio-web.com"}
+        ),
     )
     social_media = forms.CharField(
         max_length=200,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '@usuario_instagram, @usuario_twitter'})
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "@usuario_instagram, @usuario_twitter",
+            }
+        ),
     )
-    
+
     class Meta:
         model = User
-        fields = ['email', 'first_name', 'last_name', 'password1', 'password2']
+        fields = ["email", "first_name", "last_name", "password1", "password2"]
         widgets = {
-            'password1': forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Contraseña'}),
-            'password2': forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirmar contraseña'}),
+            "password1": forms.PasswordInput(
+                attrs={"class": "form-control", "placeholder": "Contraseña"}
+            ),
+            "password2": forms.PasswordInput(
+                attrs={"class": "form-control", "placeholder": "Confirmar contraseña"}
+            ),
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Eliminar el campo username del formulario
-        if 'username' in self.fields:
-            del self.fields['username']
-        
-        self.fields['password1'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Contraseña'})
-        self.fields['password2'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Confirmar contraseña'})
-        
+        if "username" in self.fields:
+            del self.fields["username"]
+
+        self.fields["password1"].widget.attrs.update(
+            {"class": "form-control", "placeholder": "Contraseña"}
+        )
+        self.fields["password2"].widget.attrs.update(
+            {"class": "form-control", "placeholder": "Confirmar contraseña"}
+        )
+
         # Si hay un país seleccionado, cargar estados
-        if 'country' in self.data:
+        if "country" in self.data:
             try:
-                country_id = int(self.data.get('country'))
-                self.fields['state'].queryset = State.objects.filter(country_id=country_id, is_active=True).order_by('name')
+                country_id = int(self.data.get("country"))
+                self.fields["state"].queryset = State.objects.filter(
+                    country_id=country_id, is_active=True
+                ).order_by("name")
             except (ValueError, TypeError):
                 pass
-        
+
         # Si hay un estado seleccionado, cargar ciudades
-        if 'state' in self.data:
+        if "state" in self.data:
             try:
-                state_id = int(self.data.get('state'))
-                self.fields['city'].queryset = City.objects.filter(state_id=state_id, is_active=True).order_by('name')
+                state_id = int(self.data.get("state"))
+                self.fields["city"].queryset = City.objects.filter(
+                    state_id=state_id, is_active=True
+                ).order_by("name")
             except (ValueError, TypeError):
                 pass
-    
+
     def generate_username(self, first_name, last_name, last_name2=None):
         """Genera un username único basado en nombre y apellidos"""
         # Limpiar y normalizar nombres
-        first_name = re.sub(r'[^a-zA-ZáéíóúÁÉÍÓÚñÑ]', '', first_name.strip().lower())
-        last_name = re.sub(r'[^a-zA-ZáéíóúÁÉÍÓÚñÑ]', '', last_name.strip().lower())
-        last_name2 = re.sub(r'[^a-zA-ZáéíóúÁÉÍÓÚñÑ]', '', last_name2.strip().lower()) if last_name2 and last_name2.strip() else None
-        
+        first_name = re.sub(r"[^a-zA-ZáéíóúÁÉÍÓÚñÑ]", "", first_name.strip().lower())
+        last_name = re.sub(r"[^a-zA-ZáéíóúÁÉÍÓÚñÑ]", "", last_name.strip().lower())
+        last_name2 = (
+            re.sub(r"[^a-zA-ZáéíóúÁÉÍÓÚñÑ]", "", last_name2.strip().lower())
+            if last_name2 and last_name2.strip()
+            else None
+        )
+
         # Reemplazar acentos y caracteres especiales
         replacements = {
-            'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
-            'Á': 'a', 'É': 'e', 'Í': 'i', 'Ó': 'o', 'Ú': 'u',
-            'ñ': 'n', 'Ñ': 'n'
+            "á": "a",
+            "é": "e",
+            "í": "i",
+            "ó": "o",
+            "ú": "u",
+            "Á": "a",
+            "É": "e",
+            "Í": "i",
+            "Ó": "o",
+            "Ú": "u",
+            "ñ": "n",
+            "Ñ": "n",
         }
         for old, new in replacements.items():
             first_name = first_name.replace(old, new)
             last_name = last_name.replace(old, new)
             if last_name2:
                 last_name2 = last_name2.replace(old, new)
-        
+
         # Generar base del username
         if first_name and last_name:
             if last_name2:
@@ -181,10 +349,10 @@ class PublicRegistrationForm(UserCreationForm):
             base_username = last_name
         else:
             base_username = "usuario"
-        
+
         # Limitar longitud
         base_username = base_username[:25]  # Dejar espacio para números
-        
+
         # Verificar si existe y generar variante única
         username = base_username
         counter = 1
@@ -197,327 +365,574 @@ class PublicRegistrationForm(UserCreationForm):
             # Prevenir loops infinitos
             if counter > 9999:
                 import random
+
                 username = f"{base_username[:20]}{random.randint(1000, 9999)}"
                 break
-        
+
         return username
-    
+
     def clean_email(self):
         """Validar que el email sea único"""
-        email = self.cleaned_data.get('email')
+        email = self.cleaned_data.get("email")
         if email and User.objects.filter(email=email).exists():
-            raise forms.ValidationError('Este email ya está registrado. Por favor, usa otro email.')
+            raise forms.ValidationError(
+                "Este email ya está registrado. Por favor, usa otro email."
+            )
         return email
-    
+
     def clean_first_name(self):
         """Validar que el nombre no esté vacío"""
-        first_name = self.cleaned_data.get('first_name')
+        first_name = self.cleaned_data.get("first_name")
         if not first_name or not first_name.strip():
-            raise forms.ValidationError('El nombre es requerido.')
+            raise forms.ValidationError("El nombre es requerido.")
         return first_name.strip()
-    
+
     def clean_last_name(self):
         """Validar que el apellido no esté vacío"""
-        last_name = self.cleaned_data.get('last_name')
+        last_name = self.cleaned_data.get("last_name")
         if not last_name or not last_name.strip():
-            raise forms.ValidationError('El primer apellido es requerido.')
+            raise forms.ValidationError("El primer apellido es requerido.")
         return last_name.strip()
-    
+
     def clean_last_name2(self):
         """Validar y limpiar el segundo apellido"""
-        last_name2 = self.cleaned_data.get('last_name2', '')
+        last_name2 = self.cleaned_data.get("last_name2", "")
         if last_name2:
             return last_name2.strip()
-        return ''
-    
+        return ""
+
     def save(self, commit=True):
         # Generar username automáticamente
-        first_name = self.cleaned_data['first_name']
-        last_name = self.cleaned_data['last_name']
-        last_name2 = self.cleaned_data.get('last_name2', '')
+        first_name = self.cleaned_data["first_name"]
+        last_name = self.cleaned_data["last_name"]
+        last_name2 = self.cleaned_data.get("last_name2", "")
         username = self.generate_username(first_name, last_name, last_name2)
-        
+
         # Combinar apellidos para el campo last_name de User
         if last_name2:
             full_last_name = f"{last_name} {last_name2}"
         else:
             full_last_name = last_name
-        
+
         # Crear usuario con username generado
         user = User.objects.create_user(
             username=username,
-            email=self.cleaned_data['email'],
-            password=self.cleaned_data['password1'],
+            email=self.cleaned_data["email"],
+            password=self.cleaned_data["password1"],
             first_name=first_name,
-            last_name=full_last_name
+            last_name=full_last_name,
         )
-        
+
         if commit:
+            # Combinar prefijo con número de teléfono
+            phone_prefix = self.cleaned_data.get("phone_prefix", "")
+            phone_number = self.cleaned_data.get("phone", "")
+            full_phone = (
+                f"{phone_prefix} {phone_number}".strip()
+                if phone_prefix and phone_number
+                else phone_number
+            )
+
             # Crear perfil de usuario
             profile = UserProfile.objects.create(
                 user=user,
-                user_type=self.cleaned_data['user_type'],
-                phone=self.cleaned_data.get('phone', ''),
-                phone_secondary=self.cleaned_data.get('phone_secondary', ''),
-                birth_date=self.cleaned_data.get('birth_date'),
-                profile_picture=self.cleaned_data.get('profile_picture'),
-                country=self.cleaned_data.get('country'),
-                state=self.cleaned_data.get('state'),
-                city=self.cleaned_data.get('city'),
-                address=self.cleaned_data.get('address', ''),
-                address_line_2=self.cleaned_data.get('address_line_2', ''),
-                postal_code=self.cleaned_data.get('postal_code', ''),
-                bio=self.cleaned_data.get('bio', ''),
-                website=self.cleaned_data.get('website', ''),
-                social_media=self.cleaned_data.get('social_media', ''),
+                user_type=self.cleaned_data["user_type"],
+                phone=full_phone,
+                phone_secondary=self.cleaned_data.get("phone_secondary", ""),
+                birth_date=self.cleaned_data.get("birth_date"),
+                profile_picture=self.cleaned_data.get("profile_picture"),
+                country=self.cleaned_data.get("country"),
+                state=self.cleaned_data.get("state"),
+                city=self.cleaned_data.get("city"),
+                address=self.cleaned_data.get("address", ""),
+                address_line_2=self.cleaned_data.get("address_line_2", ""),
+                postal_code=self.cleaned_data.get("postal_code", ""),
+                bio=self.cleaned_data.get("bio", ""),
+                website=self.cleaned_data.get("website", ""),
+                social_media=self.cleaned_data.get("social_media", ""),
             )
-            # Si es jugador, crear perfil de jugador
-            if self.cleaned_data['user_type'] == 'player':
-                Player.objects.create(user=user)
-        
+            # No crear perfil de jugador aquí - los padres lo harán desde el dashboard
+
         return user
 
 
 class UserProfileForm(forms.ModelForm):
     """Formulario para editar perfil de usuario"""
-    
+
     class Meta:
         model = UserProfile
         fields = [
-            'phone', 'address', 'country', 'state', 'city', 'postal_code',
-            'birth_date', 'profile_picture', 'bio'
+            "phone",
+            "address",
+            "country",
+            "state",
+            "city",
+            "postal_code",
+            "birth_date",
+            "profile_picture",
+            "bio",
         ]
         widgets = {
-            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono'}),
-            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Dirección completa'}),
-            'postal_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Código Postal'}),
-            'birth_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'profile_picture': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*', 'style': 'display: none;'}),
-            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Cuéntanos sobre ti...'}),
+            "phone": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Teléfono"}
+            ),
+            "address": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Dirección completa",
+                }
+            ),
+            "postal_code": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Código Postal"}
+            ),
+            "birth_date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
+            "profile_picture": forms.FileInput(
+                attrs={
+                    "class": "form-control",
+                    "accept": "image/*",
+                    "style": "display: none;",
+                }
+            ),
+            "bio": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 4,
+                    "placeholder": "Cuéntanos sobre ti...",
+                }
+            ),
         }
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
         # Campos de ubicación con ModelChoiceField
-        self.fields['country'] = forms.ModelChoiceField(
-            queryset=Country.objects.filter(is_active=True).order_by('name'),
+        self.fields["country"] = forms.ModelChoiceField(
+            queryset=Country.objects.filter(is_active=True).order_by("name"),
             required=False,
-            empty_label='Selecciona un país',
-            widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_country'})
+            empty_label="Selecciona un país",
+            widget=forms.Select(attrs={"class": "form-select", "id": "id_country"}),
         )
-        
-        self.fields['state'] = forms.ModelChoiceField(
+
+        self.fields["state"] = forms.ModelChoiceField(
             queryset=State.objects.none(),
             required=False,
-            empty_label='Selecciona un estado',
-            widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_state'})
+            empty_label="Selecciona un estado",
+            widget=forms.Select(attrs={"class": "form-select", "id": "id_state"}),
         )
-        
-        self.fields['city'] = forms.ModelChoiceField(
+
+        self.fields["city"] = forms.ModelChoiceField(
             queryset=City.objects.none(),
             required=False,
-            empty_label='Selecciona una ciudad',
-            widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_city'})
+            empty_label="Selecciona una ciudad",
+            widget=forms.Select(attrs={"class": "form-select", "id": "id_city"}),
         )
-        
+
         # Si hay una instancia (edición), cargar estados y ciudades
         if self.instance and self.instance.pk:
             if self.instance.country:
-                self.fields['state'].queryset = State.objects.filter(
+                self.fields["state"].queryset = State.objects.filter(
                     country=self.instance.country, is_active=True
-                ).order_by('name')
+                ).order_by("name")
             if self.instance.state:
-                self.fields['city'].queryset = City.objects.filter(
+                self.fields["city"].queryset = City.objects.filter(
                     state=self.instance.state, is_active=True
-                ).order_by('name')
-        
+                ).order_by("name")
+
         # Si hay datos en POST, cargar dinámicamente
-        if 'country' in self.data:
+        if "country" in self.data:
             try:
-                country_id = int(self.data.get('country'))
-                self.fields['state'].queryset = State.objects.filter(
+                country_id = int(self.data.get("country"))
+                self.fields["state"].queryset = State.objects.filter(
                     country_id=country_id, is_active=True
-                ).order_by('name')
+                ).order_by("name")
             except (ValueError, TypeError):
                 pass
-        
-        if 'state' in self.data:
+
+        if "state" in self.data:
             try:
-                state_id = int(self.data.get('state'))
-                self.fields['city'].queryset = City.objects.filter(
+                state_id = int(self.data.get("state"))
+                self.fields["city"].queryset = City.objects.filter(
                     state_id=state_id, is_active=True
-                ).order_by('name')
+                ).order_by("name")
             except (ValueError, TypeError):
                 pass
+
+
+class UserCreateForm(UserCreationForm):
+    """Formulario para crear usuarios"""
+
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(
+            attrs={"class": "form-control", "placeholder": "Email"}
+        ),
+    )
+    first_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Nombre"}
+        ),
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Apellido"}
+        ),
+    )
+    user_type = forms.ChoiceField(
+        choices=UserProfile.USER_TYPE_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Tipo de Usuario",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Agregar clases CSS a los campos de contraseña
+        if "password1" in self.fields:
+            self.fields["password1"].widget.attrs.update(
+                {"class": "form-control", "placeholder": "Contraseña"}
+            )
+        if "password2" in self.fields:
+            self.fields["password2"].widget.attrs.update(
+                {"class": "form-control", "placeholder": "Confirmar contraseña"}
+            )
+
+    is_staff = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        label="Es Staff",
+    )
+    is_superuser = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        label="Es Administrador",
+    )
+
+    class Meta:
+        model = User
+        fields = [
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "password1",
+            "password2",
+            "user_type",
+            "is_staff",
+            "is_superuser",
+        ]
+        widgets = {
+            "username": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Nombre de usuario"}
+            ),
+        }
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data["email"]
+        user.first_name = self.cleaned_data["first_name"]
+        user.last_name = self.cleaned_data["last_name"]
+        user.is_staff = self.cleaned_data.get("is_staff", False)
+        user.is_superuser = self.cleaned_data.get("is_superuser", False)
+        if commit:
+            user.save()
+            # Crear perfil de usuario
+            UserProfile.objects.create(
+                user=user, user_type=self.cleaned_data["user_type"]
+            )
+        return user
 
 
 class UserUpdateForm(forms.ModelForm):
     """Formulario para actualizar información básica del usuario"""
-    
+
+    user_type = forms.ChoiceField(
+        choices=UserProfile.USER_TYPE_CHOICES,
+        required=False,
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Tipo de Usuario",
+    )
+
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email']
+        fields = [
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "is_active",
+            "is_staff",
+            "is_superuser",
+            "user_type",
+        ]
         widgets = {
-            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            "username": forms.TextInput(attrs={"class": "form-control"}),
+            "first_name": forms.TextInput(attrs={"class": "form-control"}),
+            "last_name": forms.TextInput(attrs={"class": "form-control"}),
+            "email": forms.EmailInput(attrs={"class": "form-control"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "is_staff": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "is_superuser": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and hasattr(self.instance, "profile"):
+            self.fields["user_type"].initial = self.instance.profile.user_type
+
+    def save(self, commit=True):
+        user = super().save(commit=commit)
+        if commit and hasattr(user, "profile"):
+            user.profile.user_type = self.cleaned_data.get("user_type", "player")
+            user.profile.save()
+        return user
 
 
 class TeamForm(forms.ModelForm):
     """Formulario para crear/editar equipos"""
-    
+
     class Meta:
         model = Team
         fields = [
-            'name', 'description', 'logo', 'country', 'state', 'city',
-            'website', 'contact_email', 'contact_phone'
+            "name",
+            "description",
+            "logo",
+            "country",
+            "state",
+            "city",
+            "website",
+            "contact_email",
+            "contact_phone",
         ]
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del equipo'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Descripción del equipo'}),
-            'logo': forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
-            'website': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://tu-sitio-web.com'}),
-            'contact_email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@ejemplo.com'}),
-            'contact_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+1 (555) 123-4567'}),
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Nombre del equipo"}
+            ),
+            "description": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 4,
+                    "placeholder": "Descripción del equipo",
+                }
+            ),
+            "logo": forms.FileInput(
+                attrs={"class": "form-control", "accept": "image/*"}
+            ),
+            "website": forms.URLInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "https://tu-sitio-web.com",
+                }
+            ),
+            "contact_email": forms.EmailInput(
+                attrs={"class": "form-control", "placeholder": "email@ejemplo.com"}
+            ),
+            "contact_phone": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "+1 (555) 123-4567"}
+            ),
         }
-    
+
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop('user', None)
+        self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
-        
+
         # Campos de ubicación con ModelChoiceField
-        self.fields['country'] = forms.ModelChoiceField(
-            queryset=Country.objects.filter(is_active=True).order_by('name'),
+        self.fields["country"] = forms.ModelChoiceField(
+            queryset=Country.objects.filter(is_active=True).order_by("name"),
             required=False,
-            empty_label='Selecciona un país',
-            widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_team_country'})
+            empty_label="Selecciona un país",
+            widget=forms.Select(
+                attrs={"class": "form-select", "id": "id_team_country"}
+            ),
         )
-        
-        self.fields['state'] = forms.ModelChoiceField(
+
+        self.fields["state"] = forms.ModelChoiceField(
             queryset=State.objects.none(),
             required=False,
-            empty_label='Selecciona un estado',
-            widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_team_state'})
+            empty_label="Selecciona un estado",
+            widget=forms.Select(attrs={"class": "form-select", "id": "id_team_state"}),
         )
-        
-        self.fields['city'] = forms.ModelChoiceField(
+
+        self.fields["city"] = forms.ModelChoiceField(
             queryset=City.objects.none(),
             required=False,
-            empty_label='Selecciona una ciudad',
-            widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_team_city'})
+            empty_label="Selecciona una ciudad",
+            widget=forms.Select(attrs={"class": "form-select", "id": "id_team_city"}),
         )
-        
+
         # Si hay una instancia (edición), cargar estados y ciudades
         if self.instance and self.instance.pk:
             if self.instance.country:
-                self.fields['state'].queryset = State.objects.filter(
+                self.fields["state"].queryset = State.objects.filter(
                     country=self.instance.country, is_active=True
-                ).order_by('name')
+                ).order_by("name")
             if self.instance.state:
-                self.fields['city'].queryset = City.objects.filter(
+                self.fields["city"].queryset = City.objects.filter(
                     state=self.instance.state, is_active=True
-                ).order_by('name')
-        
+                ).order_by("name")
+
         # Si hay datos en POST, cargar dinámicamente
-        if 'country' in self.data:
+        if "country" in self.data:
             try:
-                country_id = int(self.data.get('country'))
-                self.fields['state'].queryset = State.objects.filter(
+                country_id = int(self.data.get("country"))
+                self.fields["state"].queryset = State.objects.filter(
                     country_id=country_id, is_active=True
-                ).order_by('name')
+                ).order_by("name")
             except (ValueError, TypeError):
                 pass
-        
-        if 'state' in self.data:
+
+        if "state" in self.data:
             try:
-                state_id = int(self.data.get('state'))
-                self.fields['city'].queryset = City.objects.filter(
+                state_id = int(self.data.get("state"))
+                self.fields["city"].queryset = City.objects.filter(
                     state_id=state_id, is_active=True
-                ).order_by('name')
+                ).order_by("name")
             except (ValueError, TypeError):
                 pass
 
 
 class PlayerRegistrationForm(forms.ModelForm):
     """Formulario para que managers registren jugadores"""
-    
+
     email = forms.EmailField(
-        widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'})
+        widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "Email"})
     )
     first_name = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre'})
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Nombre"}
+        ),
     )
     last_name = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Primer Apellido'})
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Primer Apellido"}
+        ),
     )
     last_name2 = forms.CharField(
         max_length=30,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Segundo Apellido (opcional)'})
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Segundo Apellido (opcional)",
+            }
+        ),
     )
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Contraseña temporal'}),
-        help_text='El jugador podrá cambiar su contraseña después'
+        widget=forms.PasswordInput(
+            attrs={"class": "form-control", "placeholder": "Contraseña temporal"}
+        ),
+        help_text="El jugador podrá cambiar su contraseña después",
     )
     phone = forms.CharField(
         max_length=20,
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono'})
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Teléfono"}
+        ),
     )
     birth_date = forms.DateField(
         required=False,
-        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
     )
-    
+
     class Meta:
         model = Player
         fields = [
-            'team', 'jersey_number', 'position', 'height', 'weight',
-            'batting_hand', 'throwing_hand', 'emergency_contact_name',
-            'emergency_contact_phone', 'emergency_contact_relation', 'medical_conditions'
+            "team",
+            "jersey_number",
+            "position",
+            "height",
+            "weight",
+            "batting_hand",
+            "throwing_hand",
+            "emergency_contact_name",
+            "emergency_contact_phone",
+            "emergency_contact_relation",
+            "medical_conditions",
+            "jersey_size",
+            "hat_size",
+            "batting_glove_size",
+            "batting_helmet_size",
+            "shorts_size",
+            "grade",
+            "division",
+            "age_verification_document",
         ]
         widgets = {
-            'team': forms.Select(attrs={'class': 'form-select'}),
-            'jersey_number': forms.NumberInput(attrs={'class': 'form-control'}),
-            'position': forms.Select(attrs={'class': 'form-select'}),
-            'height': forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Ej: 5'10\""}),
-            'weight': forms.NumberInput(attrs={'class': 'form-control'}),
-            'batting_hand': forms.Select(attrs={'class': 'form-select'}),
-            'throwing_hand': forms.Select(attrs={'class': 'form-select'}),
-            'emergency_contact_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'emergency_contact_phone': forms.TextInput(attrs={'class': 'form-control'}),
-            'emergency_contact_relation': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Padre, Madre, etc.'}),
-            'medical_conditions': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+            "team": forms.Select(attrs={"class": "form-select"}),
+            "jersey_number": forms.NumberInput(attrs={"class": "form-control"}),
+            "position": forms.Select(attrs={"class": "form-select"}),
+            "height": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Ej: 5'10\""}
+            ),
+            "weight": forms.NumberInput(attrs={"class": "form-control"}),
+            "batting_hand": forms.Select(attrs={"class": "form-select"}),
+            "throwing_hand": forms.Select(attrs={"class": "form-select"}),
+            "emergency_contact_name": forms.TextInput(attrs={"class": "form-control"}),
+            "emergency_contact_phone": forms.TextInput(attrs={"class": "form-control"}),
+            "emergency_contact_relation": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Ej: Padre, Madre, etc."}
+            ),
+            "medical_conditions": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
+            "jersey_size": forms.Select(attrs={"class": "form-select"}),
+            "hat_size": forms.Select(attrs={"class": "form-select"}),
+            "batting_glove_size": forms.Select(attrs={"class": "form-select"}),
+            "batting_helmet_size": forms.Select(attrs={"class": "form-select"}),
+            "shorts_size": forms.Select(attrs={"class": "form-select"}),
+            "grade": forms.Select(attrs={"class": "form-select"}),
+            "division": forms.Select(attrs={"class": "form-select"}),
+            "age_verification_document": forms.FileInput(
+                attrs={"class": "form-control", "accept": ".pdf,.jpg,.jpeg,.png"}
+            ),
         }
-    
+
     def __init__(self, *args, **kwargs):
-        self.manager = kwargs.pop('manager', None)
+        self.manager = kwargs.pop("manager", None)
         super().__init__(*args, **kwargs)
         if self.manager:
             # Solo mostrar equipos que el manager gestiona
-            self.fields['team'].queryset = Team.objects.filter(manager=self.manager)
-    
+            self.fields["team"].queryset = Team.objects.filter(manager=self.manager)
+
     def generate_username(self, first_name, last_name, last_name2=None):
         """Genera un username único basado en nombre y apellidos"""
-        first_name = re.sub(r'[^a-zA-ZáéíóúÁÉÍÓÚñÑ]', '', first_name.strip().lower())
-        last_name = re.sub(r'[^a-zA-ZáéíóúÁÉÍÓÚñÑ]', '', last_name.strip().lower())
-        last_name2 = re.sub(r'[^a-zA-ZáéíóúÁÉÍÓÚñÑ]', '', last_name2.strip().lower()) if last_name2 and last_name2.strip() else None
-        
+        first_name = re.sub(r"[^a-zA-ZáéíóúÁÉÍÓÚñÑ]", "", first_name.strip().lower())
+        last_name = re.sub(r"[^a-zA-ZáéíóúÁÉÍÓÚñÑ]", "", last_name.strip().lower())
+        last_name2 = (
+            re.sub(r"[^a-zA-ZáéíóúÁÉÍÓÚñÑ]", "", last_name2.strip().lower())
+            if last_name2 and last_name2.strip()
+            else None
+        )
+
         replacements = {
-            'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
-            'Á': 'a', 'É': 'e', 'Í': 'i', 'Ó': 'o', 'Ú': 'u',
-            'ñ': 'n', 'Ñ': 'n'
+            "á": "a",
+            "é": "e",
+            "í": "i",
+            "ó": "o",
+            "ú": "u",
+            "Á": "a",
+            "É": "e",
+            "Í": "i",
+            "Ó": "o",
+            "Ú": "u",
+            "ñ": "n",
+            "Ñ": "n",
         }
         for old, new in replacements.items():
             first_name = first_name.replace(old, new)
             last_name = last_name.replace(old, new)
             if last_name2:
                 last_name2 = last_name2.replace(old, new)
-        
+
         if first_name and last_name:
             if last_name2:
                 base_username = f"{first_name}.{last_name}{last_name2[0]}"
@@ -529,7 +944,7 @@ class PlayerRegistrationForm(forms.ModelForm):
             base_username = last_name
         else:
             base_username = "usuario"
-        
+
         base_username = base_username[:25]
         username = base_username
         counter = 1
@@ -542,136 +957,656 @@ class PlayerRegistrationForm(forms.ModelForm):
             counter += 1
             if counter > 9999:
                 import random
+
                 username = f"{base_username[:20]}{random.randint(1000, 9999)}"
                 break
-        
+
         return username
-    
+
     def clean_email(self):
         """Validar que el email sea único"""
-        email = self.cleaned_data.get('email')
+        email = self.cleaned_data.get("email")
         if email and User.objects.filter(email=email).exists():
-            raise forms.ValidationError('Este email ya está registrado. Por favor, usa otro email.')
+            raise forms.ValidationError(
+                "Este email ya está registrado. Por favor, usa otro email."
+            )
         return email
-    
+
     def clean_first_name(self):
         """Validar que el nombre no esté vacío"""
-        first_name = self.cleaned_data.get('first_name')
+        first_name = self.cleaned_data.get("first_name")
         if not first_name or not first_name.strip():
-            raise forms.ValidationError('El nombre es requerido.')
+            raise forms.ValidationError("El nombre es requerido.")
         return first_name.strip()
-    
+
     def clean_last_name(self):
         """Validar que el apellido no esté vacío"""
-        last_name = self.cleaned_data.get('last_name')
+        last_name = self.cleaned_data.get("last_name")
         if not last_name or not last_name.strip():
-            raise forms.ValidationError('El primer apellido es requerido.')
+            raise forms.ValidationError("El primer apellido es requerido.")
         return last_name.strip()
-    
+
     def clean_last_name2(self):
         """Validar y limpiar el segundo apellido"""
-        last_name2 = self.cleaned_data.get('last_name2', '')
+        last_name2 = self.cleaned_data.get("last_name2", "")
         if last_name2:
             return last_name2.strip()
-        return ''
-    
+        return ""
+
     def save(self, commit=True):
         # Generar username automáticamente
-        first_name = self.cleaned_data['first_name']
-        last_name = self.cleaned_data['last_name']
-        last_name2 = self.cleaned_data.get('last_name2', '')
+        first_name = self.cleaned_data["first_name"]
+        last_name = self.cleaned_data["last_name"]
+        last_name2 = self.cleaned_data.get("last_name2", "")
         username = self.generate_username(first_name, last_name, last_name2)
-        
+
         # Combinar apellidos para el campo last_name de User
         if last_name2:
             full_last_name = f"{last_name} {last_name2}"
         else:
             full_last_name = last_name
-        
+
         # Crear usuario primero
         user = User.objects.create_user(
             username=username,
-            email=self.cleaned_data['email'],
-            password=self.cleaned_data['password'],
+            email=self.cleaned_data["email"],
+            password=self.cleaned_data["password"],
             first_name=first_name,
-            last_name=full_last_name
+            last_name=full_last_name,
         )
-        
+
         # Crear perfil de usuario
         profile = UserProfile.objects.create(
             user=user,
-            user_type='player',
-            phone=self.cleaned_data.get('phone', ''),
-            birth_date=self.cleaned_data.get('birth_date')
+            user_type="player",
+            phone=self.cleaned_data.get("phone", ""),
+            birth_date=self.cleaned_data.get("birth_date"),
         )
-        
+
         # Crear perfil de jugador directamente (no usar super().save() porque requiere user)
         player = Player.objects.create(
             user=user,
-            team=self.cleaned_data.get('team'),
-            jersey_number=self.cleaned_data.get('jersey_number'),
-            position=self.cleaned_data.get('position'),
-            height=self.cleaned_data.get('height'),
-            weight=self.cleaned_data.get('weight'),
-            batting_hand=self.cleaned_data.get('batting_hand'),
-            throwing_hand=self.cleaned_data.get('throwing_hand'),
-            emergency_contact_name=self.cleaned_data.get('emergency_contact_name'),
-            emergency_contact_phone=self.cleaned_data.get('emergency_contact_phone'),
-            emergency_contact_relation=self.cleaned_data.get('emergency_contact_relation'),
-            medical_conditions=self.cleaned_data.get('medical_conditions'),
+            team=self.cleaned_data.get("team"),
+            jersey_number=self.cleaned_data.get("jersey_number"),
+            position=self.cleaned_data.get("position"),
+            height=self.cleaned_data.get("height"),
+            weight=self.cleaned_data.get("weight"),
+            batting_hand=self.cleaned_data.get("batting_hand"),
+            throwing_hand=self.cleaned_data.get("throwing_hand"),
+            emergency_contact_name=self.cleaned_data.get("emergency_contact_name"),
+            emergency_contact_phone=self.cleaned_data.get("emergency_contact_phone"),
+            emergency_contact_relation=self.cleaned_data.get(
+                "emergency_contact_relation"
+            ),
+            medical_conditions=self.cleaned_data.get("medical_conditions"),
+            jersey_size=self.cleaned_data.get("jersey_size"),
+            hat_size=self.cleaned_data.get("hat_size"),
+            batting_glove_size=self.cleaned_data.get("batting_glove_size"),
+            batting_helmet_size=self.cleaned_data.get("batting_helmet_size"),
+            shorts_size=self.cleaned_data.get("shorts_size"),
+            grade=self.cleaned_data.get("grade"),
+            division=self.cleaned_data.get("division"),
+            age_verification_document=self.cleaned_data.get(
+                "age_verification_document"
+            ),
         )
-        
+
+        return player
+
+
+class ParentPlayerRegistrationForm(forms.ModelForm):
+    """Formulario para que padres registren jugadores
+
+    Nota: Los jugadores NO pueden iniciar sesión. Todo es gestionado por el padre/acudiente.
+    El equipo y número de jersey serán asignados por un administrador o manager.
+    """
+
+    first_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Nombre del jugador"}
+        ),
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Primer Apellido"}
+        ),
+    )
+    last_name2 = forms.CharField(
+        max_length=30,
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Segundo Apellido (opcional)",
+            }
+        ),
+    )
+    phone = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(
+            attrs={"class": "form-control", "placeholder": "Teléfono del jugador"}
+        ),
+    )
+    birth_date = forms.DateField(
+        required=True,
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+        help_text="Fecha de nacimiento del jugador",
+    )
+    relationship = forms.ChoiceField(
+        choices=[
+            ("father", "Padre"),
+            ("mother", "Madre"),
+            ("guardian", "Acudiente"),
+            ("other", "Otro"),
+        ],
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Relación con el jugador",
+        initial="guardian",
+    )
+    is_primary = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        label="Contacto Principal",
+        help_text="Marcar si eres el contacto principal del jugador",
+    )
+
+    class Meta:
+        model = Player
+        fields = [
+            "position",
+            "height",
+            "weight",
+            "batting_hand",
+            "throwing_hand",
+            "emergency_contact_name",
+            "emergency_contact_phone",
+            "emergency_contact_relation",
+            "medical_conditions",
+            "jersey_size",
+            "hat_size",
+            "batting_glove_size",
+            "batting_helmet_size",
+            "shorts_size",
+            "grade",
+            "division",
+            "age_verification_document",
+        ]
+        widgets = {
+            "position": forms.Select(attrs={"class": "form-select"}),
+            "height": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Ej: 5'10\""}
+            ),
+            "weight": forms.NumberInput(attrs={"class": "form-control"}),
+            "batting_hand": forms.Select(attrs={"class": "form-select"}),
+            "throwing_hand": forms.Select(attrs={"class": "form-select"}),
+            "emergency_contact_name": forms.TextInput(attrs={"class": "form-control"}),
+            "emergency_contact_phone": forms.TextInput(attrs={"class": "form-control"}),
+            "emergency_contact_relation": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Ej: Padre, Madre, etc."}
+            ),
+            "medical_conditions": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
+            "jersey_size": forms.Select(attrs={"class": "form-select"}),
+            "hat_size": forms.Select(attrs={"class": "form-select"}),
+            "batting_glove_size": forms.Select(attrs={"class": "form-select"}),
+            "batting_helmet_size": forms.Select(attrs={"class": "form-select"}),
+            "shorts_size": forms.Select(attrs={"class": "form-select"}),
+            "grade": forms.Select(attrs={"class": "form-select"}),
+            "division": forms.Select(attrs={"class": "form-select"}),
+            "age_verification_document": forms.FileInput(
+                attrs={"class": "form-control", "accept": ".pdf,.jpg,.jpeg,.png"}
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.parent = kwargs.pop("parent", None)
+        super().__init__(*args, **kwargs)
+        # Los padres NO pueden seleccionar equipo - será asignado por admin o manager
+        # El campo 'team' no está en los fields del Meta, así que no aparecerá en el formulario
+
+        if self.parent:
+            # Pre-llenar los campos de contacto de emergencia con los datos del padre
+            # El padre puede modificar estos valores si quiere poner otros datos
+            parent_name = (
+                self.parent.get_full_name()
+                or f"{self.parent.first_name} {self.parent.last_name}".strip()
+            )
+            if parent_name:
+                self.fields["emergency_contact_name"].initial = parent_name
+
+            # Usar el teléfono principal, o el secundario si el principal no está disponible
+            if hasattr(self.parent, "profile"):
+                parent_phone = (
+                    self.parent.profile.phone or self.parent.profile.phone_secondary
+                )
+                if parent_phone:
+                    self.fields["emergency_contact_phone"].initial = parent_phone
+
+            # Pre-llenar la relación basada en el campo relationship del formulario
+            # El valor inicial de relationship es 'guardian' por defecto
+            relationship_map = {
+                "father": "Padre",
+                "mother": "Madre",
+                "guardian": "Acudiente",
+                "other": "Otro",
+            }
+            # Usar el valor inicial del campo relationship si está disponible
+            relationship_value = self.initial.get(
+                "relationship", self.fields["relationship"].initial or "guardian"
+            )
+            self.fields["emergency_contact_relation"].initial = relationship_map.get(
+                relationship_value, "Acudiente"
+            )
+
+    def generate_username(self, first_name, last_name, last_name2=None):
+        """Genera un username único basado en nombre y apellidos"""
+        first_name = re.sub(r"[^a-zA-ZáéíóúÁÉÍÓÚñÑ]", "", first_name.strip().lower())
+        last_name = re.sub(r"[^a-zA-ZáéíóúÁÉÍÓÚñÑ]", "", last_name.strip().lower())
+        last_name2 = (
+            re.sub(r"[^a-zA-ZáéíóúÁÉÍÓÚñÑ]", "", last_name2.strip().lower())
+            if last_name2 and last_name2.strip()
+            else None
+        )
+
+        replacements = {
+            "á": "a",
+            "é": "e",
+            "í": "i",
+            "ó": "o",
+            "ú": "u",
+            "Á": "a",
+            "É": "e",
+            "Í": "i",
+            "Ó": "o",
+            "Ú": "u",
+            "ñ": "n",
+            "Ñ": "n",
+        }
+        for old, new in replacements.items():
+            first_name = first_name.replace(old, new)
+            last_name = last_name.replace(old, new)
+            if last_name2:
+                last_name2 = last_name2.replace(old, new)
+
+        if first_name and last_name:
+            if last_name2:
+                base_username = f"{first_name}.{last_name}{last_name2[0]}"
+            else:
+                base_username = f"{first_name}.{last_name}"
+        elif first_name:
+            base_username = first_name
+        elif last_name:
+            base_username = last_name
+        else:
+            base_username = "jugador"
+
+        base_username = base_username[:25]
+        username = base_username
+        counter = 1
+        while User.objects.filter(username=username).exists():
+            suffix = str(counter)
+            max_base_len = 30 - len(suffix) - 1
+            if max_base_len < 1:
+                max_base_len = 1
+            username = f"{base_username[:max_base_len]}{suffix}"
+            counter += 1
+            if counter > 9999:
+                import random
+
+                username = f"{base_username[:20]}{random.randint(1000, 9999)}"
+                break
+
+        return username
+
+    def clean_email(self):
+        """Validar que el email sea único si se proporciona"""
+        email = self.cleaned_data.get("email")
+        if email and User.objects.filter(email=email).exists():
+            raise forms.ValidationError(
+                "Este email ya está registrado. Por favor, usa otro email."
+            )
+        return email
+
+    def clean_first_name(self):
+        """Validar que el nombre no esté vacío"""
+        first_name = self.cleaned_data.get("first_name")
+        if not first_name or not first_name.strip():
+            raise forms.ValidationError("El nombre es requerido.")
+        return first_name.strip()
+
+    def clean_last_name(self):
+        """Validar que el apellido no esté vacío"""
+        last_name = self.cleaned_data.get("last_name")
+        if not last_name or not last_name.strip():
+            raise forms.ValidationError("El primer apellido es requerido.")
+        return last_name.strip()
+
+    def clean_birth_date(self):
+        """Validar que la fecha de nacimiento sea válida"""
+        birth_date = self.cleaned_data.get("birth_date")
+        if not birth_date:
+            raise forms.ValidationError("La fecha de nacimiento es requerida.")
+        return birth_date
+
+    def save(self, commit=True):
+        from django.contrib.auth.models import User
+        import secrets
+        import string
+
+        # Generar username automáticamente
+        first_name = self.cleaned_data["first_name"]
+        last_name = self.cleaned_data["last_name"]
+        last_name2 = self.cleaned_data.get("last_name2", "")
+        username = self.generate_username(first_name, last_name, last_name2)
+
+        # Generar contraseña aleatoria segura (no se usará para login, solo para la cuenta)
+        alphabet = string.ascii_letters + string.digits
+        password = "".join(secrets.choice(alphabet) for i in range(20))
+
+        # Combinar apellidos para el campo last_name de User
+        if last_name2:
+            full_last_name = f"{last_name} {last_name2}"
+        else:
+            full_last_name = last_name
+
+        # Email temporal (no real, solo para cumplir con el modelo)
+        email = f"{username}@nsc-temp.local"
+
+        # Crear usuario INACTIVO - Los jugadores NO pueden iniciar sesión
+        # Todo es gestionado por el padre/acudiente
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=full_last_name,
+            is_active=False,  # IMPORTANTE: Cuenta inactiva, no puede iniciar sesión
+        )
+
+        # Crear perfil de usuario
+        profile = UserProfile.objects.create(
+            user=user,
+            user_type="player",
+            phone=self.cleaned_data.get("phone", ""),
+            birth_date=self.cleaned_data.get("birth_date"),
+        )
+
+        # Crear perfil de jugador
+        # NOTA: El equipo y número de jersey NO se asignan aquí - serán asignados por un administrador o manager
+        player = Player.objects.create(
+            user=user,
+            team=None,  # El equipo se asignará posteriormente por admin o manager
+            jersey_number=None,  # El número de jersey se asignará posteriormente por admin o manager
+            position=self.cleaned_data.get("position"),
+            height=self.cleaned_data.get("height"),
+            weight=self.cleaned_data.get("weight"),
+            batting_hand=self.cleaned_data.get("batting_hand"),
+            throwing_hand=self.cleaned_data.get("throwing_hand"),
+            emergency_contact_name=self.cleaned_data.get("emergency_contact_name"),
+            emergency_contact_phone=self.cleaned_data.get("emergency_contact_phone"),
+            emergency_contact_relation=self.cleaned_data.get(
+                "emergency_contact_relation"
+            ),
+            medical_conditions=self.cleaned_data.get("medical_conditions"),
+            jersey_size=self.cleaned_data.get("jersey_size"),
+            hat_size=self.cleaned_data.get("hat_size"),
+            batting_glove_size=self.cleaned_data.get("batting_glove_size"),
+            batting_helmet_size=self.cleaned_data.get("batting_helmet_size"),
+            shorts_size=self.cleaned_data.get("shorts_size"),
+            grade=self.cleaned_data.get("grade"),
+            division=self.cleaned_data.get("division"),
+            age_verification_document=self.cleaned_data.get(
+                "age_verification_document"
+            ),
+        )
+
+        # Crear relación padre-jugador
+        if self.parent:
+            PlayerParent.objects.create(
+                parent=self.parent,
+                player=player,
+                relationship=self.cleaned_data.get("relationship", "guardian"),
+                is_primary=self.cleaned_data.get("is_primary", False),
+            )
+
         return player
 
 
 class PlayerUpdateForm(forms.ModelForm):
     """Formulario para actualizar información de jugador"""
+
     profile_picture = forms.ImageField(
         required=False,
-        widget=forms.FileInput(attrs={
-            'class': 'form-control',
-            'accept': 'image/*',
-            'id': 'id_profile_picture',
-            'style': 'display: none;'
-        }),
-        help_text='Sube una nueva foto de perfil'
+        widget=forms.FileInput(
+            attrs={
+                "class": "form-control",
+                "accept": "image/*",
+                "id": "id_profile_picture",
+                "style": "display: none;",
+            }
+        ),
+        help_text="Sube una nueva foto de perfil",
     )
-    
+
     class Meta:
         model = Player
         fields = [
-            'team', 'jersey_number', 'position', 'height', 'weight',
-            'batting_hand', 'throwing_hand', 'emergency_contact_name',
-            'emergency_contact_phone', 'emergency_contact_relation', 'medical_conditions', 'is_active'
+            "team",
+            "jersey_number",
+            "position",
+            "height",
+            "weight",
+            "batting_hand",
+            "throwing_hand",
+            "emergency_contact_name",
+            "emergency_contact_phone",
+            "emergency_contact_relation",
+            "medical_conditions",
+            "is_active",
+            "jersey_size",
+            "hat_size",
+            "batting_glove_size",
+            "batting_helmet_size",
+            "shorts_size",
+            "grade",
+            "division",
+            "age_verification_document",
+            "age_verification_status",
+            "age_verification_notes",
         ]
+        # team_hidden no está en fields porque se agrega dinámicamente en __init__
         widgets = {
-            'team': forms.Select(attrs={'class': 'form-select'}),
-            'jersey_number': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Número de jersey'}),
-            'position': forms.Select(attrs={'class': 'form-select'}),
-            'height': forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Ej: 6'2\""}),
-            'weight': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Peso en libras'}),
-            'batting_hand': forms.Select(attrs={'class': 'form-select'}),
-            'throwing_hand': forms.Select(attrs={'class': 'form-select'}),
-            'emergency_contact_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre del contacto'}),
-            'emergency_contact_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Teléfono del contacto'}),
-            'emergency_contact_relation': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: Padre, Madre, etc.'}),
-            'medical_conditions': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Especifica condiciones médicas o "Ninguna"'}),
-            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            "team": forms.Select(attrs={"class": "form-select"}),
+            "jersey_number": forms.NumberInput(
+                attrs={"class": "form-control", "placeholder": "Número de jersey"}
+            ),
+            "position": forms.Select(attrs={"class": "form-select"}),
+            "height": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Ej: 6'2\""}
+            ),
+            "weight": forms.NumberInput(
+                attrs={"class": "form-control", "placeholder": "Peso en libras"}
+            ),
+            "batting_hand": forms.Select(attrs={"class": "form-select"}),
+            "throwing_hand": forms.Select(attrs={"class": "form-select"}),
+            "emergency_contact_name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Nombre del contacto"}
+            ),
+            "emergency_contact_phone": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Teléfono del contacto"}
+            ),
+            "emergency_contact_relation": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Ej: Padre, Madre, etc."}
+            ),
+            "medical_conditions": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": 'Especifica condiciones médicas o "Ninguna"',
+                }
+            ),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "jersey_size": forms.Select(attrs={"class": "form-select"}),
+            "hat_size": forms.Select(attrs={"class": "form-select"}),
+            "batting_glove_size": forms.Select(attrs={"class": "form-select"}),
+            "batting_helmet_size": forms.Select(attrs={"class": "form-select"}),
+            "shorts_size": forms.Select(attrs={"class": "form-select"}),
+            "grade": forms.Select(attrs={"class": "form-select"}),
+            "division": forms.Select(attrs={"class": "form-select"}),
+            "age_verification_document": forms.FileInput(
+                attrs={"class": "form-control", "accept": ".pdf,.jpg,.jpeg,.png"}
+            ),
+            "age_verification_status": forms.Select(attrs={"class": "form-select"}),
+            "age_verification_notes": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Notas sobre la verificación de edad",
+                }
+            ),
         }
-    
+
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
-        # Si es manager, permitir cambiar el equipo
-        if self.instance and self.instance.team:
+
+        # Verificar si el usuario es padre/acudiente del jugador
+        is_parent = False
+        if (
+            self.user
+            and hasattr(self.user, "profile")
+            and self.user.profile.is_parent
+            and self.instance
+        ):
+            from .models import PlayerParent
+
+            is_parent = PlayerParent.objects.filter(
+                parent=self.user, player=self.instance
+            ).exists()
+
+        # Verificar si es manager o staff
+        is_manager = False
+        is_staff = False
+        if self.user:
+            if hasattr(self.user, "profile"):
+                is_manager = self.user.profile.is_team_manager
+            is_staff = self.user.is_staff or self.user.is_superuser
+
+        # Si es padre, NO puede cambiar equipo ni número de jersey (solo admin/manager)
+        if is_parent and not is_staff:
+            # Campo team (Select) - deshabilitar pero mantener valor con hidden
+            if self.instance and self.instance.team:
+                self.fields["team"].widget.attrs["disabled"] = True
+                self.fields["team"].widget.attrs["class"] = (
+                    self.fields["team"].widget.attrs.get("class", "") + " bg-light"
+                )
+                # Agregar campo hidden para mantener el valor del team (disabled no envía valor en POST)
+                from django import forms as django_forms
+
+                self.fields["team_hidden"] = django_forms.CharField(
+                    widget=django_forms.HiddenInput(),
+                    required=False,
+                    initial=self.instance.team.pk,
+                )
+            elif self.instance:
+                # Si no tiene equipo, también deshabilitar
+                self.fields["team"].widget.attrs["disabled"] = True
+                self.fields["team"].widget.attrs["class"] = (
+                    self.fields["team"].widget.attrs.get("class", "") + " bg-light"
+                )
+            self.fields["team"].required = False
+            # Campo jersey_number - usar readonly (sí envía valor en POST)
+            self.fields["jersey_number"].widget.attrs["readonly"] = True
+            self.fields["jersey_number"].widget.attrs["class"] = (
+                self.fields["jersey_number"].widget.attrs.get("class", "") + " bg-light"
+            )
+            self.fields["jersey_number"].required = False
+            # Campo is_active - deshabilitar (no se puede cambiar)
+            self.fields["is_active"].widget.attrs["disabled"] = True
+            self.fields["is_active"].required = False
+
+        # Si es manager, permitir cambiar el equipo (solo sus equipos)
+        if is_manager and self.instance and self.instance.team:
             # Solo mostrar equipos del manager del equipo actual
-            if hasattr(self.instance.team, 'manager'):
-                self.fields['team'].queryset = Team.objects.filter(
+            if hasattr(self.instance.team, "manager"):
+                self.fields["team"].queryset = Team.objects.filter(
                     manager=self.instance.team.manager
                 )
-        
-        # Cargar la foto de perfil actual si existe
-        if self.instance and hasattr(self.instance, 'user'):
-            if hasattr(self.instance.user, 'profile'):
-                if self.instance.user.profile.profile_picture:
-                    self.fields['profile_picture'].initial = self.instance.user.profile.profile_picture
 
+        # Si es padre, ocultar campos de verificación de edad (solo admins/managers pueden aprobar)
+        if is_parent and not is_staff:
+            self.fields["age_verification_status"].widget = forms.HiddenInput()
+            self.fields["age_verification_notes"].widget = forms.HiddenInput()
+            self.fields["age_verification_status"].required = False
+            self.fields["age_verification_notes"].required = False
+
+        # Cargar la foto de perfil actual si existe
+        if self.instance and hasattr(self.instance, "user"):
+            if hasattr(self.instance.user, "profile"):
+                if self.instance.user.profile.profile_picture:
+                    self.fields["profile_picture"].initial = (
+                        self.instance.user.profile.profile_picture
+                    )
+
+    def clean_division(self):
+        """Validar que la división asignada sea válida según las reglas de elegibilidad"""
+        division = self.cleaned_data.get("division")
+        if not division:
+            return division
+
+        # Si hay una instancia, validar contra las reglas
+        if self.instance and self.instance.pk:
+            can_play, message = self.instance.can_play_in_division(division)
+            if not can_play:
+                raise forms.ValidationError(message)
+
+        return division
+
+    def save(self, commit=True):
+        """Guardar los cambios, manteniendo los valores originales de campos deshabilitados para padres"""
+        player = super().save(commit=False)
+
+        # Si los campos están deshabilitados (padre editando), mantener los valores originales
+        if hasattr(self, "user") and self.user:
+            is_parent = False
+            is_staff = False
+            if hasattr(self.user, "profile") and self.user.profile.is_parent:
+                from .models import PlayerParent
+
+                is_parent = PlayerParent.objects.filter(
+                    parent=self.user, player=self.instance
+                ).exists()
+            is_staff = self.user.is_staff or self.user.is_superuser
+
+            # Si es padre (no staff), mantener los valores originales de campos restringidos
+            if is_parent and not is_staff:
+                # Mantener valores originales de campos que no puede cambiar
+                if self.instance.pk:
+                    # Si hay un campo hidden con el team, usarlo (para cuando el Select está disabled)
+                    if "team_hidden" in self.cleaned_data and self.cleaned_data.get(
+                        "team_hidden"
+                    ):
+                        try:
+                            from .models import Team
+
+                            team_id = int(self.cleaned_data["team_hidden"])
+                            player.team = Team.objects.get(pk=team_id)
+                        except (ValueError, Team.DoesNotExist, TypeError):
+                            # Si no hay team o no se puede obtener, mantener el original
+                            player.team = self.instance.team
+                    else:
+                        player.team = self.instance.team
+                    player.jersey_number = self.instance.jersey_number
+                    player.is_active = self.instance.is_active
+
+        if commit:
+            player.save()
+
+        return player

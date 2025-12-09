@@ -418,6 +418,140 @@
             text-transform: uppercase;
         }
         
+        /* Modal Login Styles */
+        .modal-mlb .modal-content {
+            border-radius: 15px;
+            border: none;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        
+        .modal-mlb .modal-header {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            padding: 30px;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modal-mlb .modal-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        }
+        
+        .modal-mlb .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+            opacity: 0.9;
+        }
+        
+        .modal-mlb .modal-header .btn-close:hover {
+            opacity: 1;
+        }
+        
+        .modal-mlb .modal-title {
+            font-size: 1.8rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .modal-mlb .modal-body {
+            padding: 40px;
+        }
+        
+        .modal-mlb .form-label {
+            font-weight: 600;
+            color: var(--mlb-blue);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .modal-mlb .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 15px;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        
+        .modal-mlb .form-control:focus {
+            border-color: var(--mlb-blue);
+            box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.25);
+        }
+        
+        .modal-mlb .form-check-input {
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #e9ecef;
+            margin-top: 0.3rem;
+        }
+        
+        .modal-mlb .form-check-input:checked {
+            background-color: var(--mlb-red);
+            border-color: var(--mlb-red);
+        }
+        
+        .modal-mlb .form-check-label {
+            font-weight: 500;
+            color: #555;
+            margin-left: 8px;
+        }
+        
+        .modal-mlb .error-message {
+            background: #fee;
+            border: 1px solid var(--mlb-red);
+            color: var(--mlb-red);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .modal-mlb .field-error {
+            color: var(--mlb-red);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+        
+        .modal-mlb .modal-footer {
+            padding: 20px 40px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            text-align: center;
+        }
+        
+        .modal-mlb .modal-footer a {
+            color: var(--mlb-blue);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        .modal-mlb .modal-footer a:hover {
+            color: var(--mlb-red);
+            text-decoration: underline;
+        }
+        
+        .login-icon-modal {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .hero-title {
@@ -430,6 +564,10 @@
             
             .stats-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .modal-mlb .modal-body {
+                padding: 30px 20px;
             }
         }
     </style>
@@ -449,7 +587,7 @@
                         <span class="mx-2">|</span>
                         <a href="{% url 'accounts:logout' %}">Cerrar Sesión</a>
                     {% else %}
-                        <a href="{% url 'accounts:login' %}">Iniciar Sesión</a>
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</a>
                         <span class="mx-2">|</span>
                         <a href="/accounts/register/">Registrarse</a>
                     {% endif %}
@@ -479,7 +617,7 @@
                         <a class="nav-link" href="#equipos">Equipos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#jugadores">Jugadores</a>
+                        <a class="nav-link" href="{% url 'accounts:public_player_list' %}">Jugadores</a>
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
@@ -512,7 +650,7 @@
                             <a href="/accounts/register/" class="btn btn-mlb">
                                 <i class="fas fa-user-plus me-2"></i>Registrarse Ahora
                             </a>
-                            <a href="{% url 'accounts:login' %}" class="btn btn-mlb-outline">
+                            <a href="#" class="btn btn-mlb-outline" data-bs-toggle="modal" data-bs-target="#loginModal">
                                 <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
                             </a>
                         {% else %}
@@ -597,10 +735,14 @@
                                                     <span>{{ event.category.name }}</span>
                                                 </div>
                                             {% endif %}
-                                            {% if event.division %}
+                                            {% if event.divisions.all %}
                                                 <div class="game-info-item">
                                                     <i class="fas fa-users"></i>
-                                                    <span>{{ event.division.name }}</span>
+                                                    <span>
+                                                        {% for division in event.divisions.all %}
+                                                            {{ division.name }}{% if not forloop.last %}, {% endif %}
+                                                        {% endfor %}
+                                                    </span>
                                                 </div>
                                             {% endif %}
                                         </div>
@@ -610,7 +752,7 @@
                                     </div>
                                     {% if user.is_authenticated %}
                                         <div class="game-card-footer">
-                                            <a href="{% url 'events:detail' event.pk %}" class="btn btn-sm btn-mlb">
+                                            <a href="{% url 'events:private_detail' event.pk %}" class="btn btn-sm btn-mlb">
                                                 Ver Detalles
                                             </a>
                                             <span class="text-muted small">
@@ -661,7 +803,7 @@
                                 </div>
                                 {% if user.is_authenticated %}
                                     <div class="game-card-footer">
-                                        <a href="{% url 'events:detail' event.pk %}" class="btn btn-sm btn-mlb">
+                                        <a href="{% url 'events:private_detail' event.pk %}" class="btn btn-sm btn-mlb">
                                             Ver Ahora
                                         </a>
                                     </div>
@@ -726,7 +868,7 @@
                 <a href="/accounts/register/" class="btn btn-mlb me-3">
                     <i class="fas fa-user-plus me-2"></i>Registrarse Ahora
                 </a>
-                <a href="{% url 'login' %}" class="btn btn-mlb-outline">
+                <a href="#" class="btn btn-mlb-outline" data-bs-toggle="modal" data-bs-target="#loginModal">
                     <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
                 </a>
             {% else %}
@@ -759,7 +901,7 @@
                         <a href="/accounts/teams/">Equipos</a>
                     {% else %}
                         <a href="/accounts/register/">Registrarse</a>
-                        <a href="{% url 'accounts:login' %}">Iniciar Sesión</a>
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</a>
                     {% endif %}
                 </div>
                 <div class="col-md-4 mb-4">
@@ -777,23 +919,139 @@
         </div>
     </footer>
 
+    <!-- Login Modal -->
+    <div class="modal fade modal-mlb" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="login-icon-modal">
+                        <i class="fas fa-baseball-ball"></i>
+                    </div>
+                    <h5 class="modal-title" id="loginModalLabel">Iniciar Sesión</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-center mb-4" style="color: #666; position: relative; z-index: 1;">Accede a tu cuenta de NSC International</p>
+                    
+                    <form method="post" action="{% url 'accounts:login' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.GET.next|default:request.path }}">
+                        
+                        {% if form.non_field_errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                {{ form.non_field_errors.0 }}
+                            </div>
+                        {% elif show_login_modal %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                Por favor, verifica tus credenciales e intenta nuevamente.
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="id_username_modal" class="form-label">
+                                <i class="fas fa-envelope me-1"></i>Correo Electrónico
+                            </label>
+                            <input type="email" 
+                                   id="id_username_modal" 
+                                   name="username" 
+                                   class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
+                                   placeholder="tu@email.com"
+                                   value="{% if form.username.value %}{{ form.username.value }}{% elif request.POST.username %}{{ request.POST.username }}{% endif %}"
+                                   required
+                                   autofocus>
+                            {% if form.username.errors %}
+                                <div class="field-error">{{ form.username.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="id_password_modal" class="form-label">
+                                <i class="fas fa-lock me-1"></i>Contraseña
+                            </label>
+                            <input type="password" 
+                                   id="id_password_modal" 
+                                   name="password" 
+                                   class="form-control {% if form.password.errors %}is-invalid{% endif %}" 
+                                   placeholder="Ingresa tu contraseña"
+                                   required>
+                            {% if form.password.errors %}
+                                <div class="field-error">{{ form.password.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me_modal">
+                                <label class="form-check-label" for="remember_me_modal">
+                                    Recordarme
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-mlb w-100">
+                            <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                        </button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <p class="mb-0 w-100">
+                        ¿No tienes cuenta? <a href="/accounts/register/">Regístrate aquí</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
         // Smooth scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        document.querySelectorAll('a[href^="#"]:not([data-bs-toggle])').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+                const href = this.getAttribute('href');
+                if (href !== '#' && href.startsWith('#')) {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
                 }
             });
         });
+        
+        // Mostrar modal de login si hay errores en la URL o si show_login_modal está activo
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const loginError = urlParams.get('login_error');
+            const loginModal = document.getElementById('loginModal');
+            const showLoginModal = {% if show_login_modal %}true{% else %}false{% endif %};
+            
+            if ((loginError === '1' || showLoginModal) && loginModal) {
+                const modal = new bootstrap.Modal(loginModal);
+                modal.show();
+                
+                // Limpiar el parámetro de la URL sin recargar
+                if (loginError === '1') {
+                    const newUrl = window.location.pathname;
+                    window.history.replaceState({}, '', newUrl);
+                }
+            }
+        });
+        
+        // Manejar envío del formulario del modal
+        const loginForm = document.querySelector('#loginModal form');
+        if (loginForm) {
+            loginForm.addEventListener('submit', function(e) {
+                // Si el formulario se envía, el servidor manejará la redirección
+                // No necesitamos prevenir el submit predeterminado
+            });
+        }
     </script>
 </body>
 </html>

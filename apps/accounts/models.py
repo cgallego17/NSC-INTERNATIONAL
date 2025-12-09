@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
+from datetime import date
 
 
 class UserProfile(models.Model):
@@ -9,6 +10,7 @@ class UserProfile(models.Model):
     
     USER_TYPE_CHOICES = [
         ('player', 'Jugador'),
+        ('parent', 'Padre/Acudiente'),
         ('team_manager', 'Manager de Equipo'),
         ('admin', 'Administrador'),
     ]
@@ -81,6 +83,10 @@ class UserProfile(models.Model):
     @property
     def is_team_manager(self):
         return self.user_type == 'team_manager'
+    
+    @property
+    def is_parent(self):
+        return self.user_type == 'parent'
     
     def get_absolute_url(self):
         return reverse('accounts:profile')
@@ -237,6 +243,163 @@ class Player(models.Model):
         verbose_name='Condiciones Médicas',
         help_text='Información médica relevante'
     )
+    
+    # Tallas de Uniformes
+    JERSEY_SIZE_CHOICES = [
+        ('YXS', 'YXS (Youth Extra Small)'),
+        ('YS', 'YS (Youth Small)'),
+        ('YM', 'YM (Youth Medium)'),
+        ('YL', 'YL (Youth Large)'),
+        ('AS', 'AS (Adult Small)'),
+        ('AM', 'AM (Adult Medium)'),
+        ('AL', 'AL (Adult Large)'),
+        ('AXL', 'AXL (Adult Extra Large)'),
+        ('A2XL', 'A2XL (Adult 2 Extra Large)'),
+    ]
+    
+    HAT_SIZE_CHOICES = [
+        ('XS_S', 'X-Small / Small'),
+        ('SM', 'Small-Medium'),
+        ('L_XL', 'Large / X-Large'),
+    ]
+    
+    BATTING_GLOVE_SIZE_CHOICES = [
+        ('YS', 'YS (Youth Small)'),
+        ('YM', 'YM (Youth Medium)'),
+        ('YL', 'YL (Youth Large)'),
+        ('AS', 'AS (Adult Small)'),
+        ('AM', 'AM (Adult Medium)'),
+        ('AL', 'AL (Adult Large)'),
+    ]
+    
+    BATTING_HELMET_SIZE_CHOICES = [
+        ('XS', 'X-Small'),
+        ('SM', 'Small / Medium'),
+        ('ML', 'Medium / Large'),
+        ('L_XL', 'Large / X-Large'),
+    ]
+    
+    SHORTS_SIZE_CHOICES = [
+        ('YS', 'YS (Youth Small)'),
+        ('YM', 'YM (Youth Medium)'),
+        ('YL', 'YL (Youth Large)'),
+        ('AS', 'AS (Adult Small)'),
+        ('AM', 'AM (Adult Medium)'),
+        ('AL', 'AL (Adult Large)'),
+        ('AXL', 'AXL (Adult Extra Large)'),
+        ('A2XL', 'A2XL (Adult 2 Extra Large)'),
+    ]
+    
+    jersey_size = models.CharField(
+        max_length=10,
+        choices=JERSEY_SIZE_CHOICES,
+        blank=True,
+        verbose_name='Talla de Jersey'
+    )
+    hat_size = models.CharField(
+        max_length=10,
+        choices=HAT_SIZE_CHOICES,
+        blank=True,
+        verbose_name='Talla de Gorra'
+    )
+    batting_glove_size = models.CharField(
+        max_length=10,
+        choices=BATTING_GLOVE_SIZE_CHOICES,
+        blank=True,
+        verbose_name='Talla de Guante de Bateo'
+    )
+    batting_helmet_size = models.CharField(
+        max_length=10,
+        choices=BATTING_HELMET_SIZE_CHOICES,
+        blank=True,
+        verbose_name='Talla de Casco de Bateo'
+    )
+    shorts_size = models.CharField(
+        max_length=10,
+        choices=SHORTS_SIZE_CHOICES,
+        blank=True,
+        verbose_name='Talla de Pantalones'
+    )
+    
+    # Elegibilidad y División
+    GRADE_CHOICES = [
+        ('pre_k', 'Pre-K'),
+        ('kindergarten', 'Kindergarten'),
+        ('1st', '1st Grade'),
+        ('2nd', '2nd Grade'),
+        ('3rd', '3rd Grade'),
+        ('4th', '4th Grade'),
+        ('5th', '5th Grade'),
+        ('6th', '6th Grade'),
+        ('7th', '7th Grade'),
+        ('8th', '8th Grade'),
+        ('9th', '9th Grade'),
+        ('10th', '10th Grade'),
+        ('11th', '11th Grade'),
+        ('12th', '12th Grade'),
+    ]
+    
+    DIVISION_CHOICES = [
+        ('05U', '05U'),
+        ('06U', '06U'),
+        ('07U', '07U'),
+        ('08U', '08U'),
+        ('09U', '09U'),
+        ('10U', '10U'),
+        ('11U', '11U'),
+        ('12U', '12U'),
+        ('13U', '13U'),
+        ('14U', '14U'),
+        ('15U', '15U'),
+        ('16U', '16U'),
+        ('17U', '17U'),
+        ('18U', '18U'),
+    ]
+    
+    AGE_VERIFICATION_STATUS_CHOICES = [
+        ('pending', 'Pendiente'),
+        ('approved', 'Aprobado'),
+        ('rejected', 'Rechazado'),
+    ]
+    
+    grade = models.CharField(
+        max_length=20,
+        choices=GRADE_CHOICES,
+        blank=True,
+        verbose_name='Grado Actual',
+        help_text='Grado escolar actual del jugador'
+    )
+    division = models.CharField(
+        max_length=10,
+        choices=DIVISION_CHOICES,
+        blank=True,
+        verbose_name='División Asignada',
+        help_text='División en la que el jugador está asignado'
+    )
+    age_verification_document = models.FileField(
+        upload_to='accounts/age_verification/',
+        blank=True,
+        null=True,
+        verbose_name='Documento de Verificación de Edad',
+        help_text='Certificado de nacimiento, pasaporte o ID (original o digital)'
+    )
+    age_verification_status = models.CharField(
+        max_length=20,
+        choices=AGE_VERIFICATION_STATUS_CHOICES,
+        default='pending',
+        verbose_name='Estado de Verificación de Edad'
+    )
+    age_verification_approved_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name='Fecha de Aprobación de Verificación'
+    )
+    age_verification_notes = models.TextField(
+        blank=True,
+        verbose_name='Notas de Verificación',
+        help_text='Notas adicionales sobre la verificación de edad'
+    )
+    
     is_active = models.BooleanField(default=True, verbose_name='Activo')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -250,4 +413,251 @@ class Player(models.Model):
         return f"{self.user.get_full_name()} - {self.team.name if self.team else 'Sin Equipo'}"
     
     def get_absolute_url(self):
-        return reverse('accounts:player_detail', kwargs={'pk': self.pk})
+        if self.pk:
+            return reverse('accounts:player_detail', kwargs={'pk': self.pk})
+        return '#'
+    
+    def get_birth_date(self):
+        """Obtiene la fecha de nacimiento del jugador desde el perfil de usuario"""
+        if hasattr(self.user, 'profile') and self.user.profile.birth_date:
+            return self.user.profile.birth_date
+        return None
+    
+    def calculate_age_as_of_april_30(self, year=None):
+        """
+        Calcula la edad del jugador al 30 de abril del año especificado.
+        Si no se especifica año, usa el año actual.
+        """
+        birth_date = self.get_birth_date()
+        if not birth_date:
+            return None
+        
+        if year is None:
+            year = date.today().year
+        
+        # Fecha de corte: 30 de abril
+        cutoff_date = date(year, 4, 30)
+        
+        # Calcular edad
+        age = cutoff_date.year - birth_date.year
+        if (cutoff_date.month, cutoff_date.day) < (birth_date.month, birth_date.day):
+            age -= 1
+        
+        return age
+    
+    def get_age_based_division(self, year=None):
+        """
+        Calcula la división elegible basada en la edad al 30 de abril.
+        Regla: La edad del jugador más viejo al 30 de abril determina elegibilidad.
+        Un jugador de 10U no puede cumplir 11 años antes del 1 de mayo.
+        """
+        age = self.calculate_age_as_of_april_30(year)
+        if age is None:
+            return None
+        
+        # Mapeo de edad a división
+        # Un jugador de XU no puede cumplir X+1 años antes del 1 de mayo
+        # Es decir, si tiene X años al 30 de abril, puede jugar en XU
+        division_map = {
+            5: '05U',
+            6: '06U',
+            7: '07U',
+            8: '08U',
+            9: '09U',
+            10: '10U',
+            11: '11U',
+            12: '12U',
+            13: '13U',
+            14: '14U',
+            15: '15U',
+            16: '16U',
+            17: '17U',
+            18: '18U',
+        }
+        
+        # Si tiene menos de 5 años, no es elegible
+        if age < 5:
+            return None
+        
+        # Si tiene 18 o más años, puede jugar en 18U
+        if age >= 18:
+            return '18U'
+        
+        return division_map.get(age)
+    
+    def get_grade_based_division(self):
+        """
+        Calcula la división elegible basada en el grado escolar.
+        Grade Exceptions permiten jugar en una división basada en grado.
+        """
+        if not self.grade:
+            return None
+        
+        # Mapeo de grado a división según la tabla de Grade Exceptions
+        grade_division_map = {
+            'pre_k': '05U',
+            'kindergarten': '06U',
+            '1st': '07U',
+            '2nd': '08U',
+            '3rd': '09U',
+            '4th': '10U',
+            '5th': '11U',
+            '6th': '12U',
+            '7th': '13U',
+            '8th': '14U',
+            '9th': '15U',
+            '10th': '16U',
+            '11th': '17U',
+            '12th': '18U',
+        }
+        
+        return grade_division_map.get(self.grade)
+    
+    def get_eligible_divisions(self):
+        """
+        Retorna las divisiones elegibles para el jugador.
+        Incluye la división basada en edad y la división basada en grado.
+        """
+        divisions = []
+        
+        # División basada en edad
+        age_division = self.get_age_based_division()
+        if age_division:
+            divisions.append(age_division)
+        
+        # División basada en grado (Grade Exception)
+        grade_division = self.get_grade_based_division()
+        if grade_division and grade_division not in divisions:
+            divisions.append(grade_division)
+        
+        return sorted(set(divisions))
+    
+    def can_play_in_division(self, target_division):
+        """
+        Verifica si el jugador puede jugar en la división especificada.
+        Reglas:
+        - No puede jugar "down" (solo puede jugar "up" máximo 2 divisiones)
+        - Debe tener verificación de edad aprobada
+        """
+        # Verificar que tenga verificación de edad aprobada
+        if self.age_verification_status != 'approved':
+            return False, 'El jugador no tiene verificación de edad aprobada'
+        
+        eligible_divisions = self.get_eligible_divisions()
+        if not eligible_divisions:
+            return False, 'No se puede determinar la elegibilidad del jugador'
+        
+        # Obtener el número de la división objetivo
+        target_num = int(target_division.replace('U', ''))
+        
+        # Obtener el número de la división más baja elegible (basada en edad)
+        age_division = self.get_age_based_division()
+        if not age_division:
+            return False, 'No se puede determinar la división basada en edad'
+        
+        age_division_num = int(age_division.replace('U', ''))
+        
+        # No puede jugar "down" (en una división menor)
+        if target_num < age_division_num:
+            return False, f'El jugador no puede jugar en una división menor ({target_division}). División mínima elegible: {age_division}'
+        
+        # Puede jugar "up" máximo 2 divisiones
+        if target_num > age_division_num + 2:
+            return False, f'El jugador solo puede jugar hasta 2 divisiones arriba de su división basada en edad ({age_division}). División solicitada: {target_division}'
+        
+        # Si la división está en las elegibles o está dentro del rango permitido
+        if target_division in eligible_divisions:
+            return True, 'Elegible'
+        
+        # Verificar si está dentro del rango permitido (hasta 2 divisiones arriba)
+        if age_division_num <= target_num <= age_division_num + 2:
+            return True, 'Elegible (jugando arriba)'
+        
+        return False, 'División no elegible'
+    
+    def is_eligible_to_play(self):
+        """
+        Verifica si el jugador es elegible para jugar.
+        Requisitos:
+        1. Verificación de edad aprobada
+        2. División asignada válida
+        """
+        if self.age_verification_status != 'approved':
+            return False, 'Verificación de edad pendiente o rechazada'
+        
+        if not self.division:
+            return False, 'No tiene división asignada'
+        
+        can_play, message = self.can_play_in_division(self.division)
+        return can_play, message
+
+
+class PlayerParent(models.Model):
+    """Modelo para relacionar padres/acudientes con jugadores"""
+    
+    RELATIONSHIP_CHOICES = [
+        ('father', 'Padre'),
+        ('mother', 'Madre'),
+        ('guardian', 'Acudiente'),
+        ('other', 'Otro'),
+    ]
+    
+    parent = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='children',
+        verbose_name='Padre/Acudiente',
+        limit_choices_to={'profile__user_type': 'parent'}
+    )
+    player = models.ForeignKey(
+        Player,
+        on_delete=models.CASCADE,
+        related_name='parents',
+        verbose_name='Jugador'
+    )
+    relationship = models.CharField(
+        max_length=20,
+        choices=RELATIONSHIP_CHOICES,
+        default='guardian',
+        verbose_name='Relación'
+    )
+    is_primary = models.BooleanField(
+        default=False,
+        verbose_name='Contacto Principal',
+        help_text='Marcar si es el contacto principal del jugador'
+    )
+    can_pickup = models.BooleanField(
+        default=True,
+        verbose_name='Puede Recoger',
+        help_text='Marcar si esta persona puede recoger al jugador'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Padre/Acudiente de Jugador'
+        verbose_name_plural = 'Padres/Acudientes de Jugadores'
+        ordering = ['-is_primary', 'parent__last_name', 'parent__first_name']
+        unique_together = [['parent', 'player']]
+    
+    def __str__(self):
+        return f"{self.parent.get_full_name()} - {self.player.user.get_full_name()}"
+
+
+class DashboardContent(models.Model):
+    """Modelo para contenido del dashboard configurable por el admin"""
+    
+    title = models.CharField(max_length=200, verbose_name='Título', default='Bienvenido')
+    content = models.TextField(verbose_name='Contenido', help_text='Contenido HTML permitido')
+    is_active = models.BooleanField(default=True, verbose_name='Activo')
+    order = models.PositiveIntegerField(default=0, verbose_name='Orden')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = 'Contenido del Dashboard'
+        verbose_name_plural = 'Contenidos del Dashboard'
+        ordering = ['order', '-created_at']
+    
+    def __str__(self):
+        return self.title

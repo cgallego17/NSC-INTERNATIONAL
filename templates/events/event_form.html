@@ -1,0 +1,2054 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Evento - NSC Eventos{% endblock %}
+
+{% block breadcrumb %}
+    <span>Eventos</span> / <span>Crear</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background: #ffffff;
+        border-radius: 0.5rem;
+        padding: 1.75rem;
+        margin-bottom: 2rem;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: box-shadow 0.2s ease;
+    }
+    
+    .form-section:hover {
+        box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    
+    .form-section .border-bottom {
+        border-color: #dee2e6 !important;
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-section h6 {
+        font-size: 1.05rem;
+        letter-spacing: 0.3px;
+        font-weight: 600;
+        color: #4a5568 !important; /* Color oscuro para que sea visible */
+    }
+    
+    .form-section h6.text-primary {
+        color: #4a5568 !important; /* Sobrescribir cualquier color primario que sea blanco */
+    }
+    
+    .form-section .text-primary {
+        color: #4a5568 !important; /* Color para iconos también */
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+    
+    .form-section .row {
+        margin-top: 0;
+    }
+    
+    .form-section .row.g-3 > * {
+        padding-top: 0.75rem;
+    }
+    
+    /* Mejorar espaciado entre secciones */
+    .form-section + .form-section {
+        margin-top: 0;
+    }
+    
+    /* Estilo para los iconos de sección */
+    .form-section i.text-primary {
+        color: #4a5568 !important;
+        font-size: 1.1rem;
+    }
+    
+    /* Mejorar espaciado en sección de hoteles */
+    .form-section .border-top {
+        border-color: #e9ecef !important;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+    }
+    
+    .form-section .border-top h6 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">
+                        <i class="fas fa-calendar-plus me-2 text-primary"></i>
+                        Crear Nuevo Evento
+                    </h1>
+                    <p class="text-muted mb-0">
+                        Completa la información para crear un nuevo evento
+                    </p>
+                </div>
+                <a href="{% url 'events:list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a Eventos
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 text-primary">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Información del Evento
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" id="eventForm" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <!-- INFORMACIÓN BÁSICA -->
+                        <div class="form-section mb-4">
+                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                                <i class="fas fa-info-circle text-primary me-2"></i>
+                                <h6 class="mb-0 text-primary fw-bold">Información Básica</h6>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.season.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-calendar-alt me-1 text-muted"></i>
+                                        {{ form.season.label }}
+                                        {% if form.season.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.season }}
+                                    {% if form.season.errors %}
+                                        <div class="text-danger small mt-1">{{ form.season.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="{{ form.event_type.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-tag me-1 text-muted"></i>
+                                        {{ form.event_type.label }}
+                                        {% if form.event_type.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.event_type }}
+                                    {% if form.event_type.errors %}
+                                        <div class="text-danger small mt-1">{{ form.event_type.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-heading me-1 text-muted"></i>
+                                        {{ form.title.label }}
+                                        {% if form.title.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.title }}
+                                    {% if form.title.errors %}
+                                        <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-align-left me-1 text-muted"></i>
+                                        {{ form.description.label }}
+                                        {% if form.description.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    <div class="html-editor-wrapper">
+                                        {{ form.description }}
+                                        <div id="description-editor" style="min-height: 300px;"></div>
+                                    </div>
+                                    {% if form.description.errors %}
+                                        <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                                    {% endif %}
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>Puede usar HTML para formatear el texto (etiquetas como &lt;strong&gt;, &lt;em&gt;, &lt;p&gt;, &lt;br&gt;, etc.)
+                                    </small>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-layer-group me-1 text-muted"></i>
+                                        {{ form.divisions.label }}
+                                        {% if form.divisions.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    
+                                    <!-- Buscador -->
+                                    <div class="mb-3">
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-search"></i>
+                                            </span>
+                                            <input 
+                                                type="text" 
+                                                id="division_search" 
+                                                class="form-control" 
+                                                placeholder="Buscar divisiones..."
+                                                autocomplete="off"
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Lista de divisiones seleccionadas (chips) -->
+                                    <div id="selected_divisions_chips" class="mb-3 d-flex flex-wrap gap-2 min-height-50">
+                                        <span class="text-muted small" id="no_selected_divisions_message">Ninguna división seleccionada</span>
+                                    </div>
+                                    
+                                    <!-- Lista de divisiones disponibles -->
+                                    <div class="border rounded p-3" style="max-height: 250px; overflow-y: auto;">
+                                        <div id="divisions_list" class="list-group list-group-flush">
+                                            <!-- Las divisiones se cargarán aquí dinámicamente -->
+                                        </div>
+                                        <div id="no_divisions_found" class="text-muted text-center py-3" style="display: none;">
+                                            <i class="fas fa-search me-2"></i>No se encontraron divisiones
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Campos hidden para los valores seleccionados -->
+                                    <div id="divisions_hidden" style="display: none;">
+                                        {{ form.divisions }}
+                                    </div>
+                                    
+                                    {% if form.divisions.errors %}
+                                        <div class="text-danger small mt-1">{{ form.divisions.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- UBICACIÓN -->
+                        <div class="form-section mb-4">
+                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                                <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                                <h6 class="mb-0 text-primary fw-bold">Ubicación del Evento</h6>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="{{ form.country.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-flag me-1 text-muted"></i>
+                                        {{ form.country.label }}
+                                        {% if form.country.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.country }}
+                                    {% if form.country.errors %}
+                                        <div class="text-danger small mt-1">{{ form.country.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label for="{{ form.state.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-map me-1 text-muted"></i>
+                                        {{ form.state.label }}
+                                        {% if form.state.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.state }}
+                                    {% if form.state.errors %}
+                                        <div class="text-danger small mt-1">{{ form.state.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label for="{{ form.city.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-city me-1 text-muted"></i>
+                                        {{ form.city.label }}
+                                        {% if form.city.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.city }}
+                                    {% if form.city.errors %}
+                                        <div class="text-danger small mt-1">{{ form.city.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="{{ form.rule.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-book me-1 text-muted"></i>
+                                        {{ form.rule.label }}
+                                        {% if form.rule.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.rule }}
+                                    {% if form.rule.errors %}
+                                        <div class="text-danger small mt-1">{{ form.rule.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SITIOS Y HOTELES -->
+                        <div class="form-section mb-4">
+                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                                <i class="fas fa-building text-primary me-2"></i>
+                                <h6 class="mb-0 text-primary fw-bold">Sitios y Hoteles</h6>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="primary_site_autocomplete" class="form-label fw-semibold">
+                                        <i class="fas fa-map-marker-alt me-1 text-muted"></i>
+                                        {{ form.primary_site.label }}
+                                        {% if form.primary_site.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    
+                                    <!-- Campo de autocomplete -->
+                                    <div class="position-relative">
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-search"></i>
+                                            </span>
+                                            <input 
+                                                type="text" 
+                                                id="primary_site_autocomplete" 
+                                                class="form-control" 
+                                                placeholder="Buscar y seleccionar sitio..."
+                                                autocomplete="off"
+                                            />
+                                        </div>
+                                        
+                                        <!-- Dropdown de sugerencias -->
+                                        <div id="primary_site_dropdown" class="list-group position-absolute w-100" style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 0.375rem; background: white; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);">
+                                            <!-- Las sugerencias se cargarán aquí -->
+                                        </div>
+                                        
+                                    <!-- Campo hidden para el ID del sitio -->
+                                    <input type="hidden" id="primary_site_id" name="primary_site" value="{% if form.primary_site.value %}{{ form.primary_site.value }}{% endif %}">
+                                    
+                                    <!-- Ocultar el campo original del formulario -->
+                                    <div style="display: none;">
+                                        {{ form.primary_site }}
+                                    </div>
+                                        
+                                        <!-- Sitio seleccionado (chip) -->
+                                        <div id="primary_site_selected" class="mt-2" style="display: none;">
+                                            <span class="badge bg-primary d-flex align-items-center gap-2" style="font-size: 0.9rem; padding: 0.5rem 0.75rem;">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                <span id="primary_site_name"></span>
+                                                <button 
+                                                    type="button" 
+                                                    class="btn-close btn-close-white" 
+                                                    style="font-size: 0.7rem;"
+                                                    onclick="clearPrimarySite()"
+                                                    aria-label="Eliminar"
+                                                ></button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if form.primary_site.errors %}
+                                        <div class="text-danger small mt-1">{{ form.primary_site.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-map-marked-alt me-1 text-muted"></i>
+                                        {{ form.additional_sites.label }}
+                                        {% if form.additional_sites.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    
+                                    <!-- Buscador -->
+                                    <div class="mb-3">
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-search"></i>
+                                            </span>
+                                            <input 
+                                                type="text" 
+                                                id="site_search" 
+                                                class="form-control" 
+                                                placeholder="Buscar sitios..."
+                                                autocomplete="off"
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Lista de sitios seleccionados (chips) -->
+                                    <div id="selected_sites_chips" class="mb-3 d-flex flex-wrap gap-2 min-height-50">
+                                        <span class="text-muted small" id="no_selected_message">Ningún sitio seleccionado</span>
+                                    </div>
+                                    
+                                    <!-- Lista de sitios disponibles -->
+                                    <div class="border rounded p-3" style="max-height: 250px; overflow-y: auto;">
+                                        <div id="sites_list" class="list-group list-group-flush">
+                                            <!-- Los sitios se cargarán aquí dinámicamente -->
+                                        </div>
+                                        <div id="no_sites_found" class="text-muted text-center py-3" style="display: none;">
+                                            <i class="fas fa-search me-2"></i>No se encontraron sitios
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Campos hidden para los valores seleccionados -->
+                                    <div id="additional_sites_hidden" style="display: none;">
+                                        {{ form.additional_sites }}
+                                    </div>
+                                    
+                                    {% if form.additional_sites.errors %}
+                                        <div class="text-danger small mt-1">{{ form.additional_sites.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Separador visual entre Sitios y Hoteles -->
+                            <div class="my-4 border-top pt-4">
+                                <h6 class="text-muted mb-3 fw-semibold">
+                                    <i class="fas fa-hotel me-2"></i>Hoteles
+                                </h6>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="hotel_autocomplete" class="form-label fw-semibold">
+                                        <i class="fas fa-hotel me-1 text-muted"></i>
+                                        {{ form.hotel.label }}
+                                        {% if form.hotel.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    
+                                    <!-- Campo de autocomplete -->
+                                    <div class="position-relative">
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-search"></i>
+                                            </span>
+                                            <input 
+                                                type="text" 
+                                                id="hotel_autocomplete" 
+                                                class="form-control" 
+                                                placeholder="Buscar y seleccionar hotel..."
+                                                autocomplete="off"
+                                            />
+                                        </div>
+                                        
+                                        <!-- Dropdown de sugerencias -->
+                                        <div id="hotel_dropdown" class="list-group position-absolute w-100" style="display: none; z-index: 1000; max-height: 300px; overflow-y: auto; border: 1px solid #dee2e6; border-radius: 0.375rem; background: white; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);">
+                                            <!-- Las sugerencias se cargarán aquí -->
+                                        </div>
+                                        
+                                        <!-- Campo hidden para el ID del hotel -->
+                                        <input type="hidden" id="hotel_id" name="hotel" value="{% if form.hotel.value %}{{ form.hotel.value }}{% endif %}">
+                                        
+                                        <!-- Hotel seleccionado (chip) -->
+                                        <div id="hotel_selected" class="mt-2" style="display: none;">
+                                            <span class="badge bg-primary d-flex align-items-center gap-2" style="font-size: 0.9rem; padding: 0.5rem 0.75rem;">
+                                                <i class="fas fa-hotel"></i>
+                                                <span id="hotel_name"></span>
+                                                <button 
+                                                    type="button" 
+                                                    class="btn-close btn-close-white" 
+                                                    style="font-size: 0.7rem;"
+                                                    onclick="clearHotel()"
+                                                    aria-label="Eliminar"
+                                                ></button>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Ocultar el campo original del formulario -->
+                                    <div style="display: none;">
+                                        {{ form.hotel }}
+                                    </div>
+                                    
+                                    {% if form.hotel.errors %}
+                                        <div class="text-danger small mt-1">{{ form.hotel.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">
+                                        <i class="fas fa-hotel me-1 text-muted"></i>
+                                        {{ form.additional_hotels.label }}
+                                        {% if form.additional_hotels.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    
+                                    <!-- Buscador -->
+                                    <div class="mb-3">
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-search"></i>
+                                            </span>
+                                            <input 
+                                                type="text" 
+                                                id="hotel_search" 
+                                                class="form-control" 
+                                                placeholder="Buscar hoteles..."
+                                                autocomplete="off"
+                                            />
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Lista de hoteles seleccionados (chips) -->
+                                    <div id="selected_hotels_chips" class="mb-3 d-flex flex-wrap gap-2 min-height-50">
+                                        <span class="text-muted small" id="no_selected_hotels_message">Ningún hotel seleccionado</span>
+                                    </div>
+                                    
+                                    <!-- Lista de hoteles disponibles -->
+                                    <div class="border rounded p-3" style="max-height: 250px; overflow-y: auto;">
+                                        <div id="hotels_list" class="list-group list-group-flush">
+                                            <!-- Los hoteles se cargarán aquí dinámicamente -->
+                                        </div>
+                                        <div id="no_hotels_found" class="text-muted text-center py-3" style="display: none;">
+                                            <i class="fas fa-search me-2"></i>No se encontraron hoteles
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Campos hidden para los valores seleccionados -->
+                                    <div id="additional_hotels_hidden" style="display: none;">
+                                        {{ form.additional_hotels }}
+                                    </div>
+                                    
+                                    {% if form.additional_hotels.errors %}
+                                        <div class="text-danger small mt-1">{{ form.additional_hotels.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CONTACTO -->
+                        <div class="form-section mb-4">
+                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                                <i class="fas fa-user text-primary me-2"></i>
+                                <h6 class="mb-0 text-primary fw-bold">Contacto del Evento</h6>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label for="{{ form.event_contact.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-user me-1 text-muted"></i>
+                                        {{ form.event_contact.label }}
+                                        {% if form.event_contact.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.event_contact }}
+                                    {% if form.event_contact.errors %}
+                                        <div class="text-danger small mt-1">{{ form.event_contact.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MEDIOS Y COMUNICACIÓN -->
+                        <div class="form-section mb-4">
+                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                                <i class="fas fa-images text-primary me-2"></i>
+                                <h6 class="mb-0 text-primary fw-bold">Medios y Comunicación</h6>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.image.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-image me-1 text-muted"></i>
+                                        {{ form.image.label }}
+                                        {% if form.image.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.image }}
+                                    {% if form.instance.image %}
+                                        <div class="mt-2">
+                                            <small class="text-muted">Imagen actual:</small>
+                                            <div class="mt-1">
+                                                <img src="{{ form.instance.image.url }}" alt="Logo del evento" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    {% if form.image.errors %}
+                                        <div class="text-danger small mt-1">{{ form.image.errors }}</div>
+                                    {% endif %}
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>Formatos aceptados: JPG, PNG, GIF. Tamaño recomendado: máximo 5MB.
+                                    </small>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="{{ form.video_url.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-video me-1 text-muted"></i>
+                                        {{ form.video_url.label }}
+                                        {% if form.video_url.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.video_url }}
+                                    {% if form.video_url.errors %}
+                                        <div class="text-danger small mt-1">{{ form.video_url.errors }}</div>
+                                    {% endif %}
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>Ingrese la URL del video (YouTube, Vimeo, etc.)
+                                    </small>
+                                </div>
+                                
+                                <div class="col-12">
+                                    <label for="{{ form.email_welcome_body.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-envelope me-1 text-muted"></i>
+                                        {{ form.email_welcome_body.label }}
+                                        {% if form.email_welcome_body.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    <div class="html-editor-wrapper">
+                                        {{ form.email_welcome_body }}
+                                        <div id="email-body-editor" style="min-height: 300px;"></div>
+                                    </div>
+                                    {% if form.email_welcome_body.errors %}
+                                        <div class="text-danger small mt-1">{{ form.email_welcome_body.errors }}</div>
+                                    {% endif %}
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>Contenido HTML del correo de bienvenida que se enviará a los participantes. Puede usar etiquetas HTML completas.
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FECHAS Y HORARIOS -->
+                        <div class="form-section mb-4">
+                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                                <i class="fas fa-calendar-alt text-primary me-2"></i>
+                                <h6 class="mb-0 text-primary fw-bold">Fechas y Horarios</h6>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="{{ form.start_date.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-calendar-check me-1 text-muted"></i>
+                                        {{ form.start_date.label }}
+                                        {% if form.start_date.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.start_date }}
+                                    {% if form.start_date.errors %}
+                                        <div class="text-danger small mt-1">{{ form.start_date.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label for="{{ form.end_date.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-calendar-times me-1 text-muted"></i>
+                                        {{ form.end_date.label }}
+                                        {% if form.end_date.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.end_date }}
+                                    {% if form.end_date.errors %}
+                                        <div class="text-danger small mt-1">{{ form.end_date.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <label for="{{ form.entry_deadline.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-calendar-minus me-1 text-muted"></i>
+                                        {{ form.entry_deadline.label }}
+                                        {% if form.entry_deadline.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.entry_deadline }}
+                                    {% if form.entry_deadline.errors %}
+                                        <div class="text-danger small mt-1">{{ form.entry_deadline.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PRECIOS Y PAGOS -->
+                        <div class="form-section mb-4">
+                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                                <i class="fas fa-dollar-sign text-primary me-2"></i>
+                                <h6 class="mb-0 text-primary fw-bold">Precios y Pagos</h6>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.default_entry_fee.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-money-bill-wave me-1 text-muted"></i>
+                                        {{ form.default_entry_fee.label }}
+                                        {% if form.default_entry_fee.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        {{ form.default_entry_fee }}
+                                    </div>
+                                    {% if form.default_entry_fee.errors %}
+                                        <div class="text-danger small mt-1">{{ form.default_entry_fee.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="{{ form.payment_deadline.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-calendar-exclamation me-1 text-muted"></i>
+                                        {{ form.payment_deadline.label }}
+                                        {% if form.payment_deadline.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.payment_deadline }}
+                                    {% if form.payment_deadline.errors %}
+                                        <div class="text-danger small mt-1">{{ form.payment_deadline.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="{{ form.gate_fee_type.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-ticket-alt me-1 text-muted"></i>
+                                        {{ form.gate_fee_type.label }}
+                                        {% if form.gate_fee_type.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.gate_fee_type }}
+                                    {% if form.gate_fee_type.errors %}
+                                        <div class="text-danger small mt-1">{{ form.gate_fee_type.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="{{ form.gate_fee_amount.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-dollar-sign me-1 text-muted"></i>
+                                        {{ form.gate_fee_amount.label }}
+                                        {% if form.gate_fee_amount.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        {{ form.gate_fee_amount }}
+                                    </div>
+                                    {% if form.gate_fee_amount.errors %}
+                                        <div class="text-danger small mt-1">{{ form.gate_fee_amount.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Botones de Acción -->
+                        <div class="form-section mt-4 pt-4 border-top">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="d-flex gap-2 justify-content-end">
+                                        <a href="{% url 'events:list' %}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-times me-2"></i>Cancelar
+                                        </a>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save me-2"></i>Guardar Evento
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const countrySelect = document.getElementById('{{ form.country.id_for_label }}');
+    const stateSelect = document.getElementById('{{ form.state.id_for_label }}');
+    const citySelect = document.getElementById('{{ form.city.id_for_label }}');
+    
+    // Verificar que los elementos existan
+    if (!countrySelect) {
+        console.error('No se encontró el campo country');
+        return;
+    }
+    if (!stateSelect) {
+        console.error('No se encontró el campo state');
+        return;
+    }
+    if (!citySelect) {
+        console.error('No se encontró el campo city');
+        return;
+    }
+    
+    // Cargar estados cuando se selecciona un país
+    countrySelect.addEventListener('change', function() {
+        const countryId = this.value;
+        
+        // Limpiar y deshabilitar estados y ciudades
+        stateSelect.innerHTML = '<option value="">Cargando...</option>';
+        stateSelect.setAttribute('disabled', 'disabled');
+        citySelect.innerHTML = '<option value="">Seleccione primero un estado</option>';
+        citySelect.setAttribute('disabled', 'disabled');
+        
+        // Limpiar sitios y hoteles cuando cambia el país
+        reloadSitesAndHotels(null);
+        
+        if (countryId) {
+            fetch(`/locations/states/api/?country=${countryId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la respuesta del servidor');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    stateSelect.innerHTML = '<option value="">Seleccione un estado</option>';
+                    if (data && data.length > 0) {
+                        data.forEach(state => {
+                            const option = document.createElement('option');
+                            option.value = state.id;
+                            option.textContent = state.name;
+                            stateSelect.appendChild(option);
+                        });
+                    } else {
+                        stateSelect.innerHTML = '<option value="">No hay estados disponibles</option>';
+                    }
+                    // Habilitar el campo removiendo el atributo disabled
+                    stateSelect.removeAttribute('disabled');
+                })
+                .catch(error => {
+                    console.error('Error al cargar estados:', error);
+                    stateSelect.innerHTML = '<option value="">Error al cargar estados</option>';
+                    // Habilitar el campo incluso si hay error
+                    stateSelect.removeAttribute('disabled');
+                });
+        } else {
+            stateSelect.innerHTML = '<option value="">Seleccione primero un país</option>';
+            stateSelect.disabled = true;
+        }
+    });
+    
+    // Cargar ciudades cuando se selecciona un estado
+    stateSelect.addEventListener('change', function() {
+        const stateId = this.value;
+        citySelect.innerHTML = '<option value="">Cargando...</option>';
+        citySelect.setAttribute('disabled', 'disabled');
+        
+        // Limpiar sitios y hoteles cuando cambia el estado
+        reloadSitesAndHotels(null);
+        
+        if (stateId) {
+            fetch(`/locations/cities/api/?state=${stateId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error en la respuesta del servidor');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    citySelect.innerHTML = '<option value="">Seleccione una ciudad</option>';
+                    if (data && data.length > 0) {
+                        data.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city.id;
+                            option.textContent = city.name;
+                            citySelect.appendChild(option);
+                        });
+                    } else {
+                        citySelect.innerHTML = '<option value="">No hay ciudades disponibles</option>';
+                    }
+                    citySelect.removeAttribute('disabled');
+                })
+                .catch(error => {
+                    console.error('Error al cargar ciudades:', error);
+                    citySelect.innerHTML = '<option value="">Error al cargar ciudades</option>';
+                    citySelect.removeAttribute('disabled');
+                });
+        } else {
+            citySelect.innerHTML = '<option value="">Seleccione primero un estado</option>';
+            citySelect.setAttribute('disabled', 'disabled');
+        }
+    });
+    
+    // Función para recargar sitios y hoteles cuando cambia la ciudad
+    function reloadSitesAndHotels(cityId) {
+        console.log('Recargando sitios y hoteles para ciudad:', cityId);
+        
+        if (!cityId) {
+            // Si no hay ciudad, limpiar todos los datos
+            allSites = [];
+            allPrimarySites = [];
+            allHotels = [];
+            allPrimaryHotels = [];
+            selectedSites = [];
+            selectedHotels = [];
+            
+            // Limpiar selecciones
+            if (typeof window.clearPrimarySite === 'function') {
+                window.clearPrimarySite();
+            }
+            if (typeof window.clearHotel === 'function') {
+                window.clearHotel();
+            }
+            
+            // Renderizar listas vacías
+            if (typeof renderSitesList === 'function') {
+                renderSitesList();
+            }
+            if (typeof renderHotelsList === 'function') {
+                renderHotelsList();
+            }
+            return;
+        }
+        
+        // Recargar sitios adicionales
+        if (typeof loadSites === 'function') {
+            loadSites(cityId);
+        }
+        // Recargar sitio principal
+        if (typeof loadPrimarySites === 'function') {
+            loadPrimarySites(cityId);
+            // Limpiar selección actual si el sitio no está en la nueva lista
+            if (primarySiteIdInput && primarySiteIdInput.value) {
+                // Se verificará después de cargar los sitios
+                setTimeout(() => {
+                    const currentSiteId = parseInt(primarySiteIdInput.value);
+                    const siteExists = allPrimarySites.some(s => s.id === currentSiteId);
+                    if (!siteExists && cityId) {
+                        // Si hay una ciudad seleccionada pero el sitio no está en la lista, limpiar
+                        window.clearPrimarySite();
+                    }
+                }, 500);
+            }
+        }
+        // Recargar hoteles adicionales
+        if (typeof loadHotels === 'function') {
+            loadHotels(cityId);
+        }
+        // Recargar hotel principal
+        if (typeof loadPrimaryHotels === 'function') {
+            loadPrimaryHotels(cityId);
+            // Limpiar selección actual si el hotel no está en la nueva lista
+            if (hotelIdInput && hotelIdInput.value) {
+                setTimeout(() => {
+                    const currentHotelId = parseInt(hotelIdInput.value);
+                    const hotelExists = allPrimaryHotels.some(h => h.id === currentHotelId);
+                    if (!hotelExists && cityId) {
+                        // Si hay una ciudad seleccionada pero el hotel no está en la lista, limpiar
+                        window.clearHotel();
+                    }
+                }, 500);
+            }
+        }
+    }
+    
+    // Cargar sitios y hoteles cuando se selecciona una ciudad
+    if (citySelect) {
+        citySelect.addEventListener('change', function() {
+            const cityId = this.value;
+            if (cityId) {
+                reloadSitesAndHotels(cityId);
+            } else {
+                // Si no hay ciudad seleccionada, limpiar sitios y hoteles
+                reloadSitesAndHotels(null);
+            }
+        });
+    }
+    
+    // Inicializar campos al cargar la página
+    // Si no hay país seleccionado, asegurar que estado y ciudad estén deshabilitados
+    if (!countrySelect.value) {
+        stateSelect.setAttribute('disabled', 'disabled');
+        citySelect.setAttribute('disabled', 'disabled');
+    }
+    
+    // Si hay país pero no estado, asegurar que ciudad esté deshabilitada
+    if (countrySelect.value && !stateSelect.value) {
+        citySelect.setAttribute('disabled', 'disabled');
+    }
+    
+    // Si hay país y estado seleccionados, cargar ciudades automáticamente
+    if (countrySelect.value && stateSelect.value) {
+        stateSelect.dispatchEvent(new Event('change'));
+    }
+    
+    // Sistema mejorado de selección de sitios adicionales con buscador
+    const siteSearch = document.getElementById('site_search');
+    const sitesList = document.getElementById('sites_list');
+    const selectedSitesChips = document.getElementById('selected_sites_chips');
+    const noSelectedMessage = document.getElementById('no_selected_message');
+    const additionalSitesCheckboxes = document.querySelectorAll('#additional_sites_hidden input[type="checkbox"]');
+    const noSitesFound = document.getElementById('no_sites_found');
+    
+    // Obtener todos los sitios desde la API
+    let allSites = [];
+    let selectedSites = [];
+    
+    // Cargar sitios desde la API
+    function loadSites(cityId = null) {
+        const url = cityId ? `/locations/sites/api/?city=${cityId}` : '/locations/sites/api/';
+        console.log('Cargando sitios adicionales desde:', url, 'cityId:', cityId);
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Sitios adicionales recibidos:', data.length, 'para ciudad:', cityId);
+                // Verificar que los sitios realmente pertenezcan a la ciudad solicitada
+                if (cityId) {
+                    const filteredData = data.filter(site => site.city_id === parseInt(cityId));
+                    console.log('Sitios adicionales filtrados por ciudad_id:', filteredData.length);
+                    data = filteredData;
+                }
+                allSites = data.map(site => ({
+                    id: site.id,
+                    name: site.site_name || site.name || `Sitio ${site.id}`,
+                    checkbox: null
+                }));
+                
+                // Encontrar los checkboxes correspondientes
+                allSites.forEach(site => {
+                    const checkbox = Array.from(additionalSitesCheckboxes).find(cb => cb.value === site.id.toString());
+                    if (checkbox) {
+                        site.checkbox = checkbox;
+                        // Si el checkbox está marcado, agregarlo a seleccionados
+                        if (checkbox.checked) {
+                            selectedSites.push(site);
+                        }
+                    }
+                });
+                
+                // Inicializar la interfaz
+                renderSelectedChips();
+                renderSitesList();
+            })
+            .catch(error => {
+                console.error('Error al cargar sitios:', error);
+                // Fallback: usar los checkboxes existentes
+                additionalSitesCheckboxes.forEach(checkbox => {
+                    const label = checkbox.closest('label') || document.querySelector(`label[for="${checkbox.id}"]`);
+                    let siteName = label ? label.textContent.trim() : `Sitio ${checkbox.value}`;
+                    // Limpiar el nombre si contiene el checkbox
+                    siteName = siteName.replace(checkbox.value, '').trim();
+                    
+                    allSites.push({
+                        id: checkbox.value,
+                        name: siteName || `Sitio ${checkbox.value}`,
+                        checkbox: checkbox
+                    });
+                    
+                    if (checkbox.checked) {
+                        selectedSites.push(allSites[allSites.length - 1]);
+                    }
+                });
+                renderSelectedChips();
+                renderSitesList();
+            });
+    }
+    
+    // Cargar sitios al iniciar SOLO si hay ciudad seleccionada
+    const initialCityIdForSites = citySelect ? citySelect.value : null;
+    if (initialCityIdForSites) {
+        loadSites(initialCityIdForSites);
+    } else {
+        // Si no hay ciudad, NO cargar sitios - esperar a que se seleccione una ciudad
+        allSites = [];
+        renderSitesList();
+    }
+    
+    // Autocomplete para Sitio Principal (Primary Site)
+    const primarySiteInput = document.getElementById('primary_site_autocomplete');
+    const primarySiteDropdown = document.getElementById('primary_site_dropdown');
+    const primarySiteIdInput = document.getElementById('primary_site_id');
+    const primarySiteSelected = document.getElementById('primary_site_selected');
+    const primarySiteName = document.getElementById('primary_site_name');
+    let primarySiteTimeout = null;
+    let allPrimarySites = [];
+    
+    // Cargar todos los sitios para el autocomplete
+    function loadPrimarySites(cityId = null) {
+        const url = cityId ? `/locations/sites/api/?city=${cityId}` : '/locations/sites/api/';
+        console.log('Cargando sitios principales desde:', url, 'cityId:', cityId);
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Sitios cargados:', data.length, 'para ciudad:', cityId);
+                // Verificar que los sitios realmente pertenezcan a la ciudad solicitada
+                if (cityId) {
+                    const filteredData = data.filter(site => site.city_id === parseInt(cityId));
+                    console.log('Sitios filtrados por ciudad_id:', filteredData.length);
+                    data = filteredData;
+                }
+                allPrimarySites = data.map(site => ({
+                    id: site.id,
+                    name: site.site_name || site.name || `Sitio ${site.id}`,
+                    location: [site.city_name, site.state_name, site.country_name].filter(Boolean).join(', ')
+                }));
+                
+                // Si hay un sitio seleccionado inicialmente, verificar si todavía existe
+                const initialSiteId = primarySiteIdInput ? primarySiteIdInput.value : null;
+                if (initialSiteId) {
+                    const initialSite = allPrimarySites.find(s => s.id === parseInt(initialSiteId));
+                    if (initialSite) {
+                        showSelectedPrimarySite(initialSite);
+                    } else {
+                        // Si el sitio ya no está en la lista, limpiar la selección
+                        if (cityId) {
+                            window.clearPrimarySite();
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar sitios para autocomplete:', error);
+                allPrimarySites = [];
+            });
+    }
+    
+    // Mostrar sitio seleccionado
+    function showSelectedPrimarySite(site) {
+        primarySiteIdInput.value = site.id;
+        primarySiteName.textContent = site.name;
+        primarySiteInput.value = '';
+        primarySiteInput.style.display = 'none';
+        primarySiteSelected.style.display = 'block';
+        primarySiteDropdown.style.display = 'none';
+    }
+    
+    // Limpiar sitio seleccionado
+    window.clearPrimarySite = function() {
+        primarySiteIdInput.value = '';
+        primarySiteInput.value = '';
+        primarySiteInput.style.display = 'block';
+        primarySiteSelected.style.display = 'none';
+        primarySiteDropdown.style.display = 'none';
+    };
+    
+    // Filtrar y mostrar sugerencias
+    function showPrimarySiteSuggestions(searchTerm) {
+        if (!searchTerm || searchTerm.length < 2) {
+            primarySiteDropdown.style.display = 'none';
+            return;
+        }
+        
+        if (allPrimarySites.length === 0) {
+            const cityId = citySelect ? citySelect.value : null;
+            let message = '';
+            if (cityId) {
+                const cityName = citySelect.options[citySelect.selectedIndex]?.text || 'la ciudad seleccionada';
+                message = `No hay sitios disponibles para ${cityName}. Por favor, seleccione otra ciudad o cree un sitio para esta ciudad.`;
+            } else {
+                message = 'Seleccione una ciudad para ver los sitios disponibles.';
+            }
+            primarySiteDropdown.innerHTML = `
+                <div class="list-group-item text-muted text-center py-3">
+                    <i class="fas fa-info-circle me-2"></i>${message}
+                </div>
+            `;
+            primarySiteDropdown.style.display = 'block';
+            return;
+        }
+        
+        const filtered = allPrimarySites.filter(site => {
+            const searchLower = searchTerm.toLowerCase();
+            return site.name.toLowerCase().includes(searchLower) ||
+                   (site.location && site.location.toLowerCase().includes(searchLower));
+        }).slice(0, 10); // Limitar a 10 resultados
+        
+        if (filtered.length === 0) {
+            primarySiteDropdown.innerHTML = `
+                <div class="list-group-item text-muted text-center py-3">
+                    <i class="fas fa-search me-2"></i>No se encontraron sitios
+                </div>
+            `;
+        } else {
+            primarySiteDropdown.innerHTML = filtered.map(site => {
+                const safeName = site.name.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                const safeLocation = (site.location || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                return `
+                    <button 
+                        type="button" 
+                        class="list-group-item list-group-item-action"
+                        onclick="selectPrimarySite(${site.id})"
+                        style="cursor: pointer;"
+                    >
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                                <strong>${safeName}</strong>
+                                ${safeLocation ? `<br><small class="text-muted">${safeLocation}</small>` : ''}
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        }
+        
+        primarySiteDropdown.style.display = 'block';
+    }
+    
+    // Seleccionar sitio
+    window.selectPrimarySite = function(siteId) {
+        const site = allPrimarySites.find(s => s.id === parseInt(siteId));
+        if (site) {
+            showSelectedPrimarySite(site);
+        }
+    };
+    
+    // Event listeners para el autocomplete
+    if (primarySiteInput) {
+        primarySiteInput.addEventListener('input', function() {
+            clearTimeout(primarySiteTimeout);
+            primarySiteTimeout = setTimeout(() => {
+                showPrimarySiteSuggestions(this.value);
+            }, 300); // Debounce de 300ms
+        });
+        
+        primarySiteInput.addEventListener('focus', function() {
+            if (this.value.length >= 2) {
+                showPrimarySiteSuggestions(this.value);
+            }
+        });
+        
+        // Cerrar dropdown al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (primarySiteInput && primarySiteDropdown && primarySiteSelected) {
+                if (!primarySiteInput.contains(e.target) && 
+                    !primarySiteDropdown.contains(e.target) && 
+                    !primarySiteSelected.contains(e.target)) {
+                    primarySiteDropdown.style.display = 'none';
+                }
+            }
+        });
+        
+        // Manejar teclas en el input
+        primarySiteInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                primarySiteDropdown.style.display = 'none';
+            }
+        });
+        
+        // Cargar sitios al iniciar (con ciudad si está seleccionada)
+        // Cargar sitios principales SOLO si hay ciudad seleccionada
+        const initialCityIdForPrimarySites = citySelect ? citySelect.value : null;
+        if (initialCityIdForPrimarySites) {
+            loadPrimarySites(initialCityIdForPrimarySites);
+        } else {
+            // Si no hay ciudad, NO cargar sitios - esperar a que se seleccione una ciudad
+            allPrimarySites = [];
+        }
+    }
+    
+    // Autocomplete para Hotel Sede (Primary Hotel)
+    const hotelInput = document.getElementById('hotel_autocomplete');
+    const hotelDropdown = document.getElementById('hotel_dropdown');
+    const hotelIdInput = document.getElementById('hotel_id');
+    const hotelSelected = document.getElementById('hotel_selected');
+    const hotelName = document.getElementById('hotel_name');
+    let hotelTimeout = null;
+    let allPrimaryHotels = [];
+    
+    // Cargar todos los hoteles para el autocomplete
+    function loadPrimaryHotels(cityId = null) {
+        const url = cityId ? `/locations/hotels/api/?city=${cityId}` : '/locations/hotels/api/';
+        console.log('Cargando hoteles principales desde:', url);
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Hoteles cargados:', data.length, 'para ciudad:', cityId);
+                console.log('Datos recibidos:', data);
+                // Verificar que los hoteles realmente pertenezcan a la ciudad solicitada
+                if (cityId) {
+                    const filteredData = data.filter(hotel => hotel.city_id === parseInt(cityId));
+                    console.log('Hoteles filtrados por ciudad_id:', filteredData.length);
+                    data = filteredData;
+                }
+                allPrimaryHotels = data.map(hotel => ({
+                    id: hotel.id,
+                    name: hotel.name || hotel.hotel_name || `Hotel ${hotel.id}`,
+                    location: hotel.city_id ? `Ciudad ID: ${hotel.city_id}` : ''
+                }));
+                console.log('allPrimaryHotels después del mapeo:', allPrimaryHotels.length);
+                console.log('allPrimaryHotels contenido:', allPrimaryHotels);
+                
+                // Si el usuario está escribiendo en el campo de búsqueda, actualizar las sugerencias
+                if (hotelInput && hotelInput.value && hotelInput.value.length >= 2) {
+                    console.log('Actualizando sugerencias porque hay texto en el input:', hotelInput.value);
+                    showHotelSuggestions(hotelInput.value);
+                }
+                
+                // Si hay un hotel seleccionado inicialmente, verificar si todavía existe
+                const initialHotelId = hotelIdInput ? hotelIdInput.value : null;
+                if (initialHotelId) {
+                    const initialHotel = allPrimaryHotels.find(h => h.id === parseInt(initialHotelId));
+                    if (initialHotel) {
+                        showSelectedPrimaryHotel(initialHotel);
+                    } else {
+                        // Si el hotel ya no está en la lista, limpiar la selección
+                        if (cityId) {
+                            window.clearHotel();
+                        }
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar hoteles para autocomplete:', error);
+                allPrimaryHotels = [];
+            });
+    }
+    
+    // Mostrar hotel seleccionado
+    function showSelectedPrimaryHotel(hotel) {
+        hotelIdInput.value = hotel.id;
+        hotelName.textContent = hotel.name;
+        hotelInput.value = '';
+        hotelInput.style.display = 'none';
+        hotelSelected.style.display = 'block';
+        hotelDropdown.style.display = 'none';
+    }
+    
+    // Limpiar hotel seleccionado
+    window.clearHotel = function() {
+        hotelIdInput.value = '';
+        hotelInput.value = '';
+        hotelInput.style.display = 'block';
+        hotelSelected.style.display = 'none';
+        hotelDropdown.style.display = 'none';
+    };
+    
+    // Filtrar y mostrar sugerencias
+    function showHotelSuggestions(searchTerm) {
+        if (!searchTerm || searchTerm.length < 2) {
+            hotelDropdown.style.display = 'none';
+            return;
+        }
+        
+        console.log('showHotelSuggestions llamado. allPrimaryHotels:', allPrimaryHotels.length, 'searchTerm:', searchTerm);
+        
+        if (allPrimaryHotels.length === 0) {
+            const cityId = citySelect ? citySelect.value : null;
+            let message = '';
+            if (cityId) {
+                const cityName = citySelect.options[citySelect.selectedIndex]?.text || 'la ciudad seleccionada';
+                message = `No hay hoteles disponibles para ${cityName}. Por favor, seleccione otra ciudad o cree un hotel para esta ciudad.`;
+                console.log('Mostrando mensaje: No hay hoteles para', cityName, 'pero allPrimaryHotels.length es', allPrimaryHotels.length);
+            } else {
+                message = 'Seleccione una ciudad para ver los hoteles disponibles.';
+            }
+            hotelDropdown.innerHTML = `
+                <div class="list-group-item text-muted text-center py-3">
+                    <i class="fas fa-info-circle me-2"></i>${message}
+                </div>
+            `;
+            hotelDropdown.style.display = 'block';
+            return;
+        }
+        
+        const filtered = allPrimaryHotels.filter(hotel => {
+            const searchLower = searchTerm.toLowerCase();
+            return hotel.name.toLowerCase().includes(searchLower) ||
+                   (hotel.location && hotel.location.toLowerCase().includes(searchLower));
+        }).slice(0, 10); // Limitar a 10 resultados
+        
+        if (filtered.length === 0) {
+            hotelDropdown.innerHTML = `
+                <div class="list-group-item text-muted text-center py-3">
+                    <i class="fas fa-search me-2"></i>No se encontraron hoteles
+                </div>
+            `;
+        } else {
+            hotelDropdown.innerHTML = filtered.map(hotel => {
+                const safeName = hotel.name.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                const safeLocation = (hotel.location || '').replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                return `
+                    <button 
+                        type="button" 
+                        class="list-group-item list-group-item-action"
+                        onclick="selectPrimaryHotel(${hotel.id})"
+                        style="cursor: pointer;"
+                    >
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-hotel me-2 text-primary"></i>
+                                <strong>${safeName}</strong>
+                                ${safeLocation ? `<br><small class="text-muted">${safeLocation}</small>` : ''}
+                            </div>
+                            <i class="fas fa-chevron-right text-muted"></i>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        }
+        
+        hotelDropdown.style.display = 'block';
+    }
+    
+    // Seleccionar hotel
+    window.selectPrimaryHotel = function(hotelId) {
+        const hotel = allPrimaryHotels.find(h => h.id === parseInt(hotelId));
+        if (hotel) {
+            showSelectedPrimaryHotel(hotel);
+        }
+    };
+    
+    // Event listeners para el autocomplete
+    if (hotelInput) {
+        hotelInput.addEventListener('input', function() {
+            clearTimeout(hotelTimeout);
+            hotelTimeout = setTimeout(() => {
+                showHotelSuggestions(this.value);
+            }, 300); // Debounce de 300ms
+        });
+        
+        hotelInput.addEventListener('focus', function() {
+            if (this.value.length >= 2) {
+                showHotelSuggestions(this.value);
+            }
+        });
+        
+        // Cerrar dropdown al hacer clic fuera
+        document.addEventListener('click', function(e) {
+            if (hotelInput && hotelDropdown && hotelSelected) {
+                if (!hotelInput.contains(e.target) && 
+                    !hotelDropdown.contains(e.target) && 
+                    !hotelSelected.contains(e.target)) {
+                    hotelDropdown.style.display = 'none';
+                }
+            }
+        });
+        
+        // Manejar teclas en el input
+        hotelInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hotelDropdown.style.display = 'none';
+            }
+        });
+        
+        // Cargar hoteles principales SOLO si hay ciudad seleccionada
+        const initialCityIdForPrimaryHotels = citySelect ? citySelect.value : null;
+        if (initialCityIdForPrimaryHotels) {
+            loadPrimaryHotels(initialCityIdForPrimaryHotels);
+        } else {
+            // Si no hay ciudad, NO cargar hoteles - esperar a que se seleccione una ciudad
+            allPrimaryHotels = [];
+        }
+    }
+    
+    // Renderizar lista de sitios disponibles
+    function renderSitesList(searchTerm = '') {
+        // Si no hay sitios disponibles en absoluto
+        if (allSites.length === 0) {
+            sitesList.style.display = 'block';
+            noSitesFound.style.display = 'none';
+            const cityId = citySelect ? citySelect.value : null;
+            if (cityId) {
+                const cityName = citySelect.options[citySelect.selectedIndex]?.text || 'la ciudad seleccionada';
+                sitesList.innerHTML = `<div class="text-muted text-center py-3"><i class="fas fa-info-circle me-2"></i>No hay sitios disponibles para ${cityName}. Por favor, seleccione otra ciudad o cree un sitio para esta ciudad.</div>`;
+            } else {
+                sitesList.innerHTML = `<div class="text-muted text-center py-3"><i class="fas fa-info-circle me-2"></i>Seleccione una ciudad para ver los sitios disponibles.</div>`;
+            }
+            return;
+        }
+        
+        const filteredSites = allSites.filter(site => {
+            const isSelected = selectedSites.some(s => s.id === site.id);
+            const matchesSearch = !searchTerm || 
+                site.name.toLowerCase().includes(searchTerm.toLowerCase());
+            return !isSelected && matchesSearch;
+        });
+        
+        if (filteredSites.length === 0) {
+            if (searchTerm) {
+                sitesList.style.display = 'none';
+                noSitesFound.style.display = 'block';
+            } else {
+                sitesList.style.display = 'block';
+                noSitesFound.style.display = 'none';
+                sitesList.innerHTML = '<div class="text-muted text-center py-3"><i class="fas fa-check-circle me-2"></i>Todos los sitios han sido seleccionados</div>';
+            }
+        } else {
+            sitesList.style.display = 'block';
+            noSitesFound.style.display = 'none';
+            
+            sitesList.innerHTML = filteredSites.map(site => {
+                // Escapar comillas para evitar problemas en onclick
+                const safeName = site.name.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                return `
+                <button 
+                    type="button" 
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    data-site-id="${site.id}"
+                    onclick="addSite(${site.id})"
+                    style="cursor: pointer;"
+                >
+                    <span><i class="fas fa-map-marker-alt me-2 text-primary"></i>${safeName}</span>
+                    <i class="fas fa-plus-circle text-success"></i>
+                </button>
+            `;
+            }).join('');
+        }
+    }
+    
+    // Renderizar chips de sitios seleccionados
+    function renderSelectedChips() {
+        if (selectedSites.length === 0) {
+            selectedSitesChips.innerHTML = '<span class="text-muted small" id="no_selected_message">Ningún sitio seleccionado</span>';
+        } else {
+            if (noSelectedMessage) {
+                noSelectedMessage.style.display = 'none';
+            }
+            selectedSitesChips.innerHTML = selectedSites.map(site => {
+                // Escapar comillas para evitar problemas
+                const safeName = site.name.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                return `
+                <span class="badge bg-primary d-flex align-items-center gap-2" style="font-size: 0.9rem; padding: 0.5rem 0.75rem;">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>${safeName}</span>
+                    <button 
+                        type="button" 
+                        class="btn-close btn-close-white" 
+                        style="font-size: 0.7rem;"
+                        onclick="removeSite(${site.id})"
+                        aria-label="Eliminar"
+                    ></button>
+                </span>
+            `;
+            }).join('');
+        }
+        
+        // Actualizar checkboxes
+        additionalSitesCheckboxes.forEach(checkbox => {
+            checkbox.checked = selectedSites.some(s => s.id.toString() === checkbox.value);
+        });
+    }
+    
+    // Agregar sitio
+    window.addSite = function(siteId) {
+        const site = allSites.find(s => s.id === parseInt(siteId) || s.id.toString() === siteId.toString());
+        if (site && !selectedSites.some(s => s.id === site.id)) {
+            selectedSites.push(site);
+            renderSelectedChips();
+            renderSitesList(siteSearch ? siteSearch.value : '');
+            // Limpiar el buscador después de agregar
+            if (siteSearch) {
+                siteSearch.value = '';
+            }
+        }
+    };
+    
+    // Remover sitio
+    window.removeSite = function(siteId) {
+        selectedSites = selectedSites.filter(s => s.id !== parseInt(siteId) && s.id.toString() !== siteId.toString());
+        renderSelectedChips();
+        renderSitesList(siteSearch ? siteSearch.value : '');
+    };
+    
+    // Buscar sitios
+    if (siteSearch) {
+        siteSearch.addEventListener('input', function() {
+            renderSitesList(this.value);
+        });
+    }
+    
+    // Inicializar
+    renderSelectedChips();
+    // Asegurar que la lista se muestre con el término de búsqueda actual
+    const currentSiteSearch = siteSearch ? siteSearch.value : '';
+    renderSitesList(currentSiteSearch);
+    
+    // Sistema mejorado de selección de hoteles adicionales con buscador
+    const hotelSearch = document.getElementById('hotel_search');
+    const hotelsList = document.getElementById('hotels_list');
+    const selectedHotelsChips = document.getElementById('selected_hotels_chips');
+    const noSelectedHotelsMessage = document.getElementById('no_selected_hotels_message');
+    const additionalHotelsCheckboxes = document.querySelectorAll('#additional_hotels_hidden input[type="checkbox"]');
+    const noHotelsFound = document.getElementById('no_hotels_found');
+    
+    // Obtener todos los hoteles desde la API
+    let allHotels = [];
+    let selectedHotels = [];
+    
+    // Cargar hoteles desde la API
+    function loadHotels(cityId = null) {
+        const url = cityId ? `/locations/hotels/api/?city=${cityId}` : '/locations/hotels/api/';
+        console.log('Cargando hoteles adicionales desde:', url);
+        fetch(url)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Hoteles adicionales recibidos:', data.length, 'para ciudad:', cityId);
+                console.log('Datos recibidos:', data);
+                // Verificar que los hoteles realmente pertenezcan a la ciudad solicitada
+                if (cityId) {
+                    const filteredData = data.filter(hotel => hotel.city_id === parseInt(cityId));
+                    console.log('Hoteles adicionales filtrados por ciudad_id:', filteredData.length);
+                    data = filteredData;
+                }
+                allHotels = data.map(hotel => ({
+                    id: hotel.id,
+                    name: hotel.name || hotel.hotel_name || `Hotel ${hotel.id}`,
+                    checkbox: null
+                }));
+                console.log('allHotels después del mapeo:', allHotels.length);
+                
+                // Limpiar hoteles seleccionados que ya no están en la lista
+                selectedHotels = selectedHotels.filter(sh => 
+                    allHotels.some(h => h.id === sh.id)
+                );
+                
+                // Encontrar los checkboxes correspondientes
+                allHotels.forEach(hotel => {
+                    const checkbox = Array.from(additionalHotelsCheckboxes).find(cb => cb.value === hotel.id.toString());
+                    if (checkbox) {
+                        hotel.checkbox = checkbox;
+                        // Si el checkbox está marcado, agregarlo a seleccionados (si no está ya)
+                        if (checkbox.checked && !selectedHotels.some(sh => sh.id === hotel.id)) {
+                            selectedHotels.push(hotel);
+                        }
+                    }
+                });
+                
+                console.log('Hoteles cargados:', allHotels.length, 'Hoteles seleccionados:', selectedHotels.length);
+                
+                // Inicializar la interfaz
+                renderSelectedHotelsChips();
+                // Asegurar que la lista se muestre con el término de búsqueda actual
+                const currentSearch = hotelSearch ? hotelSearch.value : '';
+                renderHotelsList(currentSearch);
+            })
+            .catch(error => {
+                console.error('Error al cargar hoteles:', error);
+                allHotels = [];
+                // Fallback: usar los checkboxes existentes
+                additionalHotelsCheckboxes.forEach(checkbox => {
+                    const label = checkbox.closest('label') || document.querySelector(`label[for="${checkbox.id}"]`);
+                    let hotelName = label ? label.textContent.trim() : `Hotel ${checkbox.value}`;
+                    // Limpiar el nombre si contiene el checkbox
+                    hotelName = hotelName.replace(checkbox.value, '').trim();
+                    
+                    allHotels.push({
+                        id: checkbox.value,
+                        name: hotelName || `Hotel ${checkbox.value}`,
+                        checkbox: checkbox
+                    });
+                    
+                    if (checkbox.checked) {
+                        selectedHotels.push(allHotels[allHotels.length - 1]);
+                    }
+                });
+                renderSelectedHotelsChips();
+                renderHotelsList();
+            });
+    }
+    
+    // Renderizar lista de hoteles disponibles
+    function renderHotelsList(searchTerm = '') {
+        if (!hotelsList) {
+            console.error('hotelsList element not found');
+            return;
+        }
+        
+        console.log('renderHotelsList llamado. allHotels:', allHotels.length, 'selectedHotels:', selectedHotels.length, 'searchTerm:', searchTerm);
+        
+        // Si no hay hoteles cargados, mostrar mensaje
+        if (allHotels.length === 0) {
+            hotelsList.style.display = 'block';
+            if (noHotelsFound) noHotelsFound.style.display = 'none';
+            const cityId = citySelect ? citySelect.value : null;
+            if (cityId) {
+                const cityName = citySelect.options[citySelect.selectedIndex]?.text || 'la ciudad seleccionada';
+                hotelsList.innerHTML = `<div class="text-muted text-center py-3"><i class="fas fa-info-circle me-2"></i>No hay hoteles disponibles para ${cityName}. Por favor, seleccione otra ciudad o cree un hotel para esta ciudad.</div>`;
+            } else {
+                hotelsList.innerHTML = '<div class="text-muted text-center py-3"><i class="fas fa-info-circle me-2"></i>Seleccione una ciudad para ver los hoteles disponibles.</div>';
+            }
+            return;
+        }
+        
+        const filteredHotels = allHotels.filter(hotel => {
+            const isSelected = selectedHotels.some(h => h.id === hotel.id);
+            const matchesSearch = !searchTerm || 
+                hotel.name.toLowerCase().includes(searchTerm.toLowerCase());
+            return !isSelected && matchesSearch;
+        });
+        
+        console.log('Hoteles filtrados para mostrar:', filteredHotels.length);
+        
+        if (filteredHotels.length === 0) {
+            if (searchTerm) {
+                hotelsList.style.display = 'none';
+                if (noHotelsFound) noHotelsFound.style.display = 'block';
+            } else {
+                hotelsList.style.display = 'block';
+                if (noHotelsFound) noHotelsFound.style.display = 'none';
+                hotelsList.innerHTML = '<div class="text-muted text-center py-3"><i class="fas fa-check-circle me-2"></i>Todos los hoteles han sido seleccionados</div>';
+            }
+        } else {
+            hotelsList.style.display = 'block';
+            if (noHotelsFound) noHotelsFound.style.display = 'none';
+            
+            console.log('Renderizando', filteredHotels.length, 'hoteles en la lista');
+            hotelsList.innerHTML = filteredHotels.map(hotel => {
+                // Escapar comillas para evitar problemas en onclick
+                const safeName = hotel.name.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                return `
+                <button 
+                    type="button" 
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    data-hotel-id="${hotel.id}"
+                    onclick="addHotel(${hotel.id})"
+                    style="cursor: pointer;"
+                >
+                    <span><i class="fas fa-hotel me-2 text-primary"></i>${safeName}</span>
+                    <i class="fas fa-plus-circle text-success"></i>
+                </button>
+            `;
+            }).join('');
+        }
+    }
+    
+    // Renderizar chips de hoteles seleccionados
+    function renderSelectedHotelsChips() {
+        if (selectedHotels.length === 0) {
+            selectedHotelsChips.innerHTML = '<span class="text-muted small" id="no_selected_hotels_message">Ningún hotel seleccionado</span>';
+        } else {
+            if (noSelectedHotelsMessage) {
+                noSelectedHotelsMessage.style.display = 'none';
+            }
+            selectedHotelsChips.innerHTML = selectedHotels.map(hotel => {
+                // Escapar comillas para evitar problemas
+                const safeName = hotel.name.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                return `
+                <span class="badge bg-primary d-flex align-items-center gap-2" style="font-size: 0.9rem; padding: 0.5rem 0.75rem;">
+                    <i class="fas fa-hotel"></i>
+                    <span>${safeName}</span>
+                    <button 
+                        type="button" 
+                        class="btn-close btn-close-white" 
+                        style="font-size: 0.7rem;"
+                        onclick="removeHotel(${hotel.id})"
+                        aria-label="Eliminar"
+                    ></button>
+                </span>
+            `;
+            }).join('');
+        }
+        
+        // Actualizar checkboxes
+        if (additionalHotelsCheckboxes && additionalHotelsCheckboxes.length > 0) {
+            additionalHotelsCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectedHotels.some(h => h.id.toString() === checkbox.value);
+            });
+        }
+    }
+    
+    // Agregar hotel
+    window.addHotel = function(hotelId) {
+        const hotel = allHotels.find(h => h.id === parseInt(hotelId) || h.id.toString() === hotelId.toString());
+        if (hotel && !selectedHotels.some(h => h.id === hotel.id)) {
+            selectedHotels.push(hotel);
+            renderSelectedHotelsChips();
+            renderHotelsList(hotelSearch ? hotelSearch.value : '');
+            // Limpiar el buscador después de agregar
+            if (hotelSearch) {
+                hotelSearch.value = '';
+            }
+        }
+    };
+    
+    // Remover hotel
+    window.removeHotel = function(hotelId) {
+        selectedHotels = selectedHotels.filter(h => h.id !== parseInt(hotelId) && h.id.toString() !== hotelId.toString());
+        renderSelectedHotelsChips();
+        renderHotelsList(hotelSearch ? hotelSearch.value : '');
+    };
+    
+    // Buscar hoteles
+    if (hotelSearch) {
+        hotelSearch.addEventListener('input', function() {
+            renderHotelsList(this.value);
+        });
+    }
+    
+    // Cargar hoteles al iniciar (con ciudad si está seleccionada)
+    // Cargar hoteles adicionales SOLO si hay ciudad seleccionada
+    const initialCityIdForHotels = citySelect ? citySelect.value : null;
+    if (initialCityIdForHotels) {
+        loadHotels(initialCityIdForHotels);
+    } else {
+        // Si no hay ciudad, NO cargar hoteles - esperar a que se seleccione una ciudad
+        allHotels = [];
+        renderHotelsList();
+    }
+    
+    // Sistema mejorado de selección de divisiones con buscador
+    const divisionSearch = document.getElementById('division_search');
+    const divisionsList = document.getElementById('divisions_list');
+    const selectedDivisionsChips = document.getElementById('selected_divisions_chips');
+    const noSelectedDivisionsMessage = document.getElementById('no_selected_divisions_message');
+    const divisionsCheckboxes = document.querySelectorAll('#divisions_hidden input[type="checkbox"]');
+    const noDivisionsFound = document.getElementById('no_divisions_found');
+    
+    // Obtener todas las divisiones desde los checkboxes
+    let allDivisions = [];
+    let selectedDivisions = [];
+    
+    // Cargar divisiones desde los checkboxes
+    function loadDivisions() {
+        // Obtener todas las divisiones desde los checkboxes
+        divisionsCheckboxes.forEach(checkbox => {
+            const label = checkbox.closest('label') || document.querySelector(`label[for="${checkbox.id}"]`);
+            let divisionName = '';
+            
+            if (label) {
+                // Obtener el texto del label, removiendo el checkbox si está dentro
+                const labelText = label.textContent || label.innerText;
+                // Remover espacios en blanco y saltos de línea
+                divisionName = labelText.replace(/\s+/g, ' ').trim();
+                
+                // Si el checkbox está dentro del label, intentar obtener solo el texto después del checkbox
+                if (label.contains(checkbox)) {
+                    // Crear un rango de texto desde después del checkbox
+                    const textAfter = Array.from(label.childNodes)
+                        .filter(node => node.nodeType === 3 || (node.nodeType === 1 && node !== checkbox))
+                        .map(node => node.textContent || '')
+                        .join(' ')
+                        .trim();
+                    if (textAfter) {
+                        divisionName = textAfter;
+                    }
+                }
+            }
+            
+            // Si aún no hay nombre, usar el value como fallback
+            if (!divisionName || divisionName === '') {
+                divisionName = `División ${checkbox.value}`;
+            }
+            
+            allDivisions.push({
+                id: checkbox.value,
+                name: divisionName,
+                checkbox: checkbox
+            });
+            
+            if (checkbox.checked) {
+                selectedDivisions.push(allDivisions[allDivisions.length - 1]);
+            }
+        });
+        
+        // Inicializar la interfaz
+        renderSelectedDivisionsChips();
+        renderDivisionsList();
+    }
+    
+    // Renderizar lista de divisiones disponibles
+    function renderDivisionsList(searchTerm = '') {
+        const filteredDivisions = allDivisions.filter(division => {
+            const isSelected = selectedDivisions.some(d => d.id === division.id);
+            const matchesSearch = !searchTerm || 
+                division.name.toLowerCase().includes(searchTerm.toLowerCase());
+            return !isSelected && matchesSearch;
+        });
+        
+        if (filteredDivisions.length === 0) {
+            if (searchTerm) {
+                divisionsList.style.display = 'none';
+                noDivisionsFound.style.display = 'block';
+            } else {
+                divisionsList.style.display = 'block';
+                noDivisionsFound.style.display = 'none';
+                divisionsList.innerHTML = '<div class="text-muted text-center py-3"><i class="fas fa-check-circle me-2"></i>Todas las divisiones han sido seleccionadas</div>';
+            }
+        } else {
+            divisionsList.style.display = 'block';
+            noDivisionsFound.style.display = 'none';
+            
+            divisionsList.innerHTML = filteredDivisions.map(division => {
+                // Escapar comillas para evitar problemas en onclick
+                const safeName = division.name.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                return `
+                <button 
+                    type="button" 
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                    data-division-id="${division.id}"
+                    onclick="addDivision(${division.id})"
+                    style="cursor: pointer;"
+                >
+                    <span><i class="fas fa-layer-group me-2 text-primary"></i>${safeName}</span>
+                    <i class="fas fa-plus-circle text-success"></i>
+                </button>
+            `;
+            }).join('');
+        }
+    }
+    
+    // Renderizar chips de divisiones seleccionadas
+    function renderSelectedDivisionsChips() {
+        if (selectedDivisions.length === 0) {
+            selectedDivisionsChips.innerHTML = '<span class="text-muted small" id="no_selected_divisions_message">Ninguna división seleccionada</span>';
+        } else {
+            if (noSelectedDivisionsMessage) {
+                noSelectedDivisionsMessage.style.display = 'none';
+            }
+            selectedDivisionsChips.innerHTML = selectedDivisions.map(division => {
+                // Escapar comillas para evitar problemas
+                const safeName = division.name.replace(/'/g, "&#39;").replace(/"/g, "&quot;");
+                return `
+                <span class="badge bg-primary d-flex align-items-center gap-2" style="font-size: 0.9rem; padding: 0.5rem 0.75rem;">
+                    <i class="fas fa-layer-group"></i>
+                    <span>${safeName}</span>
+                    <button 
+                        type="button" 
+                        class="btn-close btn-close-white" 
+                        style="font-size: 0.7rem;"
+                        onclick="removeDivision(${division.id})"
+                        aria-label="Eliminar"
+                    ></button>
+                </span>
+            `;
+            }).join('');
+        }
+        
+        // Actualizar checkboxes
+        divisionsCheckboxes.forEach(checkbox => {
+            checkbox.checked = selectedDivisions.some(d => d.id.toString() === checkbox.value);
+        });
+    }
+    
+    // Agregar división
+    window.addDivision = function(divisionId) {
+        const division = allDivisions.find(d => d.id === parseInt(divisionId) || d.id.toString() === divisionId.toString());
+        if (division && !selectedDivisions.some(d => d.id === division.id)) {
+            selectedDivisions.push(division);
+            renderSelectedDivisionsChips();
+            renderDivisionsList(divisionSearch ? divisionSearch.value : '');
+            // Limpiar el buscador después de agregar
+            if (divisionSearch) {
+                divisionSearch.value = '';
+            }
+        }
+    };
+    
+    // Remover división
+    window.removeDivision = function(divisionId) {
+        selectedDivisions = selectedDivisions.filter(d => d.id !== parseInt(divisionId) && d.id.toString() !== divisionId.toString());
+        renderSelectedDivisionsChips();
+        renderDivisionsList(divisionSearch ? divisionSearch.value : '');
+    };
+    
+    // Buscar divisiones
+    if (divisionSearch) {
+        divisionSearch.addEventListener('input', function() {
+            renderDivisionsList(this.value);
+        });
+    }
+    
+    // Cargar divisiones al iniciar
+    loadDivisions();
+});
+</script>
+
+<!-- Quill HTML Editor -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configuración de Quill
+    const quillConfig = {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'align': [] }],
+                ['link', 'image'],
+                ['blockquote', 'code-block'],
+                ['clean']
+            ]
+        },
+        placeholder: 'Escriba aquí...',
+    };
+    
+    let descriptionEditor = null;
+    let emailBodyEditor = null;
+    
+    // Inicializar Quill para descripción
+    const descriptionField = document.getElementById('id_description');
+    const descriptionEditorDiv = document.getElementById('description-editor');
+    if (descriptionField && descriptionEditorDiv) {
+        descriptionEditor = new Quill('#description-editor', quillConfig);
+        
+        // Cargar contenido inicial si existe
+        if (descriptionField.value) {
+            descriptionEditor.root.innerHTML = descriptionField.value;
+        }
+        
+        // Sincronizar contenido con el textarea original
+        descriptionEditor.on('text-change', function() {
+            descriptionField.value = descriptionEditor.root.innerHTML;
+        });
+    }
+    
+    // Inicializar Quill para email_welcome_body
+    const emailBodyField = document.getElementById('id_email_welcome_body');
+    const emailBodyEditorDiv = document.getElementById('email-body-editor');
+    if (emailBodyField && emailBodyEditorDiv) {
+        emailBodyEditor = new Quill('#email-body-editor', quillConfig);
+        
+        // Cargar contenido inicial si existe
+        if (emailBodyField.value) {
+            emailBodyEditor.root.innerHTML = emailBodyField.value;
+        }
+        
+        // Sincronizar contenido con el textarea original
+        emailBodyEditor.on('text-change', function() {
+            emailBodyField.value = emailBodyEditor.root.innerHTML;
+        });
+    }
+    
+    // Asegurar que el contenido se envíe al formulario
+    const form = document.getElementById('eventForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Sincronizar antes de enviar
+            if (descriptionEditor && descriptionField) {
+                descriptionField.value = descriptionEditor.root.innerHTML;
+            }
+            if (emailBodyEditor && emailBodyField) {
+                emailBodyField.value = emailBodyEditor.root.innerHTML;
+            }
+        });
+    }
+});
+</script>
+
+<style>
+.html-editor-wrapper {
+    position: relative;
+}
+.html-editor-wrapper .ql-container {
+    border-bottom-left-radius: 0.375rem;
+    border-bottom-right-radius: 0.375rem;
+    border: 1px solid #dee2e6;
+    border-top: none;
+}
+.html-editor-wrapper .ql-toolbar {
+    border-top-left-radius: 0.375rem;
+    border-top-right-radius: 0.375rem;
+    border: 1px solid #dee2e6;
+    border-bottom: none;
+    background: #f8f9fa;
+}
+.html-editor-wrapper .ql-editor {
+    min-height: 300px;
+    font-family: Inter, sans-serif;
+    font-size: 14px;
+}
+/* Ocultar el textarea original pero mantenerlo para el formulario */
+.html-editor-wrapper textarea {
+    display: none;
+}
+</style>
+{% endblock %}
+
+

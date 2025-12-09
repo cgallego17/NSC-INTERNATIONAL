@@ -1,0 +1,616 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ player.user.get_full_name|default:player.user.username }} - NSC International</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .profile-sheet {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        
+        .sheet-title {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 15px 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .profile-header {
+            background: #0d2c54;
+            color: white;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .profile-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+        }
+        
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        
+        .player-number {
+            background: #0d2c54;
+            color: white;
+            font-size: 4rem;
+            font-weight: 900;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .logo-section {
+            flex: 1;
+            text-align: center;
+            padding: 0 20px;
+        }
+        
+        .logo-placeholder {
+            background: rgba(255,255,255,0.1);
+            border: 2px dashed rgba(255,255,255,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+        }
+        
+        .logo-icon {
+            font-size: 2.5rem;
+            color: #d50032;
+            margin-bottom: 10px;
+        }
+        
+        .player-photo-section {
+            width: 180px;
+            height: 180px;
+            position: relative;
+        }
+        
+        .player-photo {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .player-photo-placeholder {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 5px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: white;
+        }
+        
+        .player-name-section {
+            margin-top: 20px;
+            background: #0d2c54;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .player-first-name {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #0d2c54;
+            background: white;
+            padding: 10px 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .player-last-name {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .section-title {
+            background: #0d2c54;
+            color: white;
+            padding: 8px 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .player-info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            border: 2px solid #0d2c54;
+        }
+        
+        .info-column {
+            padding: 20px;
+            border-right: 2px solid #0d2c54;
+        }
+        
+        .info-column:last-child {
+            border-right: none;
+        }
+        
+        .info-item {
+            margin-bottom: 15px;
+        }
+        
+        .info-label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+        }
+        
+        .info-value {
+            font-size: 0.95rem;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        .stats-section {
+            background: white;
+            padding: 20px;
+            border: 2px solid #0d2c54;
+            border-top: none;
+        }
+        
+        .stats-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #0d2c54;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        
+        .stats-content {
+            font-size: 0.9rem;
+            color: #333;
+            line-height: 1.8;
+        }
+        
+        .bottom-sections {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+            border: 2px solid #0d2c54;
+            border-top: none;
+        }
+        
+        .bottom-section {
+            border-right: 2px solid #0d2c54;
+            min-height: 300px;
+        }
+        
+        .bottom-section:last-child {
+            border-right: none;
+        }
+        
+        .bottom-section-content {
+            padding: 20px;
+            background: white;
+        }
+        
+        .schedule-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.85rem;
+        }
+        
+        .schedule-item:last-child {
+            border-bottom: none;
+        }
+        
+        .achievement-item {
+            padding: 8px 0;
+            font-size: 0.85rem;
+            color: #333;
+        }
+        
+        .achievement-title {
+            font-weight: 700;
+            color: #0d2c54;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        
+        .footer-logo {
+            text-align: center;
+            padding: 20px;
+            color: #999;
+            font-size: 0.8rem;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .profile-sheet {
+                box-shadow: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .player-info-grid,
+            .bottom-sections {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-column,
+            .bottom-section {
+                border-right: none;
+                border-bottom: 2px solid #0d2c54;
+            }
+            
+            .info-column:last-child,
+            .bottom-section:last-child {
+                border-bottom: none;
+            }
+            
+            .player-name-section {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .player-first-name,
+            .player-last-name {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-sheet">
+        <div class="sheet-title">EDITABLE SPORTS PROFILE SHEET</div>
+        
+        <!-- Header -->
+        <div class="profile-header">
+            <div class="header-top">
+                <div class="player-number">
+                    {% if player.jersey_number %}{{ player.jersey_number }}{% else %}#{% endif %}
+                </div>
+                
+                <div class="logo-section">
+                    <div class="logo-placeholder">
+                        <div class="logo-icon">
+                            <i class="fas fa-baseball-ball"></i>
+                        </div>
+                        <div>NSC INTERNATIONAL</div>
+                    </div>
+                </div>
+                
+                <div class="player-photo-section">
+                    {% if player.user.profile.profile_picture %}
+                        <img src="{{ player.user.profile.profile_picture.url }}" 
+                             alt="{{ player.user.get_full_name }}" 
+                             class="player-photo">
+                    {% else %}
+                        <div class="player-photo-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="player-name-section">
+                {% if player.user.first_name %}
+                    <div class="player-first-name">{{ player.user.first_name|upper }}</div>
+                {% endif %}
+                {% if player.user.last_name %}
+                    <div class="player-last-name">{{ player.user.last_name|upper }}</div>
+                {% elif not player.user.first_name %}
+                    <div class="player-first-name">{{ player.user.username|upper }}</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Section Title -->
+        <div class="section-title">PLAYER INFORMATION</div>
+        
+        <!-- Player Information Grid -->
+        <div class="player-info-grid">
+            <!-- Left Column -->
+            <div class="info-column">
+                {% if player.user.profile.phone %}
+                <div class="info-item">
+                    <div class="info-label">Phone</div>
+                    <div class="info-value">{{ player.user.profile.phone }}</div>
+                </div>
+                {% endif %}
+                
+                {% if player.user.email and '@nsc-temp.local' not in player.user.email %}
+                <div class="info-item">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">{{ player.user.email }}</div>
+                </div>
+                {% endif %}
+                
+                {% if player.parents.all %}
+                <div class="info-item">
+                    <div class="info-label">Parents</div>
+                    {% for parent_rel in player.parents.all %}
+                        <div class="info-value">
+                            {{ parent_rel.parent.get_full_name }}
+                            {% if parent_rel.parent.profile.phone %}
+                                , {{ parent_rel.parent.profile.phone }}
+                            {% endif %}
+                            {% if parent_rel.parent.email %}
+                                , {{ parent_rel.parent.email }}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Middle Column -->
+            <div class="info-column">
+                {% if player.team and player.team.manager %}
+                <div class="info-item">
+                    <div class="info-label">Club Coach</div>
+                    <div class="info-value">
+                        {{ player.team.manager.get_full_name }}
+                        {% if player.team.manager.profile.phone %}
+                            , {{ player.team.manager.profile.phone }}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="info-item">
+                    <div class="info-label">Offensive Stats</div>
+                    <div class="info-value" style="font-size: 0.85rem; line-height: 1.8;">
+                        {% if player.position %}
+                            Position: {{ player.get_position_display }}<br>
+                        {% endif %}
+                        {% if player.batting_hand %}
+                            Bats: {{ player.get_batting_hand_display }}<br>
+                        {% endif %}
+                        {% if player.throwing_hand %}
+                            Throws: {{ player.get_throwing_hand_display }}<br>
+                        {% endif %}
+                        {% if player.height %}
+                            Height: {{ player.height }}<br>
+                        {% endif %}
+                        {% if player.weight %}
+                            Weight: {{ player.weight }} lbs
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div class="info-column">
+                {% if player.user.profile.birth_date %}
+                <div class="info-item">
+                    <div class="info-label">DOB</div>
+                    <div class="info-value">{{ player.user.profile.birth_date|date:"m/d/Y" }}</div>
+                </div>
+                {% endif %}
+                
+                {% if player.user.profile.birth_date %}
+                    {% with age=player.calculate_age_as_of_april_30 %}
+                        {% if age %}
+                        <div class="info-item">
+                            <div class="info-label">Age</div>
+                            <div class="info-value">{{ age }} years</div>
+                        </div>
+                        {% endif %}
+                    {% endwith %}
+                {% endif %}
+                
+                {% if player.position %}
+                <div class="info-item">
+                    <div class="info-label">Position</div>
+                    <div class="info-value">{{ player.get_position_display }}</div>
+                </div>
+                {% endif %}
+                
+                {% if player.division %}
+                <div class="info-item">
+                    <div class="info-label">Division</div>
+                    <div class="info-value">{{ player.division }}</div>
+                </div>
+                {% endif %}
+                
+                {% if player.team %}
+                <div class="info-item">
+                    <div class="info-label">Team</div>
+                    <div class="info-value">{{ player.team.name }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Defensive Stats -->
+        <div class="stats-section">
+            <div class="stats-title">Defensive Stats</div>
+            <div class="stats-content">
+                {% if player.position %}
+                    Primary Position: {{ player.get_position_display }}<br>
+                {% endif %}
+                {% if player.batting_hand %}
+                    Batting: {{ player.get_batting_hand_display }}<br>
+                {% endif %}
+                {% if player.throwing_hand %}
+                    Throwing: {{ player.get_throwing_hand_display }}
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Bottom Sections -->
+        <div class="bottom-sections">
+            <!-- School & Academics -->
+            <div class="bottom-section">
+                <div class="section-title">School & Academics</div>
+                <div class="bottom-section-content">
+                    {% if player.grade %}
+                    <div class="info-item">
+                        <div class="info-label">Grade</div>
+                        <div class="info-value">{{ player.get_grade_display }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if player.user.profile.city %}
+                    <div class="info-item">
+                        <div class="info-label">School District</div>
+                        <div class="info-value">
+                            {{ player.user.profile.city.name }}
+                            {% if player.user.profile.state %}
+                                , {{ player.user.profile.state.name }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if player.team and player.team.manager %}
+                    <div class="info-item">
+                        <div class="info-label">School Coach</div>
+                        <div class="info-value">
+                            {{ player.team.manager.get_full_name }}
+                            {% if player.team.manager.profile.phone %}
+                                , {{ player.team.manager.profile.phone }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Match Schedule -->
+            <div class="bottom-section">
+                <div class="section-title">Match Schedule</div>
+                <div class="bottom-section-content">
+                    {% if upcoming_events %}
+                        {% for event in upcoming_events %}
+                        <div class="schedule-item">
+                            <strong>{{ event.start_date|date:"F d" }}</strong><br>
+                            {{ event.title }}<br>
+                            {% if event.location %}
+                                Location: {{ event.location }}
+                            {% else %}
+                                Location: TBD
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="schedule-item">
+                            <em>No upcoming matches scheduled</em>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Achievements -->
+            <div class="bottom-section">
+                <div class="section-title">Achievements</div>
+                <div class="bottom-section-content">
+                    {% if player.division %}
+                    <div class="achievement-item">
+                        <strong>Division:</strong> {{ player.division }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if player.user.profile.birth_date %}
+                        {% with eligible=player.get_eligible_divisions %}
+                            {% if eligible %}
+                            <div class="achievement-title">Eligible Divisions</div>
+                            {% for div in eligible %}
+                            <div class="achievement-item">• {{ div }}</div>
+                            {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                    {% endif %}
+                    
+                    {% if player.is_active %}
+                    <div class="achievement-item">
+                        <strong>Status:</strong> Active Player
+                    </div>
+                    {% endif %}
+                    
+                    {% if player.team %}
+                    <div class="achievement-item">
+                        <strong>Team:</strong> {{ player.team.name }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-logo">
+            NSC International - Player Profile
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+
+
