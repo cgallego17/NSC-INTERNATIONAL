@@ -63,3 +63,7 @@ if not HAS_PDFPLUMBER and not HAS_PYPDF2:
     print("  pip install PyPDF2")
     print("\nPor favor, proporciona manualmente las divisiones del PDF.")
 
+
+
+
+

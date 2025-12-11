@@ -4,7 +4,31 @@ from django.urls import Resolver404, resolve
 def sidebar_context(request):
     """
     Context processor para determinar el estado activo del sidebar
+    NO se ejecuta en el admin de Django para evitar errores
     """
+    # Si es una petición del admin, retornar inmediatamente sin procesar nada
+    # Esto evita errores con 'super' object has no attribute 'dicts'
+    # El admin de Django tiene su propio sistema de templates y no necesita este context processor
+    try:
+        if hasattr(request, "path") and request.path.startswith("/admin/"):
+            return {
+                "active_section": None,
+                "active_subsection": None,
+            }
+    except Exception:
+        # Si hay cualquier error al verificar, retornar valores por defecto
+        return {
+            "active_section": None,
+            "active_subsection": None,
+        }
+
+    # Verificar que request tenga los atributos necesarios
+    if not hasattr(request, "path"):
+        return {
+            "active_section": None,
+            "active_subsection": None,
+        }
+
     current_path = request.path
     active_section = None
     active_subsection = None
@@ -127,6 +151,7 @@ def sidebar_context(request):
         "accounts:player_detail": {"section": "players", "subsection": "player_list"},
         "accounts:player_register": {"section": "players", "subsection": "player_list"},
         "accounts:player_edit": {"section": "players", "subsection": "player_list"},
+        "accounts:user_list": {"section": "users", "subsection": "user_list"},
     }
 
     try:
@@ -195,9 +220,16 @@ def sidebar_context(request):
                     active_section = "players"
                     active_subsection = "player_list"
 
-    except Resolver404:
+    except (Resolver404, Exception) as e:
         # Si no se puede resolver la URL, usar fallback por ruta
-        if current_path == "/dashboard/" or current_path == "/dashboard":
+        # También manejar cualquier otra excepción para evitar errores
+        if current_path.startswith("/admin/"):
+            # URLs del admin - retornar valores por defecto
+            return {
+                "active_section": None,
+                "active_subsection": None,
+            }
+        elif current_path == "/dashboard/" or current_path == "/dashboard":
             active_section = "dashboard"
         elif current_path.startswith("/events/"):
             active_section = "events"
@@ -211,6 +243,7 @@ def sidebar_context(request):
         elif current_path.startswith("/accounts/"):
             if "/users" in current_path:
                 active_section = "users"
+                active_subsection = "user_list"
             elif "/players" in current_path:
                 active_section = "players"
 

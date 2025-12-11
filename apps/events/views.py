@@ -115,6 +115,18 @@ class EventCreateView(LoginRequiredMixin, CreateView):
     template_name = "events/event_form.html"
     success_url = reverse_lazy("events:list")
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Agregar divisiones al contexto para JavaScript
+        from .models import Division
+        import json
+        divisions_queryset = Division.objects.filter(is_active=True).order_by("name")
+        context["available_divisions"] = json.dumps(
+            list(divisions_queryset.values("id", "name"))
+        )
+        context["available_divisions_count"] = divisions_queryset.count()
+        return context
+
     def form_valid(self, form):
         form.instance.organizer = self.request.user
         messages.success(self.request, "Evento creado exitosamente.")
@@ -211,6 +223,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        # Marcar la sección activa en el sidebar
+        context["active_section"] = "dashboard"
         now = timezone.now()
 
         # Estadísticas generales
@@ -290,22 +304,60 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         # Eventos recientes
         recent_events = Event.objects.order_by("-created_at")[:5]
 
-        context.update(
-            {
-                "total_events": total_events,
-                "upcoming_events": upcoming_events,
-                "ongoing_events": ongoing_events,
-                "past_events": past_events,
-                "today_events": today_events,
-                "upcoming_week": upcoming_week,
-                "events_by_category": events_by_category,
-                "events_by_division": events_by_division,
-                "popular_events": popular_events,
-                "total_attendances": total_attendances,
-                "confirmed_attendances": confirmed_attendances,
-                "recent_events": recent_events,
-            }
-        )
+        # Estadísticas de usuarios
+        try:
+            from django.contrib.auth import get_user_model
+            from apps.accounts.models import UserProfile, Player
+
+            User = get_user_model()
+            total_users = User.objects.count()
+            active_users = User.objects.filter(is_active=True).count()
+            total_players = Player.objects.count()
+            recent_users = User.objects.select_related("profile").order_by(
+                "-date_joined"
+            )[:10]
+
+            context.update(
+                {
+                    "total_events": total_events,
+                    "upcoming_events": upcoming_events,
+                    "ongoing_events": ongoing_events,
+                    "past_events": past_events,
+                    "today_events": today_events,
+                    "upcoming_week": upcoming_week,
+                    "events_by_category": events_by_category,
+                    "events_by_division": events_by_division,
+                    "popular_events": popular_events,
+                    "total_attendances": total_attendances,
+                    "confirmed_attendances": confirmed_attendances,
+                    "recent_events": recent_events,
+                    "total_users": total_users,
+                    "active_users": active_users,
+                    "total_players": total_players,
+                    "recent_users": recent_users,
+                }
+            )
+        except ImportError:
+            context.update(
+                {
+                    "total_events": total_events,
+                    "upcoming_events": upcoming_events,
+                    "ongoing_events": ongoing_events,
+                    "past_events": past_events,
+                    "today_events": today_events,
+                    "upcoming_week": upcoming_week,
+                    "events_by_category": events_by_category,
+                    "events_by_division": events_by_division,
+                    "popular_events": popular_events,
+                    "total_attendances": total_attendances,
+                    "confirmed_attendances": confirmed_attendances,
+                    "recent_events": recent_events,
+                    "total_users": 0,
+                    "active_users": 0,
+                    "total_players": 0,
+                    "recent_users": [],
+                }
+            )
 
         return context
 

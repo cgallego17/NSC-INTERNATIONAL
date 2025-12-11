@@ -81,4 +81,6 @@ urlpatterns = [
         views_private.ParentPlayerRegistrationView.as_view(),
         name="parent_player_register",
     ),
+    # Usuarios (solo staff)
+    path("users/", views_private.UserListView.as_view(), name="user_list"),
 ]

@@ -469,8 +469,28 @@ def get_cities_by_state(request, state_id):
 
 # ===== API VIEWS =====
 def countries_api(request):
-    """API para obtener países"""
+    """API para obtener países con soporte de búsqueda (ignora tildes)"""
     import unicodedata
+
+    def normalize_text(text):
+        """Normaliza texto removiendo acentos y convirtiendo a minúsculas"""
+        if not text:
+            return ""
+        nfd = unicodedata.normalize("NFD", text.lower().strip())
+        return "".join(c for c in nfd if unicodedata.category(c) != "Mn")
+
+    # Si hay un ID específico, devolver solo ese país
+    country_id = request.GET.get("id")
+    if country_id:
+        try:
+            country = Country.objects.filter(pk=int(country_id), is_active=True).first()
+            if country:
+                return JsonResponse(
+                    [{"id": country.id, "name": country.name, "code": country.code}],
+                    safe=False,
+                )
+        except (ValueError, TypeError):
+            pass
 
     all_countries = Country.objects.filter(is_active=True).order_by("name")
 
@@ -478,24 +498,73 @@ def countries_api(request):
     seen_normalized = set()
     unique_countries = []
     for country in all_countries:
-        # Normalizar nombre (remover acentos)
-        nfd = unicodedata.normalize("NFD", country.name.lower().strip())
-        normalized = "".join(c for c in nfd if unicodedata.category(c) != "Mn")
-
+        normalized = normalize_text(country.name)
         if normalized not in seen_normalized:
             seen_normalized.add(normalized)
             unique_countries.append(country)
 
+    # Búsqueda por término (ignora tildes)
+    search_term = request.GET.get("q", "").strip()
+    if search_term:
+        normalized_search = normalize_text(search_term)
+
+        filtered_countries = []
+        for country in unique_countries:
+            # Normalizar nombre del país y código para comparar
+            normalized_country_name = normalize_text(country.name)
+            normalized_country_code = (
+                normalize_text(country.code) if country.code else ""
+            )
+
+            if (
+                normalized_search in normalized_country_name
+                or normalized_search in normalized_country_code
+            ):
+                filtered_countries.append(country)
+
+        unique_countries = filtered_countries
+
+    # Limitar resultados a 50 para mejor rendimiento
     data = [
         {"id": country.id, "name": country.name, "code": country.code}
-        for country in unique_countries
+        for country in unique_countries[:50]
     ]
     return JsonResponse(data, safe=False)
 
 
 def states_api(request):
-    """API para obtener estados"""
+    """API para obtener estados con soporte de búsqueda (ignora tildes)"""
+    import unicodedata
+
+    def normalize_text(text):
+        """Normaliza texto removiendo acentos y convirtiendo a minúsculas"""
+        if not text:
+            return ""
+        nfd = unicodedata.normalize("NFD", text.lower().strip())
+        return "".join(c for c in nfd if unicodedata.category(c) != "Mn")
+
+    # Si hay un ID específico, devolver solo ese estado
+    state_id = request.GET.get("id")
+    if state_id:
+        try:
+            state = State.objects.filter(pk=int(state_id), is_active=True).first()
+            if state:
+                return JsonResponse(
+                    [
+                        {
+                            "id": state.id,
+                            "name": state.name,
+                            "country_id": state.country.id,
+                        }
+                    ],
+                    safe=False,
+                )
+        except (ValueError, TypeError):
+            pass
+
     country_id = request.GET.get("country")
+    search_term = request.GET.get("q", "").strip()
+
     if country_id:
         states = State.objects.filter(country_id=country_id, is_active=True).order_by(
             "name"
@@ -503,25 +572,85 @@ def states_api(request):
     else:
         states = State.objects.filter(is_active=True).order_by("country__name", "name")
 
+    # Filtrar por término de búsqueda (ignora tildes)
+    if search_term:
+        normalized_search = normalize_text(search_term)
+        filtered_states = []
+        for state in states:
+            normalized_state_name = normalize_text(state.name)
+            normalized_state_code = normalize_text(state.code) if state.code else ""
+
+            if (
+                normalized_search in normalized_state_name
+                or normalized_search in normalized_state_code
+            ):
+                filtered_states.append(state)
+
+        states = filtered_states
+
+    # Limitar resultados a 50 para mejor rendimiento
     data = [
         {"id": state.id, "name": state.name, "country_id": state.country.id}
-        for state in states
+        for state in states[:50]
     ]
     return JsonResponse(data, safe=False)
 
 
 def cities_api(request):
-    """API para obtener ciudades"""
+    """API para obtener ciudades con soporte de búsqueda (ignora tildes)"""
+    import unicodedata
+
+    def normalize_text(text):
+        """Normaliza texto removiendo acentos y convirtiendo a minúsculas"""
+        if not text:
+            return ""
+        nfd = unicodedata.normalize("NFD", text.lower().strip())
+        return "".join(c for c in nfd if unicodedata.category(c) != "Mn")
+
+    # Si hay un ID específico, devolver solo esa ciudad
+    city_id = request.GET.get("id")
+    if city_id:
+        try:
+            city = City.objects.filter(pk=int(city_id), is_active=True).first()
+            if city:
+                return JsonResponse(
+                    [{"id": city.id, "name": city.name, "state_id": city.state.id}],
+                    safe=False,
+                )
+        except (ValueError, TypeError):
+            pass
+
     state_id = request.GET.get("state")
+    country_id = request.GET.get("country")
+    search_term = request.GET.get("q", "").strip()
+
     if state_id:
         cities = City.objects.filter(state_id=state_id, is_active=True).order_by("name")
+    elif country_id:
+        # Si solo hay country_id, obtener ciudades de ese país
+        cities = City.objects.filter(
+            state__country_id=country_id, is_active=True
+        ).order_by("state__name", "name")
     else:
         cities = City.objects.filter(is_active=True).order_by(
             "state__country__name", "state__name", "name"
         )
 
+    # Filtrar por término de búsqueda (ignora tildes)
+    if search_term:
+        normalized_search = normalize_text(search_term)
+        filtered_cities = []
+        for city in cities:
+            normalized_city_name = normalize_text(city.name)
+            if normalized_search in normalized_city_name:
+                filtered_cities.append(city)
+
+        cities = filtered_cities
+
+    # Limitar resultados a 50 para mejor rendimiento
     data = [
-        {"id": city.id, "name": city.name, "state_id": city.state.id} for city in cities
+        {"id": city.id, "name": city.name, "state_id": city.state.id}
+        for city in cities[:50]
     ]
     return JsonResponse(data, safe=False)
 

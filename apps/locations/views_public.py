@@ -23,9 +23,26 @@ def get_cities_by_state(request, state_id):
 
 
 def countries_api(request):
-    """API para obtener países - Público"""
+    """API para obtener países - Público
+    
+    Parámetros:
+    - q: término de búsqueda (opcional)
+    - id: ID específico de país (opcional)
+    """
     import unicodedata
 
+    # Si se solicita un ID específico
+    country_id = request.GET.get("id")
+    if country_id:
+        try:
+            country = Country.objects.get(id=country_id, is_active=True)
+            data = [{"id": country.id, "name": country.name, "code": country.code}]
+            return JsonResponse(data, safe=False)
+        except Country.DoesNotExist:
+            return JsonResponse([], safe=False)
+
+    # Búsqueda por término
+    search_query = request.GET.get("q", "").strip()
     all_countries = Country.objects.filter(is_active=True).order_by("name")
 
     # Normalizar nombres y eliminar duplicados
@@ -40,6 +57,25 @@ def countries_api(request):
             seen_normalized.add(normalized)
             unique_countries.append(country)
 
+    # Filtrar por término de búsqueda si se proporciona
+    if search_query:
+        search_normalized = unicodedata.normalize("NFD", search_query.lower())
+        search_normalized = "".join(
+            c for c in search_normalized if unicodedata.category(c) != "Mn"
+        )
+
+        filtered_countries = []
+        for country in unique_countries:
+            country_normalized = unicodedata.normalize("NFD", country.name.lower())
+            country_normalized = "".join(
+                c for c in country_normalized if unicodedata.category(c) != "Mn"
+            )
+
+            if search_normalized in country_normalized:
+                filtered_countries.append(country)
+
+        unique_countries = filtered_countries
+
     data = [
         {"id": country.id, "name": country.name, "code": country.code}
         for country in unique_countries
@@ -48,7 +84,26 @@ def countries_api(request):
 
 
 def states_api(request):
-    """API para obtener estados - Público"""
+    """API para obtener estados - Público
+    
+    Parámetros:
+    - country: ID del país para filtrar (opcional)
+    - q: término de búsqueda (opcional)
+    - id: ID específico de estado (opcional)
+    """
+    import unicodedata
+
+    # Si se solicita un ID específico
+    state_id = request.GET.get("id")
+    if state_id:
+        try:
+            state = State.objects.get(id=state_id, is_active=True)
+            data = [{"id": state.id, "name": state.name, "country_id": state.country.id}]
+            return JsonResponse(data, safe=False)
+        except State.DoesNotExist:
+            return JsonResponse([], safe=False)
+
+    # Filtrar por país si se proporciona
     country_id = request.GET.get("country")
     if country_id:
         states = State.objects.filter(country_id=country_id, is_active=True).order_by(
@@ -56,6 +111,26 @@ def states_api(request):
         )
     else:
         states = State.objects.filter(is_active=True).order_by("country__name", "name")
+
+    # Filtrar por término de búsqueda si se proporciona
+    search_query = request.GET.get("q", "").strip()
+    if search_query:
+        search_normalized = unicodedata.normalize("NFD", search_query.lower())
+        search_normalized = "".join(
+            c for c in search_normalized if unicodedata.category(c) != "Mn"
+        )
+
+        filtered_states = []
+        for state in states:
+            state_normalized = unicodedata.normalize("NFD", state.name.lower())
+            state_normalized = "".join(
+                c for c in state_normalized if unicodedata.category(c) != "Mn"
+            )
+
+            if search_normalized in state_normalized:
+                filtered_states.append(state)
+
+        states = filtered_states
 
     data = [
         {"id": state.id, "name": state.name, "country_id": state.country.id}
@@ -65,7 +140,26 @@ def states_api(request):
 
 
 def cities_api(request):
-    """API para obtener ciudades - Público"""
+    """API para obtener ciudades - Público
+    
+    Parámetros:
+    - state: ID del estado para filtrar (opcional)
+    - q: término de búsqueda (opcional)
+    - id: ID específico de ciudad (opcional)
+    """
+    import unicodedata
+
+    # Si se solicita un ID específico
+    city_id = request.GET.get("id")
+    if city_id:
+        try:
+            city = City.objects.get(id=city_id, is_active=True)
+            data = [{"id": city.id, "name": city.name, "state_id": city.state.id}]
+            return JsonResponse(data, safe=False)
+        except City.DoesNotExist:
+            return JsonResponse([], safe=False)
+
+    # Filtrar por estado si se proporciona
     state_id = request.GET.get("state")
     if state_id:
         cities = City.objects.filter(state_id=state_id, is_active=True).order_by("name")
@@ -73,6 +167,26 @@ def cities_api(request):
         cities = City.objects.filter(is_active=True).order_by(
             "state__country__name", "state__name", "name"
         )
+
+    # Filtrar por término de búsqueda si se proporciona
+    search_query = request.GET.get("q", "").strip()
+    if search_query:
+        search_normalized = unicodedata.normalize("NFD", search_query.lower())
+        search_normalized = "".join(
+            c for c in search_normalized if unicodedata.category(c) != "Mn"
+        )
+
+        filtered_cities = []
+        for city in cities:
+            city_normalized = unicodedata.normalize("NFD", city.name.lower())
+            city_normalized = "".join(
+                c for c in city_normalized if unicodedata.category(c) != "Mn"
+            )
+
+            if search_normalized in city_normalized:
+                filtered_cities.append(city)
+
+        cities = filtered_cities
 
     data = [
         {"id": city.id, "name": city.name, "state_id": city.state.id} for city in cities

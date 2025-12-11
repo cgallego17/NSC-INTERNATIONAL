@@ -53,3 +53,7 @@ with open("resultado_eliminacion_divisiones.txt", "w", encoding="utf-8") as f:
 
 print("Proceso completado. Ver resultado_eliminacion_divisiones.txt")
 
+
+
+
+

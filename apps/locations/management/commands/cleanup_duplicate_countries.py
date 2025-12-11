@@ -233,3 +233,7 @@ class Command(BaseCommand):
                     f"\n✅ Consolidación completada: {merged_count} países eliminados."
                 )
             )
+
+
+
+

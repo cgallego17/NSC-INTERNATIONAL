@@ -81,6 +81,113 @@
         color: #6c757d;
         margin-bottom: 1rem;
     }
+    
+    /* Estilos para autocomplete */
+    .autocomplete-wrapper {
+        position: relative;
+        width: 100%;
+    }
+    
+    .autocomplete-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        width: 100%;
+        background: white;
+        border: 1px solid #ced4da;
+        border-top: none;
+        border-radius: 0 0 0.375rem 0.375rem;
+        max-height: 250px;
+        overflow-y: auto;
+        z-index: 1050;
+        display: none;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        margin-top: -1px;
+    }
+    
+    .autocomplete-suggestions.show {
+        display: block !important;
+        visibility: visible !important;
+    }
+    
+    /* Asegurar que las sugerencias se muestren sobre otros elementos */
+    .form-section {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .autocomplete-wrapper {
+        z-index: 10;
+    }
+    
+    .autocomplete-suggestion {
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background-color 0.15s ease;
+        user-select: none;
+    }
+    
+    .autocomplete-suggestion:hover,
+    .autocomplete-suggestion.highlighted {
+        background-color: #e7f1ff;
+        transform: translateX(2px);
+    }
+    
+    .autocomplete-input:disabled {
+        background-color: #f8f9fa;
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+    
+    .autocomplete-suggestion:last-child {
+        border-bottom: none;
+        border-radius: 0 0 0.375rem 0.375rem;
+    }
+    
+    .autocomplete-suggestion:first-child {
+        border-top: none;
+    }
+    
+    .autocomplete-suggestion .suggestion-name {
+        font-weight: 500;
+        color: #212529;
+        font-size: 0.95rem;
+    }
+    
+    .autocomplete-suggestion .suggestion-name strong {
+        font-weight: 700;
+        color: #fff;
+        background-color: #0d6efd;
+        padding: 2px 5px;
+        border-radius: 3px;
+    }
+    
+    .autocomplete-suggestion .suggestion-meta {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+    
+    .autocomplete-suggestion .fa-spinner {
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Asegurar que el input tenga el borde correcto cuando hay sugerencias */
+    .autocomplete-input:focus {
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+    
+    .autocomplete-input:focus + .autocomplete-suggestions {
+        border-top: 1px solid #ced4da;
+    }
 </style>
 {% endblock %}
 
@@ -232,6 +339,15 @@
                                         {{ form.divisions }}
                                     </div>
                                     
+                                    <!-- Mensaje cuando no hay divisiones disponibles -->
+                                    {% if form.divisions.field.queryset.count == 0 %}
+                                    <div class="alert alert-warning mt-2 mb-3">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <strong>No hay divisiones disponibles.</strong><br>
+                                        <small>Por favor, cree divisiones desde la sección <strong>"Configuración" → "Divisiones"</strong> en el menú lateral.</small>
+                                    </div>
+                                    {% endif %}
+                                    
                                     {% if form.divisions.errors %}
                                         <div class="text-danger small mt-1">{{ form.divisions.errors }}</div>
                                     {% endif %}
@@ -248,36 +364,68 @@
                             
                             <div class="row g-3">
                                 <div class="col-md-4">
-                                    <label for="{{ form.country.id_for_label }}" class="form-label fw-semibold">
+                                    <label for="country_search" class="form-label fw-semibold">
                                         <i class="fas fa-flag me-1 text-muted"></i>
                                         {{ form.country.label }}
                                         {% if form.country.field.required %}<span class="text-danger">*</span>{% endif %}
                                     </label>
-                                    {{ form.country }}
+                                    <div class="autocomplete-wrapper">
+                                        <input 
+                                            type="text" 
+                                            id="country_search" 
+                                            class="form-control autocomplete-input" 
+                                            placeholder="Buscar país..."
+                                            autocomplete="off"
+                                        />
+                                        <div id="country_suggestions" class="autocomplete-suggestions"></div>
+                                    </div>
+                                    <input type="hidden" id="id_country" name="country" value="{% if form.country.value %}{{ form.country.value }}{% endif %}" />
                                     {% if form.country.errors %}
                                         <div class="text-danger small mt-1">{{ form.country.errors }}</div>
                                     {% endif %}
                                 </div>
                                 
                                 <div class="col-md-4">
-                                    <label for="{{ form.state.id_for_label }}" class="form-label fw-semibold">
+                                    <label for="state_search" class="form-label fw-semibold">
                                         <i class="fas fa-map me-1 text-muted"></i>
                                         {{ form.state.label }}
                                         {% if form.state.field.required %}<span class="text-danger">*</span>{% endif %}
                                     </label>
-                                    {{ form.state }}
+                                    <div class="autocomplete-wrapper">
+                                        <input 
+                                            type="text" 
+                                            id="state_search" 
+                                            class="form-control autocomplete-input" 
+                                            placeholder="Primero seleccione un país"
+                                            autocomplete="off"
+                                            disabled
+                                        />
+                                        <div id="state_suggestions" class="autocomplete-suggestions"></div>
+                                    </div>
+                                    <input type="hidden" id="id_state" name="state" value="{% if form.state.value %}{{ form.state.value }}{% endif %}" />
                                     {% if form.state.errors %}
                                         <div class="text-danger small mt-1">{{ form.state.errors }}</div>
                                     {% endif %}
                                 </div>
                                 
                                 <div class="col-md-4">
-                                    <label for="{{ form.city.id_for_label }}" class="form-label fw-semibold">
+                                    <label for="city_search" class="form-label fw-semibold">
                                         <i class="fas fa-city me-1 text-muted"></i>
                                         {{ form.city.label }}
                                         {% if form.city.field.required %}<span class="text-danger">*</span>{% endif %}
                                     </label>
-                                    {{ form.city }}
+                                    <div class="autocomplete-wrapper">
+                                        <input 
+                                            type="text" 
+                                            id="city_search" 
+                                            class="form-control autocomplete-input" 
+                                            placeholder="Primero seleccione país y estado"
+                                            autocomplete="off"
+                                            disabled
+                                        />
+                                        <div id="city_suggestions" class="autocomplete-suggestions"></div>
+                                    </div>
+                                    <input type="hidden" id="id_city" name="city" value="{% if form.city.value %}{{ form.city.value }}{% endif %}" />
                                     {% if form.city.errors %}
                                         <div class="text-danger small mt-1">{{ form.city.errors }}</div>
                                     {% endif %}
@@ -524,21 +672,46 @@
                             </div>
                         </div>
 
-                        <!-- CONTACTO -->
+                        <!-- CONTACTOS -->
                         <div class="form-section mb-4">
                             <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
-                                <i class="fas fa-user text-primary me-2"></i>
-                                <h6 class="mb-0 text-primary fw-bold">Contacto del Evento</h6>
+                                <i class="fas fa-users text-primary me-2"></i>
+                                <h6 class="mb-0 text-primary fw-bold">Contactos</h6>
                             </div>
                             
                             <div class="row g-3">
                                 <div class="col-md-12">
-                                    <label for="{{ form.event_contact.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-user me-1 text-muted"></i>
-                                        {{ form.event_contact.label }}
-                                        {% if form.event_contact.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    <label for="contact_search" class="form-label fw-semibold">
+                                        <i class="fas fa-search me-1 text-muted"></i>
+                                        Buscar Contacto
                                     </label>
-                                    {{ form.event_contact }}
+                                    <input 
+                                        type="text" 
+                                        id="contact_search" 
+                                        class="form-control mb-2" 
+                                        placeholder="Buscar por nombre o email..."
+                                    />
+                                    
+                                    <!-- Lista de contactos seleccionados (chips) -->
+                                    <div id="selected_contacts_chips" class="mb-3 d-flex flex-wrap gap-2 min-height-50">
+                                        <span class="text-muted small" id="no_selected_contacts_message">Ningún contacto seleccionado</span>
+                                    </div>
+                                    
+                                    <!-- Lista de contactos disponibles -->
+                                    <div class="border rounded p-3" style="max-height: 250px; overflow-y: auto;">
+                                        <div id="contacts_list" class="list-group list-group-flush">
+                                            <!-- Los contactos se cargarán aquí dinámicamente -->
+                                        </div>
+                                        <div id="no_contacts_found" class="text-muted text-center py-3" style="display: none;">
+                                            <i class="fas fa-info-circle me-2"></i>No se encontraron contactos
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Checkboxes ocultos para enviar al servidor -->
+                                    <div id="contacts_hidden" style="display: none;">
+                                        {{ form.event_contact }}
+                                    </div>
+                                    
                                     {% if form.event_contact.errors %}
                                         <div class="text-danger small mt-1">{{ form.event_contact.errors }}</div>
                                     {% endif %}
@@ -748,113 +921,480 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const countrySelect = document.getElementById('{{ form.country.id_for_label }}');
-    const stateSelect = document.getElementById('{{ form.state.id_for_label }}');
-    const citySelect = document.getElementById('{{ form.city.id_for_label }}');
+    // Elementos del formulario
+    const countryInput = document.getElementById('country_search');
+    const countryHidden = document.getElementById('id_country');
+    const countrySuggestions = document.getElementById('country_suggestions');
     
-    // Verificar que los elementos existan
-    if (!countrySelect) {
-        console.error('No se encontró el campo country');
-        return;
-    }
-    if (!stateSelect) {
-        console.error('No se encontró el campo state');
-        return;
-    }
-    if (!citySelect) {
-        console.error('No se encontró el campo city');
-        return;
+    const stateInput = document.getElementById('state_search');
+    const stateHidden = document.getElementById('id_state');
+    const stateSuggestions = document.getElementById('state_suggestions');
+    
+    const cityInput = document.getElementById('city_search');
+    const cityHidden = document.getElementById('id_city');
+    const citySuggestions = document.getElementById('city_suggestions');
+    
+    // Validar que los elementos existan
+    if (!countryInput || !countryHidden || !countrySuggestions) {
+        console.error('Error: No se encontraron los elementos del campo país', {
+            countryInput: !!countryInput,
+            countryHidden: !!countryHidden,
+            countrySuggestions: !!countrySuggestions
+        });
     }
     
-    // Cargar estados cuando se selecciona un país
-    countrySelect.addEventListener('change', function() {
-        const countryId = this.value;
+    if (!stateInput || !stateHidden || !stateSuggestions) {
+        console.error('Error: No se encontraron los elementos del campo estado', {
+            stateInput: !!stateInput,
+            stateHidden: !!stateHidden,
+            stateSuggestions: !!stateSuggestions
+        });
+    }
+    
+    if (!cityInput || !cityHidden || !citySuggestions) {
+        console.error('Error: No se encontraron los elementos del campo ciudad', {
+            cityInput: !!cityInput,
+            cityHidden: !!cityHidden,
+            citySuggestions: !!citySuggestions
+        });
+    }
+    
+    console.log('Autocomplete inicializado:', {
+        country: !!countryInput,
+        state: !!stateInput,
+        city: !!cityInput
+    });
+    
+    let selectedCountryId = null;
+    let selectedStateId = null;
+    let countrySearchTimeout = null;
+    let stateSearchTimeout = null;
+    let citySearchTimeout = null;
+    
+    function highlightMatch(text, query) {
+        if (!query) return text;
         
-        // Limpiar y deshabilitar estados y ciudades
-        stateSelect.innerHTML = '<option value="">Cargando...</option>';
-        stateSelect.setAttribute('disabled', 'disabled');
-        citySelect.innerHTML = '<option value="">Seleccione primero un estado</option>';
-        citySelect.setAttribute('disabled', 'disabled');
+        // Normalizar para comparar sin tildes
+        const normalize = (str) => {
+            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        };
         
-        // Limpiar sitios y hoteles cuando cambia el país
-        reloadSitesAndHotels(null);
+        const normalizedText = normalize(text);
+        const normalizedQuery = normalize(query);
         
-        if (countryId) {
-            fetch(`/locations/states/api/?country=${countryId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Error en la respuesta del servidor');
+        if (!normalizedText.includes(normalizedQuery)) {
+            return text;
+        }
+        
+        // Crear un mapeo de posiciones normalizadas a posiciones originales
+        const positionMap = [];
+        let normalizedPos = 0;
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const normalizedChar = normalize(char);
+            for (let j = 0; j < normalizedChar.length; j++) {
+                positionMap[normalizedPos] = i;
+                normalizedPos++;
+            }
+        }
+        
+        // Encontrar la posición de coincidencia
+        const startIndex = normalizedText.indexOf(normalizedQuery);
+        if (startIndex === -1) {
+            return text;
+        }
+        
+        const endIndex = startIndex + normalizedQuery.length;
+        const originalStart = positionMap[startIndex] || 0;
+        const originalEnd = positionMap[endIndex - 1] !== undefined ? positionMap[endIndex - 1] + 1 : text.length;
+        
+        // Construir el resultado resaltando la parte que coincide
+        const before = text.substring(0, originalStart);
+        const match = text.substring(originalStart, originalEnd);
+        const after = text.substring(originalEnd);
+        
+        return before + '<strong>' + match + '</strong>' + after;
+    }
+    
+    function renderSuggestions(container, items, input, hidden, query, onSelect) {
+        container.innerHTML = '';
+        
+        if (items.length === 0) {
+            container.innerHTML = '<div class="autocomplete-suggestion"><span class="text-muted"><i class="fas fa-search me-2"></i>No se encontraron resultados</span></div>';
+            container.classList.add('show');
+            return;
+        }
+        
+        // Agregar contador de resultados
+        if (items.length > 5) {
+            const countDiv = document.createElement('div');
+            countDiv.className = 'autocomplete-suggestion text-center bg-light';
+            countDiv.style.cssText = 'position: sticky; top: 0; z-index: 1; border-bottom: 2px solid #dee2e6;';
+            countDiv.innerHTML = `<small class="text-primary fw-bold"><i class="fas fa-list me-1"></i>${items.length} resultados encontrados</small>`;
+            container.appendChild(countDiv);
+        }
+        
+        items.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'autocomplete-suggestion';
+            
+            // Resaltar coincidencias en el nombre
+            const highlightedName = highlightMatch(item.name, query);
+            
+            div.innerHTML = `
+                <div class="suggestion-name">${highlightedName}</div>
+                ${item.code ? `<div class="suggestion-meta">Código: ${item.code}</div>` : ''}
+            `;
+            
+            div.addEventListener('click', function() {
+                input.value = item.name;
+                hidden.value = item.id;
+                container.classList.remove('show');
+                
+                if (onSelect) {
+                    onSelect(item);
+                }
+            });
+            
+            // Resaltar al pasar el mouse
+            div.addEventListener('mouseenter', function() {
+                // Remover highlight de todos
+                container.querySelectorAll('.autocomplete-suggestion').forEach(s => s.classList.remove('highlighted'));
+                this.classList.add('highlighted');
+            });
+            
+            div.addEventListener('mouseleave', function() {
+                this.classList.remove('highlighted');
+            });
+            
+            container.appendChild(div);
+        });
+        
+        container.classList.add('show');
+        
+        // Scroll al inicio
+        container.scrollTop = 0;
+    }
+    
+    // Función mejorada para búsqueda con soporte de focus (mostrar todos al hacer click)
+    function setupImprovedAutocomplete(input, hidden, suggestions, apiUrl, getFilterParam, onSelectCallback) {
+        let searchTimeout = null;
+        let currentIndex = -1;
+        let allResults = [];
+        
+        // Función para realizar la búsqueda
+        function performSearch(query = '') {
+            clearTimeout(searchTimeout);
+            
+            // Mostrar indicador de carga
+            suggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Buscando...</span></div>';
+            suggestions.classList.add('show');
+            
+            searchTimeout = setTimeout(() => {
+                let url = apiUrl;
+                const filterParam = typeof getFilterParam === 'function' ? getFilterParam() : getFilterParam;
+                
+                if (query) {
+                    url += `?q=${encodeURIComponent(query)}`;
+                }
+                if (filterParam) {
+                    url += query ? '&' : '?';
+                    url += filterParam;
+                }
+                
+                fetch(url)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error en la respuesta del servidor');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        allResults = data;
+                        currentIndex = -1;
+                        renderSuggestions(suggestions, data, input, hidden, query, onSelectCallback);
+                    })
+                    .catch(error => {
+                        console.error('Error en búsqueda:', error);
+                        suggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-danger"><i class="fas fa-exclamation-circle me-2"></i>Error al buscar. Intente nuevamente.</span></div>';
+                        suggestions.classList.add('show');
+                    });
+            }, query ? 150 : 0); // Sin delay si es focus sin query
+        }
+        
+        // Input: buscar mientras escribe
+        input.addEventListener('input', function() {
+            const query = this.value.trim();
+            if (query.length === 0) {
+                suggestions.classList.remove('show');
+                currentIndex = -1;
+                return;
+            }
+            performSearch(query);
+        });
+        
+        // Focus: mostrar todos los resultados disponibles
+        input.addEventListener('focus', function() {
+            if (this.value.trim().length > 0) {
+                // Si ya hay texto, buscar con ese texto
+                performSearch(this.value.trim());
+            } else if (!this.hasAttribute('disabled')) {
+                // Si está vacío y no deshabilitado, mostrar todos
+                performSearch('');
+            }
+        });
+        
+        // Click: igual que focus (para mejor UX móvil)
+        input.addEventListener('click', function() {
+            if (!this.hasAttribute('disabled') && suggestions.children.length === 0) {
+                performSearch(this.value.trim());
+            } else if (suggestions.children.length > 0) {
+                suggestions.classList.add('show');
+            }
+        });
+        
+        // Navegación con teclado
+        input.addEventListener('keydown', function(e) {
+            const items = suggestions.querySelectorAll('.autocomplete-suggestion:not(.text-muted)');
+            
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                currentIndex = Math.min(currentIndex + 1, items.length - 1);
+                updateHighlight(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                currentIndex = Math.max(currentIndex - 1, -1);
+                updateHighlight(items);
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (currentIndex >= 0 && items[currentIndex]) {
+                    items[currentIndex].click();
+                }
+            } else if (e.key === 'Escape') {
+                suggestions.classList.remove('show');
+                currentIndex = -1;
+            }
+        });
+        
+        function updateHighlight(items) {
+            items.forEach((item, index) => {
+                item.classList.toggle('highlighted', index === currentIndex);
+            });
+            
+            // Scroll to highlighted item
+            if (currentIndex >= 0 && items[currentIndex]) {
+                items[currentIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        }
+    }
+    
+    // Autocomplete para país (mejorado)
+    if (countryInput && countryHidden && countrySuggestions) {
+        setupImprovedAutocomplete(
+            countryInput, 
+            countryHidden, 
+            countrySuggestions, 
+            '/locations/countries/api/',
+            null,
+            function(country) {
+                selectedCountryId = country.id;
+                console.log('País seleccionado:', country.name, 'ID:', country.id);
+                
+                // Limpiar y deshabilitar estado y ciudad
+                if (stateInput) {
+                    stateInput.value = '';
+                    stateInput.placeholder = 'Seleccione primero un estado...';
+                    stateInput.removeAttribute('disabled');
+                }
+                if (stateHidden) {
+                    stateHidden.value = '';
+                }
+                if (cityInput) {
+                    cityInput.value = '';
+                    cityInput.placeholder = 'Primero seleccione país y estado';
+                    cityInput.setAttribute('disabled', 'disabled');
+                }
+                if (cityHidden) {
+                    cityHidden.value = '';
+                }
+                
+                // Limpiar sitios y hoteles
+                if (typeof reloadSitesAndHotels === 'function') {
+                    reloadSitesAndHotels(null);
+                }
+                
+                // Dar focus al campo de estado
+                setTimeout(() => {
+                    if (stateInput) stateInput.focus();
+                }, 100);
+            }
+        );
+    }
+    
+    // Autocomplete para estado (mejorado, con filtro por país)
+    if (stateInput && stateHidden && stateSuggestions) {
+        // Agregar validación al intentar usar el campo
+        stateInput.addEventListener('focus', function() {
+            if (!selectedCountryId) {
+                stateSuggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-warning"><i class="fas fa-exclamation-triangle me-2"></i>Por favor, seleccione primero un país</span></div>';
+                stateSuggestions.classList.add('show');
+                setTimeout(() => {
+                    if (countryInput) countryInput.focus();
+                }, 1500);
+                return;
+            }
+        });
+        
+        setupImprovedAutocomplete(
+            stateInput, 
+            stateHidden, 
+            stateSuggestions, 
+            '/locations/states/api/',
+            () => selectedCountryId ? `country=${selectedCountryId}` : null,
+            function(state) {
+                selectedStateId = state.id;
+                console.log('Estado seleccionado:', state.name, 'ID:', state.id);
+                
+                // Habilitar ciudad
+                if (cityInput) {
+                    cityInput.value = '';
+                    cityInput.placeholder = 'Buscar ciudad...';
+                    cityInput.removeAttribute('disabled');
+                }
+                if (cityHidden) {
+                    cityHidden.value = '';
+                }
+                
+                // Limpiar sitios y hoteles
+                if (typeof reloadSitesAndHotels === 'function') {
+                    reloadSitesAndHotels(null);
+                }
+                
+                // Dar focus al campo de ciudad
+                setTimeout(() => {
+                    if (cityInput) cityInput.focus();
+                }, 100);
+            }
+        );
+    }
+    
+    // Autocomplete para ciudad (mejorado, con filtro por estado)
+    if (cityInput && cityHidden && citySuggestions) {
+        // Agregar validación al intentar usar el campo
+        cityInput.addEventListener('focus', function() {
+            if (!selectedStateId) {
+                citySuggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-warning"><i class="fas fa-exclamation-triangle me-2"></i>Por favor, seleccione primero un país y un estado</span></div>';
+                citySuggestions.classList.add('show');
+                setTimeout(() => {
+                    if (stateInput && selectedCountryId) {
+                        stateInput.focus();
+                    } else if (countryInput) {
+                        countryInput.focus();
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    stateSelect.innerHTML = '<option value="">Seleccione un estado</option>';
-                    if (data && data.length > 0) {
-                        data.forEach(state => {
-                            const option = document.createElement('option');
-                            option.value = state.id;
-                            option.textContent = state.name;
-                            stateSelect.appendChild(option);
-                        });
-                    } else {
-                        stateSelect.innerHTML = '<option value="">No hay estados disponibles</option>';
-                    }
-                    // Habilitar el campo removiendo el atributo disabled
-                    stateSelect.removeAttribute('disabled');
-                })
-                .catch(error => {
-                    console.error('Error al cargar estados:', error);
-                    stateSelect.innerHTML = '<option value="">Error al cargar estados</option>';
-                    // Habilitar el campo incluso si hay error
-                    stateSelect.removeAttribute('disabled');
-                });
-        } else {
-            stateSelect.innerHTML = '<option value="">Seleccione primero un país</option>';
-            stateSelect.disabled = true;
+                }, 1500);
+                return;
+            }
+        });
+        
+        setupImprovedAutocomplete(
+            cityInput, 
+            cityHidden, 
+            citySuggestions, 
+            '/locations/cities/api/',
+            () => selectedStateId ? `state=${selectedStateId}` : null,
+            function(city) {
+                console.log('Ciudad seleccionada:', city.name, 'ID:', city.id);
+                
+                // Cargar sitios y hoteles para esta ciudad
+                if (typeof reloadSitesAndHotels === 'function') {
+                    reloadSitesAndHotels(city.id);
+                }
+            }
+        );
+    }
+    
+    // Cerrar sugerencias al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        if (countryInput && countrySuggestions) {
+            if (!countryInput.contains(e.target) && !countrySuggestions.contains(e.target)) {
+                countrySuggestions.classList.remove('show');
+            }
+        }
+        if (stateInput && stateSuggestions) {
+            if (!stateInput.contains(e.target) && !stateSuggestions.contains(e.target)) {
+                stateSuggestions.classList.remove('show');
+            }
+        }
+        if (cityInput && citySuggestions) {
+            if (!cityInput.contains(e.target) && !citySuggestions.contains(e.target)) {
+                citySuggestions.classList.remove('show');
+            }
         }
     });
     
-    // Cargar ciudades cuando se selecciona un estado
-    stateSelect.addEventListener('change', function() {
-        const stateId = this.value;
-        citySelect.innerHTML = '<option value="">Cargando...</option>';
-        citySelect.setAttribute('disabled', 'disabled');
+    // Cargar valores iniciales si existen (para edición) - Carga secuencial
+    {% if form.country.value %}
+        const initialCountryId = {{ form.country.value }};
+        const initialStateId = {% if form.state.value %}{{ form.state.value }}{% else %}null{% endif %};
+        const initialCityId = {% if form.city.value %}{{ form.city.value }}{% else %}null{% endif %};
         
-        // Limpiar sitios y hoteles cuando cambia el estado
-        reloadSitesAndHotels(null);
-        
-        if (stateId) {
-            fetch(`/locations/cities/api/?state=${stateId}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Error en la respuesta del servidor');
+        // Cargar país primero usando ID específico
+        fetch(`/locations/countries/api/?id=${initialCountryId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    const country = data[0];
+                    if (countryInput) {
+                        countryInput.value = country.name;
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    citySelect.innerHTML = '<option value="">Seleccione una ciudad</option>';
-                    if (data && data.length > 0) {
-                        data.forEach(city => {
-                            const option = document.createElement('option');
-                            option.value = city.id;
-                            option.textContent = city.name;
-                            citySelect.appendChild(option);
-                        });
-                    } else {
-                        citySelect.innerHTML = '<option value="">No hay ciudades disponibles</option>';
+                    if (countryHidden) {
+                        countryHidden.value = country.id;
                     }
-                    citySelect.removeAttribute('disabled');
-                })
-                .catch(error => {
-                    console.error('Error al cargar ciudades:', error);
-                    citySelect.innerHTML = '<option value="">Error al cargar ciudades</option>';
-                    citySelect.removeAttribute('disabled');
-                });
-        } else {
-            citySelect.innerHTML = '<option value="">Seleccione primero un estado</option>';
-            citySelect.setAttribute('disabled', 'disabled');
-        }
-    });
+                    selectedCountryId = country.id;
+                    if (stateInput) {
+                        stateInput.removeAttribute('disabled');
+                    }
+                    
+                    // Si hay estado, cargarlo después del país usando ID específico
+                    if (initialStateId && stateInput && stateHidden) {
+                        return fetch(`/locations/states/api/?id=${initialStateId}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data && data.length > 0) {
+                                    const state = data[0];
+                                    stateInput.value = state.name;
+                                    stateHidden.value = state.id;
+                                    selectedStateId = state.id;
+                                    if (cityInput) {
+                                        cityInput.removeAttribute('disabled');
+                                    }
+                                    
+                                    // Si hay ciudad, cargarla después del estado usando ID específico
+                                    if (initialCityId && cityInput && cityHidden) {
+                                        return fetch(`/locations/cities/api/?id=${initialCityId}`)
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                if (data && data.length > 0) {
+                                                    const city = data[0];
+                                                    cityInput.value = city.name;
+                                                    cityHidden.value = city.id;
+                                                    
+                                                    // Cargar sitios y hoteles si existe la función
+                                                    if (typeof reloadSitesAndHotels === 'function') {
+                                                        reloadSitesAndHotels(city.id);
+                                                    }
+                                                }
+                                            });
+                                    }
+                                }
+                            });
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar valores iniciales:', error);
+            });
+    {% endif %}
     
     // Función para recargar sitios y hoteles cuando cambia la ciudad
     function reloadSitesAndHotels(cityId) {
@@ -928,35 +1468,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Cargar sitios y hoteles cuando se selecciona una ciudad
-    if (citySelect) {
-        citySelect.addEventListener('change', function() {
-            const cityId = this.value;
-            if (cityId) {
-                reloadSitesAndHotels(cityId);
-            } else {
-                // Si no hay ciudad seleccionada, limpiar sitios y hoteles
-                reloadSitesAndHotels(null);
-            }
-        });
-    }
-    
-    // Inicializar campos al cargar la página
-    // Si no hay país seleccionado, asegurar que estado y ciudad estén deshabilitados
-    if (!countrySelect.value) {
-        stateSelect.setAttribute('disabled', 'disabled');
-        citySelect.setAttribute('disabled', 'disabled');
-    }
-    
-    // Si hay país pero no estado, asegurar que ciudad esté deshabilitada
-    if (countrySelect.value && !stateSelect.value) {
-        citySelect.setAttribute('disabled', 'disabled');
-    }
-    
-    // Si hay país y estado seleccionados, cargar ciudades automáticamente
-    if (countrySelect.value && stateSelect.value) {
-        stateSelect.dispatchEvent(new Event('change'));
-    }
+    // ========== SECCIÓN DE SITIOS Y HOTELES ==========
+    // Esta sección se encarga de cargar y filtrar sitios y hoteles según la ciudad seleccionada
+    // NOTA: Usa cityHidden (campo oculto del autocomplete) en lugar de citySelect
     
     // Sistema mejorado de selección de sitios adicionales con buscador
     const siteSearch = document.getElementById('site_search');
@@ -1031,7 +1545,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Cargar sitios al iniciar SOLO si hay ciudad seleccionada
-    const initialCityIdForSites = citySelect ? citySelect.value : null;
+    const initialCityIdForSites = (cityHidden && cityHidden.value) ? cityHidden.value : null;
     if (initialCityIdForSites) {
         loadSites(initialCityIdForSites);
     } else {
@@ -1121,10 +1635,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (allPrimarySites.length === 0) {
-            const cityId = citySelect ? citySelect.value : null;
+            const cityId = (cityHidden && cityHidden.value) ? cityHidden.value : null;
             let message = '';
-            if (cityId) {
-                const cityName = citySelect.options[citySelect.selectedIndex]?.text || 'la ciudad seleccionada';
+            if (cityId && cityInput && cityInput.value) {
+                const cityName = cityInput.value;
                 message = `No hay sitios disponibles para ${cityName}. Por favor, seleccione otra ciudad o cree un sitio para esta ciudad.`;
             } else {
                 message = 'Seleccione una ciudad para ver los sitios disponibles.';
@@ -1220,7 +1734,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Cargar sitios al iniciar (con ciudad si está seleccionada)
         // Cargar sitios principales SOLO si hay ciudad seleccionada
-        const initialCityIdForPrimarySites = citySelect ? citySelect.value : null;
+        const initialCityIdForPrimarySites = (cityHidden && cityHidden.value) ? cityHidden.value : null;
         if (initialCityIdForPrimarySites) {
             loadPrimarySites(initialCityIdForPrimarySites);
         } else {
@@ -1321,10 +1835,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('showHotelSuggestions llamado. allPrimaryHotels:', allPrimaryHotels.length, 'searchTerm:', searchTerm);
         
         if (allPrimaryHotels.length === 0) {
-            const cityId = citySelect ? citySelect.value : null;
+            const cityId = (cityHidden && cityHidden.value) ? cityHidden.value : null;
             let message = '';
-            if (cityId) {
-                const cityName = citySelect.options[citySelect.selectedIndex]?.text || 'la ciudad seleccionada';
+            if (cityId && cityInput && cityInput.value) {
+                const cityName = cityInput.value;
                 message = `No hay hoteles disponibles para ${cityName}. Por favor, seleccione otra ciudad o cree un hotel para esta ciudad.`;
                 console.log('Mostrando mensaje: No hay hoteles para', cityName, 'pero allPrimaryHotels.length es', allPrimaryHotels.length);
             } else {
@@ -1420,7 +1934,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Cargar hoteles principales SOLO si hay ciudad seleccionada
-        const initialCityIdForPrimaryHotels = citySelect ? citySelect.value : null;
+        const initialCityIdForPrimaryHotels = (cityHidden && cityHidden.value) ? cityHidden.value : null;
         if (initialCityIdForPrimaryHotels) {
             loadPrimaryHotels(initialCityIdForPrimaryHotels);
         } else {
@@ -1435,9 +1949,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (allSites.length === 0) {
             sitesList.style.display = 'block';
             noSitesFound.style.display = 'none';
-            const cityId = citySelect ? citySelect.value : null;
-            if (cityId) {
-                const cityName = citySelect.options[citySelect.selectedIndex]?.text || 'la ciudad seleccionada';
+            const cityId = (cityHidden && cityHidden.value) ? cityHidden.value : null;
+            if (cityId && cityInput && cityInput.value) {
+                const cityName = cityInput.value;
                 sitesList.innerHTML = `<div class="text-muted text-center py-3"><i class="fas fa-info-circle me-2"></i>No hay sitios disponibles para ${cityName}. Por favor, seleccione otra ciudad o cree un sitio para esta ciudad.</div>`;
             } else {
                 sitesList.innerHTML = `<div class="text-muted text-center py-3"><i class="fas fa-info-circle me-2"></i>Seleccione una ciudad para ver los sitios disponibles.</div>`;
@@ -1653,9 +2167,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (allHotels.length === 0) {
             hotelsList.style.display = 'block';
             if (noHotelsFound) noHotelsFound.style.display = 'none';
-            const cityId = citySelect ? citySelect.value : null;
-            if (cityId) {
-                const cityName = citySelect.options[citySelect.selectedIndex]?.text || 'la ciudad seleccionada';
+            const cityId = (cityHidden && cityHidden.value) ? cityHidden.value : null;
+            if (cityId && cityInput && cityInput.value) {
+                const cityName = cityInput.value;
                 hotelsList.innerHTML = `<div class="text-muted text-center py-3"><i class="fas fa-info-circle me-2"></i>No hay hoteles disponibles para ${cityName}. Por favor, seleccione otra ciudad o cree un hotel para esta ciudad.</div>`;
             } else {
                 hotelsList.innerHTML = '<div class="text-muted text-center py-3"><i class="fas fa-info-circle me-2"></i>Seleccione una ciudad para ver los hoteles disponibles.</div>';
@@ -1770,7 +2284,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Cargar hoteles al iniciar (con ciudad si está seleccionada)
     // Cargar hoteles adicionales SOLO si hay ciudad seleccionada
-    const initialCityIdForHotels = citySelect ? citySelect.value : null;
+    const initialCityIdForHotels = (cityHidden && cityHidden.value) ? cityHidden.value : null;
     if (initialCityIdForHotels) {
         loadHotels(initialCityIdForHotels);
     } else {
@@ -1779,13 +2293,331 @@ document.addEventListener('DOMContentLoaded', function() {
         renderHotelsList();
     }
     
-    // Sistema mejorado de selección de divisiones con buscador
+    // ========== SISTEMA DE SELECCIÓN DE CONTACTOS ==========
+    const contactSearch = document.getElementById('contact_search');
+    const contactsList = document.getElementById('contacts_list');
+    const selectedContactsChips = document.getElementById('selected_contacts_chips');
+    const noSelectedContactsMessage = document.getElementById('no_selected_contacts_message');
+    const contactsHidden = document.getElementById('contacts_hidden');
+    
+    let contactsCheckboxes = [];
+    if (contactsHidden) {
+        contactsCheckboxes = contactsHidden.querySelectorAll('input[type="checkbox"]');
+        if (contactsCheckboxes.length === 0) {
+            contactsCheckboxes = document.querySelectorAll('input[type="checkbox"][name="event_contact"]');
+        }
+        if (contactsCheckboxes.length === 0) {
+            contactsCheckboxes = document.querySelectorAll('input[type="checkbox"][id^="id_event_contact_"]');
+        }
+    }
+    
+    const noContactsFound = document.getElementById('no_contacts_found');
+    let allContacts = [];
+    let selectedContacts = [];
+    
+    // Cargar contactos desde los checkboxes
+    function loadContacts() {
+        allContacts = [];
+        selectedContacts = [];
+        
+        if (contactsCheckboxes.length === 0) {
+            console.warn('No se encontraron checkboxes de contactos');
+            if (contactsList) {
+                contactsList.innerHTML = '<div class="text-muted text-center py-3"><i class="fas fa-exclamation-triangle me-2"></i>No hay contactos disponibles. Por favor, cree contactos primero.</div>';
+            }
+            return;
+        }
+        
+        contactsCheckboxes.forEach(checkbox => {
+            const label = checkbox.closest('label') || document.querySelector(`label[for="${checkbox.id}"]`);
+            let contactFullText = '';
+            let contactName = '';
+            let contactPosition = '';
+            let contactOrganization = '';
+            
+            if (label) {
+                const labelText = label.textContent || label.innerText;
+                contactFullText = labelText.replace(/\s+/g, ' ').trim();
+                
+                if (label.contains(checkbox)) {
+                    const textAfter = Array.from(label.childNodes)
+                        .filter(node => node.nodeType === 3 || (node.nodeType === 1 && node !== checkbox))
+                        .map(node => node.textContent || '')
+                        .join(' ')
+                        .trim();
+                    if (textAfter) {
+                        contactFullText = textAfter;
+                    }
+                }
+                
+                // Parsear el formato: "Nombre - Cargo (Organización)" o "Nombre - Cargo" o "Nombre (Organización)"
+                // Regex para capturar: Nombre - Cargo (Organización)
+                let match = contactFullText.match(/^(.+?)\s*-\s*(.+?)\s*\((.+?)\)$/);
+                if (match) {
+                    contactName = match[1].trim();
+                    contactPosition = match[2].trim();
+                    contactOrganization = match[3].trim();
+                } else {
+                    // Regex para: Nombre - Cargo
+                    match = contactFullText.match(/^(.+?)\s*-\s*(.+?)$/);
+                    if (match) {
+                        contactName = match[1].trim();
+                        contactPosition = match[2].trim();
+                    } else {
+                        // Regex para: Nombre (Organización)
+                        match = contactFullText.match(/^(.+?)\s*\((.+?)\)$/);
+                        if (match) {
+                            contactName = match[1].trim();
+                            contactOrganization = match[2].trim();
+                        } else {
+                            // Solo el nombre
+                            contactName = contactFullText;
+                        }
+                    }
+                }
+            }
+            
+            if (!contactName || contactName === '') {
+                contactName = `Contacto ${checkbox.value}`;
+            }
+            
+            allContacts.push({
+                id: checkbox.value,
+                name: contactName,
+                position: contactPosition,
+                organization: contactOrganization,
+                fullText: contactFullText,
+                checkbox: checkbox
+            });
+            
+            if (checkbox.checked) {
+                selectedContacts.push(allContacts[allContacts.length - 1]);
+            }
+        });
+        
+        console.log('Contactos cargados:', {
+            total: allContacts.length,
+            selected: selectedContacts.length
+        });
+        
+        renderSelectedContactsChips();
+        renderContactsList();
+    }
+    
+    // Renderizar chips de contactos seleccionados
+    function renderSelectedContactsChips() {
+        if (!selectedContactsChips) return;
+        
+        selectedContactsChips.innerHTML = '';
+        
+        if (selectedContacts.length === 0) {
+            if (noSelectedContactsMessage) {
+                selectedContactsChips.appendChild(noSelectedContactsMessage.cloneNode(true));
+            }
+            return;
+        }
+        
+        selectedContacts.forEach(contact => {
+            const chip = document.createElement('span');
+            chip.className = 'badge bg-primary d-inline-flex align-items-center gap-2 py-2 px-3';
+            
+            let chipContent = `<i class="fas fa-user me-1"></i><span><strong>${contact.name}</strong>`;
+            if (contact.position) {
+                chipContent += `<br><small style="font-size: 0.75rem; opacity: 0.9;">${contact.position}</small>`;
+            }
+            chipContent += `</span>`;
+            
+            chip.innerHTML = `
+                ${chipContent}
+                <button type="button" class="btn-close btn-close-white" style="font-size: 0.65rem;" onclick="removeContact('${contact.id}')"></button>
+            `;
+            selectedContactsChips.appendChild(chip);
+        });
+    }
+    
+    // Renderizar lista de contactos
+    function renderContactsList(searchQuery = '') {
+        if (!contactsList) return;
+        
+        contactsList.innerHTML = '';
+        
+        if (allContacts.length === 0) {
+            contactsList.innerHTML = '<div class="text-muted text-center py-3"><i class="fas fa-info-circle me-2"></i>No hay contactos disponibles.</div>';
+            return;
+        }
+        
+        const query = searchQuery.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const filteredContacts = searchQuery 
+            ? allContacts.filter(contact => 
+                contact.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(query)
+              )
+            : allContacts;
+        
+        if (filteredContacts.length === 0) {
+            if (noContactsFound) {
+                noContactsFound.style.display = 'block';
+            }
+            contactsList.innerHTML = '<div class="text-muted text-center py-3"><i class="fas fa-search me-2"></i>No se encontraron contactos con ese criterio</div>';
+            return;
+        }
+        
+        if (noContactsFound) {
+            noContactsFound.style.display = 'none';
+        }
+        
+        filteredContacts.forEach(contact => {
+            const isSelected = selectedContacts.some(s => s.id === contact.id);
+            const item = document.createElement('button');
+            item.type = 'button';
+            item.className = `list-group-item list-group-item-action d-flex justify-content-between align-items-center ${isSelected ? 'active' : ''}`;
+            
+            let contactInfo = `<div class="d-flex align-items-start">
+                <i class="fas fa-user me-2 mt-1"></i>
+                <div>
+                    <div class="fw-semibold">${contact.name}</div>`;
+            
+            if (contact.position && contact.organization) {
+                contactInfo += `<small class="${isSelected ? 'text-white-50' : 'text-muted'}">${contact.position} en ${contact.organization}</small>`;
+            } else if (contact.position) {
+                contactInfo += `<small class="${isSelected ? 'text-white-50' : 'text-muted'}">${contact.position}</small>`;
+            } else if (contact.organization) {
+                contactInfo += `<small class="${isSelected ? 'text-white-50' : 'text-muted'}">${contact.organization}</small>`;
+            }
+            
+            contactInfo += `</div></div>`;
+            
+            item.innerHTML = `
+                ${contactInfo}
+                ${isSelected ? '<i class="fas fa-check text-white"></i>' : '<i class="fas fa-plus text-primary"></i>'}
+            `;
+            
+            item.addEventListener('click', function() {
+                if (isSelected) {
+                    removeContact(contact.id);
+                } else {
+                    addContact(contact.id);
+                }
+            });
+            
+            contactsList.appendChild(item);
+        });
+    }
+    
+    // Agregar contacto
+    window.addContact = function(contactId) {
+        const contact = allContacts.find(c => c.id === contactId || c.id.toString() === contactId.toString());
+        if (contact && !selectedContacts.some(s => s.id === contact.id)) {
+            selectedContacts.push(contact);
+            if (contact.checkbox) {
+                contact.checkbox.checked = true;
+            }
+            renderSelectedContactsChips();
+            renderContactsList(contactSearch ? contactSearch.value : '');
+        }
+    };
+    
+    // Remover contacto
+    window.removeContact = function(contactId) {
+        const contact = allContacts.find(c => c.id === contactId || c.id.toString() === contactId.toString());
+        selectedContacts = selectedContacts.filter(c => c.id !== contactId && c.id.toString() !== contactId.toString());
+        if (contact && contact.checkbox) {
+            contact.checkbox.checked = false;
+        }
+        renderSelectedContactsChips();
+        renderContactsList(contactSearch ? contactSearch.value : '');
+    };
+    
+    // Buscar contactos
+    if (contactSearch) {
+        contactSearch.addEventListener('input', function() {
+            renderContactsList(this.value);
+        });
+    }
+    
+    // Cargar contactos al iniciar
+    if (contactsCheckboxes.length > 0) {
+        loadContacts();
+    } else {
+        console.warn('No se encontraron checkboxes de contactos');
+        if (contactsList) {
+            contactsList.innerHTML = `
+                <div class="alert alert-warning text-center py-3 mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>No hay contactos disponibles.</strong><br>
+                    <small>Por favor, cree contactos desde la sección "Gestión de Datos" → "Contactos de Eventos" en el menú lateral.</small>
+                </div>
+            `;
+        }
+        if (selectedContactsChips) {
+            selectedContactsChips.innerHTML = `
+                <div class="alert alert-info text-center py-2 mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <small>No hay contactos disponibles para seleccionar.</small>
+                </div>
+            `;
+        }
+    }
+    
+    // ========== SISTEMA DE SELECCIÓN DE DIVISIONES ==========
     const divisionSearch = document.getElementById('division_search');
     const divisionsList = document.getElementById('divisions_list');
     const selectedDivisionsChips = document.getElementById('selected_divisions_chips');
     const noSelectedDivisionsMessage = document.getElementById('no_selected_divisions_message');
-    const divisionsCheckboxes = document.querySelectorAll('#divisions_hidden input[type="checkbox"]');
+    const divisionsHidden = document.getElementById('divisions_hidden');
+    
+    // Buscar checkboxes de diferentes formas posibles (Django puede renderizarlos de varias maneras)
+    let divisionsCheckboxes = [];
+    if (divisionsHidden) {
+        // Buscar dentro del contenedor
+        divisionsCheckboxes = divisionsHidden.querySelectorAll('input[type="checkbox"]');
+        
+        // Si no se encuentran, buscar en todo el documento con el name correcto
+        if (divisionsCheckboxes.length === 0) {
+            divisionsCheckboxes = document.querySelectorAll('input[type="checkbox"][name="divisions"]');
+        }
+        
+        // Si aún no se encuentran, buscar por ID que empiece con id_divisions
+        if (divisionsCheckboxes.length === 0) {
+            divisionsCheckboxes = document.querySelectorAll('input[type="checkbox"][id^="id_divisions_"]');
+        }
+        
+        // Si aún no se encuentran, buscar cualquier checkbox dentro de un ul o li que esté relacionado con divisions
+        if (divisionsCheckboxes.length === 0) {
+            const divisionsContainer = divisionsHidden.querySelector('ul');
+            if (divisionsContainer) {
+                divisionsCheckboxes = divisionsContainer.querySelectorAll('input[type="checkbox"]');
+            }
+        }
+    }
+    
+    // Si aún no se encuentran, buscar en todo el documento cualquier checkbox relacionado con divisions
+    if (divisionsCheckboxes.length === 0) {
+        // Buscar por name que contenga "divisions"
+        divisionsCheckboxes = document.querySelectorAll('input[type="checkbox"][name*="divisions"]');
+    }
+    
     const noDivisionsFound = document.getElementById('no_divisions_found');
+    
+    console.log('Divisiones - Elementos encontrados:', {
+        divisionSearch: !!divisionSearch,
+        divisionsList: !!divisionsList,
+        selectedDivisionsChips: !!selectedDivisionsChips,
+        divisionsHidden: !!divisionsHidden,
+        checkboxesCount: divisionsCheckboxes.length,
+        divisionsHiddenHTML: divisionsHidden ? (divisionsHidden.innerHTML.length > 0 ? divisionsHidden.innerHTML.substring(0, 500) : '(vacío)') : 'N/A',
+        allCheckboxesInPage: document.querySelectorAll('input[type="checkbox"]').length
+    });
+    
+    // Si encontramos checkboxes, mostrar información adicional
+    if (divisionsCheckboxes.length > 0) {
+        console.log('Checkboxes de divisiones encontrados:', Array.from(divisionsCheckboxes).map(cb => ({
+            id: cb.id,
+            name: cb.name,
+            value: cb.value,
+            checked: cb.checked,
+            label: cb.closest('label') ? cb.closest('label').textContent.trim() : 'sin label'
+        })));
+    }
     
     // Obtener todas las divisiones desde los checkboxes
     let allDivisions = [];
@@ -1793,6 +2625,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Cargar divisiones desde los checkboxes
     function loadDivisions() {
+        allDivisions = []; // Resetear array
+        selectedDivisions = []; // Resetear array
+        
+        // Si no hay checkboxes, mostrar mensaje
+        if (divisionsCheckboxes.length === 0) {
+            console.warn('No se encontraron checkboxes de divisiones');
+            if (divisionsList) {
+                divisionsList.innerHTML = '<div class="text-muted text-center py-3"><i class="fas fa-exclamation-triangle me-2"></i>No hay divisiones disponibles. Por favor, cree divisiones primero.</div>';
+            }
+            return;
+        }
+        
         // Obtener todas las divisiones desde los checkboxes
         divisionsCheckboxes.forEach(checkbox => {
             const label = checkbox.closest('label') || document.querySelector(`label[for="${checkbox.id}"]`);
@@ -1834,6 +2678,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
+        console.log('Divisiones cargadas:', {
+            total: allDivisions.length,
+            selected: selectedDivisions.length,
+            divisions: allDivisions.map(d => ({ id: d.id, name: d.name }))
+        });
+        
         // Inicializar la interfaz
         renderSelectedDivisionsChips();
         renderDivisionsList();
@@ -1841,6 +2691,20 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Renderizar lista de divisiones disponibles
     function renderDivisionsList(searchTerm = '') {
+        if (!divisionsList) {
+            console.error('divisionsList no encontrado');
+            return;
+        }
+        
+        // Si no hay divisiones cargadas, mostrar mensaje
+        if (allDivisions.length === 0) {
+            divisionsList.innerHTML = '<div class="text-muted text-center py-3"><i class="fas fa-exclamation-triangle me-2"></i>No hay divisiones disponibles. Por favor, cree divisiones primero.</div>';
+            if (noDivisionsFound) {
+                noDivisionsFound.style.display = 'none';
+            }
+            return;
+        }
+        
         const filteredDivisions = allDivisions.filter(division => {
             const isSelected = selectedDivisions.some(d => d.id === division.id);
             const matchesSearch = !searchTerm || 
@@ -1851,15 +2715,21 @@ document.addEventListener('DOMContentLoaded', function() {
         if (filteredDivisions.length === 0) {
             if (searchTerm) {
                 divisionsList.style.display = 'none';
-                noDivisionsFound.style.display = 'block';
+                if (noDivisionsFound) {
+                    noDivisionsFound.style.display = 'block';
+                }
             } else {
                 divisionsList.style.display = 'block';
-                noDivisionsFound.style.display = 'none';
+                if (noDivisionsFound) {
+                    noDivisionsFound.style.display = 'none';
+                }
                 divisionsList.innerHTML = '<div class="text-muted text-center py-3"><i class="fas fa-check-circle me-2"></i>Todas las divisiones han sido seleccionadas</div>';
             }
         } else {
             divisionsList.style.display = 'block';
-            noDivisionsFound.style.display = 'none';
+            if (noDivisionsFound) {
+                noDivisionsFound.style.display = 'none';
+            }
             
             divisionsList.innerHTML = filteredDivisions.map(division => {
                 // Escapar comillas para evitar problemas en onclick
@@ -1908,9 +2778,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Actualizar checkboxes
-        divisionsCheckboxes.forEach(checkbox => {
-            checkbox.checked = selectedDivisions.some(d => d.id.toString() === checkbox.value);
-        });
+        if (divisionsCheckboxes && divisionsCheckboxes.length > 0) {
+            divisionsCheckboxes.forEach(checkbox => {
+                checkbox.checked = selectedDivisions.some(d => d.id.toString() === checkbox.value);
+            });
+        }
     }
     
     // Agregar división
@@ -1941,8 +2813,107 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Función para cargar divisiones desde el contexto del template (alternativa a checkboxes)
+    function loadDivisionsFromContext() {
+        {% if available_divisions %}
+        try {
+            const divisionsFromContext = JSON.parse('{{ available_divisions|escapejs }}');
+            console.log('Cargando divisiones desde contexto:', divisionsFromContext);
+            
+            if (divisionsFromContext && Array.isArray(divisionsFromContext) && divisionsFromContext.length > 0) {
+                allDivisions = divisionsFromContext.map(div => ({
+                    id: div.id,
+                    name: div.name,
+                    checkbox: null
+                }));
+                
+                console.log('Divisiones cargadas desde contexto:', allDivisions.length);
+                
+                // Crear checkboxes ocultos para el formulario
+                if (divisionsHidden) {
+                    let ul = divisionsHidden.querySelector('ul#id_divisions');
+                    if (!ul) {
+                        ul = document.createElement('ul');
+                        ul.id = 'id_divisions';
+                        divisionsHidden.appendChild(ul);
+                    }
+                    
+                    ul.innerHTML = ''; // Limpiar
+                    
+                    allDivisions.forEach(division => {
+                        const li = document.createElement('li');
+                        const label = document.createElement('label');
+                        const checkbox = document.createElement('input');
+                        
+                        checkbox.type = 'checkbox';
+                        checkbox.name = 'divisions';
+                        checkbox.value = division.id;
+                        checkbox.id = `id_divisions_${division.id}`;
+                        checkbox.className = 'form-check-input';
+                        
+                        label.appendChild(checkbox);
+                        label.appendChild(document.createTextNode(' ' + division.name));
+                        li.appendChild(label);
+                        ul.appendChild(li);
+                        
+                        division.checkbox = checkbox;
+                    });
+                    
+                    console.log('Checkboxes creados:', allDivisions.length);
+                }
+                
+                renderSelectedDivisionsChips();
+                renderDivisionsList();
+            } else {
+                console.warn('Array de divisiones vacío en el contexto');
+                if (divisionsList) {
+                    divisionsList.innerHTML = '<div class="text-muted text-center py-3"><i class="fas fa-exclamation-triangle me-2"></i>No hay divisiones disponibles. Por favor, cree divisiones primero.</div>';
+                }
+            }
+        } catch (error) {
+            console.error('Error al cargar divisiones desde contexto:', error);
+            if (divisionsList) {
+                divisionsList.innerHTML = '<div class="text-muted text-center py-3"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar divisiones.</div>';
+            }
+        }
+        {% else %}
+        console.warn('No hay divisiones en el contexto del template');
+        if (divisionsList) {
+            divisionsList.innerHTML = '<div class="text-muted text-center py-3"><i class="fas fa-exclamation-triangle me-2"></i>No hay divisiones disponibles. Por favor, cree divisiones primero.</div>';
+        }
+        {% endif %}
+    }
+    
     // Cargar divisiones al iniciar
-    loadDivisions();
+    if (divisionsCheckboxes.length > 0) {
+        console.log('Cargando divisiones desde checkboxes HTML');
+        loadDivisions();
+    } else {
+        console.warn('No se encontraron checkboxes. Intentando cargar desde contexto...');
+        loadDivisionsFromContext();
+        
+        // Si aún no hay divisiones después de cargar del contexto
+        if (allDivisions.length === 0) {
+            console.error('No se pudieron cargar divisiones de ninguna fuente');
+            if (divisionsList) {
+                divisionsList.innerHTML = `
+                    <div class="alert alert-warning text-center py-3 mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>No hay divisiones disponibles.</strong><br>
+                        <small>Por favor, cree divisiones desde la sección "Configuración" → "Divisiones" en el menú lateral.</small>
+                    </div>
+                `;
+            }
+            if (selectedDivisionsChips) {
+                selectedDivisionsChips.innerHTML = `
+                    <div class="alert alert-info text-center py-2 mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <small>No hay divisiones disponibles para seleccionar.</small>
+                    </div>
+                `;
+            }
+        }
+    }
 });
 </script>
 
@@ -2050,5 +3021,9 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 </style>
 {% endblock %}
+
+
+
+
 
 

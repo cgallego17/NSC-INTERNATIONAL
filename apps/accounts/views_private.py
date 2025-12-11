@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -517,6 +518,65 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
                 self.request, "Información del jugador actualizada exitosamente."
             )
             return super().form_valid(form)
+
+
+class UserListView(UserPassesTestMixin, LoginRequiredMixin, ListView):
+    """Lista de usuarios (solo staff)"""
+
+    model = User
+    template_name = "accounts/user_list.html"
+    context_object_name = "users"
+    paginate_by = 20
+
+    def test_func(self):
+        """Solo staff puede ver la lista de usuarios"""
+        return self.request.user.is_staff or self.request.user.is_superuser
+
+    def get_queryset(self):
+        queryset = User.objects.select_related("profile").all()
+
+        # Filtros de búsqueda
+        search = self.request.GET.get("search")
+        if search:
+            queryset = queryset.filter(
+                Q(username__icontains=search)
+                | Q(first_name__icontains=search)
+                | Q(last_name__icontains=search)
+                | Q(email__icontains=search)
+            )
+
+        # Filtro por tipo de usuario
+        user_type = self.request.GET.get("user_type")
+        if user_type:
+            queryset = queryset.filter(profile__user_type=user_type)
+
+        # Filtro por estado activo
+        is_active_filter = self.request.GET.get("is_active")
+        if is_active_filter == "true":
+            queryset = queryset.filter(is_active=True)
+        elif is_active_filter == "false":
+            queryset = queryset.filter(is_active=False)
+
+        return queryset.order_by("-date_joined")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Opciones de tipo de usuario para el filtro
+        context["user_type_choices"] = UserProfile.USER_TYPE_CHOICES
+
+        # Filtros actuales para mantener en el formulario
+        context["current_filters"] = {
+            "search": self.request.GET.get("search", ""),
+            "user_type": self.request.GET.get("user_type", ""),
+            "is_active": self.request.GET.get("is_active", ""),
+        }
+
+        # Marcar la sección activa en el sidebar
+        context["active_section"] = "users"
+        context["active_subsection"] = "user_list"
+
+        return context
 
 
 # Vista para manejar el perfil (redirige según el tipo de usuario)

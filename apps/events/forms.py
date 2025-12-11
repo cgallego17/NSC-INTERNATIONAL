@@ -65,22 +65,33 @@ class EventForm(forms.ModelForm):
                     "placeholder": "Descripción detallada del evento (HTML permitido)",
                 }
             ),
-            "country": forms.Select(
+            "country": forms.TextInput(
                 attrs={
-                    "class": "form-select",
+                    "class": "form-control autocomplete-input",
                     "required": True,
+                    "placeholder": "Buscar país...",
+                    "autocomplete": "off",
+                    "data-field": "country",
                 }
             ),
-            "state": forms.Select(
+            "state": forms.TextInput(
                 attrs={
-                    "class": "form-select",
+                    "class": "form-control autocomplete-input",
                     "required": True,
+                    "placeholder": "Buscar estado...",
+                    "autocomplete": "off",
+                    "data-field": "state",
+                    "disabled": True,
                 }
             ),
-            "city": forms.Select(
+            "city": forms.TextInput(
                 attrs={
-                    "class": "form-select",
+                    "class": "form-control autocomplete-input",
                     "required": True,
+                    "placeholder": "Buscar ciudad...",
+                    "autocomplete": "off",
+                    "data-field": "city",
+                    "disabled": True,
                 }
             ),
             "rule": forms.Select(
@@ -171,9 +182,9 @@ class EventForm(forms.ModelForm):
                     "required": False,
                 }
             ),
-            "event_contact": forms.Select(
+            "event_contact": forms.CheckboxSelectMultiple(
                 attrs={
-                    "class": "form-select",
+                    "class": "form-check-input",
                     "required": False,
                 }
             ),
@@ -227,7 +238,7 @@ class EventForm(forms.ModelForm):
             "additional_sites": "Sitios del Evento (Adicionales)",
             "hotel": "Hotel Sede",
             "additional_hotels": "Hoteles Adicionales",
-            "event_contact": "Contacto del Evento",
+            "event_contact": "Contactos",
             "image": "Logo del Evento",
             "video_url": "Video del Evento",
             "email_welcome_body": "Cuerpo del Correo de Bienvenida (HTML)",
@@ -297,40 +308,9 @@ class EventForm(forms.ModelForm):
         if not self.fields["event_type"].empty_label:
             self.fields["event_type"].empty_label = "Seleccione un tipo de evento"
 
-        # Country: generalmente pocos registros
-        # Filtrar duplicados normalizando nombres (sin acentos)
-        all_countries = Country.objects.filter(is_active=True).order_by("name")
-
-        # Normalizar nombres y eliminar duplicados
-        seen_normalized = set()
-        unique_countries = []
-        for country in all_countries:
-            # Normalizar nombre (remover acentos)
-            nfd = unicodedata.normalize("NFD", country.name.lower().strip())
-            normalized = "".join(c for c in nfd if unicodedata.category(c) != "Mn")
-
-            if normalized not in seen_normalized:
-                seen_normalized.add(normalized)
-                unique_countries.append(country.id)
-
-        self.fields["country"].queryset = Country.objects.filter(
-            id__in=unique_countries
-        ).order_by("name")[
-            :200
-        ]  # Limitar por seguridad
-
-        # State: QUERYSET VACÍO INICIALMENTE - Se carga dinámicamente con JavaScript cuando se selecciona un país
-        # Esto es crítico para el rendimiento y para filtrar correctamente por país
-        self.fields["state"].queryset = State.objects.none()
-        self.fields["state"].widget.attrs["disabled"] = True
-        self.fields["state"].required = False
-
-        # City: QUERYSET VACÍO INICIALMENTE - Se carga dinámicamente con JavaScript cuando se selecciona un estado
-        # Esto es crítico para el rendimiento si hay miles de ciudades
-        # El campo se hace required en el método clean() cuando se envía el formulario
-        self.fields["city"].queryset = City.objects.none()
-        self.fields["city"].widget.attrs["disabled"] = True
-        self.fields["city"].required = False
+        # Country, State, City: Ahora son campos de texto con autocomplete
+        # Los valores reales se guardan en campos hidden que se crean en el template
+        # No necesitamos configurar querysets para estos campos
 
         # Rule: generalmente pocos registros
         self.fields["rule"].queryset = Rule.objects.filter(is_active=True).order_by(
@@ -385,16 +365,13 @@ class EventForm(forms.ModelForm):
             :500
         ]  # Limitar por seguridad
 
-        # Event Contact: configurar queryset
+        # Event Contact: configurar queryset (selección múltiple)
         # Filtrar contactos activos
         self.fields["event_contact"].queryset = EventContact.objects.filter(
             is_active=True
         ).order_by("name")[
             :500
         ]  # Limitar por seguridad
-
-        if not self.fields["event_contact"].empty_label:
-            self.fields["event_contact"].empty_label = "Seleccione un contacto"
 
         # Divisions: configurar queryset (selección múltiple)
         # Filtrar divisiones activas
@@ -486,6 +463,8 @@ class EventContactForm(forms.ModelForm):
         model = EventContact
         fields = [
             "name",
+            "position",
+            "organization",
             "photo",
             "phone",
             "email",
@@ -501,6 +480,18 @@ class EventContactForm(forms.ModelForm):
                     "class": "form-control",
                     "placeholder": "Nombre completo del contacto",
                     "required": True,
+                }
+            ),
+            "position": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ej: Director Ejecutivo, Coordinador, Manager...",
+                }
+            ),
+            "organization": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ej: NSC International, Baseball Academy...",
                 }
             ),
             "photo": forms.FileInput(
@@ -551,6 +542,8 @@ class EventContactForm(forms.ModelForm):
         }
         labels = {
             "name": "Nombre",
+            "position": "Cargo",
+            "organization": "Organización",
             "photo": "Foto",
             "phone": "Teléfono",
             "email": "Email",
@@ -713,51 +706,52 @@ class EventContactForm(forms.ModelForm):
                 self.fields["city"].required = False
 
     def clean_country(self):
-        """Permitir cualquier país válido, incluso si no está en el queryset inicial limitado"""
-        country = self.cleaned_data.get("country")
-        if not country:
-            # Intentar obtener del POST directamente
-            country_id = self.data.get("country") or self.data.get("country_hidden")
-            if country_id:
-                try:
-                    from apps.locations.models import Country
-
-                    country_id = int(country_id)
-                    country_obj = Country.objects.filter(
-                        pk=country_id, is_active=True
-                    ).first()
-                    if country_obj:
-                        # Actualizar el queryset para que Django acepte el valor
-                        self.fields["country"].queryset = Country.objects.filter(
-                            pk=country_obj.pk
-                        )
-                        return country_obj
-                except (ValueError, TypeError):
-                    pass
-            return None
-        # Si el país está en cleaned_data, verificar que sea válido
-        from apps.locations.models import Country
+        """Obtener el país del campo hidden"""
+        # El valor real viene del campo hidden
+        country_id = self.data.get("country")
+        if not country_id:
+            raise forms.ValidationError("Debe seleccionar un país.")
 
         try:
-            country_obj = Country.objects.get(pk=country.pk, is_active=True)
+            country_id = int(country_id)
+            country_obj = Country.objects.filter(pk=country_id, is_active=True).first()
+            if not country_obj:
+                raise forms.ValidationError("El país seleccionado no es válido.")
             return country_obj
-        except Country.DoesNotExist:
-            # Si no existe, intentar obtener del POST
-            country_id = self.data.get("country") or self.data.get("country_hidden")
-            if country_id:
-                try:
-                    country_id = int(country_id)
-                    country_obj = Country.objects.filter(
-                        pk=country_id, is_active=True
-                    ).first()
-                    if country_obj:
-                        self.fields["country"].queryset = Country.objects.filter(
-                            pk=country_obj.pk
-                        )
-                        return country_obj
-                except (ValueError, TypeError):
-                    pass
+        except (ValueError, TypeError):
             raise forms.ValidationError("El país seleccionado no es válido.")
+
+    def clean_state(self):
+        """Obtener el estado del campo hidden"""
+        # El valor real viene del campo hidden
+        state_id = self.data.get("state")
+        if not state_id:
+            raise forms.ValidationError("Debe seleccionar un estado.")
+
+        try:
+            state_id = int(state_id)
+            state_obj = State.objects.filter(pk=state_id, is_active=True).first()
+            if not state_obj:
+                raise forms.ValidationError("El estado seleccionado no es válido.")
+            return state_obj
+        except (ValueError, TypeError):
+            raise forms.ValidationError("El estado seleccionado no es válido.")
+
+    def clean_city(self):
+        """Obtener la ciudad del campo hidden"""
+        # El valor real viene del campo hidden
+        city_id = self.data.get("city")
+        if not city_id:
+            raise forms.ValidationError("Debe seleccionar una ciudad.")
+
+        try:
+            city_id = int(city_id)
+            city_obj = City.objects.filter(pk=city_id, is_active=True).first()
+            if not city_obj:
+                raise forms.ValidationError("La ciudad seleccionada no es válida.")
+            return city_obj
+        except (ValueError, TypeError):
+            raise forms.ValidationError("La ciudad seleccionada no es válida.")
 
 
 class EventTypeForm(forms.ModelForm):

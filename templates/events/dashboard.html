@@ -260,6 +260,94 @@
                 </div>
             </div>
 
+            <!-- Lista de Usuarios Recientes -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Usuarios Recientes</h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_users %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Usuario</th>
+                                        <th>Tipo</th>
+                                        <th>Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for user_obj in recent_users %}
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                {% if user_obj.profile.avatar %}
+                                                    <img src="{{ user_obj.profile.avatar.url }}" alt="{{ user_obj.get_full_name }}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px; font-size: 0.75rem;">
+                                                        {{ user_obj.profile.initials|default:user_obj.username|first|upper }}
+                                                    </div>
+                                                {% endif %}
+                                                <div>
+                                                    <strong>{{ user_obj.get_full_name|default:user_obj.username }}</strong>
+                                                    <br>
+                                                    <small class="text-muted">{{ user_obj.email }}</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            {% if user_obj.profile %}
+                                                <span class="badge bg-secondary">{{ user_obj.profile.get_user_type_display }}</span>
+                                            {% else %}
+                                                <span class="badge bg-light text-dark">Sin perfil</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">{{ user_obj.date_joined|date:"d/m/Y" }}</small>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-users fa-2x text-gray-300 mb-2"></i>
+                            <p class="text-muted mb-0">No hay usuarios registrados</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Estadísticas de Usuarios -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Estadísticas de Usuarios</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="border rounded p-3">
+                                <h4 class="mb-0 text-primary">{{ total_users }}</h4>
+                                <small class="text-muted">Total Usuarios</small>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="border rounded p-3">
+                                <h4 class="mb-0 text-success">{{ active_users }}</h4>
+                                <small class="text-muted">Usuarios Activos</small>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="border rounded p-3">
+                                <h4 class="mb-0 text-info">{{ total_players }}</h4>
+                                <small class="text-muted">Jugadores Registrados</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Acciones Rápidas -->
             <div class="card shadow">
                 <div class="card-header py-3">
@@ -276,6 +364,11 @@
                         <a href="{% url 'events:calendar' %}" class="btn btn-outline-info">
                             <i class="fas fa-calendar me-2"></i>Vista de Calendario
                         </a>
+                        {% if user.is_staff %}
+                        <a href="/admin/auth/user/" class="btn btn-outline-primary">
+                            <i class="fas fa-users me-2"></i>Gestionar Usuarios
+                        </a>
+                        {% endif %}
                         <a href="/admin/" class="btn btn-outline-secondary" target="_blank">
                             <i class="fas fa-cog me-2"></i>Panel de Administración
                         </a>

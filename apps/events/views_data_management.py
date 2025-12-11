@@ -50,8 +50,8 @@ class EventContactListView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context["search"] = self.request.GET.get("search", "")
         context["status_filter"] = self.request.GET.get("status", "")
-        context["active_section"] = "data_management"
-        context["active_subsection"] = "event_contacts"
+        context["active_section"] = "contacts"
+        context["active_subsection"] = "contact_list"
         return context
 
 
@@ -62,8 +62,8 @@ class EventContactDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["active_section"] = "data_management"
-        context["active_subsection"] = "event_contacts"
+        context["active_section"] = "contacts"
+        context["active_subsection"] = "contact_list"
         return context
 
 
@@ -75,8 +75,8 @@ class EventContactCreateView(LoginRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["active_section"] = "data_management"
-        context["active_subsection"] = "event_contacts"
+        context["active_section"] = "contacts"
+        context["active_subsection"] = "contact_create"
         return context
 
     def form_valid(self, form):
@@ -92,8 +92,8 @@ class EventContactUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["active_section"] = "data_management"
-        context["active_subsection"] = "event_contacts"
+        context["active_section"] = "contacts"
+        context["active_subsection"] = "contact_list"
         # Pasar datos del objeto para inicializar JavaScript
         if self.object:
             context["initial_country_id"] = self.object.country_id
@@ -113,8 +113,8 @@ class EventContactDeleteView(LoginRequiredMixin, DeleteView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["active_section"] = "data_management"
-        context["active_subsection"] = "event_contacts"
+        context["active_section"] = "contacts"
+        context["active_subsection"] = "contact_list"
         return context
 
     def delete(self, request, *args, **kwargs):
@@ -308,4 +308,8 @@ class GateFeeTypeDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, "Tipo de gate fee eliminado exitosamente.")
         return super().delete(request, *args, **kwargs)
+
+
+
+
 

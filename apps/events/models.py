@@ -388,14 +388,12 @@ class Event(models.Model):
         help_text="Hoteles adicionales donde se alojarán los participantes del evento",
         verbose_name="Hoteles Adicionales",
     )
-    event_contact = models.ForeignKey(
+    event_contact = models.ManyToManyField(
         "events.EventContact",
-        on_delete=models.SET_NULL,
-        null=True,
         blank=True,
         related_name="events",
-        help_text="Persona de contacto para el evento",
-        verbose_name="Contacto del Evento",
+        help_text="Personas de contacto para el evento",
+        verbose_name="Contactos del Evento",
     )
     email_welcome_body = models.TextField(
         blank=True,
@@ -588,6 +586,18 @@ class EventContact(models.Model):
         help_text="Nombre completo de la persona de contacto",
         verbose_name="Nombre",
     )
+    position = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Cargo o posición (ej: Director Ejecutivo, Coordinador, Manager)",
+        verbose_name="Cargo",
+    )
+    organization = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Organización o empresa a la que pertenece",
+        verbose_name="Organización",
+    )
     photo = models.ImageField(
         upload_to="event_contacts/",
         blank=True,
@@ -649,9 +659,26 @@ class EventContact(models.Model):
     )
 
     class Meta:
-        verbose_name = "Contacto de Evento"
-        verbose_name_plural = "Contactos de Eventos"
+        verbose_name = "Contacto"
+        verbose_name_plural = "Contactos"
         ordering = ["name"]
 
     def __str__(self):
+        if self.position and self.organization:
+            return f"{self.name} - {self.position} ({self.organization})"
+        elif self.position:
+            return f"{self.name} - {self.position}"
+        elif self.organization:
+            return f"{self.name} ({self.organization})"
         return self.name
+    
+    @property
+    def display_title(self):
+        """Retorna el cargo y organización formateado"""
+        if self.position and self.organization:
+            return f"{self.position} en {self.organization}"
+        elif self.position:
+            return self.position
+        elif self.organization:
+            return self.organization
+        return ""

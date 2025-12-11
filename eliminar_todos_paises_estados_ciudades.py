@@ -87,3 +87,7 @@ if remaining_hotels > 0:
     )
 
 print("\n" + "=" * 60)
+
+
+
+

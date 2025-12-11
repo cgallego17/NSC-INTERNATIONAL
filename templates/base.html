@@ -220,6 +220,17 @@
             <a class="link{% if active_subsection == 'hotel_reservation_list' %} active{% endif %}" href="{% url 'locations:admin_hotel_reservation_list' %}">Reservas</a>
         </div>
 
+        <!-- Contactos -->
+        <button class="sb-item w-100{% if active_section == 'contacts' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbContacts" aria-expanded="{% if active_section == 'contacts' %}true{% else %}false{% endif %}" data-bs-title="Contactos">
+            <i class="sb-ico bi bi-people"></i>
+            <span class="hide-mini">Contactos</span>
+            <i class="sb-right bi {% if active_section == 'contacts' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
+        </button>
+        <div id="sbContacts" class="collapse sb-sub{% if active_section == 'contacts' %} show{% endif %}">
+            <a class="link{% if active_subsection == 'contact_list' %} active{% endif %}" href="{% url 'events:eventcontact_list' %}">Lista de Contactos</a>
+            <a class="link{% if active_subsection == 'contact_create' %} active{% endif %}" href="{% url 'events:eventcontact_create' %}">Crear Contacto</a>
+        </div>
+
         <!-- Gestión de Datos -->
         <button class="sb-item w-100{% if active_section == 'data_management' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbDataManagement" aria-expanded="{% if active_section == 'data_management' %}true{% else %}false{% endif %}" data-bs-title="Gestión de Datos">
             <i class="sb-ico bi bi-database"></i>
@@ -227,7 +238,6 @@
             <i class="sb-right bi {% if active_section == 'data_management' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
         </button>
         <div id="sbDataManagement" class="collapse sb-sub{% if active_section == 'data_management' %} show{% endif %}">
-            <a class="link{% if active_subsection == 'event_contacts' %} active{% endif %}" href="{% url 'events:eventcontact_list' %}">Contactos de Eventos</a>
             <a class="link{% if active_subsection == 'event_types' %} active{% endif %}" href="{% url 'events:eventtype_list' %}">Tipos de Evento</a>
             <a class="link{% if active_subsection == 'gate_fee_types' %} active{% endif %}" href="{% url 'events:gatefeetype_list' %}">Tipos de Gate Fee</a>
         </div>
@@ -243,6 +253,18 @@
             <a class="link{% if active_subsection == 'rules' %} active{% endif %}" href="{% url 'locations:rule_list' %}">Reglas</a>
             <a class="link{% if active_subsection == 'division_list' %} active{% endif %}" href="{% url 'events:division_list' %}">Divisiones</a>
         </div>
+
+        <!-- Usuarios (solo staff) -->
+        {% if user.is_staff or user.is_superuser %}
+        <button class="sb-item w-100{% if active_section == 'users' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbUsers" aria-expanded="{% if active_section == 'users' %}true{% else %}false{% endif %}" data-bs-title="Usuarios">
+            <i class="sb-ico bi bi-people"></i>
+            <span class="hide-mini">Usuarios</span>
+            <i class="sb-right bi {% if active_section == 'users' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
+        </button>
+        <div id="sbUsers" class="collapse sb-sub{% if active_section == 'users' %} show{% endif %}">
+            <a class="link{% if active_subsection == 'user_list' %} active{% endif %}" href="{% url 'accounts:user_list' %}">Lista de Usuarios</a>
+        </div>
+        {% endif %}
 
         <!-- Jugadores -->
         <button class="sb-item w-100{% if active_section == 'players' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbPlayers" aria-expanded="{% if active_section == 'players' %}true{% else %}false{% endif %}" data-bs-title="Jugadores">
@@ -260,12 +282,6 @@
             <a href="#" class="sb-item" data-bs-title="Reportes">
                 <i class="sb-ico bi bi-graph-up"></i>
                 <span class="hide-mini">Reportes</span>
-            </a>
-
-            <!-- Configuración -->
-            <a href="#" class="sb-item" data-bs-title="Configuración">
-                <i class="sb-ico bi bi-gear"></i>
-                <span class="hide-mini">Configuración</span>
             </a>
         </nav>
     </aside>

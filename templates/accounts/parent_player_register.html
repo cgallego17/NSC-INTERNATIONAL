@@ -646,6 +646,350 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const birthDateField = document.getElementById('id_birth_date');
+        const gradeField = document.getElementById('id_grade');
+        const divisionField = document.getElementById('id_division');
+        
+        console.log('Inicializando cálculo de división y grado:', {
+            birthDateField: !!birthDateField,
+            gradeField: !!gradeField,
+            divisionField: !!divisionField
+        });
+        
+        if (!birthDateField) {
+            console.warn('Campo de fecha de nacimiento no encontrado');
+            return;
+        }
+        
+        if (!gradeField) {
+            console.warn('Campo de grado no encontrado. ID buscado: id_grade');
+            // Intentar encontrar el campo con otro método
+            const gradeFieldAlt = document.querySelector('select[name="grade"]');
+            if (gradeFieldAlt) {
+                console.log('Campo de grado encontrado con selector alternativo');
+            }
+        }
+        
+        if (!divisionField) {
+            console.warn('Campo de división no encontrado. ID buscado: id_division');
+        }
+        
+        // Función para calcular la edad al 30 de abril
+        function calculateAgeAsOfApril30(birthDate) {
+            if (!birthDate) return null;
+            
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            
+            // Fecha de corte: 30 de abril
+            const cutoffDate = new Date(currentYear, 3, 30); // Mes 3 = abril (0-indexed)
+            
+            // Calcular edad
+            let age = cutoffDate.getFullYear() - birthDate.getFullYear();
+            const monthDiff = cutoffDate.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && cutoffDate.getDate() < birthDate.getDate())) {
+                age -= 1;
+            }
+            
+            return age;
+        }
+        
+        // Función para obtener la división basada en la edad
+        function getAgeBasedDivision(age) {
+            if (age === null || age === undefined || age < 5) {
+                return null;
+            }
+            
+            if (age >= 18) {
+                return '18U';
+            }
+            
+            const divisionMap = {
+                5: '05U',
+                6: '06U',
+                7: '07U',
+                8: '08U',
+                9: '09U',
+                10: '10U',
+                11: '11U',
+                12: '12U',
+                13: '13U',
+                14: '14U',
+                15: '15U',
+                16: '16U',
+                17: '17U',
+            };
+            
+            return divisionMap[age] || null;
+        }
+        
+        // Función para sugerir el grado basado en la edad
+        function suggestGradeFromAge(age) {
+            if (age === null || age === undefined) {
+                return null;
+            }
+            
+            // Mapeo aproximado de edad a grado
+            // Esto es una aproximación, ya que el grado real depende del mes de nacimiento
+            const ageToGradeMap = {
+                4: 'pre_k',
+                5: 'kindergarten',
+                6: '1st',
+                7: '2nd',
+                8: '3rd',
+                9: '4th',
+                10: '5th',
+                11: '6th',
+                12: '7th',
+                13: '8th',
+                14: '9th',
+                15: '10th',
+                16: '11th',
+                17: '12th',
+                18: '12th',
+            };
+            
+            return ageToGradeMap[age] || null;
+        }
+        
+        // Función para actualizar división y grado
+        function updateDivisionAndGrade() {
+            const birthDateValue = birthDateField.value;
+            
+            if (!birthDateValue) {
+                // Si no hay fecha, limpiar sugerencias
+                if (divisionField && !divisionField.value) {
+                    divisionField.value = '';
+                }
+                if (gradeField && !gradeField.value) {
+                    gradeField.value = '';
+                }
+                return;
+            }
+            
+            const birthDate = new Date(birthDateValue);
+            const age = calculateAgeAsOfApril30(birthDate);
+            
+            console.log('Fecha de nacimiento:', birthDateValue);
+            console.log('Edad al 30 de abril:', age);
+            
+            // Calcular y sugerir división
+            if (age !== null) {
+                const suggestedDivision = getAgeBasedDivision(age);
+                const suggestedGrade = suggestGradeFromAge(age);
+                
+                console.log('División sugerida:', suggestedDivision);
+                console.log('Grado sugerido:', suggestedGrade);
+                
+                // Actualizar división
+                if (divisionField && suggestedDivision) {
+                    // Si el campo está vacío, actualizar automáticamente
+                    if (!divisionField.value || divisionField.value === '') {
+                        divisionField.value = suggestedDivision;
+                        divisionField.dataset.autoSet = 'true';
+                        
+                        // Mostrar mensaje informativo
+                        showInfoMessage('division', `División sugerida: ${suggestedDivision} (basada en edad al 30 de abril). Puede cambiarla manualmente si es necesario.`);
+                    } else if (divisionField.dataset.autoSet === 'true') {
+                        // Si fue establecido automáticamente anteriormente, actualizar
+                        divisionField.value = suggestedDivision;
+                        divisionField.dataset.lastAutoValue = suggestedDivision;
+                        showInfoMessage('division', `División actualizada: ${suggestedDivision} (basada en edad al 30 de abril). Puede cambiarla manualmente si es necesario.`);
+                    } else {
+                        // El usuario lo cambió manualmente, solo mostrar información
+                        const currentText = divisionField.options[divisionField.selectedIndex]?.text || divisionField.value;
+                        showInfoMessage('division', `División sugerida basada en edad: ${suggestedDivision}. Actualmente seleccionada: ${currentText}`);
+                    }
+                }
+                
+                // Actualizar grado
+                if (gradeField && suggestedGrade) {
+                    console.log('Actualizando grado. Campo encontrado:', !!gradeField);
+                    console.log('Grado sugerido:', suggestedGrade);
+                    console.log('Valor actual del campo:', gradeField.value);
+                    console.log('Opciones disponibles:', Array.from(gradeField.options).map(opt => opt.value));
+                    
+                    // Verificar que el valor sugerido existe en las opciones
+                    const optionExists = Array.from(gradeField.options).some(opt => opt.value === suggestedGrade);
+                    if (!optionExists) {
+                        console.warn('El grado sugerido no existe en las opciones:', suggestedGrade);
+                        showInfoMessage('grade', `Grado sugerido: ${getGradeLabel(suggestedGrade)} (no disponible en las opciones). Por favor seleccione manualmente.`);
+                        return;
+                    }
+                    
+                    // Verificar si el campo está vacío o tiene el valor por defecto (primera opción vacía)
+                    const isEmpty = !gradeField.value || gradeField.value === '' || gradeField.value === null;
+                    const hasDefaultEmptyOption = gradeField.selectedIndex === 0 && (!gradeField.value || gradeField.value === '');
+                    
+                    // Si el campo está vacío o tiene solo la opción por defecto, actualizar automáticamente
+                    if (isEmpty || hasDefaultEmptyOption) {
+                        // Establecer el valor
+                        gradeField.value = suggestedGrade;
+                        
+                        // Verificar que se estableció correctamente
+                        if (gradeField.value === suggestedGrade) {
+                            gradeField.dataset.autoSet = 'true';
+                            gradeField.dataset.lastAutoValue = suggestedGrade;
+                            
+                            console.log('Grado establecido automáticamente:', gradeField.value);
+                            
+                            // Forzar el evento change para asegurar que se actualice visualmente
+                            const changeEvent = new Event('change', { bubbles: true });
+                            gradeField.dispatchEvent(changeEvent);
+                            
+                            // También disparar el evento input para algunos navegadores
+                            const inputEvent = new Event('input', { bubbles: true });
+                            gradeField.dispatchEvent(inputEvent);
+                            
+                            // Mostrar mensaje informativo
+                            showInfoMessage('grade', `Grado sugerido: ${getGradeLabel(suggestedGrade)} (aproximado basado en edad). Puede cambiarlo manualmente si es necesario.`);
+                        } else {
+                            console.error('Error: No se pudo establecer el valor del grado. Valor intentado:', suggestedGrade, 'Valor actual:', gradeField.value);
+                            showInfoMessage('grade', `Grado sugerido: ${getGradeLabel(suggestedGrade)}. Por favor seleccione manualmente.`);
+                        }
+                    } else if (gradeField.dataset.autoSet === 'true') {
+                        // Si fue establecido automáticamente anteriormente, actualizar
+                        gradeField.value = suggestedGrade;
+                        gradeField.dataset.lastAutoValue = suggestedGrade;
+                        
+                        console.log('Grado actualizado automáticamente:', gradeField.value);
+                        
+                        // Forzar el evento change
+                        gradeField.dispatchEvent(new Event('change', { bubbles: true }));
+                        
+                        showInfoMessage('grade', `Grado actualizado: ${getGradeLabel(suggestedGrade)} (aproximado basado en edad). Puede cambiarlo manualmente si es necesario.`);
+                    } else {
+                        // El usuario lo cambió manualmente, solo mostrar información
+                        const currentText = gradeField.options[gradeField.selectedIndex]?.text || gradeField.value;
+                        showInfoMessage('grade', `Grado sugerido basado en edad: ${getGradeLabel(suggestedGrade)}. Actualmente seleccionado: ${currentText}`);
+                    }
+                } else {
+                    console.warn('No se pudo actualizar el grado:', {
+                        gradeField: !!gradeField,
+                        suggestedGrade: suggestedGrade
+                    });
+                }
+            } else {
+                console.warn('No se pudo calcular la edad');
+            }
+        }
+        
+        // Función para obtener la etiqueta del grado
+        function getGradeLabel(gradeValue) {
+            const gradeLabels = {
+                'pre_k': 'Pre-K',
+                'kindergarten': 'Kindergarten',
+                '1st': '1st Grade',
+                '2nd': '2nd Grade',
+                '3rd': '3rd Grade',
+                '4th': '4th Grade',
+                '5th': '5th Grade',
+                '6th': '6th Grade',
+                '7th': '7th Grade',
+                '8th': '8th Grade',
+                '9th': '9th Grade',
+                '10th': '10th Grade',
+                '11th': '11th Grade',
+                '12th': '12th Grade',
+            };
+            return gradeLabels[gradeValue] || gradeValue;
+        }
+        
+        // Función para mostrar mensaje informativo
+        function showInfoMessage(fieldType, message) {
+            // Remover mensajes anteriores
+            const existingMessage = document.getElementById(`${fieldType}_info_message`);
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            // Crear nuevo mensaje
+            const infoDiv = document.createElement('div');
+            infoDiv.id = `${fieldType}_info_message`;
+            infoDiv.className = 'alert alert-info mt-2 mb-0';
+            infoDiv.style.fontSize = '0.85rem';
+            infoDiv.innerHTML = `<i class="fas fa-info-circle me-2"></i>${message}`;
+            
+            // Insertar después del campo correspondiente
+            const targetField = fieldType === 'division' ? divisionField : gradeField;
+            if (targetField) {
+                const parentDiv = targetField.closest('.mb-3');
+                if (parentDiv) {
+                    parentDiv.appendChild(infoDiv);
+                    
+                    // Remover el mensaje después de 5 segundos
+                    setTimeout(() => {
+                        if (infoDiv.parentNode) {
+                            infoDiv.style.transition = 'opacity 0.5s';
+                            infoDiv.style.opacity = '0';
+                            setTimeout(() => {
+                                if (infoDiv.parentNode) {
+                                    infoDiv.remove();
+                                }
+                            }, 500);
+                        }
+                    }, 5000);
+                }
+            }
+        }
+        
+        // Escuchar cambios en la fecha de nacimiento
+        birthDateField.addEventListener('change', function() {
+            console.log('Fecha de nacimiento cambiada:', this.value);
+            updateDivisionAndGrade();
+        });
+        birthDateField.addEventListener('blur', function() {
+            console.log('Fecha de nacimiento perdió el foco:', this.value);
+            updateDivisionAndGrade();
+        });
+        
+        // También escuchar el evento input para capturar cambios más rápido
+        birthDateField.addEventListener('input', function() {
+            if (this.value) {
+                console.log('Fecha de nacimiento input:', this.value);
+                // Usar un pequeño delay para asegurar que el valor esté completamente establecido
+                setTimeout(updateDivisionAndGrade, 100);
+            }
+        });
+        
+        // Escuchar cambios manuales en división y grado para detectar cuando el usuario los cambia
+        if (divisionField) {
+            divisionField.addEventListener('change', function() {
+                // Si el usuario cambia manualmente, marcar que no fue automático
+                if (this.dataset.autoSet === 'true' && this.value !== this.dataset.lastAutoValue) {
+                    this.dataset.autoSet = 'false';
+                }
+                this.dataset.lastAutoValue = this.value;
+            });
+        }
+        
+        if (gradeField) {
+            gradeField.addEventListener('change', function() {
+                // Si el usuario cambia manualmente, marcar que no fue automático
+                if (this.dataset.autoSet === 'true' && this.value !== this.dataset.lastAutoValue) {
+                    this.dataset.autoSet = 'false';
+                }
+                this.dataset.lastAutoValue = this.value;
+            });
+        }
+        
+        // Si ya hay una fecha de nacimiento al cargar la página (modo edición), calcular automáticamente
+        if (birthDateField.value) {
+            // Si los campos ya tienen valores, asumir que fueron establecidos manualmente
+            if (divisionField && divisionField.value) {
+                divisionField.dataset.autoSet = 'false';
+            }
+            if (gradeField && gradeField.value) {
+                gradeField.dataset.autoSet = 'false';
+            }
+            updateDivisionAndGrade();
+        }
+    });
+    </script>
 </body>
 </html>
 

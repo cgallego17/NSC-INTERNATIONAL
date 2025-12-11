@@ -94,18 +94,20 @@
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="form-group mb-3">
-                                        <label for="country" class="form-label">
+                                        <label for="country_search" class="form-label">
                                             <i class="fas fa-flag me-1"></i>País
                                         </label>
-                                        <select id="country" name="country" class="form-select">
-                                            <option value="">Selecciona País</option>
-                                            {% for choice in form.country.field.queryset %}
-                                                <option value="{{ choice.id }}" 
-                                                        {% if form.country.value == choice.id %}selected{% endif %}>
-                                                    {{ choice.name }}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
+                                        <div class="autocomplete-wrapper">
+                                            <input 
+                                                type="text" 
+                                                id="country_search" 
+                                                class="form-control autocomplete-input" 
+                                                placeholder="Buscar país..."
+                                                autocomplete="off"
+                                            />
+                                            <div id="country_suggestions" class="autocomplete-suggestions"></div>
+                                        </div>
+                                        <input type="hidden" id="id_country" name="country" value="{% if form.country.value %}{{ form.country.value }}{% endif %}" />
                                         {% if form.country.errors %}
                                             <div class="text-danger">{{ form.country.errors.0 }}</div>
                                         {% endif %}
@@ -113,18 +115,21 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group mb-3">
-                                        <label for="state" class="form-label">
+                                        <label for="state_search" class="form-label">
                                             <i class="fas fa-map me-1"></i>Estado
                                         </label>
-                                        <select id="state" name="state" class="form-select">
-                                            <option value="">Selecciona Estado</option>
-                                            {% for choice in form.state.field.queryset %}
-                                                <option value="{{ choice.id }}" 
-                                                        {% if form.state.value == choice.id %}selected{% endif %}>
-                                                    {{ choice.name }}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
+                                        <div class="autocomplete-wrapper">
+                                            <input 
+                                                type="text" 
+                                                id="state_search" 
+                                                class="form-control autocomplete-input" 
+                                                placeholder="Buscar estado..."
+                                                autocomplete="off"
+                                                disabled
+                                            />
+                                            <div id="state_suggestions" class="autocomplete-suggestions"></div>
+                                        </div>
+                                        <input type="hidden" id="id_state" name="state" value="{% if form.state.value %}{{ form.state.value }}{% endif %}" />
                                         {% if form.state.errors %}
                                             <div class="text-danger">{{ form.state.errors.0 }}</div>
                                         {% endif %}
@@ -132,18 +137,21 @@
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group mb-3">
-                                        <label for="city" class="form-label">
+                                        <label for="city_search" class="form-label">
                                             <i class="fas fa-city me-1"></i>Ciudad
                                         </label>
-                                        <select id="city" name="city" class="form-select">
-                                            <option value="">Selecciona Ciudad</option>
-                                            {% for choice in form.city.field.queryset %}
-                                                <option value="{{ choice.id }}" 
-                                                        {% if form.city.value == choice.id %}selected{% endif %}>
-                                                    {{ choice.name }}
-                                                </option>
-                                            {% endfor %}
-                                        </select>
+                                        <div class="autocomplete-wrapper">
+                                            <input 
+                                                type="text" 
+                                                id="city_search" 
+                                                class="form-control autocomplete-input" 
+                                                placeholder="Buscar ciudad..."
+                                                autocomplete="off"
+                                                disabled
+                                            />
+                                            <div id="city_suggestions" class="autocomplete-suggestions"></div>
+                                        </div>
+                                        <input type="hidden" id="id_city" name="city" value="{% if form.city.value %}{{ form.city.value }}{% endif %}" />
                                         {% if form.city.errors %}
                                             <div class="text-danger">{{ form.city.errors.0 }}</div>
                                         {% endif %}
@@ -486,6 +494,102 @@
     box-shadow: 0 0 0 0.2rem rgba(107, 114, 128, 0.25);
 }
 
+/* Estilos para autocomplete */
+.autocomplete-wrapper {
+    position: relative;
+}
+
+.autocomplete-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ced4da;
+    border-top: none;
+    border-radius: 0 0 0.35rem 0.35rem;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] .autocomplete-suggestions {
+    background: #374151;
+    border-color: #4b5563;
+}
+
+.autocomplete-suggestions.show {
+    display: block;
+}
+
+.autocomplete-suggestion {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+}
+
+[data-theme="dark"] .autocomplete-suggestion {
+    border-bottom-color: #4b5563;
+}
+
+.autocomplete-suggestion:hover,
+.autocomplete-suggestion.highlighted {
+    background-color: #f8f9fa;
+}
+
+[data-theme="dark"] .autocomplete-suggestion:hover,
+[data-theme="dark"] .autocomplete-suggestion.highlighted {
+    background-color: #4b5563;
+}
+
+.autocomplete-suggestion:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-suggestion .suggestion-name {
+    font-weight: 500;
+    color: #212529;
+}
+
+.autocomplete-suggestion .suggestion-name strong {
+    font-weight: 700;
+    color: #0d6efd;
+    background-color: #fff3cd;
+    padding: 0 2px;
+    border-radius: 2px;
+}
+
+[data-theme="dark"] .autocomplete-suggestion .suggestion-name {
+    color: #f9fafb;
+}
+
+[data-theme="dark"] .autocomplete-suggestion .suggestion-name strong {
+    color: #60a5fa;
+    background-color: #1e3a8a;
+}
+
+.autocomplete-suggestion .suggestion-meta {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+[data-theme="dark"] .autocomplete-suggestion .suggestion-meta {
+    color: #9ca3af;
+}
+
+.autocomplete-suggestion .fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 .photo-preview-wrapper {
     position: relative;
     display: inline-block;
@@ -576,8 +680,327 @@ document.getElementById('photo').addEventListener('change', function(e) {
         }
     }
 });
+
+// Autocomplete para país, estado y ciudad
+document.addEventListener('DOMContentLoaded', function() {
+    const countryInput = document.getElementById('country_search');
+    const countryHidden = document.getElementById('id_country');
+    const countrySuggestions = document.getElementById('country_suggestions');
+    
+    const stateInput = document.getElementById('state_search');
+    const stateHidden = document.getElementById('id_state');
+    const stateSuggestions = document.getElementById('state_suggestions');
+    
+    const cityInput = document.getElementById('city_search');
+    const cityHidden = document.getElementById('id_city');
+    const citySuggestions = document.getElementById('city_suggestions');
+    
+    let selectedCountryId = null;
+    let selectedStateId = null;
+    let countrySearchTimeout = null;
+    let stateSearchTimeout = null;
+    let citySearchTimeout = null;
+    
+    function highlightMatch(text, query) {
+        if (!query) return text;
+        
+        // Normalizar para comparar sin tildes
+        const normalize = (str) => {
+            return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        };
+        
+        const normalizedText = normalize(text);
+        const normalizedQuery = normalize(query);
+        
+        if (!normalizedText.includes(normalizedQuery)) {
+            return text;
+        }
+        
+        // Crear un mapeo de posiciones normalizadas a posiciones originales
+        const positionMap = [];
+        let normalizedPos = 0;
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const normalizedChar = normalize(char);
+            for (let j = 0; j < normalizedChar.length; j++) {
+                positionMap[normalizedPos] = i;
+                normalizedPos++;
+            }
+        }
+        
+        // Encontrar la posición de coincidencia
+        const startIndex = normalizedText.indexOf(normalizedQuery);
+        if (startIndex === -1) {
+            return text;
+        }
+        
+        const endIndex = startIndex + normalizedQuery.length;
+        const originalStart = positionMap[startIndex] || 0;
+        const originalEnd = positionMap[endIndex - 1] !== undefined ? positionMap[endIndex - 1] + 1 : text.length;
+        
+        // Construir el resultado resaltando la parte que coincide
+        const before = text.substring(0, originalStart);
+        const match = text.substring(originalStart, originalEnd);
+        const after = text.substring(originalEnd);
+        
+        return before + '<strong>' + match + '</strong>' + after;
+    }
+    
+    function renderSuggestions(container, items, input, hidden, query, onSelect) {
+        container.innerHTML = '';
+        
+        if (items.length === 0) {
+            container.innerHTML = '<div class="autocomplete-suggestion"><span class="text-muted">No se encontraron resultados</span></div>';
+            container.classList.add('show');
+            return;
+        }
+        
+        items.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'autocomplete-suggestion';
+            
+            // Resaltar coincidencias en el nombre
+            const highlightedName = highlightMatch(item.name, query);
+            
+            div.innerHTML = `
+                <div class="suggestion-name">${highlightedName}</div>
+                ${item.code ? `<div class="suggestion-meta">Código: ${item.code}</div>` : ''}
+            `;
+            
+            div.addEventListener('click', function() {
+                input.value = item.name;
+                hidden.value = item.id;
+                container.classList.remove('show');
+                
+                if (onSelect) {
+                    onSelect(item);
+                }
+            });
+            
+            // Resaltar al pasar el mouse
+            div.addEventListener('mouseenter', function() {
+                this.classList.add('highlighted');
+            });
+            
+            div.addEventListener('mouseleave', function() {
+                this.classList.remove('highlighted');
+            });
+            
+            container.appendChild(div);
+        });
+        
+        container.classList.add('show');
+    }
+    
+    // Autocomplete para país
+    countryInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        clearTimeout(countrySearchTimeout);
+        
+        if (query.length === 0) {
+            countrySuggestions.classList.remove('show');
+            return;
+        }
+        
+        // Mostrar indicador de carga
+        countrySuggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Buscando...</span></div>';
+        countrySuggestions.classList.add('show');
+        
+        countrySearchTimeout = setTimeout(() => {
+            const url = `/locations/countries/api/?q=${encodeURIComponent(query)}`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    renderSuggestions(countrySuggestions, data, countryInput, countryHidden, query, function(country) {
+                        selectedCountryId = country.id;
+                        // Limpiar estado y ciudad
+                        stateInput.value = '';
+                        stateHidden.value = '';
+                        stateInput.setAttribute('disabled', 'disabled');
+                        cityInput.value = '';
+                        cityHidden.value = '';
+                        cityInput.setAttribute('disabled', 'disabled');
+                        // Habilitar búsqueda de estados
+                        stateInput.removeAttribute('disabled');
+                    });
+                })
+                .catch(error => {
+                    console.error('Error en búsqueda de países:', error);
+                    countrySuggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-danger">Error al buscar</span></div>';
+                });
+        }, 150);
+    });
+    
+    countryInput.addEventListener('focus', function() {
+        if (countrySuggestions.querySelectorAll('.autocomplete-suggestion').length > 0) {
+            countrySuggestions.classList.add('show');
+        }
+    });
+    
+    // Autocomplete para estado (con filtro por país)
+    stateInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        clearTimeout(stateSearchTimeout);
+        
+        if (query.length === 0) {
+            stateSuggestions.classList.remove('show');
+            return;
+        }
+        
+        if (!selectedCountryId) {
+            stateSuggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-muted">Seleccione primero un país</span></div>';
+            stateSuggestions.classList.add('show');
+            return;
+        }
+        
+        // Mostrar indicador de carga
+        stateSuggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Buscando...</span></div>';
+        stateSuggestions.classList.add('show');
+        
+        stateSearchTimeout = setTimeout(() => {
+            const url = `/locations/states/api/?country=${selectedCountryId}&q=${encodeURIComponent(query)}`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    renderSuggestions(stateSuggestions, data, stateInput, stateHidden, query, function(state) {
+                        selectedStateId = state.id;
+                        // Limpiar ciudad
+                        cityInput.value = '';
+                        cityHidden.value = '';
+                        cityInput.setAttribute('disabled', 'disabled');
+                        // Habilitar búsqueda de ciudades
+                        cityInput.removeAttribute('disabled');
+                    });
+                })
+                .catch(error => {
+                    console.error('Error en búsqueda de estados:', error);
+                    stateSuggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-danger">Error al buscar</span></div>';
+                });
+        }, 150);
+    });
+    
+    stateInput.addEventListener('focus', function() {
+        if (stateSuggestions.querySelectorAll('.autocomplete-suggestion').length > 0) {
+            stateSuggestions.classList.add('show');
+        }
+    });
+    
+    // Autocomplete para ciudad (con filtro por estado)
+    cityInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        
+        clearTimeout(citySearchTimeout);
+        
+        if (query.length === 0) {
+            citySuggestions.classList.remove('show');
+            return;
+        }
+        
+        if (!selectedStateId) {
+            citySuggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-muted">Seleccione primero un estado</span></div>';
+            citySuggestions.classList.add('show');
+            return;
+        }
+        
+        // Mostrar indicador de carga
+        citySuggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Buscando...</span></div>';
+        citySuggestions.classList.add('show');
+        
+        citySearchTimeout = setTimeout(() => {
+            const url = `/locations/cities/api/?state=${selectedStateId}&q=${encodeURIComponent(query)}`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    renderSuggestions(citySuggestions, data, cityInput, cityHidden, query);
+                })
+                .catch(error => {
+                    console.error('Error en búsqueda de ciudades:', error);
+                    citySuggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-danger">Error al buscar</span></div>';
+                });
+        }, 150);
+    });
+    
+    cityInput.addEventListener('focus', function() {
+        if (citySuggestions.querySelectorAll('.autocomplete-suggestion').length > 0) {
+            citySuggestions.classList.add('show');
+        }
+    });
+    
+    // Cerrar sugerencias al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        if (!countryInput.contains(e.target) && !countrySuggestions.contains(e.target)) {
+            countrySuggestions.classList.remove('show');
+        }
+        if (!stateInput.contains(e.target) && !stateSuggestions.contains(e.target)) {
+            stateSuggestions.classList.remove('show');
+        }
+        if (!cityInput.contains(e.target) && !citySuggestions.contains(e.target)) {
+            citySuggestions.classList.remove('show');
+        }
+    });
+    
+    // Cargar valores iniciales si existen (para edición) - Carga secuencial
+    {% if form.country.value %}
+        const initialCountryId = {{ form.country.value }};
+        const initialStateId = {% if form.state.value %}{{ form.state.value }}{% else %}null{% endif %};
+        const initialCityId = {% if form.city.value %}{{ form.city.value }}{% else %}null{% endif %};
+        
+        // Cargar país primero usando ID específico
+        fetch(`/locations/countries/api/?id=${initialCountryId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    const country = data[0];
+                    countryInput.value = country.name;
+                    countryHidden.value = country.id;
+                    selectedCountryId = country.id;
+                    stateInput.removeAttribute('disabled');
+                    
+                    // Si hay estado, cargarlo después del país usando ID específico
+                    if (initialStateId) {
+                        return fetch(`/locations/states/api/?id=${initialStateId}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data && data.length > 0) {
+                                    const state = data[0];
+                                    stateInput.value = state.name;
+                                    stateHidden.value = state.id;
+                                    selectedStateId = state.id;
+                                    cityInput.removeAttribute('disabled');
+                                    
+                                    // Si hay ciudad, cargarla después del estado usando ID específico
+                                    if (initialCityId) {
+                                        return fetch(`/locations/cities/api/?id=${initialCityId}`)
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                if (data && data.length > 0) {
+                                                    const city = data[0];
+                                                    cityInput.value = city.name;
+                                                    cityHidden.value = city.id;
+                                                }
+                                            });
+                                    }
+                                }
+                            });
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error al cargar valores iniciales:', error);
+            });
+    {% endif %}
+});
 </script>
 {% endblock %}
+
+
+
+
 
 
 

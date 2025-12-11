@@ -90,3 +90,7 @@ print("   - Las relaciones con eventos han sido limpiadas")
 print("   - Puedes agregar nuevas divisiones desde el admin o el formulario")
 print("   - Si el servidor está corriendo, recarga la página con Ctrl+F5")
 
+
+
+
+

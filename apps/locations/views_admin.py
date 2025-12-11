@@ -25,6 +25,7 @@ from .models import (
     Site,
     State,
 )
+from .forms import HotelForm
 from apps.core.mixins import StaffRequiredMixin
 
 
@@ -784,22 +785,8 @@ class AdminHotelCreateView(StaffRequiredMixin, CreateView):
     """Crear hotel - Solo admin"""
 
     model = Hotel
+    form_class = HotelForm
     template_name = "locations/hotel_form.html"
-    fields = [
-        "hotel_name",
-        "address",
-        "city",
-        "state",
-        "country",
-        "photo",
-        "information",
-        "registration_url",
-        "capacity",
-        "contact_name",
-        "contact_email",
-        "contact_phone",
-        "is_active",
-    ]
     success_url = reverse_lazy("locations:admin_hotel_list")
 
     def form_valid(self, form):
@@ -811,22 +798,8 @@ class AdminHotelUpdateView(StaffRequiredMixin, UpdateView):
     """Actualizar hotel - Solo admin"""
 
     model = Hotel
+    form_class = HotelForm
     template_name = "locations/hotel_form.html"
-    fields = [
-        "hotel_name",
-        "address",
-        "city",
-        "state",
-        "country",
-        "photo",
-        "information",
-        "registration_url",
-        "capacity",
-        "contact_name",
-        "contact_email",
-        "contact_phone",
-        "is_active",
-    ]
     success_url = reverse_lazy("locations:admin_hotel_list")
 
     def form_valid(self, form):

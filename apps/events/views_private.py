@@ -227,6 +227,18 @@ class EventCreateView(LoginRequiredMixin, CreateView):
     template_name = "events/event_form.html"
     success_url = reverse_lazy("events:list")
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Agregar divisiones al contexto para JavaScript
+        from .models import Division
+        import json
+        divisions_queryset = Division.objects.filter(is_active=True).order_by("name")
+        context["available_divisions"] = json.dumps(
+            list(divisions_queryset.values("id", "name"))
+        )
+        context["available_divisions_count"] = divisions_queryset.count()
+        return context
+
     def form_valid(self, form):
         form.instance.organizer = self.request.user
         messages.success(self.request, "Evento creado exitosamente.")

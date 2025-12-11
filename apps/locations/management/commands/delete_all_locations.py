@@ -96,3 +96,7 @@ class Command(BaseCommand):
                     f"⚠️  Nota: Quedan {remaining_hotels} hoteles (pueden tener country/state/city en NULL)"
                 )
             )
+
+
+
+
