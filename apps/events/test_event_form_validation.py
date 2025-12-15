@@ -385,3 +385,6 @@ class EventFormValidationTest(TestCase):
             self.assertIn(self.hotel_active, event.additional_hotels.all())
 
 
+
+
+

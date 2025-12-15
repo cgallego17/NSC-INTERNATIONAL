@@ -3,9 +3,11 @@ from datetime import timedelta
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count, Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.views import View
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -209,6 +211,175 @@ class EventDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, "Evento eliminado exitosamente.")
         return super().delete(request, *args, **kwargs)
+
+
+class EventDetailAPIView(LoginRequiredMixin, View):
+    """API view para obtener detalles del evento en JSON"""
+
+    def get(self, request, pk):
+        from apps.accounts.models import Player, PlayerParent
+
+        event = get_object_or_404(
+            Event.objects.select_related(
+                "category",
+                "event_type",
+                "country",
+                "state",
+                "city",
+                "primary_site",
+                "hotel",
+                "hotel__city",
+                "hotel__city__state",
+                "hotel__city__state__country",
+                "gate_fee_type",
+            ).prefetch_related("divisions"),
+            pk=pk,
+        )
+
+        # Construir información de ubicación
+        location_parts = []
+        if event.primary_site:
+            location_parts.append(f"Lugar: {event.primary_site.site_name}")
+        if event.city:
+            location_parts.append(f"Ciudad: {event.city.name}")
+        if event.state:
+            location_parts.append(f"Estado: {event.state.name}")
+        if event.country:
+            location_parts.append(f"País: {event.country.name}")
+
+        # Obtener precios (valores por defecto si no existen)
+        entry_fee = float(event.default_entry_fee) if event.default_entry_fee else 0.0
+        gate_fee = float(event.gate_fee_amount) if event.gate_fee_amount else 0.0
+
+        # Precios adicionales (estos podrían venir de configuraciones del evento o modelos relacionados)
+        # Por ahora usamos valores por defecto o del hotel si existe
+        hotel_price = 0.0
+        hotel_info = None
+
+        if event.hotel:
+            try:
+                # Obtener información completa del hotel
+                hotel = event.hotel
+
+                # Obtener información de ubicación de forma segura
+                city_name = None
+                state_name = None
+                country_name = None
+
+                try:
+                    if hotel.city:
+                        city_name = hotel.city.name
+                        if hasattr(hotel.city, "state") and hotel.city.state:
+                            state_name = hotel.city.state.name
+                            if (
+                                hasattr(hotel.city.state, "country")
+                                and hotel.city.state.country
+                            ):
+                                country_name = hotel.city.state.country.name
+                except (AttributeError, Exception):
+                    pass
+
+                hotel_info = {
+                    "id": hotel.pk,
+                    "name": hotel.hotel_name,
+                    "address": hotel.address or "",
+                    "photo": hotel.photo.url if hotel.photo else None,
+                    "information": hotel.information or "",
+                    "registration_url": hotel.registration_url or "",
+                    "city": city_name,
+                    "state": state_name,
+                    "country": country_name,
+                }
+                # Aquí podrías obtener el precio del hotel desde el modelo Hotel
+                # Por ahora usamos un valor por defecto
+                hotel_price = 150.0  # Valor ejemplo
+            except Exception as e:
+                # Si hay algún error al obtener la información del hotel, usar valores por defecto
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error obteniendo información del hotel: {e}")
+                hotel_info = None
+                hotel_price = 150.0  # Valor ejemplo
+
+        welcome_dinner_price = 50.0  # Valor ejemplo
+        uniform_package_price = 75.0  # Valor ejemplo
+
+        # Obtener jugadores disponibles para el usuario
+        players_list = []
+        user = request.user
+        try:
+            profile = user.profile
+            if profile.is_parent:
+                # Si es padre, obtener sus hijos/jugadores
+                player_parents = PlayerParent.objects.filter(
+                    parent=user
+                ).select_related("player", "player__user", "player__user__profile")
+                for pp in player_parents:
+                    player = pp.player
+                    player_user = player.user
+                    player_profile = player_user.profile
+                    photo_url = None
+                    if player_profile and player_profile.profile_picture:
+                        photo_url = player_profile.profile_picture.url
+                    division = player.division if player.division else None
+                    players_list.append(
+                        {
+                            "id": player.pk,
+                            "name": player_user.get_full_name() or player_user.username,
+                            "division": division,
+                            "photo": photo_url,
+                        }
+                    )
+            elif profile.is_player:
+                # Si es jugador, incluirse a sí mismo
+                try:
+                    player = user.player_profile
+                    photo_url = None
+                    if profile.profile_picture:
+                        photo_url = profile.profile_picture.url
+                    division = player.division if player.division else None
+                    players_list.append(
+                        {
+                            "id": player.pk,
+                            "name": user.get_full_name() or user.username,
+                            "division": division,
+                            "photo": photo_url,
+                        }
+                    )
+                except Player.DoesNotExist:
+                    pass
+        except Exception:
+            pass
+
+        data = {
+            "id": event.pk,
+            "title": event.title,
+            "description": event.description or "",
+            "category": event.category.name if event.category else None,
+            "image": event.image.url if event.image else None,
+            "start_date": (
+                event.start_date.strftime("%d %b %Y") if event.start_date else None
+            ),
+            "end_date": event.end_date.strftime("%d %b %Y") if event.end_date else None,
+            "location_info": "<br>".join(location_parts) if location_parts else None,
+            "country": event.country.name if event.country else None,
+            "state": event.state.name if event.state else None,
+            "city": event.city.name if event.city else None,
+            "primary_site": (
+                event.primary_site.site_name if event.primary_site else None
+            ),
+            "divisions": [div.name for div in event.divisions.all()],
+            "entry_fee": entry_fee,
+            "gate_fee": gate_fee,
+            "hotel_price": hotel_price,
+            "hotel_info": hotel_info,
+            "welcome_dinner_price": welcome_dinner_price,
+            "uniform_package_price": uniform_package_price,
+            "players": players_list,
+        }
+
+        return JsonResponse(data)
 
 
 class EventCalendarView(LoginRequiredMixin, ListView):

@@ -112,4 +112,6 @@ urlpatterns = [
         views_data_management.GateFeeTypeDeleteView.as_view(),
         name="gatefeetype_delete",
     ),
+    # API endpoints
+    path("api/detail/<int:pk>/", views.EventDetailAPIView.as_view(), name="api_detail"),
 ]

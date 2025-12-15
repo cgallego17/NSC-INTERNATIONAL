@@ -75,15 +75,22 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             context["total_children"] = player_parents.count()
             context["recent_children"] = player_parents.order_by("-created_at")[:5]
 
-        # Obtener eventos próximos si existe la app events
+        # Obtener eventos para la pestaña de eventos
         try:
             from apps.events.models import Event
 
             now = timezone.now()
+            # Obtener TODOS los eventos creados (excepto cancelados)
+            # Mostrar primero los futuros, luego los pasados
             context["upcoming_events"] = (
-                Event.objects.filter(start_date__gte=now.date(), status="published")
-                .select_related("category")
-                .prefetch_related("divisions")[:5]
+                Event.objects.exclude(status="cancelled")
+                .select_related(
+                    "category", "event_type", "city", "state", "primary_site"
+                )
+                .prefetch_related("divisions")
+                .order_by(
+                    "-start_date"
+                )  # Más recientes primero (futuros y luego pasados)
             )
         except ImportError:
             context["upcoming_events"] = []
