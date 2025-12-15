@@ -111,21 +111,24 @@ class EventForm(forms.ModelForm):
                     "class": "form-control",
                     "type": "date",
                     "required": False,
-                }
+                },
+                format="%Y-%m-%d",
             ),
             "end_date": forms.DateInput(
                 attrs={
                     "class": "form-control",
                     "type": "date",
                     "required": False,
-                }
+                },
+                format="%Y-%m-%d",
             ),
             "entry_deadline": forms.DateInput(
                 attrs={
                     "class": "form-control",
                     "type": "date",
                     "required": False,
-                }
+                },
+                format="%Y-%m-%d",
             ),
             "default_entry_fee": forms.NumberInput(
                 attrs={
@@ -141,7 +144,8 @@ class EventForm(forms.ModelForm):
                     "class": "form-control",
                     "type": "date",
                     "required": False,
-                }
+                },
+                format="%Y-%m-%d",
             ),
             "gate_fee_type": forms.Select(
                 attrs={
@@ -247,13 +251,70 @@ class EventForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        # Asegurar que las fechas se formateen correctamente para inputs type="date"
+        if self.instance and self.instance.pk:
+            if self.instance.start_date:
+                self.fields["start_date"].initial = self.instance.start_date.strftime(
+                    "%Y-%m-%d"
+                )
+            if self.instance.end_date:
+                self.fields["end_date"].initial = self.instance.end_date.strftime(
+                    "%Y-%m-%d"
+                )
+            if self.instance.entry_deadline:
+                self.fields["entry_deadline"].initial = (
+                    self.instance.entry_deadline.strftime("%Y-%m-%d")
+                )
+            if self.instance.payment_deadline:
+                self.fields["payment_deadline"].initial = (
+                    self.instance.payment_deadline.strftime("%Y-%m-%d")
+                )
+
+            # Asegurar que primary_site y additional_sites estén en el queryset
+            if self.instance.primary_site:
+                # Agregar el sitio actual al queryset si no está incluido
+                current_site = self.instance.primary_site
+                if current_site not in self.fields["primary_site"].queryset:
+                    self.fields["primary_site"].queryset = Site.objects.filter(
+                        is_active=True
+                    ).order_by("site_name") | Site.objects.filter(id=current_site.id)
+
+            # Asegurar que hotel esté en el queryset y establecer el valor inicial
+            if self.instance.hotel:
+                # Agregar el hotel actual al queryset si no está incluido
+                current_hotel = self.instance.hotel
+                if current_hotel not in self.fields["hotel"].queryset:
+                    self.fields["hotel"].queryset = Hotel.objects.filter(
+                        is_active=True
+                    ).order_by("hotel_name") | Hotel.objects.filter(id=current_hotel.id)
+                # Establecer el valor inicial explícitamente
+                if not self.data:  # Solo si no hay POST (primera carga)
+                    self.fields["hotel"].initial = current_hotel
+
+            if self.instance.additional_sites.exists():
+                # Agregar los sitios actuales al queryset si no están incluidos
+                current_sites = self.instance.additional_sites.all()
+                current_site_ids = set(current_sites.values_list("id", flat=True))
+                queryset_site_ids = set(
+                    self.fields["additional_sites"].queryset.values_list(
+                        "id", flat=True
+                    )
+                )
+                missing_site_ids = current_site_ids - queryset_site_ids
+                if missing_site_ids:
+                    self.fields["additional_sites"].queryset = self.fields[
+                        "additional_sites"
+                    ].queryset | Site.objects.filter(id__in=missing_site_ids)
+
         # Configurar querysets - Optimizado para rendimiento
         # Season: generalmente pocos registros
+        # No limitar el queryset para evitar problemas de validación
         self.fields["season"].queryset = Season.objects.filter(is_active=True).order_by(
             "name"
-        )[
-            :100
-        ]  # Limitar por seguridad
+        )
+
+        if not self.fields["season"].empty_label:
+            self.fields["season"].empty_label = "Seleccione una temporada"
 
         # Event Type: Configuración simple y directa
         # Obtener todos los tipos activos
@@ -313,11 +374,13 @@ class EventForm(forms.ModelForm):
         # No necesitamos configurar querysets para estos campos
 
         # Rule: generalmente pocos registros
+        # No limitar el queryset para evitar problemas de validación
         self.fields["rule"].queryset = Rule.objects.filter(is_active=True).order_by(
             "name"
-        )[
-            :100
-        ]  # Limitar por seguridad
+        )
+
+        if not self.fields["rule"].empty_label:
+            self.fields["rule"].empty_label = "Seleccione un reglamento"
 
         # Gate Fee Type: configurar queryset
         self.fields["gate_fee_type"].queryset = GateFeeType.objects.filter(
@@ -328,58 +391,46 @@ class EventForm(forms.ModelForm):
             self.fields["gate_fee_type"].empty_label = "Seleccione un tipo de gate fee"
 
         # Primary Site: configurar queryset
-        # Filtrar sitios activos
+        # Filtrar sitios activos - sin límite para evitar problemas de validación
         self.fields["primary_site"].queryset = Site.objects.filter(
             is_active=True
-        ).order_by("site_name")[
-            :500
-        ]  # Limitar por seguridad
+        ).order_by("site_name")
 
         if not self.fields["primary_site"].empty_label:
             self.fields["primary_site"].empty_label = "Seleccione un sitio"
 
         # Additional Sites: configurar queryset (selección múltiple)
-        # Filtrar sitios activos
+        # Filtrar sitios activos - sin límite para evitar problemas de validación
         self.fields["additional_sites"].queryset = Site.objects.filter(
             is_active=True
-        ).order_by("site_name")[
-            :500
-        ]  # Limitar por seguridad
+        ).order_by("site_name")
 
         # Hotel Sede: configurar queryset
-        # Filtrar hoteles activos
+        # Filtrar hoteles activos - sin límite para evitar problemas de validación
         self.fields["hotel"].queryset = Hotel.objects.filter(is_active=True).order_by(
             "hotel_name"
-        )[
-            :500
-        ]  # Limitar por seguridad
+        )
 
         if not self.fields["hotel"].empty_label:
             self.fields["hotel"].empty_label = "Seleccione un hotel"
 
         # Additional Hotels: configurar queryset (selección múltiple)
-        # Filtrar hoteles activos
+        # Filtrar hoteles activos - No limitar para evitar problemas de validación
         self.fields["additional_hotels"].queryset = Hotel.objects.filter(
             is_active=True
-        ).order_by("hotel_name")[
-            :500
-        ]  # Limitar por seguridad
+        ).order_by("hotel_name")
 
         # Event Contact: configurar queryset (selección múltiple)
-        # Filtrar contactos activos
+        # Filtrar contactos activos - No limitar para evitar problemas de validación
         self.fields["event_contact"].queryset = EventContact.objects.filter(
             is_active=True
-        ).order_by("name")[
-            :500
-        ]  # Limitar por seguridad
+        ).order_by("name")
 
         # Divisions: configurar queryset (selección múltiple)
-        # Filtrar divisiones activas
+        # Filtrar divisiones activas - No limitar para evitar problemas de validación
         self.fields["divisions"].queryset = Division.objects.filter(
             is_active=True
-        ).order_by("name")[
-            :500
-        ]  # Limitar por seguridad
+        ).order_by("name")
 
         # Establecer valores por defecto - Optimizado
         if not self.instance.pk:
@@ -389,6 +440,133 @@ class EventForm(forms.ModelForm):
             ).first()
             if us_country:
                 self.fields["country"].initial = us_country
+
+    def clean_season(self):
+        season = self.cleaned_data.get("season")
+        if season:
+            # Verificar que la temporada esté activa (sin límite de queryset)
+            allowed_seasons = Season.objects.filter(is_active=True, id=season.id)
+            if not allowed_seasons.exists():
+                raise forms.ValidationError(
+                    "La temporada seleccionada no es válida o no está activa."
+                )
+        elif self.fields["season"].required:
+            raise forms.ValidationError("Debe seleccionar una temporada.")
+        return season
+
+    def clean_rule(self):
+        rule = self.cleaned_data.get("rule")
+        if rule:
+            # Verificar que el reglamento esté activo (sin límite de queryset)
+            allowed_rules = Rule.objects.filter(is_active=True, id=rule.id)
+            if not allowed_rules.exists():
+                raise forms.ValidationError(
+                    "El reglamento seleccionado no es válido o no está activo."
+                )
+        elif self.fields["rule"].required:
+            raise forms.ValidationError("Debe seleccionar un reglamento.")
+        return rule
+
+    def clean_divisions(self):
+        divisions = self.cleaned_data.get("divisions")
+        if divisions:
+            # Verificar sin límite de queryset
+            allowed_divisions = Division.objects.filter(is_active=True)
+            allowed_division_ids = set(allowed_divisions.values_list("id", flat=True))
+
+            # Filtrar solo las divisiones válidas
+            if hasattr(divisions, "__iter__") and not isinstance(divisions, str):
+                valid_divisions = [
+                    d
+                    for d in divisions
+                    if hasattr(d, "id") and d.id in allowed_division_ids
+                ]
+                if len(valid_divisions) != len(list(divisions)):
+                    invalid_count = len(list(divisions)) - len(valid_divisions)
+                    raise forms.ValidationError(
+                        f"{invalid_count} división(es) no son válidas o no están activas. Por favor, seleccione solo divisiones activas."
+                    )
+                return valid_divisions
+        return divisions
+
+    def clean_event_contact(self):
+        event_contacts = self.cleaned_data.get("event_contact")
+        if event_contacts:
+            # Verificar sin límite de queryset
+            allowed_contacts = EventContact.objects.filter(is_active=True)
+            allowed_contact_ids = set(allowed_contacts.values_list("id", flat=True))
+
+            # Filtrar solo los contactos válidos
+            if hasattr(event_contacts, "__iter__") and not isinstance(
+                event_contacts, str
+            ):
+                valid_contacts = [
+                    c
+                    for c in event_contacts
+                    if hasattr(c, "id") and c.id in allowed_contact_ids
+                ]
+                if len(valid_contacts) != len(list(event_contacts)):
+                    invalid_count = len(list(event_contacts)) - len(valid_contacts)
+                    raise forms.ValidationError(
+                        f"{invalid_count} contacto(s) no son válidos o no están activos. Por favor, seleccione solo contactos activos."
+                    )
+                return valid_contacts
+        return event_contacts
+
+    def clean_additional_hotels(self):
+        additional_hotels = self.cleaned_data.get("additional_hotels")
+        if additional_hotels:
+            # Verificar sin límite de queryset
+            allowed_hotels = Hotel.objects.filter(is_active=True)
+            allowed_hotel_ids = set(allowed_hotels.values_list("id", flat=True))
+
+            # Filtrar solo los hoteles válidos
+            if hasattr(additional_hotels, "__iter__") and not isinstance(
+                additional_hotels, str
+            ):
+                valid_hotels = [
+                    h
+                    for h in additional_hotels
+                    if hasattr(h, "id") and h.id in allowed_hotel_ids
+                ]
+                if len(valid_hotels) != len(list(additional_hotels)):
+                    invalid_count = len(list(additional_hotels)) - len(valid_hotels)
+                    raise forms.ValidationError(
+                        f"{invalid_count} hotel(es) adicional(es) no son válidos o no están activos. Por favor, seleccione solo hoteles activos."
+                    )
+                return valid_hotels
+        return additional_hotels
+
+    def clean_primary_site(self):
+        primary_site = self.cleaned_data.get("primary_site")
+        if primary_site:
+            # Verificar que el sitio esté activo (sin límite de queryset)
+            allowed_sites = Site.objects.filter(is_active=True, id=primary_site.id)
+            if not allowed_sites.exists():
+                raise forms.ValidationError(
+                    "El sitio seleccionado no es válido o no está activo."
+                )
+        return primary_site
+
+    def clean_additional_sites(self):
+        additional_sites = self.cleaned_data.get("additional_sites")
+        if additional_sites:
+            # Verificar sin límite de queryset
+            allowed_sites = Site.objects.filter(is_active=True)
+            allowed_site_ids = set(allowed_sites.values_list("id", flat=True))
+
+            # Filtrar solo los sitios válidos
+            if hasattr(additional_sites, "__iter__") and not isinstance(
+                additional_sites, str
+            ):
+                valid_sites = [s for s in additional_sites if s.id in allowed_site_ids]
+                invalid_count = len(additional_sites) - len(valid_sites)
+                if invalid_count > 0:
+                    raise forms.ValidationError(
+                        f"{invalid_count} sitio(s) seleccionado(s) no son válidos o no están activos."
+                    )
+                return valid_sites
+        return additional_sites
 
     def clean(self):
         cleaned_data = super().clean()

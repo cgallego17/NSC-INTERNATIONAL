@@ -77,3 +77,4 @@ def migrate_contacts_backward(apps, schema_editor):
             event.save()
 
 
+

@@ -57,3 +57,4 @@ print("Proceso completado. Ver resultado_eliminacion_divisiones.txt")
 
 
 
+

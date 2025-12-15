@@ -7,10 +7,42 @@
     <span>Dashboard</span>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    .events-dashboard-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        padding: 2rem 2rem 2rem 3rem;
+        min-height: 100vh;
+    }
+    
+    @media (max-width: 992px) {
+        .events-dashboard-container {
+            padding: 2rem 1.5rem;
+        }
+    }
+    
+    .btn-outline-purple {
+        color: #6f42c1;
+        border-color: #6f42c1;
+    }
+    
+    .btn-outline-purple:hover {
+        color: #fff;
+        background-color: #6f42c1;
+        border-color: #6f42c1;
+    }
+    
+    .text-purple {
+        color: #6f42c1;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid">
-    <!-- Header del Dashboard -->
-    <div class="row mb-4">
+<div class="events-dashboard-container">
+    <div class="container-fluid">
+        <!-- Header del Dashboard -->
+        <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -348,29 +380,185 @@
                 </div>
             </div>
 
-            <!-- Acciones Rápidas -->
-            <div class="card shadow">
+            <!-- Navegación Rápida -->
+            <div class="card shadow mb-4">
                 <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas</h6>
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-calendar-event me-2"></i>Eventos
+                    </h6>
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{% url 'events:create' %}" class="btn btn-primary">
-                            <i class="fas fa-plus me-2"></i>Crear Nuevo Evento
+                        <a href="{% url 'events:list' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-list-ul me-2"></i>Lista de Eventos
                         </a>
-                        <a href="{% url 'events:list' %}" class="btn btn-corporate-outline">
-                            <i class="fas fa-list me-2"></i>Ver Todos los Eventos
+                        <a href="{% url 'events:create' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-plus-circle me-2"></i>Crear Evento
                         </a>
-                        <a href="{% url 'events:calendar' %}" class="btn btn-outline-info">
-                            <i class="fas fa-calendar me-2"></i>Vista de Calendario
+                        <a href="{% url 'events:calendar' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-calendar3 me-2"></i>Calendario
                         </a>
-                        {% if user.is_staff %}
-                        <a href="/admin/auth/user/" class="btn btn-outline-primary">
-                            <i class="fas fa-users me-2"></i>Gestionar Usuarios
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ubicaciones -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">
+                        <i class="bi bi-geo-alt me-2"></i>Ubicaciones
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'locations:country_list' %}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-globe me-2"></i>Países
                         </a>
-                        {% endif %}
-                        <a href="/admin/" class="btn btn-outline-secondary" target="_blank">
-                            <i class="fas fa-cog me-2"></i>Panel de Administración
+                        <a href="{% url 'locations:state_list' %}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-map me-2"></i>Estados
+                        </a>
+                        <a href="{% url 'locations:city_list' %}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-building me-2"></i>Ciudades
+                        </a>
+                        <a href="{% url 'locations:site_list' %}" class="btn btn-outline-success btn-sm">
+                            <i class="bi bi-geo me-2"></i>Sitios
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hoteles -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">
+                        <i class="bi bi-building me-2"></i>Hoteles
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'locations:admin_hotel_list' %}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-list-ul me-2"></i>Lista de Hoteles
+                        </a>
+                        <a href="{% url 'locations:admin_hotel_room_list' %}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-door-open me-2"></i>Habitaciones
+                        </a>
+                        <a href="{% url 'locations:admin_hotel_service_list' %}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-star me-2"></i>Servicios
+                        </a>
+                        <a href="{% url 'locations:admin_hotel_reservation_list' %}" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-calendar-check me-2"></i>Reservas
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contactos -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-warning">
+                        <i class="bi bi-people me-2"></i>Contactos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'events:eventcontact_list' %}" class="btn btn-outline-warning btn-sm">
+                            <i class="bi bi-list-ul me-2"></i>Lista de Contactos
+                        </a>
+                        <a href="{% url 'events:eventcontact_create' %}" class="btn btn-outline-warning btn-sm">
+                            <i class="bi bi-plus-circle me-2"></i>Crear Contacto
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gestión de Datos -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-secondary">
+                        <i class="bi bi-database me-2"></i>Gestión de Datos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'events:eventtype_list' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-tags me-2"></i>Tipos de Evento
+                        </a>
+                        <a href="{% url 'events:gatefeetype_list' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-cash-coin me-2"></i>Tipos de Gate Fee
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configuración -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-dark">
+                        <i class="bi bi-gear me-2"></i>Configuración
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'locations:season_list' %}" class="btn btn-outline-dark btn-sm">
+                            <i class="bi bi-calendar-range me-2"></i>Temporadas
+                        </a>
+                        <a href="{% url 'locations:rule_list' %}" class="btn btn-outline-dark btn-sm">
+                            <i class="bi bi-file-text me-2"></i>Reglas
+                        </a>
+                        <a href="{% url 'events:division_list' %}" class="btn btn-outline-dark btn-sm">
+                            <i class="bi bi-layers me-2"></i>Divisiones
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Usuarios y Jugadores -->
+            {% if user.is_staff or user.is_superuser %}
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">
+                        <i class="bi bi-people me-2"></i>Usuarios
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-danger btn-sm">
+                            <i class="bi bi-list-ul me-2"></i>Lista de Usuarios
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-purple">
+                        <i class="bi bi-person-badge me-2"></i>Jugadores
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'accounts:player_list' %}" class="btn btn-outline-purple btn-sm">
+                            <i class="bi bi-list-ul me-2"></i>Lista de Jugadores
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Administración -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="bi bi-graph-up me-2"></i>Administración
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-graph-up me-2"></i>Reportes
+                        </a>
+                        <a href="/admin/" class="btn btn-outline-secondary btn-sm" target="_blank">
+                            <i class="bi bi-gear me-2"></i>Panel de Administración
                         </a>
                     </div>
                 </div>

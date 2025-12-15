@@ -1,0 +1,64 @@
+<!-- Top Bar -->
+<div class="top-bar">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <span><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</span>
+                <span class="ms-4"><i class="fas fa-envelope me-2"></i>info@nscinternational.com</span>
+            </div>
+            <div class="col-md-6 text-end">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'accounts:panel' %}"><i class="fas fa-user me-1"></i>Mi Cuenta</a>
+                    <span class="mx-2">|</span>
+                    <a href="{% url 'accounts:logout' %}">Cerrar Sesión</a>
+                {% else %}
+                    <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</a>
+                    <span class="mx-2">|</span>
+                    <a href="{% url 'accounts:register' %}">Registrarse</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Navbar MLB Style -->
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-mlb">
+    <div class="container-fluid px-0">
+        <a class="navbar-brand" href="/">
+            <img src="{% static 'images/ncs-white.svg' %}" alt="NSC International" class="navbar-logo">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: white;">
+            <span style="color: white;"><i class="fas fa-bars"></i></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="/">Inicio</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'events' in request.resolver_match.namespace %}active{% endif %}" href="{% url 'events:list' %}">Eventos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'accounts' in request.resolver_match.namespace and 'team' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'accounts:team_list' %}">Equipos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if 'accounts' in request.resolver_match.namespace and 'player' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'accounts:public_player_list' %}">Jugadores</a>
+                </li>
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'accounts' in request.resolver_match.namespace and request.resolver_match.url_name == 'panel' %}active{% endif %}" href="{% url 'accounts:panel' %}">Panel</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:register' %}">
+                            <span class="badge-mlb">Registrarse</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+

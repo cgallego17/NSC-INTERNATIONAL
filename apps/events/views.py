@@ -27,11 +27,14 @@ class EventListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         # Forzar consulta fresca desde la base de datos
-        queryset = Event.objects.select_related("category", "organizer").all()
+        queryset = Event.objects.select_related(
+            "category", "organizer", "event_type", "country", "state", "city"
+        ).all()
 
         # Filtros
         search = self.request.GET.get("search")
         category = self.request.GET.get("category")
+        event_type = self.request.GET.get("event_type")
         status = self.request.GET.get("status")
         time_filter = self.request.GET.get("time_filter")
 
@@ -44,6 +47,9 @@ class EventListView(LoginRequiredMixin, ListView):
 
         if category:
             queryset = queryset.filter(category__id=category)
+
+        if event_type:
+            queryset = queryset.filter(event_type__id=event_type)
 
         if status:
             queryset = queryset.filter(status=status)
@@ -68,6 +74,9 @@ class EventListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["categories"] = EventCategory.objects.filter(is_active=True)
+        from apps.events.models import EventType
+
+        context["event_types"] = EventType.objects.filter(is_active=True)
         context["status_choices"] = Event.STATUS_CHOICES
         context["time_filters"] = [
             ("upcoming", "Próximos"),
@@ -104,6 +113,35 @@ class EventDetailView(LoginRequiredMixin, DetailView):
             except EventAttendance.DoesNotExist:
                 context["user_attendance"] = None
 
+        # Optimizar consultas relacionadas para mejor rendimiento
+        event = (
+            Event.objects.select_related(
+                "category",
+                "organizer",
+                "event_type",
+                "country",
+                "state",
+                "city",
+                "season",
+                "rule",
+                "gate_fee_type",
+                "primary_site__city",
+                "primary_site__state",
+                "hotel__city",
+                "hotel__state",
+            )
+            .prefetch_related(
+                "divisions",
+                "additional_sites__city",
+                "additional_sites__state",
+                "additional_hotels__city",
+                "additional_hotels__state",
+                "event_contact",
+            )
+            .get(pk=self.object.pk)
+        )
+        context["event"] = event
+
         return context
 
 
@@ -120,6 +158,7 @@ class EventCreateView(LoginRequiredMixin, CreateView):
         # Agregar divisiones al contexto para JavaScript
         from .models import Division
         import json
+
         divisions_queryset = Division.objects.filter(is_active=True).order_by("name")
         context["available_divisions"] = json.dumps(
             list(divisions_queryset.values("id", "name"))
@@ -135,19 +174,27 @@ class EventCreateView(LoginRequiredMixin, CreateView):
 
 class EventUpdateView(LoginRequiredMixin, UpdateView):
     model = Event
-    fields = [
-        "title",
-        "description",
-        "start_date",
-        "end_date",
-        "location",
-        "category",
-        "status",
-    ]
-    template_name = "events/form.html"
+    form_class = EventForm
+    template_name = "events/event_form.html"
 
     def get_success_url(self):
         return reverse_lazy("events:detail", kwargs={"pk": self.object.pk})
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Agregar divisiones al contexto para JavaScript
+        context["divisions"] = Division.objects.filter(is_active=True)
+        # Debug: Verificar si el evento tiene hotel
+        if self.object:
+            context["debug_hotel"] = {
+                "exists": bool(self.object.hotel),
+                "id": self.object.hotel.id if self.object.hotel else None,
+                "name": self.object.hotel.hotel_name if self.object.hotel else None,
+                "object_id": self.object.id,
+            }
+        else:
+            context["debug_hotel"] = {"exists": False, "object_id": None}
+        return context
 
     def form_valid(self, form):
         messages.success(self.request, "Evento actualizado exitosamente.")

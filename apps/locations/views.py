@@ -866,11 +866,19 @@ class SiteDeleteView(LoginRequiredMixin, DeleteView):
 def sites_api(request):
     """API para obtener sitios con información de ubicación"""
     city_id = request.GET.get("city")
+    site_id = request.GET.get("id")
 
     sites_query = Site.objects.filter(is_active=True)
 
-    # Filtrar por ciudad si se proporciona
-    if city_id:
+    # Filtrar por ID específico si se proporciona (tiene prioridad)
+    if site_id:
+        try:
+            site_id = int(site_id)
+            sites_query = sites_query.filter(id=site_id)
+        except (ValueError, TypeError):
+            pass
+    # Filtrar por ciudad si se proporciona (solo si no hay ID específico)
+    elif city_id:
         try:
             city_id = int(city_id)
             # Filtrar estrictamente por ciudad
@@ -911,21 +919,27 @@ def sites_api(request):
 def hotels_api(request):
     """API para obtener hoteles"""
     city_id = request.GET.get("city")
-    if city_id:
+    hotel_id = request.GET.get("id")
+
+    hotels_query = Hotel.objects.filter(is_active=True)
+
+    # Filtrar por ID específico si se proporciona (tiene prioridad)
+    if hotel_id:
+        try:
+            hotel_id = int(hotel_id)
+            hotels_query = hotels_query.filter(id=hotel_id)
+        except (ValueError, TypeError):
+            pass
+    # Filtrar por ciudad si se proporciona (solo si no hay ID específico)
+    elif city_id:
         try:
             city_id = int(city_id)
             # Filtrar estrictamente por ciudad
-            hotels = Hotel.objects.filter(city_id=city_id, is_active=True).order_by(
-                "hotel_name"
-            )
+            hotels_query = hotels_query.filter(city_id=city_id)
         except (ValueError, TypeError):
-            hotels = Hotel.objects.filter(is_active=True).order_by(
-                "city__name", "hotel_name"
-            )
-    else:
-        hotels = Hotel.objects.filter(is_active=True).order_by(
-            "city__name", "hotel_name"
-        )
+            pass
+
+    hotels = hotels_query.order_by("city__name", "hotel_name")
 
     data = [
         {

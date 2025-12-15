@@ -1,84 +1,478 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ event.title }} - {{ site_settings.site_name|default:"NSC Admin" }}{% endblock %}
+{% block title %}{{ event.title }} - NSC Eventos{% endblock %}
 
 {% block breadcrumb %}
     <span>Eventos</span> / <span>{{ event.title }}</span>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Agregar padding al page-content para eventos */
+    main.page-content:has(.event-detail-container),
+    .page-content:has(.event-detail-container) {
+        padding-left: 2.5rem !important;
+        padding-right: 2rem !important;
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+    
+    .event-detail-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        background: #f8f9fa;
+        min-height: calc(100vh - 2rem);
+        padding: 2rem !important;
+        max-width: 1400px;
+        margin: 0 auto;
+        width: 100%;
+        border-radius: 12px;
+    }
+    
+    @media (max-width: 992px) {
+        main.page-content:has(.event-detail-container),
+        .page-content:has(.event-detail-container) {
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+        }
+        .event-detail-container {
+            padding: 1.5rem !important;
+            border-radius: 8px;
+        }
+    }
+    
+    /* Hero Section */
+    .event-hero {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    .event-hero-image {
+        width: 100%;
+        height: 400px;
+        object-fit: cover;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .event-hero-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, transparent 100%);
+        padding: 3rem 2rem 2rem;
+        color: white;
+    }
+    
+    .event-hero-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    .event-hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin-top: 1rem;
+        font-size: 0.95rem;
+    }
+    
+    .event-hero-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .event-hero-meta-item i {
+        font-size: 1.1rem;
+    }
+    
+    /* Quick Stats Bar */
+    .quick-stats-bar {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .quick-stat {
+        text-align: center;
+        padding: 1rem;
+        border-radius: 8px;
+        background: #f8f9fa;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .quick-stat:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .quick-stat-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .quick-stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.25rem;
+    }
+    
+    .quick-stat-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+    
+    /* Info Cards */
+    .info-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 1.5rem;
+        transition: box-shadow 0.3s;
+        overflow: hidden;
+    }
+    
+    .info-card:hover {
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+    
+    .info-card .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 1.25rem 1.5rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .info-card .card-body {
+        padding: 1.5rem;
+        background: white;
+    }
+    
+    .info-item {
+        display: flex;
+        align-items: flex-start;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    
+    /* Info item en grid de 3 columnas */
+    .info-item-grid {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 8px;
+        height: 100%;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .info-item-grid:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .info-item-grid .info-item-icon {
+        margin: 0 auto 0.75rem;
+    }
+    
+    .info-item-grid .info-item-content {
+        width: 100%;
+    }
+    
+    .info-item-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+        flex-shrink: 0;
+        font-size: 1.2rem;
+    }
+    
+    .info-item-content {
+        flex-grow: 1;
+    }
+    
+    .info-item-label {
+        font-size: 0.875rem;
+        color: #6c757d;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .info-item-value {
+        font-size: 1rem;
+        color: #212529;
+        font-weight: 600;
+        line-height: 1.5;
+    }
+    
+    .badge-custom {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        display: inline-block;
+    }
+    
+    /* Description */
+    .description-content {
+        line-height: 1.8;
+        color: #495057;
+        font-size: 1rem;
+    }
+    
+    .description-content h1,
+    .description-content h2,
+    .description-content h3,
+    .description-content h4,
+    .description-content h5,
+    .description-content h6 {
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+    
+    .description-content p {
+        margin-bottom: 1rem;
+    }
+    
+    .description-content ul,
+    .description-content ol {
+        margin-bottom: 1rem;
+        padding-left: 2rem;
+    }
+    
+    .description-content li {
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Sidebar Cards */
+    .sidebar-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+    }
+    
+    .sidebar-card .card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 1rem 1.25rem;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .sidebar-card .card-body {
+        padding: 1.25rem;
+        background: white;
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .action-buttons .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+    }
+    
+    /* Contact Card */
+    .contact-card {
+        padding: 1rem;
+        border-radius: 8px;
+        background: #f8f9fa;
+        margin-bottom: 0.75rem;
+        border-left: 4px solid #667eea;
+    }
+    
+    .contact-card:last-child {
+        margin-bottom: 0;
+    }
+    
+    .contact-name {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .contact-detail {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+    
+    .contact-detail i {
+        width: 20px;
+        text-align: center;
+    }
+    
+    /* Price Highlight */
+    .price-highlight {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .price-highlight-label {
+        font-size: 0.875rem;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .price-highlight-value {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+    
+    /* Site/Hotel Cards */
+    .location-item {
+        padding: 1rem;
+        border-radius: 8px;
+        background: #f8f9fa;
+        margin-bottom: 0.75rem;
+        border-left: 4px solid #28a745;
+    }
+    
+    .location-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .location-name {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .location-detail {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .event-hero-title {
+            font-size: 1.75rem;
+        }
+        
+        .quick-stats-bar {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .event-hero-meta {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="event-detail-container">
-    <!-- Page Header -->
-    <div class="page-header">
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <h1>{{ event.title }}</h1>
-                <p class="text-muted">{{ event.short_description|default:event.description|truncatechars:150 }}</p>
-            </div>
-            <div class="d-flex gap-2">
-                <a href="{% url 'events:update' event.pk %}" class="btn btn-corporate-outline">
-                    <i class="fas fa-edit me-2"></i>Editar
-                </a>
-                <a href="{% url 'events:list' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>Volver
-                </a>
+    <div class="container-fluid">
+        <!-- Header Actions -->
+        <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'events:list' %}">Eventos</a></li>
+                            <li class="breadcrumb-item active">{{ event.title|truncatechars:30 }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'events:update' event.pk %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-edit me-2"></i>Editar
+                    </a>
+                    <a href="{% url 'events:list' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-arrow-left me-2"></i>Volver
+                    </a>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Hero Section -->
     <div class="row">
-        <!-- Main Content -->
-        <div class="col-lg-8">
-            <!-- Event Image -->
-            {% if event.image %}
-                <div class="card mb-4">
-                    <img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}" style="height: 300px; object-fit: cover;">
-                </div>
-            {% endif %}
-
-            <!-- Event Details -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">Detalles del Evento</h5>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <i class="fas fa-calendar text-primary me-2"></i>
-                                <strong>Fecha:</strong> {{ event.start_date|date:"l, d F Y" }}
+        <div class="col-12">
+            <div class="event-hero">
+                {% if event.image %}
+                    <img src="{{ event.image.url }}" alt="{{ event.title }}" class="event-hero-image">
+                {% else %}
+                    <div class="event-hero-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-calendar-alt" style="font-size: 8rem; color: rgba(255,255,255,0.3);"></i>
+                    </div>
+                {% endif %}
+                <div class="event-hero-overlay">
+                    <h1 class="event-hero-title">{{ event.title }}</h1>
+                    {% if event.short_name %}
+                        <p class="mb-0" style="font-size: 1.1rem; opacity: 0.9;">{{ event.short_name }}</p>
+                    {% endif %}
+                    <div class="event-hero-meta">
+                        {% if event.start_date %}
+                            <div class="event-hero-meta-item">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>{{ event.start_date|date:"d M Y" }} - {{ event.end_date|date:"d M Y" }}</span>
                             </div>
-                            <div class="mb-3">
-                                <i class="fas fa-clock text-primary me-2"></i>
-                                <strong>Horario:</strong> 
-                                {% if event.all_day %}
-                                    Todo el día
-                                {% else %}
-                                    {{ event.start_date|time:"H:i" }} - {{ event.end_date|time:"H:i" }}
-                                {% endif %}
+                        {% endif %}
+                        {% if event.city %}
+                            <div class="event-hero-meta-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>{{ event.city.name }}{% if event.state %}, {{ event.state.name }}{% endif %}{% if event.country %}, {{ event.country.name }}{% endif %}</span>
                             </div>
-                            {% if event.location %}
-                                <div class="mb-3">
-                                    <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                                    <strong>Ubicación:</strong> {{ event.location }}
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <i class="fas fa-user text-primary me-2"></i>
-                                <strong>Organizador:</strong> {{ event.organizer.get_full_name|default:event.organizer.username }}
+                        {% endif %}
+                        {% if event.event_type %}
+                            <div class="event-hero-meta-item">
+                                <i class="fas fa-tag"></i>
+                                <span>{{ event.event_type.name }}</span>
                             </div>
-                            <div class="mb-3">
-                                <i class="fas fa-tag text-primary me-2"></i>
-                                <strong>Categoría:</strong> 
-                                <span class="badge" style="background-color: {{ event.category.color }};">
-                                    {{ event.category.name }}
-                                </span>
-                            </div>
-                            <div class="mb-3">
-                                <i class="fas fa-info-circle text-primary me-2"></i>
-                                <strong>Estado:</strong> 
+                        {% endif %}
+                        <div class="event-hero-meta-item">
+                            <i class="fas fa-flag"></i>
+                            <span>
                                 {% if event.status == 'published' %}
                                     <span class="badge bg-success">Publicado</span>
                                 {% elif event.status == 'draft' %}
@@ -88,63 +482,418 @@
                                 {% elif event.status == 'completed' %}
                                     <span class="badge bg-info">Completado</span>
                                 {% endif %}
-                            </div>
+                            </span>
                         </div>
                     </div>
-
-                    {% if event.address %}
-                        <div class="mb-3">
-                            <i class="fas fa-map text-primary me-2"></i>
-                            <strong>Dirección:</strong><br>
-                            <span class="text-muted">{{ event.address }}</span>
-                        </div>
-                    {% endif %}
-
-                    {% if event.external_link %}
-                        <div class="mb-3">
-                            <i class="fas fa-external-link-alt text-primary me-2"></i>
-                            <strong>Enlace Externo:</strong><br>
-                            <a href="{{ event.external_link }}" target="_blank" class="text-decoration-none">
-                                {{ event.external_link }}
-                            </a>
-                        </div>
-                    {% endif %}
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Description -->
-            <div class="card mb-4">
+    <!-- Quick Stats Bar -->
+    <div class="quick-stats-bar">
+        <div class="quick-stat">
+            <div class="quick-stat-icon text-primary">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="quick-stat-value">{{ event.attendees_count|default:0 }}</div>
+            <div class="quick-stat-label">Asistentes</div>
+        </div>
+        {% if event.divisions.all %}
+            <div class="quick-stat">
+                <div class="quick-stat-icon text-warning">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="quick-stat-value">{{ event.divisions.all|length }}</div>
+                <div class="quick-stat-label">Divisiones</div>
+            </div>
+        {% endif %}
+        {% if event.primary_site or event.additional_sites.all %}
+            <div class="quick-stat">
+                <div class="quick-stat-icon text-success">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <div class="quick-stat-value">
+                    {% if event.primary_site %}1{% if event.additional_sites.all %}+{{ event.additional_sites.all|length }}{% endif %}{% else %}{{ event.additional_sites.all|length }}{% endif %}
+                </div>
+                <div class="quick-stat-label">Sitios</div>
+            </div>
+        {% endif %}
+        {% if event.hotel or event.additional_hotels.all %}
+            <div class="quick-stat">
+                <div class="quick-stat-icon text-info">
+                    <i class="fas fa-hotel"></i>
+                </div>
+                <div class="quick-stat-value">
+                    {% if event.hotel %}1{% if event.additional_hotels.all %}+{{ event.additional_hotels.all|length }}{% endif %}{% else %}{{ event.additional_hotels.all|length }}{% endif %}
+                </div>
+                <div class="quick-stat-label">Hoteles</div>
+            </div>
+        {% endif %}
+        {% if event.event_contact.all %}
+            <div class="quick-stat">
+                <div class="quick-stat-icon text-danger">
+                    <i class="fas fa-address-book"></i>
+                </div>
+                <div class="quick-stat-value">{{ event.event_contact.all|length }}</div>
+                <div class="quick-stat-label">Contactos</div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Información General -->
+            <div class="card info-card">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>Información General
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">Descripción</h5>
-                    <div class="event-description">
-                        {{ event.description|linebreaks }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Comments -->
-            {% if comments %}
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title">Comentarios</h5>
-                        {% for comment in comments %}
-                            <div class="comment-item mb-3">
-                                <div class="d-flex align-items-start">
-                                    <div class="comment-avatar me-3">
-                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                            {{ comment.user.first_name|first|default:comment.user.username|first|upper }}
-                                        </div>
+                    <div class="row g-3">
+                        {% if event.event_type %}
+                            <div class="col-md-3">
+                                <div class="info-item" style="border-bottom: none; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; height: 100%;">
+                                    <div class="info-item-icon bg-info text-white">
+                                        <i class="fas fa-list-alt"></i>
                                     </div>
-                                    <div class="comment-content flex-grow-1">
-                                        <div class="d-flex justify-content-between align-items-start mb-1">
-                                            <strong>{{ comment.user.get_full_name|default:comment.user.username }}</strong>
-                                            <small class="text-muted">{{ comment.created_at|timesince }} atrás</small>
+                                    <div class="info-item-content">
+                                        <div class="info-item-label">Tipo de Evento</div>
+                                        <div class="info-item-value">
+                                            <span class="badge bg-info badge-custom">{{ event.event_type.name }}</span>
                                         </div>
-                                        <p class="mb-0">{{ comment.comment }}</p>
                                     </div>
                                 </div>
                             </div>
-                        {% endfor %}
+                        {% endif %}
+                        
+                        {% if event.category %}
+                            <div class="col-md-3">
+                                <div class="info-item" style="border-bottom: none; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; height: 100%;">
+                                    <div class="info-item-icon text-white" style="background-color: {{ event.category.color|default:'#667eea' }};">
+                                        <i class="fas fa-folder"></i>
+                                    </div>
+                                    <div class="info-item-content">
+                                        <div class="info-item-label">Categoría</div>
+                                        <div class="info-item-value">
+                                            <span class="badge badge-custom" style="background-color: {{ event.category.color|default:'#667eea' }}; color: white;">
+                                                {{ event.category.name }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if event.season %}
+                            <div class="col-md-3">
+                                <div class="info-item" style="border-bottom: none; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; height: 100%;">
+                                    <div class="info-item-icon bg-primary text-white">
+                                        <i class="fas fa-calendar-week"></i>
+                                    </div>
+                                    <div class="info-item-content">
+                                        <div class="info-item-label">Temporada</div>
+                                        <div class="info-item-value">{{ event.season.name }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="col-md-3">
+                            <div class="info-item" style="border-bottom: none; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; height: 100%;">
+                                <div class="info-item-icon bg-secondary text-white">
+                                    <i class="fas fa-flag"></i>
+                                </div>
+                                <div class="info-item-content">
+                                    <div class="info-item-label">Estado</div>
+                                    <div class="info-item-value">
+                                        {% if event.status == 'published' %}
+                                            <span class="badge bg-success badge-custom">Publicado</span>
+                                        {% elif event.status == 'draft' %}
+                                            <span class="badge bg-secondary badge-custom">Borrador</span>
+                                        {% elif event.status == 'cancelled' %}
+                                            <span class="badge bg-danger badge-custom">Cancelado</span>
+                                        {% elif event.status == 'completed' %}
+                                            <span class="badge bg-info badge-custom">Completado</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if event.priority == 'high' or event.priority == 'urgent' %}
+                            <div class="col-md-3">
+                                <div class="info-item" style="border-bottom: none; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; height: 100%;">
+                                    <div class="info-item-icon {% if event.priority == 'urgent' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div class="info-item-content">
+                                        <div class="info-item-label">Prioridad</div>
+                                        <div class="info-item-value">
+                                            {% if event.priority == 'high' %}
+                                                <span class="badge bg-warning text-dark badge-custom">Alta</span>
+                                            {% elif event.priority == 'urgent' %}
+                                                <span class="badge bg-danger badge-custom">Urgente</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if event.divisions.all %}
+                            <div class="col-md-3">
+                                <div class="info-item" style="border-bottom: none; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; height: 100%;">
+                                    <div class="info-item-icon bg-warning text-dark">
+                                        <i class="fas fa-layer-group"></i>
+                                    </div>
+                                    <div class="info-item-content">
+                                        <div class="info-item-label">Divisiones</div>
+                                        <div class="info-item-value">
+                                            {% for division in event.divisions.all %}
+                                                <span class="badge bg-warning text-dark badge-custom me-1 mb-1">{{ division.name }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fechas y Horarios -->
+            <div class="card info-card">
+                <div class="card-header">
+                    <i class="fas fa-calendar-alt me-2"></i>Fechas y Horarios
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="info-item" style="border-bottom: none; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; height: 100%;">
+                                <div class="info-item-icon bg-success text-white">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                                <div class="info-item-content">
+                                    <div class="info-item-label">Fecha de Inicio</div>
+                                    <div class="info-item-value" style="font-size: 0.9rem;">
+                                        {{ event.start_date|date:"d M Y" }}<br>
+                                        <small class="text-muted">{{ event.start_date|time:"H:i" }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="info-item" style="border-bottom: none; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; height: 100%;">
+                                <div class="info-item-icon bg-danger text-white">
+                                    <i class="fas fa-stop-circle"></i>
+                                </div>
+                                <div class="info-item-content">
+                                    <div class="info-item-label">Fecha de Finalización</div>
+                                    <div class="info-item-value" style="font-size: 0.9rem;">
+                                        {{ event.end_date|date:"d M Y" }}<br>
+                                        <small class="text-muted">{{ event.end_date|time:"H:i" }}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if event.entry_deadline %}
+                            <div class="col-md-3">
+                                <div class="info-item" style="border-bottom: none; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; height: 100%;">
+                                    <div class="info-item-icon bg-warning text-dark">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div class="info-item-content">
+                                        <div class="info-item-label">Límite de Registro</div>
+                                        <div class="info-item-value" style="font-size: 0.9rem;">
+                                            {{ event.entry_deadline|date:"d M Y" }}<br>
+                                            <small class="text-muted">{{ event.entry_deadline|time:"H:i" }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if event.payment_deadline %}
+                            <div class="col-md-3">
+                                <div class="info-item" style="border-bottom: none; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; height: 100%;">
+                                    <div class="info-item-icon bg-info text-white">
+                                        <i class="fas fa-credit-card"></i>
+                                    </div>
+                                    <div class="info-item-content">
+                                        <div class="info-item-label">Límite de Pago</div>
+                                        <div class="info-item-value" style="font-size: 0.9rem;">
+                                            {{ event.payment_deadline|date:"d M Y" }}<br>
+                                            <small class="text-muted">{{ event.payment_deadline|time:"H:i" }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ubicación -->
+            <div class="card info-card">
+                <div class="card-header">
+                    <i class="fas fa-map-marker-alt me-2"></i>Ubicación
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% if event.city %}
+                            <div class="col-md-4">
+                                <div class="info-item" style="border-bottom: none; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; height: 100%;">
+                                    <div class="info-item-icon bg-info text-white">
+                                        <i class="fas fa-city"></i>
+                                    </div>
+                                    <div class="info-item-content">
+                                        <div class="info-item-label">Ciudad</div>
+                                        <div class="info-item-value">{{ event.city.name }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if event.state %}
+                            <div class="col-md-4">
+                                <div class="info-item" style="border-bottom: none; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; height: 100%;">
+                                    <div class="info-item-icon bg-info text-white">
+                                        <i class="fas fa-map"></i>
+                                    </div>
+                                    <div class="info-item-content">
+                                        <div class="info-item-label">Estado/Provincia</div>
+                                        <div class="info-item-value">{{ event.state.name }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if event.country %}
+                            <div class="col-md-4">
+                                <div class="info-item" style="border-bottom: none; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; height: 100%;">
+                                    <div class="info-item-icon bg-info text-white">
+                                        <i class="fas fa-globe"></i>
+                                    </div>
+                                    <div class="info-item-content">
+                                        <div class="info-item-label">País</div>
+                                        <div class="info-item-value">{{ event.country.name }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if event.location %}
+                            <div class="col-md-4">
+                                <div class="info-item" style="border-bottom: none; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; height: 100%;">
+                                    <div class="info-item-icon bg-warning text-dark">
+                                        <i class="fas fa-map-pin"></i>
+                                    </div>
+                                    <div class="info-item-content">
+                                        <div class="info-item-label">Ubicación Específica</div>
+                                        <div class="info-item-value" style="font-size: 0.9rem;">{{ event.location }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if event.address %}
+                            <div class="col-md-4">
+                                <div class="info-item" style="border-bottom: none; padding: 0.75rem; background: #f8f9fa; border-radius: 8px; height: 100%;">
+                                    <div class="info-item-icon bg-secondary text-white">
+                                        <i class="fas fa-address-card"></i>
+                                    </div>
+                                    <div class="info-item-content">
+                                        <div class="info-item-label">Dirección</div>
+                                        <div class="info-item-value" style="font-size: 0.9rem;">{{ event.address|linebreaks }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sitios del Evento -->
+            {% if event.primary_site or event.additional_sites.all %}
+                <div class="card info-card">
+                    <div class="card-header">
+                        <i class="fas fa-map-marked-alt me-2"></i>Sitios del Evento
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <!-- Columna 1: Sitio Principal -->
+                            <div class="col-md-6">
+                                {% if event.primary_site %}
+                                    <div class="location-item" style="background: #f8f9fa; padding: 1rem; border-radius: 8px; height: 100%; border-left: 4px solid #ffc107;">
+                                        <div class="info-item-label mb-2">
+                                            <i class="fas fa-star text-warning me-1"></i>Sitio Principal
+                                        </div>
+                                        <div class="location-name">{{ event.primary_site.site_name }}</div>
+                                        {% if event.primary_site.full_address %}
+                                            <div class="location-detail">
+                                                <i class="fas fa-map-marker-alt me-1"></i>{{ event.primary_site.full_address }}
+                                            </div>
+                                        {% elif event.primary_site.address_1 %}
+                                            <div class="location-detail">
+                                                <i class="fas fa-map-marker-alt me-1"></i>{{ event.primary_site.address_1 }}{% if event.primary_site.address_2 %}, {{ event.primary_site.address_2 }}{% endif %}
+                                            </div>
+                                        {% endif %}
+                                        {% if event.primary_site.city %}
+                                            <div class="location-detail">
+                                                <i class="fas fa-city me-1"></i>{{ event.primary_site.city.name }}{% if event.primary_site.state %}, {{ event.primary_site.state.name }}{% endif %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Columna 2: Sitios Adicionales -->
+                            <div class="col-md-6">
+                                {% if event.additional_sites.all %}
+                                    <div class="info-item-label mb-2">
+                                        <i class="fas fa-list me-1"></i>Sitios Adicionales
+                                    </div>
+                                    <div class="d-flex flex-column gap-2">
+                                        {% for site in event.additional_sites.all %}
+                                            <div class="location-item" style="background: #f8f9fa; padding: 0.75rem; border-radius: 8px;">
+                                                <div class="location-name">{{ site.site_name }}</div>
+                                                {% if site.full_address %}
+                                                    <div class="location-detail">
+                                                        <i class="fas fa-map-marker-alt me-1"></i>{{ site.full_address }}
+                                                    </div>
+                                                {% elif site.address_1 %}
+                                                    <div class="location-detail">
+                                                        <i class="fas fa-map-marker-alt me-1"></i>{{ site.address_1 }}{% if site.address_2 %}, {{ site.address_2 }}{% endif %}
+                                                    </div>
+                                                {% endif %}
+                                                {% if site.city %}
+                                                    <div class="location-detail">
+                                                        <i class="fas fa-city me-1"></i>{{ site.city.name }}{% if site.state %}, {{ site.state.name }}{% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Descripción -->
+            {% if event.description %}
+                <div class="card info-card">
+                    <div class="card-header">
+                        <i class="fas fa-align-left me-2"></i>Descripción
+                    </div>
+                    <div class="card-body">
+                        <div class="description-content">
+                            {{ event.description|safe }}
+                        </div>
                     </div>
                 </div>
             {% endif %}
@@ -152,135 +901,221 @@
 
         <!-- Sidebar -->
         <div class="col-lg-4">
-            <!-- Event Status -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">Estado del Evento</h5>
-                    
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span>Asistentes:</span>
-                            <span class="badge bg-primary">{{ event.attendees_count }}</span>
-                        </div>
-                        {% if event.max_attendees %}
-                            <div class="progress mt-2" style="height: 8px;">
-                                <div class="progress-bar" role="progressbar" 
-                                     style="width: {% widthratio event.attendees_count event.max_attendees 100 %}%">
+            <!-- Precios -->
+            {% if event.default_entry_fee or event.gate_fee_amount %}
+                <div class="sidebar-card">
+                    <div class="card-header">
+                        <i class="fas fa-dollar-sign me-2"></i>Precios
+                    </div>
+                    <div class="card-body">
+                        {% if event.default_entry_fee %}
+                            <div class="price-highlight">
+                                <div class="price-highlight-label">Precio de Entrada</div>
+                                <div class="price-highlight-value">${{ event.default_entry_fee|floatformat:2 }}</div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if event.gate_fee_amount %}
+                            <div class="info-item">
+                                <div class="info-item-icon bg-warning text-dark">
+                                    <i class="fas fa-ticket-alt"></i>
+                                </div>
+                                <div class="info-item-content">
+                                    <div class="info-item-label">Gate Fee</div>
+                                    <div class="info-item-value">
+                                        ${{ event.gate_fee_amount|floatformat:2 }}
+                                        {% if event.gate_fee_type %}
+                                            <small class="text-muted">({{ event.gate_fee_type.name }})</small>
+                                        {% endif %}
+                                    </div>
                                 </div>
                             </div>
-                            <small class="text-muted">{{ event.attendees_count }} de {{ event.max_attendees }} lugares</small>
                         {% endif %}
                     </div>
-
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span>Duración:</span>
-                            <span class="text-muted">{{ event.duration }}</span>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span>Tipo:</span>
-                            <span class="text-muted">
-                                {% if event.is_public %}Público{% else %}Privado{% endif %}
-                            </span>
-                        </div>
-                    </div>
-
-                    {% if event.requires_registration %}
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span>Registro:</span>
-                                <span class="badge bg-info">Requerido</span>
-                            </div>
-                        </div>
-                    {% endif %}
                 </div>
-            </div>
+            {% endif %}
 
-            <!-- Attendees -->
-            {% if attendees %}
-                <div class="card mb-4">
+            <!-- Hotel Principal -->
+            {% if event.hotel %}
+                <div class="sidebar-card">
+                    <div class="card-header">
+                        <i class="fas fa-hotel me-2"></i>Hotel Sede
+                    </div>
                     <div class="card-body">
-                        <h5 class="card-title">Asistentes Confirmados</h5>
-                        <div class="attendees-list">
-                            {% for attendee in attendees %}
-                                <div class="d-flex align-items-center mb-2">
-                                    <div class="attendee-avatar me-3">
-                                        <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 0.8rem;">
-                                            {{ attendee.first_name|first|default:attendee.username|first|upper }}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <div class="fw-medium">{{ attendee.get_full_name|default:attendee.username }}</div>
-                                        <small class="text-muted">{{ attendee.email }}</small>
-                                    </div>
+                        <div class="location-item">
+                            <div class="location-name">{{ event.hotel.hotel_name }}</div>
+                            {% if event.hotel.address %}
+                                <div class="location-detail">
+                                    <i class="fas fa-map-marker-alt me-1"></i>{{ event.hotel.address }}
                                 </div>
-                            {% endfor %}
+                            {% endif %}
+                            {% if event.hotel.city %}
+                                <div class="location-detail">
+                                    <i class="fas fa-city me-1"></i>{{ event.hotel.city.name }}{% if event.hotel.state %}, {{ event.hotel.state.name }}{% endif %}
+                                </div>
+                            {% endif %}
+                            {% if event.hotel.contact_phone %}
+                                <div class="location-detail">
+                                    <i class="fas fa-phone me-1"></i>{{ event.hotel.contact_phone }}
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             {% endif %}
 
-            <!-- Actions -->
-            <div class="card">
+            <!-- Hoteles Adicionales -->
+            {% if event.additional_hotels.all %}
+                <div class="sidebar-card">
+                    <div class="card-header">
+                        <i class="fas fa-bed me-2"></i>Hoteles Adicionales
+                    </div>
+                    <div class="card-body">
+                        {% for hotel in event.additional_hotels.all %}
+                            <div class="location-item">
+                                <div class="location-name">{{ hotel.hotel_name }}</div>
+                                {% if hotel.address %}
+                                    <div class="location-detail">
+                                        <i class="fas fa-map-marker-alt me-1"></i>{{ hotel.address }}
+                                    </div>
+                                {% endif %}
+                                {% if hotel.city %}
+                                    <div class="location-detail">
+                                        <i class="fas fa-city me-1"></i>{{ hotel.city.name }}{% if hotel.state %}, {{ hotel.state.name }}{% endif %}
+                                    </div>
+                                {% endif %}
+                                {% if hotel.contact_phone %}
+                                    <div class="location-detail">
+                                        <i class="fas fa-phone me-1"></i>{{ hotel.contact_phone }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Contactos del Evento -->
+            {% if event.event_contact.all %}
+                <div class="sidebar-card">
+                    <div class="card-header">
+                        <i class="fas fa-address-book me-2"></i>Contactos del Evento
+                    </div>
+                    <div class="card-body">
+                        {% for contact in event.event_contact.all %}
+                            <div class="contact-card">
+                                <div class="contact-name">{{ contact.name }}</div>
+                                {% if contact.position %}
+                                    <div class="contact-detail">
+                                        <i class="fas fa-briefcase"></i> {{ contact.position }}
+                                    </div>
+                                {% endif %}
+                                {% if contact.organization %}
+                                    <div class="contact-detail">
+                                        <i class="fas fa-building"></i> {{ contact.organization }}
+                                    </div>
+                                {% endif %}
+                                {% if contact.email %}
+                                    <div class="contact-detail">
+                                        <i class="fas fa-envelope"></i> 
+                                        <a href="mailto:{{ contact.email }}" class="text-decoration-none">{{ contact.email }}</a>
+                                    </div>
+                                {% endif %}
+                                {% if contact.phone %}
+                                    <div class="contact-detail">
+                                        <i class="fas fa-phone"></i> 
+                                        <a href="tel:{{ contact.phone }}" class="text-decoration-none">{{ contact.phone }}</a>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Estadísticas -->
+            <div class="sidebar-card">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar me-2"></i>Estadísticas
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">Acciones</h5>
-                    
-                    {% if user_attendance %}
-                        <div class="alert alert-info">
-                            <i class="fas fa-check-circle me-2"></i>
-                            Ya estás registrado en este evento
+                    <div class="info-item">
+                        <div class="info-item-icon bg-success text-white">
+                            <i class="fas fa-users"></i>
                         </div>
-                    {% elif event.requires_registration and not event.is_full %}
-                        <a href="{% url 'events:attend' event.pk %}" class="btn btn-corporate w-100 mb-2">
-                            <i class="fas fa-user-plus me-2"></i>Registrarse
-                        </a>
-                    {% elif event.is_full %}
-                        <div class="alert alert-warning">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Este evento está lleno
+                        <div class="info-item-content">
+                            <div class="info-item-label">Asistentes</div>
+                            <div class="info-item-value">
+                                <strong>{{ event.attendees_count|default:0 }}</strong>
+                                {% if event.max_attendees %}
+                                    de {{ event.max_attendees }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if event.organizer %}
+                        <div class="info-item">
+                            <div class="info-item-icon bg-primary text-white">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="info-item-content">
+                                <div class="info-item-label">Organizador</div>
+                                <div class="info-item-value">
+                                    {{ event.organizer.get_full_name|default:event.organizer.username }}
+                                </div>
+                            </div>
                         </div>
                     {% endif %}
+                </div>
+            </div>
 
-                    <div class="d-grid gap-2">
-                        <a href="{% url 'events:calendar' %}" class="btn btn-corporate-outline">
-                            <i class="fas fa-calendar-alt me-2"></i>Ver Calendario
+            <!-- Acciones -->
+            <div class="sidebar-card">
+                <div class="card-header">
+                    <i class="fas fa-cog me-2"></i>Acciones
+                </div>
+                <div class="card-body">
+                    <div class="action-buttons">
+                        <a href="{% url 'events:update' event.pk %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Editar Evento
                         </a>
                         <a href="{% url 'events:list' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-list me-2"></i>Ver Todos los Eventos
                         </a>
+                        <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-tachometer-alt me-2"></i>Ir al Dashboard
+                        </a>
                     </div>
                 </div>
             </div>
+
+            <!-- Información Adicional -->
+            {% if event.external_link or event.video_url %}
+                <div class="sidebar-card">
+                    <div class="card-header">
+                        <i class="fas fa-link me-2"></i>Enlaces
+                    </div>
+                    <div class="card-body">
+                        {% if event.external_link %}
+                            <div class="mb-3">
+                                <a href="{{ event.external_link }}" target="_blank" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-external-link-alt me-2"></i>Enlace Externo
+                                </a>
+                            </div>
+                        {% endif %}
+                        {% if event.video_url %}
+                            <div>
+                                <a href="{{ event.video_url }}" target="_blank" class="btn btn-outline-danger w-100">
+                                    <i class="fas fa-video me-2"></i>Ver Video
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
         </div>
     </div>
+    </div>
 </div>
-
-<style>
-.event-description {
-    line-height: 1.6;
-}
-
-.comment-item {
-    border-bottom: 1px solid #e0e6ed;
-    padding-bottom: 1rem;
-}
-
-.comment-item:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
-}
-
-.attendees-list {
-    max-height: 300px;
-    overflow-y: auto;
-}
-
-.progress {
-    background-color: #e0e6ed;
-}
-</style>
 {% endblock %}
-

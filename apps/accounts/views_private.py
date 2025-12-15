@@ -219,7 +219,7 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = UserProfile
     form_class = UserProfileForm
     template_name = "accounts/profile_edit.html"
-    success_url = reverse_lazy("accounts:dashboard")
+    success_url = reverse_lazy("accounts:panel")
 
     def get_object(self):
         return self.request.user.profile
@@ -235,7 +235,7 @@ class UserInfoUpdateView(LoginRequiredMixin, UpdateView):
     model = User
     form_class = UserUpdateForm
     template_name = "accounts/user_edit.html"
-    success_url = reverse_lazy("accounts:dashboard")
+    success_url = reverse_lazy("accounts:panel")
 
     def get_object(self):
         return self.request.user
@@ -398,7 +398,7 @@ class ParentPlayerRegistrationView(LoginRequiredMixin, CreateView):
     model = Player
     form_class = ParentPlayerRegistrationForm
     template_name = "accounts/parent_player_register.html"
-    success_url = reverse_lazy("accounts:dashboard")
+    success_url = reverse_lazy("accounts:panel")
 
     def dispatch(self, request, *args, **kwargs):
         # Verificar que el usuario sea padre
@@ -406,7 +406,7 @@ class ParentPlayerRegistrationView(LoginRequiredMixin, CreateView):
             messages.error(
                 request, "Solo los padres/acudientes pueden registrar jugadores."
             )
-            return redirect("accounts:dashboard")
+            return redirect("accounts:panel")
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -421,7 +421,7 @@ class ParentPlayerRegistrationView(LoginRequiredMixin, CreateView):
         messages.success(
             self.request, f"¡Jugador {player_name} registrado exitosamente!"
         )
-        return redirect("accounts:dashboard")
+        return redirect("accounts:panel")
 
 
 class PlayerUpdateView(LoginRequiredMixin, UpdateView):
@@ -492,7 +492,7 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
             if PlayerParent.objects.filter(
                 parent=self.request.user, player=self.object
             ).exists():
-                return reverse_lazy("accounts:dashboard")
+                return reverse_lazy("accounts:panel")
         return reverse_lazy("accounts:player_detail", kwargs={"pk": self.object.pk})
 
     def form_valid(self, form):
@@ -582,5 +582,5 @@ class UserListView(UserPassesTestMixin, LoginRequiredMixin, ListView):
 # Vista para manejar el perfil (redirige según el tipo de usuario)
 @login_required
 def profile_view(request):
-    """Vista de perfil que redirige al dashboard"""
-    return redirect("accounts:dashboard")
+    """Vista de perfil que redirige al panel"""
+    return redirect("accounts:panel")

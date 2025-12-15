@@ -1,14 +1,26 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Crear Evento - NSC Eventos{% endblock %}
+{% block title %}{% if form.instance.pk %}Editar Evento{% else %}Crear Evento{% endif %} - NSC Eventos{% endblock %}
 
 {% block breadcrumb %}
-    <span>Eventos</span> / <span>Crear</span>
+    <span>Eventos</span> / <span>{% if form.instance.pk %}Editar{% else %}Crear{% endif %}</span>
 {% endblock %}
 
 {% block extra_css %}
 <style>
+    .event-form-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        padding: 2rem 2rem 2rem 3rem;
+        min-height: 100vh;
+    }
+    
+    @media (max-width: 992px) {
+        .event-form-container {
+            padding: 2rem 1.5rem;
+        }
+    }
+    
     .form-section {
         background: #ffffff;
         border-radius: 0.5rem;
@@ -192,23 +204,35 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
+<div class="event-form-container">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h1 class="h3 mb-1">
-                        <i class="fas fa-calendar-plus me-2 text-primary"></i>
-                        Crear Nuevo Evento
+                        <i class="fas {% if form.instance.pk %}fa-edit{% else %}fa-calendar-plus{% endif %} me-2 text-primary"></i>
+                        {% if form.instance.pk %}Editar Evento{% else %}Crear Nuevo Evento{% endif %}
                     </h1>
                     <p class="text-muted mb-0">
-                        Completa la información para crear un nuevo evento
+                        {% if form.instance.pk %}
+                            Modifica la información del evento
+                        {% else %}
+                            Completa la información para crear un nuevo evento
+                        {% endif %}
                     </p>
                 </div>
-                <a href="{% url 'events:list' %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>Volver a Eventos
-                </a>
+                <div class="d-flex gap-2">
+                    {% if form.instance.pk %}
+                        <a href="{% url 'events:detail' form.instance.pk %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-eye me-2"></i>Ver Detalle
+                        </a>
+                    {% endif %}
+                    <a href="{% url 'events:list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Volver a Eventos
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -481,12 +505,41 @@
                                         </div>
                                         
                                     <!-- Campo hidden para el ID del sitio -->
-                                    <input type="hidden" id="primary_site_id" name="primary_site" value="{% if form.primary_site.value %}{{ form.primary_site.value }}{% endif %}">
+                                    <!-- Campo hidden para el ID del sitio (este es el que se envía) -->
+                                    <input type="hidden" id="primary_site_id" name="primary_site" value="{% if form.instance.pk and form.instance.primary_site %}{{ form.instance.primary_site.id }}{% elif form.primary_site.value %}{{ form.primary_site.value }}{% endif %}">
                                     
-                                    <!-- Ocultar el campo original del formulario -->
+                                    <!-- Ocultar el campo original del formulario (sin name para que no se envíe) -->
                                     <div style="display: none;">
                                         {{ form.primary_site }}
                                     </div>
+                                    <script>
+                                        // Remover el name del select original para evitar conflictos
+                                        // Solo el input hidden debe tener name="primary_site"
+                                        (function() {
+                                            function removeSelectName() {
+                                                // Buscar el select que Django generó para primary_site
+                                                const originalSelect = document.querySelector('select[id^="id_primary_site"]');
+                                                if (originalSelect && originalSelect.getAttribute('name') === 'primary_site') {
+                                                    originalSelect.removeAttribute('name');
+                                                    console.log('Removido name del select original de primary_site para evitar conflictos');
+                                                    return true;
+                                                }
+                                                return false;
+                                            }
+                                            
+                                            // Intentar inmediatamente
+                                            if (!removeSelectName()) {
+                                                // Si no se encuentra, intentar después de que el DOM esté listo
+                                                if (document.readyState === 'loading') {
+                                                    document.addEventListener('DOMContentLoaded', function() {
+                                                        setTimeout(removeSelectName, 100);
+                                                    });
+                                                } else {
+                                                    setTimeout(removeSelectName, 100);
+                                                }
+                                            }
+                                        })();
+                                    </script>
                                         
                                         <!-- Sitio seleccionado (chip) -->
                                         <div id="primary_site_selected" class="mt-2" style="display: none;">
@@ -573,6 +626,15 @@
                                         {% if form.hotel.field.required %}<span class="text-danger">*</span>{% endif %}
                                     </label>
                                     
+                                    {% comment %}DEBUG HOTEL: 
+                                    - form.instance.pk: {{ form.instance.pk|default:"None" }}
+                                    - form.instance.hotel: {{ form.instance.hotel|default:"None" }}
+                                    - form.instance.hotel.id: {% if form.instance.hotel %}{{ form.instance.hotel.id }}{% else %}None{% endif %}
+                                    - form.hotel.value: {{ form.hotel.value|default:"None" }}
+                                    - form.hotel.initial: {{ form.hotel.initial|default:"None" }}
+                                    - form.hotel.initial.id: {% if form.hotel.initial %}{{ form.hotel.initial.id }}{% else %}None{% endif %}
+                                    {% endcomment %}
+                                    
                                     <!-- Campo de autocomplete -->
                                     <div class="position-relative">
                                         <div class="input-group">
@@ -594,7 +656,24 @@
                                         </div>
                                         
                                         <!-- Campo hidden para el ID del hotel -->
-                                        <input type="hidden" id="hotel_id" name="hotel" value="{% if form.hotel.value %}{{ form.hotel.value }}{% endif %}">
+                                        {% comment %}
+                                        DEBUG HOTEL TEMPLATE:
+                                        - form.instance.pk: {{ form.instance.pk|default:"None" }}
+                                        - form.instance.hotel: {{ form.instance.hotel|default:"None" }}
+                                        - form.instance.hotel.id: {% if form.instance.hotel %}{{ form.instance.hotel.id }}{% else %}None{% endif %}
+                                        - form.hotel.value: {{ form.hotel.value|default:"None" }}
+                                        - form.hotel.initial: {{ form.hotel.initial|default:"None" }}
+                                        - form.hotel.initial.id: {% if form.hotel.initial %}{{ form.hotel.initial.id }}{% else %}None{% endif %}
+                                        {% endcomment %}
+                                        {% if form.instance.pk and form.instance.hotel %}
+                                            <input type="hidden" id="hotel_id" name="hotel" value="{{ form.instance.hotel.id }}" data-debug="from-instance-hotel">
+                                        {% elif form.hotel.value %}
+                                            <input type="hidden" id="hotel_id" name="hotel" value="{{ form.hotel.value }}" data-debug="from-form-value">
+                                        {% elif form.hotel.initial %}
+                                            <input type="hidden" id="hotel_id" name="hotel" value="{{ form.hotel.initial.id }}" data-debug="from-form-initial">
+                                        {% else %}
+                                            <input type="hidden" id="hotel_id" name="hotel" value="" data-debug="empty">
+                                        {% endif %}
                                         
                                         <!-- Hotel seleccionado (chip) -->
                                         <div id="hotel_selected" class="mt-2" style="display: none;">
@@ -616,6 +695,34 @@
                                     <div style="display: none;">
                                         {{ form.hotel }}
                                     </div>
+                                    <script>
+                                        // Remover el name del select original para evitar conflictos
+                                        // Solo el input hidden debe tener name="hotel"
+                                        (function() {
+                                            function removeSelectName() {
+                                                // Buscar el select que Django generó para hotel
+                                                const originalSelect = document.querySelector('select[id^="id_hotel"]');
+                                                if (originalSelect && originalSelect.getAttribute('name') === 'hotel') {
+                                                    originalSelect.removeAttribute('name');
+                                                    console.log('Removido name del select original de hotel para evitar conflictos');
+                                                    return true;
+                                                }
+                                                return false;
+                                            }
+                                            
+                                            // Intentar inmediatamente
+                                            if (!removeSelectName()) {
+                                                // Si no se encuentra, intentar después de que el DOM esté listo
+                                                if (document.readyState === 'loading') {
+                                                    document.addEventListener('DOMContentLoaded', function() {
+                                                        setTimeout(removeSelectName, 100);
+                                                    });
+                                                } else {
+                                                    setTimeout(removeSelectName, 100);
+                                                }
+                                            }
+                                        })();
+                                    </script>
                                     
                                     {% if form.hotel.errors %}
                                         <div class="text-danger small mt-1">{{ form.hotel.errors }}</div>
@@ -734,13 +841,33 @@
                                         {% if form.image.field.required %}<span class="text-danger">*</span>{% endif %}
                                     </label>
                                     {{ form.image }}
-                                    {% if form.instance.image %}
-                                        <div class="mt-2">
-                                            <small class="text-muted">Imagen actual:</small>
-                                            <div class="mt-1">
-                                                <img src="{{ form.instance.image.url }}" alt="Logo del evento" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">
+                                    {% if form.instance.pk %}
+                                        {% if form.instance.image and form.instance.image.name %}
+                                            <div class="mt-3">
+                                                <small class="text-muted d-block mb-2 fw-semibold">
+                                                    <i class="fas fa-image me-1"></i>Imagen actual:
+                                                </small>
+                                                <div class="mt-2">
+                                                    <img src="{{ form.instance.image.url }}" 
+                                                         alt="Imagen del evento" 
+                                                         class="img-thumbnail" 
+                                                         style="max-width: 250px; max-height: 250px; object-fit: cover; border: 2px solid #dee2e6; border-radius: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"
+                                                         onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                                    <div class="text-muted small" style="display: none;">
+                                                        <i class="fas fa-exclamation-triangle me-1"></i>Error al cargar la imagen
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted d-block mt-2">
+                                                    <i class="fas fa-info-circle me-1"></i>Seleccione una nueva imagen para reemplazar la actual.
+                                                </small>
                                             </div>
-                                        </div>
+                                        {% else %}
+                                            <div class="mt-2">
+                                                <small class="text-muted">
+                                                    <i class="fas fa-info-circle me-1"></i>No hay imagen actual. Puede agregar una imagen.
+                                                </small>
+                                            </div>
+                                        {% endif %}
                                     {% endif %}
                                     {% if form.image.errors %}
                                         <div class="text-danger small mt-1">{{ form.image.errors }}</div>
@@ -904,7 +1031,7 @@
                                             <i class="fas fa-times me-2"></i>Cancelar
                                         </a>
                                         <button type="submit" class="btn btn-primary">
-                                            <i class="fas fa-save me-2"></i>Guardar Evento
+                                            <i class="fas fa-save me-2"></i>{% if form.instance.pk %}Actualizar Evento{% else %}Guardar Evento{% endif %}
                                         </button>
                                     </div>
                                 </div>
@@ -914,6 +1041,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </div>
 {% endblock %}
@@ -1488,70 +1616,217 @@ document.addEventListener('DOMContentLoaded', function() {
     function loadSites(cityId = null) {
         const url = cityId ? `/locations/sites/api/?city=${cityId}` : '/locations/sites/api/';
         console.log('Cargando sitios adicionales desde:', url, 'cityId:', cityId);
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                console.log('Sitios adicionales recibidos:', data.length, 'para ciudad:', cityId);
-                // Verificar que los sitios realmente pertenezcan a la ciudad solicitada
-                if (cityId) {
-                    const filteredData = data.filter(site => site.city_id === parseInt(cityId));
-                    console.log('Sitios adicionales filtrados por ciudad_id:', filteredData.length);
-                    data = filteredData;
-                }
-                allSites = data.map(site => ({
-                    id: site.id,
-                    name: site.site_name || site.name || `Sitio ${site.id}`,
-                    checkbox: null
-                }));
-                
-                // Encontrar los checkboxes correspondientes
-                allSites.forEach(site => {
-                    const checkbox = Array.from(additionalSitesCheckboxes).find(cb => cb.value === site.id.toString());
-                    if (checkbox) {
-                        site.checkbox = checkbox;
-                        // Si el checkbox está marcado, agregarlo a seleccionados
-                        if (checkbox.checked) {
-                            selectedSites.push(site);
-                        }
+        
+        // Función auxiliar para continuar cargando sitios de la ciudad
+        function continueLoadingSites(cityId) {
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Sitios adicionales recibidos:', data.length, 'para ciudad:', cityId);
+                    // Verificar que los sitios realmente pertenezcan a la ciudad solicitada
+                    if (cityId) {
+                        const filteredData = data.filter(site => site.city_id === parseInt(cityId));
+                        console.log('Sitios adicionales filtrados por ciudad_id:', filteredData.length);
+                        data = filteredData;
                     }
-                });
-                
-                // Inicializar la interfaz
-                renderSelectedChips();
-                renderSitesList();
-            })
-            .catch(error => {
-                console.error('Error al cargar sitios:', error);
-                // Fallback: usar los checkboxes existentes
-                additionalSitesCheckboxes.forEach(checkbox => {
-                    const label = checkbox.closest('label') || document.querySelector(`label[for="${checkbox.id}"]`);
-                    let siteName = label ? label.textContent.trim() : `Sitio ${checkbox.value}`;
-                    // Limpiar el nombre si contiene el checkbox
-                    siteName = siteName.replace(checkbox.value, '').trim();
                     
-                    allSites.push({
-                        id: checkbox.value,
-                        name: siteName || `Sitio ${checkbox.value}`,
-                        checkbox: checkbox
+                    // Agregar sitios a allSites (evitando duplicados)
+                    data.forEach(site => {
+                        const existingSite = allSites.find(s => s.id === site.id);
+                        if (!existingSite) {
+                            const siteObj = {
+                                id: site.id,
+                                name: site.site_name || site.name || `Sitio ${site.id}`,
+                                checkbox: null
+                            };
+                            allSites.push(siteObj);
+                        }
                     });
                     
-                    if (checkbox.checked) {
-                        selectedSites.push(allSites[allSites.length - 1]);
-                    }
+                    // Encontrar los checkboxes correspondientes para los sitios nuevos
+                    allSites.forEach(site => {
+                        if (!site.checkbox) {
+                            const checkbox = Array.from(additionalSitesCheckboxes).find(cb => cb.value === site.id.toString());
+                            if (checkbox) {
+                                site.checkbox = checkbox;
+                            }
+                        }
+                    });
+                    
+                    // Inicializar la interfaz
+                    syncAdditionalSitesCheckboxes(); // Sincronizar checkboxes
+                    renderSelectedChips();
+                    renderSitesList();
+                    console.log('✅ Sitios adicionales inicializados. Total allSites:', allSites.length, 'Total selectedSites:', selectedSites.length);
+                })
+                .catch(error => {
+                    console.error('Error al cargar sitios:', error);
+                    // Fallback: usar los checkboxes existentes
+                    additionalSitesCheckboxes.forEach(checkbox => {
+                        const label = checkbox.closest('label') || document.querySelector(`label[for="${checkbox.id}"]`);
+                        let siteName = label ? label.textContent.trim() : `Sitio ${checkbox.value}`;
+                        // Limpiar el nombre si contiene el checkbox
+                        siteName = siteName.replace(checkbox.value, '').trim();
+                        
+                        const existingSite = allSites.find(s => s.id.toString() === checkbox.value);
+                        if (!existingSite) {
+                            allSites.push({
+                                id: checkbox.value,
+                                name: siteName || `Sitio ${checkbox.value}`,
+                                checkbox: checkbox
+                            });
+                        }
+                        
+                        if (checkbox.checked) {
+                            const site = allSites.find(s => s.id.toString() === checkbox.value);
+                            if (site && !selectedSites.find(s => s.id.toString() === site.id.toString())) {
+                                selectedSites.push(site);
+                            }
+                        }
+                    });
+                    renderSelectedChips();
+                    renderSitesList();
                 });
-                renderSelectedChips();
-                renderSitesList();
+        }
+        
+        // PRIMERO: Verificar todos los checkboxes marcados y cargar esos sitios desde la API
+        // Esto asegura que los sitios seleccionados se muestren incluso si no están en la ciudad actual
+        const checkedCheckboxes = Array.from(additionalSitesCheckboxes).filter(cb => cb.checked);
+        console.log('✅ Checkboxes marcados encontrados:', checkedCheckboxes.length);
+        
+        if (checkedCheckboxes.length > 0) {
+            const checkedSiteIds = checkedCheckboxes.map(cb => parseInt(cb.value));
+            console.log('✅ IDs de sitios marcados:', checkedSiteIds);
+            
+            // Cargar cada sitio marcado desde la API por ID
+            const loadPromises = checkedSiteIds.map(siteId => {
+                return fetch(`/locations/sites/api/?id=${siteId}`)
+                    .then(response => response.json())
+                    .then(siteData => {
+                        if (siteData && siteData.length > 0) {
+                            // Buscar el sitio con el ID correcto (no solo tomar el primero)
+                            const site = siteData.find(s => s.id === siteId);
+                            if (site) {
+                                const checkbox = checkedCheckboxes.find(cb => parseInt(cb.value) === siteId);
+                                const siteObj = {
+                                    id: site.id,
+                                    name: site.site_name || site.name || `Sitio ${site.id}`,
+                                    checkbox: checkbox || null
+                                };
+                                
+                                // Agregar a allSites si no está
+                                if (!allSites.find(s => s.id === siteObj.id)) {
+                                    allSites.push(siteObj);
+                                    console.log('✅ Sitio cargado desde API (marcado):', siteObj);
+                                }
+                                
+                                // Agregar a selectedSites si no está
+                                if (!selectedSites.find(s => s.id === siteObj.id)) {
+                                    selectedSites.push(siteObj);
+                                    console.log('✅ Sitio agregado a selectedSites:', siteObj);
+                                }
+                                
+                                return siteObj;
+                            }
+                        }
+                        return null;
+                    })
+                    .catch(error => {
+                        console.error('❌ Error al cargar sitio marcado (ID:', siteId, '):', error);
+                        return null;
+                    });
             });
+            
+            // Esperar a que todos los sitios marcados se carguen antes de continuar
+            Promise.all(loadPromises).then(() => {
+                console.log('✅ Todos los sitios marcados cargados. Total selectedSites:', selectedSites.length);
+                // Renderizar los chips inmediatamente después de cargar
+                renderSelectedChips();
+                // Continuar con la carga normal de sitios de la ciudad
+                continueLoadingSites(cityId);
+            });
+        } else {
+            // Si no hay checkboxes marcados, continuar normalmente
+            continueLoadingSites(cityId);
+        }
     }
     
-    // Cargar sitios al iniciar SOLO si hay ciudad seleccionada
-    const initialCityIdForSites = (cityHidden && cityHidden.value) ? cityHidden.value : null;
-    if (initialCityIdForSites) {
-        loadSites(initialCityIdForSites);
+    // Cargar sitios al iniciar
+    // IMPORTANTE: Primero verificar los checkboxes marcados ANTES de cargar por ciudad
+    console.log('🔍 Inicializando sitios adicionales...');
+    console.log('Checkboxes encontrados:', additionalSitesCheckboxes.length);
+    
+    const checkedCheckboxesOnInit = Array.from(additionalSitesCheckboxes).filter(cb => cb.checked);
+    console.log('✅ Checkboxes marcados al iniciar:', checkedCheckboxesOnInit.length);
+    
+    if (checkedCheckboxesOnInit.length > 0) {
+        console.log('✅ IDs de sitios marcados al iniciar:', checkedCheckboxesOnInit.map(cb => cb.value));
+        
+        // Cargar todos los sitios marcados desde la API
+        const initLoadPromises = checkedCheckboxesOnInit.map(checkbox => {
+            const siteId = parseInt(checkbox.value);
+            return fetch(`/locations/sites/api/?id=${siteId}`)
+                .then(response => response.json())
+                .then(siteData => {
+                    if (siteData && siteData.length > 0) {
+                        // Buscar el sitio con el ID correcto
+                        const site = siteData.find(s => s.id === siteId);
+                        if (site) {
+                            const siteObj = {
+                                id: site.id,
+                                name: site.site_name || site.name || `Sitio ${site.id}`,
+                                checkbox: checkbox
+                            };
+                            
+                            // Agregar a allSites si no está
+                            if (!allSites.find(s => s.id === siteObj.id)) {
+                                allSites.push(siteObj);
+                                console.log('✅ Sitio cargado al iniciar:', siteObj);
+                            }
+                            
+                            // Agregar a selectedSites si no está
+                            if (!selectedSites.find(s => s.id === siteObj.id)) {
+                                selectedSites.push(siteObj);
+                                console.log('✅ Sitio agregado a selectedSites al iniciar:', siteObj);
+                            }
+                            
+                            return siteObj;
+                        }
+                    }
+                    return null;
+                })
+                .catch(error => {
+                    console.error('❌ Error al cargar sitio al iniciar (ID:', siteId, '):', error);
+                    return null;
+                });
+        });
+        
+        // Esperar a que todos los sitios se carguen, luego renderizar y continuar con la carga normal
+        Promise.all(initLoadPromises).then(() => {
+            console.log('✅ Todos los sitios marcados cargados al iniciar. Total selectedSites:', selectedSites.length);
+            console.log('✅ selectedSites contenido:', selectedSites.map(s => ({id: s.id, name: s.name})));
+            // Renderizar los chips inmediatamente
+            renderSelectedChips();
+            renderSitesList();
+            console.log('✅ Chips renderizados después de cargar sitios al iniciar');
+            
+            // Luego cargar sitios de la ciudad si hay una ciudad seleccionada
+            const initialCityIdForSites = (cityHidden && cityHidden.value) ? cityHidden.value : null;
+            if (initialCityIdForSites) {
+                console.log('Cargando sitios adicionales de la ciudad:', initialCityIdForSites);
+                loadSites(initialCityIdForSites);
+            }
+        });
     } else {
-        // Si no hay ciudad, NO cargar sitios - esperar a que se seleccione una ciudad
-        allSites = [];
-        renderSitesList();
+        // Si no hay checkboxes marcados, cargar normalmente
+        const initialCityIdForSites = (cityHidden && cityHidden.value) ? cityHidden.value : null;
+        if (initialCityIdForSites) {
+            loadSites(initialCityIdForSites);
+        } else {
+            // Si no hay ciudad ni sitios seleccionados, NO cargar sitios
+            allSites = [];
+            renderSitesList();
+        }
     }
     
     // Autocomplete para Sitio Principal (Primary Site)
@@ -1562,6 +1837,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const primarySiteName = document.getElementById('primary_site_name');
     let primarySiteTimeout = null;
     let allPrimarySites = [];
+    let userHasSelectedSite = false; // Bandera para rastrear si el usuario seleccionó un sitio manualmente
     
     // Cargar todos los sitios para el autocomplete
     function loadPrimarySites(cityId = null) {
@@ -1593,12 +1869,69 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (initialSiteId) {
                     const initialSite = allPrimarySites.find(s => s.id === parseInt(initialSiteId));
                     if (initialSite) {
-                        showSelectedPrimarySite(initialSite);
-                    } else {
-                        // Si el sitio ya no está en la lista, limpiar la selección
-                        if (cityId) {
-                            window.clearPrimarySite();
+                        // El sitio ya está en la lista, mostrarlo (pero solo si no hay otro seleccionado)
+                        const currentValue = primarySiteIdInput ? primarySiteIdInput.value : null;
+                        if (!currentValue || currentValue === initialSiteId) {
+                            showSelectedPrimarySite(initialSite, false);
+                        } else {
+                            console.log('No mostrar sitio inicial, hay otro seleccionado:', currentValue);
                         }
+                    } else {
+                        // Si el sitio no está en la lista filtrada, intentar cargarlo directamente
+                        fetch(`/locations/sites/api/?id=${initialSiteId}`)
+                            .then(response => response.json())
+                            .then(siteData => {
+                                if (siteData && siteData.length > 0) {
+                                    // Buscar el sitio con el ID correcto (no solo tomar el primero)
+                                    let site = siteData.find(s => s.id === parseInt(initialSiteId));
+                                    
+                                    if (!site) {
+                                        console.warn('Sitio con ID', initialSiteId, 'no encontrado en loadPrimarySites. Sitios disponibles:', siteData.map(s => s.id));
+                                        // Si no se encuentra, no hacer nada más
+                                        return;
+                                    }
+                                    
+                                    console.log('Sitio cargado desde API para loadPrimarySites:', {
+                                        buscado: initialSiteId,
+                                        encontrado: site.id,
+                                        nombre: site.site_name || site.name,
+                                        todosLosSitios: siteData.map(s => ({id: s.id, name: s.site_name || s.name}))
+                                    });
+                                    
+                                    const siteObj = {
+                                        id: site.id,
+                                        name: site.site_name || site.name || `Sitio ${site.id}`,
+                                        location: [site.city_name, site.state_name, site.country_name].filter(Boolean).join(', ')
+                                    };
+                                    // Agregar a la lista si no está
+                                    if (!allPrimarySites.find(s => s.id === siteObj.id)) {
+                                        allPrimarySites.push(siteObj);
+                                    }
+                                    // Solo mostrar si no hay otro sitio seleccionado Y el sitio tiene el ID correcto
+                                    const currentValue = primarySiteIdInput ? primarySiteIdInput.value : null;
+                                    if ((!currentValue || currentValue === initialSiteId) && siteObj.id.toString() === initialSiteId) {
+                                        showSelectedPrimarySite(siteObj, false);
+                                    } else {
+                                        if (siteObj.id.toString() !== initialSiteId) {
+                                            console.warn('No mostrar sitio cargado: ID no coincide', {
+                                                buscado: initialSiteId,
+                                                encontrado: siteObj.id
+                                            });
+                                        } else {
+                                            console.log('No mostrar sitio cargado, hay otro seleccionado:', currentValue);
+                                        }
+                                    }
+                                } else {
+                                    // Si el sitio ya no existe, limpiar la selección solo si hay ciudad
+                                    // (si no hay ciudad, mantener el sitio aunque no esté en la lista)
+                                    if (cityId) {
+                                        window.clearPrimarySite();
+                                    }
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error al cargar sitio inicial:', error);
+                            });
                     }
                 }
             })
@@ -1609,13 +1942,47 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Mostrar sitio seleccionado
-    function showSelectedPrimarySite(site) {
-        primarySiteIdInput.value = site.id;
+    function showSelectedPrimarySite(site, isUserSelection = true) {
+        if (!site || !site.id) {
+            console.error('showSelectedPrimarySite: sitio inválido', site);
+            return;
+        }
+        
+        const previousValue = primarySiteIdInput ? primarySiteIdInput.value : null;
+        const newValue = site.id.toString();
+        
+        // Si es una selección del usuario, marcar la bandera
+        if (isUserSelection) {
+            userHasSelectedSite = true;
+            console.log('Selección del usuario detectada, marcando bandera');
+        }
+        
+        // Si el usuario ya seleccionó un sitio y esta no es su selección, no sobrescribir
+        if (userHasSelectedSite && !isUserSelection && previousValue && previousValue !== newValue) {
+            console.log('Ignorando inicialización: usuario ya seleccionó un sitio diferente', {
+                sitioIntentado: {id: site.id, name: site.name},
+                sitioActual: previousValue
+            });
+            return;
+        }
+        
+        console.log('showSelectedPrimarySite llamado:', {
+            sitio: {id: site.id, name: site.name},
+            valorAnterior: previousValue,
+            valorNuevo: newValue,
+            esSeleccionUsuario: isUserSelection,
+            usuarioYaSelecciono: userHasSelectedSite
+        });
+        
+        // Actualizar el valor
+        primarySiteIdInput.value = newValue;
         primarySiteName.textContent = site.name;
         primarySiteInput.value = '';
         primarySiteInput.style.display = 'none';
         primarySiteSelected.style.display = 'block';
         primarySiteDropdown.style.display = 'none';
+        
+        console.log('Sitio mostrado correctamente. Input hidden actualizado a:', primarySiteIdInput.value);
     }
     
     // Limpiar sitio seleccionado
@@ -1691,11 +2058,17 @@ document.addEventListener('DOMContentLoaded', function() {
         primarySiteDropdown.style.display = 'block';
     }
     
-    // Seleccionar sitio
+    // Seleccionar sitio (llamado cuando el usuario hace clic)
     window.selectPrimarySite = function(siteId) {
+        console.log('selectPrimarySite llamado con ID:', siteId, '(selección del usuario)');
         const site = allPrimarySites.find(s => s.id === parseInt(siteId));
         if (site) {
-            showSelectedPrimarySite(site);
+            console.log('Sitio encontrado en allPrimarySites:', site);
+            // Marcar como selección del usuario para evitar que se sobrescriba
+            showSelectedPrimarySite(site, true);
+        } else {
+            console.error('Sitio no encontrado en allPrimarySites con ID:', siteId);
+            console.log('Sitios disponibles:', allPrimarySites.map(s => ({id: s.id, name: s.name})));
         }
     };
     
@@ -1732,14 +2105,108 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Cargar sitios al iniciar (con ciudad si está seleccionada)
-        // Cargar sitios principales SOLO si hay ciudad seleccionada
-        const initialCityIdForPrimarySites = (cityHidden && cityHidden.value) ? cityHidden.value : null;
-        if (initialCityIdForPrimarySites) {
-            loadPrimarySites(initialCityIdForPrimarySites);
+        // Función para inicializar el sitio principal (solo al cargar la página, no después de selecciones del usuario)
+        function initializePrimarySite() {
+            // Si el usuario ya seleccionó un sitio, no inicializar
+            if (userHasSelectedSite) {
+                console.log('Usuario ya seleccionó un sitio, saltando inicialización');
+                return;
+            }
+            
+            const currentSiteId = primarySiteIdInput ? primarySiteIdInput.value : null;
+            
+            // Solo inicializar si no hay sitio seleccionado o si es el mismo que el inicial
+            if (currentSiteId && currentSiteId.trim() !== '') {
+                console.log('Inicializando sitio principal desde valor guardado, ID:', currentSiteId);
+                
+                // Verificar si el sitio ya está en allPrimarySites
+                const existingSite = allPrimarySites.find(s => s.id === parseInt(currentSiteId));
+                if (existingSite) {
+                    console.log('Sitio ya está en la lista, mostrándolo (inicialización):', existingSite);
+                    // Solo mostrar si el usuario no ha seleccionado otro sitio
+                    if (!userHasSelectedSite) {
+                        showSelectedPrimarySite(existingSite, false);
+                    } else {
+                        console.log('No mostrar sitio inicial, usuario ya seleccionó otro');
+                    }
+                    return;
+                }
+                
+                // Si no está en la lista, cargarlo desde la API
+                fetch(`/locations/sites/api/?id=${currentSiteId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error en la respuesta del servidor');
+                        }
+                        return response.json();
+                    })
+                    .then(siteData => {
+                        console.log('Sitio inicial cargado desde API:', siteData, 'Buscando ID:', currentSiteId);
+                        if (siteData && siteData.length > 0) {
+                            // Buscar el sitio con el ID correcto (no solo tomar el primero)
+                            let site = siteData.find(s => s.id === parseInt(currentSiteId));
+                            
+                            if (!site) {
+                                console.warn('Sitio con ID', currentSiteId, 'no encontrado en la respuesta. Sitios disponibles:', siteData.map(s => s.id));
+                                // Si no se encuentra, no inicializar
+                                return;
+                            }
+                            
+                            console.log('Sitio encontrado para inicialización:', {
+                                buscado: currentSiteId,
+                                encontrado: site.id,
+                                nombre: site.site_name || site.name,
+                                todosLosSitios: siteData.map(s => ({id: s.id, name: s.site_name || s.name}))
+                            });
+                            
+                            const siteObj = {
+                                id: site.id,
+                                name: site.site_name || site.name || `Sitio ${site.id}`,
+                                location: [site.city_name, site.state_name, site.country_name].filter(Boolean).join(', ')
+                            };
+                            // Agregar a la lista si no está
+                            if (!allPrimarySites.find(s => s.id === siteObj.id)) {
+                                allPrimarySites.push(siteObj);
+                            }
+                            // Solo mostrar si el usuario no ha seleccionado otro sitio Y el sitio tiene el ID correcto
+                            if (!userHasSelectedSite && siteObj.id.toString() === currentSiteId) {
+                                showSelectedPrimarySite(siteObj, false);
+                                console.log('Sitio principal inicializado correctamente:', siteObj);
+                            } else {
+                                if (siteObj.id.toString() !== currentSiteId) {
+                                    console.warn('No inicializar: sitio encontrado no coincide con el ID buscado', {
+                                        buscado: currentSiteId,
+                                        encontrado: siteObj.id
+                                    });
+                                } else {
+                                    console.log('No inicializar, usuario ya seleccionó otro sitio');
+                                }
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar sitio inicial:', error);
+                    });
+            }
+            
+            // Cargar sitios al iniciar (con ciudad si está seleccionada)
+            const initialCityIdForPrimarySites = (cityHidden && cityHidden.value) ? cityHidden.value : null;
+            if (initialCityIdForPrimarySites) {
+                // Cargar la lista completa de sitios de la ciudad
+                loadPrimarySites(initialCityIdForPrimarySites);
+            }
+        }
+        
+        // Inicializar inmediatamente y también cuando el DOM esté listo
+        // Esto asegura que se ejecute incluso si el script se carga después del DOM
+        // IMPORTANTE: Solo inicializar una vez al cargar la página, no después de selecciones del usuario
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(initializePrimarySite, 100); // Pequeño delay para asegurar que todos los elementos estén listos
+            });
         } else {
-            // Si no hay ciudad, NO cargar sitios - esperar a que se seleccione una ciudad
-            allPrimarySites = [];
+            // DOM ya está listo, ejecutar después de un pequeño delay
+            setTimeout(initializePrimarySite, 100);
         }
     }
     
@@ -1751,6 +2218,33 @@ document.addEventListener('DOMContentLoaded', function() {
     const hotelName = document.getElementById('hotel_name');
     let hotelTimeout = null;
     let allPrimaryHotels = [];
+    let userHasSelectedHotel = false; // Bandera para rastrear si el usuario seleccionó un hotel manualmente
+    
+    // Log inicial para debugging
+    if (hotelIdInput) {
+        const debugSource = hotelIdInput.getAttribute('data-debug') || 'unknown';
+        console.log('=== HOTEL INPUT HIDDEN DEBUG ===');
+        console.log('Hotel input hidden encontrado en el DOM:', {
+            id: hotelIdInput.id,
+            name: hotelIdInput.name,
+            value: hotelIdInput.value,
+            valueAttribute: hotelIdInput.getAttribute('value'),
+            debugSource: debugSource,
+            isEmpty: !hotelIdInput.value || hotelIdInput.value.trim() === '',
+            outerHTML: hotelIdInput.outerHTML
+        });
+        console.log('================================');
+    } else {
+        console.error('❌ Hotel input hidden NO encontrado en el DOM');
+    }
+    
+    if (hotelSelected) {
+        console.log('Hotel selected chip estado:', {
+            display: hotelSelected.style.display,
+            isVisible: hotelSelected.style.display !== 'none',
+            innerHTML: hotelSelected.innerHTML.substring(0, 200)
+        });
+    }
     
     // Cargar todos los hoteles para el autocomplete
     function loadPrimaryHotels(cityId = null) {
@@ -1787,17 +2281,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Si hay un hotel seleccionado inicialmente, verificar si todavía existe
-                const initialHotelId = hotelIdInput ? hotelIdInput.value : null;
-                if (initialHotelId) {
-                    const initialHotel = allPrimaryHotels.find(h => h.id === parseInt(initialHotelId));
-                    if (initialHotel) {
-                        showSelectedPrimaryHotel(initialHotel);
-                    } else {
-                        // Si el hotel ya no está en la lista, limpiar la selección
-                        if (cityId) {
-                            window.clearHotel();
-                        }
+                // NOTA: Esta lógica se ejecuta DESPUÉS de que initializePrimaryHotel haya intentado cargar el hotel
+                // Por lo tanto, solo verificamos si el hotel está en la lista y lo mostramos si no se ha mostrado ya
+                let initialHotelId = hotelIdInput ? hotelIdInput.value : null;
+                
+                // Si está vacío, intentar leer del atributo value
+                if (!initialHotelId || initialHotelId.trim() === '') {
+                    initialHotelId = hotelIdInput ? hotelIdInput.getAttribute('value') : null;
+                }
+                
+                // Si aún está vacío, intentar leer del select original de Django
+                if (!initialHotelId || initialHotelId.trim() === '') {
+                    const originalSelect = document.querySelector('select[id^="id_hotel"]');
+                    if (originalSelect && originalSelect.value) {
+                        initialHotelId = originalSelect.value;
                     }
+                }
+                
+                if (initialHotelId && initialHotelId.trim() !== '' && !userHasSelectedHotel) {
+                    const hotelId = initialHotelId.trim();
+                    console.log('loadPrimaryHotels: Verificando hotel inicial después de cargar lista, ID:', hotelId);
+                    const initialHotel = allPrimaryHotels.find(h => h.id === parseInt(hotelId));
+                    if (initialHotel) {
+                        // El hotel ya está en la lista, verificar si ya se mostró
+                        const hotelSelectedDisplay = hotelSelected ? hotelSelected.style.display : 'none';
+                        const hotelInputDisplay = hotelInput ? hotelInput.style.display : 'block';
+                        
+                        // Solo mostrar si no se ha mostrado ya (el input está visible o el selected está oculto)
+                        if (hotelInputDisplay !== 'none' || hotelSelectedDisplay === 'none') {
+                            console.log('loadPrimaryHotels: Mostrando hotel inicial desde lista:', initialHotel);
+                            showSelectedPrimaryHotel(initialHotel, false);
+                        } else {
+                            console.log('loadPrimaryHotels: Hotel ya está mostrado, no sobrescribir');
+                        }
+                    } else {
+                        console.log('loadPrimaryHotels: Hotel inicial (ID:', hotelId, ') no está en la lista filtrada por ciudad. initializePrimaryHotel debería cargarlo por ID.');
+                    }
+                } else if (!initialHotelId || initialHotelId.trim() === '') {
+                    console.log('loadPrimaryHotels: No hay hotel inicial para mostrar (input vacío)');
                 }
             })
             .catch(error => {
@@ -1807,13 +2328,47 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Mostrar hotel seleccionado
-    function showSelectedPrimaryHotel(hotel) {
-        hotelIdInput.value = hotel.id;
+    function showSelectedPrimaryHotel(hotel, isUserSelection = true) {
+        if (!hotel || !hotel.id) {
+            console.error('showSelectedPrimaryHotel: hotel inválido', hotel);
+            return;
+        }
+        
+        const previousValue = hotelIdInput ? hotelIdInput.value : null;
+        const newValue = hotel.id.toString();
+        
+        // Si es una selección del usuario, marcar la bandera
+        if (isUserSelection) {
+            userHasSelectedHotel = true;
+            console.log('Selección del usuario detectada (hotel), marcando bandera');
+        }
+        
+        // Si el usuario ya seleccionó un hotel y esta no es su selección, no sobrescribir
+        if (userHasSelectedHotel && !isUserSelection && previousValue && previousValue !== newValue) {
+            console.log('Ignorando inicialización (hotel): usuario ya seleccionó un hotel diferente', {
+                hotelIntentado: {id: hotel.id, name: hotel.name},
+                hotelActual: previousValue
+            });
+            return;
+        }
+        
+        console.log('showSelectedPrimaryHotel llamado:', {
+            hotel: {id: hotel.id, name: hotel.name},
+            valorAnterior: previousValue,
+            valorNuevo: newValue,
+            esSeleccionUsuario: isUserSelection,
+            usuarioYaSelecciono: userHasSelectedHotel
+        });
+        
+        // Actualizar el valor
+        hotelIdInput.value = newValue;
         hotelName.textContent = hotel.name;
         hotelInput.value = '';
         hotelInput.style.display = 'none';
         hotelSelected.style.display = 'block';
         hotelDropdown.style.display = 'none';
+        
+        console.log('Hotel mostrado correctamente. Input hidden actualizado a:', hotelIdInput.value);
     }
     
     // Limpiar hotel seleccionado
@@ -1894,9 +2449,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Seleccionar hotel
     window.selectPrimaryHotel = function(hotelId) {
+        console.log('selectPrimaryHotel llamado con ID:', hotelId, '(selección del usuario)');
         const hotel = allPrimaryHotels.find(h => h.id === parseInt(hotelId));
         if (hotel) {
-            showSelectedPrimaryHotel(hotel);
+            console.log('Hotel encontrado en allPrimaryHotels:', hotel);
+            // Marcar como selección del usuario para evitar que se sobrescriba
+            showSelectedPrimaryHotel(hotel, true);
+        } else {
+            console.error('Hotel no encontrado en allPrimaryHotels con ID:', hotelId);
+            console.log('Hoteles disponibles:', allPrimaryHotels.map(h => ({id: h.id, name: h.name})));
         }
     };
     
@@ -1934,12 +2495,196 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Cargar hoteles principales SOLO si hay ciudad seleccionada
-        const initialCityIdForPrimaryHotels = (cityHidden && cityHidden.value) ? cityHidden.value : null;
-        if (initialCityIdForPrimaryHotels) {
-            loadPrimaryHotels(initialCityIdForPrimaryHotels);
+        // Función para inicializar el hotel principal (solo al cargar la página, no después de selecciones del usuario)
+        function initializePrimaryHotel() {
+            console.log('initializePrimaryHotel llamado');
+            
+            // Verificar si el elemento existe
+            if (!hotelIdInput) {
+                console.error('hotelIdInput no existe en el DOM');
+                return;
+            }
+            
+            // Obtener el valor del input hidden de múltiples formas
+            let rawValue = hotelIdInput.value;
+            
+            // Si está vacío, intentar leer del atributo value
+            if (!rawValue || rawValue.trim() === '') {
+                rawValue = hotelIdInput.getAttribute('value') || '';
+            }
+            
+            // Si aún está vacío, intentar leer del select original de Django (por si acaso)
+            if (!rawValue || rawValue.trim() === '') {
+                const originalSelect = document.querySelector('select[id^="id_hotel"]');
+                if (originalSelect && originalSelect.value) {
+                    rawValue = originalSelect.value;
+                    console.log('Valor obtenido del select original:', rawValue);
+                }
+            }
+            
+            console.log('Valor crudo del input hidden (hotel_id):', rawValue, 'tipo:', typeof rawValue);
+            console.log('Estado inicial:', {
+                userHasSelectedHotel: userHasSelectedHotel,
+                hotelIdInputValue: rawValue,
+                hotelIdInputExists: !!hotelIdInput,
+                allPrimaryHotelsLength: allPrimaryHotels.length,
+                hotelSelectedDisplay: hotelSelected ? hotelSelected.style.display : 'N/A',
+                hotelInputDisplay: hotelInput ? hotelInput.style.display : 'N/A'
+            });
+            
+            // Si el usuario ya seleccionó un hotel, no inicializar
+            if (userHasSelectedHotel) {
+                console.log('Usuario ya seleccionó un hotel, saltando inicialización');
+                return;
+            }
+            
+            // Si el hotel ya está visible, no inicializar
+            if (hotelSelected && hotelSelected.style.display !== 'none') {
+                console.log('Hotel ya está visible, no es necesario inicializar');
+                return;
+            }
+            
+            const currentHotelId = rawValue && rawValue.trim() !== '' ? rawValue.trim() : null;
+            console.log('currentHotelId procesado:', currentHotelId);
+            
+            // Solo inicializar si hay un hotel guardado y el usuario no ha seleccionado uno nuevo
+            if (currentHotelId && currentHotelId.trim() !== '') {
+                console.log('✅ Inicializando hotel principal desde valor guardado, ID:', currentHotelId);
+                console.log('Estado antes de inicializar:', {
+                    allPrimaryHotelsLength: allPrimaryHotels.length,
+                    hotelSelectedDisplay: hotelSelected ? hotelSelected.style.display : 'N/A',
+                    hotelInputDisplay: hotelInput ? hotelInput.style.display : 'N/A'
+                });
+                
+                // Verificar si el hotel ya está en allPrimaryHotels
+                const existingHotel = allPrimaryHotels.find(h => h.id === parseInt(currentHotelId));
+                if (existingHotel) {
+                    console.log('✅ Hotel ya está en la lista, mostrándolo (inicialización):', existingHotel);
+                    // Solo mostrar si el usuario no ha seleccionado otro hotel
+                    if (!userHasSelectedHotel) {
+                        console.log('Mostrando hotel desde allPrimaryHotels...');
+                        showSelectedPrimaryHotel(existingHotel, false);
+                        console.log('✅ Hotel inicial mostrado correctamente desde allPrimaryHotels');
+                    } else {
+                        console.log('⚠️ No mostrar hotel inicial, usuario ya seleccionó otro');
+                    }
+                    return;
+                } else {
+                    console.log('⚠️ Hotel NO está en allPrimaryHotels todavía. Intentando cargar desde API...');
+                    console.log('allPrimaryHotels actual:', allPrimaryHotels.map(h => ({id: h.id, name: h.name})));
+                }
+                
+                // Si no está en la lista, cargarlo desde la API
+                fetch(`/locations/hotels/api/?id=${currentHotelId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error en la respuesta del servidor');
+                        }
+                        return response.json();
+                    })
+                    .then(hotelData => {
+                        console.log('📡 Hotel inicial cargado desde API:', hotelData, 'Buscando ID:', currentHotelId);
+                        if (hotelData && hotelData.length > 0) {
+                            // Buscar el hotel con el ID correcto (no solo tomar el primero)
+                            let hotel = hotelData.find(h => h.id === parseInt(currentHotelId));
+                            
+                            if (!hotel) {
+                                console.error('❌ Hotel con ID', currentHotelId, 'no encontrado en la respuesta. Hoteles disponibles:', hotelData.map(h => h.id));
+                                return;
+                            }
+                            
+                            console.log('✅ Hotel encontrado para inicialización:', {
+                                buscado: currentHotelId,
+                                encontrado: hotel.id,
+                                nombre: hotel.name || hotel.hotel_name,
+                                todosLosHoteles: hotelData.map(h => ({id: h.id, name: h.name || h.hotel_name}))
+                            });
+                            
+                            const hotelObj = {
+                                id: hotel.id,
+                                name: hotel.name || hotel.hotel_name || `Hotel ${hotel.id}`,
+                                location: hotel.city_id ? `Ciudad ID: ${hotel.city_id}` : ''
+                            };
+                            
+                            // Agregar a la lista si no está
+                            if (!allPrimaryHotels.find(h => h.id === hotelObj.id)) {
+                                allPrimaryHotels.push(hotelObj);
+                                console.log('✅ Hotel agregado a allPrimaryHotels:', hotelObj);
+                            } else {
+                                console.log('ℹ️ Hotel ya estaba en allPrimaryHotels');
+                            }
+                            
+                            // Solo mostrar si el usuario no ha seleccionado otro hotel Y el hotel tiene el ID correcto
+                            if (!userHasSelectedHotel && hotelObj.id.toString() === currentHotelId) {
+                                console.log('Mostrando hotel desde API...');
+                                showSelectedPrimaryHotel(hotelObj, false);
+                                console.log('✅ Hotel principal inicializado correctamente desde API:', hotelObj);
+                            } else {
+                                if (hotelObj.id.toString() !== currentHotelId) {
+                                    console.error('❌ No inicializar: hotel encontrado no coincide con el ID buscado', {
+                                        buscado: currentHotelId,
+                                        encontrado: hotelObj.id
+                                    });
+                                } else {
+                                    console.log('⚠️ No inicializar, usuario ya seleccionó otro hotel');
+                                }
+                            }
+                        } else {
+                            console.error('❌ No se recibieron datos del hotel desde la API');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('❌ Error al cargar hotel inicial:', error);
+                    });
+            } else {
+                console.log('No hay hotel guardado para inicializar (currentHotelId vacío o null)');
+                console.log('Esto puede significar que:');
+                console.log('  1. El evento no tiene un hotel asignado');
+                console.log('  2. El valor no se está pasando correctamente desde Django al template');
+                console.log('  3. El input hidden no se está renderizando con el valor correcto');
+                
+                // Verificar si el hotel está visible en el chip
+                if (hotelSelected && hotelSelected.style.display !== 'none') {
+                    console.log('Hotel ya está visible en el chip, no es necesario inicializar');
+                }
+            }
+            
+            // Cargar hoteles al iniciar (con ciudad si está seleccionada)
+            const initialCityIdForPrimaryHotels = (cityHidden && cityHidden.value) ? cityHidden.value : null;
+            if (initialCityIdForPrimaryHotels) {
+                console.log('Cargando lista de hoteles de la ciudad:', initialCityIdForPrimaryHotels);
+                // Cargar la lista completa de hoteles de la ciudad
+                // IMPORTANTE: Esto se ejecuta después de intentar inicializar el hotel guardado
+                loadPrimaryHotels(initialCityIdForPrimaryHotels);
+            } else {
+                console.log('No hay ciudad seleccionada, no se cargarán hoteles');
+            }
+        }
+        
+        // Inicializar inmediatamente y también cuando el DOM esté listo
+        // IMPORTANTE: Esperar a que la ciudad se cargue primero, ya que el hotel depende de la ciudad
+        console.log('Configurando inicialización de hotel principal. readyState:', document.readyState);
+        
+        function scheduleHotelInitialization() {
+            // Esperar un poco más para asegurar que la ciudad y otros campos estén inicializados
+            const delay = 300; // Aumentar el delay para dar tiempo a que todo se cargue
+            console.log(`Programando inicialización de hotel en ${delay}ms`);
+            
+            setTimeout(function() {
+                console.log('Ejecutando initializePrimaryHotel después del delay');
+                initializePrimaryHotel();
+            }, delay);
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                console.log('DOMContentLoaded: programando initializePrimaryHotel');
+                scheduleHotelInitialization();
+            });
         } else {
-            // Si no hay ciudad, NO cargar hoteles - esperar a que se seleccione una ciudad
-            allPrimaryHotels = [];
+            // DOM ya está listo, ejecutar después de un delay
+            console.log('DOM ya listo: programando initializePrimaryHotel');
+            scheduleHotelInitialization();
         }
     }
     
@@ -1998,6 +2743,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Sincronizar checkboxes con selectedSites
+    function syncAdditionalSitesCheckboxes() {
+        if (!additionalSitesCheckboxes || additionalSitesCheckboxes.length === 0) return;
+        
+        const selectedSiteIds = selectedSites.map(s => s.id.toString());
+        additionalSitesCheckboxes.forEach(checkbox => {
+            checkbox.checked = selectedSiteIds.includes(checkbox.value);
+        });
+    }
+    
     // Renderizar chips de sitios seleccionados
     function renderSelectedChips() {
         if (selectedSites.length === 0) {
@@ -2036,6 +2791,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const site = allSites.find(s => s.id === parseInt(siteId) || s.id.toString() === siteId.toString());
         if (site && !selectedSites.some(s => s.id === site.id)) {
             selectedSites.push(site);
+            syncAdditionalSitesCheckboxes(); // Sincronizar checkboxes
             renderSelectedChips();
             renderSitesList(siteSearch ? siteSearch.value : '');
             // Limpiar el buscador después de agregar
@@ -2048,6 +2804,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Remover sitio
     window.removeSite = function(siteId) {
         selectedSites = selectedSites.filter(s => s.id !== parseInt(siteId) && s.id.toString() !== siteId.toString());
+        syncAdditionalSitesCheckboxes(); // Sincronizar checkboxes
         renderSelectedChips();
         renderSitesList(siteSearch ? siteSearch.value : '');
     };
@@ -2059,9 +2816,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Inicializar
-    renderSelectedChips();
-    // Asegurar que la lista se muestre con el término de búsqueda actual
+    // Inicializar - NO renderizar aquí porque los sitios aún no se han cargado
+    // El renderizado se hará después de que los sitios se carguen desde la API
+    // Solo renderizar la lista vacía por ahora
     const currentSiteSearch = siteSearch ? siteSearch.value : '';
     renderSitesList(currentSiteSearch);
     
@@ -2981,12 +3738,96 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('eventForm');
     if (form) {
         form.addEventListener('submit', function(e) {
+            console.log('Sincronizando formulario antes de enviar...');
+            
             // Sincronizar antes de enviar
             if (descriptionEditor && descriptionField) {
                 descriptionField.value = descriptionEditor.root.innerHTML;
             }
             if (emailBodyEditor && emailBodyField) {
                 emailBodyField.value = emailBodyEditor.root.innerHTML;
+            }
+            
+            // Verificar que primary_site tenga el valor correcto
+            const primarySiteIdInput = document.getElementById('primary_site_id');
+            if (primarySiteIdInput) {
+                const siteId = primarySiteIdInput.value;
+                console.log('Primary site a enviar (desde input hidden):', siteId);
+                
+                // Asegurarnos de que el input hidden tenga el valor correcto
+                // El input hidden ya tiene name="primary_site", así que se enviará directamente
+                // No necesitamos sincronizar con otro campo
+                
+                // Verificar que no haya otro campo con name="primary_site" que pueda interferir
+                const otherPrimarySiteFields = document.querySelectorAll('[name="primary_site"]');
+                if (otherPrimarySiteFields.length > 1) {
+                    console.warn('ADVERTENCIA: Hay múltiples campos con name="primary_site"', otherPrimarySiteFields);
+                    // Remover el name de todos excepto el input hidden
+                    otherPrimarySiteFields.forEach(field => {
+                        if (field.id !== 'primary_site_id' && field.getAttribute('name') === 'primary_site') {
+                            field.removeAttribute('name');
+                            console.log('Removido name de campo duplicado:', field.id || field.tagName);
+                        }
+                    });
+                }
+            } else {
+                console.error('No se encontró el input hidden primary_site_id');
+            }
+            
+            // Verificar que hotel tenga el valor correcto
+            const hotelIdInput = document.getElementById('hotel_id');
+            if (hotelIdInput) {
+                const hotelId = hotelIdInput.value;
+                console.log('Hotel a enviar (desde input hidden):', hotelId);
+                
+                // El input hidden ya tiene name="hotel", así que se enviará directamente
+                // Verificar que no haya otro campo con name="hotel" que pueda interferir
+                const otherHotelFields = document.querySelectorAll('[name="hotel"]');
+                if (otherHotelFields.length > 1) {
+                    console.warn('ADVERTENCIA: Hay múltiples campos con name="hotel"', otherHotelFields);
+                    // Remover el name de todos excepto el input hidden
+                    otherHotelFields.forEach(field => {
+                        if (field.id !== 'hotel_id' && field.getAttribute('name') === 'hotel') {
+                            field.removeAttribute('name');
+                            console.log('Removido name de campo duplicado (hotel):', field.id || field.tagName);
+                        }
+                    });
+                }
+            } else {
+                console.error('No se encontró el input hidden hotel_id');
+            }
+            
+            // Sincronizar additional_sites - asegurar que los checkboxes reflejen la selección
+            // Los checkboxes ya deberían estar sincronizados por renderSelectedChips(),
+            // pero verificamos una vez más antes de enviar
+            const additionalSitesCheckboxes = document.querySelectorAll('#additional_sites_hidden input[type="checkbox"]');
+            if (additionalSitesCheckboxes.length > 0) {
+                // Obtener los IDs de los sitios seleccionados desde los chips visibles
+                // Esto es más confiable que depender de la variable JavaScript
+                const selectedChips = document.querySelectorAll('#selected_sites_chips .badge');
+                const selectedSiteIdsFromChips = Array.from(selectedChips).map(chip => {
+                    const removeBtn = chip.querySelector('button[onclick*="removeSite"]');
+                    if (removeBtn) {
+                        const onclick = removeBtn.getAttribute('onclick');
+                        const match = onclick.match(/removeSite\((\d+)\)/);
+                        if (match) return match[1];
+                    }
+                    return null;
+                }).filter(Boolean);
+                
+                console.log('Sitios seleccionados desde chips:', selectedSiteIdsFromChips);
+                
+                // Sincronizar checkboxes con los chips visibles
+                additionalSitesCheckboxes.forEach(checkbox => {
+                    const shouldBeChecked = selectedSiteIdsFromChips.includes(checkbox.value);
+                    checkbox.checked = shouldBeChecked;
+                    if (shouldBeChecked) {
+                        console.log('Checkbox sincronizado y marcado:', checkbox.value);
+                    }
+                });
+                console.log('Additional sites sincronizados antes de enviar');
+            } else {
+                console.warn('No se encontraron checkboxes para additional_sites');
             }
         });
     }

@@ -4,7 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.contrib.auth.views import LoginView as BaseLoginView
-from django.shortcuts import redirect, render, get_object_or_404
+from django.conf import settings
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView,
@@ -15,7 +16,6 @@ from django.views.generic import (
 )
 from django.db.models import Q
 from django.utils import timezone
-from datetime import timedelta
 
 from .forms import (
     PublicRegistrationForm,
@@ -38,29 +38,85 @@ class PublicHomeView(TemplateView):
 
         # Obtener eventos próximos (si existe la app events)
         try:
-            from apps.events.models import Event
+            from apps.events.models import Event, EventType
 
             now = timezone.now()
+            # Obtener todos los eventos activos (excluyendo cancelados)
+            # Mostrar todos los eventos disponibles, priorizando los futuros
             upcoming_events = (
-                Event.objects.filter(start_date__gte=now.date(), status="published")
-                .select_related("category")
-                .prefetch_related("divisions")[:6]
+                Event.objects.exclude(status="cancelled")
+                .select_related("category", "event_type")
+                .prefetch_related("divisions")
+                .order_by("-start_date")  # Más recientes primero
             )
 
             # Eventos de hoy
-            today_events = Event.objects.filter(
-                start_date=now.date(), status="published"
+            today_events = Event.objects.filter(start_date=now.date()).exclude(
+                status="cancelled"
             )[:3]
+
+            # Tipos de eventos activos
+            event_types = EventType.objects.filter(is_active=True).order_by("name")
 
             context["upcoming_events"] = upcoming_events
             context["today_events"] = today_events
+            context["event_types"] = event_types
+
+            # Evento de Mérida (para el bloque promocional del home)
+            # Buscar en título, ciudad, estado y campo location
+            merida_q = (
+                Q(title__icontains="merida")
+                | Q(title__icontains="mérida")
+                | Q(city__name__icontains="merida")
+                | Q(city__name__icontains="mérida")
+                | Q(state__name__icontains="yucatan")
+                | Q(state__name__icontains="yucatán")
+                | Q(location__icontains="merida")
+                | Q(location__icontains="mérida")
+            )
+            # Priorizar eventos futuros, luego los más recientes
+            merida_event = (
+                Event.objects.exclude(status="cancelled")
+                .filter(merida_q)
+                .select_related("category", "event_type", "city", "state")
+                .prefetch_related("divisions")
+            )
+            # Primero intentar eventos futuros
+            future_merida = (
+                merida_event.filter(start_date__gte=now.date())
+                .order_by("start_date")
+                .first()
+            )
+            # Si no hay futuros, tomar el más reciente
+            if not future_merida:
+                future_merida = merida_event.order_by("-start_date").first()
+
+            # Si aún no hay evento de Mérida, usar el primer evento próximo como fallback
+            if not future_merida:
+                future_merida = (
+                    Event.objects.exclude(status="cancelled")
+                    .filter(start_date__gte=now.date())
+                    .select_related("category", "event_type", "city", "state")
+                    .prefetch_related("divisions")
+                    .order_by("start_date")
+                    .first()
+                )
+
+            context["merida_event"] = future_merida
         except ImportError:
             context["upcoming_events"] = []
             context["today_events"] = []
+            context["event_types"] = []
+            context["merida_event"] = None
 
         # Estadísticas públicas
         context["total_teams"] = Team.objects.filter(is_active=True).count()
         context["total_players"] = Player.objects.filter(is_active=True).count()
+
+        # Instagram username
+        context["instagram_username"] = getattr(
+            settings, "INSTAGRAM_USERNAME", "ncs_international"
+        )
 
         return context
 
@@ -72,7 +128,7 @@ class PublicLoginView(BaseLoginView):
 
     def form_valid(self, form):
         """Redirigir según el tipo de usuario después del login"""
-        response = super().form_valid(form)
+        super().form_valid(form)
         user = form.get_user()
 
         # Crear perfil si no existe
@@ -85,16 +141,16 @@ class PublicLoginView(BaseLoginView):
             return redirect("/admin/")
         elif hasattr(user, "profile"):
             if user.profile.is_team_manager:
-                # Manager va al dashboard
+                # Manager va al panel
                 messages.success(self.request, f"¡Bienvenido, {user.get_full_name()}!")
-                return redirect("accounts:dashboard")
+                return redirect("accounts:panel")
             elif user.profile.is_player:
-                # Jugador va al dashboard
+                # Jugador va al panel
                 messages.success(self.request, f"¡Bienvenido, {user.get_full_name()}!")
-                return redirect("accounts:dashboard")
+                return redirect("accounts:panel")
 
-        # Por defecto, ir al dashboard
-        return redirect("accounts:dashboard")
+        # Por defecto, ir al panel
+        return redirect("accounts:panel")
 
 
 class PublicRegistrationView(CreateView):
@@ -184,7 +240,7 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = UserProfile
     form_class = UserProfileForm
     template_name = "accounts/profile_edit.html"
-    success_url = reverse_lazy("accounts:dashboard")
+    success_url = reverse_lazy("accounts:panel")
 
     def get_object(self):
         return self.request.user.profile
@@ -200,7 +256,7 @@ class UserInfoUpdateView(LoginRequiredMixin, UpdateView):
     model = User
     form_class = UserUpdateForm
     template_name = "accounts/user_edit.html"
-    success_url = reverse_lazy("accounts:dashboard")
+    success_url = reverse_lazy("accounts:panel")
 
     def get_object(self):
         return self.request.user
@@ -260,7 +316,7 @@ class TeamCreateView(LoginRequiredMixin, CreateView):
             or not request.user.profile.is_team_manager
         ):
             messages.error(request, "Solo los managers pueden crear equipos.")
-            return redirect("accounts:dashboard")
+            return redirect("accounts:panel")
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
@@ -355,7 +411,7 @@ class PlayerRegistrationView(LoginRequiredMixin, CreateView):
             or not request.user.profile.is_team_manager
         ):
             messages.error(request, "Solo los managers pueden registrar jugadores.")
-            return redirect("accounts:dashboard")
+            return redirect("accounts:panel")
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -428,4 +484,4 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
 @login_required
 def profile_view(request):
     """Vista de perfil que redirige al dashboard"""
-    return redirect("accounts:dashboard")
+    return redirect("accounts:panel")

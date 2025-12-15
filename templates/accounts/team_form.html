@@ -219,7 +219,7 @@
                     <span><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</span>
                 </div>
                 <div class="col-md-6 text-end">
-                    <a href="/accounts/dashboard/">Dashboard</a>
+                    <a href="{% url 'accounts:panel' %}">Panel</a>
                     <span class="mx-2">|</span>
                     <a href="{% url 'accounts:logout' %}">Cerrar Sesión</a>
                 </div>
@@ -239,7 +239,7 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/accounts/dashboard/">Dashboard</a>
+                        <a class="nav-link" href="{% url 'accounts:panel' %}">Panel</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="{% url 'accounts:team_list' %}">Mis Equipos</a>

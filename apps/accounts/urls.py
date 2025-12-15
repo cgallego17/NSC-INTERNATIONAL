@@ -41,7 +41,7 @@ urlpatterns = [
     # Logout (requiere login) - pero la URL debe estar disponible siempre
     path("logout/", auth_views.LogoutView.as_view(next_page="/"), name="logout"),
     # Panel y perfil
-    path("dashboard/", views_private.UserDashboardView.as_view(), name="dashboard"),
+    path("panel/", views_private.UserDashboardView.as_view(), name="panel"),
     path("profile/", views_private.profile_view, name="profile"),
     path(
         "profile/edit/", views_private.ProfileUpdateView.as_view(), name="profile_edit"
@@ -83,4 +83,15 @@ urlpatterns = [
     ),
     # Usuarios (solo staff)
     path("users/", views_private.UserListView.as_view(), name="user_list"),
+    # Instagram API
+    path(
+        "api/instagram/posts/",
+        views_public.instagram_posts_api,
+        name="instagram_posts_api",
+    ),
+    path(
+        "api/instagram/image-proxy/",
+        views_public.instagram_image_proxy,
+        name="instagram_image_proxy",
+    ),
 ]

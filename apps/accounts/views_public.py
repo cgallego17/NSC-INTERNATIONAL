@@ -21,6 +21,9 @@ from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 
+from django.conf import settings
+from django.http import JsonResponse, HttpResponse
+import requests
 from .forms import PublicRegistrationForm, EmailAuthenticationForm, PlayerUpdateForm
 from .models import Team, Player, PlayerParent
 
@@ -51,13 +54,80 @@ class PublicHomeView(TemplateView):
 
             context["upcoming_events"] = upcoming_events
             context["today_events"] = today_events
+
+            # Evento de Mérida (para el bloque promocional del home)
+            # Buscar en título, ciudad, estado y campo location
+            merida_q = (
+                Q(title__icontains="merida")
+                | Q(title__icontains="mérida")
+                | Q(city__name__icontains="merida")
+                | Q(city__name__icontains="mérida")
+                | Q(state__name__icontains="yucatan")
+                | Q(state__name__icontains="yucatán")
+                | Q(location__icontains="merida")
+                | Q(location__icontains="mérida")
+            )
+            # Priorizar eventos futuros, luego los más recientes
+            merida_event = (
+                Event.objects.exclude(status="cancelled")
+                .filter(merida_q)
+                .select_related("category", "event_type", "city", "state")
+                .prefetch_related("divisions")
+            )
+            # Primero intentar eventos futuros
+            future_merida = (
+                merida_event.filter(start_date__gte=now.date())
+                .order_by("start_date")
+                .first()
+            )
+            # Si no hay futuros, tomar el más reciente
+            if not future_merida:
+                future_merida = merida_event.order_by("-start_date").first()
+
+            # Si aún no hay evento de Mérida, usar el primer evento próximo como fallback
+            if not future_merida:
+                future_merida = (
+                    Event.objects.exclude(status="cancelled")
+                    .filter(start_date__gte=now.date(), status="published")
+                    .select_related("category", "event_type", "city", "state")
+                    .prefetch_related("divisions")
+                    .order_by("start_date")
+                    .first()
+                )
+
+            context["merida_event"] = future_merida
         except ImportError:
             context["upcoming_events"] = []
             context["today_events"] = []
+            context["merida_event"] = None
 
         # Estadísticas públicas
         context["total_teams"] = Team.objects.filter(is_active=True).count()
         context["total_players"] = Player.objects.filter(is_active=True).count()
+
+        # Obtener tipos de eventos activos
+        try:
+            from apps.events.models import EventType
+
+            context["event_types"] = EventType.objects.filter(is_active=True).order_by(
+                "name"
+            )
+        except ImportError:
+            context["event_types"] = []
+
+        # Instagram username y perfil
+        instagram_username = getattr(
+            settings, "INSTAGRAM_USERNAME", "ncs_international"
+        )
+        context["instagram_username"] = instagram_username
+
+        # Valores por defecto para el perfil de Instagram (solo RSS feed, sin API)
+        context["instagram_display_name"] = instagram_username.replace("_", " ").title()
+        context["instagram_profile_picture"] = None
+        context["instagram_is_verified"] = False
+        context["instagram_posts_count"] = 0
+        context["instagram_followers_count"] = 0
+        context["instagram_following_count"] = 0
 
         # Si hay un error de login en la sesión, pasar el formulario con errores
         login_error = self.request.session.pop("login_error", None)
@@ -187,16 +257,16 @@ class PublicLoginView(BaseLoginView):
             return redirect("/admin/")
         elif hasattr(user, "profile"):
             if user.profile.is_team_manager:
-                # Manager va al dashboard
+                # Manager va al panel
                 messages.success(self.request, f"¡Bienvenido, {user.get_full_name()}!")
-                return redirect("accounts:dashboard")
+                return redirect("accounts:panel")
             elif user.profile.is_parent:
-                # Padre va al dashboard
+                # Padre va al panel
                 messages.success(self.request, f"¡Bienvenido, {user.get_full_name()}!")
-                return redirect("accounts:dashboard")
+                return redirect("accounts:panel")
 
-        # Por defecto, ir al dashboard
-        return redirect("accounts:dashboard")
+        # Por defecto, ir al panel
+        return redirect("accounts:panel")
 
     def form_invalid(self, form):
         """Si el formulario es inválido, redirigir a la página principal con el modal abierto"""
@@ -238,9 +308,9 @@ class PublicRegistrationView(CreateView):
         elif user_type == "parent":
             messages.info(
                 self.request,
-                "Ahora puedes registrar a tu(s) jugador(es) desde el dashboard.",
+                "Ahora puedes registrar a tu(s) jugador(es) desde el panel.",
             )
-            return redirect("accounts:dashboard")
+            return redirect("accounts:panel")
 
         return response
 
@@ -415,3 +485,86 @@ class FrontPlayerUpdateView(LoginRequiredMixin, UpdateView):
                 self.request, "Información del jugador actualizada exitosamente."
             )
             return super().form_valid(form)
+
+
+def instagram_posts_api(request):
+    """
+    API endpoint para obtener posts de Instagram
+    Siempre devuelve exactamente 12 posts (completa con placeholders si es necesario)
+    """
+    try:
+        from .instagram_api import get_instagram_posts
+        from urllib.parse import quote
+
+        username = getattr(settings, "INSTAGRAM_USERNAME", "ncs_international")
+        # Solicitar 6 posts del RSS feed
+        posts = get_instagram_posts(username=username, limit=6)
+
+        # Reemplazar URLs de imágenes con URLs de proxy para evitar CORS
+        for post in posts:
+            if post.get("image_url"):
+                # Usar el endpoint de proxy en lugar de la URL directa
+                image_url = post["image_url"]
+                post["image_url"] = (
+                    f"/accounts/api/instagram/image-proxy/?url={quote(image_url)}"
+                )
+
+        # Limitar a exactamente 6 posts (sin placeholders)
+        posts = posts[:6]
+
+        # Log para debugging
+        print(
+            f"Instagram API: Devolviendo {len(posts)} posts para {username} (solicitados: 6)"
+        )
+        if posts:
+            print(
+                f"Primer post: {posts[0].get('image_url', 'No image_url')[:100] if posts[0].get('image_url') else 'Placeholder'}"
+            )
+
+        return JsonResponse(posts, safe=False)
+    except Exception as e:
+        # Si hay error, retornar lista vacía con información del error
+        print(f"Error en instagram_posts_api: {e}")
+        import traceback
+
+        traceback.print_exc()
+        return JsonResponse([], safe=False)
+
+
+def instagram_image_proxy(request):
+    """
+    Proxy para imágenes de Instagram que evita problemas de CORS.
+    Descarga la imagen desde Instagram y la sirve desde nuestro servidor.
+    """
+    image_url = request.GET.get("url")
+    if not image_url:
+        return HttpResponse(status=400)
+
+    try:
+        # Descargar la imagen desde Instagram
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Referer": "https://www.instagram.com/",
+            "Accept": "image/webp,image/apng,image/*,*/*;q=0.8",
+        }
+        response = requests.get(image_url, headers=headers, timeout=10, stream=True)
+        response.raise_for_status()
+
+        # Determinar content type
+        content_type = response.headers.get("Content-Type", "image/jpeg")
+
+        # Retornar la imagen con headers apropiados
+        django_response = HttpResponse(response.content, content_type=content_type)
+        # Headers para evitar problemas de CORS
+        django_response["Access-Control-Allow-Origin"] = "*"
+        django_response["Access-Control-Allow-Methods"] = "GET"
+        # Cache por 1 hora
+        django_response["Cache-Control"] = "public, max-age=3600"
+        return django_response
+
+    except Exception as e:
+        print(f"Error descargando imagen de Instagram: {e}")
+        import traceback
+
+        traceback.print_exc()
+        return HttpResponse(status=500)

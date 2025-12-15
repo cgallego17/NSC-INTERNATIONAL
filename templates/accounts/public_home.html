@@ -65,6 +65,15 @@
             color: white !important;
             padding: 15px 20px;
             background: var(--mlb-red);
+            display: flex;
+            align-items: center;
+        }
+        
+        .navbar-logo {
+            height: 40px;
+            width: auto;
+            max-width: 180px;
+            object-fit: contain;
         }
         
         .navbar-mlb .nav-link {
@@ -85,30 +94,153 @@
             background: var(--mlb-red);
         }
         
-        /* Hero Section MLB Style */
+        /* Hero Section MLB Style - Slider */
         .hero-mlb {
-            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
-            color: white;
-            padding: 60px 0;
             position: relative;
             overflow: hidden;
+            width: 100%;
         }
         
-        .hero-mlb::before {
-            content: '';
+        .hero-mlb .carousel {
+            position: relative;
+            width: 100%;
+        }
+        
+        .hero-mlb .carousel-inner {
+            width: 100%;
+        }
+        
+        .hero-slide-item {
+            position: relative;
+            width: 100%;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .hero-slide-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 0;
+        }
+        
+        /* Ajuste para banner de World Series - mostrar completo sin recortes */
+        .hero-slide-item img[alt*="World Series"] {
+            object-fit: contain;
+            object-position: center;
+        }
+        
+        .hero-slide-overlay {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background-image: 
-                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+        
+        .hero-slide-item::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+            z-index: 1;
+        }
+        
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
         }
         
         .hero-content {
             position: relative;
-            z-index: 1;
+            z-index: 2;
+        }
+        
+        .carousel-control-prev,
+        .carousel-control-next {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.8;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        
+        .carousel-control-prev {
+            left: 20px;
+        }
+        
+        .carousel-control-next {
+            right: 20px;
+        }
+        
+        .carousel-control-prev:hover,
+        .carousel-control-next:hover {
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 1;
+        }
+        
+        .carousel-indicators {
+            margin-bottom: 20px;
+            z-index: 10;
+        }
+        
+        .carousel-indicators button {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            margin: 0 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .carousel-indicators button.active {
+            background-color: rgba(255, 255, 255, 1);
+            width: 30px;
+            border-radius: 6px;
+        }
+        
+        .carousel-item {
+            transition: transform 0.6s ease-in-out;
+        }
+        
+        .carousel-fade .carousel-item {
+            opacity: 0;
+            transition-property: opacity;
+            transform: none;
+        }
+        
+        .carousel-fade .carousel-item.active,
+        .carousel-fade .carousel-item-next.carousel-item-start,
+        .carousel-fade .carousel-item-prev.carousel-item-end {
+            opacity: 1;
+        }
+        
+        .carousel-fade .active.carousel-item-start,
+        .carousel-fade .active.carousel-item-end {
+            opacity: 0;
+        }
+        
+        .carousel-item.active {
+            display: block;
         }
         
         .hero-title {
@@ -163,6 +295,10 @@
         
         /* Main Content */
         .main-content {
+            padding: 0;
+        }
+        
+        .main-content > .container-fluid {
             padding: 40px 0;
         }
         
@@ -175,6 +311,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .section-header h2 {
@@ -281,38 +420,6 @@
             align-items: center;
         }
         
-        /* Stats Cards */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            border-top: 4px solid var(--mlb-blue);
-        }
-        
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: var(--mlb-blue);
-            margin-bottom: 5px;
-        }
-        
-        .stat-label {
-            font-size: 0.9rem;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
-        }
-        
         /* Feature Cards */
         .feature-card {
             background: white;
@@ -351,11 +458,196 @@
             font-size: 1.1rem;
         }
         
+        /* Instagram Style Gallery Section */
+        .instagram-gallery-section {
+            padding: 0px 0;
+            background: #000;
+            width: 100%;
+        }
+        
+        .instagram-gallery-header {
+            text-align: center;
+            margin-bottom: 2px;
+            padding: 40px 20px;
+            background: white;
+        }
+        
+        .instagram-gallery-header h2 {
+            color: var(--mlb-blue);
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .instagram-gallery-header h2 i {
+            font-size: 2.5rem;
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .instagram-follow-link {
+            display: inline-block;
+            color: var(--mlb-red);
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .instagram-follow-link:hover {
+            color: #b30029;
+            text-decoration: underline;
+        }
+        
+        .instagram-gallery-container {
+            width: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+        
+        .instagram-gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 2px;
+            width: 100%;
+            background: #000;
+        }
+        
+        .instagram-gallery-item {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 270 / 278;
+            overflow: hidden;
+            background: #fff;
+            cursor: pointer;
+        }
+        
+        .instagram-gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .instagram-gallery-item:hover img {
+            transform: scale(1.1);
+        }
+        
+        .instagram-gallery-item::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0);
+            transition: background 0.3s ease;
+        }
+        
+        .instagram-gallery-item:hover::after {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .instagram-gallery-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+        }
+        
+        .instagram-gallery-placeholder i {
+            font-size: 3rem;
+            opacity: 0.5;
+        }
+        
+        @media (max-width: 1680px) {
+            .instagram-gallery-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+        
+        @media (max-width: 1400px) {
+            .instagram-gallery-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        @media (max-width: 1120px) {
+            .instagram-gallery-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 840px) {
+            .instagram-gallery-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .instagram-gallery-header {
+                padding: 30px 20px;
+            }
+            
+            .instagram-gallery-header h2 {
+                font-size: 2rem;
+            }
+            
+            .instagram-gallery-item {
+                width: calc(50% - 1px);
+                height: auto;
+                aspect-ratio: 270 / 278;
+            }
+            
+            .instagram-gallery-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .instagram-gallery-header h2 {
+                font-size: 1.8rem;
+            }
+            
+            .instagram-gallery-header h2 i {
+                font-size: 1.8rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .instagram-gallery-header h2 {
+                font-size: 1.5rem;
+            }
+            
+            .instagram-gallery-header h2 i {
+                font-size: 1.5rem;
+            }
+            
+            .instagram-gallery-item {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 270 / 278;
+            }
+            
+            .instagram-gallery-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
         /* CTA Section */
         .cta-section {
             background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
             color: white;
-            padding: 60px 0;
+            padding: 25px 0;
             text-align: center;
         }
         
@@ -552,6 +844,851 @@
             text-align: center;
         }
         
+        /* Schedule Section Styles */
+        .schedule-section-card {
+            background: white;
+            border-radius: 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-top: 0;
+            margin-bottom: 0 !important;
+        }
+        
+        .schedule-section-card .container-fluid {
+            padding: 0;
+        }
+        
+        .schedule-image-container {
+            position: relative;
+            height: 100%;
+            min-height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .schedule-background-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+        
+        .showcase-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 40px;
+            display: flex;
+            align-items: flex-end;
+            z-index: 10;
+        }
+        
+        .showcase-oval {
+            position: relative;
+            width: 280px;
+            height: 120px;
+            border: 4px solid white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+        }
+        
+        .showcase-text {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        @media (max-width: 768px) {
+            .schedule-image-container {
+                min-height: 400px;
+            }
+            
+            .showcase-oval {
+                width: 220px;
+                height: 100px;
+            }
+            
+            .showcase-text {
+                font-size: 2rem;
+            }
+        }
+        
+        .schedule-logo {
+            font-size: 2.5rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            color: var(--mlb-blue);
+        }
+        
+        .schedule-text {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .schedule-season {
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            color: var(--mlb-blue);
+        }
+        
+        .schedule-number {
+            font-size: 5rem;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 10px;
+            font-family: 'Arial Black', sans-serif;
+            color: var(--mlb-blue);
+        }
+        
+        .schedule-live {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--mlb-red);
+        }
+        
+        .schedule-cta-btn {
+            background: var(--mlb-blue);
+            color: white;
+            padding: 15px 30px;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-block;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+            border: 2px solid var(--mlb-blue);
+            margin-top: 20px;
+        }
+        
+        .schedule-cta-btn:hover {
+            background: var(--mlb-red);
+            color: white;
+            border-color: var(--mlb-red);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.4);
+        }
+        
+        .schedule-content {
+            padding: 50px 40px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .schedule-heading {
+            color: var(--mlb-blue);
+            font-size: 2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+            text-align: center;
+        }
+        
+        .schedule-subheading {
+            color: #000;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            line-height: 1.4;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+        
+        .schedule-description {
+            color: #333;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .schedule-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+        }
+        
+        .schedule-category-btn {
+            border: 2px solid var(--mlb-blue);
+            background: white;
+            color: var(--mlb-blue);
+            padding: 12px 24px;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .schedule-category-btn:hover {
+            background: var(--mlb-blue);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13, 44, 84, 0.3);
+        }
+        
+        /* Video Promo Section */
+        .video-promo-section {
+            background: linear-gradient(135deg, #0a2e4a 0%, #1a4a6b 50%, #0d2c54 100%);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+        
+        .video-promo-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(45deg, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                linear-gradient(-45deg, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .video-promo-player-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            background: #000;
+        }
+        
+        .video-promo-player-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .video-promo-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            z-index: 1;
+        }
+        
+        .video-promo-video::-webkit-media-controls-panel {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Floating Video Container */
+        .video-promo-floating {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 320px;
+            height: 180px;
+            z-index: 9999;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .video-promo-floating.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        
+        .video-promo-floating video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* When the main video is floating, override its absolute positioning */
+        .video-promo-floating .video-promo-video {
+            position: static;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .video-promo-floating-close {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            background: rgba(0, 0, 0, 0.7);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: all 0.3s;
+        }
+        
+        .video-promo-floating-close:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: scale(1.1);
+        }
+        
+        .video-promo-floating-close i {
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .video-promo-floating {
+                width: 240px;
+                height: 135px;
+                bottom: 10px;
+                right: 10px;
+            }
+        }
+        
+        .video-promo-overlay-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
+            padding: 15px 20px;
+            z-index: 10;
+            pointer-events: none;
+        }
+        
+        .video-promo-overlay-actions {
+            pointer-events: auto;
+        }
+        
+        .video-promo-overlay-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .video-promo-logo-small {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .video-promo-logo-small i {
+            font-size: 1.2rem;
+            color: var(--mlb-red);
+        }
+        
+        .video-promo-overlay-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .video-promo-action-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .video-promo-action-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+        
+        .video-promo-overlay-bottom {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 100%);
+            padding: 15px 20px;
+            z-index: 10;
+        }
+        
+        .video-promo-youtube-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .video-promo-youtube-link:hover {
+            color: var(--mlb-red);
+        }
+        
+        .video-promo-youtube-link i {
+            font-size: 1.2rem;
+            color: #FF0000;
+        }
+        
+        .video-promo-content {
+            padding: 60px 40px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a2e4a 0%, #1a4a6b 50%, #0d2c54 100%);
+            position: relative;
+        }
+
+        .video-promo-description {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin: -15px 0 25px 0;
+        }
+        
+        .video-promo-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .video-promo-logo i {
+            font-size: 3rem;
+            color: var(--mlb-red);
+        }
+        
+        .video-promo-logo span {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .video-promo-title {
+            margin-bottom: 40px;
+        }
+        
+        .video-promo-title-accent {
+            display: block;
+            color: var(--mlb-red);
+            font-size: 2.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            line-height: 1.2;
+        }
+        
+        .video-promo-title-main {
+            display: block;
+            color: white;
+            font-size: 2.6rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            line-height: 1.2;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        .video-promo-options {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .video-promo-option-btn {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        
+        .video-promo-option-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .video-promo-option-btn i {
+            font-size: 1rem;
+        }
+        
+        .video-promo-twitch {
+            background: #9146ff;
+            border-color: #9146ff;
+            padding: 12px;
+        }
+        
+        .video-promo-twitch:hover {
+            background: #772ce8;
+            border-color: #772ce8;
+        }
+        
+        .video-promo-cta-btn {
+            background: var(--mlb-red);
+            color: white;
+            padding: 16px 32px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+            transition: all 0.3s;
+            display: block;
+        }
+        
+        .video-promo-cta-btn:hover {
+            background: #c1121f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(193, 18, 31, 0.4);
+            color: white;
+        }
+
+        /* Sponsors Section */
+        .sponsors-section {
+            padding: 50px 0;
+            background: linear-gradient(135deg, #0a2e4a 0%, #0d2c54 100%);
+        }
+        .sponsors-title {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .sponsors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+            align-items: center;
+            justify-items: center;
+        }
+        .sponsor-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 16px;
+            width: 100%;
+            max-width: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 80px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .sponsor-card img {
+            max-width: 100%;
+            max-height: 60px;
+            object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+        }
+        .sponsor-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        }
+        
+        @media (max-width: 992px) {
+            .video-promo-content {
+                padding: 40px 30px;
+            }
+            
+            .video-promo-title-accent {
+                font-size: 2rem;
+            }
+            
+            .video-promo-title-main {
+                font-size: 2rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .video-promo-player-container {
+                padding-top: 75%; /* Taller aspect ratio on mobile */
+            }
+            
+            .video-promo-content {
+                padding: 30px 20px;
+            }
+            
+            .video-promo-title-accent {
+                font-size: 1.5rem;
+            }
+            
+            .video-promo-title-main {
+                font-size: 2.5rem;
+            }
+            
+            .video-promo-options {
+                justify-content: center;
+            }
+            
+            .video-promo-option-btn {
+                flex: 1;
+                min-width: 80px;
+                justify-content: center;
+            }
+        }
+        
+        /* Events News Style Section */
+        .events-news-section {
+            background: var(--mlb-blue);
+            padding: 60px 40px;
+            margin: 0;
+        }
+        
+        .events-news-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0 20px;
+        }
+        
+        .events-news-title {
+            font-size: 3rem;
+            font-weight: 900;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin: 0;
+        }
+        
+        .events-view-all-btn {
+            background: var(--mlb-red);
+            color: white;
+            padding: 12px 30px;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+        }
+        
+        .events-view-all-btn:hover {
+            background: #b30029;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(213, 0, 50, 0.4);
+            color: white;
+        }
+        
+        .events-news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        @media (max-width: 1200px) {
+            .events-news-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .events-news-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+            }
+        }
+        
+        
+        .event-news-card {
+            background: transparent;
+            border-radius: 8px;
+            overflow: hidden;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .event-news-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .event-news-image {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(13, 44, 84, 0.9) 0%, rgba(19, 36, 72, 0.9) 100%);
+        }
+        
+        .event-news-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+        
+        .event-news-card:hover .event-news-image img {
+            transform: scale(1.1);
+        }
+        
+        .event-news-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, rgba(13, 44, 84, 0.8) 0%, rgba(19, 36, 72, 0.8) 100%);
+        }
+        
+        .event-news-placeholder i {
+            font-size: 4rem;
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .event-news-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 50%, rgba(0,0,0,0.6) 100%);
+            display: flex;
+            align-items: flex-start;
+            padding: 15px;
+        }
+        
+        .event-news-date {
+            color: white;
+            font-weight: 700;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 4px;
+        }
+        
+        .event-news-content {
+            background: rgba(13, 44, 84, 0.95);
+            padding: 24px 20px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            transition: background 0.3s ease;
+        }
+        
+        .event-news-card:hover .event-news-content {
+            background: rgba(13, 44, 84, 1);
+        }
+        
+        .event-news-content-inner {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .event-news-title-card {
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .event-news-meta {
+            display: flex;
+            flex-direction: row;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .event-news-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .event-news-meta-item i {
+            color: var(--mlb-red);
+            font-size: 0.8rem;
+            width: 16px;
+            text-align: center;
+        }
+        
+        .event-news-meta-item span {
+            flex: 1;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .hero-title {
@@ -562,12 +1699,125 @@
                 font-size: 1rem;
             }
             
-            .stats-grid {
-                grid-template-columns: 1fr;
+            .hero-slide-item {
+                min-height: 400px !important;
+            }
+            
+            .hero-slide-item i.fas {
+                font-size: 8rem !important;
+            }
+            
+            .hero-title {
+                font-size: 2rem !important;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem !important;
+            }
+            
+            .carousel-control-prev,
+            .carousel-control-next {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .carousel-control-prev {
+                left: 10px;
+            }
+            
+            .carousel-control-next {
+                right: 10px;
             }
             
             .modal-mlb .modal-body {
                 padding: 30px 20px;
+            }
+            
+            .schedule-section-card .row {
+                flex-direction: column;
+            }
+            
+            .schedule-image-container {
+                min-height: 400px;
+            }
+            
+            .schedule-content {
+                padding: 30px 20px;
+            }
+            
+            .schedule-heading {
+                font-size: 1.5rem;
+            }
+            
+            .schedule-number {
+                font-size: 3.5rem;
+            }
+            
+            .schedule-live {
+                font-size: 1.5rem;
+            }
+            
+            .schedule-buttons {
+                flex-direction: column;
+            }
+            
+            .schedule-category-btn {
+                width: 100%;
+                text-align: center;
+            }
+            
+            .events-news-section {
+                padding: 40px 20px;
+            }
+            
+            .events-news-title {
+                font-size: 2rem;
+            }
+            
+            .events-news-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+            
+            .event-news-image {
+                height: 200px;
+            }
+            
+            .event-news-content {
+                padding: 18px 16px;
+                min-height: 90px;
+            }
+            
+            .event-news-title-card {
+                font-size: 0.9rem;
+                line-height: 1.4;
+            }
+            
+            .event-news-meta-item {
+                font-size: 0.8rem;
+                gap: 6px;
+            }
+            
+            .event-news-meta-item i {
+                font-size: 0.75rem;
+                width: 14px;
+            }
+            
+            @media (max-width: 576px) {
+                .events-news-grid {
+                    grid-template-columns: 1fr;
+                }
+                
+                .events-news-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 20px;
+                }
+                
+                .events-view-all-btn {
+                    width: 100%;
+                    text-align: center;
+                }
             }
         }
     </style>
@@ -583,7 +1833,7 @@
                 </div>
                 <div class="col-md-6 text-end">
                     {% if user.is_authenticated %}
-                        <a href="/accounts/dashboard/"><i class="fas fa-user me-1"></i>Mi Cuenta</a>
+                        <a href="{% url 'accounts:panel' %}"><i class="fas fa-user me-1"></i>Mi Cuenta</a>
                         <span class="mx-2">|</span>
                         <a href="{% url 'accounts:logout' %}">Cerrar Sesión</a>
                     {% else %}
@@ -600,7 +1850,7 @@
     <nav class="navbar navbar-expand-lg navbar-mlb">
         <div class="container-fluid px-0">
             <a class="navbar-brand" href="/">
-                <i class="fas fa-baseball-ball me-2"></i>NSC
+                <img src="{% static 'images/ncs-white.svg' %}" alt="NSC International" class="navbar-logo">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: white;">
                 <span style="color: white;"><i class="fas fa-bars"></i></span>
@@ -621,7 +1871,7 @@
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="/accounts/dashboard/">Dashboard</a>
+                            <a class="nav-link" href="{% url 'accounts:panel' %}">Panel</a>
                         </li>
                     {% else %}
                         <li class="nav-item">
@@ -635,223 +1885,226 @@
         </div>
     </nav>
 
-    <!-- Hero Section MLB Style -->
+    <!-- Hero Section MLB Style - Slider -->
     <section class="hero-mlb">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-lg-8 hero-content">
-                    <h1 class="hero-title">NSC International</h1>
-                    <p class="hero-subtitle">
-                        La plataforma profesional para gestionar torneos, equipos y jugadores de béisbol.
-                        Únete a la mejor liga de béisbol.
-                    </p>
-                    <div class="d-flex gap-3 flex-wrap">
-                        {% if not user.is_authenticated %}
-                            <a href="/accounts/register/" class="btn btn-mlb">
-                                <i class="fas fa-user-plus me-2"></i>Registrarse Ahora
-                            </a>
-                            <a href="#" class="btn btn-mlb-outline" data-bs-toggle="modal" data-bs-target="#loginModal">
-                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
-                            </a>
-                        {% else %}
-                            <a href="/accounts/dashboard/" class="btn btn-mlb">
-                                <i class="fas fa-tachometer-alt me-2"></i>Ir al Dashboard
-                            </a>
-                            <a href="{% url 'events:list' %}" class="btn btn-mlb-outline">
-                                <i class="fas fa-calendar-alt me-2"></i>Ver Eventos
-                            </a>
-                        {% endif %}
+        <div id="heroSlider" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="hover">
+            <!-- Indicadores -->
+            <div class="carousel-indicators">
+                <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="2" aria-label="Slide 3"></button>
+            </div>
+            
+            <!-- Slides -->
+            <div class="carousel-inner">
+                <!-- Slide 1 - World Series 2026 Banner -->
+                <div class="carousel-item active">
+                    <div class="hero-slide-item" style="min-height: 500px; position: relative; overflow: hidden; background: #0d2c54;">
+                        <img src="{% static 'images/world-series-2026-banner.png' %}" alt="NCS World Series 2026 - Mexico y Puerto Rico" style="width: 100%; height: 100%; object-fit: contain; object-position: center;">
                     </div>
                 </div>
-                <div class="col-lg-4 text-center mt-4 mt-lg-0">
-                    <i class="fas fa-baseball-ball" style="font-size: 12rem; opacity: 0.2;"></i>
+                
+                <!-- Slide 2 -->
+                <div class="carousel-item">
+                    <div class="hero-slide-item" style="background: linear-gradient(135deg, var(--mlb-red) 0%, #d32f2f 50%, #ef5350 100%); min-height: 500px; display: flex; align-items: center; position: relative; overflow: hidden;">
+                        <div class="hero-slide-overlay"></div>
+                        <div class="container-fluid px-4 position-relative" style="z-index: 2;">
+                            <div class="row align-items-center">
+                                <div class="col-lg-8 hero-content">
+                                    <h1 class="hero-title">Eventos de Béisbol</h1>
+                                    <p class="hero-subtitle">
+                                        Organiza y gestiona los mejores eventos deportivos con nuestra plataforma profesional.
+                                        Control total sobre divisiones, ubicaciones y contactos.
+                                    </p>
+                                    <div class="d-flex gap-3 flex-wrap">
+                                        {% if not user.is_authenticated %}
+                                            <a href="/accounts/register/" class="btn btn-mlb">
+                                                <i class="fas fa-calendar-plus me-2"></i>Crear Evento
+                                            </a>
+                                            <a href="#" class="btn btn-mlb-outline" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'events:list' %}" class="btn btn-mlb">
+                                                <i class="fas fa-calendar-alt me-2"></i>Ver Eventos
+                                            </a>
+                                            <a href="{% url 'accounts:panel' %}" class="btn btn-mlb-outline">
+                                                <i class="fas fa-tachometer-alt me-2"></i>Panel
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 text-center mt-4 mt-lg-0">
+                                    <i class="fas fa-trophy" style="font-size: 12rem; opacity: 0.2;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Slide 3 -->
+                <div class="carousel-item">
+                    <div class="hero-slide-item" style="background: linear-gradient(135deg, #2e7d32 0%, #388e3c 50%, #66bb6a 100%); min-height: 500px; display: flex; align-items: center; position: relative; overflow: hidden;">
+                        <div class="hero-slide-overlay"></div>
+                        <div class="container-fluid px-4 position-relative" style="z-index: 2;">
+                            <div class="row align-items-center">
+                                <div class="col-lg-8 hero-content">
+                                    <h1 class="hero-title">Experiencia Profesional</h1>
+                                    <p class="hero-subtitle">
+                                        Herramientas avanzadas para organizadores de eventos deportivos de élite.
+                                        Gestiona equipos, jugadores y estadísticas con facilidad.
+                                    </p>
+                                    <div class="d-flex gap-3 flex-wrap">
+                                        {% if not user.is_authenticated %}
+                                            <a href="/accounts/register/" class="btn btn-mlb">
+                                                <i class="fas fa-rocket me-2"></i>Empezar Ahora
+                                            </a>
+                                            <a href="#" class="btn btn-mlb-outline" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                                            </a>
+                                        {% else %}
+                                            <a href="{% url 'accounts:panel' %}" class="btn btn-mlb">
+                                                <i class="fas fa-tachometer-alt me-2"></i>Ir al Panel
+                                            </a>
+                                            <a href="{% url 'events:list' %}" class="btn btn-mlb-outline">
+                                                <i class="fas fa-calendar-alt me-2"></i>Ver Eventos
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-lg-4 text-center mt-4 mt-lg-0">
+                                    <i class="fas fa-users" style="font-size: 12rem; opacity: 0.2;"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Controles -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#heroSlider" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Anterior</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#heroSlider" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Siguiente</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- Video Promo Section -->
+    <section class="video-promo-section">
+        <div class="container-fluid px-0">
+            <div class="row g-0">
+                <!-- Left Column - Video Player -->
+                <div class="col-lg-8">
+                    <div class="video-promo-player-container">
+                        <div class="video-promo-player-wrapper">
+                            <div id="videoPromoInlineHost">
+                                <video 
+                                    class="video-promo-video" 
+                                    controls 
+                                    autoplay 
+                                    muted 
+                                    loop 
+                                    playsinline
+                                    poster="https://video.squarespace-cdn.com/content/v1/674f14408ec27f4443197a96/e57aa702-31ed-48e1-891b-a4beeb1cbcd4/thumbnail">
+                                    <source src="https://video.squarespace-cdn.com/content/v1/674f14408ec27f4443197a96/e57aa702-31ed-48e1-891b-a4beeb1cbcd4/playlist.m3u8" type="application/x-mpegURL">
+                                    <source src="https://video.squarespace-cdn.com/content/v1/674f14408ec27f4443197a96/e57aa702-31ed-48e1-891b-a4beeb1cbcd4/video.mp4" type="video/mp4">
+                                    Tu navegador no soporta la reproducción de video.
+                                </video>
+                            </div>
+                            <div class="video-promo-overlay-top">
+                                <div class="video-promo-overlay-content">
+                                    <div class="video-promo-logo-small">
+                                        <i class="fas fa-baseball-ball"></i>
+                                        <span>NSC INTERNATIONAL</span>
+                                    </div>
+                                    <div class="video-promo-overlay-actions">
+                                        <button class="video-promo-action-btn" title="Ver más tarde">
+                                            <i class="far fa-clock"></i>
+                                        </button>
+                                        <button class="video-promo-action-btn video-audio-toggle" type="button" title="Activar sonido">
+                                            <i class="fas fa-volume-mute"></i>
+                                        </button>
+                                        <button class="video-promo-action-btn" title="Compartir" onclick="navigator.share ? navigator.share({title: 'NSC International Video', url: window.location.href}) : navigator.clipboard.writeText(window.location.href).then(() => alert('Enlace copiado al portapapeles'))">
+                                            <i class="fas fa-share-alt"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column - Promotional Content -->
+                <div class="col-lg-4">
+                    <div class="video-promo-content">
+                        <h2 class="video-promo-title">
+                            {% if merida_event and merida_event.title %}
+                                <span class="video-promo-title-accent">PRÓXIMO EVENTO</span>
+                                <span class="video-promo-title-main">{{ merida_event.title|upper }}</span>
+                            {% else %}
+                                <span class="video-promo-title-accent">EVENTO EN</span>
+                                <span class="video-promo-title-main">MÉRIDA</span>
+                            {% endif %}
+                        </h2>
+                        <p class="video-promo-description">
+                            Vive la experiencia NSC International en <strong>Mérida, Yucatán</strong>: competencia, visibilidad y desarrollo para atletas y familias.
+                            Consulta fechas, sedes y categorías disponibles.
+                        </p>
+                        <div class="video-promo-options">
+                            <span class="video-promo-option-btn">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>Mérida, Yucatán</span>
+                            </span>
+                            <span class="video-promo-option-btn">
+                                <i class="fas fa-baseball-ball"></i>
+                                <span>Torneo / Showcase</span>
+                            </span>
+                            <span class="video-promo-option-btn">
+                                <i class="fas fa-users"></i>
+                                <span>Categorías disponibles</span>
+                            </span>
+                        </div>
+                        <a href="{% url 'events:list' %}?search=Merida" class="video-promo-cta-btn">VER EVENTO DE MÉRIDA</a>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Main Content -->
-    <div class="main-content">
-        <div class="container">
-            <!-- Stats Section -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-number">{{ total_teams }}</div>
-                    <div class="stat-label">Equipos</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">{{ total_players }}</div>
-                    <div class="stat-label">Jugadores</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">
-                        {% if upcoming_events %}{{ upcoming_events|length }}{% else %}0{% endif %}
+    <!-- Season Schedule Section -->
+    <div class="schedule-section-card mb-5">
+        <div class="container-fluid px-0">
+            <div class="row g-0">
+                <!-- Left Column - Image -->
+                <div class="col-lg-6">
+                    <div class="schedule-image-container">
+                        <img src="{% static 'images/schedule-2025.png' %}" alt="2025 Schedule" class="schedule-background-image">
                     </div>
-                    <div class="stat-label">Eventos</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">
-                        {% if today_events %}{{ today_events|length }}{% else %}0{% endif %}
-                    </div>
-                    <div class="stat-label">Hoy</div>
-                </div>
-            </div>
-
-            <!-- Events Section -->
-            <div id="eventos" class="mb-5">
-                <div class="section-header">
-                    <h2><i class="fas fa-calendar-alt me-2"></i>Próximos Eventos y Torneos</h2>
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'events:list' %}" class="view-all">Ver Todos <i class="fas fa-arrow-right ms-1"></i></a>
-                    {% endif %}
                 </div>
                 
-                {% if upcoming_events %}
-                    <div class="row">
-                        {% for event in upcoming_events %}
-                            <div class="col-md-6 col-lg-4">
-                                <div class="game-card">
-                                    <div class="game-card-header">
-                                        <div class="date">
-                                            <i class="fas fa-calendar me-1"></i>
-                                            {% if event.start_date %}
-                                                {{ event.start_date|date:"d M Y" }}
-                                            {% endif %}
-                                        </div>
-                                        <div class="status">{{ event.get_status_display }}</div>
-                                    </div>
-                                    <div class="game-card-body">
-                                        <h3 class="game-title">{{ event.title }}</h3>
-                                        <div class="game-info">
-                                            {% if event.location %}
-                                                <div class="game-info-item">
-                                                    <i class="fas fa-map-marker-alt"></i>
-                                                    <span>{{ event.location }}</span>
-                                                </div>
-                                            {% endif %}
-                                            {% if event.category %}
-                                                <div class="game-info-item">
-                                                    <i class="fas fa-tag"></i>
-                                                    <span>{{ event.category.name }}</span>
-                                                </div>
-                                            {% endif %}
-                                            {% if event.divisions.all %}
-                                                <div class="game-info-item">
-                                                    <i class="fas fa-users"></i>
-                                                    <span>
-                                                        {% for division in event.divisions.all %}
-                                                            {{ division.name }}{% if not forloop.last %}, {% endif %}
-                                                        {% endfor %}
-                                                    </span>
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                        {% if event.description %}
-                                            <p class="game-description">{{ event.description|truncatewords:25 }}</p>
-                                        {% endif %}
-                                    </div>
-                                    {% if user.is_authenticated %}
-                                        <div class="game-card-footer">
-                                            <a href="{% url 'events:private_detail' event.pk %}" class="btn btn-sm btn-mlb">
-                                                Ver Detalles
-                                            </a>
-                                            <span class="text-muted small">
-                                                <i class="fas fa-eye me-1"></i>Detalles
-                                            </span>
-                                        </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% else %}
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle me-2"></i>
-                        No hay eventos programados en este momento.
-                    </div>
-                {% endif %}
-            </div>
-
-            <!-- Today's Events -->
-            {% if today_events %}
-            <div class="mb-5">
-                <div class="section-header">
-                    <h2><i class="fas fa-clock me-2"></i>Eventos de Hoy</h2>
-                </div>
-                <div class="row">
-                    {% for event in today_events %}
-                        <div class="col-md-6 col-lg-4">
-                            <div class="game-card" style="border-top-color: var(--mlb-gold);">
-                                <div class="game-card-header" style="background: var(--mlb-red);">
-                                    <div class="date">
-                                        <i class="fas fa-clock me-1"></i>HOY
-                                    </div>
-                                    <div class="status" style="background: var(--mlb-gold); color: var(--mlb-dark);">
-                                        EN VIVO
-                                    </div>
-                                </div>
-                                <div class="game-card-body">
-                                    <h3 class="game-title">{{ event.title }}</h3>
-                                    <div class="game-info">
-                                        {% if event.location %}
-                                            <div class="game-info-item">
-                                                <i class="fas fa-map-marker-alt"></i>
-                                                <span>{{ event.location }}</span>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                {% if user.is_authenticated %}
-                                    <div class="game-card-footer">
-                                        <a href="{% url 'events:private_detail' event.pk %}" class="btn btn-sm btn-mlb">
-                                            Ver Ahora
-                                        </a>
-                                    </div>
-                                {% endif %}
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            <!-- Features Section -->
-            <div id="equipos" class="mb-5">
-                <div class="section-header">
-                    <h2><i class="fas fa-star me-2"></i>Características Principales</h2>
-                </div>
-                <div class="row g-4">
-                    <div class="col-md-4">
-                        <div class="feature-card">
-                            <div class="feature-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <h4>Gestión de Equipos</h4>
-                            <p class="text-muted">
-                                Crea y gestiona equipos completos. Organiza jugadores, estadísticas y toda la información de tu equipo.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="feature-card">
-                            <div class="feature-icon">
-                                <i class="fas fa-trophy"></i>
-                            </div>
-                            <h4>Torneos y Eventos</h4>
-                            <p class="text-muted">
-                                Organiza torneos profesionales. Gestiona inscripciones, horarios y resultados de manera eficiente.
-                            </p>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="feature-card">
-                            <div class="feature-icon">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <h4>Estadísticas</h4>
-                            <p class="text-muted">
-                                Registra y analiza estadísticas detalladas de jugadores y equipos. Toma decisiones basadas en datos.
-                            </p>
+                <!-- Right Column - Content -->
+                <div class="col-lg-6">
+                    <div class="schedule-content">
+                        <h2 class="schedule-heading">CALENDARIO DE EVENTOS 2026</h2>
+                        <h3 class="schedule-subheading">EXPANSIÓN REGIONAL Y NUEVOS CAMPEONATOS NACIONALES Y REGIONALES PARA 2026</h3>
+                        <p class="schedule-description">
+                            A medida que avanzamos hacia 2026, NSC International continúa elevando su plataforma de torneos y exhibiciones. Con una expansión de la presencia regional para edades 7U-18U, nuevos y mejorados eventos de Campeonatos Nacionales y Regionales, y una programación aún más amplia de exhibiciones en todo el país, NSC se mantiene dedicado a ofrecer el más alto estándar de competencia y experiencia para jugadores, entrenadores y familias por igual.
+                        </p>
+                        <div class="schedule-buttons">
+                            {% if event_types %}
+                                {% for event_type in event_types %}
+                                    <a href="{% url 'events:list' %}?event_type={{ event_type.id }}" class="schedule-category-btn">
+                                        {% if event_type.icon %}<i class="{{ event_type.icon }} me-2"></i>{% endif %}
+                                        {{ event_type.name }}
+                                    </a>
+                                {% endfor %}
+                            {% else %}
+                                <a href="{% url 'events:list' %}" class="schedule-category-btn">CALENDARIO NSC</a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -859,9 +2112,334 @@
         </div>
     </div>
 
+    <!-- Events News Style Section -->
+    <div class="events-news-section">
+        <div class="events-news-header">
+            <h2 class="events-news-title">EVENTOS</h2>
+            <a href="{% url 'events:list' %}" class="events-view-all-btn">VER TODOS</a>
+        </div>
+        <div class="events-news-grid">
+            {% for event in upcoming_events|slice:":4" %}
+                <a href="{% url 'events:detail' event.pk %}" class="event-news-card">
+                    <div class="event-news-image">
+                        {% if event.image %}
+                            <img src="{{ event.image.url }}" alt="{{ event.title }}">
+                        {% else %}
+                            <div class="event-news-placeholder">
+                                <i class="fas fa-baseball-ball"></i>
+                            </div>
+                        {% endif %}
+                        <div class="event-news-overlay">
+                            {% if event.start_date %}
+                                <div class="event-news-date">{{ event.start_date|date:"d M Y"|upper }}</div>
+                            {% endif %}
+                            {% if event.event_type %}
+                                <div class="event-news-type" style="position: absolute; top: 10px; right: 10px; background: var(--mlb-red); color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                                    {{ event.event_type.name|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="event-news-content">
+                        <div class="event-news-content-inner">
+                            <h3 class="event-news-title-card">{{ event.title|upper|truncatewords:10 }}</h3>
+                            {% if event.city or event.start_date %}
+                                <div class="event-news-meta">
+                                    {% if event.city %}
+                                        <div class="event-news-meta-item">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span>{{ event.city.name }}{% if event.state %}, {{ event.state.name }}{% endif %}</span>
+                                        </div>
+                                    {% endif %}
+                                    {% if event.start_date %}
+                                        <div class="event-news-meta-item">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span>{{ event.start_date|date:"d M Y" }}</span>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+            {% if upcoming_events|length == 0 %}
+                {% for i in "1234" %}
+                    <div class="event-news-card">
+                        <div class="event-news-image">
+                            <div class="event-news-placeholder">
+                                <i class="fas fa-baseball-ball"></i>
+                            </div>
+                        </div>
+                        <div class="event-news-content">
+                            <div class="event-news-content-inner">
+                                <h3 class="event-news-title-card">PRÓXIMAMENTE</h3>
+                                <div class="event-news-meta">
+                                    <div class="event-news-meta-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>Muy pronto</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% elif upcoming_events|length == 1 %}
+                {% for i in "123" %}
+                    <div class="event-news-card">
+                        <div class="event-news-image">
+                            <div class="event-news-placeholder">
+                                <i class="fas fa-baseball-ball"></i>
+                            </div>
+                        </div>
+                        <div class="event-news-content">
+                            <div class="event-news-content-inner">
+                                <h3 class="event-news-title-card">PRÓXIMAMENTE</h3>
+                                <div class="event-news-meta">
+                                    <div class="event-news-meta-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>Muy pronto</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% elif upcoming_events|length == 2 %}
+                {% for i in "12" %}
+                    <div class="event-news-card">
+                        <div class="event-news-image">
+                            <div class="event-news-placeholder">
+                                <i class="fas fa-baseball-ball"></i>
+                            </div>
+                        </div>
+                        <div class="event-news-content">
+                            <div class="event-news-content-inner">
+                                <h3 class="event-news-title-card">PRÓXIMAMENTE</h3>
+                                <div class="event-news-meta">
+                                    <div class="event-news-meta-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>Muy pronto</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% elif upcoming_events|length == 3 %}
+                <div class="event-news-card">
+                    <div class="event-news-image">
+                        <div class="event-news-placeholder">
+                            <i class="fas fa-baseball-ball"></i>
+                        </div>
+                    </div>
+                    <div class="event-news-content">
+                        <div class="event-news-content-inner">
+                            <h3 class="event-news-title-card">PRÓXIMAMENTE</h3>
+                            <div class="event-news-meta">
+                                <div class="event-news-meta-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Muy pronto</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Showcases and Prospect Gateways Section -->
+    <div class="schedule-section-card mb-5">
+        <div class="container-fluid px-0">
+            <div class="row g-0">
+                <!-- Left Column - Image -->
+                <div class="col-lg-6">
+                    <div class="schedule-image-container">
+                        <img src="{% static 'images/showcase-player.webp' %}" alt="Showcase Player" class="schedule-background-image">
+                        <div class="showcase-overlay">
+                            <div class="showcase-oval">
+                                <span class="showcase-text">SHOWCASE</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column - Content -->
+                <div class="col-lg-6">
+                    <div class="schedule-content">
+                        <h2 class="schedule-heading">SHOWCASES AND PROSPECT GATEWAYS</h2>
+                        <h3 class="schedule-subheading">REGIONAL AND NATIONAL SHOWCASES</h3>
+                        <p class="schedule-description">
+                            Perfect Game is thrilled to offer showcases (HS) and Prospect Gateways (13U/14U) across the country for the 2025 calendar. This includes regional events for all ages and new invite only events! PG strives to delivery the very best events and experience for all players, coaches and families across the country.
+                        </p>
+                        <div class="schedule-buttons">
+                            <a href="#" class="schedule-category-btn">SHOWCASE SCHEDULE</a>
+                            <a href="#" class="schedule-category-btn">GATEWAY SCHEDULE</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sponsors Section -->
+    <section class="sponsors-section">
+        <div class="container">
+            <h2 class="sponsors-title">SPONSORS</h2>
+            <div class="sponsors-grid">
+                <div class="sponsor-card">
+                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%23D72638'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='32' font-family='Arial' font-weight='700'>LOGO 1</text></svg>" alt="Sponsor 1">
+                </div>
+                <div class="sponsor-card">
+                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%23007BFF'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='32' font-family='Arial' font-weight='700'>LOGO 2</text></svg>" alt="Sponsor 2">
+                </div>
+                <div class="sponsor-card">
+                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%23F59E0B'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%230f172a' font-size='32' font-family='Arial' font-weight='700'>LOGO 3</text></svg>" alt="Sponsor 3">
+                </div>
+                <div class="sponsor-card">
+                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%2310B981'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%230f172a' font-size='32' font-family='Arial' font-weight='700'>LOGO 4</text></svg>" alt="Sponsor 4">
+                </div>
+                <div class="sponsor-card">
+                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%239C27B0'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='32' font-family='Arial' font-weight='700'>LOGO 5</text></svg>" alt="Sponsor 5">
+                </div>
+                <div class="sponsor-card">
+                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%23264870'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='32' font-family='Arial' font-weight='700'>LOGO 6</text></svg>" alt="Sponsor 6">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Instagram Style Gallery Section -->
+    <section class="instagram-gallery-section">
+        <div class="instagram-gallery-header">
+            <h2><i class="fab fa-instagram"></i> Síguenos en Instagram</h2>
+            <a href="https://www.instagram.com/{{ instagram_username }}/" target="_blank" rel="noopener noreferrer" class="instagram-follow-link">
+                @{{ instagram_username }}
+            </a>
+        </div>
+        <div class="instagram-gallery-container">
+            <div class="instagram-gallery-grid" id="instagram-feed">
+                <!-- Placeholders iniciales - serán reemplazados por posts de Instagram -->
+                {% for i in "123456" %}
+                    <div class="instagram-gallery-item">
+                        <div class="instagram-gallery-placeholder">
+                            <i class="fab fa-instagram"></i>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    
+    <script>
+        // Instagram Feed Loader - Carga inmediatamente al renderizar
+        (function() {
+            const instagramUsername = '{{ instagram_username }}';
+            const grid = document.getElementById('instagram-feed');
+            
+            // Limpiar el grid inmediatamente para evitar mostrar contenido inicial
+            if (grid) {
+                grid.innerHTML = '';
+            }
+            
+            // Función para cargar posts de Instagram
+            async function loadInstagramPosts() {
+                if (!grid) return;
+                
+                try {
+                    // Intentar con nuestra API personalizada
+                    const response = await fetch('/accounts/api/instagram/posts/');
+                    if (response.ok) {
+                        const posts = await response.json();
+                        console.log('Posts recibidos de API:', posts.length);
+                        if (posts && posts.length > 0) {
+                            console.log('Renderizando posts de Instagram');
+                            renderInstagramPosts(posts);
+                            return;
+                        }
+                    }
+                } catch (error) {
+                    console.log('Error con API personalizada:', error);
+                }
+                
+                // Si no hay posts, mostrar placeholders de Instagram
+                console.log('No se pudieron cargar posts de Instagram, mostrando placeholders');
+                showPlaceholders();
+            }
+            
+            // Función para mostrar placeholders
+            function showPlaceholders() {
+                if (!grid) return;
+                grid.innerHTML = '';
+                for (let i = 0; i < 6; i++) {
+                    const item = document.createElement('div');
+                    item.className = 'instagram-gallery-item';
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'instagram-gallery-placeholder';
+                    placeholder.innerHTML = '<i class="fab fa-instagram"></i>';
+                    item.appendChild(placeholder);
+                    grid.appendChild(item);
+                }
+            }
+            
+            // Función para renderizar posts de Instagram (solo 6 posts)
+            function renderInstagramPosts(posts) {
+                if (!grid) return;
+                
+                grid.innerHTML = '';
+                
+                // Renderizar solo los posts disponibles (máximo 6)
+                const postsToRender = posts.slice(0, 6);
+                
+                postsToRender.forEach(post => {
+                    const item = document.createElement('a');
+                    item.href = post.permalink || `https://www.instagram.com/${instagramUsername}/`;
+                    item.target = '_blank';
+                    item.rel = 'noopener noreferrer';
+                    item.className = 'instagram-gallery-item';
+                    
+                    if (post.image_url) {
+                        const img = document.createElement('img');
+                        img.src = post.image_url;
+                        img.alt = post.caption || 'Instagram post';
+                        img.loading = 'lazy'; // Lazy loading para mejor rendimiento
+                        img.onerror = function() {
+                            // Si la imagen falla, mostrar placeholder
+                            this.style.display = 'none';
+                            const placeholder = document.createElement('div');
+                            placeholder.className = 'instagram-gallery-placeholder';
+                            placeholder.innerHTML = '<i class="fab fa-instagram"></i>';
+                            item.appendChild(placeholder);
+                        };
+                        item.appendChild(img);
+                    } else {
+                        const placeholder = document.createElement('div');
+                        placeholder.className = 'instagram-gallery-placeholder';
+                        placeholder.innerHTML = '<i class="fab fa-instagram"></i>';
+                        item.appendChild(placeholder);
+                    }
+                    
+                    grid.appendChild(item);
+                });
+                
+                console.log(`Renderizados ${postsToRender.length} posts de Instagram`);
+            }
+            
+            // Cargar posts inmediatamente (no esperar DOMContentLoaded)
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', loadInstagramPosts);
+            } else {
+                // DOM ya está listo
+                loadInstagramPosts();
+            }
+        })();
+    </script>
+
     <!-- CTA Section -->
     <section class="cta-section">
-        <div class="container">
+        <div class="container-fluid px-4">
+            <div style="max-width: 1200px; margin: 0 auto;">
             <h2>¿Listo para Comenzar?</h2>
             <p>Únete a la mejor plataforma de gestión de béisbol profesional</p>
             {% if not user.is_authenticated %}
@@ -872,17 +2450,18 @@
                     <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
                 </a>
             {% else %}
-                <a href="/accounts/dashboard/" class="btn btn-mlb">
-                    <i class="fas fa-tachometer-alt me-2"></i>Ir al Dashboard
+                <a href="{% url 'accounts:panel' %}" class="btn btn-mlb">
+                    <i class="fas fa-tachometer-alt me-2"></i>Ir al Panel
                 </a>
             {% endif %}
+            </div>
         </div>
     </section>
 
     <!-- Footer MLB Style -->
     <footer class="footer-mlb">
-        <div class="container">
-            <div class="row">
+        <div class="container-fluid px-4">
+            <div class="row" style="max-width: 1400px; margin: 0 auto;">
                 <div class="col-md-4 mb-4">
                     <h5>
                         <i class="fas fa-baseball-ball me-2"></i>NSC International
@@ -896,7 +2475,7 @@
                     <h5>Enlaces Rápidos</h5>
                     <a href="/">Inicio</a>
                     {% if user.is_authenticated %}
-                        <a href="/accounts/dashboard/">Dashboard</a>
+                        <a href="{% url 'accounts:panel' %}">Panel</a>
                         <a href="{% url 'events:list' %}">Eventos</a>
                         <a href="/accounts/teams/">Equipos</a>
                     {% else %}
@@ -1008,6 +2587,19 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
+        // Inicializar el carousel del hero slider
+        document.addEventListener('DOMContentLoaded', function() {
+            const heroSlider = document.getElementById('heroSlider');
+            if (heroSlider) {
+                const carousel = new bootstrap.Carousel(heroSlider, {
+                    interval: 5000,
+                    ride: 'carousel',
+                    pause: 'hover',
+                    wrap: true
+                });
+            }
+        });
+        
         // Smooth scroll
         document.querySelectorAll('a[href^="#"]:not([data-bs-toggle])').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -1052,6 +2644,168 @@
                 // No necesitamos prevenir el submit predeterminado
             });
         }
+        
+        // HLS.js support for Squarespace video
+        (function() {
+            const video = document.querySelector('.video-promo-video');
+            if (video) {
+                const videoSrc = video.querySelector('source[type="application/x-mpegURL"]');
+                if (videoSrc && video.canPlayType('application/vnd.apple.mpegurl') === '') {
+                    // Browser doesn't support HLS natively, use hls.js
+                    if (typeof Hls !== 'undefined') {
+                        const hls = new Hls();
+                        hls.loadSource(videoSrc.src);
+                        hls.attachMedia(video);
+                        hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                            // Video is ready to play
+                        });
+                    } else {
+                        // Load hls.js from CDN
+                        const script = document.createElement('script');
+                        script.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
+                        script.onload = function() {
+                            const hls = new Hls();
+                            hls.loadSource(videoSrc.src);
+                            hls.attachMedia(video);
+                            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                                // Video is ready to play
+                            });
+                        };
+                        document.head.appendChild(script);
+                    }
+                }
+            }
+        })();
+
+        // Audio enablement (autoplay with sound is blocked by browsers)
+        (function() {
+            const video = document.querySelector('.video-promo-video');
+            const btn = document.querySelector('.video-audio-toggle');
+            if (!video || !btn) return;
+            let audioUnlocked = false;
+
+            function render() {
+                const icon = btn.querySelector('i');
+                if (!icon) return;
+                if (video.muted || video.volume === 0) {
+                    icon.className = 'fas fa-volume-mute';
+                    btn.title = 'Activar sonido';
+                } else {
+                    icon.className = 'fas fa-volume-up';
+                    btn.title = 'Silenciar';
+                }
+            }
+
+            async function unmuteAndPlay() {
+                video.muted = false;
+                if (video.volume === 0) video.volume = 1;
+                try { await video.play(); } catch (e) {}
+                audioUnlocked = true;
+                render();
+            }
+
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (video.muted || video.volume === 0) {
+                    unmuteAndPlay();
+                } else {
+                    video.muted = true;
+                    render();
+                }
+            });
+
+            // Enable audio automatically on first user interaction (allowed by browsers)
+            const once = { once: true, passive: true };
+            const onFirstGesture = function() {
+                if (video.muted || video.volume === 0) {
+                    unmuteAndPlay();
+                }
+            };
+            document.addEventListener('click', onFirstGesture, once);
+            document.addEventListener('touchstart', onFirstGesture, once);
+            document.addEventListener('keydown', onFirstGesture, once);
+
+            // IMPORTANT: First click on the video should NOT toggle pause.
+            // Some browsers toggle play/pause on click; we intercept only until audio is unlocked.
+            video.addEventListener('click', function(e) {
+                if (!audioUnlocked && (video.muted || video.volume === 0)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    unmuteAndPlay();
+                }
+            }, true);
+
+            render();
+        })();
+        
+        // Floating Video on Scroll
+        (function() {
+            const videoSection = document.querySelector('.video-promo-section');
+            const video = document.querySelector('.video-promo-video');
+            const inlineHost = document.getElementById('videoPromoInlineHost');
+            
+            if (!videoSection || !video || !inlineHost) return;
+            
+            // Create floating container (we move the SAME <video> here)
+            const floatingContainer = document.createElement('div');
+            floatingContainer.className = 'video-promo-floating';
+            floatingContainer.innerHTML = `
+                <button class="video-promo-floating-close" title="Cerrar">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="video-promo-floating-host"></div>
+            `;
+            document.body.appendChild(floatingContainer);
+            
+            const floatingHost = floatingContainer.querySelector('.video-promo-floating-host');
+            const closeBtn = floatingContainer.querySelector('.video-promo-floating-close');
+            
+            let floatingDisabled = false;
+            let isFloating = false;
+            
+            function moveToFloating() {
+                if (floatingDisabled || isFloating) return;
+                const wasPlaying = !video.paused && !video.ended;
+                floatingHost.appendChild(video);
+                floatingContainer.classList.add('active');
+                isFloating = true;
+                if (wasPlaying) {
+                    video.play().catch(() => {});
+                }
+            }
+            
+            function moveToInline() {
+                if (!isFloating) return;
+                const wasPlaying = !video.paused && !video.ended;
+                inlineHost.appendChild(video);
+                floatingContainer.classList.remove('active');
+                isFloating = false;
+                if (wasPlaying) {
+                    video.play().catch(() => {});
+                }
+            }
+            
+            closeBtn.addEventListener('click', function() {
+                floatingDisabled = true;
+                moveToInline();
+                floatingContainer.classList.remove('active');
+            });
+            
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) {
+                        moveToFloating();
+                    } else {
+                        moveToInline();
+                    }
+                });
+            }, {
+                threshold: 0.1,
+                rootMargin: '0px'
+            });
+            
+            observer.observe(videoSection);
+        })();
     </script>
 </body>
 </html>
