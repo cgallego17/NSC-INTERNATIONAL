@@ -1536,21 +1536,21 @@
                                 <div class="col-12">
                                     <!-- Vista: Lista de Eventos -->
                                     <div id="eventsListView">
-                                        <!-- Header de Eventos -->
+                                    <!-- Header de Eventos -->
                                         <div class="card shadow-lg border-0 mb-4" style="border-radius: 20px; overflow: hidden; border: none; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); box-shadow: 0 8px 24px rgba(13, 44, 84, 0.2);">
                                             <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-3" style="background: transparent; color: white; border: none; padding: 28px;">
-                                                <div>
+                                            <div>
                                                     <h5 class="mb-2" style="font-weight: 800; font-size: 1.5rem; letter-spacing: -0.5px;">
                                                         <i class="fas fa-calendar-alt me-2" style="color: var(--mlb-red);"></i>Eventos y Torneos
                                                     </h5>
                                                     <small class="opacity-90" style="font-size: 0.95rem; font-weight: 500;">Gestiona y visualiza todos los eventos del sistema</small>
-                                                </div>
-                                                <a href="{% url 'events:list' %}" class="btn btn-sm" style="background: var(--mlb-red); color: white; border: none; border-radius: 10px; padding: 12px 24px; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 12px rgba(213, 0, 50, 0.3); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px;">
-                                                    <i class="fas fa-list me-1"></i>Ver Todos
-                                                </a>
                                             </div>
+                                                <a href="{% url 'events:list' %}" class="btn btn-sm" style="background: var(--mlb-red); color: white; border: none; border-radius: 10px; padding: 12px 24px; font-weight: 700; transition: all 0.3s; box-shadow: 0 4px 12px rgba(213, 0, 50, 0.3); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px;">
+                                                <i class="fas fa-list me-1"></i>Ver Todos
+                                            </a>
                                         </div>
-                                        
+                                    </div>
+                                    
                                         <!-- Lista de Eventos -->
                                     {% if upcoming_events %}
                                         <div class="row mb-4">
@@ -1559,13 +1559,13 @@
                                                     <div>
                                                         <h4 class="mb-1" style="color: var(--mlb-blue); font-weight: 800; font-size: 1.4rem; letter-spacing: -0.3px;">
                                                             <i class="fas fa-calendar-check me-2" style="color: var(--mlb-red);"></i>Todos los Eventos
-                                                        </h4>
+                                                </h4>
                                                         <p class="text-muted mb-0" style="font-size: 0.9rem;">Encuentra y gestiona todos los eventos disponibles</p>
-                                                    </div>
+                                            </div>
                                                     <span class="badge" style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b91c1c 100%); color: white; font-size: 1rem; padding: 10px 20px; border-radius: 25px; font-weight: 700; box-shadow: 0 4px 12px rgba(213, 0, 50, 0.3);">
                                                         {{ upcoming_events|length }} Evento{{ upcoming_events|length|pluralize:"s" }}
                                                     </span>
-                                                </div>
+                                        </div>
                                             </div>
                                         </div>
                                         <div class="row g-4 mb-5">
@@ -1599,18 +1599,18 @@
                                                                         <div class="event-meta-item-content">
                                                                             <strong>Fecha</strong>
                                                                             <div style="font-size: 0.8rem;">
-                                                                                {% if event.start_date %}{{ event.start_date|date:"d M Y" }}{% endif %}
-                                                                                {% if event.end_date and event.end_date != event.start_date %}
-                                                                                    - {{ event.end_date|date:"d M Y" }}
-                                                                                {% endif %}
-                                                                            </div>
+                                                            {% if event.start_date %}{{ event.start_date|date:"d M Y" }}{% endif %}
+                                                            {% if event.end_date and event.end_date != event.start_date %}
+                                                                - {{ event.end_date|date:"d M Y" }}
+                                                            {% endif %}
+                                                        </div>
                                                                         </div>
                                                                     </div>
                                                                     {% if event.description %}
                                                                         <div class="event-description">
                                                                             <p>{{ event.description|striptags|truncatewords:25 }}</p>
                                                                         </div>
-                                                                    {% endif %}
+                                                                {% endif %}
                                                                     <!-- Ubicación: Solo País, Estado, Ciudad -->
                                                                     {% if event.country or event.state or event.city or event.primary_site %}
                                                                         <div class="event-location-section">
@@ -1620,20 +1620,20 @@
                                                                                         <div class="location-item">
                                                                                             <i class="fas fa-globe" style="font-size: 0.65rem; color: var(--mlb-red);"></i>
                                                                                             <span class="location-value">{{ event.primary_site.city.state.country.name }}</span>
-                                                                                        </div>
-                                                                                    {% endif %}
+                                                            </div>
+                                                        {% endif %}
                                                                                     {% if event.primary_site.city.state %}
                                                                                         <div class="location-item">
                                                                                             <i class="fas fa-map" style="font-size: 0.65rem; color: var(--mlb-red);"></i>
                                                                                             <span class="location-value">{{ event.primary_site.city.state.name }}</span>
-                                                                                        </div>
-                                                                                    {% endif %}
+                                                            </div>
+                                                        {% endif %}
                                                                                     {% if event.primary_site.city %}
                                                                                         <div class="location-item">
                                                                                             <i class="fas fa-map-marker-alt" style="font-size: 0.65rem; color: var(--mlb-red);"></i>
                                                                                             <span class="location-value">{{ event.primary_site.city.name }}</span>
                                                                                         </div>
-                                                                                    {% endif %}
+                                                        {% endif %}
                                                                                 {% else %}
                                                                                     {% if event.country %}
                                                                                         <div class="location-item">
@@ -1661,13 +1661,13 @@
                                                             </div>
                                                             <div class="event-card-actions">
                                                                 <button type="button" class="btn btn-sm flex-grow-1 event-detail-btn" data-event-id="{{ event.pk }}" style="background: var(--mlb-blue); color: white; border: none; border-radius: 8px; font-weight: 600;">
-                                                                    <i class="fas fa-eye me-1"></i>Ver Detalles
+                                                                <i class="fas fa-eye me-1"></i>Ver Detalles
                                                                 </button>
-                                                                {% if event.registration_url %}
+                                                            {% if event.registration_url %}
                                                                     <a href="{{ event.registration_url }}" target="_blank" class="btn btn-sm" style="background: var(--mlb-red); color: white; border: none; border-radius: 8px; min-width: 44px;" title="Registrarse">
-                                                                        <i class="fas fa-external-link-alt"></i>
-                                                                    </a>
-                                                                {% endif %}
+                                                                    <i class="fas fa-external-link-alt"></i>
+                                                                </a>
+                                                            {% endif %}
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1692,39 +1692,39 @@
                                         </div>
                                     {% endif %}
                                     
-                                        <!-- Acciones Rápidas de Eventos -->
+                                    <!-- Acciones Rápidas de Eventos -->
                                         <div class="row mt-5">
-                                            <div class="col-12">
+                                        <div class="col-12">
                                                 <div class="card shadow-lg border-0" style="border-radius: 20px; border: none; background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%); box-shadow: 0 8px 24px rgba(0,0,0,0.08);">
                                                     <div class="card-body" style="padding: 32px;">
                                                         <h5 class="mb-4" style="color: var(--mlb-blue); font-weight: 800; font-size: 1.3rem; letter-spacing: -0.3px;">
                                                             <i class="fas fa-bolt me-2" style="color: var(--mlb-red); background: rgba(213, 0, 50, 0.1); padding: 10px; border-radius: 10px;"></i>Acciones Rápidas
-                                                        </h5>
+                                                    </h5>
                                                         <div class="row g-4">
-                                                            <div class="col-md-4">
+                                                        <div class="col-md-4">
                                                                 <a href="{% url 'events:list' %}" class="quick-action-btn d-block text-center" style="border-radius: 16px; padding: 24px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; text-decoration: none; transition: all 0.3s; box-shadow: 0 4px 16px rgba(13, 44, 84, 0.2); height: 100%;">
                                                                     <i class="fas fa-list" style="font-size: 2rem; margin-bottom: 12px; display: block;"></i>
                                                                     <span style="font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Ver Todos los Eventos</span>
-                                                                </a>
-                                                            </div>
-                                                            <div class="col-md-4">
+                                                            </a>
+                                                        </div>
+                                                        <div class="col-md-4">
                                                                 <a href="{% url 'events:list' %}?status=upcoming" class="quick-action-btn d-block text-center" style="border-radius: 16px; padding: 24px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; text-decoration: none; transition: all 0.3s; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2); height: 100%;">
                                                                     <i class="fas fa-clock" style="font-size: 2rem; margin-bottom: 12px; display: block;"></i>
                                                                     <span style="font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Eventos Próximos</span>
-                                                                </a>
-                                                            </div>
-                                                            <div class="col-md-4">
+                                                            </a>
+                                                        </div>
+                                                        <div class="col-md-4">
                                                                 <a href="{% url 'events:list' %}?status=past" class="quick-action-btn d-block text-center" style="border-radius: 16px; padding: 24px; background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: white; text-decoration: none; transition: all 0.3s; box-shadow: 0 4px 16px rgba(107, 114, 128, 0.2); height: 100%;">
                                                                     <i class="fas fa-history" style="font-size: 2rem; margin-bottom: 12px; display: block;"></i>
                                                                     <span style="font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">Eventos Pasados</span>
-                                                                </a>
-                                                            </div>
+                                                            </a>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
                                     
                                     <!-- Vista: Detalles del Evento -->
                                     <div id="eventDetailView" style="display: none;">
@@ -2875,7 +2875,7 @@
     
     <!-- Modal para Detalles del Adicional -->
     <div class="modal fade" id="additionalDetailModal" tabindex="-1" aria-labelledby="additionalDetailModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 95vw;">
             <div class="modal-content border-0" style="border-radius: 20px; overflow: hidden;">
                 <div class="modal-header" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; border: none; padding: 25px 30px;">
                     <h5 class="modal-title" id="additionalDetailModalLabel" style="font-weight: 800; font-size: 1.3rem;">
@@ -2883,7 +2883,7 @@
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body" style="padding: 30px; background: #f9fafb;">
+                <div class="modal-body" style="padding: 0; background: #f9fafb; max-height: 90vh; overflow-y: auto;">
                     <div id="additionalDetailContent">
                         <!-- Contenido se carga dinámicamente -->
                     </div>
@@ -2995,6 +2995,40 @@
             border-radius: 10px;
             padding: 12px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        
+        /* Estilos para el Slider de Imágenes del Hotel */
+        #hotelImageSlider {
+            display: flex;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            height: 100%;
+        }
+        
+        #hotelImageSlider > div {
+            min-width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        #hotelImageSlider img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .hotel-slider-indicator {
+            transition: all 0.3s ease;
+        }
+        
+        .hotel-slider-indicator:hover {
+            background: rgba(255,255,255,0.7) !important;
+        }
+        
+        @media (max-width: 992px) {
+            #additionalDetailModal .modal-body > div > div[style*="grid-template-columns: 1fr 1fr"] {
+                grid-template-columns: 1fr !important;
+            }
         }
         
         .summary-item {
@@ -3335,6 +3369,7 @@
         let currentUser = null; // Usuario actual que está haciendo el registro
         let availablePlayers = []; // Lista de jugadores disponibles del evento
         let currentEventHotel = null; // Información del hotel del evento actual
+        let currentEventDates = null; // Fechas del evento actual
         
         // Función para formatear números con separadores de miles
         function formatPrice(amount) {
@@ -3353,6 +3388,12 @@
             
             // Guardar información del hotel del evento
             currentEventHotel = event.hotel_info || null;
+            
+            // Guardar fechas del evento
+            currentEventDates = {
+                start_date: event.start_date || null,
+                end_date: event.end_date || null
+            };
             
             // Guardar información del usuario actual y jugadores disponibles
             currentUser = {
@@ -3556,119 +3597,278 @@
                             locationInfo = parts.join(', ');
                         }
                         
+                        // Preparar imágenes para el slider (si hay múltiples, si no solo la principal)
+                        const hotelImages = [];
+                        if (hotel.photo) {
+                            hotelImages.push(hotel.photo);
+                        }
+                        // Si hay más imágenes, agregarlas aquí
+                        
+                        // Fechas del evento
+                        const eventDates = currentEventDates || {};
+                        const startDate = eventDates.start_date || 'No especificada';
+                        const endDate = eventDates.end_date || 'No especificada';
+                        
                         content = `
-                            <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                                ${hotel.photo ? `
-                                    <div class="mb-4" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                                        <img src="${hotel.photo}" alt="${hotel.name}" style="width: 100%; height: 250px; object-fit: cover;">
+                            <div style="background: white; border-radius: 0; overflow: hidden;">
+                                <!-- Header con Nombre y Ubicación -->
+                                <div style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); padding: 30px 40px; color: white;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+                                        <div style="flex: 1; min-width: 300px;">
+                                            <div style="display: inline-block; background: rgba(213, 0, 50, 0.9); color: white; padding: 8px 18px; border-radius: 25px; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 15px; backdrop-filter: blur(10px); box-shadow: 0 4px 12px rgba(213, 0, 50, 0.4);">
+                                                <i class="fas fa-hotel me-2"></i>Hotel Sede del Evento
+                                            </div>
+                                            <h2 style="color: white; font-weight: 900; font-size: 2.5rem; margin: 0 0 12px; text-shadow: 0 3px 12px rgba(0,0,0,0.4); line-height: 1.2; letter-spacing: -0.5px;">${hotel.name}</h2>
+                                            ${locationInfo ? `
+                                                <div style="display: flex; align-items: center; gap: 10px; color: rgba(255,255,255,0.95); font-size: 1.1rem; font-weight: 600; margin-top: 8px;">
+                                                    <i class="fas fa-map-marker-alt" style="color: var(--mlb-red); font-size: 1.1rem;"></i>
+                                                    <span>${locationInfo}</span>
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                        ${hotel.registration_url ? `
+                                            <div>
+                                                <a href="${hotel.registration_url}" target="_blank" class="btn" style="background: var(--mlb-red); color: white; border: none; border-radius: 12px; padding: 14px 28px; font-weight: 800; text-decoration: none; display: inline-block; font-size: 0.95rem; box-shadow: 0 6px 20px rgba(213, 0, 50, 0.4); transition: all 0.3s; text-transform: uppercase; letter-spacing: 0.5px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(213, 0, 50, 0.5)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(213, 0, 50, 0.4)';">
+                                                    <i class="fas fa-external-link-alt me-2"></i>Reservar
+                                                </a>
+                                            </div>
+                                        ` : ''}
                                     </div>
-                                ` : ''}
-                                
-                                <div class="text-center mb-4">
-                                    <h4 style="color: var(--mlb-blue); font-weight: 800; margin-bottom: 10px; font-size: 1.5rem;">${hotel.name}</h4>
-                                    ${locationInfo ? `<p class="text-muted mb-0" style="font-size: 0.9rem;"><i class="fas fa-map-marker-alt me-1"></i>${locationInfo}</p>` : ''}
                                 </div>
                                 
-                                <hr style="border-color: #e5e7eb; margin: 20px 0;">
-                                
-                                ${hotel.address ? `
-                                    <div style="margin-bottom: 15px;">
-                                        <h6 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 8px; font-size: 0.95rem;">
-                                            <i class="fas fa-map-marker-alt me-2" style="color: var(--mlb-red);"></i>Dirección
-                                        </h6>
-                                        <p style="color: #374151; font-size: 0.9rem; margin: 0; line-height: 1.6;">${hotel.address}</p>
+                                <!-- Slider de Imágenes -->
+                                ${hotelImages.length > 0 ? `
+                                    <div style="position: relative; background: #000; height: 500px; overflow: hidden;">
+                                        <div id="hotelImageSlider" style="display: flex; transition: transform 0.5s ease; height: 100%;">
+                                            ${hotelImages.map((img, index) => `
+                                                <div style="min-width: 100%; height: 100%; position: relative;">
+                                                    <img src="${img}" alt="${hotel.name} - Imagen ${index + 1}" style="width: 100%; height: 100%; object-fit: cover;">
+                                                </div>
+                                            `).join('')}
+                                        </div>
+                                        
+                                        ${hotelImages.length > 1 ? `
+                                            <!-- Controles del Slider -->
+                                            <button id="hotelSliderPrev" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.3s;" onmouseover="this.style.background='white'; this.style.transform='translateY(-50%) scale(1.1)';" onmouseout="this.style.background='rgba(255,255,255,0.9)'; this.style.transform='translateY(-50%) scale(1)';">
+                                                <i class="fas fa-chevron-left" style="color: var(--mlb-blue); font-size: 1.2rem;"></i>
+                                            </button>
+                                            <button id="hotelSliderNext" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.3s;" onmouseover="this.style.background='white'; this.style.transform='translateY(-50%) scale(1.1)';" onmouseout="this.style.background='rgba(255,255,255,0.9)'; this.style.transform='translateY(-50%) scale(1)';">
+                                                <i class="fas fa-chevron-right" style="color: var(--mlb-blue); font-size: 1.2rem;"></i>
+                                            </button>
+                                            
+                                            <!-- Indicadores -->
+                                            <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 10;">
+                                                ${hotelImages.map((_, index) => `
+                                                    <button class="hotel-slider-indicator" data-slide="${index}" style="width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; background: ${index === 0 ? 'white' : 'transparent'}; cursor: pointer; transition: all 0.3s; box-shadow: 0 2px 6px rgba(0,0,0,0.3);" onmouseover="this.style.transform='scale(1.3)';" onmouseout="this.style.transform='scale(1)';"></button>
+                                                `).join('')}
+                                            </div>
+                                        ` : ''}
                                     </div>
-                                ` : ''}
-                                
-                                ${hotel.information ? `
-                                    <div style="margin-bottom: 15px;">
-                                        <h6 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 8px; font-size: 0.95rem;">
-                                            <i class="fas fa-info-circle me-2" style="color: var(--mlb-red);"></i>Información
-                                        </h6>
-                                        <div style="color: #374151; font-size: 0.9rem; line-height: 1.8; white-space: pre-line;">${hotel.information}</div>
+                                ` : `
+                                    <div style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); height: 400px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+                                        <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+                                        <div style="position: absolute; bottom: -30px; left: -30px; width: 150px; height: 150px; background: rgba(255,255,255,0.08); border-radius: 50%;"></div>
+                                        <div style="position: relative; z-index: 1; text-align: center;">
+                                            <div style="width: 120px; height: 120px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; backdrop-filter: blur(10px); border: 3px solid rgba(255,255,255,0.3);">
+                                                <i class="fas fa-hotel fa-4x text-white"></i>
+                                            </div>
+                                            <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; font-weight: 600; margin: 0;">No hay imágenes disponibles</p>
+                                        </div>
                                     </div>
-                                ` : ''}
+                                `}
                                 
-                                <div style="margin-bottom: 20px;">
-                                    <h6 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 12px; font-size: 1rem;">
-                                        <i class="fas fa-check-circle me-2" style="color: var(--mlb-red);"></i>¿Qué incluye el paquete?
-                                    </h6>
-                                    <ul style="list-style: none; padding: 0; margin: 0;">
-                                        <li style="padding: 8px 0; border-bottom: 1px solid #f3f4f6; display: flex; align-items: start;">
-                                            <i class="fas fa-check text-success me-2" style="margin-top: 4px;"></i>
-                                            <span style="color: #374151; font-size: 0.9rem;">Alojamiento en ${hotel.name} durante los días del evento</span>
-                                        </li>
-                                        <li style="padding: 8px 0; border-bottom: 1px solid #f3f4f6; display: flex; align-items: start;">
-                                            <i class="fas fa-check text-success me-2" style="margin-top: 4px;"></i>
-                                            <span style="color: #374151; font-size: 0.9rem;">Habitación cómoda con todas las comodidades</span>
-                                        </li>
-                                        <li style="padding: 8px 0; border-bottom: 1px solid #f3f4f6; display: flex; align-items: start;">
-                                            <i class="fas fa-check text-success me-2" style="margin-top: 4px;"></i>
-                                            <span style="color: #374151; font-size: 0.9rem;">Servicios básicos incluidos (WiFi, agua, electricidad)</span>
-                                        </li>
-                                        <li style="padding: 8px 0; display: flex; align-items: start;">
-                                            <i class="fas fa-check text-success me-2" style="margin-top: 4px;"></i>
-                                            <span style="color: #374151; font-size: 0.9rem;">Ubicación estratégica cerca del campo de juego</span>
-                                        </li>
-                                    </ul>
-                                </div>
-                                
-                                ${hotel.registration_url ? `
-                                    <div style="margin-bottom: 15px; text-align: center;">
-                                        <a href="${hotel.registration_url}" target="_blank" class="btn" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; border: none; border-radius: 8px; padding: 12px 24px; font-weight: 700; text-decoration: none; display: inline-block;">
-                                            <i class="fas fa-external-link-alt me-2"></i>Reservar en el Hotel
-                                        </a>
+                                <!-- Contenido Principal en Grid -->
+                                <div style="padding: 40px; background: #f9fafb;">
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                                        <!-- Columna Izquierda -->
+                                        <div>
+                                            <!-- Fechas del Evento -->
+                                            <div style="margin-bottom: 25px; padding: 25px; background: white; border-radius: 16px; border: 2px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+                                                <h6 style="color: var(--mlb-blue); font-weight: 800; margin: 0 0 18px; font-size: 1rem; text-transform: uppercase; letter-spacing: 0.8px; display: flex; align-items: center; gap: 10px;">
+                                                    <i class="fas fa-calendar-alt" style="color: var(--mlb-red); font-size: 1.1rem;"></i>
+                                                    Fechas del Evento
+                                                </h6>
+                                                <div style="display: grid; gap: 12px;">
+                                                    <div style="padding: 16px; background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%); border-radius: 12px; border-left: 4px solid var(--mlb-blue);">
+                                                        <div style="color: #6b7280; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">Fecha de Inicio</div>
+                                                        <div style="color: var(--mlb-blue); font-size: 1.2rem; font-weight: 800;">${startDate}</div>
+                                                    </div>
+                                                    <div style="padding: 16px; background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%); border-radius: 12px; border-left: 4px solid var(--mlb-red);">
+                                                        <div style="color: #6b7280; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">Fecha de Fin</div>
+                                                        <div style="color: var(--mlb-red); font-size: 1.2rem; font-weight: 800;">${endDate}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Dirección -->
+                                            ${hotel.address ? `
+                                                <div style="margin-bottom: 25px; padding: 25px; background: white; border-radius: 16px; border: 2px solid #fee2e2; box-shadow: 0 4px 12px rgba(0,0,0,0.06); position: relative; overflow: hidden;">
+                                                    <div style="position: absolute; top: 0; left: 0; width: 5px; height: 100%; background: linear-gradient(180deg, var(--mlb-red) 0%, #b91c1c 100%);"></div>
+                                                    <div style="display: flex; align-items: start; gap: 16px; position: relative; z-index: 1;">
+                                                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b91c1c 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(213, 0, 50, 0.3);">
+                                                            <i class="fas fa-map-marker-alt text-white" style="font-size: 1.3rem;"></i>
+                                                        </div>
+                                                        <div style="flex: 1;">
+                                                            <h6 style="color: var(--mlb-blue); font-weight: 800; margin: 0 0 10px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.8px;">Dirección</h6>
+                                                            <p style="color: #1f2937; font-size: 1rem; margin: 0; line-height: 1.7; font-weight: 500;">${hotel.address}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ` : ''}
+                                        </div>
+                                        
+                                        <!-- Columna Derecha -->
+                                        <div>
+                                            <!-- Información del Hotel -->
+                                            ${hotel.information ? `
+                                                <div style="margin-bottom: 25px; padding: 25px; background: white; border-radius: 16px; border: 2px solid #bfdbfe; box-shadow: 0 4px 12px rgba(0,0,0,0.06); position: relative; overflow: hidden;">
+                                                    <div style="position: absolute; top: 0; left: 0; width: 5px; height: 100%; background: linear-gradient(180deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);"></div>
+                                                    <div style="display: flex; align-items: start; gap: 16px; position: relative; z-index: 1;">
+                                                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(13, 44, 84, 0.3);">
+                                                            <i class="fas fa-info-circle text-white" style="font-size: 1.3rem;"></i>
+                                                        </div>
+                                                        <div style="flex: 1;">
+                                                            <h6 style="color: var(--mlb-blue); font-weight: 800; margin: 0 0 12px; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.8px;">Acerca del Hotel</h6>
+                                                            <div style="color: #374151; font-size: 1rem; line-height: 1.8; white-space: pre-line; font-weight: 400;">${hotel.information}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ` : ''}
+                                            
+                                            <!-- Nota Informativa -->
+                                            <div style="padding: 25px; background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 50%, #fef2f2 100%); border-radius: 16px; border: 2px solid #bfdbfe; box-shadow: 0 4px 12px rgba(0,0,0,0.06); position: relative; overflow: hidden;">
+                                                <div style="position: absolute; top: -15px; right: -15px; width: 80px; height: 80px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 50%; opacity: 0.08;"></div>
+                                                <div style="position: relative; z-index: 1;">
+                                                    <div style="display: flex; align-items: start; gap: 14px;">
+                                                        <div style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(13, 44, 84, 0.25);">
+                                                            <i class="fas fa-info-circle text-white" style="font-size: 1.3rem;"></i>
+                                                        </div>
+                                                        <div style="flex: 1;">
+                                                            <h6 style="color: var(--mlb-blue); font-weight: 800; margin: 0 0 10px; font-size: 0.95rem; letter-spacing: 0.3px;">Información Importante</h6>
+                                                            <p style="margin: 0; color: #4b5563; font-size: 0.95rem; line-height: 1.7; font-weight: 500;">
+                                                                El precio del hotel es <strong style="color: var(--mlb-red); font-weight: 800;">por persona y por noche</strong>. El precio se calcula automáticamente según el número de personas que selecciones (registrante + jugadores + personas adicionales).
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                ` : ''}
-                                
-                                <div style="background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%); border-radius: 10px; padding: 15px; border-left: 4px solid var(--mlb-blue);">
-                                    <p style="margin: 0; color: #6b7280; font-size: 0.85rem; line-height: 1.6;">
-                                        <i class="fas fa-info-circle me-2" style="color: var(--mlb-blue);"></i>
-                                        <strong>Nota:</strong> El precio del hotel es por persona y por noche. El precio se calcula automáticamente según el número de personas que selecciones.
-                                    </p>
+                                    
+                                    <!-- Sección de Beneficios (Full Width) -->
+                                    <div style="padding: 32px; background: linear-gradient(135deg, #fef2f2 0%, #ffffff 50%, #f0f9ff 100%); border-radius: 18px; border: 2px solid #fee2e2; box-shadow: 0 8px 24px rgba(213, 0, 50, 0.12); position: relative; overflow: hidden;">
+                                        <div style="position: absolute; top: -25px; right: -25px; width: 120px; height: 120px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b91c1c 100%); border-radius: 50%; opacity: 0.12;"></div>
+                                        <div style="position: relative; z-index: 1;">
+                                            <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 26px;">
+                                                <div style="width: 52px; height: 52px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b91c1c 100%); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 20px rgba(213, 0, 50, 0.4);">
+                                                    <i class="fas fa-star text-white" style="font-size: 1.5rem;"></i>
+                                                </div>
+                                                <h5 style="color: var(--mlb-red); font-weight: 900; margin: 0; font-size: 1.4rem; letter-spacing: -0.3px;">¿Qué incluye el paquete?</h5>
+                                            </div>
+                                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;">
+                                                <div style="display: flex; align-items: start; gap: 16px; padding: 18px; background: white; border-radius: 14px; box-shadow: 0 3px 12px rgba(0,0,0,0.08); border-left: 5px solid #10b981; transition: all 0.3s;" onmouseover="this.style.transform='translateX(5px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='0 3px 12px rgba(0,0,0,0.08)';">
+                                                    <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);">
+                                                        <i class="fas fa-check text-white" style="font-size: 0.9rem; font-weight: 700;"></i>
+                                                    </div>
+                                                    <div style="flex: 1;">
+                                                        <span style="color: #1f2937; font-size: 1.05rem; font-weight: 600; line-height: 1.7; display: block;">Alojamiento en <strong style="color: var(--mlb-blue); font-weight: 800;">${hotel.name}</strong></span>
+                                                        <small style="color: #6b7280; font-size: 0.9rem; display: block; margin-top: 6px; font-weight: 500;">Durante todos los días del evento</small>
+                                                    </div>
+                                                </div>
+                                                <div style="display: flex; align-items: start; gap: 16px; padding: 18px; background: white; border-radius: 14px; box-shadow: 0 3px 12px rgba(0,0,0,0.08); border-left: 5px solid #10b981; transition: all 0.3s;" onmouseover="this.style.transform='translateX(5px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='0 3px 12px rgba(0,0,0,0.08)';">
+                                                    <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);">
+                                                        <i class="fas fa-bed text-white" style="font-size: 0.9rem;"></i>
+                                                    </div>
+                                                    <div style="flex: 1;">
+                                                        <span style="color: #1f2937; font-size: 1.05rem; font-weight: 600; line-height: 1.7; display: block;">Habitación Premium</span>
+                                                        <small style="color: #6b7280; font-size: 0.9rem; display: block; margin-top: 6px; font-weight: 500;">Comodidades de primera clase</small>
+                                                    </div>
+                                                </div>
+                                                <div style="display: flex; align-items: start; gap: 16px; padding: 18px; background: white; border-radius: 14px; box-shadow: 0 3px 12px rgba(0,0,0,0.08); border-left: 5px solid #10b981; transition: all 0.3s;" onmouseover="this.style.transform='translateX(5px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='0 3px 12px rgba(0,0,0,0.08)';">
+                                                    <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);">
+                                                        <i class="fas fa-wifi text-white" style="font-size: 0.9rem;"></i>
+                                                    </div>
+                                                    <div style="flex: 1;">
+                                                        <span style="color: #1f2937; font-size: 1.05rem; font-weight: 600; line-height: 1.7; display: block;">Servicios Incluidos</span>
+                                                        <small style="color: #6b7280; font-size: 0.9rem; display: block; margin-top: 6px; font-weight: 500;">WiFi, agua, electricidad, aire acondicionado</small>
+                                                    </div>
+                                                </div>
+                                                <div style="display: flex; align-items: start; gap: 16px; padding: 18px; background: white; border-radius: 14px; box-shadow: 0 3px 12px rgba(0,0,0,0.08); border-left: 5px solid #10b981; transition: all 0.3s;" onmouseover="this.style.transform='translateX(5px)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.12)';" onmouseout="this.style.transform='translateX(0)'; this.style.boxShadow='0 3px 12px rgba(0,0,0,0.08)';">
+                                                    <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);">
+                                                        <i class="fas fa-map-marked-alt text-white" style="font-size: 0.9rem;"></i>
+                                                    </div>
+                                                    <div style="flex: 1;">
+                                                        <span style="color: #1f2937; font-size: 1.05rem; font-weight: 600; line-height: 1.7; display: block;">Ubicación Estratégica</span>
+                                                        <small style="color: #6b7280; font-size: 0.9rem; display: block; margin-top: 6px; font-weight: 500;">Cerca del campo y atracciones</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         `;
                     } else {
                         // Mostrar información genérica si no hay hotel asignado
                         content = `
-                            <div style="background: white; border-radius: 15px; padding: 25px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                                <div class="text-center mb-4">
-                                    <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
-                                        <i class="fas fa-hotel fa-2x text-white"></i>
+                            <div style="background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%); border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.12);">
+                                <div style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); padding: 50px 25px; text-align: center;">
+                                    <div style="width: 120px; height: 120px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; border: 4px solid rgba(255,255,255,0.3);">
+                                        <i class="fas fa-hotel fa-4x text-white"></i>
                                     </div>
-                                    <h4 style="color: var(--mlb-blue); font-weight: 800; margin-bottom: 10px;">Paquete de Hotel</h4>
-                                    <p class="text-muted" style="font-size: 0.9rem; margin-bottom: 0;">Incluye alojamiento durante el evento</p>
+                                    <h3 style="color: white; font-weight: 900; font-size: 2rem; margin: 0 0 10px; text-shadow: 0 2px 8px rgba(0,0,0,0.3);">Paquete de Hotel</h3>
+                                    <p style="color: rgba(255,255,255,0.95); font-size: 1.1rem; margin: 0; font-weight: 500;">Incluye alojamiento durante el evento</p>
                                 </div>
-                                <hr style="border-color: #e5e7eb; margin: 20px 0;">
-                                <div style="margin-bottom: 20px;">
-                                    <h6 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 12px; font-size: 1rem;">
-                                        <i class="fas fa-check-circle me-2" style="color: var(--mlb-red);"></i>¿Qué incluye?
-                                    </h6>
-                                    <ul style="list-style: none; padding: 0; margin: 0;">
-                                        <li style="padding: 8px 0; border-bottom: 1px solid #f3f4f6; display: flex; align-items: start;">
-                                            <i class="fas fa-check text-success me-2" style="margin-top: 4px;"></i>
-                                            <span style="color: #374151; font-size: 0.9rem;">Alojamiento en hotel seleccionado durante los días del evento</span>
-                                        </li>
-                                        <li style="padding: 8px 0; border-bottom: 1px solid #f3f4f6; display: flex; align-items: start;">
-                                            <i class="fas fa-check text-success me-2" style="margin-top: 4px;"></i>
-                                            <span style="color: #374151; font-size: 0.9rem;">Habitación cómoda con todas las comodidades</span>
-                                        </li>
-                                        <li style="padding: 8px 0; border-bottom: 1px solid #f3f4f6; display: flex; align-items: start;">
-                                            <i class="fas fa-check text-success me-2" style="margin-top: 4px;"></i>
-                                            <span style="color: #374151; font-size: 0.9rem;">Servicios básicos incluidos (WiFi, agua, electricidad)</span>
-                                        </li>
-                                        <li style="padding: 8px 0; display: flex; align-items: start;">
-                                            <i class="fas fa-check text-success me-2" style="margin-top: 4px;"></i>
-                                            <span style="color: #374151; font-size: 0.9rem;">Ubicación estratégica cerca del campo de juego</span>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div style="background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%); border-radius: 10px; padding: 15px; border-left: 4px solid var(--mlb-blue);">
-                                    <p style="margin: 0; color: #6b7280; font-size: 0.85rem; line-height: 1.6;">
-                                        <i class="fas fa-info-circle me-2" style="color: var(--mlb-blue);"></i>
-                                        <strong>Nota:</strong> El precio del hotel es por persona y por noche. Puedes seleccionar el hotel específico después de completar el registro.
-                                    </p>
+                                
+                                <div style="padding: 30px;">
+                                    <div style="margin-bottom: 25px; padding: 25px; background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%); border-radius: 12px; border: 2px solid #fee2e2;">
+                                        <h6 style="color: var(--mlb-red); font-weight: 800; margin: 0 0 18px; font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
+                                            <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i>¿Qué incluye el paquete?
+                                        </h6>
+                                        <div style="display: grid; gap: 12px;">
+                                            <div style="display: flex; align-items: start; gap: 12px; padding: 12px; background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
+                                                <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+                                                    <i class="fas fa-check text-white" style="font-size: 0.7rem;"></i>
+                                                </div>
+                                                <span style="color: #1f2937; font-size: 0.95rem; font-weight: 500; line-height: 1.6;">Alojamiento en hotel seleccionado durante los días del evento</span>
+                                            </div>
+                                            <div style="display: flex; align-items: start; gap: 12px; padding: 12px; background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
+                                                <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+                                                    <i class="fas fa-check text-white" style="font-size: 0.7rem;"></i>
+                                                </div>
+                                                <span style="color: #1f2937; font-size: 0.95rem; font-weight: 500; line-height: 1.6;">Habitación cómoda con todas las comodidades y servicios premium</span>
+                                            </div>
+                                            <div style="display: flex; align-items: start; gap: 12px; padding: 12px; background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
+                                                <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+                                                    <i class="fas fa-check text-white" style="font-size: 0.7rem;"></i>
+                                                </div>
+                                                <span style="color: #1f2937; font-size: 0.95rem; font-weight: 500; line-height: 1.6;">Servicios básicos incluidos (WiFi de alta velocidad, agua, electricidad, aire acondicionado)</span>
+                                            </div>
+                                            <div style="display: flex; align-items: start; gap: 12px; padding: 12px; background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.05);">
+                                                <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+                                                    <i class="fas fa-check text-white" style="font-size: 0.7rem;"></i>
+                                                </div>
+                                                <span style="color: #1f2937; font-size: 0.95rem; font-weight: 500; line-height: 1.6;">Ubicación estratégica cerca del campo de juego y principales atracciones</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%); border-radius: 12px; padding: 20px; border: 2px solid #bfdbfe; position: relative; overflow: hidden;">
+                                        <div style="position: absolute; top: -10px; right: -10px; width: 60px; height: 60px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 50%; opacity: 0.1;"></div>
+                                        <div style="position: relative; z-index: 1;">
+                                            <div style="display: flex; align-items: start; gap: 12px;">
+                                                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                    <i class="fas fa-info-circle text-white" style="font-size: 1rem;"></i>
+                                                </div>
+                                                <div style="flex: 1;">
+                                                    <h6 style="color: var(--mlb-blue); font-weight: 800; margin: 0 0 8px; font-size: 0.9rem;">Información Importante</h6>
+                                                    <p style="margin: 0; color: #4b5563; font-size: 0.9rem; line-height: 1.7; font-weight: 500;">
+                                                        El precio del hotel es por <strong>persona y por noche</strong>. Puedes seleccionar el hotel específico después de completar el registro. El precio se calcula automáticamente según el número de personas que selecciones.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         `;
@@ -3780,6 +3980,64 @@
             
             titleDiv.innerHTML = icon + title;
             contentDiv.innerHTML = content;
+            
+            // Inicializar slider después de insertar el contenido (solo para hotel)
+            if (additionalType === 'hotel') {
+                setTimeout(function() {
+                    const slider = document.getElementById('hotelImageSlider');
+                    const indicators = document.querySelectorAll('.hotel-slider-indicator');
+                    const prevBtn = document.getElementById('hotelSliderPrev');
+                    const nextBtn = document.getElementById('hotelSliderNext');
+                    
+                    if (slider && indicators && indicators.length > 1) {
+                        let currentSlide = 0;
+                        const totalSlides = indicators.length;
+                        
+                        function updateSlider() {
+                            if (slider) {
+                                slider.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
+                            }
+                            indicators.forEach(function(ind, index) {
+                                if (ind) {
+                                    ind.style.background = index === currentSlide ? 'white' : 'transparent';
+                                }
+                            });
+                        }
+                        
+                        if (prevBtn) {
+                            prevBtn.addEventListener('click', function() {
+                                currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+                                updateSlider();
+                            });
+                        }
+                        
+                        if (nextBtn) {
+                            nextBtn.addEventListener('click', function() {
+                                currentSlide = (currentSlide + 1) % totalSlides;
+                                updateSlider();
+                            });
+                        }
+                        
+                        indicators.forEach(function(ind, index) {
+                            if (ind) {
+                                ind.addEventListener('click', function() {
+                                    currentSlide = index;
+                                    updateSlider();
+                                });
+                            }
+                        });
+                        
+                        // Auto-play opcional (cada 5 segundos)
+                        setInterval(function() {
+                            if (totalSlides > 1) {
+                                currentSlide = (currentSlide + 1) % totalSlides;
+                                updateSlider();
+                            }
+                        }, 5000);
+                    }
+                }, 100);
+            }
+            
             modal.show();
         }
         
