@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Configuraciones del Sitio - NSC International{% endblock %}
+
+{% block extra_css %}
+<style>
+    .settings-form-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        padding: 2rem 2rem 2rem 3rem;
+        min-height: 100vh;
+    }
+    
+    @media (max-width: 992px) {
+        .settings-form-container {
+            padding: 2rem 1.5rem;
+        }
+    }
+    
+    .form-section-card {
+        background: #ffffff;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .form-section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .image-preview {
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 0.5rem;
+        border: 2px solid #e9ecef;
+        padding: 0.5rem;
+        background: #f8f9fa;
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-form-container">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 mb-1">
+                            <i class="bi bi-gear text-primary me-2"></i>
+                            Configuraciones del Sitio
+                        </h1>
+                        <p class="text-muted mb-0">
+                            Gestiona las imágenes y contenido de las secciones del home
+                        </p>
+                    </div>
+                    <a href="{% url 'accounts:home_content_admin' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Volver a Administración
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="row">
+            <div class="col-12">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Imagen del Schedule -->
+                    <div class="form-section-card">
+                        <div class="form-section-title">
+                            <i class="bi bi-image"></i>Imagen del Schedule
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.schedule_image.id_for_label }}" class="form-label">
+                                {{ form.schedule_image.label }}
+                            </label>
+                            {{ form.schedule_image }}
+                            {% if form.schedule_image.errors %}
+                                <div class="text-danger small">{{ form.schedule_image.errors }}</div>
+                            {% endif %}
+                            {% if object and object.schedule_image %}
+                                <div class="mt-2">
+                                    <p class="text-muted small">Imagen actual:</p>
+                                    <img src="{{ object.schedule_image.url }}" alt="Schedule Preview" class="image-preview" id="image-preview">
+                                </div>
+                            {% else %}
+                                <div class="mt-2">
+                                    <img src="" alt="Preview" class="image-preview" id="image-preview" style="display: none;">
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Contenido del Schedule -->
+                    <div class="form-section-card">
+                        <div class="form-section-title">
+                            <i class="bi bi-file-text"></i>Contenido del Schedule
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.schedule_title.id_for_label }}" class="form-label">
+                                    {{ form.schedule_title.label }}
+                                </label>
+                                {{ form.schedule_title }}
+                                {% if form.schedule_title.errors %}
+                                    <div class="text-danger small">{{ form.schedule_title.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.schedule_subtitle.id_for_label }}" class="form-label">
+                                    {{ form.schedule_subtitle.label }}
+                                </label>
+                                {{ form.schedule_subtitle }}
+                                {% if form.schedule_subtitle.errors %}
+                                    <div class="text-danger small">{{ form.schedule_subtitle.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.schedule_description.id_for_label }}" class="form-label">
+                                    {{ form.schedule_description.label }}
+                                </label>
+                                {{ form.schedule_description }}
+                                {% if form.schedule_description.errors %}
+                                    <div class="text-danger small">{{ form.schedule_description.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Imagen del Showcase -->
+                    <div class="form-section-card">
+                        <div class="form-section-title">
+                            <i class="bi bi-image"></i>Imagen del Showcase
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.showcase_image.id_for_label }}" class="form-label">
+                                {{ form.showcase_image.label }}
+                            </label>
+                            {{ form.showcase_image }}
+                            {% if form.showcase_image.errors %}
+                                <div class="text-danger small">{{ form.showcase_image.errors }}</div>
+                            {% endif %}
+                            {% if object and object.showcase_image %}
+                                <div class="mt-2">
+                                    <p class="text-muted small">Imagen actual:</p>
+                                    <img src="{{ object.showcase_image.url }}" alt="Showcase Preview" class="image-preview" id="showcase-image-preview">
+                                </div>
+                            {% else %}
+                                <div class="mt-2">
+                                    <img src="" alt="Preview" class="image-preview" id="showcase-image-preview" style="display: none;">
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Contenido del Showcase -->
+                    <div class="form-section-card">
+                        <div class="form-section-title">
+                            <i class="bi bi-file-text"></i>Contenido del Showcase
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.showcase_title.id_for_label }}" class="form-label">
+                                    {{ form.showcase_title.label }}
+                                </label>
+                                {{ form.showcase_title }}
+                                {% if form.showcase_title.errors %}
+                                    <div class="text-danger small">{{ form.showcase_title.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.showcase_subtitle.id_for_label }}" class="form-label">
+                                    {{ form.showcase_subtitle.label }}
+                                </label>
+                                {{ form.showcase_subtitle }}
+                                {% if form.showcase_subtitle.errors %}
+                                    <div class="text-danger small">{{ form.showcase_subtitle.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.showcase_description.id_for_label }}" class="form-label">
+                                    {{ form.showcase_description.label }}
+                                </label>
+                                {{ form.showcase_description }}
+                                {% if form.showcase_description.errors %}
+                                    <div class="text-danger small">{{ form.showcase_description.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'accounts:home_content_admin' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>Guardar Configuraciones
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Preview de imagen schedule
+    const scheduleImageInput = document.getElementById('{{ form.schedule_image.id_for_label }}');
+    const scheduleImagePreview = document.getElementById('image-preview');
+    
+    if (scheduleImageInput) {
+        scheduleImageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    scheduleImagePreview.src = e.target.result;
+                    scheduleImagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // Preview de imagen showcase
+    const showcaseImageInput = document.getElementById('{{ form.showcase_image.id_for_label }}');
+    const showcaseImagePreview = document.getElementById('showcase-image-preview');
+    
+    if (showcaseImageInput) {
+        showcaseImageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    showcaseImagePreview.src = e.target.result;
+                    showcaseImagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+</script>
+{% endblock %}

@@ -6,7 +6,15 @@ import re
 
 from apps.locations.models import Country, State, City
 
-from .models import UserProfile, Team, Player, PlayerParent
+from .models import (
+    UserProfile,
+    Team,
+    Player,
+    PlayerParent,
+    HomeBanner,
+    SiteSettings,
+    Sponsor,
+)
 
 
 class EmailAuthenticationForm(AuthenticationForm):
@@ -1610,3 +1618,211 @@ class PlayerUpdateForm(forms.ModelForm):
             player.save()
 
         return player
+
+
+class HomeBannerForm(forms.ModelForm):
+    """Formulario para crear/editar banners del home"""
+
+    class Meta:
+        model = HomeBanner
+        fields = [
+            "title",
+            "description",
+            "banner_type",
+            "image",
+            "gradient_color_1",
+            "gradient_color_2",
+            "gradient_color_3",
+            "button_text",
+            "button_url",
+            "button_text_2",
+            "button_url_2",
+            "icon_class",
+            "is_active",
+            "order",
+        ]
+        widgets = {
+            "title": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Título del banner (opcional)",
+                }
+            ),
+            "description": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Descripción del banner (opcional)",
+                }
+            ),
+            "banner_type": forms.Select(attrs={"class": "form-select"}),
+            "image": forms.FileInput(
+                attrs={"class": "form-control", "accept": "image/*"}
+            ),
+            "gradient_color_1": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "color",
+                    "placeholder": "#0d2c54",
+                }
+            ),
+            "gradient_color_2": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "color",
+                    "placeholder": "#132448",
+                }
+            ),
+            "gradient_color_3": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "color",
+                    "placeholder": "#64b5f6 (opcional)",
+                }
+            ),
+            "button_text": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Texto del botón principal",
+                }
+            ),
+            "button_url": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "/events/ o URL completa",
+                }
+            ),
+            "button_text_2": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Texto del botón secundario",
+                }
+            ),
+            "button_url_2": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "/accounts/panel/ o URL completa",
+                }
+            ),
+            "icon_class": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "fa-trophy, fa-baseball-ball, etc.",
+                }
+            ),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "order": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        banner_type = cleaned_data.get("banner_type")
+        image = cleaned_data.get("image")
+
+        # Si es tipo imagen, la imagen es requerida
+        if banner_type == "image" and not image and not self.instance.pk:
+            raise forms.ValidationError(
+                {"image": 'La imagen es requerida para banners de tipo "Imagen".'}
+            )
+
+        # Si es tipo imagen y no hay imagen en la instancia existente, requerir imagen
+        if banner_type == "image" and not image:
+            if self.instance and not self.instance.image:
+                raise forms.ValidationError(
+                    {"image": 'La imagen es requerida para banners de tipo "Imagen".'}
+                )
+
+        return cleaned_data
+
+
+class SiteSettingsForm(forms.ModelForm):
+    """Formulario para configuraciones del sitio"""
+
+    class Meta:
+        model = SiteSettings
+        fields = [
+            "schedule_image",
+            "schedule_title",
+            "schedule_subtitle",
+            "schedule_description",
+            "showcase_image",
+            "showcase_title",
+            "showcase_subtitle",
+            "showcase_description",
+        ]
+        widgets = {
+            "schedule_image": forms.FileInput(
+                attrs={"class": "form-control", "accept": "image/*"}
+            ),
+            "schedule_title": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "CALENDARIO DE EVENTOS 2026",
+                }
+            ),
+            "schedule_subtitle": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "EXPANSIÓN REGIONAL Y NUEVOS CAMPEONATOS...",
+                }
+            ),
+            "schedule_description": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 5,
+                    "placeholder": "Descripción de la sección Schedule...",
+                }
+            ),
+            "showcase_image": forms.FileInput(
+                attrs={"class": "form-control", "accept": "image/*"}
+            ),
+            "showcase_title": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "SHOWCASES AND PROSPECT GATEWAYS",
+                }
+            ),
+            "showcase_subtitle": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "REGIONAL AND NATIONAL SHOWCASES",
+                }
+            ),
+            "showcase_description": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 5,
+                    "placeholder": "Descripción de la sección Showcase...",
+                }
+            ),
+        }
+
+
+class SponsorForm(forms.ModelForm):
+    """Formulario para crear/editar sponsors"""
+
+    class Meta:
+        model = Sponsor
+        fields = [
+            "name",
+            "logo",
+            "website_url",
+            "is_active",
+            "order",
+        ]
+        widgets = {
+            "name": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Nombre del sponsor"}
+            ),
+            "logo": forms.FileInput(
+                attrs={"class": "form-control", "accept": "image/*"}
+            ),
+            "website_url": forms.URLInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "https://www.ejemplo.com",
+                }
+            ),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+            "order": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
+        }

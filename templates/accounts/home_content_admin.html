@@ -1,0 +1,475 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Administración de Contenido del Home - NSC International{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-content-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        padding: 2rem 2rem 2rem 3rem;
+        min-height: 100vh;
+    }
+    
+    @media (max-width: 992px) {
+        .admin-content-container {
+            padding: 2rem 1.5rem;
+        }
+    }
+    
+    .admin-card {
+        background: #ffffff;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .admin-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .admin-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .admin-card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #4a5568;
+        margin: 0;
+    }
+    
+    .admin-card-icon {
+        font-size: 2rem;
+        color: #4a5568;
+        margin-right: 1rem;
+    }
+    
+    .admin-stats {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    
+    .admin-stat {
+        background: #f8f9fa;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
+        border-left: 4px solid #0d2c54;
+    }
+    
+    .admin-stat-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+    
+    .admin-stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0d2c54;
+    }
+    
+    .quick-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .section-preview {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 0.5rem;
+        border: 1px solid #e9ecef;
+    }
+    
+    .preview-image {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 0.25rem;
+        object-fit: cover;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-content-container">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 mb-1">
+                            <i class="bi bi-sliders text-primary me-2"></i>
+                            Administración de Contenido del Home
+                        </h1>
+                        <p class="text-muted mb-0">
+                            Gestiona todos los elementos visuales y de contenido de la página principal
+                        </p>
+                    </div>
+                    <a href="{% url 'events:dashboard' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Volver al Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="admin-stat">
+                    <div class="admin-stat-label">Banners Activos</div>
+                    <div class="admin-stat-value">{{ active_banners_count }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="admin-stat">
+                    <div class="admin-stat-label">Total Banners</div>
+                    <div class="admin-stat-value">{{ total_banners_count }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="admin-stat">
+                    <div class="admin-stat-label">Imagen Schedule</div>
+                    <div class="admin-stat-value">
+                        {% if site_settings.schedule_image %}✓{% else %}✗{% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="admin-stat">
+                    <div class="admin-stat-label">Imagen Showcase</div>
+                    <div class="admin-stat-value">
+                        {% if site_settings.showcase_image %}✓{% else %}✗{% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="admin-stat">
+                    <div class="admin-stat-label">Banners Panel</div>
+                    <div class="admin-stat-value">{{ active_dashboard_banners_count }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banners del Carousel -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-images admin-card-icon"></i>
+                    <h2 class="admin-card-title mb-0">Banners del Carousel</h2>
+                </div>
+                <div class="quick-actions">
+                    <a href="{% url 'accounts:banner_list' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-list-ul me-1"></i>Ver Todos
+                    </a>
+                    <a href="{% url 'accounts:banner_create' %}" class="btn btn-success btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i>Crear Nuevo
+                    </a>
+                </div>
+            </div>
+            <p class="text-muted mb-3">
+                Gestiona los banners que aparecen en el carousel principal del home. Puedes crear banners de tipo imagen o gradiente con texto.
+            </p>
+            {% if recent_banners %}
+                <div class="section-preview">
+                    <h6 class="mb-2">Banners Recientes:</h6>
+                    <div class="row g-2">
+                        {% for banner in recent_banners|slice:":3" %}
+                            <div class="col-md-4">
+                                <div class="card">
+                                    {% if banner.banner_type == 'image' and banner.image %}
+                                        <img src="{{ banner.image.url }}" class="card-img-top preview-image" alt="{{ banner.title }}">
+                                    {% elif banner.banner_type == 'gradient' %}
+                                        <div class="preview-image" style="height: 120px; background: linear-gradient(135deg, {{ banner.gradient_color_1 }} 0%, {{ banner.gradient_color_2 }} 50%, {{ banner.gradient_color_3|default:banner.gradient_color_2 }} 100%);"></div>
+                                    {% else %}
+                                        <div class="preview-image bg-secondary d-flex align-items-center justify-content-center" style="height: 120px;">
+                                            <i class="bi bi-image text-white"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="card-body p-2">
+                                        <h6 class="card-title mb-1" style="font-size: 0.85rem;">{{ banner.title|default:"Sin título"|truncatewords:5 }}</h6>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge {% if banner.is_active %}bg-success{% else %}bg-secondary{% endif %}" style="font-size: 0.7rem;">
+                                                {% if banner.is_active %}Activo{% else %}Inactivo{% endif %}
+                                            </span>
+                                            <a href="{% url 'accounts:banner_update' banner.pk %}" class="btn btn-sm btn-outline-primary" style="font-size: 0.7rem;">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No hay banners creados. <a href="{% url 'accounts:banner_create' %}">Crea el primer banner</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sección Schedule -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-calendar-event admin-card-icon"></i>
+                    <h2 class="admin-card-title mb-0">Sección Schedule</h2>
+                </div>
+                <a href="{% url 'accounts:site_settings' %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-pencil me-1"></i>Editar
+                </a>
+            </div>
+            <p class="text-muted mb-3">
+                Configura la imagen y contenido de la sección "Season Schedule" del home.
+            </p>
+            <div class="section-preview">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="mb-2">Imagen:</h6>
+                        {% if site_settings.schedule_image %}
+                            <img src="{{ site_settings.schedule_image.url }}" class="preview-image" alt="Schedule Preview">
+                        {% else %}
+                            <div class="alert alert-warning mb-0">
+                                <i class="bi bi-exclamation-triangle me-2"></i>No hay imagen configurada
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="mb-2">Contenido:</h6>
+                        <p><strong>Título:</strong> {{ site_settings.schedule_title|default:"No configurado" }}</p>
+                        <p><strong>Subtítulo:</strong> {{ site_settings.schedule_subtitle|default:"No configurado"|truncatewords:10 }}</p>
+                        {% if site_settings.schedule_description %}
+                            <p><strong>Descripción:</strong> {{ site_settings.schedule_description|truncatewords:15 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección Showcase -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-star admin-card-icon"></i>
+                    <h2 class="admin-card-title mb-0">Sección Showcase</h2>
+                </div>
+                <a href="{% url 'accounts:site_settings' %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-pencil me-1"></i>Editar
+                </a>
+            </div>
+            <p class="text-muted mb-3">
+                Configura la imagen y contenido de la sección "Showcases and Prospect Gateways" del home.
+            </p>
+            <div class="section-preview">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="mb-2">Imagen:</h6>
+                        {% if site_settings.showcase_image %}
+                            <img src="{{ site_settings.showcase_image.url }}" class="preview-image" alt="Showcase Preview">
+                        {% else %}
+                            <div class="alert alert-warning mb-0">
+                                <i class="bi bi-exclamation-triangle me-2"></i>No hay imagen configurada
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="mb-2">Contenido:</h6>
+                        <p><strong>Título:</strong> {{ site_settings.showcase_title|default:"No configurado" }}</p>
+                        <p><strong>Subtítulo:</strong> {{ site_settings.showcase_subtitle|default:"No configurado"|truncatewords:10 }}</p>
+                        {% if site_settings.showcase_description %}
+                            <p><strong>Descripción:</strong> {{ site_settings.showcase_description|truncatewords:15 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Banners del Panel de Usuario -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-person-badge admin-card-icon"></i>
+                    <h2 class="admin-card-title mb-0">Banners del Panel de Usuario</h2>
+                </div>
+                <div class="quick-actions">
+                    <a href="{% url 'accounts:dashboard_banner_list' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-list-ul me-1"></i>Ver Todos
+                    </a>
+                    <a href="{% url 'accounts:dashboard_banner_create' %}" class="btn btn-success btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i>Crear Nuevo
+                    </a>
+                </div>
+            </div>
+            <p class="text-muted mb-3">
+                Gestiona los banners que aparecen en el welcome banner del panel de usuario (/accounts/panel/). Puedes crear múltiples banners que se rotarán automáticamente.
+            </p>
+            <div class="admin-stats mb-3">
+                <div class="admin-stat">
+                    <div class="admin-stat-label">Total Banners</div>
+                    <div class="admin-stat-value">{{ total_dashboard_banners_count }}</div>
+                </div>
+                <div class="admin-stat">
+                    <div class="admin-stat-label">Banners Activos</div>
+                    <div class="admin-stat-value">{{ active_dashboard_banners_count }}</div>
+                </div>
+            </div>
+            {% if recent_dashboard_banners %}
+                <div class="section-preview">
+                    <h6 class="mb-2">Banners Recientes:</h6>
+                    <div class="row g-2">
+                        {% for banner in recent_dashboard_banners|slice:":3" %}
+                            <div class="col-md-4">
+                                <div class="card">
+                                    {% if banner.banner_type == 'image' and banner.image %}
+                                        <img src="{{ banner.image.url }}" class="card-img-top preview-image" alt="{{ banner.title }}" style="height: 120px; object-fit: cover;">
+                                    {% elif banner.banner_type == 'gradient' %}
+                                        <div class="preview-image" style="height: 120px; background: linear-gradient(135deg, {{ banner.gradient_color_1 }} 0%, {{ banner.gradient_color_2 }} 50%, {{ banner.gradient_color_3|default:banner.gradient_color_2 }} 100%);"></div>
+                                    {% else %}
+                                        <div class="preview-image bg-secondary d-flex align-items-center justify-content-center" style="height: 120px;">
+                                            <i class="bi bi-image text-white"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="card-body p-2">
+                                        <h6 class="card-title mb-1" style="font-size: 0.85rem;">{{ banner.title|default:"Sin título"|truncatewords:5 }}</h6>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge {% if banner.is_active %}bg-success{% else %}bg-secondary{% endif %}" style="font-size: 0.7rem;">
+                                                {% if banner.is_active %}Activo{% else %}Inactivo{% endif %}
+                                            </span>
+                                            <a href="{% url 'accounts:dashboard_banner_update' banner.pk %}" class="btn btn-sm btn-outline-primary" style="font-size: 0.7rem;">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No hay banners creados. <a href="{% url 'accounts:dashboard_banner_create' %}">Crea el primer banner</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Sección Sponsors -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-star-fill admin-card-icon"></i>
+                    <h2 class="admin-card-title mb-0">Sección Sponsors</h2>
+                </div>
+                <div class="quick-actions">
+                    <a href="{% url 'accounts:sponsor_list' %}" class="btn btn-primary btn-sm">
+                        <i class="bi bi-list-ul me-1"></i>Ver Todos
+                    </a>
+                    <a href="{% url 'accounts:sponsor_create' %}" class="btn btn-success btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i>Crear Nuevo
+                    </a>
+                </div>
+            </div>
+            <p class="text-muted mb-3">
+                Gestiona los sponsors que aparecen en la sección de sponsors del home. Puedes agregar logos y enlaces a sus sitios web.
+            </p>
+            <div class="admin-stats mb-3">
+                <div class="admin-stat">
+                    <div class="admin-stat-label">Total Sponsors</div>
+                    <div class="admin-stat-value">{{ total_sponsors_count }}</div>
+                </div>
+                <div class="admin-stat">
+                    <div class="admin-stat-label">Sponsors Activos</div>
+                    <div class="admin-stat-value">{{ active_sponsors_count }}</div>
+                </div>
+            </div>
+            {% if recent_sponsors %}
+                <div class="section-preview">
+                    <h6 class="mb-2">Sponsors Recientes:</h6>
+                    <div class="row g-2">
+                        {% for sponsor in recent_sponsors|slice:":6" %}
+                            <div class="col-md-2">
+                                <div class="card">
+                                    {% if sponsor.logo %}
+                                        <img src="{{ sponsor.logo.url }}" class="card-img-top" alt="{{ sponsor.name }}" style="height: 80px; object-fit: contain; padding: 10px;">
+                                    {% else %}
+                                        <div class="bg-secondary d-flex align-items-center justify-content-center" style="height: 80px;">
+                                            <i class="bi bi-image text-white"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div class="card-body p-2">
+                                        <h6 class="card-title mb-1" style="font-size: 0.75rem;">{{ sponsor.name|truncatewords:3 }}</h6>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge {% if sponsor.is_active %}bg-success{% else %}bg-secondary{% endif %}" style="font-size: 0.65rem;">
+                                                {% if sponsor.is_active %}Activo{% else %}Inactivo{% endif %}
+                                            </span>
+                                            <a href="{% url 'accounts:sponsor_update' sponsor.pk %}" class="btn btn-sm btn-outline-primary" style="font-size: 0.7rem;">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No hay sponsors creados. <a href="{% url 'accounts:sponsor_create' %}">Crea el primer sponsor</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Acciones Rápidas -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-lightning admin-card-icon"></i>
+                    <h2 class="admin-card-title mb-0">Acciones Rápidas</h2>
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <a href="{% url 'accounts:banner_create' %}" class="btn btn-primary w-100">
+                        <i class="bi bi-plus-circle me-2"></i>Crear Banner
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'accounts:banner_list' %}" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-list-ul me-2"></i>Ver Banners
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'accounts:sponsor_create' %}" class="btn btn-success w-100">
+                        <i class="bi bi-star me-2"></i>Crear Sponsor
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'accounts:dashboard_banner_create' %}" class="btn btn-outline-warning w-100">
+                        <i class="bi bi-person-badge me-2"></i>Crear Banner Panel
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="{% url 'accounts:site_settings' %}" class="btn btn-outline-info w-100">
+                        <i class="bi bi-gear me-2"></i>Configuraciones
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

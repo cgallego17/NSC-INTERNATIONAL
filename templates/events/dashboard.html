@@ -56,6 +56,11 @@
                     <a href="{% url 'events:calendar' %}" class="btn btn-corporate-outline">
                         <i class="fas fa-calendar me-2"></i>Calendario
                     </a>
+                    {% if user.is_staff or user.is_superuser %}
+                        <a href="{% url 'accounts:home_content_admin' %}" class="btn btn-outline-info">
+                            <i class="fas fa-sliders-h me-2"></i>Contenido del Home
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>

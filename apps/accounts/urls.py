@@ -4,7 +4,13 @@ URLs de accounts - Combinación de públicas y privadas
 
 from django.urls import path
 from django.contrib.auth import views as auth_views
-from . import views_public, views_private
+from . import (
+    views_public,
+    views_private,
+    views_banners,
+    views_sponsors,
+    views_dashboard_banners,
+)
 
 app_name = "accounts"
 
@@ -93,5 +99,87 @@ urlpatterns = [
         "api/instagram/image-proxy/",
         views_public.instagram_image_proxy,
         name="instagram_image_proxy",
+    ),
+    # Banners del Home
+    path("banners/", views_banners.HomeBannerListView.as_view(), name="banner_list"),
+    path(
+        "banners/create/",
+        views_banners.HomeBannerCreateView.as_view(),
+        name="banner_create",
+    ),
+    path(
+        "banners/<int:pk>/",
+        views_banners.HomeBannerDetailView.as_view(),
+        name="banner_detail",
+    ),
+    path(
+        "banners/<int:pk>/edit/",
+        views_banners.HomeBannerUpdateView.as_view(),
+        name="banner_update",
+    ),
+    path(
+        "banners/<int:pk>/delete/",
+        views_banners.HomeBannerDeleteView.as_view(),
+        name="banner_delete",
+    ),
+    # Configuraciones del Sitio
+    path(
+        "site-settings/",
+        views_banners.SiteSettingsUpdateView.as_view(),
+        name="site_settings",
+    ),
+    # Administración de Contenido del Home
+    path(
+        "home-content/",
+        views_banners.HomeContentAdminView.as_view(),
+        name="home_content_admin",
+    ),
+    # Sponsors
+    path("sponsors/", views_sponsors.SponsorListView.as_view(), name="sponsor_list"),
+    path(
+        "sponsors/create/",
+        views_sponsors.SponsorCreateView.as_view(),
+        name="sponsor_create",
+    ),
+    path(
+        "sponsors/<int:pk>/",
+        views_sponsors.SponsorDetailView.as_view(),
+        name="sponsor_detail",
+    ),
+    path(
+        "sponsors/<int:pk>/edit/",
+        views_sponsors.SponsorUpdateView.as_view(),
+        name="sponsor_update",
+    ),
+    path(
+        "sponsors/<int:pk>/delete/",
+        views_sponsors.SponsorDeleteView.as_view(),
+        name="sponsor_delete",
+    ),
+    # Banners del Dashboard
+    path(
+        "dashboard-banners/",
+        views_dashboard_banners.DashboardBannerListView.as_view(),
+        name="dashboard_banner_list",
+    ),
+    path(
+        "dashboard-banners/create/",
+        views_dashboard_banners.DashboardBannerCreateView.as_view(),
+        name="dashboard_banner_create",
+    ),
+    path(
+        "dashboard-banners/<int:pk>/",
+        views_dashboard_banners.DashboardBannerDetailView.as_view(),
+        name="dashboard_banner_detail",
+    ),
+    path(
+        "dashboard-banners/<int:pk>/edit/",
+        views_dashboard_banners.DashboardBannerUpdateView.as_view(),
+        name="dashboard_banner_update",
+    ),
+    path(
+        "dashboard-banners/<int:pk>/delete/",
+        views_dashboard_banners.DashboardBannerDeleteView.as_view(),
+        name="dashboard_banner_delete",
     ),
 ]

@@ -75,6 +75,18 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             context["total_children"] = player_parents.count()
             context["recent_children"] = player_parents.order_by("-created_at")[:5]
 
+        # Obtener banners activos del dashboard (siempre devolver al menos uno para el bucle)
+        try:
+            from .models import DashboardBanner
+
+            banners = DashboardBanner.objects.filter(is_active=True).order_by(
+                "order", "-created_at"
+            )
+            # Si no hay banners, crear una lista vacía (el template mostrará el banner por defecto)
+            context["dashboard_banners"] = list(banners) if banners.exists() else []
+        except ImportError:
+            context["dashboard_banners"] = []
+
         # Obtener eventos para la pestaña de eventos
         try:
             from apps.events.models import Event

@@ -108,24 +108,53 @@
         
         .hero-mlb .carousel-inner {
             width: 100%;
+            height: 100%;
+        }
+        
+        .hero-mlb .carousel-item {
+            height: 500px;
+            min-height: 500px;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-mlb .carousel-item {
+                height: 400px;
+                min-height: 400px;
+            }
         }
         
         .hero-slide-item {
             position: relative;
             width: 100%;
+            height: 100%;
             min-height: 500px;
             display: flex;
             align-items: center;
+            overflow: hidden;
+        }
+        
+        @media (max-width: 768px) {
+            .hero-slide-item {
+                min-height: 400px;
+            }
         }
         
         .hero-slide-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            object-position: center;
             position: absolute;
             top: 0;
             left: 0;
             z-index: 0;
+        }
+        
+        /* Ajuste para banners de tipo imagen - mostrar completo sin recortes si es necesario */
+        .hero-slide-item.banner-image img {
+            object-fit: contain;
+            object-position: center;
+            background-color: #0d2c54;
         }
         
         /* Ajuste para banner de World Series - mostrar completo sin recortes */
@@ -1890,95 +1919,75 @@
         <div id="heroSlider" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="hover">
             <!-- Indicadores -->
             <div class="carousel-indicators">
-                <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-                <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="1" aria-label="Slide 2"></button>
-                <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                {% for banner in home_banners %}
+                    <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="{{ forloop.counter0 }}" 
+                            {% if forloop.first %}class="active" aria-current="true"{% endif %} 
+                            aria-label="Slide {{ forloop.counter }}"></button>
+                {% empty %}
+                    <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                {% endfor %}
             </div>
             
             <!-- Slides -->
             <div class="carousel-inner">
-                <!-- Slide 1 - World Series 2026 Banner -->
-                <div class="carousel-item active">
-                    <div class="hero-slide-item" style="min-height: 500px; position: relative; overflow: hidden; background: #0d2c54;">
-                        <img src="{% static 'images/world-series-2026-banner.png' %}" alt="NCS World Series 2026 - Mexico y Puerto Rico" style="width: 100%; height: 100%; object-fit: contain; object-position: center;">
-                    </div>
-                </div>
-                
-                <!-- Slide 2 -->
-                <div class="carousel-item">
-                    <div class="hero-slide-item" style="background: linear-gradient(135deg, var(--mlb-red) 0%, #d32f2f 50%, #ef5350 100%); min-height: 500px; display: flex; align-items: center; position: relative; overflow: hidden;">
-                        <div class="hero-slide-overlay"></div>
-                        <div class="container-fluid px-4 position-relative" style="z-index: 2;">
-                            <div class="row align-items-center">
-                                <div class="col-lg-8 hero-content">
-                                    <h1 class="hero-title">Eventos de Béisbol</h1>
-                                    <p class="hero-subtitle">
-                                        Organiza y gestiona los mejores eventos deportivos con nuestra plataforma profesional.
-                                        Control total sobre divisiones, ubicaciones y contactos.
-                                    </p>
-                                    <div class="d-flex gap-3 flex-wrap">
-                                        {% if not user.is_authenticated %}
-                                            <a href="/accounts/register/" class="btn btn-mlb">
-                                                <i class="fas fa-calendar-plus me-2"></i>Crear Evento
-                                            </a>
-                                            <a href="#" class="btn btn-mlb-outline" data-bs-toggle="modal" data-bs-target="#loginModal">
-                                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
-                                            </a>
-                                        {% else %}
-                                            <a href="{% url 'events:list' %}" class="btn btn-mlb">
-                                                <i class="fas fa-calendar-alt me-2"></i>Ver Eventos
-                                            </a>
-                                            <a href="{% url 'accounts:panel' %}" class="btn btn-mlb-outline">
-                                                <i class="fas fa-tachometer-alt me-2"></i>Panel
-                                            </a>
-                                        {% endif %}
+                {% if home_banners %}
+                    {% for banner in home_banners %}
+                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                            {% if banner.banner_type == 'image' %}
+                                <!-- Banner tipo Imagen -->
+                                <div class="hero-slide-item banner-image" style="background: #0d2c54;">
+                                    {% if banner.image %}
+                                        <img src="{{ banner.image.url }}" alt="{{ banner.title|default:'Banner' }}">
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <!-- Banner tipo Gradiente -->
+                                <div class="hero-slide-item" 
+                                     style="background: linear-gradient(135deg, {{ banner.gradient_color_1 }} 0%, {{ banner.gradient_color_2 }} 50%, {{ banner.gradient_color_3|default:banner.gradient_color_2 }} 100%);">
+                                    <div class="hero-slide-overlay"></div>
+                                    <div class="container-fluid px-4 position-relative" style="z-index: 2; height: 100%;">
+                                        <div class="row align-items-center h-100">
+                                            <div class="col-lg-8 hero-content">
+                                                {% if banner.title %}
+                                                    <h1 class="hero-title">{{ banner.title }}</h1>
+                                                {% endif %}
+                                                {% if banner.description %}
+                                                    <p class="hero-subtitle">{{ banner.description }}</p>
+                                                {% endif %}
+                                                {% if banner.button_text or banner.button_text_2 %}
+                                                    <div class="d-flex gap-3 flex-wrap">
+                                                        {% if banner.button_text and banner.button_url %}
+                                                            <a href="{{ banner.button_url }}" class="btn btn-mlb">
+                                                                {% if banner.button_text %}{{ banner.button_text }}{% endif %}
+                                                            </a>
+                                                        {% endif %}
+                                                        {% if banner.button_text_2 and banner.button_url_2 %}
+                                                            <a href="{{ banner.button_url_2 }}" class="btn btn-mlb-outline">
+                                                                {{ banner.button_text_2 }}
+                                                            </a>
+                                                        {% endif %}
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            {% if banner.icon_class %}
+                                                <div class="col-lg-4 text-center mt-4 mt-lg-0">
+                                                    <i class="{{ banner.icon_class }}" style="font-size: 12rem; opacity: 0.2;"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-lg-4 text-center mt-4 mt-lg-0">
-                                    <i class="fas fa-trophy" style="font-size: 12rem; opacity: 0.2;"></i>
-                                </div>
-                            </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Fallback: Banner por defecto si no hay banners -->
+                    <div class="carousel-item active">
+                        <div class="hero-slide-item banner-image" style="background: #0d2c54;">
+                            <img src="{% static 'images/world-series-2026-banner.png' %}" alt="NCS World Series 2026">
                         </div>
                     </div>
-                </div>
-                
-                <!-- Slide 3 -->
-                <div class="carousel-item">
-                    <div class="hero-slide-item" style="background: linear-gradient(135deg, #2e7d32 0%, #388e3c 50%, #66bb6a 100%); min-height: 500px; display: flex; align-items: center; position: relative; overflow: hidden;">
-                        <div class="hero-slide-overlay"></div>
-                        <div class="container-fluid px-4 position-relative" style="z-index: 2;">
-                            <div class="row align-items-center">
-                                <div class="col-lg-8 hero-content">
-                                    <h1 class="hero-title">Experiencia Profesional</h1>
-                                    <p class="hero-subtitle">
-                                        Herramientas avanzadas para organizadores de eventos deportivos de élite.
-                                        Gestiona equipos, jugadores y estadísticas con facilidad.
-                                    </p>
-                                    <div class="d-flex gap-3 flex-wrap">
-                                        {% if not user.is_authenticated %}
-                                            <a href="/accounts/register/" class="btn btn-mlb">
-                                                <i class="fas fa-rocket me-2"></i>Empezar Ahora
-                                            </a>
-                                            <a href="#" class="btn btn-mlb-outline" data-bs-toggle="modal" data-bs-target="#loginModal">
-                                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
-                                            </a>
-                                        {% else %}
-                                            <a href="{% url 'accounts:panel' %}" class="btn btn-mlb">
-                                                <i class="fas fa-tachometer-alt me-2"></i>Ir al Panel
-                                            </a>
-                                            <a href="{% url 'events:list' %}" class="btn btn-mlb-outline">
-                                                <i class="fas fa-calendar-alt me-2"></i>Ver Eventos
-                                            </a>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="col-lg-4 text-center mt-4 mt-lg-0">
-                                    <i class="fas fa-users" style="font-size: 12rem; opacity: 0.2;"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {% endif %}
             </div>
             
             <!-- Controles -->
@@ -2082,17 +2091,37 @@
                 <!-- Left Column - Image -->
                 <div class="col-lg-6">
                     <div class="schedule-image-container">
-                        <img src="{% static 'images/schedule-2025.png' %}" alt="2025 Schedule" class="schedule-background-image">
+                        {% if site_settings and site_settings.schedule_image %}
+                            <img src="{{ site_settings.schedule_image.url }}" alt="{{ site_settings.schedule_title|default:'Schedule' }}" class="schedule-background-image">
+                        {% else %}
+                            <img src="{% static 'images/schedule-2025.png' %}" alt="2025 Schedule" class="schedule-background-image">
+                        {% endif %}
                     </div>
                 </div>
                 
                 <!-- Right Column - Content -->
                 <div class="col-lg-6">
                     <div class="schedule-content">
-                        <h2 class="schedule-heading">CALENDARIO DE EVENTOS 2026</h2>
-                        <h3 class="schedule-subheading">EXPANSIÓN REGIONAL Y NUEVOS CAMPEONATOS NACIONALES Y REGIONALES PARA 2026</h3>
+                        <h2 class="schedule-heading">
+                            {% if site_settings and site_settings.schedule_title %}
+                                {{ site_settings.schedule_title }}
+                            {% else %}
+                                CALENDARIO DE EVENTOS 2026
+                            {% endif %}
+                        </h2>
+                        <h3 class="schedule-subheading">
+                            {% if site_settings and site_settings.schedule_subtitle %}
+                                {{ site_settings.schedule_subtitle }}
+                            {% else %}
+                                EXPANSIÓN REGIONAL Y NUEVOS CAMPEONATOS NACIONALES Y REGIONALES PARA 2026
+                            {% endif %}
+                        </h3>
                         <p class="schedule-description">
-                            A medida que avanzamos hacia 2026, NSC International continúa elevando su plataforma de torneos y exhibiciones. Con una expansión de la presencia regional para edades 7U-18U, nuevos y mejorados eventos de Campeonatos Nacionales y Regionales, y una programación aún más amplia de exhibiciones en todo el país, NSC se mantiene dedicado a ofrecer el más alto estándar de competencia y experiencia para jugadores, entrenadores y familias por igual.
+                            {% if site_settings and site_settings.schedule_description %}
+                                {{ site_settings.schedule_description }}
+                            {% else %}
+                                A medida que avanzamos hacia 2026, NSC International continúa elevando su plataforma de torneos y exhibiciones. Con una expansión de la presencia regional para edades 7U-18U, nuevos y mejorados eventos de Campeonatos Nacionales y Regionales, y una programación aún más amplia de exhibiciones en todo el país, NSC se mantiene dedicado a ofrecer el más alto estándar de competencia y experiencia para jugadores, entrenadores y familias por igual.
+                            {% endif %}
                         </p>
                         <div class="schedule-buttons">
                             {% if event_types %}
@@ -2256,7 +2285,11 @@
                 <!-- Left Column - Image -->
                 <div class="col-lg-6">
                     <div class="schedule-image-container">
-                        <img src="{% static 'images/showcase-player.webp' %}" alt="Showcase Player" class="schedule-background-image">
+                        {% if site_settings and site_settings.showcase_image %}
+                            <img src="{{ site_settings.showcase_image.url }}" alt="{{ site_settings.showcase_title|default:'Showcase' }}" class="schedule-background-image">
+                        {% else %}
+                            <img src="{% static 'images/showcase-player.webp' %}" alt="Showcase Player" class="schedule-background-image">
+                        {% endif %}
                         <div class="showcase-overlay">
                             <div class="showcase-oval">
                                 <span class="showcase-text">SHOWCASE</span>
@@ -2268,10 +2301,26 @@
                 <!-- Right Column - Content -->
                 <div class="col-lg-6">
                     <div class="schedule-content">
-                        <h2 class="schedule-heading">SHOWCASES AND PROSPECT GATEWAYS</h2>
-                        <h3 class="schedule-subheading">REGIONAL AND NATIONAL SHOWCASES</h3>
+                        <h2 class="schedule-heading">
+                            {% if site_settings and site_settings.showcase_title %}
+                                {{ site_settings.showcase_title }}
+                            {% else %}
+                                SHOWCASES AND PROSPECT GATEWAYS
+                            {% endif %}
+                        </h2>
+                        <h3 class="schedule-subheading">
+                            {% if site_settings and site_settings.showcase_subtitle %}
+                                {{ site_settings.showcase_subtitle }}
+                            {% else %}
+                                REGIONAL AND NATIONAL SHOWCASES
+                            {% endif %}
+                        </h3>
                         <p class="schedule-description">
-                            Perfect Game is thrilled to offer showcases (HS) and Prospect Gateways (13U/14U) across the country for the 2025 calendar. This includes regional events for all ages and new invite only events! PG strives to delivery the very best events and experience for all players, coaches and families across the country.
+                            {% if site_settings and site_settings.showcase_description %}
+                                {{ site_settings.showcase_description }}
+                            {% else %}
+                                Perfect Game is thrilled to offer showcases (HS) and Prospect Gateways (13U/14U) across the country for the 2025 calendar. This includes regional events for all ages and new invite only events! PG strives to delivery the very best events and experience for all players, coaches and families across the country.
+                            {% endif %}
                         </p>
                         <div class="schedule-buttons">
                             <a href="#" class="schedule-category-btn">SHOWCASE SCHEDULE</a>
@@ -2288,24 +2337,39 @@
         <div class="container">
             <h2 class="sponsors-title">SPONSORS</h2>
             <div class="sponsors-grid">
-                <div class="sponsor-card">
-                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%23D72638'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='32' font-family='Arial' font-weight='700'>LOGO 1</text></svg>" alt="Sponsor 1">
-                </div>
-                <div class="sponsor-card">
-                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%23007BFF'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='32' font-family='Arial' font-weight='700'>LOGO 2</text></svg>" alt="Sponsor 2">
-                </div>
-                <div class="sponsor-card">
-                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%23F59E0B'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%230f172a' font-size='32' font-family='Arial' font-weight='700'>LOGO 3</text></svg>" alt="Sponsor 3">
-                </div>
-                <div class="sponsor-card">
-                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%2310B981'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%230f172a' font-size='32' font-family='Arial' font-weight='700'>LOGO 4</text></svg>" alt="Sponsor 4">
-                </div>
-                <div class="sponsor-card">
-                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%239C27B0'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='32' font-family='Arial' font-weight='700'>LOGO 5</text></svg>" alt="Sponsor 5">
-                </div>
-                <div class="sponsor-card">
-                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%23264870'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='32' font-family='Arial' font-weight='700'>LOGO 6</text></svg>" alt="Sponsor 6">
-                </div>
+                {% if sponsors %}
+                    {% for sponsor in sponsors %}
+                        <div class="sponsor-card">
+                            {% if sponsor.website_url %}
+                                <a href="{{ sponsor.website_url }}" target="_blank" rel="noopener noreferrer" style="display: block; width: 100%; height: 100%;">
+                                    <img src="{{ sponsor.logo.url }}" alt="{{ sponsor.name }}">
+                                </a>
+                            {% else %}
+                                <img src="{{ sponsor.logo.url }}" alt="{{ sponsor.name }}">
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Fallback: Sponsors por defecto si no hay sponsors -->
+                    <div class="sponsor-card">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%23D72638'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='32' font-family='Arial' font-weight='700'>LOGO 1</text></svg>" alt="Sponsor 1">
+                    </div>
+                    <div class="sponsor-card">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%23007BFF'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='32' font-family='Arial' font-weight='700'>LOGO 2</text></svg>" alt="Sponsor 2">
+                    </div>
+                    <div class="sponsor-card">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%23F59E0B'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%230f172a' font-size='32' font-family='Arial' font-weight='700'>LOGO 3</text></svg>" alt="Sponsor 3">
+                    </div>
+                    <div class="sponsor-card">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%2310B981'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%230f172a' font-size='32' font-family='Arial' font-weight='700'>LOGO 4</text></svg>" alt="Sponsor 4">
+                    </div>
+                    <div class="sponsor-card">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%239C27B0'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='32' font-family='Arial' font-weight='700'>LOGO 5</text></svg>" alt="Sponsor 5">
+                    </div>
+                    <div class="sponsor-card">
+                        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='320' height='140'><rect width='100%' height='100%' rx='12' fill='%23264870'/><text x='50%' y='55%' dominant-baseline='middle' text-anchor='middle' fill='%23ffffff' font-size='32' font-family='Arial' font-weight='700'>LOGO 6</text></svg>" alt="Sponsor 6">
+                    </div>
+                {% endif %}
             </div>
         </div>
     </section>

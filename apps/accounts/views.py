@@ -118,6 +118,34 @@ class PublicHomeView(TemplateView):
             settings, "INSTAGRAM_USERNAME", "ncs_international"
         )
 
+        # Obtener banners activos del home
+        try:
+            from .models import HomeBanner
+
+            context["home_banners"] = HomeBanner.objects.filter(
+                is_active=True
+            ).order_by("order", "-created_at")
+        except ImportError:
+            context["home_banners"] = []
+
+        # Obtener configuraciones del sitio
+        try:
+            from .models import SiteSettings
+
+            context["site_settings"] = SiteSettings.load()
+        except ImportError:
+            context["site_settings"] = None
+
+        # Obtener sponsors activos
+        try:
+            from .models import Sponsor
+
+            context["sponsors"] = Sponsor.objects.filter(is_active=True).order_by(
+                "order", "name"
+            )
+        except ImportError:
+            context["sponsors"] = []
+
         return context
 
 

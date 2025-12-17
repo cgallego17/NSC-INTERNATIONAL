@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle del Banner - NSC International{% endblock %}
+
+{% block content %}
+<div class="banner-form-container">
+    <div class="container-fluid">
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 mb-1">Detalle del Banner</h1>
+                        <p class="text-muted mb-0">{{ banner.title|default:"Sin título" }}</p>
+                    </div>
+                    <div>
+                        <a href="{% url 'accounts:home_content_admin' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Volver
+                        </a>
+                        <a href="{% url 'accounts:banner_update' banner.pk %}" class="btn btn-primary">
+                            <i class="bi bi-pencil me-2"></i>Editar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Información General</h5>
+                        <table class="table">
+                            <tr>
+                                <th width="200">Título:</th>
+                                <td>{{ banner.title|default:"Sin título" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Descripción:</th>
+                                <td>{{ banner.description|default:"Sin descripción" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Tipo:</th>
+                                <td>
+                                    <span class="badge {% if banner.banner_type == 'image' %}bg-info{% else %}bg-success{% endif %}">
+                                        {{ banner.get_banner_type_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Estado:</th>
+                                <td>
+                                    {% if banner.is_active %}
+                                        <span class="badge bg-success">Activo</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactivo</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Orden:</th>
+                                <td>{{ banner.order }}</td>
+                            </tr>
+                            <tr>
+                                <th>Creado:</th>
+                                <td>{{ banner.created_at|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                            <tr>
+                                <th>Actualizado:</th>
+                                <td>{{ banner.updated_at|date:"d/m/Y H:i" }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                {% if banner.banner_type == 'gradient' %}
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Colores del Gradiente</h5>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p><strong>Color 1:</strong> 
+                                        <span style="display: inline-block; width: 30px; height: 30px; background: {{ banner.gradient_color_1 }}; border: 1px solid #ccc; border-radius: 4px; vertical-align: middle;"></span>
+                                        {{ banner.gradient_color_1 }}
+                                    </p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>Color 2:</strong> 
+                                        <span style="display: inline-block; width: 30px; height: 30px; background: {{ banner.gradient_color_2 }}; border: 1px solid #ccc; border-radius: 4px; vertical-align: middle;"></span>
+                                        {{ banner.gradient_color_2 }}
+                                    </p>
+                                </div>
+                                {% if banner.gradient_color_3 %}
+                                    <div class="col-md-4">
+                                        <p><strong>Color 3:</strong> 
+                                            <span style="display: inline-block; width: 30px; height: 30px; background: {{ banner.gradient_color_3 }}; border: 1px solid #ccc; border-radius: 4px; vertical-align: middle;"></span>
+                                            {{ banner.gradient_color_3 }}
+                                        </p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="mt-3" style="width: 100%; height: 200px; background: linear-gradient(135deg, {{ banner.gradient_color_1 }} 0%, {{ banner.gradient_color_2 }} 50%, {{ banner.gradient_color_3|default:banner.gradient_color_2 }} 100%); border-radius: 8px;"></div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                {% if banner.button_text or banner.button_text_2 %}
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Botones</h5>
+                            {% if banner.button_text %}
+                                <p><strong>Botón Principal:</strong> 
+                                    <a href="{{ banner.button_url }}" class="btn btn-sm btn-primary">{{ banner.button_text }}</a>
+                                    <small class="text-muted">({{ banner.button_url }})</small>
+                                </p>
+                            {% endif %}
+                            {% if banner.button_text_2 %}
+                                <p><strong>Botón Secundario:</strong> 
+                                    <a href="{{ banner.button_url_2 }}" class="btn btn-sm btn-outline-primary">{{ banner.button_text_2 }}</a>
+                                    <small class="text-muted">({{ banner.button_url_2 }})</small>
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Vista Previa</h5>
+                        {% if banner.banner_type == 'image' and banner.image %}
+                            <img src="{{ banner.image.url }}" alt="{{ banner.title }}" class="img-fluid rounded">
+                        {% elif banner.banner_type == 'gradient' %}
+                            <div style="width: 100%; height: 200px; background: linear-gradient(135deg, {{ banner.gradient_color_1 }} 0%, {{ banner.gradient_color_2 }} 50%, {{ banner.gradient_color_3|default:banner.gradient_color_2 }} 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                                {% if banner.icon_class %}
+                                    <i class="{{ banner.icon_class }}" style="font-size: 4rem; opacity: 0.3;"></i>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Acciones</h5>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'accounts:banner_update' banner.pk %}" class="btn btn-warning">
+                                <i class="bi bi-pencil me-2"></i>Editar Banner
+                            </a>
+                            <a href="{% url 'accounts:banner_delete' banner.pk %}" class="btn btn-danger">
+                                <i class="bi bi-trash me-2"></i>Eliminar Banner
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

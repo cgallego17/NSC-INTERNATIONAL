@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sponsors - NSC International{% endblock %}
+
+{% block extra_css %}
+<style>
+    .sponsor-list-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        padding: 2rem 2rem 2rem 3rem;
+        min-height: 100vh;
+    }
+    
+    @media (max-width: 992px) {
+        .sponsor-list-container {
+            padding: 2rem 1.5rem;
+        }
+    }
+    
+    .sponsor-logo-preview {
+        max-width: 150px;
+        max-height: 80px;
+        object-fit: contain;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sponsor-list-container">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 mb-0 text-gray-800">Gestión de Sponsors</h1>
+                        <p class="text-muted">Administra los sponsors que se muestran en el home</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'accounts:sponsor_create' %}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-2"></i>Agregar Sponsor
+                            </a>
+                            <a href="{% url 'accounts:home_content_admin' %}" class="btn btn-outline-info">
+                                <i class="bi bi-sliders me-2"></i>Administración Completa
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <form method="get" class="row g-3">
+                            <div class="col-md-6">
+                                <label for="search" class="form-label">Buscar</label>
+                                <input type="text" class="form-control" id="search" name="search" 
+                                       value="{{ search }}" placeholder="Buscar por nombre...">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="status" class="form-label">Estado</label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="">Todos los Estados</option>
+                                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Activo</option>
+                                    <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactivo</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-primary mt-4">Filtrar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sponsors Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        {% if sponsors %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Logo</th>
+                                            <th>Nombre</th>
+                                            <th>URL</th>
+                                            <th>Orden</th>
+                                            <th>Estado</th>
+                                            <th>Creado</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for sponsor in sponsors %}
+                                            <tr>
+                                                <td>
+                                                    {% if sponsor.logo %}
+                                                        <img src="{{ sponsor.logo.url }}" alt="{{ sponsor.name }}" 
+                                                             class="sponsor-logo-preview">
+                                                    {% else %}
+                                                        <div class="text-muted">Sin logo</div>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <strong>{{ sponsor.name }}</strong>
+                                                </td>
+                                                <td>
+                                                    {% if sponsor.website_url %}
+                                                        <a href="{{ sponsor.website_url }}" target="_blank" rel="noopener noreferrer">
+                                                            <i class="bi bi-link-45deg"></i> Ver sitio
+                                                        </a>
+                                                    {% else %}
+                                                        <span class="text-muted">-</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-secondary">{{ sponsor.order }}</span>
+                                                </td>
+                                                <td>
+                                                    {% if sponsor.is_active %}
+                                                        <span class="badge bg-success">Activo</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">Inactivo</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>{{ sponsor.created_at|date:"d/m/Y" }}</td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <a href="{% url 'accounts:sponsor_detail' sponsor.pk %}" 
+                                                           class="btn btn-sm btn-outline-primary" title="Ver">
+                                                            <i class="bi bi-eye"></i>
+                                                        </a>
+                                                        <a href="{% url 'accounts:sponsor_update' sponsor.pk %}" 
+                                                           class="btn btn-sm btn-outline-warning" title="Editar">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </a>
+                                                        <a href="{% url 'accounts:sponsor_delete' sponsor.pk %}" 
+                                                           class="btn btn-sm btn-outline-danger" title="Eliminar">
+                                                            <i class="bi bi-trash"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Pagination -->
+                            {% if is_paginated %}
+                                <nav aria-label="Paginación">
+                                    <ul class="pagination justify-content-center mt-4">
+                                        {% if page_obj.has_previous %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page=1{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Primera</a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Anterior</a>
+                                            </li>
+                                        {% endif %}
+                                        
+                                        <li class="page-item active">
+                                            <span class="page-link">
+                                                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                            </span>
+                                        </li>
+                                        
+                                        {% if page_obj.has_next %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Siguiente</a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Última</a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </nav>
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-info text-center">
+                                <i class="bi bi-info-circle me-2"></i>
+                                No hay sponsors registrados. 
+                                <a href="{% url 'accounts:sponsor_create' %}">Crear el primer sponsor</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

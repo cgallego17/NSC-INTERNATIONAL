@@ -1,0 +1,354 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Editar Banner del Panel{% else %}Crear Banner del Panel{% endif %} - NSC International
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .banner-form-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        padding: 2rem 2rem 2rem 3rem;
+        min-height: 100vh;
+    }
+    
+    @media (max-width: 992px) {
+        .banner-form-container {
+            padding: 2rem 1.5rem;
+        }
+    }
+    
+    .form-section-card {
+        background: #ffffff;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    
+    .form-section-title {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #e9ecef;
+    }
+    
+    .image-preview {
+        max-width: 100%;
+        max-height: 400px;
+        border-radius: 0.5rem;
+        border: 2px solid #e9ecef;
+        padding: 0.5rem;
+        background: #f8f9fa;
+        margin-top: 1rem;
+    }
+    
+    .gradient-preview {
+        width: 100%;
+        height: 150px;
+        border-radius: 0.5rem;
+        border: 2px solid #e9ecef;
+        margin-top: 1rem;
+    }
+    
+    .color-input-group {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    
+    .color-input-group input[type="color"] {
+        width: 80px;
+        height: 40px;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="banner-form-container">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 mb-1">
+                            <i class="bi bi-person-badge text-primary me-2"></i>
+                            {% if object %}Editar Banner del Panel{% else %}Crear Nuevo Banner del Panel{% endif %}
+                        </h1>
+                        <p class="text-muted mb-0">
+                            {% if object %}Modifica los datos del banner{% else %}Agrega un nuevo banner para el welcome banner del panel de usuario{% endif %}
+                        </p>
+                    </div>
+                    <a href="{% url 'accounts:home_content_admin' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form -->
+        <div class="row">
+            <div class="col-12">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <!-- Información General -->
+                    <div class="form-section-card">
+                        <div class="form-section-title">
+                            <i class="bi bi-info-circle"></i>Información General
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.title.id_for_label }}" class="form-label">
+                                    {{ form.title.label }}
+                                </label>
+                                {{ form.title }}
+                                {% if form.title.errors %}
+                                    <div class="text-danger small">{{ form.title.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.banner_type.id_for_label }}" class="form-label">
+                                    {{ form.banner_type.label }}
+                                    <span class="text-danger">*</span>
+                                </label>
+                                {{ form.banner_type }}
+                                {% if form.banner_type.errors %}
+                                    <div class="text-danger small">{{ form.banner_type.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="{{ form.description.id_for_label }}" class="form-label">
+                                    {{ form.description.label }}
+                                </label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                    <div class="text-danger small">{{ form.description.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.order.id_for_label }}" class="form-label">
+                                    {{ form.order.label }}
+                                </label>
+                                {{ form.order }}
+                                {% if form.order.errors %}
+                                    <div class="text-danger small">{{ form.order.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check mt-4">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                        {{ form.is_active.label }}
+                                    </label>
+                                </div>
+                                {% if form.is_active.errors %}
+                                    <div class="text-danger small">{{ form.is_active.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Imagen -->
+                    <div class="form-section-card" id="image-section">
+                        <div class="form-section-title">
+                            <i class="bi bi-image"></i>Imagen del Banner
+                        </div>
+                        <div class="mb-3">
+                            <label for="{{ form.image.id_for_label }}" class="form-label">
+                                {{ form.image.label }}
+                                <span class="text-danger" id="image-required">*</span>
+                            </label>
+                            {{ form.image }}
+                            {% if form.image.errors %}
+                                <div class="text-danger small">{{ form.image.errors }}</div>
+                            {% endif %}
+                            {% if object and object.image %}
+                                <div class="mt-2">
+                                    <p class="text-muted small">Imagen actual:</p>
+                                    <img src="{{ object.image.url }}" alt="Preview" class="image-preview" id="image-preview">
+                                </div>
+                            {% else %}
+                                <div class="mt-2">
+                                    <img src="" alt="Preview" class="image-preview" id="image-preview" style="display: none;">
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Gradiente -->
+                    <div class="form-section-card" id="gradient-section">
+                        <div class="form-section-title">
+                            <i class="bi bi-palette"></i>Colores del Gradiente
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.gradient_color_1.id_for_label }}" class="form-label">
+                                    {{ form.gradient_color_1.label }}
+                                </label>
+                                <div class="color-input-group">
+                                    <input type="color" id="gradient_color_1_color" 
+                                           value="{{ form.gradient_color_1.value|default:'#0d2c54' }}" 
+                                           class="form-control">
+                                    {{ form.gradient_color_1 }}
+                                </div>
+                                {% if form.gradient_color_1.errors %}
+                                    <div class="text-danger small">{{ form.gradient_color_1.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.gradient_color_2.id_for_label }}" class="form-label">
+                                    {{ form.gradient_color_2.label }}
+                                </label>
+                                <div class="color-input-group">
+                                    <input type="color" id="gradient_color_2_color" 
+                                           value="{{ form.gradient_color_2.value|default:'#132448' }}" 
+                                           class="form-control">
+                                    {{ form.gradient_color_2 }}
+                                </div>
+                                {% if form.gradient_color_2.errors %}
+                                    <div class="text-danger small">{{ form.gradient_color_2.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.gradient_color_3.id_for_label }}" class="form-label">
+                                    {{ form.gradient_color_3.label }}
+                                </label>
+                                <div class="color-input-group">
+                                    <input type="color" id="gradient_color_3_color" 
+                                           value="{{ form.gradient_color_3.value|default:'' }}" 
+                                           class="form-control">
+                                    {{ form.gradient_color_3 }}
+                                </div>
+                                {% if form.gradient_color_3.errors %}
+                                    <div class="text-danger small">{{ form.gradient_color_3.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="gradient-preview" id="gradient-preview"></div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'accounts:home_content_admin' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Cancelar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>
+                            {% if object %}Guardar Cambios{% else %}Crear Banner{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Mostrar/ocultar secciones según el tipo de banner
+    const bannerTypeSelect = document.getElementById('{{ form.banner_type.id_for_label }}');
+    const imageSection = document.getElementById('image-section');
+    const gradientSection = document.getElementById('gradient-section');
+    const imageRequired = document.getElementById('image-required');
+    
+    function toggleSections() {
+        const bannerType = bannerTypeSelect.value;
+        if (bannerType === 'image') {
+            imageSection.style.display = 'block';
+            gradientSection.style.display = 'none';
+            imageRequired.style.display = 'inline';
+        } else if (bannerType === 'gradient') {
+            imageSection.style.display = 'none';
+            gradientSection.style.display = 'block';
+            imageRequired.style.display = 'none';
+        }
+    }
+    
+    bannerTypeSelect.addEventListener('change', toggleSections);
+    toggleSections(); // Ejecutar al cargar
+    
+    // Preview de imagen
+    const imageInput = document.getElementById('{{ form.image.id_for_label }}');
+    const imagePreview = document.getElementById('image-preview');
+    
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+    
+    // Preview de gradiente
+    const color1Input = document.getElementById('gradient_color_1_color');
+    const color1Text = document.getElementById('{{ form.gradient_color_1.id_for_label }}');
+    const color2Input = document.getElementById('gradient_color_2_color');
+    const color2Text = document.getElementById('{{ form.gradient_color_2.id_for_label }}');
+    const color3Input = document.getElementById('gradient_color_3_color');
+    const color3Text = document.getElementById('{{ form.gradient_color_3.id_for_label }}');
+    const gradientPreview = document.getElementById('gradient-preview');
+    
+    function updateGradientPreview() {
+        const color1 = color1Text.value || '#0d2c54';
+        const color2 = color2Text.value || '#132448';
+        const color3 = color3Text.value || color2;
+        gradientPreview.style.background = `linear-gradient(135deg, ${color1} 0%, ${color2} 50%, ${color3} 100%)`;
+    }
+    
+    // Sincronizar color picker con input de texto
+    if (color1Input && color1Text) {
+        color1Input.addEventListener('input', function() {
+            color1Text.value = this.value;
+            updateGradientPreview();
+        });
+        color1Text.addEventListener('input', function() {
+            color1Input.value = this.value;
+            updateGradientPreview();
+        });
+    }
+    
+    if (color2Input && color2Text) {
+        color2Input.addEventListener('input', function() {
+            color2Text.value = this.value;
+            updateGradientPreview();
+        });
+        color2Text.addEventListener('input', function() {
+            color2Input.value = this.value;
+            updateGradientPreview();
+        });
+    }
+    
+    if (color3Input && color3Text) {
+        color3Input.addEventListener('input', function() {
+            color3Text.value = this.value;
+            updateGradientPreview();
+        });
+        color3Text.addEventListener('input', function() {
+            if (this.value) {
+                color3Input.value = this.value;
+            }
+            updateGradientPreview();
+        });
+    }
+    
+    updateGradientPreview(); // Inicializar preview
+</script>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Sponsor - NSC International{% endblock %}
+
+{% block content %}
+<div class="sponsor-form-container">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Confirmar Eliminación
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="lead">¿Estás seguro de que deseas eliminar este sponsor?</p>
+                        
+                        <div class="alert alert-warning">
+                            <strong>Sponsor:</strong> {{ sponsor.name }}<br>
+                            <strong>Estado:</strong> {% if sponsor.is_active %}Activo{% else %}Inactivo{% endif %}
+                        </div>
+
+                        {% if sponsor.logo %}
+                            <div class="mb-3">
+                                <img src="{{ sponsor.logo.url }}" alt="{{ sponsor.name }}" class="img-fluid rounded" style="max-height: 200px;">
+                            </div>
+                        {% endif %}
+
+                        <p class="text-danger">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Esta acción no se puede deshacer.
+                        </p>
+
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="d-flex justify-content-between mt-4">
+                                <a href="{% url 'accounts:home_content_admin' %}" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle me-2"></i>Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-trash me-2"></i>Sí, Eliminar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
