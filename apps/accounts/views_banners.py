@@ -167,3 +167,5 @@ class HomeContentAdminView(StaffRequiredMixin, TemplateView):
             context["recent_dashboard_banners"] = []
 
         return context
+
+

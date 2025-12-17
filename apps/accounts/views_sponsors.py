@@ -93,3 +93,5 @@ class SponsorDeleteView(StaffRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, "Sponsor eliminado exitosamente.")
         return super().delete(request, *args, **kwargs)
+
+
