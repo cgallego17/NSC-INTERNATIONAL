@@ -102,17 +102,29 @@ class PlayerParentAdmin(admin.ModelAdmin):
 
 @admin.register(DashboardContent)
 class DashboardContentAdmin(admin.ModelAdmin):
-    list_display = ["title", "is_active", "order", "created_at"]
-    list_filter = ["is_active", "created_at"]
+    list_display = ["title", "user_type", "is_active", "order", "created_at"]
+    list_filter = ["user_type", "is_active", "created_at"]
     search_fields = ["title", "content"]
     readonly_fields = ["created_at", "updated_at"]
     fieldsets = (
-        ("Información", {"fields": ("title", "content", "is_active", "order")}),
+        (
+            "Contenido de Bienvenida",
+            {
+                "fields": ("title", "user_type", "content", "is_active", "order"),
+                "description": "Configure el contenido HTML que se mostrará en la zona de bienvenida del dashboard según el tipo de usuario. Puede usar HTML completo para personalizar el diseño. Seleccione 'Todos los Usuarios' para que se muestre a todos, o un tipo específico (Manager, Padre/Acudiente, Jugador)."
+            }
+        ),
         (
             "Auditoría",
             {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
         ),
     )
+    
+    class Media:
+        css = {
+            'all': ('admin/css/widgets.css',)
+        }
+        js = ('admin/js/core.js',)
 
 
 @admin.register(HomeBanner)

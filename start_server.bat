@@ -1,4 +1,7 @@
 @echo off
+echo Activating virtual environment...
+call venv\Scripts\activate.bat
+echo.
 echo Iniciando servidor Django con soporte para WebSockets...
 echo.
 echo NOTA: Para que WebSockets funcionen, el servidor debe usar ASGI.

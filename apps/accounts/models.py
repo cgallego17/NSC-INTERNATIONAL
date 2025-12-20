@@ -660,11 +660,25 @@ class PlayerParent(models.Model):
 class DashboardContent(models.Model):
     """Modelo para contenido del dashboard configurable por el admin"""
 
+    USER_TYPE_CHOICES = [
+        ("player", "Jugador"),
+        ("parent", "Padre/Acudiente"),
+        ("team_manager", "Manager de Equipo"),
+        ("all", "Todos los Usuarios"),
+    ]
+
     title = models.CharField(
         max_length=200, verbose_name="Título", default="Bienvenido"
     )
     content = models.TextField(
         verbose_name="Contenido", help_text="Contenido HTML permitido"
+    )
+    user_type = models.CharField(
+        max_length=20,
+        choices=USER_TYPE_CHOICES,
+        default="all",
+        verbose_name="Tipo de Usuario",
+        help_text="Seleccione para qué tipo de usuario es este contenido"
     )
     is_active = models.BooleanField(default=True, verbose_name="Activo")
     order = models.PositiveIntegerField(default=0, verbose_name="Orden")
@@ -677,7 +691,7 @@ class DashboardContent(models.Model):
         ordering = ["order", "-created_at"]
 
     def __str__(self):
-        return self.title
+        return f"{self.title} ({self.get_user_type_display()})"
 
 
 class HomeBanner(models.Model):

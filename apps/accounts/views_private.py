@@ -18,6 +18,7 @@ from django.views.generic import (
     TemplateView,
 )
 from django.db.models import Q
+from django.db import models
 
 from .forms import (
     UserProfileForm,
@@ -107,10 +108,14 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
         except ImportError:
             context["upcoming_events"] = []
 
-        # Obtener contenido del dashboard configurado por el admin
-        context["dashboard_content"] = DashboardContent.objects.filter(
+        # Obtener contenido del dashboard configurado por el admin según el tipo de usuario
+        user_type = profile.user_type
+        dashboard_content = DashboardContent.objects.filter(
             is_active=True
+        ).filter(
+            Q(user_type=user_type) | Q(user_type="all")
         ).order_by("order", "-created_at")
+        context["dashboard_content"] = dashboard_content
 
         # Obtener información del carrito de hoteles
         cart = self.request.session.get("hotel_cart", {})
@@ -163,7 +168,6 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
         # Obtener hoteles disponibles para la pestaña de reservas (con paginación)
         try:
             from django.core.paginator import Paginator
-            from django.db.models import Q
 
             hotels_queryset = (
                 Hotel.objects.filter(is_active=True)
