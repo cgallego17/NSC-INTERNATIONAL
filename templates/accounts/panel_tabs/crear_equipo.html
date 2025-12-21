@@ -1,0 +1,150 @@
+<div class="tab-content-header mb-4">
+    <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
+        <i class="fas fa-plus-circle me-2" style="color: var(--mlb-red);"></i>Crear Nuevo Equipo
+    </h4>
+    <p class="text-muted">Registra un nuevo equipo en el sistema</p>
+</div>
+{% if team_form %}
+    <div class="form-container">
+        <form method="post" action="{% url 'accounts:team_create' %}" enctype="multipart/form-data" id="teamForm">
+            {% csrf_token %}
+            
+            {% if team_form.non_field_errors %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {{ team_form.non_field_errors }}
+                </div>
+            {% endif %}
+            
+            <!-- Información Básica -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-info-circle me-2"></i>Información Básica
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ team_form.name.id_for_label }}" class="form-label required-field">
+                            <i class="fas fa-users me-1"></i>Nombre del Equipo
+                        </label>
+                        {{ team_form.name }}
+                        {% if team_form.name.errors %}
+                            <div class="error-message">{{ team_form.name.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ team_form.description.id_for_label }}" class="form-label">
+                            <i class="fas fa-align-left me-1"></i>Descripción del Equipo
+                        </label>
+                        {{ team_form.description }}
+                        {% if team_form.description.errors %}
+                            <div class="error-message">{{ team_form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ team_form.logo.id_for_label }}" class="form-label">
+                            <i class="fas fa-image me-1"></i>Logo del Equipo
+                        </label>
+                        <div class="logo-upload-area" onclick="document.getElementById('id_logo').click()">
+                            <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--mlb-blue);"></i>
+                            <p class="mb-0" style="font-weight: 600; color: var(--mlb-blue);">Haz clic para subir el logo</p>
+                            <small class="text-muted">JPG, PNG o GIF (máx. 5MB)</small>
+                        </div>
+                        {{ team_form.logo }}
+                        <img id="logoPreview" class="logo-preview" alt="Vista previa">
+                        {% if team_form.logo.errors %}
+                            <div class="error-message">{{ team_form.logo.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ubicación -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-map-marker-alt me-2"></i>Ubicación
+                </div>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ team_form.country.id_for_label }}" class="form-label">
+                            <i class="fas fa-globe me-1"></i>País
+                        </label>
+                        {{ team_form.country }}
+                        {% if team_form.country.errors %}
+                            <div class="error-message">{{ team_form.country.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ team_form.state.id_for_label }}" class="form-label">
+                            <i class="fas fa-map-marked-alt me-1"></i>Estado
+                        </label>
+                        {{ team_form.state }}
+                        {% if team_form.state.errors %}
+                            <div class="error-message">{{ team_form.state.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="{{ team_form.city.id_for_label }}" class="form-label">
+                            <i class="fas fa-city me-1"></i>Ciudad
+                        </label>
+                        {{ team_form.city }}
+                        {% if team_form.city.errors %}
+                            <div class="error-message">{{ team_form.city.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información de Contacto -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-address-card me-2"></i>Información de Contacto
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ team_form.contact_email.id_for_label }}" class="form-label">
+                            <i class="fas fa-envelope me-1"></i>Email de Contacto
+                        </label>
+                        {{ team_form.contact_email }}
+                        {% if team_form.contact_email.errors %}
+                            <div class="error-message">{{ team_form.contact_email.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ team_form.contact_phone.id_for_label }}" class="form-label">
+                            <i class="fas fa-phone me-1"></i>Teléfono de Contacto
+                        </label>
+                        {{ team_form.contact_phone }}
+                        {% if team_form.contact_phone.errors %}
+                            <div class="error-message">{{ team_form.contact_phone.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ team_form.website.id_for_label }}" class="form-label">
+                            <i class="fas fa-globe me-1"></i>Sitio Web
+                        </label>
+                        {{ team_form.website }}
+                        {% if team_form.website.errors %}
+                            <div class="error-message">{{ team_form.website.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botones de Acción -->
+            <div class="form-actions">
+                <a href="{% url 'accounts:panel' %}" class="btn btn-form-cancel">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-form-submit">
+                    <i class="fas fa-save me-2"></i>Crear Equipo
+                </button>
+            </div>
+        </form>
+    </div>
+{% endif %}

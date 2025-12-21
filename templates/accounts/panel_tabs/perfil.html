@@ -1,0 +1,108 @@
+<div class="tab-content-header mb-4">
+    <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
+        <i class="fas fa-user-cog me-2" style="color: var(--mlb-red);"></i>Editar Perfil
+    </h4>
+    <p class="text-muted">Actualiza tu información personal y de perfil</p>
+</div>
+{% if profile_form and user_form %}
+    <div class="form-container">
+        <form method="post" action="{% url 'accounts:profile_edit' %}" enctype="multipart/form-data" id="profileForm">
+            {% csrf_token %}
+            
+            {% if user_form.non_field_errors or profile_form.non_field_errors %}
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {{ user_form.non_field_errors }}
+                    {{ profile_form.non_field_errors }}
+                </div>
+            {% endif %}
+            
+            <!-- Información de Usuario -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-user me-2"></i>Información de Usuario
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ user_form.first_name.id_for_label }}" class="form-label">
+                            <i class="fas fa-user me-1"></i>Nombre
+                        </label>
+                        {{ user_form.first_name }}
+                        {% if user_form.first_name.errors %}
+                            <div class="error-message">{{ user_form.first_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ user_form.last_name.id_for_label }}" class="form-label">
+                            <i class="fas fa-user me-1"></i>Apellido
+                        </label>
+                        {{ user_form.last_name }}
+                        {% if user_form.last_name.errors %}
+                            <div class="error-message">{{ user_form.last_name.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ user_form.email.id_for_label }}" class="form-label required-field">
+                            <i class="fas fa-envelope me-1"></i>Email
+                        </label>
+                        {{ user_form.email }}
+                        {% if user_form.email.errors %}
+                            <div class="error-message">{{ user_form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información de Perfil -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-id-card me-2"></i>Información de Perfil
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ profile_form.phone.id_for_label }}" class="form-label">
+                            <i class="fas fa-phone me-1"></i>Teléfono
+                        </label>
+                        {{ profile_form.phone }}
+                        {% if profile_form.phone.errors %}
+                            <div class="error-message">{{ profile_form.phone.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ profile_form.birth_date.id_for_label }}" class="form-label">
+                            <i class="fas fa-calendar me-1"></i>Fecha de Nacimiento
+                        </label>
+                        {{ profile_form.birth_date }}
+                        {% if profile_form.birth_date.errors %}
+                            <div class="error-message">{{ profile_form.birth_date.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ profile_form.profile_picture.id_for_label }}" class="form-label">
+                            <i class="fas fa-image me-1"></i>Foto de Perfil
+                        </label>
+                        {{ profile_form.profile_picture }}
+                        {% if profile_form.profile_picture.errors %}
+                            <div class="error-message">{{ profile_form.profile_picture.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Botones de Acción -->
+            <div class="form-actions">
+                <a href="{% url 'accounts:panel' %}" class="btn btn-form-cancel">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-form-submit">
+                    <i class="fas fa-save me-2"></i>Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+{% endif %}
+

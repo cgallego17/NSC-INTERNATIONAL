@@ -218,32 +218,3 @@ class SponsorAdmin(admin.ModelAdmin):
             {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
         ),
     )
-
-
-@admin.register(DashboardBanner)
-class DashboardBannerAdmin(admin.ModelAdmin):
-    list_display = ["title", "banner_type", "is_active", "order", "created_at"]
-    list_filter = ["banner_type", "is_active", "created_at"]
-    search_fields = ["title", "description"]
-    readonly_fields = ["created_at", "updated_at"]
-    fieldsets = (
-        (
-            "Información General",
-            {"fields": ("title", "description", "banner_type", "is_active", "order")},
-        ),
-        (
-            "Imagen",
-            {"fields": ("image",), "description": 'Usar si el tipo es "Imagen"'},
-        ),
-        (
-            "Gradiente",
-            {
-                "fields": ("gradient_color_1", "gradient_color_2", "gradient_color_3"),
-                "description": 'Usar si el tipo es "Gradiente con Texto"',
-            },
-        ),
-        (
-            "Auditoría",
-            {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
-        ),
-    )

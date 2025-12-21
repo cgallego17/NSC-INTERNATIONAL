@@ -1,0 +1,1087 @@
+<div class="player-registration-form-container" style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+    <form method="post" enctype="multipart/form-data" class="needs-validation player-edit-form" novalidate id="playerEditForm">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+        
+        <!-- Información de Usuario (Solo mostrar, no editable) -->
+        <div class="form-section mb-4" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
+            <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
+                <i class="fas fa-user me-2" style="color: var(--mlb-red);"></i>Información de Usuario
+            </h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-user me-1"></i>Nombre
+                    </label>
+                    <div class="form-control" style="background-color: #f8f9fa; color: #6c757d;">
+                        {{ object.user.first_name|default:"-" }}
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-user me-1"></i>Primer Apellido
+                    </label>
+                    <div class="form-control" style="background-color: #f8f9fa; color: #6c757d;">
+                        {{ object.user.last_name|default:"-" }}
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-user me-1"></i>Segundo Apellido
+                    </label>
+                    <div class="form-control" style="background-color: #f8f9fa; color: #6c757d;">
+                        {{ object.user.profile.last_name2|default:"-" }}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-envelope me-1"></i>Email
+                    </label>
+                    <div class="form-control" style="background-color: #f8f9fa; color: #6c757d;">
+                        {{ object.user.email|default:"-" }}
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-phone me-1"></i>Teléfono
+                    </label>
+                    <div class="form-control" style="background-color: #f8f9fa; color: #6c757d;">
+                        {{ object.user.profile.phone|default:"-" }}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-calendar-alt me-1"></i>Fecha de Nacimiento
+                    </label>
+                    <div class="form-control" style="background-color: #f8f9fa; color: #6c757d;">
+                        {% if object.user.profile.birth_date %}{{ object.user.profile.birth_date|date:"d/m/Y" }}{% else %}-{% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-camera me-1"></i>Foto de Perfil
+                    </label>
+                    <div class="text-center">
+                        {% if object.user.profile.profile_picture %}
+                            <img src="{{ object.user.profile.profile_picture.url }}" 
+                                 alt="Foto actual" 
+                                 id="current-profile-picture" 
+                                 class="rounded-circle border border-primary"
+                                 style="width: 120px; height: 120px; object-fit: cover; margin-bottom: 10px;">
+                        {% else %}
+                            <div id="current-profile-picture" 
+                                 class="rounded-circle border border-primary d-flex align-items-center justify-content-center mx-auto"
+                                 style="width: 120px; height: 120px; background: #f8f9fa; margin-bottom: 10px;">
+                                <i class="fas fa-user fa-3x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <label for="id_profile_picture" class="btn btn-sm btn-primary" style="cursor: pointer;">
+                            <i class="fas fa-upload me-1"></i>Cambiar Foto
+                        </label>
+                        {{ form.profile_picture }}
+                        {% if form.profile_picture.errors %}
+                            <div class="text-danger small mt-2">{{ form.profile_picture.errors }}</div>
+                        {% endif %}
+                        <div id="profile-picture-preview" class="text-center mt-3" style="display: none;">
+                            <p class="mb-2"><strong>Vista Previa:</strong></p>
+                            <img id="preview-image" src="#" alt="Vista previa" 
+                                 class="rounded-circle border border-success"
+                                 style="width: 120px; height: 120px; object-fit: cover;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Información Deportiva -->
+        <div class="form-section mb-4" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
+            <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
+                <i class="fas fa-baseball-ball me-2" style="color: var(--mlb-red);"></i>Información Deportiva
+            </h5>
+            <div class="row">
+                {% if is_parent_editing %}
+                    <!-- Campos ocultos para mantener valores cuando padre edita -->
+                    {% if form.team_hidden %}
+                        {{ form.team_hidden }}
+                    {% endif %}
+                    {{ form.team.as_hidden }}
+                    {{ form.jersey_number.as_hidden }}
+                    {{ form.is_active.as_hidden }}
+                {% else %}
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.team.id_for_label }}" class="form-label">
+                            <i class="fas fa-users me-1"></i>Equipo *
+                            <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Selecciona el equipo al que pertenece el jugador. Solo se muestran los equipos que gestionas como manager. Este campo es obligatorio."></i>
+                        </label>
+                        {{ form.team }}
+                        {% if form.team_hidden %}
+                            {{ form.team_hidden }}
+                        {% endif %}
+                        {% if form.team.errors %}
+                            <div class="text-danger small mt-1">{{ form.team.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.jersey_number.id_for_label }}" class="form-label">
+                            <i class="fas fa-hashtag me-1"></i>Número de Jersey
+                            <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Número que aparecerá en el jersey del jugador. Debe ser único dentro del equipo. Ejemplo: 1, 7, 23, etc."></i>
+                        </label>
+                        {{ form.jersey_number }}
+                        {% if form.jersey_number.errors %}
+                            <div class="text-danger small mt-1">{{ form.jersey_number.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.position.id_for_label }}" class="form-label">
+                        <i class="fas fa-map-marker-alt me-1"></i>Posición
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Posición principal del jugador en el campo (ej: Pitcher, Catcher, First Base, etc.)."></i>
+                    </label>
+                    {{ form.position }}
+                    {% if form.position.errors %}
+                        <div class="text-danger small mt-1">{{ form.position.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.height.id_for_label }}" class="form-label">
+                        <i class="fas fa-ruler-vertical me-1"></i>Estatura
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Estatura del jugador en pies y pulgadas. Ejemplo: 5'10&quot; o 6'2&quot;."></i>
+                    </label>
+                    {{ form.height }}
+                    {% if form.height.errors %}
+                        <div class="text-danger small mt-1">{{ form.height.errors }}</div>
+                    {% endif %}
+                    <small class="text-muted d-block mt-1">Ej: 6'2" o 5'10"</small>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.weight.id_for_label }}" class="form-label">
+                        <i class="fas fa-weight me-1"></i>Peso (lbs)
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Peso del jugador en libras (lbs). Ejemplo: 150, 175, 200."></i>
+                    </label>
+                    {{ form.weight }}
+                    {% if form.weight.errors %}
+                        <div class="text-danger small mt-1">{{ form.weight.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.batting_hand.id_for_label }}" class="form-label">
+                        <i class="fas fa-hand-paper me-1"></i>Bateo
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Mano con la que el jugador batea: Derecha (Right), Izquierda (Left) o Ambidiestro (Switch)."></i>
+                    </label>
+                    {{ form.batting_hand }}
+                    {% if form.batting_hand.errors %}
+                        <div class="text-danger small mt-1">{{ form.batting_hand.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.throwing_hand.id_for_label }}" class="form-label">
+                        <i class="fas fa-hand-rock me-1"></i>Lanzamiento
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Mano con la que el jugador lanza: Derecha (Right) o Izquierda (Left)."></i>
+                    </label>
+                    {{ form.throwing_hand }}
+                    {% if form.throwing_hand.errors %}
+                        <div class="text-danger small mt-1">{{ form.throwing_hand.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Elegibilidad y División -->
+        <div class="form-section mb-4" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
+            <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
+                <i class="fas fa-check-circle me-2" style="color: var(--mlb-red);"></i>Elegibilidad y División
+            </h5>
+            {% if object %}
+                {% with age=object.calculate_age_as_of_april_30 age_division=object.get_age_based_division grade_division=object.get_grade_based_division eligible=object.get_eligible_divisions %}
+                    {% if age %}
+                        <div class="form-note form-note-info mb-3" style="background-color: #d1ecf1; border: 1px solid #0dcaf0; border-radius: 8px; padding: 12px 15px; color: #055160;">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Información de Elegibilidad:</strong><br>
+                            <strong>Edad al 30 de abril:</strong> {{ age }} años<br>
+                            {% if age_division %}
+                                <strong>División basada en edad:</strong> {{ age_division }}<br>
+                            {% endif %}
+                            {% if grade_division %}
+                                <strong>División basada en grado:</strong> {{ grade_division }}<br>
+                            {% endif %}
+                            {% if eligible %}
+                                <strong>Divisiones elegibles:</strong> {{ eligible|join:", " }}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+            {% endif %}
+            <div class="form-note form-note-warning mb-3" style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 12px 15px; color: #856404;">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Importante:</strong> Los jugadores sin verificación de edad aprobada no son elegibles hasta que se produzca y apruebe la documentación.
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.grade.id_for_label }}" class="form-label">
+                        <i class="fas fa-graduation-cap me-1"></i>Grado Actual
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Grado escolar actual del jugador. Se calcula automáticamente basado en la fecha de nacimiento, pero puedes ajustarlo manualmente si es necesario."></i>
+                    </label>
+                    {{ form.grade }}
+                    {% if form.grade.help_text %}
+                        <small class="text-muted">{{ form.grade.help_text }}</small>
+                    {% endif %}
+                    {% if form.grade.errors %}
+                        <div class="text-danger small mt-1">{{ form.grade.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.division.id_for_label }}" class="form-label">
+                        <i class="fas fa-users me-1"></i>División Asignada
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="División en la que el jugador puede competir. Se calcula automáticamente según la edad al 30 de abril. El jugador puede jugar en su división por edad o hasta 2 divisiones arriba."></i>
+                    </label>
+                    {{ form.division }}
+                    {% if form.division.help_text %}
+                        <small class="text-muted">{{ form.division.help_text }}</small>
+                    {% endif %}
+                    {% if form.division.errors %}
+                        <div class="text-danger small mt-1">{{ form.division.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.age_verification_document.id_for_label }}" class="form-label">
+                    <i class="fas fa-file-upload me-1"></i>Documento de Verificación de Edad
+                    <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Documento oficial que verifica la edad del jugador. Formatos aceptados: PDF, JPG, JPEG, PNG. El documento será revisado por un administrador antes de aprobar la elegibilidad."></i>
+                </label>
+                {{ form.age_verification_document }}
+                {% if object.age_verification_document %}
+                    <div class="mt-2">
+                        <a href="{{ object.age_verification_document.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-file me-1"></i>Ver documento actual
+                        </a>
+                    </div>
+                {% endif %}
+                {% if form.age_verification_document.help_text %}
+                    <small class="text-muted">{{ form.age_verification_document.help_text }}</small>
+                {% endif %}
+                {% if form.age_verification_document.errors %}
+                    <div class="text-danger small mt-1">{{ form.age_verification_document.errors }}</div>
+                {% endif %}
+                <small class="text-muted d-block mt-1">
+                    <i class="fas fa-file-alt me-1"></i>Formatos aceptados: PDF, JPG, JPEG, PNG. Tamaño máximo recomendado: 5MB.
+                </small>
+            </div>
+            
+            {% if not is_parent_editing %}
+                {% if user.profile.is_team_manager or user.is_staff or user.is_superuser %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.age_verification_status.id_for_label }}" class="form-label">
+                                <i class="fas fa-check-circle me-1"></i>Estado de Verificación
+                                <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Estado de verificación del documento de edad. Solo los administradores pueden cambiar este estado."></i>
+                            </label>
+                            {{ form.age_verification_status }}
+                            {% if form.age_verification_status.errors %}
+                                <div class="text-danger small mt-1">{{ form.age_verification_status.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.age_verification_notes.id_for_label }}" class="form-label">
+                            <i class="fas fa-sticky-note me-1"></i>Notas de Verificación
+                            <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Notas adicionales sobre la verificación de edad del jugador."></i>
+                        </label>
+                        {{ form.age_verification_notes }}
+                        {% if form.age_verification_notes.errors %}
+                            <div class="text-danger small mt-1">{{ form.age_verification_notes.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+        
+        <!-- Tallas de Uniformes -->
+        <div class="form-section mb-4" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
+            <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
+                <i class="fas fa-tshirt me-2" style="color: var(--mlb-red);"></i>Tallas de Uniformes
+            </h5>
+            <div class="form-note form-note-info mb-3" style="background-color: #d1ecf1; border: 1px solid #0dcaf0; border-radius: 8px; padding: 12px 15px; color: #055160;">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Nota:</strong> Selecciona una talla por cada categoría de uniforme.
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.jersey_size.id_for_label }}" class="form-label">
+                        <i class="fas fa-tshirt me-1"></i>Talla de Jersey
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Talla del jersey del jugador. Selecciona la talla que mejor se ajuste (XS, S, M, L, XL, XXL, etc.)."></i>
+                    </label>
+                    {{ form.jersey_size }}
+                    {% if form.jersey_size.errors %}
+                        <div class="text-danger small mt-1">{{ form.jersey_size.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.hat_size.id_for_label }}" class="form-label">
+                        <i class="fas fa-hat-cowboy me-1"></i>Talla de Gorra
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Talla de la gorra del jugador. Las tallas comunes son: S, M, L, XL o medidas en pulgadas (6 7/8, 7, 7 1/8, etc.)."></i>
+                    </label>
+                    {{ form.hat_size }}
+                    {% if form.hat_size.errors %}
+                        <div class="text-danger small mt-1">{{ form.hat_size.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.batting_glove_size.id_for_label }}" class="form-label">
+                        <i class="fas fa-hand-paper me-1"></i>Talla de Guante de Bateo
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Talla del guante de bateo. Las tallas varían según la edad y tamaño de la mano del jugador (Youth, Small, Medium, Large, etc.)."></i>
+                    </label>
+                    {{ form.batting_glove_size }}
+                    {% if form.batting_glove_size.errors %}
+                        <div class="text-danger small mt-1">{{ form.batting_glove_size.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.batting_helmet_size.id_for_label }}" class="form-label">
+                        <i class="fas fa-hard-hat me-1"></i>Talla de Casco de Bateo
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Talla del casco de bateo. Las tallas comunes son: S, M, L, XL o medidas en pulgadas según el perímetro de la cabeza."></i>
+                    </label>
+                    {{ form.batting_helmet_size }}
+                    {% if form.batting_helmet_size.errors %}
+                        <div class="text-danger small mt-1">{{ form.batting_helmet_size.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.shorts_size.id_for_label }}" class="form-label">
+                        <i class="fas fa-tshirt me-1"></i>Talla de Pantalones
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Talla de los pantalones del uniforme. Selecciona la talla que mejor se ajuste (XS, S, M, L, XL, XXL, etc.)."></i>
+                    </label>
+                    {{ form.shorts_size }}
+                    {% if form.shorts_size.errors %}
+                        <div class="text-danger small mt-1">{{ form.shorts_size.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contacto de Emergencia -->
+        <div class="form-section mb-4">
+            <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
+                <i class="fas fa-phone-alt me-2" style="color: var(--mlb-red);"></i>Contacto de Emergencia
+            </h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.emergency_contact_name.id_for_label }}" class="form-label">
+                        <i class="fas fa-user me-1"></i>Nombre
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Nombre completo de la persona de contacto de emergencia. Esta persona será contactada en caso de emergencia durante eventos o prácticas."></i>
+                    </label>
+                    {{ form.emergency_contact_name }}
+                    {% if form.emergency_contact_name.errors %}
+                        <div class="text-danger small mt-1">{{ form.emergency_contact_name.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.emergency_contact_phone.id_for_label }}" class="form-label">
+                        <i class="fas fa-phone me-1"></i>Teléfono
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Número de teléfono del contacto de emergencia. Debe ser un número donde se pueda contactar rápidamente en caso de emergencia. Incluye código de país si es necesario."></i>
+                    </label>
+                    {{ form.emergency_contact_phone }}
+                    {% if form.emergency_contact_phone.errors %}
+                        <div class="text-danger small mt-1">{{ form.emergency_contact_phone.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.emergency_contact_relation.id_for_label }}" class="form-label">
+                        <i class="fas fa-users me-1"></i>Relación
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Relación del contacto de emergencia con el jugador. Ejemplos: Padre, Madre, Abuelo, Tío, Tutor, etc."></i>
+                    </label>
+                    {{ form.emergency_contact_relation }}
+                    {% if form.emergency_contact_relation.errors %}
+                        <div class="text-danger small mt-1">{{ form.emergency_contact_relation.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.medical_conditions.id_for_label }}" class="form-label">
+                    <i class="fas fa-heartbeat me-1"></i>Condiciones Médicas
+                    <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Información médica relevante del jugador. Incluye alergias, condiciones crónicas, medicamentos, o cualquier información médica importante. Si no hay condiciones médicas, escribe 'Ninguna'."></i>
+                </label>
+                {{ form.medical_conditions }}
+                {% if form.medical_conditions.errors %}
+                    <div class="text-danger small mt-1">{{ form.medical_conditions.errors }}</div>
+                {% endif %}
+                <small class="text-muted">Especifica cualquier condición médica relevante o "Ninguna"</small>
+            </div>
+        </div>
+        
+        <!-- Estado (Solo para managers/staff) -->
+        {% if not is_parent_editing %}
+            {% if user.profile.is_team_manager or user.is_staff or user.is_superuser %}
+                <div class="form-section mb-4">
+                    <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
+                        <i class="fas fa-toggle-on me-2" style="color: var(--mlb-red);"></i>Estado
+                    </h5>
+                    <div class="form-check form-switch form-switch-lg">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                            Jugador Activo
+                        </label>
+                        {% if form.is_active.errors %}
+                            <div class="text-danger small mt-1">{{ form.is_active.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+        
+        <!-- Botones -->
+        <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-secondary btn-cancel-edit">
+                <i class="fas fa-times me-1"></i>Cancelar
+            </button>
+            <button type="submit" class="btn" style="background: var(--mlb-blue); color: white; border: none; border-radius: 10px; padding: 12px 24px; font-weight: 700;">
+                <i class="fas fa-save me-1"></i>Guardar Cambios
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form-switch-lg .form-check-input {
+        width: 3rem;
+        height: 1.5rem;
+        cursor: pointer;
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #4a5568;
+        box-shadow: 0 0 0 0.2rem rgba(74, 85, 104, 0.25);
+    }
+    
+    #id_profile_picture {
+        display: none;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const profilePictureInput = document.getElementById('id_profile_picture');
+        const previewDiv = document.getElementById('profile-picture-preview');
+        const previewImage = document.getElementById('preview-image');
+        
+        if (profilePictureInput) {
+            profilePictureInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImage.src = e.target.result;
+                        previewDiv.style.display = 'block';
+                        // Ocultar la foto actual
+                        const currentPic = document.getElementById('current-profile-picture');
+                        if (currentPic) {
+                            currentPic.style.display = 'none';
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    previewDiv.style.display = 'none';
+                    const currentPic = document.getElementById('current-profile-picture');
+                    if (currentPic) {
+                        currentPic.style.display = 'block';
+                    }
+                }
+            });
+        }
+        
+        // Manejar cancelar
+        const cancelBtn = document.querySelector('.btn-cancel-edit');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() {
+                // Volver a la lista de jugadores
+                const misHijosTab = document.querySelector('[data-tab="mis-hijos"]');
+                if (misHijosTab) {
+                    misHijosTab.click();
+                }
+            });
+        }
+        
+        // Inicializar cálculo de división si hay fecha de nacimiento
+        const editForm = document.getElementById('playerEditForm');
+        if (editForm && !editForm.dataset.divisionInitialized) {
+            editForm.dataset.divisionInitialized = 'true';
+            // La función initializeDivisionCalculation debería estar disponible globalmente
+            if (typeof initializeDivisionCalculation === 'function') {
+                initializeDivisionCalculation(editForm);
+            }
+        }
+    });
+</script>
+
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+        
+        <!-- Información de Usuario (Solo mostrar, no editable) -->
+        <div class="form-section mb-4" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
+            <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
+                <i class="fas fa-user me-2" style="color: var(--mlb-red);"></i>Información de Usuario
+            </h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-user me-1"></i>Nombre
+                    </label>
+                    <div class="form-control" style="background-color: #f8f9fa; color: #6c757d;">
+                        {{ object.user.first_name|default:"-" }}
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-user me-1"></i>Primer Apellido
+                    </label>
+                    <div class="form-control" style="background-color: #f8f9fa; color: #6c757d;">
+                        {{ object.user.last_name|default:"-" }}
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-user me-1"></i>Segundo Apellido
+                    </label>
+                    <div class="form-control" style="background-color: #f8f9fa; color: #6c757d;">
+                        {{ object.user.profile.last_name2|default:"-" }}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-envelope me-1"></i>Email
+                    </label>
+                    <div class="form-control" style="background-color: #f8f9fa; color: #6c757d;">
+                        {{ object.user.email|default:"-" }}
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-phone me-1"></i>Teléfono
+                    </label>
+                    <div class="form-control" style="background-color: #f8f9fa; color: #6c757d;">
+                        {{ object.user.profile.phone|default:"-" }}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-calendar-alt me-1"></i>Fecha de Nacimiento
+                    </label>
+                    <div class="form-control" style="background-color: #f8f9fa; color: #6c757d;">
+                        {% if object.user.profile.birth_date %}{{ object.user.profile.birth_date|date:"d/m/Y" }}{% else %}-{% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">
+                        <i class="fas fa-camera me-1"></i>Foto de Perfil
+                    </label>
+                    <div class="text-center">
+                        {% if object.user.profile.profile_picture %}
+                            <img src="{{ object.user.profile.profile_picture.url }}" 
+                                 alt="Foto actual" 
+                                 id="current-profile-picture" 
+                                 class="rounded-circle border border-primary"
+                                 style="width: 120px; height: 120px; object-fit: cover; margin-bottom: 10px;">
+                        {% else %}
+                            <div id="current-profile-picture" 
+                                 class="rounded-circle border border-primary d-flex align-items-center justify-content-center mx-auto"
+                                 style="width: 120px; height: 120px; background: #f8f9fa; margin-bottom: 10px;">
+                                <i class="fas fa-user fa-3x text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <label for="id_profile_picture" class="btn btn-sm btn-primary" style="cursor: pointer;">
+                            <i class="fas fa-upload me-1"></i>Cambiar Foto
+                        </label>
+                        {{ form.profile_picture }}
+                        {% if form.profile_picture.errors %}
+                            <div class="text-danger small mt-2">{{ form.profile_picture.errors }}</div>
+                        {% endif %}
+                        <div id="profile-picture-preview" class="text-center mt-3" style="display: none;">
+                            <p class="mb-2"><strong>Vista Previa:</strong></p>
+                            <img id="preview-image" src="#" alt="Vista previa" 
+                                 class="rounded-circle border border-success"
+                                 style="width: 120px; height: 120px; object-fit: cover;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Información Deportiva -->
+        <div class="form-section mb-4" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
+            <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
+                <i class="fas fa-baseball-ball me-2" style="color: var(--mlb-red);"></i>Información Deportiva
+            </h5>
+            <div class="row">
+                {% if is_parent_editing %}
+                    <!-- Campos ocultos para mantener valores cuando padre edita -->
+                    {% if form.team_hidden %}
+                        {{ form.team_hidden }}
+                    {% endif %}
+                    {{ form.team.as_hidden }}
+                    {{ form.jersey_number.as_hidden }}
+                    {{ form.is_active.as_hidden }}
+                {% else %}
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.team.id_for_label }}" class="form-label">
+                            <i class="fas fa-users me-1"></i>Equipo *
+                            <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Selecciona el equipo al que pertenece el jugador. Solo se muestran los equipos que gestionas como manager. Este campo es obligatorio."></i>
+                        </label>
+                        {{ form.team }}
+                        {% if form.team_hidden %}
+                            {{ form.team_hidden }}
+                        {% endif %}
+                        {% if form.team.errors %}
+                            <div class="text-danger small mt-1">{{ form.team.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.jersey_number.id_for_label }}" class="form-label">
+                            <i class="fas fa-hashtag me-1"></i>Número de Jersey
+                            <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Número que aparecerá en el jersey del jugador. Debe ser único dentro del equipo. Ejemplo: 1, 7, 23, etc."></i>
+                        </label>
+                        {{ form.jersey_number }}
+                        {% if form.jersey_number.errors %}
+                            <div class="text-danger small mt-1">{{ form.jersey_number.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.position.id_for_label }}" class="form-label">
+                        <i class="fas fa-map-marker-alt me-1"></i>Posición
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Posición principal del jugador en el campo (ej: Pitcher, Catcher, First Base, etc.)."></i>
+                    </label>
+                    {{ form.position }}
+                    {% if form.position.errors %}
+                        <div class="text-danger small mt-1">{{ form.position.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.height.id_for_label }}" class="form-label">
+                        <i class="fas fa-ruler-vertical me-1"></i>Estatura
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Estatura del jugador en pies y pulgadas. Ejemplo: 5'10&quot; o 6'2&quot;."></i>
+                    </label>
+                    {{ form.height }}
+                    {% if form.height.errors %}
+                        <div class="text-danger small mt-1">{{ form.height.errors }}</div>
+                    {% endif %}
+                    <small class="text-muted d-block mt-1">Ej: 6'2" o 5'10"</small>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.weight.id_for_label }}" class="form-label">
+                        <i class="fas fa-weight me-1"></i>Peso (lbs)
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Peso del jugador en libras (lbs). Ejemplo: 150, 175, 200."></i>
+                    </label>
+                    {{ form.weight }}
+                    {% if form.weight.errors %}
+                        <div class="text-danger small mt-1">{{ form.weight.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.batting_hand.id_for_label }}" class="form-label">
+                        <i class="fas fa-hand-paper me-1"></i>Bateo
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Mano con la que el jugador batea: Derecha (Right), Izquierda (Left) o Ambidiestro (Switch)."></i>
+                    </label>
+                    {{ form.batting_hand }}
+                    {% if form.batting_hand.errors %}
+                        <div class="text-danger small mt-1">{{ form.batting_hand.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.throwing_hand.id_for_label }}" class="form-label">
+                        <i class="fas fa-hand-rock me-1"></i>Lanzamiento
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Mano con la que el jugador lanza: Derecha (Right) o Izquierda (Left)."></i>
+                    </label>
+                    {{ form.throwing_hand }}
+                    {% if form.throwing_hand.errors %}
+                        <div class="text-danger small mt-1">{{ form.throwing_hand.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Elegibilidad y División -->
+        <div class="form-section mb-4" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
+            <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
+                <i class="fas fa-check-circle me-2" style="color: var(--mlb-red);"></i>Elegibilidad y División
+            </h5>
+            {% if object %}
+                {% with age=object.calculate_age_as_of_april_30 age_division=object.get_age_based_division grade_division=object.get_grade_based_division eligible=object.get_eligible_divisions %}
+                    {% if age %}
+                        <div class="form-note form-note-info mb-3" style="background-color: #d1ecf1; border: 1px solid #0dcaf0; border-radius: 8px; padding: 12px 15px; color: #055160;">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Información de Elegibilidad:</strong><br>
+                            <strong>Edad al 30 de abril:</strong> {{ age }} años<br>
+                            {% if age_division %}
+                                <strong>División basada en edad:</strong> {{ age_division }}<br>
+                            {% endif %}
+                            {% if grade_division %}
+                                <strong>División basada en grado:</strong> {{ grade_division }}<br>
+                            {% endif %}
+                            {% if eligible %}
+                                <strong>Divisiones elegibles:</strong> {{ eligible|join:", " }}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+            {% endif %}
+            <div class="form-note form-note-warning mb-3" style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 12px 15px; color: #856404;">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Importante:</strong> Los jugadores sin verificación de edad aprobada no son elegibles hasta que se produzca y apruebe la documentación.
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.grade.id_for_label }}" class="form-label">
+                        <i class="fas fa-graduation-cap me-1"></i>Grado Actual
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Grado escolar actual del jugador. Se calcula automáticamente basado en la fecha de nacimiento, pero puedes ajustarlo manualmente si es necesario."></i>
+                    </label>
+                    {{ form.grade }}
+                    {% if form.grade.help_text %}
+                        <small class="text-muted">{{ form.grade.help_text }}</small>
+                    {% endif %}
+                    {% if form.grade.errors %}
+                        <div class="text-danger small mt-1">{{ form.grade.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.division.id_for_label }}" class="form-label">
+                        <i class="fas fa-users me-1"></i>División Asignada
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="División en la que el jugador puede competir. Se calcula automáticamente según la edad al 30 de abril. El jugador puede jugar en su división por edad o hasta 2 divisiones arriba."></i>
+                    </label>
+                    {{ form.division }}
+                    {% if form.division.help_text %}
+                        <small class="text-muted">{{ form.division.help_text }}</small>
+                    {% endif %}
+                    {% if form.division.errors %}
+                        <div class="text-danger small mt-1">{{ form.division.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.age_verification_document.id_for_label }}" class="form-label">
+                    <i class="fas fa-file-upload me-1"></i>Documento de Verificación de Edad
+                    <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Documento oficial que verifica la edad del jugador. Formatos aceptados: PDF, JPG, JPEG, PNG. El documento será revisado por un administrador antes de aprobar la elegibilidad."></i>
+                </label>
+                {{ form.age_verification_document }}
+                {% if object.age_verification_document %}
+                    <div class="mt-2">
+                        <a href="{{ object.age_verification_document.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-file me-1"></i>Ver documento actual
+                        </a>
+                    </div>
+                {% endif %}
+                {% if form.age_verification_document.help_text %}
+                    <small class="text-muted">{{ form.age_verification_document.help_text }}</small>
+                {% endif %}
+                {% if form.age_verification_document.errors %}
+                    <div class="text-danger small mt-1">{{ form.age_verification_document.errors }}</div>
+                {% endif %}
+                <small class="text-muted d-block mt-1">
+                    <i class="fas fa-file-alt me-1"></i>Formatos aceptados: PDF, JPG, JPEG, PNG. Tamaño máximo recomendado: 5MB.
+                </small>
+            </div>
+            
+            {% if not is_parent_editing %}
+                {% if user.profile.is_team_manager or user.is_staff or user.is_superuser %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.age_verification_status.id_for_label }}" class="form-label">
+                                <i class="fas fa-check-circle me-1"></i>Estado de Verificación
+                                <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Estado de verificación del documento de edad. Solo los administradores pueden cambiar este estado."></i>
+                            </label>
+                            {{ form.age_verification_status }}
+                            {% if form.age_verification_status.errors %}
+                                <div class="text-danger small mt-1">{{ form.age_verification_status.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.age_verification_notes.id_for_label }}" class="form-label">
+                            <i class="fas fa-sticky-note me-1"></i>Notas de Verificación
+                            <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Notas adicionales sobre la verificación de edad del jugador."></i>
+                        </label>
+                        {{ form.age_verification_notes }}
+                        {% if form.age_verification_notes.errors %}
+                            <div class="text-danger small mt-1">{{ form.age_verification_notes.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+        
+        <!-- Tallas de Uniformes -->
+        <div class="form-section mb-4" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
+            <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
+                <i class="fas fa-tshirt me-2" style="color: var(--mlb-red);"></i>Tallas de Uniformes
+            </h5>
+            <div class="form-note form-note-info mb-3" style="background-color: #d1ecf1; border: 1px solid #0dcaf0; border-radius: 8px; padding: 12px 15px; color: #055160;">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Nota:</strong> Selecciona una talla por cada categoría de uniforme.
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.jersey_size.id_for_label }}" class="form-label">
+                        <i class="fas fa-tshirt me-1"></i>Talla de Jersey
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Talla del jersey del jugador. Selecciona la talla que mejor se ajuste (XS, S, M, L, XL, XXL, etc.)."></i>
+                    </label>
+                    {{ form.jersey_size }}
+                    {% if form.jersey_size.errors %}
+                        <div class="text-danger small mt-1">{{ form.jersey_size.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.hat_size.id_for_label }}" class="form-label">
+                        <i class="fas fa-hat-cowboy me-1"></i>Talla de Gorra
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Talla de la gorra del jugador. Las tallas comunes son: S, M, L, XL o medidas en pulgadas (6 7/8, 7, 7 1/8, etc.)."></i>
+                    </label>
+                    {{ form.hat_size }}
+                    {% if form.hat_size.errors %}
+                        <div class="text-danger small mt-1">{{ form.hat_size.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.batting_glove_size.id_for_label }}" class="form-label">
+                        <i class="fas fa-hand-paper me-1"></i>Talla de Guante de Bateo
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Talla del guante de bateo. Las tallas varían según la edad y tamaño de la mano del jugador (Youth, Small, Medium, Large, etc.)."></i>
+                    </label>
+                    {{ form.batting_glove_size }}
+                    {% if form.batting_glove_size.errors %}
+                        <div class="text-danger small mt-1">{{ form.batting_glove_size.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.batting_helmet_size.id_for_label }}" class="form-label">
+                        <i class="fas fa-hard-hat me-1"></i>Talla de Casco de Bateo
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Talla del casco de bateo. Las tallas comunes son: S, M, L, XL o medidas en pulgadas según el perímetro de la cabeza."></i>
+                    </label>
+                    {{ form.batting_helmet_size }}
+                    {% if form.batting_helmet_size.errors %}
+                        <div class="text-danger small mt-1">{{ form.batting_helmet_size.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.shorts_size.id_for_label }}" class="form-label">
+                        <i class="fas fa-tshirt me-1"></i>Talla de Pantalones
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Talla de los pantalones del uniforme. Selecciona la talla que mejor se ajuste (XS, S, M, L, XL, XXL, etc.)."></i>
+                    </label>
+                    {{ form.shorts_size }}
+                    {% if form.shorts_size.errors %}
+                        <div class="text-danger small mt-1">{{ form.shorts_size.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contacto de Emergencia -->
+        <div class="form-section mb-4">
+            <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
+                <i class="fas fa-phone-alt me-2" style="color: var(--mlb-red);"></i>Contacto de Emergencia
+            </h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.emergency_contact_name.id_for_label }}" class="form-label">
+                        <i class="fas fa-user me-1"></i>Nombre
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Nombre completo de la persona de contacto de emergencia. Esta persona será contactada en caso de emergencia durante eventos o prácticas."></i>
+                    </label>
+                    {{ form.emergency_contact_name }}
+                    {% if form.emergency_contact_name.errors %}
+                        <div class="text-danger small mt-1">{{ form.emergency_contact_name.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.emergency_contact_phone.id_for_label }}" class="form-label">
+                        <i class="fas fa-phone me-1"></i>Teléfono
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Número de teléfono del contacto de emergencia. Debe ser un número donde se pueda contactar rápidamente en caso de emergencia. Incluye código de país si es necesario."></i>
+                    </label>
+                    {{ form.emergency_contact_phone }}
+                    {% if form.emergency_contact_phone.errors %}
+                        <div class="text-danger small mt-1">{{ form.emergency_contact_phone.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.emergency_contact_relation.id_for_label }}" class="form-label">
+                        <i class="fas fa-users me-1"></i>Relación
+                        <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Relación del contacto de emergencia con el jugador. Ejemplos: Padre, Madre, Abuelo, Tío, Tutor, etc."></i>
+                    </label>
+                    {{ form.emergency_contact_relation }}
+                    {% if form.emergency_contact_relation.errors %}
+                        <div class="text-danger small mt-1">{{ form.emergency_contact_relation.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.medical_conditions.id_for_label }}" class="form-label">
+                    <i class="fas fa-heartbeat me-1"></i>Condiciones Médicas
+                    <i class="fas fa-question-circle ms-1 text-info" style="cursor: help; font-size: 0.85rem;" data-bs-toggle="tooltip" data-bs-placement="top" title="Información médica relevante del jugador. Incluye alergias, condiciones crónicas, medicamentos, o cualquier información médica importante. Si no hay condiciones médicas, escribe 'Ninguna'."></i>
+                </label>
+                {{ form.medical_conditions }}
+                {% if form.medical_conditions.errors %}
+                    <div class="text-danger small mt-1">{{ form.medical_conditions.errors }}</div>
+                {% endif %}
+                <small class="text-muted">Especifica cualquier condición médica relevante o "Ninguna"</small>
+            </div>
+        </div>
+        
+        <!-- Estado (Solo para managers/staff) -->
+        {% if not is_parent_editing %}
+            {% if user.profile.is_team_manager or user.is_staff or user.is_superuser %}
+                <div class="form-section mb-4">
+                    <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
+                        <i class="fas fa-toggle-on me-2" style="color: var(--mlb-red);"></i>Estado
+                    </h5>
+                    <div class="form-check form-switch form-switch-lg">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                            Jugador Activo
+                        </label>
+                        {% if form.is_active.errors %}
+                            <div class="text-danger small mt-1">{{ form.is_active.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+        
+        <!-- Botones -->
+        <div class="d-flex justify-content-between mt-4">
+            <button type="button" class="btn btn-secondary btn-cancel-edit">
+                <i class="fas fa-times me-1"></i>Cancelar
+            </button>
+            <button type="submit" class="btn" style="background: var(--mlb-blue); color: white; border: none; border-radius: 10px; padding: 12px 24px; font-weight: 700;">
+                <i class="fas fa-save me-1"></i>Guardar Cambios
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .form-switch-lg .form-check-input {
+        width: 3rem;
+        height: 1.5rem;
+        cursor: pointer;
+    }
+    
+    .form-label {
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #4a5568;
+        box-shadow: 0 0 0 0.2rem rgba(74, 85, 104, 0.25);
+    }
+    
+    #id_profile_picture {
+        display: none;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const profilePictureInput = document.getElementById('id_profile_picture');
+        const previewDiv = document.getElementById('profile-picture-preview');
+        const previewImage = document.getElementById('preview-image');
+        
+        if (profilePictureInput) {
+            profilePictureInput.addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        previewImage.src = e.target.result;
+                        previewDiv.style.display = 'block';
+                        // Ocultar la foto actual
+                        const currentPic = document.getElementById('current-profile-picture');
+                        if (currentPic) {
+                            currentPic.style.display = 'none';
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    previewDiv.style.display = 'none';
+                    const currentPic = document.getElementById('current-profile-picture');
+                    if (currentPic) {
+                        currentPic.style.display = 'block';
+                    }
+                }
+            });
+        }
+        
+        // Manejar cancelar
+        const cancelBtn = document.querySelector('.btn-cancel-edit');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() {
+                // Volver a la lista de jugadores
+                const misHijosTab = document.querySelector('[data-tab="mis-hijos"]');
+                if (misHijosTab) {
+                    misHijosTab.click();
+                }
+            });
+        }
+        
+        // Inicializar cálculo de división si hay fecha de nacimiento
+        const editForm = document.getElementById('playerEditForm');
+        if (editForm && !editForm.dataset.divisionInitialized) {
+            editForm.dataset.divisionInitialized = 'true';
+            // La función initializeDivisionCalculation debería estar disponible globalmente
+            if (typeof initializeDivisionCalculation === 'function') {
+                initializeDivisionCalculation(editForm);
+            }
+        }
+    });
+</script>

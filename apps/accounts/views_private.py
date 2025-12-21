@@ -35,7 +35,7 @@ from apps.core.mixins import ManagerRequiredMixin
 class UserDashboardView(LoginRequiredMixin, TemplateView):
     """Panel de usuario frontal"""
 
-    template_name = "accounts/user_dashboard.html"
+    template_name = "accounts/panel_usuario.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -110,12 +110,48 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
 
         # Obtener contenido del dashboard configurado por el admin según el tipo de usuario
         user_type = profile.user_type
-        dashboard_content = DashboardContent.objects.filter(
-            is_active=True
-        ).filter(
-            Q(user_type=user_type) | Q(user_type="all")
-        ).order_by("order", "-created_at")
+        dashboard_content = (
+            DashboardContent.objects.filter(is_active=True)
+            .filter(Q(user_type=user_type) | Q(user_type="all"))
+            .order_by("order", "-created_at")
+        )
         context["dashboard_content"] = dashboard_content
+
+        # Contexto adicional para los includes de los tabs
+        # Formulario de equipo (para managers)
+        if profile.is_team_manager:
+            from .forms import TeamForm
+
+            context["team_form"] = TeamForm()
+            context["all_teams"] = Team.objects.filter(manager=user).order_by(
+                "-created_at"
+            )
+            context["all_players"] = Player.objects.filter(team__manager=user).order_by(
+                "-created_at"
+            )
+
+        # Formulario de jugador (para managers)
+        if profile.is_team_manager:
+            from .forms import PlayerRegistrationForm
+
+            context["player_form"] = PlayerRegistrationForm(manager=user)
+
+        # Formulario de jugador para padres
+        if profile.is_parent:
+            from .forms import ParentPlayerRegistrationForm
+
+            context["parent_player_form"] = ParentPlayerRegistrationForm(parent=user)
+            context["parent_players"] = (
+                Player.objects.filter(parents__parent=user)
+                .select_related("user", "team")
+                .order_by("-created_at")
+            )
+
+        # Formulario de perfil
+        from .forms import UserProfileForm, UserUpdateForm
+
+        context["profile_form"] = UserProfileForm(instance=profile)
+        context["user_form"] = UserUpdateForm(instance=user)
 
         # Obtener información del carrito de hoteles
         cart = self.request.session.get("hotel_cart", {})
@@ -604,6 +640,11 @@ class UserListView(UserPassesTestMixin, LoginRequiredMixin, ListView):
 
 # Vista para manejar el perfil (redirige según el tipo de usuario)
 @login_required
+def profile_view(request):
+    """Vista de perfil que redirige al panel"""
+    return redirect("accounts:panel")
+
+
 def profile_view(request):
     """Vista de perfil que redirige al panel"""
     return redirect("accounts:panel")

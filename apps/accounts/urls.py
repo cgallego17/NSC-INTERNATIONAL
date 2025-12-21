@@ -10,6 +10,7 @@ from . import (
     views_banners,
     views_sponsors,
     views_dashboard_banners,
+    views,
 )
 
 app_name = "accounts"
@@ -48,6 +49,7 @@ urlpatterns = [
     path("logout/", auth_views.LogoutView.as_view(next_page="/"), name="logout"),
     # Panel y perfil
     path("panel/", views_private.UserDashboardView.as_view(), name="panel"),
+    path("user-dashboard/", views.UserDashboardView.as_view(), name="user_dashboard"),
     path("profile/", views_private.profile_view, name="profile"),
     path(
         "profile/edit/", views_private.ProfileUpdateView.as_view(), name="profile_edit"

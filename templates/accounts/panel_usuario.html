@@ -1,0 +1,451 @@
+{% extends 'base_mlb.html' %}
+{% load static %}
+
+{% block title %}Panel de Usuario - NSC International{% endblock %}
+
+{% block extra_css %}
+    <!-- Panel Usuario CSS -->
+    <link href="{% static 'css/panel_usuario.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+    <!-- Messages (hidden, converted to toasts) -->
+    <div class="messages-container" style="display: none;">
+        {% for message in messages %}
+            <div class="django-message" data-tag="{{ message.tags }}" data-message="{{ message|escapejs }}">
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Welcome Banner Container -->
+    <div class="banner-container">
+        <div id="dashboardBannerSlider" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="hover" data-bs-wrap="true">
+            <div class="carousel-inner">
+                {% if dashboard_banners %}
+                    {% for banner in dashboard_banners %}
+                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                            {% if banner.banner_type == 'image' and banner.image %}
+                                <div class="welcome-banner">
+                                    <img src="{{ banner.image.url }}" alt="Banner" style="width: 100%; height: auto; display: block;">
+                                </div>
+                            {% else %}
+                                <div class="welcome-banner" style="background: linear-gradient(135deg, {{ banner.gradient_color_1 }} 0%, {{ banner.gradient_color_2 }} 50%, {{ banner.gradient_color_3|default:banner.gradient_color_2 }} 100%); min-height: 200px;">
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Banner por defecto si no hay banners -->
+                    <div class="carousel-item active">
+                        <div class="welcome-banner" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); min-height: 200px;">
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            {% if dashboard_banners|length >= 1 or not dashboard_banners %}
+                <button class="carousel-control-prev" type="button" data-bs-target="#dashboardBannerSlider" data-bs-slide="prev" style="left: 10px; width: 40px; height: 40px; top: 50%; transform: translateY(-50%);">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Anterior</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#dashboardBannerSlider" data-bs-slide="next" style="right: 10px; width: 40px; height: 40px; top: 50%; transform: translateY(-50%);">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Siguiente</span>
+                </button>
+                <div class="carousel-progress">
+                    <div class="carousel-progress-bar"></div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Dashboard Content -->
+    <div class="dashboard-content-wrapper">
+        <!-- Acciones Rápidas -->
+        <div class="quick-actions-section">
+            <h5 class="quick-actions-title">
+                <i class="fas fa-bolt me-2"></i>Acciones Rápidas
+            </h5>
+            <div class="quick-actions">
+                <button type="button" class="quick-action-btn tab-btn active" data-tab="inicio">
+                    <i class="fas fa-home"></i>
+                    <span>Inicio</span>
+                </button>
+                {% if profile.is_team_manager %}
+                    <button type="button" class="quick-action-btn tab-btn" data-tab="crear-equipo" data-url="{% url 'accounts:team_create' %}">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Crear Equipo</span>
+                    </button>
+                    <button type="button" class="quick-action-btn tab-btn" data-tab="registrar-jugador" data-url="{% url 'accounts:player_register' %}">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Registrar Jugador</span>
+                    </button>
+                    <button type="button" class="quick-action-btn tab-btn" data-tab="mis-equipos" data-url="{% url 'accounts:team_list' %}">
+                        <i class="fas fa-users"></i>
+                        <span>Mis Equipos</span>
+                    </button>
+                    <button type="button" class="quick-action-btn tab-btn" data-tab="ver-jugadores" data-url="{% url 'accounts:player_list' %}">
+                        <i class="fas fa-users"></i>
+                        <span>Ver Jugadores</span>
+                    </button>
+                {% elif profile.is_parent %}
+                    <button type="button" class="quick-action-btn tab-btn" data-tab="registrar-hijo" data-url="{% url 'accounts:parent_player_register' %}">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Registrar Hijo</span>
+                    </button>
+                    <button type="button" class="quick-action-btn tab-btn" data-tab="mis-hijos" data-url="{% url 'accounts:player_list' %}">
+                        <i class="fas fa-child"></i>
+                        <span>Mis Hijos/Jugadores</span>
+                    </button>
+                {% else %}
+                    {% if user.player_profile %}
+                        <button type="button" class="quick-action-btn tab-btn" data-tab="mi-perfil" data-url="{% url 'accounts:player_detail' user.player_profile.pk %}">
+                            <i class="fas fa-user"></i>
+                            <span>Mi Perfil</span>
+                        </button>
+                        <button type="button" class="quick-action-btn tab-btn" data-tab="perfil-publico" data-url="{% url 'accounts:front_player_profile' user.player_profile.pk %}">
+                            <i class="fas fa-id-card"></i>
+                            <span>Perfil Público</span>
+                        </button>
+                    {% endif %}
+                {% endif %}
+                <button type="button" class="quick-action-btn tab-btn" data-tab="eventos" data-url="{% url 'events:list' %}">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Eventos</span>
+                    {% if upcoming_events %}
+                        <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ upcoming_events|length }}</span>
+                    {% endif %}
+                </button>
+                <button type="button" class="quick-action-btn tab-btn" data-tab="calendario" data-url="{% url 'events:calendar' %}">
+                    <i class="fas fa-calendar"></i>
+                    <span>Calendario</span>
+                </button>
+                <a href="{% url 'accounts:user_dashboard' %}" class="quick-action-btn">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard Completo</span>
+                </a>
+                <button type="button" class="quick-action-btn tab-btn" data-tab="perfil" data-url="{% url 'accounts:profile_edit' %}">
+                    <i class="fas fa-user-cog"></i>
+                    <span>Editar Perfil</span>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Contenedor de Contenido de Secciones -->
+        <div class="tab-content-container">
+            <div id="tab-content-inicio" class="tab-content active">
+                {% include 'accounts/panel_tabs/inicio.html' %}
+            </div>
+            <!-- Contenido de otros tabs usando includes -->
+            {% if profile.is_team_manager %}
+                <div id="tab-content-crear-equipo" class="tab-content" style="display: none;">
+                    {% include 'accounts/panel_tabs/crear_equipo.html' %}
+                </div>
+                <div id="tab-content-registrar-jugador" class="tab-content" style="display: none;">
+                    {% include 'accounts/panel_tabs/registrar_jugador.html' %}
+                </div>
+                <div id="tab-content-mis-equipos" class="tab-content" style="display: none;">
+                    {% include 'accounts/panel_tabs/mis_equipos.html' %}
+                </div>
+                <div id="tab-content-ver-jugadores" class="tab-content" style="display: none;">
+                    {% include 'accounts/panel_tabs/ver_jugadores.html' %}
+                </div>
+            {% elif profile.is_parent %}
+                <div id="tab-content-registrar-hijo" class="tab-content" style="display: none;">
+                    {% include 'accounts/panel_tabs/registrar_hijo.html' %}
+                </div>
+                <div id="tab-content-mis-hijos" class="tab-content" style="display: none;">
+                    {% include 'accounts/panel_tabs/mis_hijos.html' %}
+                </div>
+            {% else %}
+                {% if user.player_profile %}
+                    <div id="tab-content-mi-perfil" class="tab-content" style="display: none;">
+                        {% include 'accounts/panel_tabs/mi_perfil.html' %}
+                    </div>
+                    <div id="tab-content-perfil-publico" class="tab-content" style="display: none;">
+                        {% include 'accounts/panel_tabs/perfil_publico.html' %}
+                    </div>
+                {% endif %}
+            {% endif %}
+            <div id="tab-content-eventos" class="tab-content" style="display: none;">
+                {% include 'accounts/panel_tabs/eventos.html' %}
+            </div>
+            <div id="tab-content-calendario" class="tab-content" style="display: none;">
+                {% include 'accounts/panel_tabs/calendario.html' %}
+            </div>
+            <div id="tab-content-perfil" class="tab-content" style="display: none;">
+                {% include 'accounts/panel_tabs/perfil.html' %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <!-- Custom JS -->
+    <script src="{% static 'js/admin.js' %}"></script>
+    
+    <script>
+        // Inicializar el carousel del dashboard banner con barra de progreso
+        document.addEventListener('DOMContentLoaded', function() {
+            const dashboardBannerSlider = document.getElementById('dashboardBannerSlider');
+            if (dashboardBannerSlider) {
+                const carousel = new bootstrap.Carousel(dashboardBannerSlider, {
+                    interval: 5000,
+                    ride: 'carousel',
+                    pause: 'hover',
+                    wrap: true
+                });
+                
+                // Si solo hay un banner, duplicarlo para crear el efecto de bucle infinito
+                const items = dashboardBannerSlider.querySelectorAll('.carousel-item');
+                if (items.length === 1) {
+                    const firstItem = items[0].cloneNode(true);
+                    firstItem.classList.remove('active');
+                    dashboardBannerSlider.querySelector('.carousel-inner').appendChild(firstItem);
+                }
+                
+                // Controlar la barra de progreso
+                const progressBar = dashboardBannerSlider.querySelector('.carousel-progress-bar');
+                let progressInterval;
+                
+                function resetProgress() {
+                    if (progressBar) {
+                        progressBar.style.width = '0%';
+                        progressBar.style.animation = 'none';
+                        // Forzar reflow para reiniciar la animación
+                        void progressBar.offsetWidth;
+                    }
+                }
+                
+                function startProgress() {
+                    resetProgress();
+                    if (progressBar) {
+                        progressBar.style.animation = 'progressBar 5s linear';
+                    }
+                }
+                
+                // Reiniciar progreso cuando cambia el slide
+                dashboardBannerSlider.addEventListener('slid.bs.carousel', function() {
+                    startProgress();
+                });
+                
+                // Pausar progreso al hacer hover
+                dashboardBannerSlider.addEventListener('mouseenter', function() {
+                    if (progressBar) {
+                        progressBar.style.animationPlayState = 'paused';
+                    }
+                });
+                
+                // Reanudar progreso al quitar hover
+                dashboardBannerSlider.addEventListener('mouseleave', function() {
+                    if (progressBar) {
+                        progressBar.style.animationPlayState = 'running';
+                    }
+                });
+                
+                // Iniciar progreso en el primer slide
+                startProgress();
+            }
+        });
+        
+        // Preview de logo para formulario de equipo
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoInput = document.getElementById('id_logo');
+            const logoPreview = document.getElementById('logoPreview');
+            
+            if (logoInput && logoPreview) {
+                logoInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            logoPreview.src = e.target.result;
+                            logoPreview.classList.add('show');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+            
+            // Inicializar tooltips de Bootstrap si existen
+            if (typeof bootstrap !== 'undefined') {
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+            }
+        });
+        
+        // Convert Django messages to modern toasts
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                if (window.adminDashboard) {
+                    window.adminDashboard.convertDjangoMessagesToToasts();
+                }
+            }, 100);
+        });
+        
+        // Funcionalidad de Tabs para Acciones Rápidas
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            // Función para activar un tab
+            function activateTab(tabId, button) {
+                // Remover clase active de todos los botones
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                
+                // Agregar clase active al botón clickeado
+                if (button) {
+                    button.classList.add('active');
+                }
+                
+                // Ocultar todos los contenidos
+                tabContents.forEach(content => {
+                    content.style.display = 'none';
+                    content.classList.remove('active');
+                });
+                
+                // Mostrar el contenido correspondiente
+                const targetContent = document.getElementById('tab-content-' + tabId);
+                if (targetContent) {
+                    targetContent.style.display = 'block';
+                    targetContent.classList.add('active');
+                }
+            }
+            
+            // Agregar event listeners a todos los botones
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const tabId = this.getAttribute('data-tab');
+                    if (tabId) {
+                        activateTab(tabId, this);
+                    } else {
+                        console.warn('Botón sin data-tab:', this);
+                    }
+                });
+            });
+            
+            // Activar el tab de inicio por defecto
+            const inicioButton = document.querySelector('.tab-btn[data-tab="inicio"]');
+            if (inicioButton) {
+                activateTab('inicio', inicioButton);
+            }
+        });
+        
+        // JavaScript para calcular automáticamente división y grado basado en fecha de nacimiento
+        document.addEventListener('DOMContentLoaded', function() {
+            const birthDateField = document.getElementById('id_birth_date');
+            const gradeField = document.getElementById('id_grade');
+            const divisionField = document.getElementById('id_division');
+            
+            if (!birthDateField) return;
+            
+            // Función para calcular la edad al 30 de abril
+            function calculateAgeAsOfApril30(birthDate) {
+                if (!birthDate) return null;
+                
+                const today = new Date();
+                const currentYear = today.getFullYear();
+                const cutoffDate = new Date(currentYear, 3, 30); // Mes 3 = abril (0-indexed)
+                
+                let age = cutoffDate.getFullYear() - birthDate.getFullYear();
+                const monthDiff = cutoffDate.getMonth() - birthDate.getMonth();
+                
+                if (monthDiff < 0 || (monthDiff === 0 && cutoffDate.getDate() < birthDate.getDate())) {
+                    age -= 1;
+                }
+                
+                return age;
+            }
+            
+            // Función para obtener la división basada en la edad
+            function getAgeBasedDivision(age) {
+                if (age === null || age === undefined || age < 5) return null;
+                if (age >= 18) return '18U';
+                
+                const divisionMap = {
+                    5: '05U', 6: '06U', 7: '07U', 8: '08U', 9: '09U',
+                    10: '10U', 11: '11U', 12: '12U', 13: '13U', 14: '14U',
+                    15: '15U', 16: '16U', 17: '17U',
+                };
+                
+                return divisionMap[age] || null;
+            }
+            
+            // Función para sugerir el grado basado en la edad
+            function suggestGradeFromAge(age) {
+                if (age === null || age === undefined) return null;
+                
+                const ageToGradeMap = {
+                    4: 'pre_k', 5: 'kindergarten', 6: '1st', 7: '2nd', 8: '3rd',
+                    9: '4th', 10: '5th', 11: '6th', 12: '7th', 13: '8th',
+                    14: '9th', 15: '10th', 16: '11th', 17: '12th', 18: '12th',
+                };
+                
+                return ageToGradeMap[age] || null;
+            }
+            
+            // Función para actualizar división y grado
+            function updateDivisionAndGrade() {
+                const birthDateValue = birthDateField.value;
+                
+                if (!birthDateValue) {
+                    if (divisionField && !divisionField.value) divisionField.value = '';
+                    if (gradeField && !gradeField.value) gradeField.value = '';
+                    return;
+                }
+                
+                const birthDate = new Date(birthDateValue);
+                const age = calculateAgeAsOfApril30(birthDate);
+                
+                if (age !== null) {
+                    const suggestedDivision = getAgeBasedDivision(age);
+                    const suggestedGrade = suggestGradeFromAge(age);
+                    
+                    // Actualizar división
+                    if (divisionField && suggestedDivision) {
+                        if (!divisionField.value || divisionField.value === '') {
+                            divisionField.value = suggestedDivision;
+                            divisionField.dataset.autoSet = 'true';
+                        } else if (divisionField.dataset.autoSet === 'true') {
+                            divisionField.value = suggestedDivision;
+                        }
+                    }
+                    
+                    // Actualizar grado
+                    if (gradeField && suggestedGrade) {
+                        const optionExists = Array.from(gradeField.options).some(opt => opt.value === suggestedGrade);
+                        if (optionExists) {
+                            const isEmpty = !gradeField.value || gradeField.value === '' || gradeField.value === null;
+                            if (isEmpty || gradeField.selectedIndex === 0) {
+                                gradeField.value = suggestedGrade;
+                                gradeField.dataset.autoSet = 'true';
+                                gradeField.dispatchEvent(new Event('change', { bubbles: true }));
+                            } else if (gradeField.dataset.autoSet === 'true') {
+                                gradeField.value = suggestedGrade;
+                                gradeField.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Escuchar cambios en la fecha de nacimiento
+            birthDateField.addEventListener('change', updateDivisionAndGrade);
+            birthDateField.addEventListener('blur', updateDivisionAndGrade);
+            birthDateField.addEventListener('input', function() {
+                if (this.value) {
+                    setTimeout(updateDivisionAndGrade, 100);
+                }
+            });
+            
+            // Si ya hay una fecha al cargar, calcular automáticamente
+            if (birthDateField.value) {
+                updateDivisionAndGrade();
+            }
+        });
+    </script>
+{% endblock %}

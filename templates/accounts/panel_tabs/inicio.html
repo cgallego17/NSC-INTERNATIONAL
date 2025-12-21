@@ -1,0 +1,26 @@
+<!-- Zona de Bienvenida Administrable -->
+{% if dashboard_content %}
+    {% for content in dashboard_content %}
+        <div class="welcome-content-item mb-4" style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); border: 1px solid rgba(13, 44, 84, 0.08);">
+            {% if content.title %}
+                <h3 class="mb-3" style="color: var(--mlb-blue); font-weight: 800; font-size: 1.8rem; border-bottom: 3px solid var(--mlb-red); padding-bottom: 15px;">
+                    {{ content.title }}
+                </h3>
+            {% endif %}
+            <div class="welcome-content-html" style="color: #333; line-height: 1.8; font-size: 1rem;">
+                {{ content.content|safe }}
+            </div>
+        </div>
+    {% endfor %}
+{% else %}
+    <div class="welcome-content-default text-center py-5" style="background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+        <div style="width: 120px; height: 120px; margin: 0 auto 25px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(13, 44, 84, 0.2);">
+            <i class="fas fa-home fa-3x" style="color: white;"></i>
+        </div>
+        <h3 style="color: var(--mlb-blue); font-weight: 800; margin-bottom: 15px;">¡Bienvenido!</h3>
+        <p class="text-muted" style="font-size: 1.1rem; max-width: 600px; margin: 0 auto;">
+            Esta es tu zona de bienvenida. El administrador puede configurar el contenido desde el panel de administración.
+        </p>
+    </div>
+{% endif %}
+
