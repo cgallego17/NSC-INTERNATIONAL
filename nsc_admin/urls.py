@@ -20,6 +20,7 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import RedirectView
+from django.views.i18n import set_language
 
 from apps.accounts.views import PublicHomeView
 from apps.events.views import DashboardView
@@ -35,6 +36,7 @@ urlpatterns = [
     path("locations/", include("apps.locations.urls")),
     path("accounts/", include("apps.accounts.urls")),  # Login público aquí
     path("users/", include("django.contrib.auth.urls")),  # Mantener para compatibilidad
+    path("i18n/setlang/", set_language, name="set_language"),  # Language switching
 ]
 
 # Serve media files in development

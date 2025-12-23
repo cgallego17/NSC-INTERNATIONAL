@@ -173,24 +173,44 @@ class SiteSettingsAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (
-            "Sección Schedule",
+            "Sección Schedule - Inglés",
             {
                 "fields": (
                     "schedule_image",
-                    "schedule_title",
-                    "schedule_subtitle",
-                    "schedule_description",
+                    "schedule_title_en",
+                    "schedule_subtitle_en",
+                    "schedule_description_en",
                 )
             },
         ),
         (
-            "Sección Showcase",
+            "Sección Schedule - Español",
+            {
+                "fields": (
+                    "schedule_title_es",
+                    "schedule_subtitle_es",
+                    "schedule_description_es",
+                )
+            },
+        ),
+        (
+            "Sección Showcase - Inglés",
             {
                 "fields": (
                     "showcase_image",
-                    "showcase_title",
-                    "showcase_subtitle",
-                    "showcase_description",
+                    "showcase_title_en",
+                    "showcase_subtitle_en",
+                    "showcase_description_en",
+                )
+            },
+        ),
+        (
+            "Sección Showcase - Español",
+            {
+                "fields": (
+                    "showcase_title_es",
+                    "showcase_subtitle_es",
+                    "showcase_description_es",
                 )
             },
         ),

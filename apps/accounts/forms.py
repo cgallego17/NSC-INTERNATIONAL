@@ -1102,7 +1102,11 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
     )
     birth_date = forms.DateField(
         required=True,
-        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+        widget=forms.DateInput(attrs={
+            "class": "form-control", 
+            "type": "date",
+            "data-format": "yyyy-MM-dd"
+        }),
         help_text="Fecha de nacimiento del jugador",
     )
     relationship = forms.ChoiceField(
@@ -1736,63 +1740,117 @@ class HomeBannerForm(forms.ModelForm):
 
 
 class SiteSettingsForm(forms.ModelForm):
-    """Formulario para configuraciones del sitio"""
+    """Formulario para configuraciones del sitio con soporte multiidioma"""
 
     class Meta:
         model = SiteSettings
         fields = [
             "schedule_image",
-            "schedule_title",
-            "schedule_subtitle",
-            "schedule_description",
+            # Schedule - English
+            "schedule_title_en",
+            "schedule_subtitle_en",
+            "schedule_description_en",
+            # Schedule - Spanish
+            "schedule_title_es",
+            "schedule_subtitle_es",
+            "schedule_description_es",
+            # Showcase
             "showcase_image",
-            "showcase_title",
-            "showcase_subtitle",
-            "showcase_description",
+            # Showcase - English
+            "showcase_title_en",
+            "showcase_subtitle_en",
+            "showcase_description_en",
+            # Showcase - Spanish
+            "showcase_title_es",
+            "showcase_subtitle_es",
+            "showcase_description_es",
         ]
         widgets = {
             "schedule_image": forms.FileInput(
                 attrs={"class": "form-control", "accept": "image/*"}
             ),
-            "schedule_title": forms.TextInput(
+            # Schedule English
+            "schedule_title_en": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "2026 EVENT CALENDAR",
+                }
+            ),
+            "schedule_subtitle_en": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "REGIONAL EXPANSION AND NEW NATIONAL...",
+                }
+            ),
+            "schedule_description_en": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 5,
+                    "placeholder": "Schedule description in English...",
+                }
+            ),
+            # Schedule Spanish
+            "schedule_title_es": forms.TextInput(
                 attrs={
                     "class": "form-control",
                     "placeholder": "CALENDARIO DE EVENTOS 2026",
                 }
             ),
-            "schedule_subtitle": forms.TextInput(
+            "schedule_subtitle_es": forms.TextInput(
                 attrs={
                     "class": "form-control",
                     "placeholder": "EXPANSIÓN REGIONAL Y NUEVOS CAMPEONATOS...",
                 }
             ),
-            "schedule_description": forms.Textarea(
+            "schedule_description_es": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "rows": 5,
-                    "placeholder": "Descripción de la sección Schedule...",
+                    "placeholder": "Descripción del Schedule en español...",
                 }
             ),
+            # Showcase
             "showcase_image": forms.FileInput(
                 attrs={"class": "form-control", "accept": "image/*"}
             ),
-            "showcase_title": forms.TextInput(
+            # Showcase English
+            "showcase_title_en": forms.TextInput(
                 attrs={
                     "class": "form-control",
                     "placeholder": "SHOWCASES AND PROSPECT GATEWAYS",
                 }
             ),
-            "showcase_subtitle": forms.TextInput(
+            "showcase_subtitle_en": forms.TextInput(
                 attrs={
                     "class": "form-control",
                     "placeholder": "REGIONAL AND NATIONAL SHOWCASES",
                 }
             ),
-            "showcase_description": forms.Textarea(
+            "showcase_description_en": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "rows": 5,
-                    "placeholder": "Descripción de la sección Showcase...",
+                    "placeholder": "Showcase description in English...",
+                }
+            ),
+            # Showcase Spanish
+            "showcase_title_es": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "SHOWCASES Y PORTALES DE PROSPECTO",
+                }
+            ),
+            "showcase_subtitle_es": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "SHOWCASES REGIONALES Y NACIONALES",
+                }
+            ),
+            "showcase_description_es": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 5,
+                    "placeholder": "Descripción del Showcase en español...",
                 }
             ),
         }

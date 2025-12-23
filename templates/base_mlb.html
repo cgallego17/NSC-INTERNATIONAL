@@ -52,6 +52,39 @@
             color: white;
         }
         
+        /* Language Selector */
+        .language-selector-form {
+            display: inline-block;
+            margin-right: 0;
+        }
+        
+        .language-selector {
+            background: transparent;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .language-selector:hover {
+            border-color: #888;
+            color: white;
+        }
+        
+        .language-selector:focus {
+            outline: none;
+            border-color: var(--mlb-gold);
+            color: white;
+        }
+        
+        .language-selector option {
+            background: var(--mlb-dark);
+            color: white;
+        }
+        
         /* Navbar MLB Style */
         .navbar-mlb {
             background: var(--mlb-blue) !important;

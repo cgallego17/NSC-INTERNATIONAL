@@ -586,12 +586,16 @@ class AdminDashboard {
     }
 
     autoHideAlerts() {
-        const alerts = document.querySelectorAll('.alert');
+        // Solo ocultar alerts que no tengan la clase 'alert-persistent' o que estén dentro de formularios
+        const alerts = document.querySelectorAll('.alert:not(.alert-persistent):not(.form-container .alert):not(.form-section .alert)');
         alerts.forEach(alert => {
-            setTimeout(() => {
-                const bsAlert = new bootstrap.Alert(alert);
-                bsAlert.close();
-            }, 5000);
+            // Verificar que no esté dentro de un formulario
+            if (!alert.closest('form') && !alert.closest('.form-container') && !alert.closest('.form-section')) {
+                setTimeout(() => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            }
         });
     }
 

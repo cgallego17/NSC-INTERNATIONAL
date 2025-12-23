@@ -800,22 +800,66 @@ class SiteSettings(models.Model):
         verbose_name="Imagen del Schedule",
         help_text='Imagen que se muestra en la sección "Season Schedule" del home',
     )
-    schedule_title = models.CharField(
+    # Campos en inglés
+    schedule_title_en = models.CharField(
+        max_length=200,
+        default="2026 EVENT CALENDAR",
+        verbose_name="Schedule Title (English)",
+        help_text="Título principal de la sección Schedule en inglés",
+    )
+    schedule_subtitle_en = models.CharField(
+        max_length=300,
+        default="REGIONAL EXPANSION AND NEW NATIONAL AND REGIONAL CHAMPIONSHIPS FOR 2026",
+        verbose_name="Schedule Subtitle (English)",
+        help_text="Subtítulo de la sección Schedule en inglés",
+    )
+    schedule_description_en = models.TextField(
+        blank=True,
+        default="As we move forward into 2026, NSC International continues to elevate its tournament and showcase platform. With a regional presence expansion for ages 7U-18U, new and improved National and Regional Championship events, and an even broader showcase schedule across the country, NSC remains dedicated to providing the highest standard of competition and experience for players, coaches and families alike.",
+        verbose_name="Schedule Description (English)",
+        help_text="Descripción de la sección Schedule en inglés",
+    )
+    
+    # Campos en español
+    schedule_title_es = models.CharField(
         max_length=200,
         default="CALENDARIO DE EVENTOS 2026",
-        verbose_name="Título del Schedule",
-        help_text="Título principal de la sección Schedule",
+        verbose_name="Schedule Title (Spanish)",
+        help_text="Título principal de la sección Schedule en español",
+    )
+    schedule_subtitle_es = models.CharField(
+        max_length=300,
+        default="EXPANSIÓN REGIONAL Y NUEVOS CAMPEONATOS NACIONALES Y REGIONALES PARA 2026",
+        verbose_name="Schedule Subtitle (Spanish)",
+        help_text="Subtítulo de la sección Schedule en español",
+    )
+    schedule_description_es = models.TextField(
+        blank=True,
+        default="A medida que avanzamos hacia 2026, NSC International continúa elevando su plataforma de torneos y exhibiciones. Con una expansión de la presencia regional para edades 7U-18U, nuevos y mejorados eventos de Campeonatos Nacionales y Regionales, y una programación aún más amplia de exhibiciones en todo el país, NSC se mantiene dedicado a ofrecer el más alto estándar de competencia y experiencia para jugadores, entrenadores y familias por igual.",
+        verbose_name="Schedule Description (Spanish)",
+        help_text="Descripción de la sección Schedule en español",
+    )
+    
+    # Campos legacy (mantener por compatibilidad, usar los nuevos métodos)
+    schedule_title = models.CharField(
+        max_length=200,
+        default="2026 EVENT CALENDAR",
+        verbose_name="Título del Schedule (Legacy)",
+        help_text="[DEPRECATED] Usar schedule_title_en y schedule_title_es",
+        editable=False,
     )
     schedule_subtitle = models.CharField(
         max_length=300,
-        default="EXPANSIÓN REGIONAL Y NUEVOS CAMPEONATOS NACIONALES Y REGIONALES PARA 2026",
-        verbose_name="Subtítulo del Schedule",
-        help_text="Subtítulo de la sección Schedule",
+        default="REGIONAL EXPANSION AND NEW NATIONAL AND REGIONAL CHAMPIONSHIPS FOR 2026",
+        verbose_name="Subtítulo del Schedule (Legacy)",
+        help_text="[DEPRECATED] Usar schedule_subtitle_en y schedule_subtitle_es",
+        editable=False,
     )
     schedule_description = models.TextField(
         blank=True,
-        verbose_name="Descripción del Schedule",
-        help_text="Descripción de la sección Schedule",
+        verbose_name="Descripción del Schedule (Legacy)",
+        help_text="[DEPRECATED] Usar schedule_description_en y schedule_description_es",
+        editable=False,
     )
     showcase_image = models.ImageField(
         upload_to="site_settings/",
@@ -824,22 +868,66 @@ class SiteSettings(models.Model):
         verbose_name="Imagen del Showcase",
         help_text='Imagen que se muestra en la sección "Showcases and Prospect Gateways" del home',
     )
+    # Campos en inglés
+    showcase_title_en = models.CharField(
+        max_length=200,
+        default="SHOWCASES AND PROSPECT GATEWAYS",
+        verbose_name="Showcase Title (English)",
+        help_text="Título principal de la sección Showcase en inglés",
+    )
+    showcase_subtitle_en = models.CharField(
+        max_length=300,
+        default="REGIONAL AND NATIONAL SHOWCASES",
+        verbose_name="Showcase Subtitle (English)",
+        help_text="Subtítulo de la sección Showcase en inglés",
+    )
+    showcase_description_en = models.TextField(
+        blank=True,
+        default="Perfect Game is thrilled to offer showcases (HS) and Prospect Gateways (13U/14U) across the country for the 2025 calendar. This includes regional events for all ages and new invite only events! PG strives to delivery the very best events and experience for all players, coaches and families across the country.",
+        verbose_name="Showcase Description (English)",
+        help_text="Descripción de la sección Showcase en inglés",
+    )
+    
+    # Campos en español
+    showcase_title_es = models.CharField(
+        max_length=200,
+        default="SHOWCASES Y PORTALES DE PROSPECTO",
+        verbose_name="Showcase Title (Spanish)",
+        help_text="Título principal de la sección Showcase en español",
+    )
+    showcase_subtitle_es = models.CharField(
+        max_length=300,
+        default="SHOWCASES REGIONALES Y NACIONALES",
+        verbose_name="Showcase Subtitle (Spanish)",
+        help_text="Subtítulo de la sección Showcase en español",
+    )
+    showcase_description_es = models.TextField(
+        blank=True,
+        default="Perfect Game se complace en ofrecer showcases (HS) y Prospect Gateways (13U/14U) en todo el país para el calendario 2025. Esto incluye eventos regionales para todas las edades y nuevos eventos solo por invitación. PG se esfuerza por ofrecer los mejores eventos y experiencias para todos los jugadores, entrenadores y familias en todo el país.",
+        verbose_name="Showcase Description (Spanish)",
+        help_text="Descripción de la sección Showcase en español",
+    )
+    
+    # Campos legacy (mantener por compatibilidad)
     showcase_title = models.CharField(
         max_length=200,
         default="SHOWCASES AND PROSPECT GATEWAYS",
-        verbose_name="Título del Showcase",
-        help_text="Título principal de la sección Showcase",
+        verbose_name="Título del Showcase (Legacy)",
+        help_text="[DEPRECATED] Usar showcase_title_en y showcase_title_es",
+        editable=False,
     )
     showcase_subtitle = models.CharField(
         max_length=300,
         default="REGIONAL AND NATIONAL SHOWCASES",
-        verbose_name="Subtítulo del Showcase",
-        help_text="Subtítulo de la sección Showcase",
+        verbose_name="Subtítulo del Showcase (Legacy)",
+        help_text="[DEPRECATED] Usar showcase_subtitle_en y showcase_subtitle_es",
+        editable=False,
     )
     showcase_description = models.TextField(
         blank=True,
-        verbose_name="Descripción del Showcase",
-        help_text="Descripción de la sección Showcase",
+        verbose_name="Descripción del Showcase (Legacy)",
+        help_text="[DEPRECATED] Usar showcase_description_en y showcase_description_es",
+        editable=False,
     )
     dashboard_welcome_banner = models.ImageField(
         upload_to="site_settings/",
@@ -867,6 +955,101 @@ class SiteSettings(models.Model):
         """Cargar o crear la instancia única de configuración"""
         obj, created = cls.objects.get_or_create(pk=1)
         return obj
+    
+    # Métodos para obtener valores según el idioma
+    def get_schedule_title(self, lang=None):
+        """Retorna el título del schedule según el idioma especificado o el actual"""
+        from django.utils.translation import get_language
+        target_lang = (lang or get_language() or 'en')[:2]
+        if target_lang == 'es':
+            return self.schedule_title_es or self.schedule_title_en or "CALENDARIO DE EVENTOS 2026"
+        return self.schedule_title_en or "2026 EVENT CALENDAR"
+    
+    def get_schedule_subtitle(self, lang=None):
+        """Retorna el subtítulo del schedule según el idioma especificado o el actual"""
+        from django.utils.translation import get_language
+        target_lang = (lang or get_language() or 'en')[:2]
+        if target_lang == 'es':
+            return self.schedule_subtitle_es or self.schedule_subtitle_en or "EXPANSIÓN REGIONAL Y NUEVOS CAMPEONATOS NACIONALES Y REGIONALES PARA 2026"
+        return self.schedule_subtitle_en or "REGIONAL EXPANSION AND NEW NATIONAL AND REGIONAL CHAMPIONSHIPS FOR 2026"
+    
+    def get_schedule_description(self, lang=None):
+        """Retorna la descripción del schedule según el idioma especificado o el actual"""
+        from django.utils.translation import get_language
+        target_lang = (lang or get_language() or 'en')[:2]
+        if target_lang == 'es':
+            return self.schedule_description_es or self.schedule_description_en or ""
+        return self.schedule_description_en or ""
+    
+    def get_showcase_title(self, lang=None):
+        """Retorna el título del showcase según el idioma especificado o el actual"""
+        from django.utils.translation import get_language
+        target_lang = (lang or get_language() or 'en')[:2]
+        if target_lang == 'es':
+            return self.showcase_title_es or self.showcase_title_en or "SHOWCASES Y PORTALES DE PROSPECTO"
+        return self.showcase_title_en or "SHOWCASES AND PROSPECT GATEWAYS"
+    
+    def get_showcase_subtitle(self, lang=None):
+        """Retorna el subtítulo del showcase según el idioma especificado o el actual"""
+        from django.utils.translation import get_language
+        target_lang = (lang or get_language() or 'en')[:2]
+        if target_lang == 'es':
+            return self.showcase_subtitle_es or self.showcase_subtitle_en or "SHOWCASES REGIONALES Y NACIONALES"
+        return self.showcase_subtitle_en or "REGIONAL AND NATIONAL SHOWCASES"
+    
+    def get_showcase_description(self, lang=None):
+        """Retorna la descripción del showcase según el idioma especificado o el actual"""
+        from django.utils.translation import get_language
+        target_lang = (lang or get_language() or 'en')[:2]
+        if target_lang == 'es':
+            return self.showcase_description_es or self.showcase_description_en or ""
+        return self.showcase_description_en or ""
+    
+    # Métodos legacy (mantener por compatibilidad)
+    def get_schedule_title_translated(self):
+        """[DEPRECATED] Usar get_schedule_title()"""
+        return self.get_schedule_title()
+    
+    def get_schedule_subtitle_translated(self):
+        """[DEPRECATED] Usar get_schedule_subtitle()"""
+        return self.get_schedule_subtitle()
+    
+    def get_schedule_description_translated(self):
+        """[DEPRECATED] Usar get_schedule_description()"""
+        return self.get_schedule_description()
+    
+    def get_showcase_title_translated(self):
+        """[DEPRECATED] Usar get_showcase_title()"""
+        return self.get_showcase_title()
+    
+    def get_showcase_subtitle_translated(self):
+        """[DEPRECATED] Usar get_showcase_subtitle()"""
+        return self.get_showcase_subtitle()
+    
+    def get_showcase_description_translated(self):
+        """[DEPRECATED] Usar get_showcase_description()"""
+        return self.get_showcase_description()
+    
+    def get_translations_dict(self):
+        """Retorna un diccionario con todas las traducciones para uso en JavaScript"""
+        return {
+            'en': {
+                'schedule_title': self.get_schedule_title('en'),
+                'schedule_subtitle': self.get_schedule_subtitle('en'),
+                'schedule_description': self.get_schedule_description('en'),
+                'showcase_title': self.get_showcase_title('en'),
+                'showcase_subtitle': self.get_showcase_subtitle('en'),
+                'showcase_description': self.get_showcase_description('en'),
+            },
+            'es': {
+                'schedule_title': self.get_schedule_title('es'),
+                'schedule_subtitle': self.get_schedule_subtitle('es'),
+                'schedule_description': self.get_schedule_description('es'),
+                'showcase_title': self.get_showcase_title('es'),
+                'showcase_subtitle': self.get_showcase_subtitle('es'),
+                'showcase_description': self.get_showcase_description('es'),
+            }
+        }
 
 
 class DashboardBanner(models.Model):

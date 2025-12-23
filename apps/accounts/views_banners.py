@@ -4,6 +4,7 @@ Vistas para gestión de banners del home
 
 from django.contrib import messages
 from django.db.models import Q
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView,
@@ -104,22 +105,55 @@ class HomeBannerDeleteView(StaffRequiredMixin, DeleteView):
 
 
 # ===== SITE SETTINGS VIEWS =====
-class SiteSettingsUpdateView(StaffRequiredMixin, UpdateView):
-    """Editar configuraciones del sitio"""
+class SiteSettingsUpdateView(StaffRequiredMixin, TemplateView):
+    """Editar configuraciones del sitio con formulario personalizado"""
 
-    model = SiteSettings
-    form_class = SiteSettingsForm
     template_name = "accounts/site_settings_form.html"
-    success_url = reverse_lazy("accounts:home_content_admin")
-
-    def get_object(self, queryset=None):
-        return SiteSettings.load()
-
-    def form_valid(self, form):
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Cargar SiteSettings
+        site_settings = SiteSettings.load()
+        context['site_settings'] = site_settings
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        """Procesar el formulario"""
+        site_settings = SiteSettings.load()
+        
+        # Actualizar campos de Schedule - Inglés
+        site_settings.schedule_title_en = request.POST.get('schedule_title_en', '')
+        site_settings.schedule_subtitle_en = request.POST.get('schedule_subtitle_en', '')
+        site_settings.schedule_description_en = request.POST.get('schedule_description_en', '')
+        
+        # Actualizar campos de Schedule - Español
+        site_settings.schedule_title_es = request.POST.get('schedule_title_es', '')
+        site_settings.schedule_subtitle_es = request.POST.get('schedule_subtitle_es', '')
+        site_settings.schedule_description_es = request.POST.get('schedule_description_es', '')
+        
+        # Actualizar campos de Showcase - Inglés
+        site_settings.showcase_title_en = request.POST.get('showcase_title_en', '')
+        site_settings.showcase_subtitle_en = request.POST.get('showcase_subtitle_en', '')
+        site_settings.showcase_description_en = request.POST.get('showcase_description_en', '')
+        
+        # Actualizar campos de Showcase - Español
+        site_settings.showcase_title_es = request.POST.get('showcase_title_es', '')
+        site_settings.showcase_subtitle_es = request.POST.get('showcase_subtitle_es', '')
+        site_settings.showcase_description_es = request.POST.get('showcase_description_es', '')
+        
+        # Manejar imágenes si se suben
+        if 'schedule_image' in request.FILES:
+            site_settings.schedule_image = request.FILES['schedule_image']
+        if 'showcase_image' in request.FILES:
+            site_settings.showcase_image = request.FILES['showcase_image']
+        
+        # Guardar
+        site_settings.save()
+        
         messages.success(
-            self.request, "Configuraciones del sitio actualizadas exitosamente."
+            request, "Configuraciones del sitio actualizadas exitosamente."
         )
-        return super().form_valid(form)
+        return redirect('accounts:home_content_admin')
 
 
 class HomeContentAdminView(StaffRequiredMixin, TemplateView):

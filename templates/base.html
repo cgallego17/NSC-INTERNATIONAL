@@ -49,6 +49,39 @@
             color: white;
         }
         
+        /* Language Selector */
+        .language-selector-form {
+            display: inline-block;
+            margin-right: 0;
+        }
+        
+        .language-selector {
+            background: transparent;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .language-selector:hover {
+            border-color: #888;
+            color: white;
+        }
+        
+        .language-selector:focus {
+            outline: none;
+            border-color: var(--mlb-gold);
+            color: white;
+        }
+        
+        .language-selector option {
+            background: var(--mlb-dark);
+            color: white;
+        }
+        
         .navbar-mlb {
             background: var(--mlb-blue) !important;
             padding: 0;
@@ -343,6 +376,14 @@
             <a class="link{% if active_subsection == 'rules' %} active{% endif %}" href="{% url 'locations:rule_list' %}">Reglas</a>
             <a class="link{% if active_subsection == 'division_list' %} active{% endif %}" href="{% url 'events:division_list' %}">Divisiones</a>
         </div>
+
+        <!-- Contenido del Home (solo staff) -->
+        {% if user.is_staff or user.is_superuser %}
+        <a href="{% url 'accounts:home_content_admin' %}" class="sb-item{% if active_section == 'home_content' %} active{% endif %}" data-bs-title="Contenido del Home">
+            <i class="sb-ico bi bi-house-door"></i>
+            <span class="hide-mini">Contenido del Home</span>
+        </a>
+        {% endif %}
 
         <!-- Usuarios (solo staff) -->
         {% if user.is_staff or user.is_superuser %}

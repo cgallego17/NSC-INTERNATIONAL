@@ -129,6 +129,35 @@ class PublicHomeView(TemplateView):
         context["instagram_followers_count"] = 0
         context["instagram_following_count"] = 0
 
+        # Obtener banners activos del home
+        try:
+            from .models import HomeBanner
+            context["home_banners"] = HomeBanner.objects.filter(
+                is_active=True
+            ).order_by("order", "-created_at")
+        except ImportError:
+            context["home_banners"] = []
+
+        # Obtener configuraciones del sitio
+        try:
+            from .models import SiteSettings
+            site_settings = SiteSettings.load()
+            context["site_settings"] = site_settings
+            # Pasar traducciones al JavaScript
+            context["site_settings_translations"] = site_settings.get_translations_dict()
+        except ImportError:
+            context["site_settings"] = None
+            context["site_settings_translations"] = None
+
+        # Obtener sponsors activos
+        try:
+            from .models import Sponsor
+            context["sponsors"] = Sponsor.objects.filter(is_active=True).order_by(
+                "order", "name"
+            )
+        except ImportError:
+            context["sponsors"] = []
+
         # Si hay un error de login en la sesión, pasar el formulario con errores
         login_error = self.request.session.pop("login_error", None)
         login_form_data = self.request.session.pop("login_form_data", None)

@@ -1,3 +1,71 @@
+/* Ajustes del navbar para que sea exactamente igual al del home */
+.top-bar {
+    background: var(--mlb-dark);
+    color: white;
+    padding: 8px 0 !important;
+    font-size: 0.85rem !important;
+}
+
+.top-bar a {
+    color: #ccc;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.top-bar a:hover {
+    color: white;
+}
+
+.navbar-mlb {
+    background: var(--mlb-blue) !important;
+    padding: 0 !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    min-height: auto !important;
+    height: auto !important;
+}
+
+.navbar-mlb .navbar-brand {
+    font-size: 1.8rem !important;
+    font-weight: 700;
+    color: white !important;
+    padding: 15px 20px !important;
+    background: var(--mlb-red);
+    display: flex !important;
+    align-items: center;
+    min-height: 60px !important;
+    line-height: 1.5 !important;
+}
+
+.navbar-logo {
+    height: 40px !important;
+    width: auto !important;
+    max-width: 180px !important;
+    object-fit: contain;
+    display: block !important;
+}
+
+.navbar-mlb .nav-link {
+    color: white !important;
+    font-weight: 600;
+    padding: 20px 15px !important;
+    text-transform: uppercase;
+    font-size: 0.9rem !important;
+    letter-spacing: 0.5px;
+    transition: background 0.3s;
+    line-height: 1.5 !important;
+    min-height: 60px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.navbar-mlb .nav-link:hover {
+    background: var(--mlb-light-blue);
+}
+
+.navbar-mlb .nav-link.active {
+    background: var(--mlb-red);
+}
+
 /* Fullwidth para el panel */
 .main-content {
     padding: 0 !important;
@@ -30,7 +98,7 @@
     }
 }
 
-/* Estilos para el carousel del dashboard */
+/* Estilos para el carousel del dashboard - EXACTAMENTE igual que hero-mlb del inicio */
 #dashboardBannerSlider {
     border-radius: 12px;
     overflow: hidden;
@@ -40,20 +108,58 @@
     position: relative;
 }
 
-#dashboardBannerSlider .carousel-item {
+#dashboardBannerSlider .carousel-inner {
     width: 100%;
+    height: 100%;
+}
+
+#dashboardBannerSlider .carousel-item {
+    height: 500px;
+    min-height: 500px;
+}
+
+@media (max-width: 768px) {
+    #dashboardBannerSlider .carousel-item {
+        height: 400px;
+        min-height: 400px;
+    }
 }
 
 #dashboardBannerSlider .carousel-item .welcome-banner {
+    position: relative;
     width: 100%;
-    min-height: 200px;
+    height: 100%;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+@media (max-width: 768px) {
+    #dashboardBannerSlider .carousel-item .welcome-banner {
+        min-height: 400px;
+    }
 }
 
 #dashboardBannerSlider .carousel-item img {
     width: 100%;
-    height: auto;
-    display: block;
+    height: 100%;
     object-fit: contain;
+    object-position: center;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+/* Para banners de tipo imagen - igual que hero-slide-item.banner-image */
+#dashboardBannerSlider .carousel-item .welcome-banner:has(img) {
+    background-color: #0d2c54;
+}
+
+#dashboardBannerSlider .carousel-item.active {
+    display: block;
 }
 
 #dashboardBannerSlider .carousel-control-prev,
@@ -475,6 +581,22 @@
     color: #adb5bd;
 }
 
+/* Placeholder personalizado para campo de fecha */
+#id_birth_date::placeholder {
+    color: #adb5bd;
+    opacity: 1;
+}
+
+#id_birth_date:invalid:not(:focus):not(:placeholder-shown) {
+    border-color: #dc3545;
+}
+
+#id_birth_date:invalid:not(:focus):not(:placeholder-shown)::before {
+    content: 'Formato: 1992-07-20';
+    color: #dc3545;
+    font-size: 0.875rem;
+}
+
 textarea.form-control {
     min-height: 100px;
     resize: vertical;
@@ -617,8 +739,5 @@ input[type="file"] {
     color: #c33;
     border-left: 4px solid var(--mlb-red);
 }
-
-
-
 
 

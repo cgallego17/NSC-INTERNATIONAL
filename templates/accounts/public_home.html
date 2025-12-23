@@ -1,10 +1,13 @@
 {% load static %}
+{% load i18n %}
+{% load translation_tags %}
+{% get_current_language as CURRENT_LANGUAGE %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{% if CURRENT_LANGUAGE %}{{ CURRENT_LANGUAGE|slice:":2" }}{% else %}en{% endif %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NSC International - Béisbol Profesional</title>
+    <title>{% trans "NSC International - Professional Baseball" %}</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -50,6 +53,152 @@
         
         .top-bar a:hover {
             color: white;
+        }
+        
+        /* Language Selector with Flags Dropdown */
+        .language-selector-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-right: 0;
+        }
+        
+        .language-selector-btn {
+            background: transparent;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 80px;
+            justify-content: space-between;
+        }
+        
+        .language-selector-btn:hover {
+            border-color: var(--mlb-gold);
+            background: rgba(255, 215, 0, 0.1);
+            color: white;
+        }
+        
+        .language-selector-btn .flag-icon {
+            width: 20px;
+            height: 15px;
+            display: inline-block;
+            background-size: cover;
+            background-position: center;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        
+        .flag-icon.flag-us {
+            background-image: url('https://flagcdn.com/w20/us.png');
+        }
+        
+        .flag-icon.flag-es {
+            background-image: url('https://flagcdn.com/w20/es.png');
+        }
+        
+        .language-selector-btn .arrow-icon {
+            font-size: 0.7rem;
+            transition: transform 0.3s;
+        }
+        
+        .language-selector-btn.active {
+            border-color: var(--mlb-gold);
+            background: rgba(255, 215, 0, 0.15);
+        }
+        
+        .language-selector-btn.active .arrow-icon {
+            transform: rotate(180deg);
+        }
+        
+        .language-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 5px;
+            background: var(--mlb-dark);
+            border: 1px solid #555;
+            border-radius: 4px;
+            min-width: 150px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        
+        .language-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .language-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            color: #ccc;
+            text-decoration: none;
+            transition: all 0.2s;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: inherit;
+        }
+        
+        .language-option:last-child {
+            border-bottom: none;
+        }
+        
+        .language-option:hover {
+            background: rgba(255, 215, 0, 0.15);
+            color: white;
+        }
+        
+        .language-option.active {
+            background: rgba(255, 215, 0, 0.2);
+            color: var(--mlb-gold);
+        }
+        
+        .language-option .flag-icon {
+            width: 24px;
+            height: 18px;
+            display: inline-block;
+            background-size: cover;
+            background-position: center;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        
+        .language-option .language-name {
+            flex: 1;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .language-selector-btn {
+                min-width: 70px;
+                padding: 4px 8px;
+                font-size: 0.8rem;
+            }
+            
+            .language-selector-btn .language-text {
+                display: none;
+            }
+            
+            .language-dropdown {
+                min-width: 130px;
+            }
         }
         
         /* Navbar MLB Style */
@@ -1861,14 +2010,51 @@
                     <span class="ms-4"><i class="fas fa-envelope me-2"></i>info@nscinternational.com</span>
                 </div>
                 <div class="col-md-6 text-end">
+                    <!-- Language Selector with Flags Dropdown -->
+                    {% get_current_language as CURRENT_LANGUAGE %}
+                    {% if not CURRENT_LANGUAGE or CURRENT_LANGUAGE == '' %}{% get_language_info for 'en' as lang_info %}{% endif %}
+                    <div class="language-selector-wrapper">
+                        <button type="button" class="language-selector-btn" id="languageSelectorBtn" onclick="toggleLanguageDropdown()">
+                            <span class="flag-icon {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}flag-es{% else %}flag-us{% endif %}"></span>
+                            <span class="language-text">
+                                {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}
+                                    ES
+                                {% else %}
+                                    EN
+                                {% endif %}
+                            </span>
+                            <i class="fas fa-chevron-down arrow-icon"></i>
+                        </button>
+                        <div class="language-dropdown" id="languageDropdown">
+                            <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-en">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/' }}">
+                                <input type="hidden" name="language" value="en">
+                                <button type="submit" class="language-option {% if CURRENT_LANGUAGE != 'es' and CURRENT_LANGUAGE|slice:":2" != 'es' %}active{% endif %}" style="background: none; border: none; width: 100%; text-align: left; padding: 10px; cursor: pointer;">
+                                    <span class="flag-icon flag-us"></span>
+                                    <span class="language-name">English</span>
+                                </button>
+                            </form>
+                            <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-es">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/' }}">
+                                <input type="hidden" name="language" value="es">
+                                <button type="submit" class="language-option {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}active{% endif %}" style="background: none; border: none; width: 100%; text-align: left; padding: 10px; cursor: pointer;">
+                                    <span class="flag-icon flag-es"></span>
+                                    <span class="language-name">Español</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <span class="mx-2">|</span>
                     {% if user.is_authenticated %}
-                        <a href="{% url 'accounts:panel' %}"><i class="fas fa-user me-1"></i>Mi Cuenta</a>
+                        <a href="{% url 'accounts:panel' %}"><i class="fas fa-user me-1"></i>{% trans "My Account" %}</a>
                         <span class="mx-2">|</span>
-                        <a href="{% url 'accounts:logout' %}">Cerrar Sesión</a>
+                        <a href="{% url 'accounts:logout' %}">{% trans "Log Out" %}</a>
                     {% else %}
-                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</a>
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">{% trans "Log In" %}</a>
                         <span class="mx-2">|</span>
-                        <a href="/accounts/register/">Registrarse</a>
+                        <a href="/accounts/register/">{% trans "Sign Up" %}</a>
                     {% endif %}
                 </div>
             </div>
@@ -1887,25 +2073,25 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="/">Inicio</a>
+                        <a class="nav-link active" href="/">{% trans "Home" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#eventos">Eventos</a>
+                        <a class="nav-link" href="#eventos">{% trans "Events" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#equipos">Equipos</a>
+                        <a class="nav-link" href="#equipos">{% trans "Teams" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:public_player_list' %}">Jugadores</a>
+                        <a class="nav-link" href="{% url 'accounts:public_player_list' %}">{% trans "Players" %}</a>
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:panel' %}">Panel</a>
+                            <a class="nav-link" href="{% url 'accounts:panel' %}">{% trans "Panel" %}</a>
                         </li>
                     {% else %}
                         <li class="nav-item">
                             <a class="nav-link" href="/accounts/register/">
-                                <span class="badge-mlb">Registrarse</span>
+                                <span class="badge-mlb">{% trans "Sign Up" %}</span>
                             </a>
                         </li>
                     {% endif %}
@@ -1993,11 +2179,11 @@
             <!-- Controles -->
             <button class="carousel-control-prev" type="button" data-bs-target="#heroSlider" data-bs-slide="prev">
                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Anterior</span>
+                <span class="visually-hidden">{% trans "Previous" %}</span>
             </button>
             <button class="carousel-control-next" type="button" data-bs-target="#heroSlider" data-bs-slide="next">
                 <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Siguiente</span>
+                <span class="visually-hidden">{% trans "Next" %}</span>
             </button>
         </div>
     </section>
@@ -2021,7 +2207,7 @@
                                     poster="https://video.squarespace-cdn.com/content/v1/674f14408ec27f4443197a96/e57aa702-31ed-48e1-891b-a4beeb1cbcd4/thumbnail">
                                     <source src="https://video.squarespace-cdn.com/content/v1/674f14408ec27f4443197a96/e57aa702-31ed-48e1-891b-a4beeb1cbcd4/playlist.m3u8" type="application/x-mpegURL">
                                     <source src="https://video.squarespace-cdn.com/content/v1/674f14408ec27f4443197a96/e57aa702-31ed-48e1-891b-a4beeb1cbcd4/video.mp4" type="video/mp4">
-                                    Tu navegador no soporta la reproducción de video.
+                                    {% trans "Your browser does not support video playback." %}
                                 </video>
                             </div>
                             <div class="video-promo-overlay-top">
@@ -2031,13 +2217,16 @@
                                         <span>NSC INTERNATIONAL</span>
                                     </div>
                                     <div class="video-promo-overlay-actions">
-                                        <button class="video-promo-action-btn" title="Ver más tarde">
+                                        <button class="video-promo-action-btn" title="{% trans 'Watch later' %}">
                                             <i class="far fa-clock"></i>
                                         </button>
-                                        <button class="video-promo-action-btn video-audio-toggle" type="button" title="Activar sonido">
+                                        <button class="video-promo-action-btn video-audio-toggle" type="button" 
+                                                data-title-enable="{% trans 'Enable sound' %}" 
+                                                data-title-mute="{% trans 'Mute' %}"
+                                                title="{% trans 'Enable sound' %}">
                                             <i class="fas fa-volume-mute"></i>
                                         </button>
-                                        <button class="video-promo-action-btn" title="Compartir" onclick="navigator.share ? navigator.share({title: 'NSC International Video', url: window.location.href}) : navigator.clipboard.writeText(window.location.href).then(() => alert('Enlace copiado al portapapeles'))">
+                                        <button class="video-promo-action-btn" title="{% trans 'Share' %}" onclick="navigator.share ? navigator.share({title: 'NSC International Video', url: window.location.href}) : navigator.clipboard.writeText(window.location.href).then(() => alert('{% trans "Link copied to clipboard" %}'))">
                                             <i class="fas fa-share-alt"></i>
                                         </button>
                                     </div>
@@ -2052,16 +2241,15 @@
                     <div class="video-promo-content">
                         <h2 class="video-promo-title">
                             {% if merida_event and merida_event.title %}
-                                <span class="video-promo-title-accent">PRÓXIMO EVENTO</span>
+                                <span class="video-promo-title-accent">{% trans "NEXT EVENT" %}</span>
                                 <span class="video-promo-title-main">{{ merida_event.title|upper }}</span>
                             {% else %}
-                                <span class="video-promo-title-accent">EVENTO EN</span>
+                                <span class="video-promo-title-accent">{% trans "EVENT IN" %}</span>
                                 <span class="video-promo-title-main">MÉRIDA</span>
                             {% endif %}
                         </h2>
                         <p class="video-promo-description">
-                            Vive la experiencia NSC International en <strong>Mérida, Yucatán</strong>: competencia, visibilidad y desarrollo para atletas y familias.
-                            Consulta fechas, sedes y categorías disponibles.
+                            {% blocktrans %}Experience NSC International in <strong>Mérida, Yucatán</strong>: competition, visibility and development for athletes and families. Check dates, venues and available categories.{% endblocktrans %}
                         </p>
                         <div class="video-promo-options">
                             <span class="video-promo-option-btn">
@@ -2070,14 +2258,14 @@
                             </span>
                             <span class="video-promo-option-btn">
                                 <i class="fas fa-baseball-ball"></i>
-                                <span>Torneo / Showcase</span>
+                                <span>{% trans "Tournament / Showcase" %}</span>
                             </span>
                             <span class="video-promo-option-btn">
                                 <i class="fas fa-users"></i>
-                                <span>Categorías disponibles</span>
+                                <span>{% trans "Available Categories" %}</span>
                             </span>
                         </div>
-                        <a href="{% url 'events:list' %}?search=Merida" class="video-promo-cta-btn">VER EVENTO DE MÉRIDA</a>
+                        <a href="{% url 'events:list' %}?search=Merida" class="video-promo-cta-btn">{% trans "VIEW MÉRIDA EVENT" %}</a>
                     </div>
                 </div>
             </div>
@@ -2102,25 +2290,25 @@
                 <!-- Right Column - Content -->
                 <div class="col-lg-6">
                     <div class="schedule-content">
-                        <h2 class="schedule-heading">
-                            {% if site_settings and site_settings.schedule_title %}
-                                {{ site_settings.schedule_title }}
+                        <h2 class="schedule-heading" data-i18n="schedule_title">
+                            {% if site_settings %}
+                                {{ site_settings.get_schedule_title }}
                             {% else %}
-                                CALENDARIO DE EVENTOS 2026
+                                {% trans "2026 EVENT CALENDAR" %}
                             {% endif %}
                         </h2>
-                        <h3 class="schedule-subheading">
-                            {% if site_settings and site_settings.schedule_subtitle %}
-                                {{ site_settings.schedule_subtitle }}
+                        <h3 class="schedule-subheading" data-i18n="schedule_subtitle">
+                            {% if site_settings %}
+                                {{ site_settings.get_schedule_subtitle }}
                             {% else %}
-                                EXPANSIÓN REGIONAL Y NUEVOS CAMPEONATOS NACIONALES Y REGIONALES PARA 2026
+                                {% trans "REGIONAL EXPANSION AND NEW NATIONAL AND REGIONAL CHAMPIONSHIPS FOR 2026" %}
                             {% endif %}
                         </h3>
-                        <p class="schedule-description">
-                            {% if site_settings and site_settings.schedule_description %}
-                                {{ site_settings.schedule_description }}
+                        <p class="schedule-description" data-i18n="schedule_description">
+                            {% if site_settings %}
+                                {{ site_settings.get_schedule_description }}
                             {% else %}
-                                A medida que avanzamos hacia 2026, NSC International continúa elevando su plataforma de torneos y exhibiciones. Con una expansión de la presencia regional para edades 7U-18U, nuevos y mejorados eventos de Campeonatos Nacionales y Regionales, y una programación aún más amplia de exhibiciones en todo el país, NSC se mantiene dedicado a ofrecer el más alto estándar de competencia y experiencia para jugadores, entrenadores y familias por igual.
+                                {% blocktrans %}As we move forward into 2026, NSC International continues to elevate its tournament and showcase platform. With a regional presence expansion for ages 7U-18U, new and improved National and Regional Championship events, and an even broader showcase schedule across the country, NSC remains dedicated to providing the highest standard of competition and experience for players, coaches and families alike.{% endblocktrans %}
                             {% endif %}
                         </p>
                         <div class="schedule-buttons">
@@ -2132,7 +2320,7 @@
                                     </a>
                                 {% endfor %}
                             {% else %}
-                                <a href="{% url 'events:list' %}" class="schedule-category-btn">CALENDARIO NSC</a>
+                                <a href="{% url 'events:list' %}" class="schedule-category-btn">{% trans "NSC CALENDAR" %}</a>
                             {% endif %}
                         </div>
                     </div>
@@ -2144,8 +2332,8 @@
     <!-- Events News Style Section -->
     <div class="events-news-section">
         <div class="events-news-header">
-            <h2 class="events-news-title">EVENTOS</h2>
-            <a href="{% url 'events:list' %}" class="events-view-all-btn">VER TODOS</a>
+            <h2 class="events-news-title">{% trans "EVENTS" %}</h2>
+            <a href="{% url 'events:list' %}" class="events-view-all-btn">{% trans "VIEW ALL" %}</a>
         </div>
         <div class="events-news-grid">
             {% for event in upcoming_events|slice:":4" %}
@@ -2202,11 +2390,11 @@
                         </div>
                         <div class="event-news-content">
                             <div class="event-news-content-inner">
-                                <h3 class="event-news-title-card">PRÓXIMAMENTE</h3>
+                                <h3 class="event-news-title-card">{% trans "COMING SOON" %}</h3>
                                 <div class="event-news-meta">
                                     <div class="event-news-meta-item">
                                         <i class="fas fa-clock"></i>
-                                        <span>Muy pronto</span>
+                                        <span>{% trans "Very soon" %}</span>
                                     </div>
                                 </div>
                             </div>
@@ -2223,11 +2411,11 @@
                         </div>
                         <div class="event-news-content">
                             <div class="event-news-content-inner">
-                                <h3 class="event-news-title-card">PRÓXIMAMENTE</h3>
+                                <h3 class="event-news-title-card">{% trans "COMING SOON" %}</h3>
                                 <div class="event-news-meta">
                                     <div class="event-news-meta-item">
                                         <i class="fas fa-clock"></i>
-                                        <span>Muy pronto</span>
+                                        <span>{% trans "Very soon" %}</span>
                                     </div>
                                 </div>
                             </div>
@@ -2244,11 +2432,11 @@
                         </div>
                         <div class="event-news-content">
                             <div class="event-news-content-inner">
-                                <h3 class="event-news-title-card">PRÓXIMAMENTE</h3>
+                                <h3 class="event-news-title-card">{% trans "COMING SOON" %}</h3>
                                 <div class="event-news-meta">
                                     <div class="event-news-meta-item">
                                         <i class="fas fa-clock"></i>
-                                        <span>Muy pronto</span>
+                                        <span>{% trans "Very soon" %}</span>
                                     </div>
                                 </div>
                             </div>
@@ -2264,11 +2452,11 @@
                     </div>
                     <div class="event-news-content">
                         <div class="event-news-content-inner">
-                            <h3 class="event-news-title-card">PRÓXIMAMENTE</h3>
+                            <h3 class="event-news-title-card">{% trans "COMING SOON" %}</h3>
                             <div class="event-news-meta">
                                 <div class="event-news-meta-item">
                                     <i class="fas fa-clock"></i>
-                                    <span>Muy pronto</span>
+                                    <span>{% trans "Very soon" %}</span>
                                 </div>
                             </div>
                         </div>
@@ -2301,30 +2489,30 @@
                 <!-- Right Column - Content -->
                 <div class="col-lg-6">
                     <div class="schedule-content">
-                        <h2 class="schedule-heading">
-                            {% if site_settings and site_settings.showcase_title %}
-                                {{ site_settings.showcase_title }}
+                        <h2 class="schedule-heading" data-i18n="showcase_title">
+                            {% if site_settings %}
+                                {{ site_settings.get_showcase_title }}
                             {% else %}
-                                SHOWCASES AND PROSPECT GATEWAYS
+                                {% trans "SHOWCASES AND PROSPECT GATEWAYS" %}
                             {% endif %}
                         </h2>
-                        <h3 class="schedule-subheading">
-                            {% if site_settings and site_settings.showcase_subtitle %}
-                                {{ site_settings.showcase_subtitle }}
+                        <h3 class="schedule-subheading" data-i18n="showcase_subtitle">
+                            {% if site_settings %}
+                                {{ site_settings.get_showcase_subtitle }}
                             {% else %}
-                                REGIONAL AND NATIONAL SHOWCASES
+                                {% trans "REGIONAL AND NATIONAL SHOWCASES" %}
                             {% endif %}
                         </h3>
-                        <p class="schedule-description">
-                            {% if site_settings and site_settings.showcase_description %}
-                                {{ site_settings.showcase_description }}
+                        <p class="schedule-description" data-i18n="showcase_description">
+                            {% if site_settings %}
+                                {{ site_settings.get_showcase_description }}
                             {% else %}
-                                Perfect Game is thrilled to offer showcases (HS) and Prospect Gateways (13U/14U) across the country for the 2025 calendar. This includes regional events for all ages and new invite only events! PG strives to delivery the very best events and experience for all players, coaches and families across the country.
+                                {% blocktrans %}Perfect Game is thrilled to offer showcases (HS) and Prospect Gateways (13U/14U) across the country for the 2025 calendar. This includes regional events for all ages and new invite only events! PG strives to delivery the very best events and experience for all players, coaches and families across the country.{% endblocktrans %}
                             {% endif %}
                         </p>
                         <div class="schedule-buttons">
-                            <a href="#" class="schedule-category-btn">SHOWCASE SCHEDULE</a>
-                            <a href="#" class="schedule-category-btn">GATEWAY SCHEDULE</a>
+                            <a href="#" class="schedule-category-btn">{% trans "SHOWCASE SCHEDULE" %}</a>
+                            <a href="#" class="schedule-category-btn">{% trans "GATEWAY SCHEDULE" %}</a>
                         </div>
                     </div>
                 </div>
@@ -2377,7 +2565,7 @@
     <!-- Instagram Style Gallery Section -->
     <section class="instagram-gallery-section">
         <div class="instagram-gallery-header">
-            <h2><i class="fab fa-instagram"></i> Síguenos en Instagram</h2>
+            <h2><i class="fab fa-instagram"></i> {% trans "Follow us on Instagram" %}</h2>
             <a href="https://www.instagram.com/{{ instagram_username }}/" target="_blank" rel="noopener noreferrer" class="instagram-follow-link">
                 @{{ instagram_username }}
             </a>
@@ -2504,18 +2692,18 @@
     <section class="cta-section">
         <div class="container-fluid px-4">
             <div style="max-width: 1200px; margin: 0 auto;">
-            <h2>¿Listo para Comenzar?</h2>
-            <p>Únete a la mejor plataforma de gestión de béisbol profesional</p>
+            <h2>{% trans "Ready to Get Started?" %}</h2>
+            <p>{% trans "Join the best professional baseball management platform" %}</p>
             {% if not user.is_authenticated %}
                 <a href="/accounts/register/" class="btn btn-mlb me-3">
-                    <i class="fas fa-user-plus me-2"></i>Registrarse Ahora
+                    <i class="fas fa-user-plus me-2"></i>{% trans "Sign Up Now" %}
                 </a>
                 <a href="#" class="btn btn-mlb-outline" data-bs-toggle="modal" data-bs-target="#loginModal">
-                    <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                    <i class="fas fa-sign-in-alt me-2"></i>{% trans "Log In" %}
                 </a>
             {% else %}
                 <a href="{% url 'accounts:panel' %}" class="btn btn-mlb">
-                    <i class="fas fa-tachometer-alt me-2"></i>Ir al Panel
+                    <i class="fas fa-tachometer-alt me-2"></i>{% trans "Go to Panel" %}
                 </a>
             {% endif %}
             </div>
@@ -2531,24 +2719,23 @@
                         <i class="fas fa-baseball-ball me-2"></i>NSC International
                     </h5>
                     <p style="line-height: 1.8;">
-                        La plataforma profesional para gestionar torneos, equipos y jugadores de béisbol.
-                        Sistema completo de gestión deportiva.
+                        {% blocktrans %}The professional platform to manage tournaments, teams and baseball players. Complete sports management system.{% endblocktrans %}
                     </p>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <h5>Enlaces Rápidos</h5>
-                    <a href="/">Inicio</a>
+                    <h5>{% trans "Quick Links" %}</h5>
+                    <a href="/">{% trans "Home" %}</a>
                     {% if user.is_authenticated %}
-                        <a href="{% url 'accounts:panel' %}">Panel</a>
-                        <a href="{% url 'events:list' %}">Eventos</a>
-                        <a href="/accounts/teams/">Equipos</a>
+                        <a href="{% url 'accounts:panel' %}">{% trans "Panel" %}</a>
+                        <a href="{% url 'events:list' %}">{% trans "Events" %}</a>
+                        <a href="/accounts/teams/">{% trans "Teams" %}</a>
                     {% else %}
-                        <a href="/accounts/register/">Registrarse</a>
-                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">Iniciar Sesión</a>
+                        <a href="/accounts/register/">{% trans "Sign Up" %}</a>
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">{% trans "Log In" %}</a>
                     {% endif %}
                 </div>
                 <div class="col-md-4 mb-4">
-                    <h5>Contacto</h5>
+                    <h5>{% trans "Contact" %}</h5>
                     <p style="line-height: 1.8;">
                         <i class="fas fa-envelope me-2"></i>info@nscinternational.com<br>
                         <i class="fas fa-phone me-2"></i>+1 (555) 123-4567<br>
@@ -2557,7 +2744,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p class="mb-0">&copy; 2024 NSC International. Todos los derechos reservados.</p>
+                <p class="mb-0">&copy; 2024 NSC International. {% trans "All rights reserved." %}</p>
             </div>
         </div>
     </footer>
@@ -2570,11 +2757,11 @@
                     <div class="login-icon-modal">
                         <i class="fas fa-baseball-ball"></i>
                     </div>
-                    <h5 class="modal-title" id="loginModalLabel">Iniciar Sesión</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="loginModalLabel">{% trans "Log In" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-center mb-4" style="color: #666; position: relative; z-index: 1;">Accede a tu cuenta de NSC International</p>
+                    <p class="text-center mb-4" style="color: #666; position: relative; z-index: 1;">{% trans "Access your NSC International account" %}</p>
                     
                     <form method="post" action="{% url 'accounts:login' %}">
                         {% csrf_token %}
@@ -2588,19 +2775,19 @@
                         {% elif show_login_modal %}
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle me-2"></i>
-                                Por favor, verifica tus credenciales e intenta nuevamente.
+                                {% trans "Please verify your credentials and try again." %}
                             </div>
                         {% endif %}
                         
                         <div class="mb-3">
                             <label for="id_username_modal" class="form-label">
-                                <i class="fas fa-envelope me-1"></i>Correo Electrónico
+                                <i class="fas fa-envelope me-1"></i>{% trans "Email" %}
                             </label>
                             <input type="email" 
                                    id="id_username_modal" 
                                    name="username" 
                                    class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
-                                   placeholder="tu@email.com"
+                                   placeholder="{% trans 'your@email.com' %}"
                                    value="{% if form.username.value %}{{ form.username.value }}{% elif request.POST.username %}{{ request.POST.username }}{% endif %}"
                                    required
                                    autofocus>
@@ -2611,13 +2798,13 @@
                         
                         <div class="mb-3">
                             <label for="id_password_modal" class="form-label">
-                                <i class="fas fa-lock me-1"></i>Contraseña
+                                <i class="fas fa-lock me-1"></i>{% trans "Password" %}
                             </label>
                             <input type="password" 
                                    id="id_password_modal" 
                                    name="password" 
                                    class="form-control {% if form.password.errors %}is-invalid{% endif %}" 
-                                   placeholder="Ingresa tu contraseña"
+                                   placeholder="{% trans 'Enter your password' %}"
                                    required>
                             {% if form.password.errors %}
                                 <div class="field-error">{{ form.password.errors.0 }}</div>
@@ -2628,19 +2815,19 @@
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me_modal">
                                 <label class="form-check-label" for="remember_me_modal">
-                                    Recordarme
+                                    {% trans "Remember me" %}
                                 </label>
                             </div>
                         </div>
                         
                         <button type="submit" class="btn btn-mlb w-100">
-                            <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                            <i class="fas fa-sign-in-alt me-2"></i>{% trans "Log In" %}
                         </button>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <p class="mb-0 w-100">
-                        ¿No tienes cuenta? <a href="/accounts/register/">Regístrate aquí</a>
+                        {% blocktrans %}Don't have an account? <a href="/accounts/register/">Sign up here</a>{% endblocktrans %}
                     </p>
                 </div>
             </div>
@@ -2649,6 +2836,34 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Sistema moderno de traducciones del lado del cliente -->
+    <script src="{% static 'js/i18n.js' %}"></script>
+    
+    <!-- Pasar traducciones de la base de datos al JavaScript -->
+    {% if site_settings_translations %}
+    {{ site_settings_translations|json_script:"site-settings-translations" }}
+    <script>
+        // Inyectar traducciones de la base de datos en el sistema i18n
+        const translationsElement = document.getElementById('site-settings-translations');
+        if (translationsElement && window.i18nManager && window.i18nManager.translations) {
+            try {
+                const dbTranslations = JSON.parse(translationsElement.textContent);
+                // Fusionar traducciones de la BD con las del JavaScript
+                Object.keys(dbTranslations).forEach(lang => {
+                    if (window.i18nManager.translations[lang]) {
+                        Object.assign(window.i18nManager.translations[lang], dbTranslations[lang]);
+                    } else {
+                        window.i18nManager.translations[lang] = dbTranslations[lang];
+                    }
+                });
+                // Re-aplicar traducciones con los nuevos valores
+                window.i18nManager.applyTranslations();
+            } catch (e) {
+                console.error('Error loading translations from database:', e);
+            }
+        }
+    </script>
+    {% endif %}
     
     <script>
         // Inicializar el carousel del hero slider
@@ -2753,10 +2968,10 @@
                 if (!icon) return;
                 if (video.muted || video.volume === 0) {
                     icon.className = 'fas fa-volume-mute';
-                    btn.title = 'Activar sonido';
+                    btn.title = btn.dataset.titleEnable || 'Enable sound';
                 } else {
                     icon.className = 'fas fa-volume-up';
-                    btn.title = 'Silenciar';
+                    btn.title = btn.dataset.titleMute || 'Mute';
                 }
             }
 
@@ -2814,7 +3029,7 @@
             const floatingContainer = document.createElement('div');
             floatingContainer.className = 'video-promo-floating';
             floatingContainer.innerHTML = `
-                <button class="video-promo-floating-close" title="Cerrar">
+                <button class="video-promo-floating-close" title="{% trans 'Close' %}">
                     <i class="fas fa-times"></i>
                 </button>
                 <div class="video-promo-floating-host"></div>
@@ -2870,6 +3085,55 @@
             
             observer.observe(videoSection);
         })();
+        
+        // Language Selector Dropdown
+        function toggleLanguageDropdown() {
+            const dropdown = document.getElementById('languageDropdown');
+            const btn = document.getElementById('languageSelectorBtn');
+            dropdown.classList.toggle('show');
+            btn.classList.toggle('active');
+        }
+        
+        // Debug: Verificar idioma actual
+        console.log('Current language from template:', '{{ CURRENT_LANGUAGE }}');
+        console.log('Language forms:', {
+            'en-form': document.getElementById('lang-form-en'),
+            'es-form': document.getElementById('lang-form-es')
+        });
+        
+        // Agregar event listeners para debugging
+        const esForm = document.getElementById('lang-form-es');
+        const enForm = document.getElementById('lang-form-en');
+        
+        if (esForm) {
+            esForm.addEventListener('submit', function(e) {
+                console.log('Submitting Spanish language form');
+                const formData = new FormData(this);
+                console.log('Language:', formData.get('language'));
+                console.log('Next:', formData.get('next'));
+            });
+        }
+        
+        if (enForm) {
+            enForm.addEventListener('submit', function(e) {
+                console.log('Submitting English language form');
+                const formData = new FormData(this);
+                console.log('Language:', formData.get('language'));
+                console.log('Next:', formData.get('next'));
+            });
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const wrapper = document.querySelector('.language-selector-wrapper');
+            const dropdown = document.getElementById('languageDropdown');
+            const btn = document.getElementById('languageSelectorBtn');
+            
+            if (wrapper && !wrapper.contains(event.target)) {
+                dropdown.classList.remove('show');
+                btn.classList.remove('active');
+            }
+        });
     </script>
 </body>
 </html>

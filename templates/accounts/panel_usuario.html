@@ -25,11 +25,11 @@
                     {% for banner in dashboard_banners %}
                         <div class="carousel-item {% if forloop.first %}active{% endif %}">
                             {% if banner.banner_type == 'image' and banner.image %}
-                                <div class="welcome-banner">
-                                    <img src="{{ banner.image.url }}" alt="Banner" style="width: 100%; height: auto; display: block;">
+                                <div class="welcome-banner" style="background: #0d2c54;">
+                                    <img src="{{ banner.image.url }}" alt="{{ banner.title|default:'Banner' }}">
                                 </div>
                             {% else %}
-                                <div class="welcome-banner" style="background: linear-gradient(135deg, {{ banner.gradient_color_1 }} 0%, {{ banner.gradient_color_2 }} 50%, {{ banner.gradient_color_3|default:banner.gradient_color_2 }} 100%); min-height: 200px;">
+                                <div class="welcome-banner" style="background: linear-gradient(135deg, {{ banner.gradient_color_1 }} 0%, {{ banner.gradient_color_2 }} 50%, {{ banner.gradient_color_3|default:banner.gradient_color_2 }} 100%);">
                                 </div>
                             {% endif %}
                         </div>
@@ -37,7 +37,7 @@
                 {% else %}
                     <!-- Banner por defecto si no hay banners -->
                     <div class="carousel-item active">
-                        <div class="welcome-banner" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); min-height: 200px;">
+                        <div class="welcome-banner" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);">
                         </div>
                     </div>
                 {% endif %}
@@ -119,10 +119,6 @@
                     <i class="fas fa-calendar"></i>
                     <span>Calendario</span>
                 </button>
-                <a href="{% url 'accounts:user_dashboard' %}" class="quick-action-btn">
-                    <i class="fas fa-home"></i>
-                    <span>Dashboard Completo</span>
-                </a>
                 <button type="button" class="quick-action-btn tab-btn" data-tab="perfil" data-url="{% url 'accounts:profile_edit' %}">
                     <i class="fas fa-user-cog"></i>
                     <span>Editar Perfil</span>
@@ -188,6 +184,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             const dashboardBannerSlider = document.getElementById('dashboardBannerSlider');
             if (dashboardBannerSlider) {
+                // No necesitamos ajustar altura manualmente - el CSS maneja todo igual que hero-mlb
+                
                 const carousel = new bootstrap.Carousel(dashboardBannerSlider, {
                     interval: 5000,
                     ride: 'carousel',
@@ -202,6 +200,23 @@
                     firstItem.classList.remove('active');
                     dashboardBannerSlider.querySelector('.carousel-inner').appendChild(firstItem);
                 }
+                
+                // Ajustar altura inicial
+                adjustCarouselHeight();
+                
+                // Ajustar altura cuando cambia el slide
+                dashboardBannerSlider.addEventListener('slid.bs.carousel', function() {
+                    adjustCarouselHeight();
+                });
+                
+                // Ajustar altura al redimensionar la ventana
+                let resizeTimeout;
+                window.addEventListener('resize', function() {
+                    clearTimeout(resizeTimeout);
+                    resizeTimeout = setTimeout(function() {
+                        adjustCarouselHeight();
+                    }, 250);
+                });
                 
                 // Controlar la barra de progreso
                 const progressBar = dashboardBannerSlider.querySelector('.carousel-progress-bar');

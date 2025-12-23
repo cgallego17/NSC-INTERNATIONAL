@@ -1,3 +1,4 @@
+{% load i18n %}
 <!-- Top Bar -->
 <div class="top-bar">
     <div class="container">
@@ -7,6 +8,17 @@
                 <span class="ms-4"><i class="fas fa-envelope me-2"></i>info@nscinternational.com</span>
             </div>
             <div class="col-md-6 text-end">
+                <!-- Language Selector -->
+                <form action="{% url 'set_language' %}" method="post" class="d-inline language-selector-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.path }}">
+                    {% get_current_language as CURRENT_LANGUAGE %}
+                    <select name="language" class="language-selector" onchange="this.form.submit()">
+                        <option value="en" {% if CURRENT_LANGUAGE == 'en' or CURRENT_LANGUAGE|slice:":2" == 'en' %}selected{% endif %}>English</option>
+                        <option value="es" {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}selected{% endif %}>Español</option>
+                    </select>
+                </form>
+                <span class="mx-2">|</span>
                 {% if user.is_authenticated %}
                     <a href="{% url 'accounts:panel' %}"><i class="fas fa-user me-1"></i>Mi Cuenta</a>
                     <span class="mx-2">|</span>

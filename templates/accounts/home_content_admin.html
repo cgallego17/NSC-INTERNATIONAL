@@ -250,11 +250,16 @@
                     </div>
                     <div class="col-md-6">
                         <h6 class="mb-2">Contenido:</h6>
-                        <p><strong>Título:</strong> {{ site_settings.schedule_title|default:"No configurado" }}</p>
-                        <p><strong>Subtítulo:</strong> {{ site_settings.schedule_subtitle|default:"No configurado"|truncatewords:10 }}</p>
-                        {% if site_settings.schedule_description %}
-                            <p><strong>Descripción:</strong> {{ site_settings.schedule_description|truncatewords:15 }}</p>
-                        {% endif %}
+                        <div class="mb-2">
+                            <strong>Inglés:</strong>
+                            <p class="mb-1"><strong>Título:</strong> {{ site_settings.schedule_title_en|default:"No configurado" }}</p>
+                            <p class="mb-1"><strong>Subtítulo:</strong> {{ site_settings.schedule_subtitle_en|default:"No configurado"|truncatewords:10 }}</p>
+                        </div>
+                        <div>
+                            <strong>Español:</strong>
+                            <p class="mb-1"><strong>Título:</strong> {{ site_settings.schedule_title_es|default:"No configurado" }}</p>
+                            <p class="mb-1"><strong>Subtítulo:</strong> {{ site_settings.schedule_subtitle_es|default:"No configurado"|truncatewords:10 }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -288,11 +293,16 @@
                     </div>
                     <div class="col-md-6">
                         <h6 class="mb-2">Contenido:</h6>
-                        <p><strong>Título:</strong> {{ site_settings.showcase_title|default:"No configurado" }}</p>
-                        <p><strong>Subtítulo:</strong> {{ site_settings.showcase_subtitle|default:"No configurado"|truncatewords:10 }}</p>
-                        {% if site_settings.showcase_description %}
-                            <p><strong>Descripción:</strong> {{ site_settings.showcase_description|truncatewords:15 }}</p>
-                        {% endif %}
+                        <div class="mb-2">
+                            <strong>Inglés:</strong>
+                            <p class="mb-1"><strong>Título:</strong> {{ site_settings.showcase_title_en|default:"No configurado" }}</p>
+                            <p class="mb-1"><strong>Subtítulo:</strong> {{ site_settings.showcase_subtitle_en|default:"No configurado"|truncatewords:10 }}</p>
+                        </div>
+                        <div>
+                            <strong>Español:</strong>
+                            <p class="mb-1"><strong>Título:</strong> {{ site_settings.showcase_title_es|default:"No configurado" }}</p>
+                            <p class="mb-1"><strong>Subtítulo:</strong> {{ site_settings.showcase_subtitle_es|default:"No configurado"|truncatewords:10 }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
