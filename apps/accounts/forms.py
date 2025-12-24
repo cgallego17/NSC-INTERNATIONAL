@@ -1770,16 +1770,18 @@ class SiteSettingsForm(forms.ModelForm):
                 attrs={"class": "form-control", "accept": "image/*"}
             ),
             # Schedule English
-            "schedule_title_en": forms.TextInput(
+            "schedule_title_en": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "placeholder": "2026 EVENT CALENDAR",
+                    "rows": 2,
                 }
             ),
-            "schedule_subtitle_en": forms.TextInput(
+            "schedule_subtitle_en": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "placeholder": "REGIONAL EXPANSION AND NEW NATIONAL...",
+                    "rows": 2,
                 }
             ),
             "schedule_description_en": forms.Textarea(
@@ -1790,16 +1792,18 @@ class SiteSettingsForm(forms.ModelForm):
                 }
             ),
             # Schedule Spanish
-            "schedule_title_es": forms.TextInput(
+            "schedule_title_es": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "placeholder": "CALENDARIO DE EVENTOS 2026",
+                    "rows": 2,
                 }
             ),
-            "schedule_subtitle_es": forms.TextInput(
+            "schedule_subtitle_es": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "placeholder": "EXPANSIÓN REGIONAL Y NUEVOS CAMPEONATOS...",
+                    "rows": 2,
                 }
             ),
             "schedule_description_es": forms.Textarea(
@@ -1814,16 +1818,18 @@ class SiteSettingsForm(forms.ModelForm):
                 attrs={"class": "form-control", "accept": "image/*"}
             ),
             # Showcase English
-            "showcase_title_en": forms.TextInput(
+            "showcase_title_en": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "placeholder": "SHOWCASES AND PROSPECT GATEWAYS",
+                    "rows": 2,
                 }
             ),
-            "showcase_subtitle_en": forms.TextInput(
+            "showcase_subtitle_en": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "placeholder": "REGIONAL AND NATIONAL SHOWCASES",
+                    "rows": 2,
                 }
             ),
             "showcase_description_en": forms.Textarea(
@@ -1834,16 +1840,144 @@ class SiteSettingsForm(forms.ModelForm):
                 }
             ),
             # Showcase Spanish
-            "showcase_title_es": forms.TextInput(
+            "showcase_title_es": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "placeholder": "SHOWCASES Y PORTALES DE PROSPECTO",
+                    "rows": 2,
                 }
             ),
-            "showcase_subtitle_es": forms.TextInput(
+            "showcase_subtitle_es": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "placeholder": "SHOWCASES REGIONALES Y NACIONALES",
+                    "rows": 2,
+                }
+            ),
+            "showcase_description_es": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 5,
+                    "placeholder": "Descripción del Showcase en español...",
+                }
+            ),
+        }
+
+
+class ScheduleSettingsForm(forms.ModelForm):
+    """Formulario para editar solo la sección Schedule"""
+
+    class Meta:
+        model = SiteSettings
+        fields = [
+            "schedule_image",
+            "schedule_title_en",
+            "schedule_subtitle_en",
+            "schedule_description_en",
+            "schedule_title_es",
+            "schedule_subtitle_es",
+            "schedule_description_es",
+        ]
+        widgets = {
+            "schedule_image": forms.FileInput(
+                attrs={"class": "form-control", "accept": "image/*"}
+            ),
+            "schedule_title_en": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "2026 EVENT CALENDAR",
+                    "rows": 2,
+                }
+            ),
+            "schedule_subtitle_en": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "REGIONAL EXPANSION AND NEW NATIONAL...",
+                    "rows": 2,
+                }
+            ),
+            "schedule_description_en": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 5,
+                    "placeholder": "Schedule description in English...",
+                }
+            ),
+            "schedule_title_es": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "CALENDARIO DE EVENTOS 2026",
+                    "rows": 2,
+                }
+            ),
+            "schedule_subtitle_es": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "EXPANSIÓN REGIONAL Y NUEVOS CAMPEONATOS...",
+                    "rows": 2,
+                }
+            ),
+            "schedule_description_es": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 5,
+                    "placeholder": "Descripción del Schedule en español...",
+                }
+            ),
+        }
+
+
+class ShowcaseSettingsForm(forms.ModelForm):
+    """Formulario para editar solo la sección Showcase"""
+
+    class Meta:
+        model = SiteSettings
+        fields = [
+            "showcase_image",
+            "showcase_title_en",
+            "showcase_subtitle_en",
+            "showcase_description_en",
+            "showcase_title_es",
+            "showcase_subtitle_es",
+            "showcase_description_es",
+        ]
+        widgets = {
+            "showcase_image": forms.FileInput(
+                attrs={"class": "form-control", "accept": "image/*"}
+            ),
+            "showcase_title_en": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "SHOWCASES AND PROSPECT GATEWAYS",
+                    "rows": 2,
+                }
+            ),
+            "showcase_subtitle_en": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "REGIONAL AND NATIONAL SHOWCASES",
+                    "rows": 2,
+                }
+            ),
+            "showcase_description_en": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 5,
+                    "placeholder": "Showcase description in English...",
+                }
+            ),
+            "showcase_title_es": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "SHOWCASES Y PORTALES DE PROSPECTO",
+                    "rows": 2,
+                }
+            ),
+            "showcase_subtitle_es": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "SHOWCASES REGIONALES Y NACIONALES",
+                    "rows": 2,
                 }
             ),
             "showcase_description_es": forms.Textarea(

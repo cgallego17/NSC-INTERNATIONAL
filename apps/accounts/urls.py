@@ -125,10 +125,21 @@ urlpatterns = [
         name="banner_delete",
     ),
     # Configuraciones del Sitio
+    # Redirección desde URL antigua (mantener por compatibilidad)
     path(
-        "site-settings/",
-        views_banners.SiteSettingsUpdateView.as_view(),
-        name="site_settings",
+        "edit-site-settings/",
+        views_banners.SiteSettingsRedirectView.as_view(),
+        name="edit_site_settings_redirect",
+    ),
+    path(
+        "edit-schedule-settings/",
+        views_banners.ScheduleSettingsUpdateView.as_view(),
+        name="edit_schedule_settings",
+    ),
+    path(
+        "edit-showcase-settings/",
+        views_banners.ShowcaseSettingsUpdateView.as_view(),
+        name="edit_showcase_settings",
     ),
     # Administración de Contenido del Home
     path(

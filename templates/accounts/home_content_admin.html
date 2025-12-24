@@ -229,7 +229,7 @@
                     <i class="bi bi-calendar-event admin-card-icon"></i>
                     <h2 class="admin-card-title mb-0">Sección Schedule</h2>
                 </div>
-                <a href="{% url 'accounts:site_settings' %}" class="btn btn-primary btn-sm">
+                <a href="{% url 'accounts:edit_schedule_settings' %}" class="btn btn-primary btn-sm">
                     <i class="bi bi-pencil me-1"></i>Editar
                 </a>
             </div>
@@ -272,7 +272,7 @@
                     <i class="bi bi-star admin-card-icon"></i>
                     <h2 class="admin-card-title mb-0">Sección Showcase</h2>
                 </div>
-                <a href="{% url 'accounts:site_settings' %}" class="btn btn-primary btn-sm">
+                <a href="{% url 'accounts:edit_showcase_settings' %}" class="btn btn-primary btn-sm">
                     <i class="bi bi-pencil me-1"></i>Editar
                 </a>
             </div>
@@ -474,9 +474,14 @@
                     </a>
                 </div>
                 <div class="col-md-3">
-                    <a href="{% url 'accounts:site_settings' %}" class="btn btn-outline-info w-100">
-                        <i class="bi bi-gear me-2"></i>Configuraciones
-                    </a>
+                    <div class="btn-group-vertical w-100" role="group">
+                        <a href="{% url 'accounts:edit_schedule_settings' %}" class="btn btn-outline-info mb-2">
+                            <i class="bi bi-calendar-event me-2"></i>Editar Schedule
+                        </a>
+                        <a href="{% url 'accounts:edit_showcase_settings' %}" class="btn btn-outline-info">
+                            <i class="bi bi-star me-2"></i>Editar Showcase
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

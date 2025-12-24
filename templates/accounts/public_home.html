@@ -2198,15 +2198,13 @@
                         <div class="video-promo-player-wrapper">
                             <div id="videoPromoInlineHost">
                                 <video 
+                                    id="videoPromoPlayer"
                                     class="video-promo-video" 
                                     controls 
                                     autoplay 
                                     muted 
-                                    loop 
                                     playsinline
-                                    poster="https://video.squarespace-cdn.com/content/v1/674f14408ec27f4443197a96/e57aa702-31ed-48e1-891b-a4beeb1cbcd4/thumbnail">
-                                    <source src="https://video.squarespace-cdn.com/content/v1/674f14408ec27f4443197a96/e57aa702-31ed-48e1-891b-a4beeb1cbcd4/playlist.m3u8" type="application/x-mpegURL">
-                                    <source src="https://video.squarespace-cdn.com/content/v1/674f14408ec27f4443197a96/e57aa702-31ed-48e1-891b-a4beeb1cbcd4/video.mp4" type="video/mp4">
+                                    style="display: block;">
                                     {% trans "Your browser does not support video playback." %}
                                 </video>
                             </div>
@@ -2238,39 +2236,57 @@
                 
                 <!-- Right Column - Promotional Content -->
                 <div class="col-lg-4">
-                    <div class="video-promo-content">
+                    <div class="video-promo-content" id="videoPromoContent">
                         <h2 class="video-promo-title">
-                            {% if merida_event and merida_event.title %}
-                                <span class="video-promo-title-accent">{% trans "NEXT EVENT" %}</span>
-                                <span class="video-promo-title-main">{{ merida_event.title|upper }}</span>
-                            {% else %}
-                                <span class="video-promo-title-accent">{% trans "EVENT IN" %}</span>
-                                <span class="video-promo-title-main">MÉRIDA</span>
-                            {% endif %}
+                            <span class="video-promo-title-accent" id="promoTitleAccent">{% trans "NEXT EVENT" %}</span>
+                            <span class="video-promo-title-main" id="promoTitleMain">{% trans "Loading..." %}</span>
                         </h2>
-                        <p class="video-promo-description">
-                            {% blocktrans %}Experience NSC International in <strong>Mérida, Yucatán</strong>: competition, visibility and development for athletes and families. Check dates, venues and available categories.{% endblocktrans %}
+                        <p class="video-promo-description" id="promoDescription">
+                            {% trans "Loading event information..." %}
                         </p>
-                        <div class="video-promo-options">
+                        <div class="video-promo-options" id="promoOptions">
                             <span class="video-promo-option-btn">
                                 <i class="fas fa-map-marker-alt"></i>
-                                <span>Mérida, Yucatán</span>
+                                <span id="promoLocation">-</span>
                             </span>
                             <span class="video-promo-option-btn">
                                 <i class="fas fa-baseball-ball"></i>
-                                <span>{% trans "Tournament / Showcase" %}</span>
+                                <span id="promoType">-</span>
                             </span>
                             <span class="video-promo-option-btn">
                                 <i class="fas fa-users"></i>
-                                <span>{% trans "Available Categories" %}</span>
+                                <span id="promoDivisions">-</span>
                             </span>
                         </div>
-                        <a href="{% url 'events:list' %}?search=Merida" class="video-promo-cta-btn">{% trans "VIEW MÉRIDA EVENT" %}</a>
+                        <a href="#" class="video-promo-cta-btn" id="promoEventLink">{% trans "VIEW EVENT" %}</a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
+    <!-- Eventos con videos para el carrusel -->
+    <script id="promoEventsData" type="application/json">
+    {
+        "events": [
+            {% if promo_events %}
+                {% for event in promo_events %}
+                {
+                    "id": {{ event.id }},
+                    "title": {{ event.title|escapejs|safe }},
+                    "description": {{ event.description|escapejs|safe|truncatewords:30 }},
+                    "video_url": {{ event.video_url|escapejs|safe }},
+                    "location": "{% if event.city %}{{ event.city.name }}{% if event.state %}, {{ event.state.name }}{% endif %}{% else %}{{ event.location|default:"-" }}{% endif %}",
+                    "event_type": "{% if event.event_type %}{{ event.event_type.name }}{% else %}{% trans 'Tournament / Showcase' %}{% endif %}",
+                    "divisions": "{% for division in event.divisions.all %}{{ division.name }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans 'All Categories' %}{% endfor %}",
+                    "start_date": "{{ event.start_date|date:'Y-m-d' }}",
+                    "detail_url": "{% url 'events:detail' event.pk %}"
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            {% endif %}
+        ]
+    }
+    </script>
 
     <!-- Season Schedule Section -->
     <div class="schedule-section-card mb-5">
@@ -2924,35 +2940,163 @@
             });
         }
         
-        // HLS.js support for Squarespace video
+        // Video Promo Carousel - Cambio automático de videos
         (function() {
-            const video = document.querySelector('.video-promo-video');
-            if (video) {
-                const videoSrc = video.querySelector('source[type="application/x-mpegURL"]');
-                if (videoSrc && video.canPlayType('application/vnd.apple.mpegurl') === '') {
-                    // Browser doesn't support HLS natively, use hls.js
-                    if (typeof Hls !== 'undefined') {
-                        const hls = new Hls();
-                        hls.loadSource(videoSrc.src);
-                        hls.attachMedia(video);
-                        hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                            // Video is ready to play
-                        });
-                    } else {
-                        // Load hls.js from CDN
-                        const script = document.createElement('script');
-                        script.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
-                        script.onload = function() {
-                            const hls = new Hls();
-                            hls.loadSource(videoSrc.src);
+            const eventsDataScript = document.getElementById('promoEventsData');
+            if (!eventsDataScript) return;
+            
+            const eventsData = JSON.parse(eventsDataScript.textContent);
+            const events = eventsData.events || [];
+            
+            if (events.length === 0) return;
+            
+            const video = document.getElementById('videoPromoPlayer');
+            if (!video) return;
+            
+            let currentIndex = 0;
+            let hls = null;
+            
+            // Función para convertir URL de YouTube/Vimeo a formato directo si es necesario
+            function getVideoSource(videoUrl) {
+                // Si es una URL directa de video, usarla directamente
+                if (videoUrl.match(/\.(mp4|webm|ogg|m3u8)$/i)) {
+                    return videoUrl;
+                }
+                // Si es YouTube, convertir a formato embed
+                const youtubeMatch = videoUrl.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+                if (youtubeMatch) {
+                    return `https://www.youtube.com/embed/${youtubeMatch[1]}?autoplay=1&mute=1&loop=1&playlist=${youtubeMatch[1]}`;
+                }
+                // Si es Vimeo, convertir a formato embed
+                const vimeoMatch = videoUrl.match(/vimeo\.com\/(?:.*\/)?(\d+)/);
+                if (vimeoMatch) {
+                    return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1&mute=1&loop=1`;
+                }
+                return videoUrl;
+            }
+            
+            // Función para cargar un video
+            function loadVideo(event) {
+                if (!event || !event.video_url) return;
+                
+                // Limpiar HLS anterior si existe
+                if (hls) {
+                    hls.destroy();
+                    hls = null;
+                }
+                
+                // Limpiar sources anteriores
+                video.innerHTML = '';
+                
+                const videoUrl = event.video_url;
+                const videoSource = getVideoSource(videoUrl);
+                
+                // Si es YouTube o Vimeo, usar iframe (pero no podemos detectar cuando termina)
+                // Por ahora, solo usamos videos directos para poder detectar el evento 'ended'
+                // Si es YouTube/Vimeo, intentamos extraer el video directo o usar el iframe con timeout
+                if (videoSource.includes('youtube.com/embed') || videoSource.includes('vimeo.com/video')) {
+                    // Para YouTube/Vimeo, usamos un iframe pero con un timeout para cambiar
+                    // (ya que no podemos detectar cuando termina)
+                    const iframe = document.createElement('iframe');
+                    iframe.id = 'videoPromoIframe';
+                    iframe.src = videoSource;
+                    iframe.style.width = '100%';
+                    iframe.style.height = '100%';
+                    iframe.style.border = 'none';
+                    iframe.style.position = 'absolute';
+                    iframe.style.top = '0';
+                    iframe.style.left = '0';
+                    iframe.allow = 'autoplay; encrypted-media';
+                    iframe.allowFullscreen = true;
+                    
+                    // Ocultar el video y mostrar el iframe
+                    video.style.display = 'none';
+                    const videoContainer = video.parentElement;
+                    if (videoContainer) {
+                        // Remover iframe anterior si existe
+                        const oldIframe = document.getElementById('videoPromoIframe');
+                        if (oldIframe) oldIframe.remove();
+                        videoContainer.appendChild(iframe);
+                    }
+                    
+                    // Para YouTube/Vimeo, cambiar después de 30 segundos (aproximado)
+                    // ya que no podemos detectar cuando termina
+                    setTimeout(nextVideo, 30000);
+                } else {
+                    // Es un video directo - mostrar el video y ocultar iframe si existe
+                    video.style.display = 'block';
+                    const oldIframe = document.getElementById('videoPromoIframe');
+                    if (oldIframe) oldIframe.remove();
+                    // Es un video directo
+                    const source = document.createElement('source');
+                    source.src = videoSource;
+                    
+                    // Detectar tipo de video
+                    if (videoSource.includes('.m3u8')) {
+                        source.type = 'application/x-mpegURL';
+                    } else if (videoSource.includes('.mp4')) {
+                        source.type = 'video/mp4';
+                    } else if (videoSource.includes('.webm')) {
+                        source.type = 'video/webm';
+                    }
+                    
+                    video.appendChild(source);
+                    video.appendChild(document.createTextNode('{% trans "Your browser does not support video playback." %}'));
+                    
+                    // Si es HLS y el navegador no lo soporta nativamente, usar hls.js
+                    if (videoSource.includes('.m3u8') && video.canPlayType('application/vnd.apple.mpegurl') === '') {
+                        if (typeof Hls !== 'undefined') {
+                            hls = new Hls();
+                            hls.loadSource(videoSource);
                             hls.attachMedia(video);
                             hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                                // Video is ready to play
+                                video.play().catch(() => {});
                             });
-                        };
-                        document.head.appendChild(script);
+                        } else {
+                            const script = document.createElement('script');
+                            script.src = 'https://cdn.jsdelivr.net/npm/hls.js@latest';
+                            script.onload = function() {
+                                hls = new Hls();
+                                hls.loadSource(videoSource);
+                                hls.attachMedia(video);
+                                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                                    video.play().catch(() => {});
+                                });
+                            };
+                            document.head.appendChild(script);
+                        }
+                    } else {
+                        video.load();
+                        video.play().catch(() => {});
                     }
                 }
+                
+                // Actualizar información del evento
+                updateEventInfo(event);
+            }
+            
+            // Función para actualizar la información del evento
+            function updateEventInfo(event) {
+                document.getElementById('promoTitleMain').textContent = event.title.toUpperCase() || '{% trans "Event" %}';
+                document.getElementById('promoDescription').innerHTML = event.description || '{% trans "Experience NSC International events" %}';
+                document.getElementById('promoLocation').textContent = event.location || '-';
+                document.getElementById('promoType').textContent = event.event_type || '{% trans "Tournament / Showcase" %}';
+                document.getElementById('promoDivisions').textContent = event.divisions || '{% trans "All Categories" %}';
+                document.getElementById('promoEventLink').href = event.detail_url || '#';
+            }
+            
+            // Función para cambiar al siguiente video
+            function nextVideo() {
+                currentIndex = (currentIndex + 1) % events.length;
+                loadVideo(events[currentIndex]);
+            }
+            
+            // Escuchar cuando termine el video
+            video.addEventListener('ended', nextVideo);
+            
+            // Cargar el primer video
+            if (events.length > 0) {
+                loadVideo(events[0]);
             }
         })();
 

@@ -18,7 +18,9 @@ services:
       retries: 5
 
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
     command: gunicorn --bind 0.0.0.0:8000 nsc_admin.wsgi:application
     volumes:
       - static_volume:/app/staticfiles
@@ -47,7 +49,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx.prod.conf:/etc/nginx/nginx.conf
+      - ./config/nginx.prod.conf:/etc/nginx/nginx.conf
       - static_volume:/app/staticfiles
       - media_volume:/app/media
       - ./ssl:/etc/nginx/ssl

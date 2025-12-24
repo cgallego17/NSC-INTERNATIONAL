@@ -30,7 +30,7 @@ def run_command(command, description):
 
 def create_env_file():
     """Crea el archivo .env desde env.example"""
-    env_example = Path("env.example")
+    env_example = Path("config/env.example")
     env_file = Path(".env")
 
     if env_file.exists():
@@ -107,7 +107,9 @@ def main():
     create_directories()
 
     # Instalar dependencias
-    if not run_command("pip install -r requirements.txt", "Instalando dependencias"):
+    if not run_command(
+        "pip install -r requirements/requirements.txt", "Instalando dependencias"
+    ):
         print("❌ Error instalando dependencias")
         sys.exit(1)
 

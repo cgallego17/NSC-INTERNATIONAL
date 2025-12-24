@@ -1,0 +1,718 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Configuración Schedule - NSC International{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-color: #0d2c54;
+        --secondary-color: #d50032;
+        --accent-color: #ffd700;
+        --success-color: #28a745;
+        --danger-color: #dc3545;
+        --light-bg: #f8f9fa;
+        --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        --card-shadow-hover: 0 8px 24px rgba(0,0,0,0.12);
+        --border-radius: 16px;
+    }
+
+    /* Asegurar que el contenedor funcione correctamente */
+    .main-content {
+        padding: 0 !important;
+    }
+    
+    .page-content {
+        padding: 0 !important;
+    }
+
+    .settings-container {
+        padding: 2rem 1.5rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+        min-height: calc(100vh - 200px);
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .settings-container .page-header {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%) !important;
+        color: white !important;
+        padding: 2.5rem !important;
+        border-radius: var(--border-radius) !important;
+        margin-bottom: 2.5rem !important;
+        box-shadow: var(--card-shadow-hover) !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+
+    .settings-container .page-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: pulse 4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); opacity: 0.5; }
+        50% { transform: scale(1.1); opacity: 0.8; }
+    }
+
+    .settings-container .page-header h1 {
+        margin: 0 0 0.75rem 0 !important;
+        font-size: 2.25rem !important;
+        font-weight: 800 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 1rem !important;
+        position: relative !important;
+        z-index: 1 !important;
+        color: white !important;
+    }
+
+    .settings-container .page-header p {
+        margin: 0 !important;
+        opacity: 0.95 !important;
+        font-size: 1.15rem !important;
+        position: relative !important;
+        z-index: 1 !important;
+        color: white !important;
+    }
+
+    .content-wrapper {
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        padding: 2.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .form-section {
+        margin-bottom: 3rem;
+    }
+
+    .form-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 3px solid #e9ecef;
+    }
+
+    .section-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.75rem;
+        box-shadow: 0 4px 12px rgba(13, 44, 84, 0.3);
+    }
+
+    .section-title {
+        flex: 1;
+    }
+
+    .section-title h3 {
+        margin: 0 0 0.5rem 0;
+        color: var(--primary-color);
+        font-size: 1.75rem;
+        font-weight: 700;
+    }
+
+    .section-title p {
+        margin: 0;
+        color: #6c757d;
+        font-size: 0.95rem;
+    }
+
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .form-group {
+        margin-bottom: 0;
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .form-group label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.95rem;
+    }
+
+    .form-group label i {
+        color: var(--secondary-color);
+        font-size: 1.1rem;
+    }
+
+    .form-group textarea,
+    .form-group input[type="text"] {
+        width: 100%;
+        padding: 1rem 1.25rem;
+        border: 2px solid #dee2e6;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-family: inherit;
+        resize: vertical;
+        min-height: 100px;
+        transition: all 0.3s;
+        background: #fff;
+    }
+
+    .form-group input[type="text"] {
+        min-height: 50px;
+        resize: none;
+    }
+
+    .form-group textarea:focus,
+    .form-group input[type="text"]:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 4px rgba(13, 44, 84, 0.1);
+        background: #fff;
+        transform: translateY(-2px);
+    }
+
+    .file-upload-wrapper {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .file-upload-label {
+        display: block;
+        padding: 2rem;
+        border: 3px dashed #dee2e6;
+        border-radius: 12px;
+        background: #f8f9fa;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .file-upload-label:hover {
+        border-color: var(--primary-color);
+        background: rgba(13, 44, 84, 0.05);
+        transform: scale(1.02);
+    }
+
+    .file-upload-label i {
+        font-size: 3rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .file-upload-label span {
+        display: block;
+        color: #6c757d;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+
+    .form-group input[type="file"] {
+        position: absolute;
+        opacity: 0;
+        width: 100%;
+        height: 100%;
+        cursor: pointer;
+    }
+
+    .image-preview-container {
+        margin-top: 1.5rem;
+        text-align: center;
+        padding: 1.5rem;
+        background: #f8f9fa;
+        border-radius: 12px;
+    }
+
+    .image-preview {
+        max-width: 100%;
+        max-height: 450px;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        border: 3px solid white;
+        padding: 0.5rem;
+        background: white;
+        transition: transform 0.3s;
+    }
+
+    .image-preview:hover {
+        transform: scale(1.02);
+    }
+
+    .language-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        border: 2px solid #e9ecef;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .language-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+    }
+
+    .language-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .language-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1.25rem;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 25px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        box-shadow: 0 2px 8px rgba(13, 44, 84, 0.3);
+    }
+
+    .language-header h4 {
+        margin: 0;
+        color: var(--primary-color);
+        font-size: 1.5rem;
+        font-weight: 700;
+        flex: 1;
+    }
+
+    .alert {
+        padding: 1.5rem 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        border-left: 5px solid;
+        animation: slideIn 0.4s ease-out;
+        box-shadow: var(--card-shadow);
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .alert-danger {
+        background: linear-gradient(135deg, #fff5f5 0%, #ffe5e5 100%);
+        color: #c53030;
+        border-color: var(--danger-color);
+    }
+
+    .error-message {
+        color: var(--danger-color);
+        font-size: 0.875rem;
+        margin-top: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: rgba(220, 53, 69, 0.1);
+        border-radius: 8px;
+        border-left: 3px solid var(--danger-color);
+    }
+
+    .error-message::before {
+        content: "⚠";
+        font-size: 1.2rem;
+    }
+
+    .btn-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 3rem;
+        padding: 2rem;
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        justify-content: flex-end;
+    }
+
+    .btn {
+        padding: 1rem 2.5rem;
+        border: none;
+        border-radius: 12px;
+        font-size: 1.05rem;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .btn:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+        color: white;
+        box-shadow: 0 6px 20px rgba(13, 44, 84, 0.4);
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(13, 44, 84, 0.5);
+        color: white;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+    }
+
+    .btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 18px rgba(108, 117, 125, 0.4);
+        color: white;
+    }
+
+    .btn i {
+        font-size: 1.2rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .btn span {
+        position: relative;
+        z-index: 1;
+    }
+
+    @media (max-width: 768px) {
+        .settings-container {
+            padding: 1rem;
+        }
+
+        .settings-container .page-header {
+            padding: 1.5rem !important;
+        }
+
+        .settings-container .page-header h1 {
+            font-size: 1.5rem !important;
+        }
+
+        .content-wrapper {
+            padding: 1.5rem;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+
+        .btn-group {
+            flex-direction: column;
+            padding: 1.5rem;
+        }
+
+        .btn {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <div class="page-header">
+        <h1>
+            <i class="bi bi-calendar-event"></i>
+            Editar Configuración Schedule
+        </h1>
+        <p>Gestiona la imagen y contenido de la sección "Season Schedule" del home</p>
+    </div>
+    
+    {% if form.errors %}
+        <div class="alert alert-danger">
+            <strong><i class="bi bi-exclamation-triangle-fill"></i> Errores en el formulario:</strong>
+            <ul style="margin: 1rem 0 0 1.5rem;">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li>{{ field }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    
+    <form method="post" enctype="multipart/form-data" id="scheduleForm">
+        {% csrf_token %}
+        
+        <div class="content-wrapper">
+            <!-- Imagen del Schedule -->
+            <div class="form-section">
+                <div class="section-header">
+                    <div class="section-icon">
+                        <i class="bi bi-image"></i>
+                    </div>
+                    <div class="section-title">
+                        <h3>Imagen del Schedule</h3>
+                        <p>Selecciona la imagen que se mostrará en la sección Schedule</p>
+                    </div>
+                </div>
+                
+                <div class="form-group full-width">
+                    <label for="{{ form.schedule_image.id_for_label }}">
+                        <i class="bi bi-cloud-upload"></i>
+                        Seleccionar Imagen
+                    </label>
+                    <div class="file-upload-wrapper">
+                        <label class="file-upload-label" for="{{ form.schedule_image.id_for_label }}">
+                            <i class="bi bi-cloud-upload"></i>
+                            <span>Haz clic para seleccionar una imagen</span>
+                            <small style="display: block; margin-top: 0.5rem; color: #6c757d;">PNG, JPG o WEBP (máx. 5MB)</small>
+                        </label>
+                        {{ form.schedule_image }}
+                    </div>
+                    <div class="image-preview-container">
+                        {% if form.instance.schedule_image %}
+                            <img src="{{ form.instance.schedule_image.url }}" alt="Schedule" class="image-preview" id="schedule_preview">
+                        {% else %}
+                            <img src="" alt="Preview" class="image-preview" id="schedule_preview" style="display: none;">
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule - Inglés -->
+            <div class="form-section">
+                <div class="language-section">
+                    <div class="language-header">
+                        <h4>Contenido en Inglés</h4>
+                        <span class="language-badge">
+                            <i class="bi bi-globe"></i>
+                            EN
+                        </span>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.schedule_title_en.id_for_label }}">
+                                <i class="bi bi-type-h1"></i>
+                                Título
+                            </label>
+                            {{ form.schedule_title_en }}
+                            {% if form.schedule_title_en.errors %}
+                                <div class="error-message">
+                                    {{ form.schedule_title_en.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.schedule_subtitle_en.id_for_label }}">
+                                <i class="bi bi-type"></i>
+                                Subtítulo
+                            </label>
+                            {{ form.schedule_subtitle_en }}
+                            {% if form.schedule_subtitle_en.errors %}
+                                <div class="error-message">
+                                    {{ form.schedule_subtitle_en.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.schedule_description_en.id_for_label }}">
+                            <i class="bi bi-text-paragraph"></i>
+                            Descripción
+                        </label>
+                        {{ form.schedule_description_en }}
+                        {% if form.schedule_description_en.errors %}
+                            <div class="error-message">
+                                {{ form.schedule_description_en.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule - Español -->
+            <div class="form-section">
+                <div class="language-section">
+                    <div class="language-header">
+                        <h4>Contenido en Español</h4>
+                        <span class="language-badge">
+                            <i class="bi bi-globe"></i>
+                            ES
+                        </span>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.schedule_title_es.id_for_label }}">
+                                <i class="bi bi-type-h1"></i>
+                                Título
+                            </label>
+                            {{ form.schedule_title_es }}
+                            {% if form.schedule_title_es.errors %}
+                                <div class="error-message">
+                                    {{ form.schedule_title_es.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="{{ form.schedule_subtitle_es.id_for_label }}">
+                                <i class="bi bi-type"></i>
+                                Subtítulo
+                            </label>
+                            {{ form.schedule_subtitle_es }}
+                            {% if form.schedule_subtitle_es.errors %}
+                                <div class="error-message">
+                                    {{ form.schedule_subtitle_es.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.schedule_description_es.id_for_label }}">
+                            <i class="bi bi-text-paragraph"></i>
+                            Descripción
+                        </label>
+                        {{ form.schedule_description_es }}
+                        {% if form.schedule_description_es.errors %}
+                            <div class="error-message">
+                                {{ form.schedule_description_es.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Botones de Acción -->
+        <div class="btn-group">
+            <a href="{% url 'accounts:home_content_admin' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i>
+                <span>Cancelar</span>
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i>
+                <span>Guardar Configuración</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Preview de imágenes con animación mejorada
+    function setupImagePreview(inputId, previewId) {
+        const input = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+        const label = input?.closest('.file-upload-wrapper')?.querySelector('.file-upload-label');
+        
+        if (input && preview) {
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Validar tamaño (5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('El archivo es demasiado grande. Por favor, selecciona una imagen menor a 5MB.');
+                        this.value = '';
+                        return;
+                    }
+                    
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                        preview.style.animation = 'fadeIn 0.5s ease-out';
+                        
+                        if (label) {
+                            label.querySelector('span').textContent = file.name;
+                            label.style.borderColor = 'var(--primary-color)';
+                            label.style.background = 'rgba(13, 44, 84, 0.05)';
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.style.display = 'none';
+                    if (label) {
+                        label.querySelector('span').textContent = 'Haz clic para seleccionar una imagen';
+                        label.style.borderColor = '#dee2e6';
+                        label.style.background = '#f8f9fa';
+                    }
+                }
+            });
+        }
+    }
+
+    // Inicializar preview
+    setupImagePreview('id_schedule_image', 'schedule_preview');
+
+    // Validación del formulario antes de enviar
+    document.getElementById('scheduleForm')?.addEventListener('submit', function(e) {
+        const submitBtn = this.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> <span>Guardando...</span>';
+            submitBtn.disabled = true;
+        }
+    });
+</script>
+{% endblock %}
+

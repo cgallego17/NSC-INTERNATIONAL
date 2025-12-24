@@ -41,8 +41,8 @@ def main():
     # Install development dependencies
     commands = [
         ("pip install --upgrade pip", "Upgrading pip"),
-        ("pip install -r requirements.txt", "Installing project dependencies"),
-        ("pip install -r requirements-security.txt", "Installing security tools"),
+        ("pip install -r requirements/requirements.txt", "Installing project dependencies"),
+        ("pip install -r requirements/requirements-security.txt", "Installing security tools"),
         (
             "pip install black isort flake8 mypy pre-commit",
             "Installing code quality tools",

@@ -34,8 +34,8 @@ security-events: write
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-security.txt
+          pip install -r requirements/requirements.txt
+          pip install -r requirements/requirements-security.txt
 
       - name: Run Safety (Python dependencies)
         run: |
@@ -134,7 +134,7 @@ security-events: write
 
       - name: Build Docker image
         run: |
-          docker build -t nsc-security-scan .
+          docker build -f docker/Dockerfile -t nsc-security-scan .
 
       - name: Run Trivy (Vulnerability scanner)
         uses: aquasecurity/trivy-action@master

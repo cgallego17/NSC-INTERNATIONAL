@@ -96,10 +96,31 @@ class PublicHomeView(TemplateView):
                 )
 
             context["merida_event"] = future_merida
+
+            # Obtener eventos con videos promocionales para el carrusel de videos
+            # Priorizar eventos futuros con video_url, luego los más recientes
+            promo_events = (
+                Event.objects.exclude(status="cancelled")
+                .exclude(video_url__isnull=True)
+                .exclude(video_url="")
+                .filter(status="published")
+                .select_related("category", "event_type", "city", "state", "country")
+                .prefetch_related("divisions")
+                .order_by("start_date")
+            )
+            
+            # Si hay eventos futuros, priorizarlos
+            future_promo_events = promo_events.filter(start_date__gte=now.date())
+            if future_promo_events.exists():
+                context["promo_events"] = list(future_promo_events[:10])  # Máximo 10 eventos
+            else:
+                # Si no hay futuros, tomar los más recientes
+                context["promo_events"] = list(promo_events.order_by("-start_date")[:10])
         except ImportError:
             context["upcoming_events"] = []
             context["today_events"] = []
             context["merida_event"] = None
+            context["promo_events"] = []
 
         # Estadísticas públicas
         context["total_teams"] = Team.objects.filter(is_active=True).count()

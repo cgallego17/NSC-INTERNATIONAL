@@ -27,7 +27,7 @@ security-events: write
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements/requirements.txt
           pip install black isort flake8 mypy pre-commit
 
       - name: Run Black (Code formatting)

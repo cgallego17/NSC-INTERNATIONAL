@@ -66,8 +66,8 @@ def install_security_tools():
 
     tools = [
         ("pip install --upgrade pip", "Upgrade pip"),
-        ("pip install -r requirements.txt", "Install project dependencies"),
-        ("pip install -r requirements-security.txt", "Install security tools"),
+        ("pip install -r requirements/requirements.txt", "Install project dependencies"),
+        ("pip install -r requirements/requirements-security.txt", "Install security tools"),
         (
             "pip install black isort flake8 mypy pre-commit",
             "Install code quality tools",

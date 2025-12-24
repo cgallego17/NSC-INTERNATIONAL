@@ -50,6 +50,7 @@ security-events: write
       uses: docker/build-push-action@v5
       with:
         context: .
+        file: docker/Dockerfile
         platforms: linux/amd64,linux/arm64
         push: true
         tags: ${{ steps.meta.outputs.tags }}
@@ -70,7 +71,7 @@ security-events: write
 
     - name: Build test image
       run: |
-        docker build -t nsc-test .
+        docker build -f docker/Dockerfile.dev -t nsc-test .
 
     - name: Run tests in container
       run: |
@@ -95,7 +96,7 @@ security-events: write
 
     - name: Build image for scanning
       run: |
-        docker build -t nsc-security .
+        docker build -f docker/Dockerfile -t nsc-security .
 
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
