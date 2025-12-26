@@ -7,7 +7,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% trans "NSC International - Professional Baseball" %}</title>
+    <title>{% trans "NCS International - Professional Baseball" %}</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -2065,7 +2065,7 @@
     <nav class="navbar navbar-expand-lg navbar-mlb">
         <div class="container-fluid px-0">
             <a class="navbar-brand" href="/">
-                <img src="{% static 'images/ncs-white.svg' %}" alt="NSC International" class="navbar-logo">
+                <img src="{% static 'images/ncs-white.svg' %}" alt="NCS International" class="navbar-logo">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: white;">
                 <span style="color: white;"><i class="fas fa-bars"></i></span>
@@ -2086,7 +2086,7 @@
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:panel' %}">{% trans "Panel" %}</a>
+                            <a class="nav-link" href="{% url 'accounts:panel' %}">{% trans "My Account" %}</a>
                         </li>
                     {% else %}
                         <li class="nav-item">
@@ -2212,7 +2212,7 @@
                                 <div class="video-promo-overlay-content">
                                     <div class="video-promo-logo-small">
                                         <i class="fas fa-baseball-ball"></i>
-                                        <span>NSC INTERNATIONAL</span>
+                                        <span>NCS INTERNATIONAL</span>
                                     </div>
                                     <div class="video-promo-overlay-actions">
                                         <button class="video-promo-action-btn" title="{% trans 'Watch later' %}">
@@ -2224,7 +2224,7 @@
                                                 title="{% trans 'Enable sound' %}">
                                             <i class="fas fa-volume-mute"></i>
                                         </button>
-                                        <button class="video-promo-action-btn" title="{% trans 'Share' %}" onclick="navigator.share ? navigator.share({title: 'NSC International Video', url: window.location.href}) : navigator.clipboard.writeText(window.location.href).then(() => alert('{% trans "Link copied to clipboard" %}'))">
+                                        <button class="video-promo-action-btn" title="{% trans 'Share' %}" onclick="navigator.share ? navigator.share({title: 'NCS International Video', url: window.location.href}) : navigator.clipboard.writeText(window.location.href).then(() => alert('{% trans "Link copied to clipboard" %}'))">
                                             <i class="fas fa-share-alt"></i>
                                         </button>
                                     </div>
@@ -2324,7 +2324,7 @@
                             {% if site_settings %}
                                 {{ site_settings.get_schedule_description }}
                             {% else %}
-                                {% blocktrans %}As we move forward into 2026, NSC International continues to elevate its tournament and showcase platform. With a regional presence expansion for ages 7U-18U, new and improved National and Regional Championship events, and an even broader showcase schedule across the country, NSC remains dedicated to providing the highest standard of competition and experience for players, coaches and families alike.{% endblocktrans %}
+                                {% blocktrans %}As we move forward into 2026, NCS International continues to elevate its tournament and showcase platform. With a regional presence expansion for ages 7U-18U, new and improved National and Regional Championship events, and an even broader showcase schedule across the country, NCS remains dedicated to providing the highest standard of competition and experience for players, coaches and families alike.{% endblocktrans %}
                             {% endif %}
                         </p>
                         <div class="schedule-buttons">
@@ -2336,7 +2336,7 @@
                                     </a>
                                 {% endfor %}
                             {% else %}
-                                <a href="{% url 'events:list' %}" class="schedule-category-btn">{% trans "NSC CALENDAR" %}</a>
+                                <a href="{% url 'events:list' %}" class="schedule-category-btn">{% trans "NCS CALENDAR" %}</a>
                             {% endif %}
                         </div>
                     </div>
@@ -2708,8 +2708,8 @@
     <section class="cta-section">
         <div class="container-fluid px-4">
             <div style="max-width: 1200px; margin: 0 auto;">
-            <h2>{% trans "Ready to Get Started?" %}</h2>
-            <p>{% trans "Join the best professional baseball management platform" %}</p>
+            <h2>{% trans "Get Started Today" %}</h2>
+            <p>{% trans "Create a Profile • Player Profile • Team Profile • Register for Events" %}</p>
             {% if not user.is_authenticated %}
                 <a href="/accounts/register/" class="btn btn-mlb me-3">
                     <i class="fas fa-user-plus me-2"></i>{% trans "Sign Up Now" %}
@@ -2719,7 +2719,7 @@
                 </a>
             {% else %}
                 <a href="{% url 'accounts:panel' %}" class="btn btn-mlb">
-                    <i class="fas fa-tachometer-alt me-2"></i>{% trans "Go to Panel" %}
+                    <i class="fas fa-tachometer-alt me-2"></i>{% trans "Go to My Account" %}
                 </a>
             {% endif %}
             </div>
@@ -2732,7 +2732,7 @@
             <div class="row" style="max-width: 1400px; margin: 0 auto;">
                 <div class="col-md-4 mb-4">
                     <h5>
-                        <i class="fas fa-baseball-ball me-2"></i>NSC International
+                        <i class="fas fa-baseball-ball me-2"></i>NCS International
                     </h5>
                     <p style="line-height: 1.8;">
                         {% blocktrans %}The professional platform to manage tournaments, teams and baseball players. Complete sports management system.{% endblocktrans %}
@@ -2742,7 +2742,7 @@
                     <h5>{% trans "Quick Links" %}</h5>
                     <a href="/">{% trans "Home" %}</a>
                     {% if user.is_authenticated %}
-                        <a href="{% url 'accounts:panel' %}">{% trans "Panel" %}</a>
+                        <a href="{% url 'accounts:panel' %}">{% trans "My Account" %}</a>
                         <a href="{% url 'events:list' %}">{% trans "Events" %}</a>
                         <a href="/accounts/teams/">{% trans "Teams" %}</a>
                     {% else %}
@@ -2760,7 +2760,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p class="mb-0">&copy; 2024 NSC International. {% trans "All rights reserved." %}</p>
+                <p class="mb-0">&copy; 2025 NCS International. {% trans "All rights reserved." %}</p>
             </div>
         </div>
     </footer>
@@ -2777,7 +2777,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-center mb-4" style="color: #666; position: relative; z-index: 1;">{% trans "Access your NSC International account" %}</p>
+                    <p class="text-center mb-4" style="color: #666; position: relative; z-index: 1;">{% trans "Access your NCS International account" %}</p>
                     
                     <form method="post" action="{% url 'accounts:login' %}">
                         {% csrf_token %}
@@ -3078,7 +3078,7 @@
             // Función para actualizar la información del evento
             function updateEventInfo(event) {
                 document.getElementById('promoTitleMain').textContent = event.title.toUpperCase() || '{% trans "Event" %}';
-                document.getElementById('promoDescription').innerHTML = event.description || '{% trans "Experience NSC International events" %}';
+                document.getElementById('promoDescription').innerHTML = event.description || '{% trans "Experience NCS International events" %}';
                 document.getElementById('promoLocation').textContent = event.location || '-';
                 document.getElementById('promoType').textContent = event.event_type || '{% trans "Tournament / Showcase" %}';
                 document.getElementById('promoDivisions').textContent = event.divisions || '{% trans "All Categories" %}';

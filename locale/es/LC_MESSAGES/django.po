@@ -1,12 +1,12 @@
 # Django translation file for Spanish
-# Copyright (C) 2024 NSC International
-# This file is distributed under the same license as the NSC International project.
+# Copyright (C) 2025 NCS International
+# This file is distributed under the same license as the NCS International project.
 msgid ""
 msgstr ""
 "Project-Id-Version: NSC International 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-23 17:17-0500\n"
-"PO-Revision-Date: 2024-01-01 00:00+0000\n"
+"POT-Creation-Date: 2025-12-26 14:09-0500\n"
+"PO-Revision-Date: 2025-01-01 00:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
 "Language: es\n"
@@ -15,139 +15,343 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: .\templates\accounts\public_home.html:9
-msgid "NSC International - Professional Baseball"
+#: .\apps\accounts\forms.py:27 .\apps\accounts\forms.py:813
+#: .\templates\accounts\public_home.html:2800
+msgid "Email"
+msgstr "Correo Electrónico"
+
+#: .\apps\accounts\forms.py:31
+#, fuzzy
+#| msgid "your@email.com"
+msgid "you@email.com"
+msgstr "tu@email.com"
+
+#: .\apps\accounts\forms.py:36
+msgid "Please enter your email address."
+msgstr "Por favor, ingresa tu correo electrónico."
+
+#: .\apps\accounts\forms.py:37
+msgid "Please enter a valid email address."
+msgstr "Por favor, ingresa un correo electrónico válido."
+
+#: .\apps\accounts\forms.py:42 .\templates\accounts\public_home.html:2817
+msgid "Password"
+msgstr "Contraseña"
+
+#: .\apps\accounts\forms.py:44 .\templates\accounts\public_home.html:2823
+msgid "Enter your password"
+msgstr "Ingresa tu contraseña"
+
+#: .\apps\accounts\forms.py:46
+#, fuzzy
+#| msgid "Enter your password"
+msgid "Please enter your password."
+msgstr "Ingresa tu contraseña"
+
+#: .\apps\accounts\forms.py:63
+msgid "Email is required."
+msgstr "El correo electrónico es requerido."
+
+#: .\apps\accounts\forms.py:75
+#, fuzzy
+#| msgid "Enter your password"
+msgid "Please enter a correct email and password."
+msgstr "Por favor, ingresa un correo electrónico y contraseña correctos."
+
+#: .\apps\accounts\forms.py:119 .\apps\accounts\forms.py:833
+#: .\apps\accounts\forms.py:1093
+#, fuzzy
+#| msgid "Season description (optional)"
+msgid "Second last name (optional)"
+msgstr "Segundo apellido (opcional)"
+
+#: .\apps\accounts\forms.py:168
+msgid "Phone number"
+msgstr "Número de teléfono"
+
+#: .\apps\accounts\forms.py:179
+#, fuzzy
+#| msgid "Season description (optional)"
+msgid "Secondary phone (optional)"
+msgstr "Teléfono secundario (opcional)"
+
+#: .\apps\accounts\forms.py:198 .\apps\accounts\forms.py:524
+#: .\apps\accounts\forms.py:758
+msgid "Select a country"
+msgstr "Selecciona un país"
+
+#: .\apps\accounts\forms.py:221 .\apps\accounts\forms.py:492
+#, fuzzy
+#| msgid "Full hotel address"
+msgid "Full address"
+msgstr "Dirección completa"
+
+#: .\apps\accounts\forms.py:250 .\apps\accounts\forms.py:512
+msgid "Tell us about yourself..."
+msgstr "Cuéntanos sobre ti..."
+
+#: .\apps\accounts\forms.py:388 .\apps\accounts\forms.py:980
+#: .\apps\accounts\forms.py:1286
+msgid "This email is already registered. Please use another email."
+msgstr "Este email ya está registrado. Por favor, usa otro email."
+
+#: .\apps\accounts\forms.py:396 .\apps\accounts\forms.py:988
+#: .\apps\accounts\forms.py:1294
+#, fuzzy
+#| msgid "First name"
+msgid "First name is required."
+msgstr "El nombre es requerido."
+
+#: .\apps\accounts\forms.py:403 .\apps\accounts\forms.py:995
+#: .\apps\accounts\forms.py:1301
+msgid "Last name is required."
+msgstr "El apellido es requerido."
+
+#: .\apps\accounts\forms.py:730
+#, fuzzy
+#| msgid "Description"
+msgid "Team description"
+msgstr "Descripción del equipo"
+
+#: .\apps\accounts\forms.py:818
+msgid "First name"
+msgstr "Nombre"
+
+#: .\apps\accounts\forms.py:824 .\apps\accounts\forms.py:1084
+msgid "Last name"
+msgstr "Apellido"
+
+#: .\apps\accounts\forms.py:839
+msgid "Temporary password"
+msgstr "Contraseña temporal"
+
+#: .\apps\accounts\forms.py:841
+msgid "The player will be able to change their password later"
+msgstr "El jugador podrá cambiar su contraseña después"
+
+#: .\apps\accounts\forms.py:847
+msgid "Phone"
+msgstr "Teléfono"
+
+#: .\apps\accounts\forms.py:883 .\apps\accounts\forms.py:1156
+#, fuzzy
+#| msgid "e.g.: 10"
+msgid "e.g.: 5'10\""
+msgstr "Ej: 5'10\""
+
+#: .\apps\accounts\forms.py:1077
+#, fuzzy
+#| msgid "Players"
+msgid "Player name"
+msgstr "Nombre del jugador"
+
+#: .\apps\accounts\forms.py:1101
+#, fuzzy
+#| msgid "Players"
+msgid "Player phone"
+msgstr "Teléfono del jugador"
+
+#: .\apps\accounts\forms.py:1111
+msgid "Player's date of birth"
+msgstr "Fecha de nacimiento del jugador"
+
+#: .\apps\accounts\forms.py:1115
+msgid "Father"
+msgstr "Padre"
+
+#: .\apps\accounts\forms.py:1116
+msgid "Mother"
+msgstr "Madre"
+
+#: .\apps\accounts\forms.py:1117
+msgid "Guardian"
+msgstr "Acudiente"
+
+#: .\apps\accounts\forms.py:1118
+msgid "Other"
+msgstr "Otro"
+
+#: .\apps\accounts\forms.py:1121
+msgid "Relationship to the player"
+msgstr "Relación con el jugador"
+
+#: .\apps\accounts\forms.py:1128
+msgid "Primary Contact"
+msgstr "Contacto Principal"
+
+#: .\apps\accounts\forms.py:1129
+msgid "Check if you are the primary contact for the player"
+msgstr "Marcar si eres el contacto principal del jugador"
+
+#: .\apps\accounts\forms.py:1465
+msgid "Specify medical conditions or \"None\""
+msgstr "Especifica condiciones médicas o \"Ninguna\""
+
+#: .\apps\accounts\forms.py:1484
+msgid "Notes on age verification"
+msgstr "Notas sobre la verificación de edad"
+
+#: .\apps\accounts\forms.py:1653
+#, fuzzy
+#| msgid "Season description (optional)"
+msgid "Banner title (optional)"
+msgstr "Título del banner (opcional)"
+
+#: .\apps\accounts\views_public.py:283
+msgid "This account is inactive. Please contact the administrator."
+msgstr ""
+
+#: .\apps\accounts\views_public.py:302
+msgid ""
+"Players cannot log in. Please contact your parent/guardian to manage your "
+"information."
+msgstr ""
+
+#: .\apps\accounts\views_public.py:316 .\apps\accounts\views_public.py:323
+#, fuzzy, python-format
+#| msgid "Welcome!"
+msgid "Welcome, %(name)s!"
+msgstr "¡Bienvenido!"
+
+#: .\templates\accounts\public_home.html:10
+#, fuzzy
+#| msgid "NSC International - Professional Baseball"
+msgid "NCS International - Professional Baseball"
 msgstr "NSC International - Béisbol Profesional"
 
-#: .\templates\accounts\public_home.html:2050
+#: .\templates\accounts\public_home.html:2051
 msgid "My Account"
 msgstr "Mi Cuenta"
 
-#: .\templates\accounts\public_home.html:2052
+#: .\templates\accounts\public_home.html:2053
 msgid "Log Out"
 msgstr "Cerrar Sesión"
 
-#: .\templates\accounts\public_home.html:2054
-#: .\templates\accounts\public_home.html:2749
-#: .\templates\accounts\public_home.html:2781
-#: .\templates\accounts\public_home.html:2807
-#: .\templates\accounts\public_home.html:2871
+#: .\templates\accounts\public_home.html:2055
+#: .\templates\accounts\public_home.html:2718
+#: .\templates\accounts\public_home.html:2750
+#: .\templates\accounts\public_home.html:2776
+#: .\templates\accounts\public_home.html:2840
 msgid "Log In"
 msgstr "Iniciar Sesión"
 
-#: .\templates\accounts\public_home.html:2056
-#: .\templates\accounts\public_home.html:2093
-#: .\templates\accounts\public_home.html:2780
+#: .\templates\accounts\public_home.html:2057
+#: .\templates\accounts\public_home.html:2094
+#: .\templates\accounts\public_home.html:2749
 msgid "Sign Up"
 msgstr "Registrarse"
 
-#: .\templates\accounts\public_home.html:2075
-#: .\templates\accounts\public_home.html:2774
+#: .\templates\accounts\public_home.html:2076
+#: .\templates\accounts\public_home.html:2743
 msgid "Home"
 msgstr "Inicio"
 
-#: .\templates\accounts\public_home.html:2078
-#: .\templates\accounts\public_home.html:2777
+#: .\templates\accounts\public_home.html:2079
+#: .\templates\accounts\public_home.html:2746
 msgid "Events"
 msgstr "Eventos"
 
-#: .\templates\accounts\public_home.html:2081
-#: .\templates\accounts\public_home.html:2778
+#: .\templates\accounts\public_home.html:2082
+#: .\templates\accounts\public_home.html:2747
 msgid "Teams"
 msgstr "Equipos"
 
-#: .\templates\accounts\public_home.html:2084
+#: .\templates\accounts\public_home.html:2085
 msgid "Players"
 msgstr "Jugadores"
 
-#: .\templates\accounts\public_home.html:2088
-#: .\templates\accounts\public_home.html:2776
+#: .\templates\accounts\public_home.html:2089
+#: .\templates\accounts\public_home.html:2745
 msgid "Panel"
 msgstr "Panel"
 
-#: .\templates\accounts\public_home.html:2181
+#: .\templates\accounts\public_home.html:2182
 msgid "Previous"
 msgstr "Anterior"
 
-#: .\templates\accounts\public_home.html:2185
+#: .\templates\accounts\public_home.html:2186
 msgid "Next"
 msgstr "Siguiente"
 
-#: .\templates\accounts\public_home.html:2209
+#: .\templates\accounts\public_home.html:2208
+#: .\templates\accounts\public_home.html:3044
 msgid "Your browser does not support video playback."
 msgstr "Tu navegador no soporta la reproducción de video."
 
-#: .\templates\accounts\public_home.html:2219
+#: .\templates\accounts\public_home.html:2218
 msgid "Watch later"
 msgstr "Ver más tarde"
 
-#: .\templates\accounts\public_home.html:2223
-#: .\templates\accounts\public_home.html:2225
+#: .\templates\accounts\public_home.html:2222
+#: .\templates\accounts\public_home.html:2224
 msgid "Enable sound"
 msgstr "Activar sonido"
 
-#: .\templates\accounts\public_home.html:2224
+#: .\templates\accounts\public_home.html:2223
 msgid "Mute"
 msgstr "Silenciar"
 
-#: .\templates\accounts\public_home.html:2228
+#: .\templates\accounts\public_home.html:2227
 msgid "Share"
 msgstr "Compartir"
 
-#: .\templates\accounts\public_home.html:2228
+#: .\templates\accounts\public_home.html:2227
 msgid "Link copied to clipboard"
 msgstr "Enlace copiado al portapapeles"
 
-#: .\templates\accounts\public_home.html:2243
+#: .\templates\accounts\public_home.html:2241
 msgid "NEXT EVENT"
 msgstr "PRÓXIMO EVENTO"
 
-#: .\templates\accounts\public_home.html:2246
-msgid "EVENT IN"
-msgstr "EVENTO EN"
-
-#: .\templates\accounts\public_home.html:2251
-msgid ""
-"Experience NSC International in <strong>Mérida, Yucatán</strong>: "
-"competition, visibility and development for athletes and families. Check "
-"dates, venues and available categories."
+#: .\templates\accounts\public_home.html:2242
+msgid "Loading..."
 msgstr ""
-"Vive la experiencia NSC International en <strong>Mérida, Yucatán</strong>: "
-"competencia, visibilidad y desarrollo para atletas y familias. Consulta "
-"fechas, sedes y categorías disponibles."
 
-#: .\templates\accounts\public_home.html:2260
+#: .\templates\accounts\public_home.html:2245
+msgid "Loading event information..."
+msgstr ""
+
+#: .\templates\accounts\public_home.html:2261
+#, fuzzy
+#| msgid "VIEW MÉRIDA EVENT"
+msgid "VIEW EVENT"
+msgstr "VER EVENTO DE MÉRIDA"
+
+#: .\templates\accounts\public_home.html:2280
+#: .\templates\accounts\public_home.html:3083
 msgid "Tournament / Showcase"
 msgstr "Torneo / Showcase"
 
-#: .\templates\accounts\public_home.html:2264
-msgid "Available Categories"
+#: .\templates\accounts\public_home.html:2281
+#: .\templates\accounts\public_home.html:3084
+#, fuzzy
+#| msgid "Available Categories"
+msgid "All Categories"
 msgstr "Categorías disponibles"
 
-#: .\templates\accounts\public_home.html:2267
-msgid "VIEW MÉRIDA EVENT"
-msgstr "VER EVENTO DE MÉRIDA"
-
-#: .\templates\accounts\public_home.html:2295
-#: .\templates\accounts\public_home.html:2299
-#: .\templates\accounts\public_home.html:2308
+#: .\templates\accounts\public_home.html:2313
 msgid "2026 EVENT CALENDAR"
 msgstr "CALENDARIO DE EVENTOS 2026"
 
-#: .\templates\accounts\public_home.html:2314
-#: .\templates\accounts\public_home.html:2318
-#: .\templates\accounts\public_home.html:2327
+#: .\templates\accounts\public_home.html:2320
 msgid "REGIONAL EXPANSION AND NEW NATIONAL AND REGIONAL CHAMPIONSHIPS FOR 2026"
 msgstr ""
 "EXPANSIÓN REGIONAL Y NUEVOS CAMPEONATOS NACIONALES Y REGIONALES PARA 2026"
 
-#: .\templates\accounts\public_home.html:2334
-#: .\templates\accounts\public_home.html:2342
+#: .\templates\accounts\public_home.html:2327
+#, fuzzy
+#| msgid ""
+#| "As we move forward into 2026, NSC International continues to elevate its "
+#| "tournament and showcase platform. With a regional presence expansion for "
+#| "ages 7U-18U, new and improved National and Regional Championship events, "
+#| "and an even broader showcase schedule across the country, NSC remains "
+#| "dedicated to providing the highest standard of competition and experience "
+#| "for players, coaches and families alike."
 msgid ""
-"As we move forward into 2026, NSC International continues to elevate its "
+"As we move forward into 2026, NCS International continues to elevate its "
 "tournament and showcase platform. With a regional presence expansion for "
 "ages 7U-18U, new and improved National and Regional Championship events, and "
-"an even broader showcase schedule across the country, NSC remains dedicated "
+"an even broader showcase schedule across the country, NCS remains dedicated "
 "to providing the highest standard of competition and experience for players, "
 "coaches and families alike."
 msgstr ""
@@ -158,44 +362,41 @@ msgstr ""
 "en todo el país, NSC se mantiene dedicado a ofrecer el más alto estándar de "
 "competencia y experiencia para jugadores, entrenadores y familias por igual."
 
-#: .\templates\accounts\public_home.html:2354
-msgid "NSC CALENDAR"
-msgstr "CALENDARIO NSC"
+#: .\templates\accounts\public_home.html:2339
+msgid "NCS CALENDAR"
+msgstr "CALENDARIO NCS"
 
-#: .\templates\accounts\public_home.html:2366
+#: .\templates\accounts\public_home.html:2351
 msgid "EVENTS"
 msgstr "EVENTOS"
 
-#: .\templates\accounts\public_home.html:2367
+#: .\templates\accounts\public_home.html:2352
 msgid "VIEW ALL"
 msgstr "VER TODOS"
 
-#: .\templates\accounts\public_home.html:2424
-#: .\templates\accounts\public_home.html:2445
-#: .\templates\accounts\public_home.html:2466
-#: .\templates\accounts\public_home.html:2486
+#: .\templates\accounts\public_home.html:2409
+#: .\templates\accounts\public_home.html:2430
+#: .\templates\accounts\public_home.html:2451
+#: .\templates\accounts\public_home.html:2471
 msgid "COMING SOON"
 msgstr "PRÓXIMAMENTE"
 
-#: .\templates\accounts\public_home.html:2428
-#: .\templates\accounts\public_home.html:2449
-#: .\templates\accounts\public_home.html:2470
-#: .\templates\accounts\public_home.html:2490
+#: .\templates\accounts\public_home.html:2413
+#: .\templates\accounts\public_home.html:2434
+#: .\templates\accounts\public_home.html:2455
+#: .\templates\accounts\public_home.html:2475
 msgid "Very soon"
 msgstr "Muy pronto"
 
-#: .\templates\accounts\public_home.html:2526
-#: .\templates\accounts\public_home.html:2531
+#: .\templates\accounts\public_home.html:2512
 msgid "SHOWCASES AND PROSPECT GATEWAYS"
 msgstr "SHOWCASES Y PORTALES DE PROSPECTO"
 
-#: .\templates\accounts\public_home.html:2537
-#: .\templates\accounts\public_home.html:2542
+#: .\templates\accounts\public_home.html:2519
 msgid "REGIONAL AND NATIONAL SHOWCASES"
 msgstr "SHOWCASES REGIONALES Y NACIONALES"
 
-#: .\templates\accounts\public_home.html:2549
-#: .\templates\accounts\public_home.html:2557
+#: .\templates\accounts\public_home.html:2526
 msgid ""
 "Perfect Game is thrilled to offer showcases (HS) and Prospect Gateways (13U/"
 "14U) across the country for the 2025 calendar. This includes regional events "
@@ -204,40 +405,40 @@ msgid ""
 "country."
 msgstr ""
 "Perfect Game se complace en ofrecer showcases (HS) y Prospect Gateways (13U/"
-"14U) en todo el país para el calendario 2025. Esto incluye eventos regionales "
-"para todas las edades y nuevos eventos solo por invitación. PG se esfuerza "
-"por ofrecer los mejores eventos y experiencias para todos los jugadores, "
-"entrenadores y familias en todo el país."
+"14U) en todo el país para el calendario 2025. Esto incluye eventos "
+"regionales para todas las edades y nuevos eventos solo por invitación. PG se "
+"esfuerza por ofrecer los mejores eventos y experiencias para todos los "
+"jugadores, entrenadores y familias en todo el país."
 
-#: .\templates\accounts\public_home.html:2561
+#: .\templates\accounts\public_home.html:2530
 msgid "SHOWCASE SCHEDULE"
 msgstr "CALENDARIO DE SHOWCASES"
 
-#: .\templates\accounts\public_home.html:2562
+#: .\templates\accounts\public_home.html:2531
 msgid "GATEWAY SCHEDULE"
 msgstr "CALENDARIO DE GATEWAYS"
 
-#: .\templates\accounts\public_home.html:2615
+#: .\templates\accounts\public_home.html:2584
 msgid "Follow us on Instagram"
 msgstr "Síguenos en Instagram"
 
-#: .\templates\accounts\public_home.html:2742
+#: .\templates\accounts\public_home.html:2711
 msgid "Ready to Get Started?"
 msgstr "¿Listo para Comenzar?"
 
-#: .\templates\accounts\public_home.html:2743
+#: .\templates\accounts\public_home.html:2712
 msgid "Join the best professional baseball management platform"
 msgstr "Únete a la mejor plataforma de gestión de béisbol profesional"
 
-#: .\templates\accounts\public_home.html:2746
+#: .\templates\accounts\public_home.html:2715
 msgid "Sign Up Now"
 msgstr "Registrarse Ahora"
 
-#: .\templates\accounts\public_home.html:2753
+#: .\templates\accounts\public_home.html:2722
 msgid "Go to Panel"
 msgstr "Ir al Panel"
 
-#: .\templates\accounts\public_home.html:2769
+#: .\templates\accounts\public_home.html:2738
 msgid ""
 "The professional platform to manage tournaments, teams and baseball players. "
 "Complete sports management system."
@@ -245,51 +446,432 @@ msgstr ""
 "La plataforma profesional para gestionar torneos, equipos y jugadores de "
 "béisbol. Sistema completo de gestión deportiva."
 
-#: .\templates\accounts\public_home.html:2773
+#: .\templates\accounts\public_home.html:2742
 msgid "Quick Links"
 msgstr "Enlaces Rápidos"
 
-#: .\templates\accounts\public_home.html:2785
+#: .\templates\accounts\public_home.html:2754
 msgid "Contact"
 msgstr "Contacto"
 
-#: .\templates\accounts\public_home.html:2794
+#: .\templates\accounts\public_home.html:2763
 msgid "All rights reserved."
 msgstr "Todos los derechos reservados."
 
-#: .\templates\accounts\public_home.html:2808
-#: .\templates\accounts\public_home.html:3051
+#: .\templates\accounts\public_home.html:2777
+#: .\templates\accounts\public_home.html:3176
 msgid "Close"
 msgstr "Cerrar"
 
-#: .\templates\accounts\public_home.html:2811
-msgid "Access your NSC International account"
+#: .\templates\accounts\public_home.html:2780
+#, fuzzy
+#| msgid "Access your NSC International account"
+msgid "Access your NCS International account"
 msgstr "Accede a tu cuenta de NSC International"
 
-#: .\templates\accounts\public_home.html:2825
+#: .\templates\accounts\public_home.html:2794
 msgid "Please verify your credentials and try again."
 msgstr "Por favor, verifica tus credenciales e intenta nuevamente."
 
-#: .\templates\accounts\public_home.html:2831
-msgid "Email"
-msgstr "Correo Electrónico"
-
-#: .\templates\accounts\public_home.html:2837
+#: .\templates\accounts\public_home.html:2806
 msgid "your@email.com"
 msgstr "tu@email.com"
 
-#: .\templates\accounts\public_home.html:2848
-msgid "Password"
-msgstr "Contraseña"
-
-#: .\templates\accounts\public_home.html:2854
-msgid "Enter your password"
-msgstr "Ingresa tu contraseña"
-
-#: .\templates\accounts\public_home.html:2865
+#: .\templates\accounts\public_home.html:2834
 msgid "Remember me"
 msgstr "Recordarme"
 
-#: .\templates\accounts\public_home.html:2877
+#: .\templates\accounts\public_home.html:2846
 msgid "Don't have an account? <a href=\"/accounts/register/\">Sign up here</a>"
 msgstr "¿No tienes cuenta? <a href=\"/accounts/register/\">Regístrate aquí</a>"
+
+#: .\templates\accounts\public_home.html:3080
+msgid "Event"
+msgstr "Evento"
+
+#: .\templates\accounts\public_home.html:3081
+#, fuzzy
+#| msgid "Experience NSC International events"
+msgid "Experience NCS International events"
+msgstr "Vive la experiencia de eventos NSC International"
+
+#~ msgid "Edit Schedule Settings"
+#~ msgstr "Editar Configuración Schedule"
+
+#~ msgid ""
+#~ "Manage the image and content of the 'Season Schedule' section on the home "
+#~ "page"
+#~ msgstr ""
+#~ "Gestiona la imagen y contenido de la sección 'Season Schedule' del home"
+
+#~ msgid "Form errors:"
+#~ msgstr "Errores en el formulario:"
+
+#~ msgid "English Content"
+#~ msgstr "Contenido en Inglés"
+
+#~ msgid "Title"
+#~ msgstr "Título"
+
+#~ msgid "Subtitle"
+#~ msgstr "Subtítulo"
+
+#~ msgid "Description"
+#~ msgstr "Descripción"
+
+#~ msgid "Spanish Content"
+#~ msgstr "Contenido en Español"
+
+#~ msgid "Cancel"
+#~ msgstr "Cancelar"
+
+#~ msgid "Save Settings"
+#~ msgstr "Guardar Configuración"
+
+#~ msgid "Edit Showcase Settings"
+#~ msgstr "Editar Configuración Showcase"
+
+#~ msgid ""
+#~ "Manage the image and content of the 'Showcases and Prospect Gateways' "
+#~ "section on the home page"
+#~ msgstr ""
+#~ "Gestiona la imagen y contenido de la sección 'Showcases and Prospect "
+#~ "Gateways' del home"
+
+#~ msgid "Calendar"
+#~ msgstr "Calendario"
+
+#, fuzzy
+#~| msgid "Create Team"
+#~ msgid "Create New Team"
+#~ msgstr "Crear Equipo"
+
+#, fuzzy
+#~| msgid "Description"
+#~ msgid "Team Description"
+#~ msgstr "Descripción"
+
+#, fuzzy
+#~| msgid "Previous"
+#~ msgid "Preview"
+#~ msgstr "Anterior"
+
+#, fuzzy
+#~| msgid "Contact"
+#~ msgid "Contact Email"
+#~ msgstr "Contacto"
+
+#, fuzzy
+#~| msgid "Contact"
+#~ msgid "Contact Phone"
+#~ msgstr "Contacto"
+
+#~ msgid "Create Team"
+#~ msgstr "Crear Equipo"
+
+#~ msgid "Welcome!"
+#~ msgstr "¡Bienvenido!"
+
+#~ msgid ""
+#~ "This is your welcome area. The administrator can configure the content "
+#~ "from the administration panel."
+#~ msgstr ""
+#~ "Esta es tu zona de bienvenida. El administrador puede configurar el "
+#~ "contenido desde el panel de administración."
+
+#, fuzzy
+#~| msgid "My Profile"
+#~ msgid "My Player Profile"
+#~ msgstr "Mi Perfil"
+
+#, fuzzy
+#~| msgid "Teams"
+#~ msgid "Team"
+#~ msgstr "Equipos"
+
+#~ msgid "My Teams"
+#~ msgstr "Mis Equipos"
+
+#~ msgid "My Children/Players"
+#~ msgstr "Mis Hijos/Jugadores"
+
+#, fuzzy
+#~| msgid "Register Player"
+#~ msgid "Manage registered players"
+#~ msgstr "Registrar Jugador"
+
+#~ msgid "Edit Profile"
+#~ msgstr "Editar Perfil"
+
+#, fuzzy
+#~| msgid "Save Settings"
+#~ msgid "Save Changes"
+#~ msgstr "Guardar Configuración"
+
+#, fuzzy
+#~| msgid "Public Profile"
+#~ msgid "My Public Profile"
+#~ msgstr "Perfil Público"
+
+#, fuzzy
+#~| msgid "Register Player"
+#~ msgid "Register Child/Player"
+#~ msgstr "Registrar Jugador"
+
+#, fuzzy
+#~| msgid "Register Player"
+#~ msgid "Relationship to the Player"
+#~ msgstr "Registrar Jugador"
+
+#, fuzzy
+#~| msgid "Contact"
+#~ msgid "Contact Name"
+#~ msgstr "Contacto"
+
+#~ msgid "Register Player"
+#~ msgstr "Registrar Jugador"
+
+#, fuzzy
+#~| msgid "Password"
+#~ msgid "Temporary Password"
+#~ msgstr "Contraseña"
+
+#, fuzzy
+#~| msgid "Description"
+#~ msgid "Position"
+#~ msgstr "Descripción"
+
+#, fuzzy
+#~| msgid "Save Settings"
+#~ msgid "Batting"
+#~ msgstr "Guardar Configuración"
+
+#~ msgid "View Players"
+#~ msgstr "Ver Jugadores"
+
+#, fuzzy
+#~| msgid "Register Player"
+#~ msgid "List of registered players"
+#~ msgstr "Registrar Jugador"
+
+#~ msgid "Quick Actions"
+#~ msgstr "Acciones Rápidas"
+
+#~ msgid "Register Child"
+#~ msgstr "Registrar Hijo"
+
+#~ msgid "My Profile"
+#~ msgstr "Mi Perfil"
+
+#~ msgid "Public Profile"
+#~ msgstr "Perfil Público"
+
+#~ msgid "Get Started Today"
+#~ msgstr "Comienza Hoy"
+
+#~ msgid ""
+#~ "Create a Profile • Player Profile • Team Profile • Register for Events"
+#~ msgstr ""
+#~ "Crea un Perfil • Perfil de Jugador • Perfil de Equipo • Regístrate para "
+#~ "Eventos"
+
+#~ msgid "Go to My Account"
+#~ msgstr "Ir a Mi Cuenta"
+
+#~ msgid "Sign In"
+#~ msgstr "Iniciar Sesión"
+
+#~ msgid "Back to Home"
+#~ msgstr "Volver al Inicio"
+
+#~ msgid "Don't have an account?"
+#~ msgstr "¿No tienes una cuenta?"
+
+#~ msgid "Sign up here"
+#~ msgstr "Regístrate aquí"
+
+#~ msgid "Name, email, or team..."
+#~ msgstr "Nombre, email o equipo..."
+
+#~ msgid "Search by name..."
+#~ msgstr "Buscar por nombre..."
+
+#~ msgid "Search teams..."
+#~ msgstr "Buscar equipos..."
+
+#~ msgid "email@example.com"
+#~ msgstr "correo@ejemplo.com"
+
+#~ msgid "+1 (555) 123-4567"
+#~ msgstr "+1 (555) 123-4567"
+
+#~ msgid "Search by username, first name, last name, or email..."
+#~ msgstr "Buscar por usuario, nombre, apellido o email..."
+
+#~ msgid "Search events, users, settings..."
+#~ msgstr "Buscar eventos, usuarios, configuraciones..."
+
+#~ msgid "Houston, Texas"
+#~ msgstr "Houston, Texas"
+
+#~ msgid "e.g.: Baseball 10U D1"
+#~ msgstr "Ej: Baseball 10U D1"
+
+#~ msgid "e.g.: 10"
+#~ msgstr "Ej: 10"
+
+#~ msgid "e.g.: 11"
+#~ msgstr "Ej: 11"
+
+#~ msgid "Optional division description..."
+#~ msgstr "Descripción opcional de la división..."
+
+#~ msgid "Search by name, description..."
+#~ msgstr "Buscar por nombre, descripción..."
+
+#~ msgid "e.g.: Beginner, Intermediate..."
+#~ msgstr "Ej: Principiante, Intermedio..."
+
+#~ msgid "Search divisions..."
+#~ msgstr "Buscar divisiones..."
+
+#~ msgid "Search country..."
+#~ msgstr "Buscar país..."
+
+#~ msgid "Select a country first"
+#~ msgstr "Primero seleccione un país"
+
+#~ msgid "Select a country and state first"
+#~ msgstr "Primero seleccione país y estado"
+
+#~ msgid "Search and select site..."
+#~ msgstr "Buscar y seleccionar sitio..."
+
+#~ msgid "Search sites..."
+#~ msgstr "Buscar sitios..."
+
+#~ msgid "Search and select hotel..."
+#~ msgstr "Buscar y seleccionar hotel..."
+
+#~ msgid "Search hotels..."
+#~ msgstr "Buscar hoteles..."
+
+#~ msgid "Search by name or email..."
+#~ msgstr "Buscar por nombre o email..."
+
+#~ msgid "Search by name, email, phone..."
+#~ msgstr "Buscar por nombre, email, teléfono..."
+
+#~ msgid "Title, description, location..."
+#~ msgstr "Título, descripción, ubicación..."
+
+#~ msgid "e.g.: Grand Plaza Hotel"
+#~ msgstr "Ej: Hotel Grand Plaza"
+
+#~ msgid "Full hotel address"
+#~ msgstr "Dirección completa del hotel"
+
+#~ msgid "Search state..."
+#~ msgstr "Buscar estado..."
+
+#~ msgid "Search city..."
+#~ msgstr "Buscar ciudad..."
+
+#~ msgid "Name, address, city..."
+#~ msgstr "Nombre, dirección, ciudad..."
+
+#~ msgid "Full name of the primary guest"
+#~ msgstr "Nombre completo del huésped principal"
+
+#~ msgid "guest@email.com"
+#~ msgstr "huesped@email.com"
+
+#~ msgid "Additional notes about the reservation"
+#~ msgstr "Notas adicionales sobre la reserva"
+
+#~ msgid "Name, email, hotel..."
+#~ msgstr "Nombre, email, hotel..."
+
+#~ msgid "e.g.: 101, 205, Suite A"
+#~ msgstr "Ej: 101, 205, Suite A"
+
+#~ msgid "Number of guests"
+#~ msgstr "Número de personas"
+
+#~ msgid "Room description (amenities, view, etc.)"
+#~ msgstr "Descripción de la habitación (amenidades, vista, etc.)"
+
+#~ msgid "Room number, hotel..."
+#~ msgstr "Número, hotel..."
+
+#~ msgid "e.g.: Breakfast Buffet, Premium WiFi"
+#~ msgstr "Ej: Desayuno Buffet, WiFi Premium"
+
+#~ msgid "Detailed service description"
+#~ msgstr "Descripción detallada del servicio"
+
+#~ msgid "Service name, hotel..."
+#~ msgstr "Nombre del servicio, hotel..."
+
+#~ msgid "e.g.: Minimum Age Rule, Documentation Rule"
+#~ msgstr "Ej: Regla de Edad Mínima, Regla de Documentación"
+
+#~ msgid "Detailed rule description (optional)"
+#~ msgstr "Descripción detallada de la regla (opcional)"
+
+#~ msgid "e.g.: Regular Season 2025, Mexican League 2025"
+#~ msgstr "Ej: Temporada Regular 2025, Liga Mexicana 2025"
+
+#~ msgid "Season description (optional)"
+#~ msgstr "Descripción de la temporada (opcional)"
+
+#~ msgid "e.g.: Dodger Stadium, Yankee Stadium"
+#~ msgstr "Ej: Dodger Stadium, Yankee Stadium"
+
+#~ msgid "e.g.: DODG, YS"
+#~ msgstr "Ej: DODG, YS"
+
+#~ msgid "https://example.com"
+#~ msgstr "https://ejemplo.com"
+
+#~ msgid "Primary address"
+#~ msgstr "Dirección principal"
+
+#~ msgid "Secondary address"
+#~ msgstr "Dirección secundaria"
+
+#~ msgid "e.g.: 90012, 77002"
+#~ msgstr "Ej: 90012, 77002"
+
+#~ msgid "Enter any additional information about this site"
+#~ msgstr "Ingresa cualquier información adicional sobre este sitio"
+
+#~ msgid "e.g.: California, Texas, Baja California"
+#~ msgstr "Ej: California, Texas, Baja California"
+
+#~ msgid "e.g.: CA, TX, BC"
+#~ msgstr "Ej: CA, TX, BC"
+
+#~ msgid "Search by name, code..."
+#~ msgstr "Buscar por nombre, código..."
+
+#~ msgid "Username"
+#~ msgstr "Usuario"
+
+#~ msgid "Mexico"
+#~ msgstr "México"
+
+#~ msgid "User Panel"
+#~ msgstr "Panel de Usuario"
+
+#~ msgid "EVENT IN"
+#~ msgstr "EVENTO EN"
+
+#~ msgid ""
+#~ "Experience NSC International in <strong>Mérida, Yucatán</strong>: "
+#~ "competition, visibility and development for athletes and families. Check "
+#~ "dates, venues and available categories."
+#~ msgstr ""
+#~ "Vive la experiencia NSC International en <strong>Mérida, Yucatán</"
+#~ "strong>: competencia, visibilidad y desarrollo para atletas y familias. "
+#~ "Consulta fechas, sedes y categorías disponibles."

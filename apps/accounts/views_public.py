@@ -8,6 +8,7 @@ from django.contrib.auth.views import LoginView as BaseLoginView
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.generic import (
     CreateView,
     TemplateView,
@@ -279,7 +280,7 @@ class PublicLoginView(BaseLoginView):
             logout(self.request)
             messages.error(
                 self.request,
-                "Esta cuenta está inactiva. Por favor, contacta al administrador.",
+                _("This account is inactive. Please contact the administrator."),
             )
             return redirect("accounts:login")
 
@@ -297,7 +298,9 @@ class PublicLoginView(BaseLoginView):
             logout(self.request)
             messages.error(
                 self.request,
-                "Los jugadores no pueden iniciar sesión. Por favor, contacta a tu padre/acudiente para gestionar tu información.",
+                _(
+                    "Players cannot log in. Please contact your parent/guardian to manage your information."
+                ),
             )
             return redirect("accounts:login")
 
@@ -308,11 +311,17 @@ class PublicLoginView(BaseLoginView):
         elif hasattr(user, "profile"):
             if user.profile.is_team_manager:
                 # Manager va al panel
-                messages.success(self.request, f"¡Bienvenido, {user.get_full_name()}!")
+                messages.success(
+                    self.request,
+                    _("Welcome, %(name)s!") % {"name": user.get_full_name()},
+                )
                 return redirect("accounts:panel")
             elif user.profile.is_parent:
                 # Padre va al panel
-                messages.success(self.request, f"¡Bienvenido, {user.get_full_name()}!")
+                messages.success(
+                    self.request,
+                    _("Welcome, %(name)s!") % {"name": user.get_full_name()},
+                )
                 return redirect("accounts:panel")
 
         # Por defecto, ir al panel

@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 import re
 
 from apps.locations.models import Country, State, City
@@ -23,26 +24,26 @@ class EmailAuthenticationForm(AuthenticationForm):
     """
 
     username = forms.EmailField(
-        label="Correo Electrónico",
+        label=_("Email"),
         widget=forms.EmailInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "tu@email.com",
+                "placeholder": _("you@email.com"),
                 "autofocus": True,
             }
         ),
         error_messages={
-            "required": "Por favor, ingresa tu correo electrónico.",
-            "invalid": "Por favor, ingresa un correo electrónico válido.",
+            "required": _("Please enter your email address."),
+            "invalid": _("Please enter a valid email address."),
         },
     )
 
     password = forms.CharField(
-        label="Contraseña",
+        label=_("Password"),
         widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": "Ingresa tu contraseña"}
+            attrs={"class": "form-control", "placeholder": _("Enter your password")}
         ),
-        error_messages={"required": "Por favor, ingresa tu contraseña."},
+        error_messages={"required": _("Please enter your password.")},
     )
 
     def __init__(self, *args, **kwargs):
@@ -59,7 +60,7 @@ class EmailAuthenticationForm(AuthenticationForm):
         email = self.cleaned_data.get("username")
 
         if not email:
-            raise forms.ValidationError("El correo electrónico es requerido.")
+            raise forms.ValidationError(_("Email is required."))
 
         # Buscar usuario por email (case-insensitive)
         try:
@@ -71,7 +72,7 @@ class EmailAuthenticationForm(AuthenticationForm):
             # Usar un username que no existe para que la autenticación falle
             # y Django muestre un mensaje genérico
             raise forms.ValidationError(
-                "Por favor, ingresa un correo electrónico y contraseña correctos."
+                _("Please enter a correct email and password.")
             )
         except User.MultipleObjectsReturned:
             # Si hay múltiples usuarios con el mismo email (no debería pasar)
@@ -115,7 +116,7 @@ class PublicRegistrationForm(UserCreationForm):
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Segundo Apellido (opcional)",
+                "placeholder": _("Second last name (optional)"),
             }
         ),
     )
@@ -164,7 +165,7 @@ class PublicRegistrationForm(UserCreationForm):
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Número de teléfono",
+                "placeholder": _("Phone number"),
                 "id": "id_phone",
             }
         ),
@@ -175,7 +176,7 @@ class PublicRegistrationForm(UserCreationForm):
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Teléfono Secundario (opcional)",
+                "placeholder": _("Secondary phone (optional)"),
             }
         ),
     )
@@ -194,7 +195,7 @@ class PublicRegistrationForm(UserCreationForm):
     country = forms.ModelChoiceField(
         queryset=Country.objects.filter(is_active=True).order_by("name"),
         required=False,
-        empty_label="Selecciona un país",
+        empty_label=_("Select a country"),
         widget=forms.Select(attrs={"class": "form-select", "id": "id_country"}),
     )
     state = forms.ModelChoiceField(
@@ -217,7 +218,7 @@ class PublicRegistrationForm(UserCreationForm):
             attrs={
                 "class": "form-control",
                 "rows": 3,
-                "placeholder": "Dirección completa",
+                "placeholder": _("Full address"),
             }
         ),
     )
@@ -246,7 +247,7 @@ class PublicRegistrationForm(UserCreationForm):
             attrs={
                 "class": "form-control",
                 "rows": 4,
-                "placeholder": "Cuéntanos sobre ti...",
+                "placeholder": _("Tell us about yourself..."),
             }
         ),
     )
@@ -384,7 +385,7 @@ class PublicRegistrationForm(UserCreationForm):
         email = self.cleaned_data.get("email")
         if email and User.objects.filter(email=email).exists():
             raise forms.ValidationError(
-                "Este email ya está registrado. Por favor, usa otro email."
+                _("This email is already registered. Please use another email.")
             )
         return email
 
@@ -392,14 +393,14 @@ class PublicRegistrationForm(UserCreationForm):
         """Validar que el nombre no esté vacío"""
         first_name = self.cleaned_data.get("first_name")
         if not first_name or not first_name.strip():
-            raise forms.ValidationError("El nombre es requerido.")
+            raise forms.ValidationError(_("First name is required."))
         return first_name.strip()
 
     def clean_last_name(self):
         """Validar que el apellido no esté vacío"""
         last_name = self.cleaned_data.get("last_name")
         if not last_name or not last_name.strip():
-            raise forms.ValidationError("El primer apellido es requerido.")
+            raise forms.ValidationError(_("Last name is required."))
         return last_name.strip()
 
     def clean_last_name2(self):
@@ -488,7 +489,7 @@ class UserProfileForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 3,
-                    "placeholder": "Dirección completa",
+                    "placeholder": _("Full address"),
                 }
             ),
             "postal_code": forms.TextInput(
@@ -508,7 +509,7 @@ class UserProfileForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 4,
-                    "placeholder": "Cuéntanos sobre ti...",
+                    "placeholder": _("Tell us about yourself..."),
                 }
             ),
         }
@@ -520,7 +521,7 @@ class UserProfileForm(forms.ModelForm):
         self.fields["country"] = forms.ModelChoiceField(
             queryset=Country.objects.filter(is_active=True).order_by("name"),
             required=False,
-            empty_label="Selecciona un país",
+            empty_label=_("Select a country"),
             widget=forms.Select(attrs={"class": "form-select", "id": "id_country"}),
         )
 
@@ -726,7 +727,7 @@ class TeamForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 4,
-                    "placeholder": "Descripción del equipo",
+                    "placeholder": _("Team description"),
                 }
             ),
             "logo": forms.FileInput(
@@ -754,7 +755,7 @@ class TeamForm(forms.ModelForm):
         self.fields["country"] = forms.ModelChoiceField(
             queryset=Country.objects.filter(is_active=True).order_by("name"),
             required=False,
-            empty_label="Selecciona un país",
+            empty_label=_("Select a country"),
             widget=forms.Select(
                 attrs={"class": "form-select", "id": "id_team_country"}
             ),
@@ -809,18 +810,18 @@ class PlayerRegistrationForm(forms.ModelForm):
     """Formulario para que managers registren jugadores"""
 
     email = forms.EmailField(
-        widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "Email"})
+        widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": _("Email")})
     )
     first_name = forms.CharField(
         max_length=30,
         widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Nombre"}
+            attrs={"class": "form-control", "placeholder": _("First name")}
         ),
     )
     last_name = forms.CharField(
         max_length=30,
         widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Primer Apellido"}
+            attrs={"class": "form-control", "placeholder": _("Last name")}
         ),
     )
     last_name2 = forms.CharField(
@@ -829,21 +830,21 @@ class PlayerRegistrationForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Segundo Apellido (opcional)",
+                "placeholder": _("Second last name (optional)"),
             }
         ),
     )
     password = forms.CharField(
         widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": "Contraseña temporal"}
+            attrs={"class": "form-control", "placeholder": _("Temporary password")}
         ),
-        help_text="El jugador podrá cambiar su contraseña después",
+        help_text=_("The player will be able to change their password later"),
     )
     phone = forms.CharField(
         max_length=20,
         required=False,
         widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Teléfono"}
+            attrs={"class": "form-control", "placeholder": _("Phone")}
         ),
     )
     birth_date = forms.DateField(
@@ -879,7 +880,7 @@ class PlayerRegistrationForm(forms.ModelForm):
             "jersey_number": forms.NumberInput(attrs={"class": "form-control"}),
             "position": forms.Select(attrs={"class": "form-select"}),
             "height": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Ej: 5'10\""}
+                attrs={"class": "form-control", "placeholder": _("e.g.: 5'10\"")}
             ),
             "weight": forms.NumberInput(attrs={"class": "form-control"}),
             "batting_hand": forms.Select(attrs={"class": "form-select"}),
@@ -976,7 +977,7 @@ class PlayerRegistrationForm(forms.ModelForm):
         email = self.cleaned_data.get("email")
         if email and User.objects.filter(email=email).exists():
             raise forms.ValidationError(
-                "Este email ya está registrado. Por favor, usa otro email."
+                _("This email is already registered. Please use another email.")
             )
         return email
 
@@ -984,14 +985,14 @@ class PlayerRegistrationForm(forms.ModelForm):
         """Validar que el nombre no esté vacío"""
         first_name = self.cleaned_data.get("first_name")
         if not first_name or not first_name.strip():
-            raise forms.ValidationError("El nombre es requerido.")
+            raise forms.ValidationError(_("First name is required."))
         return first_name.strip()
 
     def clean_last_name(self):
         """Validar que el apellido no esté vacío"""
         last_name = self.cleaned_data.get("last_name")
         if not last_name or not last_name.strip():
-            raise forms.ValidationError("El primer apellido es requerido.")
+            raise forms.ValidationError(_("Last name is required."))
         return last_name.strip()
 
     def clean_last_name2(self):
@@ -1073,14 +1074,14 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         max_length=30,
         required=True,
         widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Nombre del jugador"}
+            attrs={"class": "form-control", "placeholder": _("Player name")}
         ),
     )
     last_name = forms.CharField(
         max_length=30,
         required=True,
         widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Primer Apellido"}
+            attrs={"class": "form-control", "placeholder": _("Last name")}
         ),
     )
     last_name2 = forms.CharField(
@@ -1089,7 +1090,7 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Segundo Apellido (opcional)",
+                "placeholder": _("Second last name (optional)"),
             }
         ),
     )
@@ -1097,7 +1098,7 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         max_length=20,
         required=False,
         widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Teléfono del jugador"}
+            attrs={"class": "form-control", "placeholder": _("Player phone")}
         ),
     )
     birth_date = forms.DateField(
@@ -1107,25 +1108,25 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
             "type": "date",
             "data-format": "yyyy-MM-dd"
         }),
-        help_text="Fecha de nacimiento del jugador",
+        help_text=_("Player's date of birth"),
     )
     relationship = forms.ChoiceField(
         choices=[
-            ("father", "Padre"),
-            ("mother", "Madre"),
-            ("guardian", "Acudiente"),
-            ("other", "Otro"),
+            ("father", _("Father")),
+            ("mother", _("Mother")),
+            ("guardian", _("Guardian")),
+            ("other", _("Other")),
         ],
         widget=forms.Select(attrs={"class": "form-select"}),
-        label="Relación con el jugador",
+        label=_("Relationship to the player"),
         initial="guardian",
     )
     is_primary = forms.BooleanField(
         required=False,
         initial=True,
         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        label="Contacto Principal",
-        help_text="Marcar si eres el contacto principal del jugador",
+        label=_("Primary Contact"),
+        help_text=_("Check if you are the primary contact for the player"),
     )
 
     class Meta:
@@ -1152,7 +1153,7 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         widgets = {
             "position": forms.Select(attrs={"class": "form-select"}),
             "height": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Ej: 5'10\""}
+                attrs={"class": "form-control", "placeholder": _("e.g.: 5'10\"")}
             ),
             "weight": forms.NumberInput(attrs={"class": "form-control"}),
             "batting_hand": forms.Select(attrs={"class": "form-select"}),
@@ -1282,7 +1283,7 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         email = self.cleaned_data.get("email")
         if email and User.objects.filter(email=email).exists():
             raise forms.ValidationError(
-                "Este email ya está registrado. Por favor, usa otro email."
+                _("This email is already registered. Please use another email.")
             )
         return email
 
@@ -1290,14 +1291,14 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         """Validar que el nombre no esté vacío"""
         first_name = self.cleaned_data.get("first_name")
         if not first_name or not first_name.strip():
-            raise forms.ValidationError("El nombre es requerido.")
+            raise forms.ValidationError(_("First name is required."))
         return first_name.strip()
 
     def clean_last_name(self):
         """Validar que el apellido no esté vacío"""
         last_name = self.cleaned_data.get("last_name")
         if not last_name or not last_name.strip():
-            raise forms.ValidationError("El primer apellido es requerido.")
+            raise forms.ValidationError(_("Last name is required."))
         return last_name.strip()
 
     def clean_birth_date(self):
@@ -1461,7 +1462,7 @@ class PlayerUpdateForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 3,
-                    "placeholder": 'Especifica condiciones médicas o "Ninguna"',
+                    "placeholder": _('Specify medical conditions or "None"'),
                 }
             ),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
@@ -1480,7 +1481,7 @@ class PlayerUpdateForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 3,
-                    "placeholder": "Notas sobre la verificación de edad",
+                    "placeholder": _("Notes on age verification"),
                 }
             ),
         }
@@ -1649,7 +1650,7 @@ class HomeBannerForm(forms.ModelForm):
             "title": forms.TextInput(
                 attrs={
                     "class": "form-control",
-                    "placeholder": "Título del banner (opcional)",
+                    "placeholder": _("Banner title (optional)"),
                 }
             ),
             "description": forms.Textarea(

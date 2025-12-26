@@ -61,22 +61,19 @@ class I18nManager {
         const forms = document.querySelectorAll('form[action*="set_language"]');
         forms.forEach(form => {
             form.addEventListener('submit', (e) => {
-                e.preventDefault();
                 const formData = new FormData(form);
                 const language = formData.get('language');
-                this.changeLanguage(language);
-                
-                // También enviar al servidor para persistencia
-                fetch(form.action, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
-                    },
-                    body: formData
-                }).then(() => {
-                    // Opcional: recargar después de un breve delay
-                    // setTimeout(() => location.reload(), 100);
-                });
+                // Guardar selección para UI (y para cualquier lógica que dependa de localStorage)
+                if (language === 'en' || language === 'es') {
+                    localStorage.setItem('preferred_language', language);
+                    localStorage.setItem('user_selected_language', language);
+                    this.changeLanguage(language);
+                }
+
+                // IMPORTANTE:
+                // No prevenimos el submit. Dejamos que Django i18n/setlang haga redirect
+                // a `next` y recargue la página, para que las traducciones de templates
+                // ({% trans %}) se apliquen correctamente.
             });
         });
     }

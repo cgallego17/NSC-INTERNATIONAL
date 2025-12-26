@@ -37,6 +37,32 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
 
     template_name = "accounts/panel_usuario.html"
 
+    def dispatch(self, request, *args, **kwargs):
+        """Establecer inglés como idioma predeterminado si no hay idioma en la sesión"""
+        from django.utils import translation
+        from django.conf import settings
+        
+        # Forzar inglés si el usuario no ha seleccionado explícitamente un idioma
+        language_key = getattr(translation, "LANGUAGE_SESSION_KEY", "_language")
+        user_selected_key = 'user_selected_language'
+        user_selected = request.session.get(user_selected_key, False)
+        session_language = request.session.get(language_key)
+        
+        if not user_selected:
+            # El usuario no ha seleccionado un idioma explícitamente, forzar inglés
+            request.session[language_key] = settings.LANGUAGE_CODE
+            request.session.modified = True
+            translation.activate(settings.LANGUAGE_CODE)
+        elif session_language:
+            # El usuario seleccionó un idioma, usar ese
+            translation.activate(session_language)
+        else:
+            # Por seguridad, establecer inglés
+            request.session[language_key] = settings.LANGUAGE_CODE
+            translation.activate(settings.LANGUAGE_CODE)
+        
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
