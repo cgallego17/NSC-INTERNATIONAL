@@ -497,7 +497,7 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
 
     model = Player
     form_class = PlayerUpdateForm
-    template_name = "accounts/player_edit.html"
+    template_name = "accounts/player_edit.html"  # Default, se puede sobrescribir en get_template_names
 
     def dispatch(self, request, *args, **kwargs):
         player = self.get_object()
@@ -532,6 +532,32 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
         # Pasar información del usuario para que el formulario sepa si es padre
         kwargs["user"] = self.request.user
         return kwargs
+
+    def get_template_names(self):
+        """Usar diferentes templates según si es padre o manager/admin"""
+        is_parent = False
+        if (
+            hasattr(self.request.user, "profile")
+            and self.request.user.profile.is_parent
+        ):
+            from .models import PlayerParent
+
+            is_parent = PlayerParent.objects.filter(
+                parent=self.request.user, player=self.get_object()
+            ).exists()
+
+        is_parent_editing = is_parent and not (
+            self.request.user.is_staff or self.request.user.is_superuser
+        )
+
+        if is_parent_editing:
+            return [
+                "accounts/player_edit_hijo.html"
+            ]  # Template para padres editando hijos
+        else:
+            return [
+                "accounts/player_edit.html"
+            ]  # Template para managers/admins editando jugadores
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

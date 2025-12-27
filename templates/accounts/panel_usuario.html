@@ -750,8 +750,11 @@
             
             const url = editButton.getAttribute('data-url');
             const playerId = editButton.getAttribute('data-player-id');
+            const isParent = editButton.getAttribute('data-is-parent') === 'true';
+            const editType = editButton.getAttribute('data-edit-type') || (isParent ? 'hijo' : 'jugador');
             
             console.log('Edit button clicked, URL:', url);
+            console.log('Edit type:', editType, '(is_parent:', isParent, ')');
             
             if (!url) {
                 console.error('No se encontró la URL del formulario de edición');
@@ -868,55 +871,88 @@
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = html;
                 
-                // El template player_edit.html ya tiene tab-content-header y form-container
-                // Buscar si el HTML ya incluye estos elementos dentro del bloque content
-                const contentBlock = tempDiv.querySelector('div.tab-content-header') || 
-                                   tempDiv.querySelector('div.form-container') ||
-                                   tempDiv.querySelector('div.container-fluid') ||
-                                   tempDiv.querySelector('main') ||
-                                   tempDiv.querySelector('body');
-                
-                // Buscar el formulario
-                let form = tempDiv.querySelector('form[method="post"]');
-                if (!form) {
-                    form = tempDiv.querySelector('form');
-                }
+                // El template player_edit.html extiende base.html, así que el HTML incluye toda la página
+                // El contenido está dentro de <main class="page-content"> y luego el bloque content
+                // Buscar directamente los elementos .tab-content-header y .form-container en todo el HTML
+                const existingHeader = tempDiv.querySelector('.tab-content-header');
+                const existingFormContainer = tempDiv.querySelector('.form-container');
+                const form = tempDiv.querySelector('form[method="post"]') || tempDiv.querySelector('form');
                 
                 console.log('Formulario encontrado:', form ? 'SÍ' : 'NO');
-                console.log('ContentBlock encontrado:', contentBlock ? contentBlock.className : 'NO ENCONTRADO');
+                console.log('Header encontrado:', existingHeader ? 'SÍ' : 'NO');
+                console.log('FormContainer encontrado:', existingFormContainer ? 'SÍ' : 'NO');
+                
+                // Si no encontramos los elementos, buscar dentro de main.page-content
+                if (!existingHeader || !existingFormContainer) {
+                    console.log('Buscando dentro de main.page-content...');
+                    const mainContent = tempDiv.querySelector('main.page-content') || tempDiv.querySelector('main');
+                    if (mainContent) {
+                        const headerInMain = mainContent.querySelector('.tab-content-header');
+                        const containerInMain = mainContent.querySelector('.form-container');
+                        if (headerInMain && containerInMain) {
+                            console.log('Elementos encontrados dentro de main');
+                        }
+                    }
+                }
                 
                 // Limpiar y preparar el tab
                 editTab.innerHTML = '';
                 
-                // Crear botón de volver
+                // Crear botón de volver (cambia según el tipo de edición)
                 const backButton = document.createElement('button');
                 backButton.className = 'btn btn-secondary mb-3';
-                backButton.innerHTML = '<i class="fas fa-arrow-left me-2"></i>Volver a Mis Hijos/Jugadores';
+                if (isParent) {
+                    backButton.innerHTML = '<i class="fas fa-arrow-left me-2"></i>Volver a Mis Hijos/Jugadores';
+                    backButton.onclick = function(e) {
+                        e.preventDefault();
+                        const misHijosButton = document.querySelector('.tab-btn[data-tab="mis-hijos"]');
+                        if (misHijosButton) {
+                            misHijosButton.click();
+                        }
+                    };
+                } else {
+                    backButton.innerHTML = '<i class="fas fa-arrow-left me-2"></i>Volver a Ver Jugadores';
+                    backButton.onclick = function(e) {
+                        e.preventDefault();
+                        const verJugadoresButton = document.querySelector('.tab-btn[data-tab="ver-jugadores"]');
+                        if (verJugadoresButton) {
+                            verJugadoresButton.click();
+                        }
+                    };
+                }
                 backButton.style.marginBottom = '15px';
-                backButton.onclick = function(e) {
-                    e.preventDefault();
-                    const misHijosButton = document.querySelector('.tab-btn[data-tab="mis-hijos"]');
-                    if (misHijosButton) {
-                        misHijosButton.click();
-                    }
-                };
                 editTab.appendChild(backButton);
                 
-                // El template player_edit.html ya tiene tab-content-header y form-container
-                // Buscar si el HTML ya incluye estos elementos
-                const existingHeader = tempDiv.querySelector('.tab-content-header');
-                const existingFormContainer = tempDiv.querySelector('.form-container');
+                // Usar los elementos encontrados (buscar en todo el HTML si no se encontraron)
+                let finalHeader = existingHeader;
+                let finalFormContainer = existingFormContainer;
+                let finalForm = form;
                 
-                if (existingHeader && existingFormContainer && form) {
+                // Si no se encontraron, buscar dentro de main.page-content
+                if (!finalHeader || !finalFormContainer) {
+                    const mainContent = tempDiv.querySelector('main.page-content') || tempDiv.querySelector('main');
+                    if (mainContent) {
+                        finalHeader = finalHeader || mainContent.querySelector('.tab-content-header');
+                        finalFormContainer = finalFormContainer || mainContent.querySelector('.form-container');
+                        finalForm = finalForm || mainContent.querySelector('form[method="post"]') || mainContent.querySelector('form');
+                    }
+                }
+                
+                // Último recurso: buscar en todo el tempDiv
+                finalHeader = finalHeader || tempDiv.querySelector('.tab-content-header');
+                finalFormContainer = finalFormContainer || tempDiv.querySelector('.form-container');
+                finalForm = finalForm || tempDiv.querySelector('form[method="post"]') || tempDiv.querySelector('form');
+                
+                if (finalHeader && finalFormContainer && finalForm) {
                     // Si el template ya tiene la estructura completa, copiarla directamente
                     console.log('Template tiene estructura completa (tab-content-header + form-container), copiando directamente');
                     
-                    // Clonar el header
-                    const headerClone = existingHeader.cloneNode(true);
+                    // Clonar el header con todos sus estilos y contenido
+                    const headerClone = finalHeader.cloneNode(true);
                     editTab.appendChild(headerClone);
                     
-                    // Clonar el contenedor del formulario
-                    const formContainerClone = existingFormContainer.cloneNode(true);
+                    // Clonar el contenedor del formulario con todos sus estilos y contenido
+                    const formContainerClone = finalFormContainer.cloneNode(true);
                     
                     // Actualizar la acción del formulario dentro del contenedor
                     const formInContainer = formContainerClone.querySelector('form');
@@ -941,6 +977,8 @@
                     
                     editTab.appendChild(formContainerClone);
                     console.log('Template completo copiado correctamente');
+                    console.log('Header clonado:', headerClone.outerHTML.substring(0, 200));
+                    console.log('FormContainer clonado:', formContainerClone.outerHTML.substring(0, 200));
                 } else if (form) {
                     // Si no tiene la estructura completa, crearla manualmente
                     console.log('Template no tiene estructura completa, creando manualmente');
@@ -1250,4 +1288,3 @@
 </body>
 </html>
 
-</html>

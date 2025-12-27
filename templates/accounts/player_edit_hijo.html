@@ -1,0 +1,508 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Editar Hijo/Jugador - NCS International{% endblock %}
+
+{% block breadcrumb %}
+    <span>Jugadores</span>
+    <span>Editar</span>
+{% endblock %}
+
+{% block content %}
+<div class="tab-content-header mb-4">
+    <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
+        <i class="fas fa-user-edit me-2" style="color: var(--mlb-red);"></i>{% trans "Edit Child/Player" %}
+    </h4>
+    <p class="text-muted">{% trans "Modify your child's information" %}: {{ object.user.get_full_name|default:object.user.username }}</p>
+</div>
+
+<div class="form-container">
+    <form method="post" action="{% url 'accounts:player_edit' object.pk %}" enctype="multipart/form-data" id="playerEditForm" novalidate>
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger mb-4 alert-persistent">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+        
+        <!-- Información del Jugador -->
+        <div class="form-section mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
+            <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 600; font-size: 1.1rem;">
+                <i class="fas fa-user me-2" style="color: var(--mlb-red);"></i>{% trans "Personal Information" %}
+            </h5>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.first_name.id_for_label }}" class="form-label required-field">
+                        {% trans "First Name" %} *
+                    </label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}
+                        <div class="error-message mt-1">{{ form.first_name.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.last_name.id_for_label }}" class="form-label required-field">
+                        {% trans "Last Name" %} *
+                    </label>
+                    {{ form.last_name }}
+                    {% if form.last_name.errors %}
+                        <div class="error-message mt-1">{{ form.last_name.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.last_name2.id_for_label }}" class="form-label">
+                        {% trans "Second Last Name" %}
+                        <span class="text-muted small">({% trans "optional" %})</span>
+                    </label>
+                    {{ form.last_name2 }}
+                    {% if form.last_name2.errors %}
+                        <div class="error-message mt-1">{{ form.last_name2.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.email.id_for_label }}" class="form-label required-field">
+                        {% trans "Email" %} *
+                    </label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                        <div class="error-message mt-1">{{ form.email.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.phone.id_for_label }}" class="form-label">
+                        {% trans "Phone" %}
+                        <span class="text-muted small">({% trans "optional" %})</span>
+                    </label>
+                    {{ form.phone }}
+                    {% if form.phone.errors %}
+                        <div class="error-message mt-1">{{ form.phone.errors }}</div>
+                    {% endif %}
+                    <small class="text-muted d-block mt-1">{% trans "Format: (123) 456-7890" %}</small>
+                </div>
+            </div>
+            
+            {% if object.user.profile.birth_date %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">
+                            {% trans "Birth Date" %}
+                        </label>
+                        <input type="text" class="form-control" value="{{ object.user.profile.birth_date|date:'Y-m-d' }}" readonly style="background-color: #e9ecef;">
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-info-circle me-1"></i>{% trans "Birth date cannot be modified" %}
+                        </small>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Información Deportiva -->
+        <div class="form-section mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
+            <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 600; font-size: 1.1rem;">
+                <i class="fas fa-baseball-ball me-2" style="color: var(--mlb-red);"></i>{% trans "Sports Information" %}
+            </h5>
+            <div class="alert alert-light border mb-3 alert-persistent" style="background: #f8f9fa; border-color: #dee2e6 !important;">
+                <small>
+                    <i class="fas fa-info-circle me-1"></i>
+                    {% trans "Team and jersey number will be assigned by an administrator or manager." %}
+                </small>
+            </div>
+            
+            <!-- Campos ocultos para mantener valores cuando padre edita -->
+            {% if form.team_hidden %}
+                {{ form.team_hidden }}
+            {% endif %}
+            {{ form.team.as_hidden }}
+            {{ form.jersey_number.as_hidden }}
+            {{ form.is_active.as_hidden }}
+            
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.position.id_for_label }}" class="form-label">
+                        {% trans "Preferred Position" %}
+                    </label>
+                    {{ form.position }}
+                    {% if form.position.errors %}
+                        <div class="error-message mt-1">{{ form.position.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.height.id_for_label }}" class="form-label">
+                        {% trans "Height" %}
+                    </label>
+                    {{ form.height }}
+                    {% if form.height.errors %}
+                        <div class="error-message mt-1">{{ form.height.errors }}</div>
+                    {% endif %}
+                    <small class="text-muted d-block mt-1">{% trans "Ex: 5'10\"" %}</small>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.weight.id_for_label }}" class="form-label">
+                        {% trans "Weight (lbs)" %}
+                    </label>
+                    {{ form.weight }}
+                    {% if form.weight.errors %}
+                        <div class="error-message mt-1">{{ form.weight.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.batting_hand.id_for_label }}" class="form-label required-field">
+                        {% trans "Batting Hand" %} *
+                    </label>
+                    {{ form.batting_hand }}
+                    {% if form.batting_hand.errors %}
+                        <div class="error-message mt-1">{{ form.batting_hand.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.throwing_hand.id_for_label }}" class="form-label required-field">
+                        {% trans "Throwing Hand" %} *
+                    </label>
+                    {{ form.throwing_hand }}
+                    {% if form.throwing_hand.errors %}
+                        <div class="error-message mt-1">{{ form.throwing_hand.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Elegibilidad y División -->
+        <div class="form-section mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
+            <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 600; font-size: 1.1rem;">
+                <i class="fas fa-check-circle me-2" style="color: var(--mlb-red);"></i>{% trans "Eligibility and Division" %}
+            </h5>
+            
+            {% if object %}
+                {% with age=object.calculate_age_as_of_april_30 age_division=object.get_age_based_division grade_division=object.get_grade_based_division eligible=object.get_eligible_divisions %}
+                    {% if age %}
+                        <div class="alert alert-info border mb-3 alert-persistent" style="background: #e7f3ff; border-color: #0dcaf0 !important;">
+                            <small>
+                                <i class="fas fa-info-circle me-1"></i>
+                                <strong>{% trans "Eligibility Information" %}:</strong><br>
+                                <strong>{% trans "Age as of April 30" %}:</strong> {{ age }} {% trans "years" %}<br>
+                                {% if age_division %}
+                                    <strong>{% trans "Age-based division" %}:</strong> {{ age_division }}<br>
+                                {% endif %}
+                                {% if grade_division %}
+                                    <strong>{% trans "Grade-based division" %}:</strong> {{ grade_division }}<br>
+                                {% endif %}
+                                {% if eligible %}
+                                    <strong>{% trans "Eligible divisions" %}:</strong> {{ eligible|join:", " }}
+                                {% endif %}
+                            </small>
+                        </div>
+                    {% endif %}
+                {% endwith %}
+            {% endif %}
+            
+            <div class="alert alert-warning border mb-3 alert-persistent" style="background: #fff3cd; border-color: #ffc107 !important;">
+                <small>
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <strong>{% trans "Required:" %}</strong> {% trans "Grade and Division are required fields." %}
+                </small>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.grade.id_for_label }}" class="form-label required-field">
+                        {% trans "Current Grade" %} *
+                    </label>
+                    {{ form.grade }}
+                    {% if form.grade.help_text %}
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-info-circle me-1"></i>{{ form.grade.help_text }}
+                        </small>
+                    {% endif %}
+                    {% if form.grade.errors %}
+                        <div class="error-message mt-1">{{ form.grade.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.division.id_for_label }}" class="form-label required-field">
+                        {% trans "Assigned Division" %} *
+                    </label>
+                    {{ form.division }}
+                    {% if form.division.help_text %}
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-info-circle me-1"></i>{{ form.division.help_text }}
+                        </small>
+                    {% endif %}
+                    {% if form.division.errors %}
+                        <div class="error-message mt-1">{{ form.division.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.age_verification_document.id_for_label }}" class="form-label required-field" style="font-weight: 700; color: var(--mlb-blue); font-size: 1.05rem; margin-bottom: 12px;">
+                    <i class="fas fa-file-upload me-2" style="color: var(--mlb-red);"></i>{% trans "Age Verification Document" %} 
+                    <span class="badge bg-danger ms-2" style="font-size: 0.75rem; padding: 4px 8px;">{% trans "REQUIRED" %}</span>
+                </label>
+                <div class="file-upload-area" id="ageVerificationUploadArea" style="border: 3px dashed var(--mlb-blue); border-radius: 12px; padding: 30px; text-align: center; background: linear-gradient(135deg, #f8f9fa 0%, #e7f3ff 100%); cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;" onmouseover="this.style.borderColor='var(--mlb-red)'; this.style.background='linear-gradient(135deg, #e7f3ff 0%, #fff5f5 100%)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(13, 44, 84, 0.15)';" onmouseout="this.style.borderColor='var(--mlb-blue)'; this.style.background='linear-gradient(135deg, #f8f9fa 0%, #e7f3ff 100%)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                    <div style="position: relative; z-index: 2;">
+                        {% if object.age_verification_document %}
+                            <i class="fas fa-check-circle fa-3x mb-3" style="color: #28a745; animation: none;"></i>
+                            <p class="mb-2" style="font-weight: 700; color: #28a745; font-size: 1.1rem;">
+                                <i class="fas fa-file-check me-2"></i>{% trans "Current Document" %}
+                            </p>
+                            <a href="{{ object.age_verification_document.url }}" target="_blank" class="btn btn-sm btn-outline-info mb-2">
+                                <i class="fas fa-file me-1"></i>{% trans "View current document" %}
+                            </a>
+                            <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.95rem;">{% trans "Click to upload new document" %}</p>
+                        {% else %}
+                            <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--mlb-blue); animation: pulse 2s ease-in-out infinite;"></i>
+                            <p class="mb-2" style="font-weight: 700; color: var(--mlb-blue); font-size: 1.1rem;">{% trans "Click to upload document" %}</p>
+                            <p class="mb-1" style="font-weight: 600; color: var(--mlb-red); font-size: 0.95rem;">{% trans "REQUIRED FIELD" %}</p>
+                        {% endif %}
+                        <small class="text-muted d-block mt-2" style="font-size: 0.9rem;">{% trans "PDF, JPG, PNG (max. 10MB)" %}</small>
+                        <small class="text-muted d-block mt-1" style="font-size: 0.85rem;">{% trans "Birth certificate, passport or ID (original or digital)" %}</small>
+                    </div>
+                    {{ form.age_verification_document }}
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(45deg, rgba(13, 44, 84, 0.05) 0%, rgba(213, 0, 50, 0.05) 100%); z-index: 1; pointer-events: none;"></div>
+                </div>
+                {% if form.age_verification_document.help_text %}
+                    <div class="alert alert-info mt-3 mb-0" style="background: #e7f3ff; border-left: 4px solid var(--mlb-blue); border-radius: 6px; padding: 12px;">
+                        <small style="display: flex; align-items: center;">
+                            <i class="fas fa-info-circle me-2" style="color: var(--mlb-blue);"></i>
+                            <span>{{ form.age_verification_document.help_text }}</span>
+                        </small>
+                    </div>
+                {% endif %}
+                {% if form.age_verification_document.errors %}
+                    <div class="alert alert-danger mt-3 mb-0" style="border-left: 4px solid var(--mlb-red); border-radius: 6px; padding: 12px;">
+                        <small style="display: flex; align-items: center;">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <span>{{ form.age_verification_document.errors }}</span>
+                        </small>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Tallas de Uniformes -->
+        <div class="form-section mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
+            <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 600; font-size: 1.1rem;">
+                <i class="fas fa-tshirt me-2" style="color: var(--mlb-red);"></i>{% trans "Uniform Sizes" %}
+            </h5>
+            <div class="alert alert-warning border mb-3 alert-persistent" style="background: #fff3cd; border-color: #ffc107 !important;">
+                <small>
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    <strong>{% trans "Required:" %}</strong> {% trans "All uniform sizes are required. Please select the appropriate sizes for each item." %}
+                </small>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.jersey_size.id_for_label }}" class="form-label required-field">
+                        {% trans "Jersey Size" %} *
+                    </label>
+                    {{ form.jersey_size }}
+                    {% if form.jersey_size.errors %}
+                        <div class="error-message mt-1">{{ form.jersey_size.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.hat_size.id_for_label }}" class="form-label required-field">
+                        {% trans "Hat Size" %} *
+                    </label>
+                    {{ form.hat_size }}
+                    {% if form.hat_size.errors %}
+                        <div class="error-message mt-1">{{ form.hat_size.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.batting_glove_size.id_for_label }}" class="form-label required-field">
+                        {% trans "Batting Glove Size" %} *
+                    </label>
+                    {{ form.batting_glove_size }}
+                    {% if form.batting_glove_size.errors %}
+                        <div class="error-message mt-1">{{ form.batting_glove_size.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.batting_helmet_size.id_for_label }}" class="form-label required-field">
+                        {% trans "Batting Helmet Size" %} *
+                    </label>
+                    {{ form.batting_helmet_size }}
+                    {% if form.batting_helmet_size.errors %}
+                        <div class="error-message mt-1">{{ form.batting_helmet_size.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.shorts_size.id_for_label }}" class="form-label required-field">
+                        {% trans "Pants Size" %} *
+                    </label>
+                    {{ form.shorts_size }}
+                    {% if form.shorts_size.errors %}
+                        <div class="error-message mt-1">{{ form.shorts_size.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contacto de Emergencia -->
+        <div class="form-section mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
+            <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 600; font-size: 1.1rem;">
+                <i class="fas fa-phone-alt me-2" style="color: var(--mlb-red);"></i>{% trans "Emergency Contact" %}
+            </h5>
+            <div class="alert alert-light border mb-3 alert-persistent" style="background: #f8f9fa; border-color: #dee2e6 !important;">
+                <small>
+                    <i class="fas fa-info-circle me-1"></i>
+                    {% trans "Information used only in case of medical emergency." %}
+                </small>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.emergency_contact_name.id_for_label }}" class="form-label required-field">
+                        {% trans "Contact Name" %} *
+                    </label>
+                    {{ form.emergency_contact_name }}
+                    {% if form.emergency_contact_name.errors %}
+                        <div class="error-message mt-1">{{ form.emergency_contact_name.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.emergency_contact_phone.id_for_label }}" class="form-label required-field">
+                        {% trans "Emergency Phone" %} *
+                    </label>
+                    {{ form.emergency_contact_phone }}
+                    {% if form.emergency_contact_phone.errors %}
+                        <div class="error-message mt-1">{{ form.emergency_contact_phone.errors }}</div>
+                    {% endif %}
+                    <small class="text-muted d-block mt-1">{% trans "24/7 available number" %}</small>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.emergency_contact_relation.id_for_label }}" class="form-label required-field">
+                        {% trans "Relationship with Player" %} *
+                    </label>
+                    {{ form.emergency_contact_relation }}
+                    {% if form.emergency_contact_relation.errors %}
+                        <div class="error-message mt-1">{{ form.emergency_contact_relation.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.medical_conditions.id_for_label }}" class="form-label required-field">
+                    {% trans "Medical Conditions" %} *
+                </label>
+                {{ form.medical_conditions }}
+                {% if form.medical_conditions.errors %}
+                    <div class="error-message mt-1">{{ form.medical_conditions.errors }}</div>
+                {% endif %}
+                <small class="text-muted d-block mt-1">
+                    <i class="fas fa-info-circle me-1"></i>
+                    {% trans "Allergies, asthma, medications, etc. If there are no conditions, write \"None\"." %}
+                </small>
+            </div>
+        </div>
+        
+        <!-- Botones de Acción -->
+        <div class="form-actions mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
+            <div class="d-flex justify-content-between align-items-center">
+                <a href="{% url 'accounts:panel' %}" class="btn btn-form-cancel">
+                    <i class="fas fa-times me-2"></i>{% trans "Cancel" %}
+                </a>
+                <button type="submit" class="btn btn-form-submit">
+                    <i class="fas fa-save me-2"></i>{% trans "Save Changes" %}
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+@keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+}
+
+.file-upload-area input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 3;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ Formulario de edición de hijo cargado');
+    
+    // Mejorar el área de carga de archivos
+    const fileInput = document.querySelector('#playerEditForm input[type="file"][name*="age_verification"]');
+    const fileUploadArea = document.getElementById('ageVerificationUploadArea');
+    
+    if (fileInput && fileUploadArea) {
+        fileUploadArea.addEventListener('click', function(e) {
+            if (e.target !== fileInput) {
+                fileInput.click();
+            }
+        });
+        
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const fileName = file.name;
+                const fileSize = (file.size / 1024 / 1024).toFixed(2);
+                
+                // Validar tamaño (máx 10MB)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('{% trans "The file is too large. Maximum allowed size is 10MB." %}');
+                    fileInput.value = '';
+                    return;
+                }
+                
+                // Validar tipo de archivo
+                const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('{% trans "File type not allowed. Only PDF, JPG or PNG are accepted." %}');
+                    fileInput.value = '';
+                    return;
+                }
+                
+                // Actualizar el área con el archivo cargado
+                const contentDiv = fileUploadArea.querySelector('div[style*="position: relative"]');
+                if (contentDiv) {
+                    contentDiv.innerHTML = `
+                        <i class="fas fa-check-circle fa-3x mb-3" style="color: #28a745; animation: none;"></i>
+                        <p class="mb-2" style="font-weight: 700; color: #28a745; font-size: 1.1rem;">
+                            <i class="fas fa-file-check me-2"></i>{% trans "Document Uploaded" %}
+                        </p>
+                        <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.95rem; word-break: break-word;">${fileName}</p>
+                        <small class="text-muted d-block mt-2" style="font-size: 0.9rem;">${fileSize} MB</small>
+                        <small class="text-success d-block mt-1" style="font-size: 0.85rem;">
+                            <i class="fas fa-check me-1"></i>{% trans "Click to change file" %}
+                        </small>
+                    `;
+                }
+                
+                fileUploadArea.style.borderColor = '#28a745';
+                fileUploadArea.style.borderWidth = '3px';
+                fileUploadArea.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
+                fileUploadArea.style.boxShadow = '0 4px 12px rgba(40, 167, 69, 0.2)';
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

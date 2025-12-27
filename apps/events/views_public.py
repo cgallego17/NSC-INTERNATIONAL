@@ -121,3 +121,4 @@ class PublicEventDetailView(DetailView):
         )
         return context
 
+
