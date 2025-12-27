@@ -8,14 +8,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% trans "NCS International - Professional Baseball" %}</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
     <style>
         :root {
             --mlb-blue: #0d2c54;
@@ -24,19 +24,19 @@
             --mlb-gold: #ffd700;
             --mlb-dark: #1a1a1a;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Arial', 'Helvetica', sans-serif;
             background-color: #f5f5f5;
             color: #333;
         }
-        
+
         /* Top Bar */
         .top-bar {
             background: var(--mlb-dark);
@@ -44,24 +44,24 @@
             padding: 8px 0;
             font-size: 0.85rem;
         }
-        
+
         .top-bar a {
             color: #ccc;
             text-decoration: none;
             transition: color 0.3s;
         }
-        
+
         .top-bar a:hover {
             color: white;
         }
-        
+
         /* Language Selector with Flags Dropdown */
         .language-selector-wrapper {
             position: relative;
             display: inline-block;
             margin-right: 0;
         }
-        
+
         .language-selector-btn {
             background: transparent;
             border: 1px solid #555;
@@ -77,13 +77,13 @@
             min-width: 80px;
             justify-content: space-between;
         }
-        
+
         .language-selector-btn:hover {
             border-color: var(--mlb-gold);
             background: rgba(255, 215, 0, 0.1);
             color: white;
         }
-        
+
         .language-selector-btn .flag-icon {
             width: 20px;
             height: 15px;
@@ -93,29 +93,29 @@
             border-radius: 2px;
             flex-shrink: 0;
         }
-        
+
         .flag-icon.flag-us {
             background-image: url('https://flagcdn.com/w20/us.png');
         }
-        
+
         .flag-icon.flag-es {
             background-image: url('https://flagcdn.com/w20/es.png');
         }
-        
+
         .language-selector-btn .arrow-icon {
             font-size: 0.7rem;
             transition: transform 0.3s;
         }
-        
+
         .language-selector-btn.active {
             border-color: var(--mlb-gold);
             background: rgba(255, 215, 0, 0.15);
         }
-        
+
         .language-selector-btn.active .arrow-icon {
             transform: rotate(180deg);
         }
-        
+
         .language-dropdown {
             position: absolute;
             top: 100%;
@@ -133,13 +133,13 @@
             z-index: 1000;
             overflow: hidden;
         }
-        
+
         .language-dropdown.show {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
         }
-        
+
         .language-option {
             display: flex;
             align-items: center;
@@ -153,21 +153,21 @@
             font-family: inherit;
             font-size: inherit;
         }
-        
+
         .language-option:last-child {
             border-bottom: none;
         }
-        
+
         .language-option:hover {
             background: rgba(255, 215, 0, 0.15);
             color: white;
         }
-        
+
         .language-option.active {
             background: rgba(255, 215, 0, 0.2);
             color: var(--mlb-gold);
         }
-        
+
         .language-option .flag-icon {
             width: 24px;
             height: 18px;
@@ -177,13 +177,13 @@
             border-radius: 2px;
             flex-shrink: 0;
         }
-        
+
         .language-option .language-name {
             flex: 1;
             font-size: 0.85rem;
             font-weight: 500;
         }
-        
+
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .language-selector-btn {
@@ -191,23 +191,23 @@
                 padding: 4px 8px;
                 font-size: 0.8rem;
             }
-            
+
             .language-selector-btn .language-text {
                 display: none;
             }
-            
+
             .language-dropdown {
                 min-width: 130px;
             }
         }
-        
+
         /* Navbar MLB Style */
         .navbar-mlb {
             background: var(--mlb-blue) !important;
             padding: 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
-        
+
         .navbar-mlb .navbar-brand {
             font-size: 1.8rem;
             font-weight: 700;
@@ -217,14 +217,14 @@
             display: flex;
             align-items: center;
         }
-        
+
         .navbar-logo {
             height: 40px;
             width: auto;
             max-width: 180px;
             object-fit: contain;
         }
-        
+
         .navbar-mlb .nav-link {
             color: white !important;
             font-weight: 600;
@@ -234,44 +234,44 @@
             letter-spacing: 0.5px;
             transition: background 0.3s;
         }
-        
+
         .navbar-mlb .nav-link:hover {
             background: var(--mlb-light-blue);
         }
-        
+
         .navbar-mlb .nav-link.active {
             background: var(--mlb-red);
         }
-        
+
         /* Hero Section MLB Style - Slider */
         .hero-mlb {
             position: relative;
             overflow: hidden;
             width: 100%;
         }
-        
+
         .hero-mlb .carousel {
             position: relative;
             width: 100%;
         }
-        
+
         .hero-mlb .carousel-inner {
             width: 100%;
             height: 100%;
         }
-        
+
         .hero-mlb .carousel-item {
             height: 500px;
             min-height: 500px;
         }
-        
+
         @media (max-width: 768px) {
             .hero-mlb .carousel-item {
                 height: 400px;
                 min-height: 400px;
             }
         }
-        
+
         .hero-slide-item {
             position: relative;
             width: 100%;
@@ -281,13 +281,13 @@
             align-items: center;
             overflow: hidden;
         }
-        
+
         @media (max-width: 768px) {
             .hero-slide-item {
                 min-height: 400px;
             }
         }
-        
+
         .hero-slide-item img {
             width: 100%;
             height: 100%;
@@ -298,20 +298,20 @@
             left: 0;
             z-index: 0;
         }
-        
+
         /* Ajuste para banners de tipo imagen - mostrar completo sin recortes si es necesario */
         .hero-slide-item.banner-image img {
             object-fit: contain;
             object-position: center;
             background-color: #0d2c54;
         }
-        
+
         /* Ajuste para banner de World Series - mostrar completo sin recortes */
         .hero-slide-item img[alt*="World Series"] {
             object-fit: contain;
             object-position: center;
         }
-        
+
         .hero-slide-overlay {
             position: absolute;
             top: 0;
@@ -321,7 +321,7 @@
             background: rgba(0, 0, 0, 0.1);
             z-index: 1;
         }
-        
+
         .hero-slide-item::before {
             content: '';
             position: absolute;
@@ -333,7 +333,7 @@
             animation: rotate 20s linear infinite;
             z-index: 1;
         }
-        
+
         @keyframes rotate {
             from {
                 transform: rotate(0deg);
@@ -342,12 +342,12 @@
                 transform: rotate(360deg);
             }
         }
-        
+
         .hero-content {
             position: relative;
             z-index: 2;
         }
-        
+
         .carousel-control-prev,
         .carousel-control-next {
             width: 50px;
@@ -360,26 +360,26 @@
             transition: all 0.3s ease;
             z-index: 10;
         }
-        
+
         .carousel-control-prev {
             left: 20px;
         }
-        
+
         .carousel-control-next {
             right: 20px;
         }
-        
+
         .carousel-control-prev:hover,
         .carousel-control-next:hover {
             background: rgba(255, 255, 255, 0.5);
             opacity: 1;
         }
-        
+
         .carousel-indicators {
             margin-bottom: 20px;
             z-index: 10;
         }
-        
+
         .carousel-indicators button {
             width: 12px;
             height: 12px;
@@ -389,38 +389,38 @@
             margin: 0 5px;
             transition: all 0.3s ease;
         }
-        
+
         .carousel-indicators button.active {
             background-color: rgba(255, 255, 255, 1);
             width: 30px;
             border-radius: 6px;
         }
-        
+
         .carousel-item {
             transition: transform 0.6s ease-in-out;
         }
-        
+
         .carousel-fade .carousel-item {
             opacity: 0;
             transition-property: opacity;
             transform: none;
         }
-        
+
         .carousel-fade .carousel-item.active,
         .carousel-fade .carousel-item-next.carousel-item-start,
         .carousel-fade .carousel-item-prev.carousel-item-end {
             opacity: 1;
         }
-        
+
         .carousel-fade .active.carousel-item-start,
         .carousel-fade .active.carousel-item-end {
             opacity: 0;
         }
-        
+
         .carousel-item.active {
             display: block;
         }
-        
+
         .hero-title {
             font-size: 3.5rem;
             font-weight: 900;
@@ -429,13 +429,13 @@
             margin-bottom: 1rem;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-        
+
         .hero-subtitle {
             font-size: 1.3rem;
             opacity: 0.95;
             margin-bottom: 2rem;
         }
-        
+
         .btn-mlb {
             background: var(--mlb-red);
             color: white;
@@ -447,14 +447,14 @@
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(213, 0, 50, 0.3);
         }
-        
+
         .btn-mlb:hover {
             background: #b30029;
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(213, 0, 50, 0.4);
             color: white;
         }
-        
+
         .btn-mlb-outline {
             background: transparent;
             color: white;
@@ -465,21 +465,21 @@
             border-radius: 4px;
             transition: all 0.3s;
         }
-        
+
         .btn-mlb-outline:hover {
             background: white;
             color: var(--mlb-blue);
         }
-        
+
         /* Main Content */
         .main-content {
             padding: 0;
         }
-        
+
         .main-content > .container-fluid {
             padding: 40px 0;
         }
-        
+
         /* Section Headers */
         .section-header {
             background: var(--mlb-blue);
@@ -493,7 +493,7 @@
             margin-left: auto;
             margin-right: auto;
         }
-        
+
         .section-header h2 {
             font-size: 1.5rem;
             font-weight: 700;
@@ -501,18 +501,18 @@
             margin: 0;
             letter-spacing: 1px;
         }
-        
+
         .section-header .view-all {
             color: var(--mlb-gold);
             text-decoration: none;
             font-weight: 600;
             font-size: 0.9rem;
         }
-        
+
         .section-header .view-all:hover {
             text-decoration: underline;
         }
-        
+
         /* Game/Event Cards MLB Style */
         .game-card {
             background: white;
@@ -523,12 +523,12 @@
             margin-bottom: 20px;
             border-top: 4px solid var(--mlb-red);
         }
-        
+
         .game-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
-        
+
         .game-card-header {
             background: var(--mlb-blue);
             color: white;
@@ -537,12 +537,12 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .game-card-header .date {
             font-size: 0.85rem;
             opacity: 0.9;
         }
-        
+
         .game-card-header .status {
             background: var(--mlb-red);
             padding: 4px 12px;
@@ -551,25 +551,25 @@
             font-weight: 700;
             text-transform: uppercase;
         }
-        
+
         .game-card-body {
             padding: 20px;
         }
-        
+
         .game-title {
             font-size: 1.3rem;
             font-weight: 700;
             color: var(--mlb-blue);
             margin-bottom: 10px;
         }
-        
+
         .game-info {
             display: flex;
             gap: 20px;
             margin-bottom: 15px;
             flex-wrap: wrap;
         }
-        
+
         .game-info-item {
             display: flex;
             align-items: center;
@@ -577,18 +577,18 @@
             color: #666;
             font-size: 0.9rem;
         }
-        
+
         .game-info-item i {
             color: var(--mlb-red);
         }
-        
+
         .game-description {
             color: #666;
             font-size: 0.9rem;
             line-height: 1.6;
             margin-bottom: 15px;
         }
-        
+
         .game-card-footer {
             padding: 15px 20px;
             background: #f8f9fa;
@@ -597,7 +597,7 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         /* Feature Cards */
         .feature-card {
             background: white;
@@ -609,12 +609,12 @@
             height: 100%;
             border-top: 4px solid var(--mlb-red);
         }
-        
+
         .feature-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
-        
+
         .feature-icon {
             width: 70px;
             height: 70px;
@@ -627,7 +627,7 @@
             color: white;
             font-size: 1.8rem;
         }
-        
+
         .feature-card h4 {
             color: var(--mlb-blue);
             font-weight: 700;
@@ -635,21 +635,21 @@
             text-transform: uppercase;
             font-size: 1.1rem;
         }
-        
+
         /* Instagram Style Gallery Section */
         .instagram-gallery-section {
             padding: 0px 0;
             background: #000;
             width: 100%;
         }
-        
+
         .instagram-gallery-header {
             text-align: center;
             margin-bottom: 2px;
             padding: 40px 20px;
             background: white;
         }
-        
+
         .instagram-gallery-header h2 {
             color: var(--mlb-blue);
             font-size: 2.5rem;
@@ -662,7 +662,7 @@
             justify-content: center;
             gap: 15px;
         }
-        
+
         .instagram-gallery-header h2 i {
             font-size: 2.5rem;
             background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
@@ -670,7 +670,7 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
+
         .instagram-follow-link {
             display: inline-block;
             color: var(--mlb-red);
@@ -679,18 +679,18 @@
             text-decoration: none;
             transition: color 0.3s ease;
         }
-        
+
         .instagram-follow-link:hover {
             color: #b30029;
             text-decoration: underline;
         }
-        
+
         .instagram-gallery-container {
             width: 100%;
             overflow: hidden;
             background: #000;
         }
-        
+
         .instagram-gallery-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -698,7 +698,7 @@
             width: 100%;
             background: #000;
         }
-        
+
         .instagram-gallery-item {
             position: relative;
             width: 100%;
@@ -707,18 +707,18 @@
             background: #fff;
             cursor: pointer;
         }
-        
+
         .instagram-gallery-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             transition: transform 0.3s ease;
         }
-        
+
         .instagram-gallery-item:hover img {
             transform: scale(1.1);
         }
-        
+
         .instagram-gallery-item::after {
             content: '';
             position: absolute;
@@ -729,11 +729,11 @@
             background: rgba(0, 0, 0, 0);
             transition: background 0.3s ease;
         }
-        
+
         .instagram-gallery-item:hover::after {
             background: rgba(0, 0, 0, 0.3);
         }
-        
+
         .instagram-gallery-placeholder {
             width: 100%;
             height: 100%;
@@ -743,84 +743,84 @@
             background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
             color: white;
         }
-        
+
         .instagram-gallery-placeholder i {
             font-size: 3rem;
             opacity: 0.5;
         }
-        
+
         @media (max-width: 1680px) {
             .instagram-gallery-grid {
                 grid-template-columns: repeat(5, 1fr);
             }
         }
-        
+
         @media (max-width: 1400px) {
             .instagram-gallery-grid {
                 grid-template-columns: repeat(4, 1fr);
             }
         }
-        
+
         @media (max-width: 1120px) {
             .instagram-gallery-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
         }
-        
+
         @media (max-width: 840px) {
             .instagram-gallery-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
         }
-        
+
         @media (max-width: 768px) {
             .instagram-gallery-header {
                 padding: 30px 20px;
             }
-            
+
             .instagram-gallery-header h2 {
                 font-size: 2rem;
             }
-            
+
             .instagram-gallery-item {
                 width: calc(50% - 1px);
                 height: auto;
                 aspect-ratio: 270 / 278;
             }
-            
+
             .instagram-gallery-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
+
             .instagram-gallery-header h2 {
                 font-size: 1.8rem;
             }
-            
+
             .instagram-gallery-header h2 i {
                 font-size: 1.8rem;
             }
         }
-        
+
         @media (max-width: 576px) {
             .instagram-gallery-header h2 {
                 font-size: 1.5rem;
             }
-            
+
             .instagram-gallery-header h2 i {
                 font-size: 1.5rem;
             }
-            
+
             .instagram-gallery-item {
                 width: 100%;
                 height: auto;
                 aspect-ratio: 270 / 278;
             }
-            
+
             .instagram-gallery-grid {
                 grid-template-columns: 1fr;
             }
         }
-        
+
         /* CTA Section */
         .cta-section {
             background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
@@ -828,7 +828,7 @@
             padding: 25px 0;
             text-align: center;
         }
-        
+
         .cta-section h2 {
             font-size: 2.5rem;
             font-weight: 900;
@@ -836,13 +836,13 @@
             margin-bottom: 20px;
             letter-spacing: 2px;
         }
-        
+
         .cta-section p {
             font-size: 1.2rem;
             margin-bottom: 30px;
             opacity: 0.95;
         }
-        
+
         /* Footer MLB Style */
         .footer-mlb {
             background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
@@ -851,7 +851,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .footer-mlb::before {
             content: '';
             position: absolute;
@@ -861,12 +861,12 @@
             height: 3px;
             background: linear-gradient(90deg, var(--mlb-red) 0%, var(--mlb-blue) 50%, var(--mlb-red) 100%);
         }
-        
+
         .footer-mlb .container-fluid {
             position: relative;
             z-index: 1;
         }
-        
+
         .footer-mlb h5 {
             color: white;
             font-weight: 700;
@@ -877,7 +877,7 @@
             position: relative;
             padding-bottom: 12px;
         }
-        
+
         .footer-mlb h5::after {
             content: '';
             position: absolute;
@@ -888,31 +888,31 @@
             background: var(--mlb-red);
             border-radius: 2px;
         }
-        
+
         .footer-mlb .footer-col {
             padding: 0 20px;
         }
-        
+
         .footer-mlb .footer-logo-section {
             margin-bottom: 20px;
         }
-        
+
         .footer-mlb .footer-logo-section img {
             filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.1));
             transition: transform 0.3s ease;
         }
-        
+
         .footer-mlb .footer-logo-section:hover img {
             transform: scale(1.05);
         }
-        
+
         .footer-mlb p {
             color: #b0b0b0;
             line-height: 1.8;
             font-size: 0.95rem;
             margin-bottom: 0;
         }
-        
+
         .footer-mlb a {
             color: #ccc;
             text-decoration: none;
@@ -926,7 +926,7 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        
+
         .footer-mlb a i {
             margin-right: 8px;
             width: 18px;
@@ -935,7 +935,7 @@
             opacity: 0.8;
             transition: all 0.3s ease;
         }
-        
+
         .footer-mlb a:hover {
             color: white;
             background: rgba(213, 0, 50, 0.15);
@@ -943,13 +943,13 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(213, 0, 50, 0.2);
         }
-        
+
         .footer-mlb a:hover i {
             opacity: 1;
             color: var(--mlb-red);
             transform: scale(1.1);
         }
-        
+
         .footer-mlb .quick-links {
             display: flex !important;
             flex-direction: row;
@@ -957,7 +957,7 @@
             gap: 8px;
             margin-top: 10px;
         }
-        
+
         .footer-mlb .quick-links a {
             display: inline-flex !important;
             align-items: center;
@@ -966,18 +966,18 @@
             visibility: visible !important;
             opacity: 1 !important;
         }
-        
+
         .footer-mlb .contact-info {
             color: #b0b0b0;
         }
-        
+
         .footer-mlb .contact-info p {
             margin-bottom: 12px;
             display: flex;
             align-items: center;
             font-size: 0.95rem;
         }
-        
+
         .footer-mlb .contact-info i {
             margin-right: 12px;
             width: 20px;
@@ -985,7 +985,7 @@
             font-size: 1rem;
             opacity: 0.9;
         }
-        
+
         .footer-bottom {
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             padding: 25px 0;
@@ -993,34 +993,34 @@
             text-align: center;
             background: rgba(0, 0, 0, 0.3);
         }
-        
+
         .footer-bottom p {
             color: #888;
             font-size: 0.9rem;
             margin: 0;
         }
-        
+
         @media (max-width: 768px) {
             .footer-mlb {
                 padding: 40px 0 0;
             }
-            
+
             .footer-mlb .footer-col {
                 padding: 0 15px;
                 margin-bottom: 40px;
             }
-            
+
             .footer-mlb .quick-links {
                 flex-direction: column;
                 gap: 8px;
             }
-            
+
             .footer-mlb a {
                 width: 100%;
                 justify-content: flex-start;
             }
         }
-        
+
         /* Badge */
         .badge-mlb {
             background: var(--mlb-red);
@@ -1031,7 +1031,7 @@
             font-weight: 700;
             text-transform: uppercase;
         }
-        
+
         /* Modal Login Styles */
         .modal-mlb .modal-content {
             border-radius: 15px;
@@ -1039,7 +1039,7 @@
             overflow: hidden;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
         }
-        
+
         .modal-mlb .modal-header {
             background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
             color: white;
@@ -1048,7 +1048,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .modal-mlb .modal-header::before {
             content: '';
             position: absolute;
@@ -1058,16 +1058,16 @@
             height: 200%;
             background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
         }
-        
+
         .modal-mlb .modal-header .btn-close {
             filter: brightness(0) invert(1);
             opacity: 0.9;
         }
-        
+
         .modal-mlb .modal-header .btn-close:hover {
             opacity: 1;
         }
-        
+
         .modal-mlb .modal-title {
             font-size: 1.8rem;
             font-weight: 900;
@@ -1076,11 +1076,11 @@
             position: relative;
             z-index: 1;
         }
-        
+
         .modal-mlb .modal-body {
             padding: 40px;
         }
-        
+
         .modal-mlb .form-label {
             font-weight: 600;
             color: var(--mlb-blue);
@@ -1089,7 +1089,7 @@
             font-size: 0.85rem;
             letter-spacing: 0.5px;
         }
-        
+
         .modal-mlb .form-control {
             border: 2px solid #e9ecef;
             border-radius: 8px;
@@ -1097,30 +1097,30 @@
             transition: all 0.3s;
             font-size: 1rem;
         }
-        
+
         .modal-mlb .form-control:focus {
             border-color: var(--mlb-blue);
             box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.25);
         }
-        
+
         .modal-mlb .form-check-input {
             width: 1.25rem;
             height: 1.25rem;
             border: 2px solid #e9ecef;
             margin-top: 0.3rem;
         }
-        
+
         .modal-mlb .form-check-input:checked {
             background-color: var(--mlb-red);
             border-color: var(--mlb-red);
         }
-        
+
         .modal-mlb .form-check-label {
             font-weight: 500;
             color: #555;
             margin-left: 8px;
         }
-        
+
         .modal-mlb .error-message {
             background: #fee;
             border: 1px solid var(--mlb-red);
@@ -1131,32 +1131,32 @@
             font-weight: 600;
             font-size: 0.9rem;
         }
-        
+
         .modal-mlb .field-error {
             color: var(--mlb-red);
             font-size: 0.85rem;
             margin-top: 5px;
             font-weight: 600;
         }
-        
+
         .modal-mlb .modal-footer {
             padding: 20px 40px;
             background: #f8f9fa;
             border-top: 1px solid #e9ecef;
             text-align: center;
         }
-        
+
         .modal-mlb .modal-footer a {
             color: var(--mlb-blue);
             font-weight: 600;
             text-decoration: none;
         }
-        
+
         .modal-mlb .modal-footer a:hover {
             color: var(--mlb-red);
             text-decoration: underline;
         }
-        
+
         .login-icon-modal {
             font-size: 3rem;
             margin-bottom: 15px;
@@ -1165,7 +1165,7 @@
             z-index: 1;
             text-align: center;
         }
-        
+
         /* Schedule Section Styles */
         .schedule-section-card {
             background: white;
@@ -1175,11 +1175,11 @@
             margin-top: 0;
             margin-bottom: 0 !important;
         }
-        
+
         .schedule-section-card .container-fluid {
             padding: 0;
         }
-        
+
         .schedule-image-container {
             position: relative;
             height: 100%;
@@ -1190,7 +1190,7 @@
             overflow: hidden;
             background: white;
         }
-        
+
         .schedule-background-image {
             width: 100%;
             height: 100%;
@@ -1198,7 +1198,7 @@
             object-position: center;
             display: block;
         }
-        
+
         .showcase-overlay {
             position: absolute;
             bottom: 0;
@@ -1209,7 +1209,7 @@
             align-items: flex-end;
             z-index: 10;
         }
-        
+
         .showcase-oval {
             position: relative;
             width: 280px;
@@ -1221,7 +1221,7 @@
             justify-content: center;
             background: transparent;
         }
-        
+
         .showcase-text {
             color: white;
             font-size: 2.5rem;
@@ -1230,22 +1230,22 @@
             letter-spacing: 3px;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
-        
+
         @media (max-width: 768px) {
             .schedule-image-container {
                 min-height: 400px;
             }
-            
+
             .showcase-oval {
                 width: 220px;
                 height: 100px;
             }
-            
+
             .showcase-text {
                 font-size: 2rem;
             }
         }
-        
+
         .schedule-logo {
             font-size: 2.5rem;
             font-weight: 900;
@@ -1254,14 +1254,14 @@
             text-transform: uppercase;
             color: var(--mlb-blue);
         }
-        
+
         .schedule-text {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
         }
-        
+
         .schedule-season {
             font-size: 1.2rem;
             font-weight: 700;
@@ -1270,7 +1270,7 @@
             text-transform: uppercase;
             color: var(--mlb-blue);
         }
-        
+
         .schedule-number {
             font-size: 5rem;
             font-weight: 900;
@@ -1279,7 +1279,7 @@
             font-family: 'Arial Black', sans-serif;
             color: var(--mlb-blue);
         }
-        
+
         .schedule-live {
             font-size: 2rem;
             font-weight: 700;
@@ -1287,7 +1287,7 @@
             text-transform: uppercase;
             color: var(--mlb-red);
         }
-        
+
         .schedule-cta-btn {
             background: var(--mlb-blue);
             color: white;
@@ -1302,7 +1302,7 @@
             border: 2px solid var(--mlb-blue);
             margin-top: 20px;
         }
-        
+
         .schedule-cta-btn:hover {
             background: var(--mlb-red);
             color: white;
@@ -1310,7 +1310,7 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(211, 47, 47, 0.4);
         }
-        
+
         .schedule-content {
             padding: 50px 40px;
             height: 100%;
@@ -1318,7 +1318,7 @@
             flex-direction: column;
             justify-content: center;
         }
-        
+
         .schedule-heading {
             color: var(--mlb-blue);
             font-size: 2rem;
@@ -1328,7 +1328,7 @@
             letter-spacing: 1px;
             text-align: center;
         }
-        
+
         .schedule-subheading {
             color: #000;
             font-size: 1rem;
@@ -1339,7 +1339,7 @@
             letter-spacing: 0.5px;
             text-align: center;
         }
-        
+
         .schedule-description {
             color: #333;
             font-size: 0.95rem;
@@ -1347,14 +1347,14 @@
             margin-bottom: 30px;
             text-align: center;
         }
-        
+
         .schedule-buttons {
             display: flex;
             flex-wrap: wrap;
             gap: 15px;
             justify-content: center;
         }
-        
+
         .schedule-category-btn {
             border: 2px solid var(--mlb-blue);
             background: white;
@@ -1368,14 +1368,14 @@
             font-size: 0.9rem;
             letter-spacing: 0.5px;
         }
-        
+
         .schedule-category-btn:hover {
             background: var(--mlb-blue);
             color: white;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(13, 44, 84, 0.3);
         }
-        
+
         /* Video Promo Section */
         .video-promo-section {
             background: linear-gradient(135deg, #0a2e4a 0%, #1a4a6b 50%, #0d2c54 100%);
@@ -1383,7 +1383,7 @@
             overflow: hidden;
             width: 100%;
         }
-        
+
         .video-promo-section::before {
             content: '';
             position: absolute;
@@ -1391,20 +1391,20 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: 
+            background:
                 linear-gradient(45deg, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
                 linear-gradient(-45deg, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%);
             pointer-events: none;
         }
-        
+
         .video-promo-player-container {
             position: relative;
             width: 100%;
             padding-top: 56.25%; /* 16:9 Aspect Ratio */
             background: #000;
         }
-        
+
         .video-promo-player-wrapper {
             position: absolute;
             top: 0;
@@ -1412,7 +1412,7 @@
             width: 100%;
             height: 100%;
         }
-        
+
         .video-promo-video {
             position: absolute;
             top: 0;
@@ -1423,11 +1423,11 @@
             display: block;
             z-index: 1;
         }
-        
+
         .video-promo-video::-webkit-media-controls-panel {
             background-color: rgba(0, 0, 0, 0.5);
         }
-        
+
         /* Floating Video Container */
         .video-promo-floating {
             position: fixed;
@@ -1445,13 +1445,13 @@
             transition: opacity 0.3s ease, transform 0.3s ease;
             pointer-events: none;
         }
-        
+
         .video-promo-floating.active {
             opacity: 1;
             transform: translateY(0);
             pointer-events: auto;
         }
-        
+
         .video-promo-floating video {
             width: 100%;
             height: 100%;
@@ -1465,7 +1465,7 @@
             height: 100%;
             object-fit: cover;
         }
-        
+
         .video-promo-floating-close {
             position: absolute;
             top: 8px;
@@ -1483,16 +1483,16 @@
             z-index: 10;
             transition: all 0.3s;
         }
-        
+
         .video-promo-floating-close:hover {
             background: rgba(0, 0, 0, 0.9);
             transform: scale(1.1);
         }
-        
+
         .video-promo-floating-close i {
             font-size: 14px;
         }
-        
+
         @media (max-width: 768px) {
             .video-promo-floating {
                 width: 240px;
@@ -1501,7 +1501,7 @@
                 right: 10px;
             }
         }
-        
+
         .video-promo-overlay-top {
             position: absolute;
             top: 0;
@@ -1512,34 +1512,34 @@
             z-index: 10;
             pointer-events: none;
         }
-        
+
         .video-promo-overlay-actions {
             pointer-events: auto;
         }
-        
+
         .video-promo-overlay-content {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .video-promo-logo-small {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
+
         .video-promo-logo-small img {
             height: 30px;
             width: auto;
             max-width: 200px;
         }
-        
+
         .video-promo-overlay-actions {
             display: flex;
             gap: 10px;
         }
-        
+
         .video-promo-action-btn {
             background: rgba(255, 255, 255, 0.2);
             border: none;
@@ -1553,12 +1553,12 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
+
         .video-promo-action-btn:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: scale(1.1);
         }
-        
+
         .video-promo-overlay-bottom {
             position: absolute;
             bottom: 0;
@@ -1568,7 +1568,7 @@
             padding: 15px 20px;
             z-index: 10;
         }
-        
+
         .video-promo-youtube-link {
             display: inline-flex;
             align-items: center;
@@ -1579,16 +1579,16 @@
             font-weight: 500;
             transition: all 0.3s;
         }
-        
+
         .video-promo-youtube-link:hover {
             color: var(--mlb-red);
         }
-        
+
         .video-promo-youtube-link i {
             font-size: 1.2rem;
             color: #FF0000;
         }
-        
+
         .video-promo-content {
             padding: 60px 40px;
             height: 100%;
@@ -1605,7 +1605,7 @@
             line-height: 1.6;
             margin: -15px 0 25px 0;
         }
-        
+
         .video-promo-logo {
             display: flex;
             flex-direction: column;
@@ -1613,12 +1613,12 @@
             gap: 15px;
             margin-bottom: 30px;
         }
-        
+
         .video-promo-logo i {
             font-size: 3rem;
             color: var(--mlb-red);
         }
-        
+
         .video-promo-logo span {
             color: white;
             font-size: 1.5rem;
@@ -1626,11 +1626,11 @@
             text-transform: uppercase;
             letter-spacing: 2px;
         }
-        
+
         .video-promo-title {
             margin-bottom: 40px;
         }
-        
+
         .video-promo-title-accent {
             display: block;
             color: var(--mlb-red);
@@ -1640,7 +1640,7 @@
             letter-spacing: 2px;
             line-height: 1.2;
         }
-        
+
         .video-promo-title-main {
             display: block;
             color: white;
@@ -1652,14 +1652,14 @@
             word-wrap: break-word;
             overflow-wrap: break-word;
         }
-        
+
         .video-promo-options {
             display: flex;
             gap: 12px;
             margin-bottom: 30px;
             flex-wrap: wrap;
         }
-        
+
         .video-promo-option-btn {
             background: rgba(0, 0, 0, 0.6);
             border: 2px solid rgba(255, 255, 255, 0.2);
@@ -1676,28 +1676,28 @@
             transition: all 0.3s;
             text-decoration: none;
         }
-        
+
         .video-promo-option-btn:hover {
             background: rgba(255, 255, 255, 0.1);
             border-color: rgba(255, 255, 255, 0.4);
             transform: translateY(-2px);
         }
-        
+
         .video-promo-option-btn i {
             font-size: 1rem;
         }
-        
+
         .video-promo-twitch {
             background: #9146ff;
             border-color: #9146ff;
             padding: 12px;
         }
-        
+
         .video-promo-twitch:hover {
             background: #772ce8;
             border-color: #772ce8;
         }
-        
+
         .video-promo-cta-btn {
             background: var(--mlb-red);
             color: white;
@@ -1711,7 +1711,7 @@
             transition: all 0.3s;
             display: block;
         }
-        
+
         .video-promo-cta-btn:hover {
             background: #c1121f;
             transform: translateY(-2px);
@@ -1726,7 +1726,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .sponsors-section::before {
             content: '';
             position: absolute;
@@ -1737,12 +1737,12 @@
             background: linear-gradient(135deg, rgba(13, 44, 84, 0.8) 0%, rgba(10, 30, 58, 0.9) 100%);
             z-index: 0;
         }
-        
+
         .sponsors-section .container {
             position: relative;
             z-index: 1;
         }
-        
+
         .sponsors-title {
             color: white;
             text-align: center;
@@ -1753,7 +1753,7 @@
             font-size: 2rem;
             position: relative;
         }
-        
+
         .sponsors-title::after {
             content: '';
             position: absolute;
@@ -1765,7 +1765,7 @@
             background: var(--mlb-red);
             border-radius: 2px;
         }
-        
+
         .sponsors-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -1776,7 +1776,7 @@
             margin: 0 auto;
             padding: 20px;
         }
-        
+
         .sponsor-card {
             background: transparent;
             border: none;
@@ -1791,7 +1791,7 @@
             transition: all 0.4s ease;
             position: relative;
         }
-        
+
         .sponsor-card::before {
             content: '';
             position: absolute;
@@ -1804,11 +1804,11 @@
             opacity: 0;
             transition: opacity 0.4s ease;
         }
-        
+
         .sponsor-card:hover::before {
             opacity: 1;
         }
-        
+
         .sponsor-card img {
             width: 100%;
             max-width: 200px;
@@ -1819,23 +1819,23 @@
             position: relative;
             z-index: 1;
         }
-        
+
         .sponsor-card:hover {
             transform: translateY(-8px);
         }
-        
+
         .sponsor-card:hover img {
             transform: scale(1.08);
             filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.3));
         }
-        
+
         @media (max-width: 1200px) {
             .sponsors-grid {
                 grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
                 gap: 35px;
             }
         }
-        
+
         @media (max-width: 992px) {
             .sponsors-section {
                 padding: 60px 0;
@@ -1859,7 +1859,7 @@
                 max-height: 110px;
             }
         }
-        
+
         @media (max-width: 768px) {
             .sponsors-section {
                 padding: 50px 0;
@@ -1883,7 +1883,7 @@
                 max-height: 100px;
             }
         }
-        
+
         @media (max-width: 576px) {
             .sponsors-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -1899,56 +1899,56 @@
                 max-height: 90px;
             }
         }
-        
+
         @media (max-width: 992px) {
             .video-promo-content {
                 padding: 40px 30px;
             }
-            
+
             .video-promo-title-accent {
                 font-size: 2rem;
             }
-            
+
             .video-promo-title-main {
                 font-size: 2rem;
             }
         }
-        
+
         @media (max-width: 768px) {
             .video-promo-player-container {
                 padding-top: 75%; /* Taller aspect ratio on mobile */
             }
-            
+
             .video-promo-content {
                 padding: 30px 20px;
             }
-            
+
             .video-promo-title-accent {
                 font-size: 1.5rem;
             }
-            
+
             .video-promo-title-main {
                 font-size: 2.5rem;
             }
-            
+
             .video-promo-options {
                 justify-content: center;
             }
-            
+
             .video-promo-option-btn {
                 flex: 1;
                 min-width: 80px;
                 justify-content: center;
             }
         }
-        
+
         /* Events News Style Section */
         .events-news-section {
             background: var(--mlb-blue);
             padding: 60px 40px;
             margin: 0;
         }
-        
+
         .events-news-header {
             display: flex;
             justify-content: space-between;
@@ -1959,7 +1959,7 @@
             margin-right: auto;
             padding: 0 20px;
         }
-        
+
         .events-news-title {
             font-size: 3rem;
             font-weight: 900;
@@ -1968,7 +1968,7 @@
             letter-spacing: 3px;
             margin: 0;
         }
-        
+
         .events-view-all-btn {
             background: var(--mlb-red);
             color: white;
@@ -1981,14 +1981,14 @@
             letter-spacing: 1px;
             font-size: 0.9rem;
         }
-        
+
         .events-view-all-btn:hover {
             background: #b30029;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(213, 0, 50, 0.4);
             color: white;
         }
-        
+
         .events-news-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -1996,21 +1996,21 @@
             max-width: 1400px;
             margin: 0 auto;
         }
-        
+
         @media (max-width: 1200px) {
             .events-news-grid {
                 grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             }
         }
-        
+
         @media (max-width: 768px) {
             .events-news-grid {
                 grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
                 gap: 15px;
             }
         }
-        
-        
+
+
         .event-news-card {
             background: transparent;
             border-radius: 8px;
@@ -2020,12 +2020,12 @@
             cursor: pointer;
             border: 2px solid transparent;
         }
-        
+
         .event-news-card:hover {
             transform: translateY(-5px);
             border-color: rgba(255, 255, 255, 0.3);
         }
-        
+
         .event-news-image {
             position: relative;
             width: 100%;
@@ -2033,18 +2033,18 @@
             overflow: hidden;
             background: linear-gradient(135deg, rgba(13, 44, 84, 0.9) 0%, rgba(19, 36, 72, 0.9) 100%);
         }
-        
+
         .event-news-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             transition: transform 0.3s;
         }
-        
+
         .event-news-card:hover .event-news-image img {
             transform: scale(1.1);
         }
-        
+
         .event-news-placeholder {
             width: 100%;
             height: 100%;
@@ -2053,12 +2053,12 @@
             justify-content: center;
             background: linear-gradient(135deg, rgba(13, 44, 84, 0.8) 0%, rgba(19, 36, 72, 0.8) 100%);
         }
-        
+
         .event-news-placeholder i {
             font-size: 4rem;
             color: rgba(255, 255, 255, 0.3);
         }
-        
+
         .event-news-overlay {
             position: absolute;
             top: 0;
@@ -2070,7 +2070,7 @@
             align-items: flex-start;
             padding: 15px;
         }
-        
+
         .event-news-date {
             color: white;
             font-weight: 700;
@@ -2081,7 +2081,7 @@
             padding: 5px 10px;
             border-radius: 4px;
         }
-        
+
         .event-news-content {
             background: rgba(13, 44, 84, 0.95);
             padding: 24px 20px;
@@ -2090,18 +2090,18 @@
             align-items: center;
             transition: background 0.3s ease;
         }
-        
+
         .event-news-card:hover .event-news-content {
             background: rgba(13, 44, 84, 1);
         }
-        
+
         .event-news-content-inner {
             width: 100%;
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
-        
+
         .event-news-title-card {
             color: white;
             font-size: 1rem;
@@ -2116,14 +2116,14 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        
+
         .event-news-meta {
             display: flex;
             flex-direction: row;
             gap: 16px;
             flex-wrap: wrap;
         }
-        
+
         .event-news-meta-item {
             display: flex;
             align-items: center;
@@ -2132,143 +2132,143 @@
             font-size: 0.875rem;
             font-weight: 500;
         }
-        
+
         .event-news-meta-item i {
             color: var(--mlb-red);
             font-size: 0.8rem;
             width: 16px;
             text-align: center;
         }
-        
+
         .event-news-meta-item span {
             flex: 1;
         }
-        
+
         /* Responsive */
         @media (max-width: 768px) {
             .hero-title {
                 font-size: 2rem;
             }
-            
+
             .hero-subtitle {
                 font-size: 1rem;
             }
-            
+
             .hero-slide-item {
                 min-height: 400px !important;
             }
-            
+
             .hero-slide-item i.fas {
                 font-size: 8rem !important;
             }
-            
+
             .hero-title {
                 font-size: 2rem !important;
             }
-            
+
             .hero-subtitle {
                 font-size: 1rem !important;
             }
-            
+
             .carousel-control-prev,
             .carousel-control-next {
                 width: 40px;
                 height: 40px;
             }
-            
+
             .carousel-control-prev {
                 left: 10px;
             }
-            
+
             .carousel-control-next {
                 right: 10px;
             }
-            
+
             .modal-mlb .modal-body {
                 padding: 30px 20px;
             }
-            
+
             .schedule-section-card .row {
                 flex-direction: column;
             }
-            
+
             .schedule-image-container {
                 min-height: 400px;
             }
-            
+
             .schedule-content {
                 padding: 30px 20px;
             }
-            
+
             .schedule-heading {
                 font-size: 1.5rem;
             }
-            
+
             .schedule-number {
                 font-size: 3.5rem;
             }
-            
+
             .schedule-live {
                 font-size: 1.5rem;
             }
-            
+
             .schedule-buttons {
                 flex-direction: column;
             }
-            
+
             .schedule-category-btn {
                 width: 100%;
                 text-align: center;
             }
-            
+
             .events-news-section {
                 padding: 40px 20px;
             }
-            
+
             .events-news-title {
                 font-size: 2rem;
             }
-            
+
             .events-news-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 15px;
             }
-            
+
             .event-news-image {
                 height: 200px;
             }
-            
+
             .event-news-content {
                 padding: 18px 16px;
                 min-height: 90px;
             }
-            
+
             .event-news-title-card {
                 font-size: 0.9rem;
                 line-height: 1.4;
             }
-            
+
             .event-news-meta-item {
                 font-size: 0.8rem;
                 gap: 6px;
             }
-            
+
             .event-news-meta-item i {
                 font-size: 0.75rem;
                 width: 14px;
             }
-            
+
             @media (max-width: 576px) {
                 .events-news-grid {
                     grid-template-columns: 1fr;
                 }
-                
+
                 .events-news-header {
                     flex-direction: column;
                     align-items: flex-start;
                     gap: 20px;
                 }
-                
+
                 .events-view-all-btn {
                     width: 100%;
                     text-align: center;
@@ -2387,14 +2387,14 @@
             <!-- Indicadores -->
             <div class="carousel-indicators">
                 {% for banner in home_banners %}
-                    <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="{{ forloop.counter0 }}" 
-                            {% if forloop.first %}class="active" aria-current="true"{% endif %} 
+                    <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="{{ forloop.counter0 }}"
+                            {% if forloop.first %}class="active" aria-current="true"{% endif %}
                             aria-label="Slide {{ forloop.counter }}"></button>
                 {% empty %}
                     <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
                 {% endfor %}
             </div>
-            
+
             <!-- Slides -->
             <div class="carousel-inner">
                 {% if home_banners %}
@@ -2409,7 +2409,7 @@
                                 </div>
                             {% else %}
                                 <!-- Banner tipo Gradiente -->
-                                <div class="hero-slide-item" 
+                                <div class="hero-slide-item"
                                      style="background: linear-gradient(135deg, {{ banner.gradient_color_1 }} 0%, {{ banner.gradient_color_2 }} 50%, {{ banner.gradient_color_3|default:banner.gradient_color_2 }} 100%);">
                                     <div class="hero-slide-overlay"></div>
                                     <div class="container-fluid px-4 position-relative" style="z-index: 2; height: 100%;">
@@ -2456,7 +2456,7 @@
                     </div>
                 {% endif %}
             </div>
-            
+
             <!-- Controles -->
             <button class="carousel-control-prev" type="button" data-bs-target="#heroSlider" data-bs-slide="prev">
                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -2478,12 +2478,12 @@
                     <div class="video-promo-player-container">
                         <div class="video-promo-player-wrapper">
                             <div id="videoPromoInlineHost">
-                                <video 
+                                <video
                                     id="videoPromoPlayer"
-                                    class="video-promo-video" 
-                                    controls 
-                                    autoplay 
-                                    muted 
+                                    class="video-promo-video"
+                                    controls
+                                    autoplay
+                                    muted
                                     playsinline
                                     style="display: block;">
                                     {% trans "Your browser does not support video playback." %}
@@ -2498,8 +2498,8 @@
                                         <button class="video-promo-action-btn" title="{% trans 'Watch later' %}">
                                             <i class="far fa-clock"></i>
                                         </button>
-                                        <button class="video-promo-action-btn video-audio-toggle" type="button" 
-                                                data-title-enable="{% trans 'Enable sound' %}" 
+                                        <button class="video-promo-action-btn video-audio-toggle" type="button"
+                                                data-title-enable="{% trans 'Enable sound' %}"
                                                 data-title-mute="{% trans 'Mute' %}"
                                                 title="{% trans 'Enable sound' %}">
                                             <i class="fas fa-volume-mute"></i>
@@ -2513,7 +2513,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Right Column - Promotional Content -->
                 <div class="col-lg-4">
                     <div class="video-promo-content" id="videoPromoContent">
@@ -2582,7 +2582,7 @@
                         {% endif %}
                     </div>
                 </div>
-                
+
                 <!-- Right Column - Content -->
                 <div class="col-lg-6">
                     <div class="schedule-content">
@@ -2802,7 +2802,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Right Column - Content -->
                 <div class="col-lg-6">
                     <div class="schedule-content">
@@ -2810,7 +2810,7 @@
                             {% if showcase_title %}
                                 {{ showcase_title }}
                             {% elif site_settings %}
-                                {{ site_settings.get_showcase_title }}
+                                {{ site_settings.get_showcase_title|default:"SHOWCASES AND PROSPECT GATEWAYS" }}
                             {% else %}
                                 {% trans "SHOWCASES AND PROSPECT GATEWAYS" %}
                             {% endif %}
@@ -2819,7 +2819,7 @@
                             {% if showcase_subtitle %}
                                 {{ showcase_subtitle }}
                             {% elif site_settings %}
-                                {{ site_settings.get_showcase_subtitle }}
+                                {{ site_settings.get_showcase_subtitle|default:"REGIONAL AND NATIONAL SHOWCASES" }}
                             {% else %}
                                 {% trans "REGIONAL AND NATIONAL SHOWCASES" %}
                             {% endif %}
@@ -2828,7 +2828,7 @@
                             {% if showcase_description %}
                                 {{ showcase_description }}
                             {% elif site_settings %}
-                                {{ site_settings.get_showcase_description }}
+                                {{ site_settings.get_showcase_description|default:"" }}
                             {% else %}
                                 {% blocktrans %}Perfect Game is thrilled to offer showcases (HS) and Prospect Gateways (13U/14U) across the country for the 2025 calendar. This includes regional events for all ages and new invite only events! PG strives to delivery the very best events and experience for all players, coaches and families across the country.{% endblocktrans %}
                             {% endif %}
@@ -2906,22 +2906,22 @@
             </div>
         </div>
     </section>
-    
+
     <script>
         // Instagram Feed Loader - Carga inmediatamente al renderizar
         (function() {
             const instagramUsername = '{{ instagram_username }}';
             const grid = document.getElementById('instagram-feed');
-            
+
             // Limpiar el grid inmediatamente para evitar mostrar contenido inicial
             if (grid) {
                 grid.innerHTML = '';
             }
-            
+
             // Función para cargar posts de Instagram
             async function loadInstagramPosts() {
                 if (!grid) return;
-                
+
                 try {
                     // Intentar con nuestra API personalizada
                     const response = await fetch('/accounts/api/instagram/posts/');
@@ -2937,12 +2937,12 @@
                 } catch (error) {
                     console.log('Error con API personalizada:', error);
                 }
-                
+
                 // Si no hay posts, mostrar placeholders de Instagram
                 console.log('No se pudieron cargar posts de Instagram, mostrando placeholders');
                 showPlaceholders();
             }
-            
+
             // Función para mostrar placeholders
             function showPlaceholders() {
                 if (!grid) return;
@@ -2957,23 +2957,23 @@
                     grid.appendChild(item);
                 }
             }
-            
+
             // Función para renderizar posts de Instagram (solo 6 posts)
             function renderInstagramPosts(posts) {
                 if (!grid) return;
-                
+
                 grid.innerHTML = '';
-                
+
                 // Renderizar solo los posts disponibles (máximo 6)
                 const postsToRender = posts.slice(0, 6);
-                
+
                 postsToRender.forEach(post => {
                     const item = document.createElement('a');
                     item.href = post.permalink || `https://www.instagram.com/${instagramUsername}/`;
                     item.target = '_blank';
                     item.rel = 'noopener noreferrer';
                     item.className = 'instagram-gallery-item';
-                    
+
                     if (post.image_url) {
                         const img = document.createElement('img');
                         img.src = post.image_url;
@@ -2994,13 +2994,13 @@
                         placeholder.innerHTML = '<i class="fab fa-instagram"></i>';
                         item.appendChild(placeholder);
                     }
-                    
+
                     grid.appendChild(item);
                 });
-                
+
                 console.log(`Renderizados ${postsToRender.length} posts de Instagram`);
             }
-            
+
             // Cargar posts inmediatamente (no esperar DOMContentLoaded)
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', loadInstagramPosts);
@@ -3120,11 +3120,11 @@
                 </div>
                 <div class="modal-body">
                     <p class="text-center mb-4" style="color: #666; position: relative; z-index: 1;">{% trans "Access your NCS International account" %}</p>
-                    
+
                     <form method="post" action="{% url 'accounts:login' %}">
                         {% csrf_token %}
                         <input type="hidden" name="next" value="{{ request.GET.next|default:request.path }}">
-                        
+
                         {% if form.non_field_errors %}
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle me-2"></i>
@@ -3136,15 +3136,15 @@
                                 {% trans "Please verify your credentials and try again." %}
                             </div>
                         {% endif %}
-                        
+
                         <div class="mb-3">
                             <label for="id_username_modal" class="form-label">
                                 <i class="fas fa-envelope me-1"></i>{% trans "Email" %}
                             </label>
-                            <input type="email" 
-                                   id="id_username_modal" 
-                                   name="username" 
-                                   class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
+                            <input type="email"
+                                   id="id_username_modal"
+                                   name="username"
+                                   class="form-control {% if form.username.errors %}is-invalid{% endif %}"
                                    placeholder="{% trans 'your@email.com' %}"
                                    value="{% if form.username.value %}{{ form.username.value }}{% elif request.POST.username %}{{ request.POST.username }}{% endif %}"
                                    required
@@ -3153,22 +3153,22 @@
                                 <div class="field-error">{{ form.username.errors.0 }}</div>
                             {% endif %}
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="id_password_modal" class="form-label">
                                 <i class="fas fa-lock me-1"></i>{% trans "Password" %}
                             </label>
-                            <input type="password" 
-                                   id="id_password_modal" 
-                                   name="password" 
-                                   class="form-control {% if form.password.errors %}is-invalid{% endif %}" 
+                            <input type="password"
+                                   id="id_password_modal"
+                                   name="password"
+                                   class="form-control {% if form.password.errors %}is-invalid{% endif %}"
                                    placeholder="{% trans 'Enter your password' %}"
                                    required>
                             {% if form.password.errors %}
                                 <div class="field-error">{{ form.password.errors.0 }}</div>
                             {% endif %}
                         </div>
-                        
+
                         <div class="mb-4">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me_modal">
@@ -3177,7 +3177,7 @@
                                 </label>
                             </div>
                         </div>
-                        
+
                         <button type="submit" class="btn btn-mlb w-100">
                             <i class="fas fa-sign-in-alt me-2"></i>{% trans "Log In" %}
                         </button>
@@ -3196,7 +3196,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Sistema moderno de traducciones del lado del cliente -->
     <script src="{% static 'js/i18n.js' %}"></script>
-    
+
     <!-- Pasar traducciones de la base de datos al JavaScript -->
     {% if site_settings_translations %}
     {{ site_settings_translations|json_script:"site-settings-translations" }}
@@ -3234,7 +3234,7 @@
         })();
     </script>
     {% endif %}
-    
+
     <script>
         // Inicializar el carousel del hero slider
         document.addEventListener('DOMContentLoaded', function() {
@@ -3248,7 +3248,7 @@
                 });
             }
         });
-        
+
         // Smooth scroll
         document.querySelectorAll('a[href^="#"]:not([data-bs-toggle])').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
@@ -3265,18 +3265,18 @@
                 }
             });
         });
-        
+
         // Mostrar modal de login si hay errores en la URL o si show_login_modal está activo
         document.addEventListener('DOMContentLoaded', function() {
             const urlParams = new URLSearchParams(window.location.search);
             const loginError = urlParams.get('login_error');
             const loginModal = document.getElementById('loginModal');
             const showLoginModal = {% if show_login_modal %}true{% else %}false{% endif %};
-            
+
             if ((loginError === '1' || showLoginModal) && loginModal) {
                 const modal = new bootstrap.Modal(loginModal);
                 modal.show();
-                
+
                 // Limpiar el parámetro de la URL sin recargar
                 if (loginError === '1') {
                     const newUrl = window.location.pathname;
@@ -3284,7 +3284,7 @@
                 }
             }
         });
-        
+
         // Manejar envío del formulario del modal
         const loginForm = document.querySelector('#loginModal form');
         if (loginForm) {
@@ -3293,23 +3293,23 @@
                 // No necesitamos prevenir el submit predeterminado
             });
         }
-        
+
         // Video Promo Carousel - Cambio automático de videos
         (function() {
             const eventsDataScript = document.getElementById('promoEventsData');
             if (!eventsDataScript) return;
-            
+
             const eventsData = JSON.parse(eventsDataScript.textContent);
             const events = eventsData.events || [];
-            
+
             if (events.length === 0) return;
-            
+
             const video = document.getElementById('videoPromoPlayer');
             if (!video) return;
-            
+
             let currentIndex = 0;
             let hls = null;
-            
+
             // Función para convertir URL de YouTube/Vimeo a formato directo si es necesario
             function getVideoSource(videoUrl) {
                 // Si es una URL directa de video, usarla directamente
@@ -3328,7 +3328,7 @@
                 }
                 return videoUrl;
             }
-            
+
             // Función para cargar un video
             function loadVideo(event) {
                 if (!event || !event.video_url) {
@@ -3338,23 +3338,23 @@
                     }
                     return;
                 }
-                
+
                 // Actualizar información del evento PRIMERO (antes de cargar el video)
                 updateEventInfo(event);
-                
+
                 // Limpiar HLS anterior si existe
                 if (hls) {
                     hls.destroy();
                     hls = null;
                 }
-                
+
                 // Limpiar sources anteriores y remover listeners
                 video.innerHTML = '';
                 video.removeEventListener('ended', nextVideo);
-                
+
                 const videoUrl = event.video_url;
                 const videoSource = getVideoSource(videoUrl);
-                
+
                 // Si es YouTube o Vimeo, usar iframe
                 if (videoSource.includes('youtube.com/embed') || videoSource.includes('vimeo.com/video')) {
                     // Para YouTube/Vimeo, usamos un iframe
@@ -3369,7 +3369,7 @@
                     iframe.style.left = '0';
                     iframe.allow = 'autoplay; encrypted-media';
                     iframe.allowFullscreen = true;
-                    
+
                     // Ocultar el video y mostrar el iframe
                     video.style.display = 'none';
                     const videoContainer = video.parentElement;
@@ -3379,13 +3379,13 @@
                         if (oldIframe) oldIframe.remove();
                         videoContainer.appendChild(iframe);
                     }
-                    
+
                     // Para YouTube/Vimeo, usar postMessage API para detectar cuando termina
                     // Si no está disponible, usar un timeout más largo (60 segundos)
                     let timeoutId = setTimeout(() => {
                         nextVideo();
                     }, 60000); // 60 segundos como fallback
-                    
+
                     // Intentar detectar cuando termina el video de YouTube/Vimeo
                     if (iframe.contentWindow) {
                         // Escuchar mensajes del iframe (si el video soporta postMessage)
@@ -3402,11 +3402,11 @@
                     video.style.display = 'block';
                     const oldIframe = document.getElementById('videoPromoIframe');
                     if (oldIframe) oldIframe.remove();
-                    
+
                     // Es un video directo
                     const source = document.createElement('source');
                     source.src = videoSource;
-                    
+
                     // Detectar tipo de video
                     if (videoSource.includes('.m3u8')) {
                         source.type = 'application/x-mpegURL';
@@ -3415,13 +3415,13 @@
                     } else if (videoSource.includes('.webm')) {
                         source.type = 'video/webm';
                     }
-                    
+
                     video.appendChild(source);
                     video.appendChild(document.createTextNode('{% trans "Your browser does not support video playback." %}'));
-                    
+
                     // Agregar listener para cuando termine el video
                     video.addEventListener('ended', nextVideo, { once: true });
-                    
+
                     // Si es HLS y el navegador no lo soporta nativamente, usar hls.js
                     if (videoSource.includes('.m3u8') && video.canPlayType('application/vnd.apple.mpegurl') === '') {
                         if (typeof Hls !== 'undefined') {
@@ -3463,7 +3463,7 @@
                             setTimeout(nextVideo, 2000);
                         });
                     }
-                    
+
                     // También escuchar errores del video
                     video.addEventListener('error', function() {
                         console.error('Video error, moving to next');
@@ -3471,18 +3471,18 @@
                     }, { once: true });
                 }
             }
-            
+
             // Función para actualizar la información del evento
             function updateEventInfo(event) {
                 if (!event) return;
-                
+
                 const titleEl = document.getElementById('promoTitleMain');
                 const descEl = document.getElementById('promoDescription');
                 const locationEl = document.getElementById('promoLocation');
                 const typeEl = document.getElementById('promoType');
                 const divisionsEl = document.getElementById('promoDivisions');
                 const linkEl = document.getElementById('promoEventLink');
-                
+
                 if (titleEl) {
                     titleEl.textContent = (event.title || '{% trans "Event" %}').toUpperCase();
                 }
@@ -3502,21 +3502,21 @@
                     linkEl.href = event.detail_url || '#';
                 }
             }
-            
+
             // Función para cambiar al siguiente video
             function nextVideo() {
                 if (events.length === 0) return;
-                
+
                 // Avanzar al siguiente índice (con loop)
                 currentIndex = (currentIndex + 1) % events.length;
-                
+
                 // Cargar el siguiente video
                 const nextEvent = events[currentIndex];
                 if (nextEvent) {
                     loadVideo(nextEvent);
                 }
             }
-            
+
             // Cargar el primer video al iniciar
             if (events.length > 0) {
                 loadVideo(events[0]);
@@ -3593,15 +3593,15 @@
 
             render();
         })();
-        
+
         // Floating Video on Scroll
         (function() {
             const videoSection = document.querySelector('.video-promo-section');
             const video = document.querySelector('.video-promo-video');
             const inlineHost = document.getElementById('videoPromoInlineHost');
-            
+
             if (!videoSection || !video || !inlineHost) return;
-            
+
             // Create floating container (we move the SAME <video> here)
             const floatingContainer = document.createElement('div');
             floatingContainer.className = 'video-promo-floating';
@@ -3612,13 +3612,13 @@
                 <div class="video-promo-floating-host"></div>
             `;
             document.body.appendChild(floatingContainer);
-            
+
             const floatingHost = floatingContainer.querySelector('.video-promo-floating-host');
             const closeBtn = floatingContainer.querySelector('.video-promo-floating-close');
-            
+
             let floatingDisabled = false;
             let isFloating = false;
-            
+
             function moveToFloating() {
                 if (floatingDisabled || isFloating) return;
                 const wasPlaying = !video.paused && !video.ended;
@@ -3629,7 +3629,7 @@
                     video.play().catch(() => {});
                 }
             }
-            
+
             function moveToInline() {
                 if (!isFloating) return;
                 const wasPlaying = !video.paused && !video.ended;
@@ -3640,13 +3640,13 @@
                     video.play().catch(() => {});
                 }
             }
-            
+
             closeBtn.addEventListener('click', function() {
                 floatingDisabled = true;
                 moveToInline();
                 floatingContainer.classList.remove('active');
             });
-            
+
             const observer = new IntersectionObserver(function(entries) {
                 entries.forEach(entry => {
                     if (!entry.isIntersecting) {
@@ -3659,10 +3659,10 @@
                 threshold: 0.1,
                 rootMargin: '0px'
             });
-            
+
             observer.observe(videoSection);
         })();
-        
+
         // Language Selector Dropdown
         function toggleLanguageDropdown() {
             const dropdown = document.getElementById('languageDropdown');
@@ -3670,18 +3670,18 @@
             dropdown.classList.toggle('show');
             btn.classList.toggle('active');
         }
-        
+
         // Debug: Verificar idioma actual
         console.log('Current language from template:', '{{ CURRENT_LANGUAGE }}');
         console.log('Language forms:', {
             'en-form': document.getElementById('lang-form-en'),
             'es-form': document.getElementById('lang-form-es')
         });
-        
+
         // Agregar event listeners para debugging
         const esForm = document.getElementById('lang-form-es');
         const enForm = document.getElementById('lang-form-en');
-        
+
         if (esForm) {
             esForm.addEventListener('submit', function(e) {
                 console.log('Submitting Spanish language form');
@@ -3690,7 +3690,7 @@
                 console.log('Next:', formData.get('next'));
             });
         }
-        
+
         if (enForm) {
             enForm.addEventListener('submit', function(e) {
                 console.log('Submitting English language form');
@@ -3699,13 +3699,13 @@
                 console.log('Next:', formData.get('next'));
             });
         }
-        
+
         // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             const wrapper = document.querySelector('.language-selector-wrapper');
             const dropdown = document.getElementById('languageDropdown');
             const btn = document.getElementById('languageSelectorBtn');
-            
+
             if (wrapper && !wrapper.contains(event.target)) {
                 dropdown.classList.remove('show');
                 btn.classList.remove('active');

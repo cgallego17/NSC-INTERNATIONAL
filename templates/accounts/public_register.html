@@ -1,18 +1,19 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{% get_current_language %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro - NCS International</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
     <style>
         :root {
             --mlb-blue: #0d2c54;
@@ -21,19 +22,19 @@
             --mlb-gold: #ffd700;
             --mlb-dark: #1a1a1a;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Arial', 'Helvetica', sans-serif;
             background-color: #f5f5f5;
             color: #333;
         }
-        
+
         /* Top Bar */
         .top-bar {
             background: var(--mlb-dark);
@@ -41,24 +42,24 @@
             padding: 8px 0;
             font-size: 0.85rem;
         }
-        
+
         .top-bar a {
             color: #ccc;
             text-decoration: none;
             transition: color 0.3s;
         }
-        
+
         .top-bar a:hover {
             color: white;
         }
-        
+
         /* Navbar MLB Style */
         .navbar-mlb {
             background: var(--mlb-blue) !important;
             padding: 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
-        
+
         .navbar-mlb .navbar-brand {
             font-size: 1.8rem;
             font-weight: 700;
@@ -66,7 +67,7 @@
             padding: 15px 20px;
             background: var(--mlb-red);
         }
-        
+
         .navbar-mlb .nav-link {
             color: white !important;
             font-weight: 600;
@@ -76,21 +77,21 @@
             letter-spacing: 0.5px;
             transition: background 0.3s;
         }
-        
+
         .navbar-mlb .nav-link:hover {
             background: var(--mlb-light-blue);
         }
-        
+
         .navbar-mlb .nav-link.active {
             background: var(--mlb-red);
         }
-        
+
         /* Main Content */
         .main-content {
             padding: 60px 0;
             min-height: calc(100vh - 400px);
         }
-        
+
         /* Register Card */
         .register-card {
             background: white;
@@ -99,14 +100,14 @@
             overflow: hidden;
             border-top: 4px solid var(--mlb-red);
         }
-        
+
         .register-header {
             background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
             color: white;
             padding: 30px;
             text-align: center;
         }
-        
+
         .register-header h2 {
             font-size: 2rem;
             font-weight: 900;
@@ -114,16 +115,16 @@
             letter-spacing: 2px;
             margin-bottom: 10px;
         }
-        
+
         .register-header p {
             opacity: 0.9;
             margin: 0;
         }
-        
+
         .register-body {
             padding: 40px;
         }
-        
+
         .form-label {
             font-weight: 600;
             color: var(--mlb-blue);
@@ -132,55 +133,55 @@
             font-size: 0.85rem;
             letter-spacing: 0.5px;
         }
-        
+
         .form-control, .form-select {
             border: 2px solid #e9ecef;
             border-radius: 4px;
             padding: 12px 15px;
             transition: all 0.3s;
         }
-        
+
         .form-control:focus, .form-select:focus {
             border-color: var(--mlb-blue);
             box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.25);
         }
-        
+
         .form-check-input {
             width: 1.25rem;
             height: 1.25rem;
             border: 2px solid #e9ecef;
             margin-top: 0.3rem;
         }
-        
+
         .form-check-input:checked {
             background-color: var(--mlb-red);
             border-color: var(--mlb-red);
         }
-        
+
         .form-check-label {
             font-weight: 500;
             color: #555;
             margin-left: 8px;
         }
-        
+
         .user-type-selector {
             display: flex;
             gap: 20px;
             margin-bottom: 30px;
         }
-        
+
         .user-type-option {
             flex: 1;
             position: relative;
         }
-        
+
         .user-type-option input[type="radio"] {
             position: absolute;
             opacity: 0;
             width: 0;
             height: 0;
         }
-        
+
         .user-type-option label {
             display: block;
             padding: 20px;
@@ -191,37 +192,37 @@
             transition: all 0.3s;
             background: white;
         }
-        
+
         .user-type-option input[type="radio"]:checked + label {
             border-color: var(--mlb-blue);
             background: var(--mlb-blue);
             color: white;
             box-shadow: 0 4px 15px rgba(13, 44, 84, 0.3);
         }
-        
+
         .user-type-option label:hover {
             border-color: var(--mlb-light-blue);
         }
-        
+
         .user-type-icon {
             font-size: 2.5rem;
             margin-bottom: 10px;
             display: block;
         }
-        
+
         .user-type-title {
             font-weight: 700;
             font-size: 1.1rem;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        
+
         .user-type-desc {
             font-size: 0.85rem;
             margin-top: 5px;
             opacity: 0.8;
         }
-        
+
         .btn-mlb {
             background: var(--mlb-red);
             color: white;
@@ -236,24 +237,24 @@
             font-size: 1.1rem;
             letter-spacing: 1px;
         }
-        
+
         .btn-mlb:hover {
             background: #b30029;
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(213, 0, 50, 0.4);
             color: white;
         }
-        
+
         .form-section {
             margin-bottom: 30px;
             padding-bottom: 30px;
             border-bottom: 2px solid #f0f0f0;
         }
-        
+
         .form-section:last-child {
             border-bottom: none;
         }
-        
+
         .form-section-title {
             font-size: 1.3rem;
             font-weight: 700;
@@ -264,20 +265,20 @@
             border-bottom: 2px solid var(--mlb-red);
             display: inline-block;
         }
-        
+
         .error-message {
             color: var(--mlb-red);
             font-size: 0.85rem;
             margin-top: 5px;
             font-weight: 600;
         }
-        
+
         .help-text {
             font-size: 0.8rem;
             color: #666;
             margin-top: 5px;
         }
-        
+
         .photo-preview {
             width: 150px;
             height: 150px;
@@ -287,7 +288,7 @@
             margin-top: 15px;
             display: none;
         }
-        
+
         .photo-upload-area {
             border: 2px dashed var(--mlb-blue);
             border-radius: 8px;
@@ -296,12 +297,12 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
+
         .photo-upload-area:hover {
             background: #f8f9fa;
             border-color: var(--mlb-red);
         }
-        
+
         /* Footer MLB Style */
         .footer-mlb {
             background: var(--mlb-dark);
@@ -309,7 +310,7 @@
             padding: 40px 0 20px;
             margin-top: 60px;
         }
-        
+
         .footer-mlb h5 {
             color: white;
             font-weight: 700;
@@ -317,7 +318,7 @@
             margin-bottom: 20px;
             font-size: 1rem;
         }
-        
+
         .footer-mlb a {
             color: #ccc;
             text-decoration: none;
@@ -325,41 +326,41 @@
             display: block;
             margin-bottom: 10px;
         }
-        
+
         .footer-mlb a:hover {
             color: var(--mlb-gold);
         }
-        
+
         .footer-bottom {
             border-top: 1px solid #333;
             padding-top: 20px;
             margin-top: 30px;
             text-align: center;
         }
-        
+
         .login-link {
             text-align: center;
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid #e9ecef;
         }
-        
+
         .login-link a {
             color: var(--mlb-blue);
             font-weight: 600;
             text-decoration: none;
         }
-        
+
         .login-link a:hover {
             color: var(--mlb-red);
             text-decoration: underline;
         }
-        
+
         /* Password Strength Indicator */
         .password-strength-container {
             margin-top: 10px;
         }
-        
+
         .password-strength-bar {
             height: 5px;
             border-radius: 3px;
@@ -368,29 +369,29 @@
             overflow: hidden;
             transition: all 0.3s ease;
         }
-        
+
         .password-strength-fill {
             height: 100%;
             width: 0%;
             transition: all 0.3s ease;
             border-radius: 3px;
         }
-        
+
         .password-strength-fill.weak {
             width: 33%;
             background: #dc3545;
         }
-        
+
         .password-strength-fill.medium {
             width: 66%;
             background: #ffc107;
         }
-        
+
         .password-strength-fill.strong {
             width: 100%;
             background: #28a745;
         }
-        
+
         .password-strength-text {
             font-size: 0.85rem;
             font-weight: 600;
@@ -398,19 +399,19 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
+
         .password-strength-text.weak {
             color: #dc3545;
         }
-        
+
         .password-strength-text.medium {
             color: #ffc107;
         }
-        
+
         .password-strength-text.strong {
             color: #28a745;
         }
-        
+
         .password-requirements {
             margin-top: 10px;
             padding: 10px;
@@ -418,7 +419,7 @@
             border-radius: 4px;
             border-left: 3px solid var(--mlb-blue);
         }
-        
+
         .password-requirements-title {
             font-size: 0.85rem;
             font-weight: 600;
@@ -426,7 +427,7 @@
             margin-bottom: 8px;
             text-transform: uppercase;
         }
-        
+
         .password-requirement {
             font-size: 0.8rem;
             color: #666;
@@ -435,29 +436,29 @@
             align-items: center;
             gap: 8px;
         }
-        
+
         .password-requirement.valid {
             color: #28a745;
         }
-        
+
         .password-requirement.valid i {
             color: #28a745;
         }
-        
+
         .password-requirement.invalid i {
             color: #dc3545;
         }
-        
+
         .password-requirement i {
             font-size: 0.7rem;
             width: 16px;
         }
-        
+
         /* Field Validation Styles */
         .field-wrapper {
             position: relative;
         }
-        
+
         .field-validation-icon {
             position: absolute;
             right: 15px;
@@ -468,36 +469,36 @@
             opacity: 0;
             transition: opacity 0.3s ease;
         }
-        
+
         .field-validation-icon.show {
             opacity: 1;
         }
-        
+
         .field-validation-icon.valid {
             color: #28a745;
         }
-        
+
         .field-validation-icon.invalid {
             color: #dc3545;
         }
-        
+
         .form-control.is-valid,
         .form-select.is-valid {
             border-color: #28a745;
             padding-right: 40px;
         }
-        
+
         .form-control.is-invalid,
         .form-select.is-invalid {
             border-color: #dc3545;
             padding-right: 40px;
         }
-        
+
         /* Phone Prefix Styles */
         .input-group {
             position: relative;
         }
-        
+
         .input-group-text {
             border: 2px solid #e9ecef;
             border-right: none;
@@ -505,7 +506,7 @@
             color: var(--mlb-blue);
             font-weight: 600;
         }
-        
+
         .input-group .form-select {
             border-left: none;
             border-radius: 0;
@@ -518,42 +519,42 @@
             font-weight: 600;
             text-align: center;
         }
-        
+
         .input-group .form-select:focus {
             border-left: 1px solid #e9ecef;
             outline: none;
         }
-        
+
         .input-group .form-select option {
             display: block;
             padding: 8px;
         }
-        
+
         .input-group .form-control {
             border-left: none;
             border-radius: 0 4px 4px 0;
         }
-        
+
         .input-group .form-control:focus {
             border-left: 1px solid var(--mlb-blue);
         }
-        
+
         .input-group .form-select.is-valid {
             border-left: 1px solid #28a745;
         }
-        
+
         .input-group .form-control.is-valid {
             border-left: 1px solid #28a745;
         }
-        
+
         .input-group .form-select.is-invalid {
             border-left: 1px solid #dc3545;
         }
-        
+
         .input-group .form-control.is-invalid {
             border-left: 1px solid #dc3545;
         }
-        
+
         .field-validation-message {
             font-size: 0.85rem;
             margin-top: 5px;
@@ -562,29 +563,29 @@
             display: none;
             animation: slideDown 0.3s ease;
         }
-        
+
         .field-validation-message.show {
             display: block;
         }
-        
+
         .field-validation-message.valid {
             background: #d4edda;
             color: #155724;
             border-left: 3px solid #28a745;
         }
-        
+
         .field-validation-message.invalid {
             background: #f8d7da;
             color: #721c24;
             border-left: 3px solid #dc3545;
         }
-        
+
         .field-validation-message.info {
             background: #d1ecf1;
             color: #0c5460;
             border-left: 3px solid #17a2b8;
         }
-        
+
         @keyframes slideDown {
             from {
                 opacity: 0;
@@ -595,11 +596,11 @@
                 transform: translateY(0);
             }
         }
-        
+
         .required-field {
             color: var(--mlb-red);
         }
-        
+
         .optional-field {
             color: #6c757d;
             font-size: 0.8rem;
@@ -660,23 +661,23 @@
                             <h2><i class="fas fa-user-plus me-2"></i>Registro de Usuario</h2>
                             <p>Regístrate como padre/acudiente o manager de equipo para gestionar jugadores y equipos</p>
                         </div>
-                        
+
                         <div class="register-body">
                             <form method="post" enctype="multipart/form-data" id="registerForm">
                                 {% csrf_token %}
-                                
+
                                 {% if form.non_field_errors %}
                                     <div class="alert alert-danger">
                                         {{ form.non_field_errors }}
                                     </div>
                                 {% endif %}
-                                
+
                                 <!-- Tipo de Usuario -->
                                 <div class="form-section">
                                     <div class="form-section-title">Tipo de Registro</div>
                                     <div class="alert alert-info" id="parentInfoAlert" style="background: #e3f2fd; border-left: 4px solid var(--mlb-blue); padding: 15px; margin-bottom: 20px; display: none;">
                                         <i class="fas fa-info-circle me-2"></i>
-                                        <strong>Importante:</strong> Este formulario es para registrar tu información como padre/acudiente. 
+                                        <strong>Importante:</strong> Este formulario es para registrar tu información como padre/acudiente.
                                         Después de completar el registro, podrás registrar a tu(s) hijo(s) o acudido(s) como jugadores desde tu dashboard.
                                     </div>
                                     <div class="user-type-selector">
@@ -705,7 +706,7 @@
                                         <div class="error-message">{{ form.user_type.errors }}</div>
                                     {% endif %}
                                 </div>
-                                
+
                                 <!-- Información de Cuenta -->
                                 <div class="form-section">
                                     <div class="form-section-title">Información de Cuenta</div>
@@ -723,7 +724,7 @@
                                             {% endif %}
                                         </div>
                                     </div>
-                                    
+
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label for="{{ form.password1.id_for_label }}" class="form-label">
@@ -733,7 +734,7 @@
                                             {% if form.password1.errors %}
                                                 <div class="error-message">{{ form.password1.errors }}</div>
                                             {% endif %}
-                                            
+
                                             <!-- Password Strength Indicator -->
                                             <div class="password-strength-container">
                                                 <div class="password-strength-bar">
@@ -743,7 +744,7 @@
                                                     <i class="fas fa-info-circle me-1"></i>Ingresa una contraseña
                                                 </div>
                                             </div>
-                                            
+
                                             <!-- Password Requirements -->
                                             <div class="password-requirements">
                                                 <div class="password-requirements-title">
@@ -787,7 +788,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Información Personal -->
                                 <div class="form-section">
                                     <div class="form-section-title">Información Personal del Padre/Acudiente</div>
@@ -837,7 +838,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="row">
                                         <div class="col-md-4 mb-3">
                                             <div class="field-wrapper">
@@ -920,7 +921,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Foto de Perfil -->
                                     <div class="mb-3">
                                         <label for="{{ form.profile_picture.id_for_label }}" class="form-label">
@@ -939,7 +940,7 @@
                                         <div class="help-text">Foto del padre/acudiente</div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Ubicación -->
                                 <div class="form-section">
                                     <div class="form-section-title">Tu Ubicación</div>
@@ -975,7 +976,7 @@
                                             {% endif %}
                                         </div>
                                     </div>
-                                    
+
                                     <div class="row">
                                         <div class="col-md-8 mb-3">
                                             <label for="{{ form.address.id_for_label }}" class="form-label">
@@ -1001,7 +1002,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="row">
                                         <div class="col-md-12 mb-3">
                                             <label for="{{ form.address_line_2.id_for_label }}" class="form-label">
@@ -1014,7 +1015,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Información Adicional -->
                                 <div class="form-section">
                                     <div class="form-section-title">Información Adicional del Padre/Acudiente</div>
@@ -1047,7 +1048,7 @@
                                             <div class="help-text">Ej: @usuario_instagram, @usuario_twitter</div>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="mb-3">
                                         <label for="{{ form.bio.id_for_label }}" class="form-label">
                                             <i class="fas fa-user-edit me-1"></i>Biografía / Sobre Ti
@@ -1059,16 +1060,16 @@
                                         <div class="help-text">Información sobre ti como padre/acudiente (opcional)</div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="alert alert-success" style="background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin-bottom: 20px;">
                                     <i class="fas fa-check-circle me-2"></i>
                                     <strong>Después del registro:</strong> Una vez completado tu registro como padre/acudiente, podrás acceder a tu dashboard y registrar a tu(s) hijo(s) o acudido(s) como jugadores.
                                 </div>
-                                
+
                                 <button type="submit" class="btn btn-mlb" id="submitBtn">
                                     <i class="fas fa-user-plus me-2"></i>Crear Cuenta
                                 </button>
-                                
+
                                 <div class="login-link">
                                     <p class="mb-0">¿Ya tienes cuenta? <a href="{% url 'accounts:login' %}">Inicia sesión aquí</a></p>
                                 </div>
@@ -1116,7 +1117,7 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         // Preview de foto
         document.getElementById('id_profile_picture').addEventListener('change', function(e) {
@@ -1131,7 +1132,7 @@
                 reader.readAsDataURL(file);
             }
         });
-        
+
         // Cargar estados cuando se selecciona un país
         const countrySelect = document.getElementById('id_country');
         if (countrySelect) {
@@ -1139,7 +1140,7 @@
                 const countryId = this.value;
                 const stateSelect = document.getElementById('id_state');
                 const citySelect = document.getElementById('id_city');
-                
+
                 // Limpiar estados y ciudades
                 if (stateSelect) {
                     stateSelect.innerHTML = '<option value="">Selecciona un estado</option>';
@@ -1149,7 +1150,7 @@
                     citySelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
                     citySelect.disabled = true;
                 }
-                
+
                 if (countryId) {
                     fetch(`/locations/api/states/?country=${countryId}`)
                         .then(response => {
@@ -1178,20 +1179,20 @@
                 }
             });
         }
-        
+
         // Cargar ciudades cuando se selecciona un estado
         const stateSelectElement = document.getElementById('id_state');
         if (stateSelectElement) {
             stateSelectElement.addEventListener('change', function() {
                 const stateId = this.value;
                 const citySelect = document.getElementById('id_city');
-                
+
                 // Limpiar ciudades
                 if (citySelect) {
                     citySelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
                     citySelect.disabled = !stateId;
                 }
-                
+
                 if (stateId) {
                     fetch(`/locations/api/cities/?state=${stateId}`)
                         .then(response => {
@@ -1220,13 +1221,13 @@
                 }
             });
         }
-        
+
         // Actualizar texto del botón y mostrar/ocultar alertas según el tipo de registro seleccionado
         const userTypeInputs = document.querySelectorAll('input[name="user_type"]');
         const submitBtn = document.getElementById('submitBtn');
         const parentInfoAlert = document.getElementById('parentInfoAlert');
         const successAlert = document.querySelector('.alert-success');
-        
+
         userTypeInputs.forEach(input => {
             input.addEventListener('change', function() {
                 if (this.value === 'parent') {
@@ -1248,7 +1249,7 @@
                 }
             });
         });
-        
+
         // Establecer estado inicial
         const checkedType = document.querySelector('input[name="user_type"]:checked');
         if (checkedType && checkedType.value === 'parent') {
@@ -1267,19 +1268,19 @@
                 successAlert.style.display = 'none';
             }
         }
-        
+
         // Password Strength Indicator
         const passwordInput = document.getElementById('id_password1');
         const strengthFill = document.getElementById('passwordStrengthFill');
         const strengthText = document.getElementById('passwordStrengthText');
-        
+
         // Requisitos de contraseña
         const reqLength = document.getElementById('reqLength');
         const reqUpper = document.getElementById('reqUpper');
         const reqLower = document.getElementById('reqLower');
         const reqNumber = document.getElementById('reqNumber');
         const reqSpecial = document.getElementById('reqSpecial');
-        
+
         function checkPasswordStrength(password) {
             if (!password) {
                 return {
@@ -1295,7 +1296,7 @@
                     }
                 };
             }
-            
+
             let strength = 0;
             const checks = {
                 length: password.length >= 8,
@@ -1304,17 +1305,17 @@
                 number: /[0-9]/.test(password),
                 special: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
             };
-            
+
             // Calcular fuerza
             if (checks.length) strength++;
             if (checks.upper) strength++;
             if (checks.lower) strength++;
             if (checks.number) strength++;
             if (checks.special) strength++;
-            
+
             let level = 'weak';
             let text = 'Débil';
-            
+
             if (strength <= 2) {
                 level = 'weak';
                 text = 'Débil';
@@ -1325,7 +1326,7 @@
                 level = 'strong';
                 text = 'Fuerte';
             }
-            
+
             return {
                 strength: strength,
                 level: level,
@@ -1333,17 +1334,17 @@
                 checks: checks
             };
         }
-        
+
         function updatePasswordStrength() {
             const password = passwordInput.value;
             const result = checkPasswordStrength(password);
-            
+
             // Actualizar barra
             strengthFill.className = 'password-strength-fill';
             if (result.level !== 'none') {
                 strengthFill.classList.add(result.level);
             }
-            
+
             // Actualizar texto
             strengthText.className = 'password-strength-text';
             if (result.level !== 'none') {
@@ -1352,7 +1353,7 @@
             } else {
                 strengthText.innerHTML = '<i class="fas fa-info-circle me-1"></i>Ingresa una contraseña';
             }
-            
+
             // Actualizar requisitos
             updateRequirement(reqLength, result.checks.length);
             updateRequirement(reqUpper, result.checks.upper);
@@ -1360,7 +1361,7 @@
             updateRequirement(reqNumber, result.checks.number);
             updateRequirement(reqSpecial, result.checks.special);
         }
-        
+
         function updateRequirement(element, isValid) {
             element.className = 'password-requirement';
             if (isValid) {
@@ -1371,7 +1372,7 @@
                 element.querySelector('i').className = 'fas fa-circle';
             }
         }
-        
+
         if (passwordInput) {
             passwordInput.addEventListener('input', updatePasswordStrength);
             passwordInput.addEventListener('keyup', updatePasswordStrength);
@@ -1379,20 +1380,20 @@
                 setTimeout(updatePasswordStrength, 10);
             });
         }
-        
+
         // ===== VALIDACIONES EN TIEMPO REAL =====
-        
+
         // Función helper para mostrar validación
         function showValidation(field, isValid, message, iconId, errorIconId, messageId) {
             const fieldElement = document.getElementById(field);
             const icon = document.getElementById(iconId);
             const errorIcon = document.getElementById(errorIconId);
             const messageDiv = document.getElementById(messageId);
-            
+
             if (!fieldElement) return;
-            
+
             fieldElement.classList.remove('is-valid', 'is-invalid');
-            
+
             if (fieldElement.value.trim() === '') {
                 if (icon) icon.classList.remove('show');
                 if (errorIcon) errorIcon.classList.remove('show');
@@ -1401,7 +1402,7 @@
                 }
                 return;
             }
-            
+
             if (isValid) {
                 fieldElement.classList.add('is-valid');
                 if (icon) {
@@ -1425,7 +1426,7 @@
                 }
             }
         }
-        
+
         // Validación de Email
         const emailField = document.getElementById('id_email');
         if (emailField) {
@@ -1446,14 +1447,14 @@
                 }
             });
         }
-        
+
         // Validación de Confirmar Contraseña
         const password2Field = document.getElementById('id_password2');
         if (password2Field && passwordInput) {
             function validatePasswordMatch() {
                 const password = passwordInput.value;
                 const password2 = password2Field.value;
-                
+
                 if (password2 === '') {
                     showValidation('id_password2', false, 'Por favor, confirma tu contraseña', 'password2Icon', 'password2ErrorIcon', 'password2Message');
                 } else if (password !== password2) {
@@ -1462,12 +1463,12 @@
                     showValidation('id_password2', true, '✓ Las contraseñas coinciden', 'password2Icon', 'password2ErrorIcon', 'password2Message');
                 }
             }
-            
+
             password2Field.addEventListener('input', validatePasswordMatch);
             password2Field.addEventListener('blur', validatePasswordMatch);
             passwordInput.addEventListener('input', validatePasswordMatch);
         }
-        
+
         // Validación de Nombre
         const firstNameField = document.getElementById('id_first_name');
         if (firstNameField) {
@@ -1483,7 +1484,7 @@
                 }
             });
         }
-        
+
         // Validación de Primer Apellido
         const lastNameField = document.getElementById('id_last_name');
         if (lastNameField) {
@@ -1499,7 +1500,7 @@
                 }
             });
         }
-        
+
         // Validación de Segundo Apellido (opcional)
         const lastName2Field = document.getElementById('id_last_name2');
         if (lastName2Field) {
@@ -1518,7 +1519,7 @@
                 }
             });
         }
-        
+
         // Validación de Fecha de Nacimiento
         const birthDateField = document.getElementById('id_birth_date');
         if (birthDateField) {
@@ -1534,12 +1535,12 @@
                 const today = new Date();
                 const age = today.getFullYear() - birthDate.getFullYear();
                 const monthDiff = today.getMonth() - birthDate.getMonth();
-                
+
                 let actualAge = age;
                 if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
                     actualAge--;
                 }
-                
+
                 if (birthDate > today) {
                     showValidation('id_birth_date', false, 'La fecha de nacimiento no puede ser futura', 'birthDateIcon', 'birthDateErrorIcon', 'birthDateMessage');
                 } else if (actualAge < 18) {
@@ -1551,15 +1552,15 @@
                 }
             });
         }
-        
+
         // Validación de Teléfono con Prefijo (Requerido)
         function validatePhone(phoneField, prefixField, iconId, errorIconId, messageId, isRequired = false) {
             if (!phoneField) return;
-            
+
             function validatePhoneNumber() {
                 const prefix = prefixField ? prefixField.value : '';
                 const phone = phoneField.value.trim();
-                
+
                 if (phone === '') {
                     if (isRequired) {
                         showValidation(phoneField.id, false, 'El número de teléfono es requerido', iconId, errorIconId, messageId);
@@ -1573,7 +1574,7 @@
                     }
                     return;
                 }
-                
+
                 if (isRequired && prefix === '') {
                     showValidation(phoneField.id, false, 'Por favor, selecciona el prefijo del país', iconId, errorIconId, messageId);
                     if (prefixField) {
@@ -1582,11 +1583,11 @@
                     }
                     return;
                 }
-                
+
                 // Acepta números, espacios, guiones
                 const phoneRegex = /^[\d\s\-]{7,15}$/;
                 const digitsOnly = phone.replace(/\D/g, '');
-                
+
                 if (!phoneRegex.test(phone)) {
                     showValidation(phoneField.id, false, 'El número de teléfono debe contener entre 7 y 15 dígitos', iconId, errorIconId, messageId);
                     if (prefixField) {
@@ -1605,17 +1606,17 @@
                     }
                 }
             }
-            
+
             phoneField.addEventListener('blur', validatePhoneNumber);
             if (prefixField) {
                 prefixField.addEventListener('change', validatePhoneNumber);
             }
         }
-        
+
         // Teléfono principal (requerido con prefijo)
         const phonePrefixField = document.getElementById('id_phone_prefix');
         const phoneField = document.getElementById('id_phone');
-        
+
         // Cambiar el texto mostrado en el selector: mostrar país en dropdown, solo código cuando está seleccionado
         if (phonePrefixField) {
             // Guardar el texto original de todas las opciones al cargar
@@ -1624,7 +1625,7 @@
                     option.setAttribute('data-original-text', option.textContent);
                 }
             });
-            
+
             // Cuando se abre el dropdown (focus), restaurar el texto completo en todas las opciones
             phonePrefixField.addEventListener('focus', function() {
                 Array.from(this.options).forEach(option => {
@@ -1633,7 +1634,7 @@
                     }
                 });
             });
-            
+
             // Cuando se selecciona una opción (change), mostrar solo el código
             phonePrefixField.addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
@@ -1646,7 +1647,7 @@
                     selectedOption.textContent = selectedOption.dataset.display;
                 }
             });
-            
+
             // Cuando se cierra el dropdown (blur), asegurar que la opción seleccionada muestre solo el código
             phonePrefixField.addEventListener('blur', function() {
                 const selectedOption = this.options[this.selectedIndex];
@@ -1657,7 +1658,7 @@
                     selectedOption.textContent = selectedOption.dataset.display;
                 }
             });
-            
+
             // Inicializar el texto de la opción seleccionada si hay una seleccionada al cargar
             if (phonePrefixField.selectedIndex > 0) {
                 const selectedOption = phonePrefixField.options[phonePrefixField.selectedIndex];
@@ -1669,14 +1670,14 @@
                 }
             }
         }
-        
+
         if (phoneField && phonePrefixField) {
             validatePhone(phoneField, phonePrefixField, 'phoneIcon', 'phoneErrorIcon', 'phoneMessage', true);
         }
-        
+
         // Teléfono secundario (opcional, sin prefijo)
         validatePhone(document.getElementById('id_phone_secondary'), null, 'phoneSecondaryIcon', 'phoneSecondaryErrorIcon', 'phoneSecondaryMessage', false);
-        
+
         // Validación de URL (Website)
         const websiteField = document.getElementById('id_website');
         if (websiteField) {
@@ -1693,7 +1694,7 @@
                 }
             });
         }
-        
+
         // Validación de Código Postal
         const postalCodeField = document.getElementById('id_postal_code');
         if (postalCodeField) {
@@ -1710,29 +1711,29 @@
                 }
             });
         }
-        
+
         // Validación de Imagen
         const profilePictureField = document.getElementById('id_profile_picture');
         if (profilePictureField) {
             profilePictureField.addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (!file) return;
-                
+
                 const maxSize = 5 * 1024 * 1024; // 5MB
                 const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-                
+
                 if (!allowedTypes.includes(file.type)) {
-                    alert('Por favor, selecciona una imagen válida (JPG, PNG o GIF)');
+                    alert("{% trans 'Please select a valid image (JPG, PNG or GIF)' %}");
                     this.value = '';
                     return;
                 }
-                
+
                 if (file.size > maxSize) {
-                    alert('La imagen es demasiado grande. El tamaño máximo es 5MB');
+                    alert("{% trans 'The image is too large. Maximum size is 5MB' %}");
                     this.value = '';
                     return;
                 }
-                
+
                 // Si pasa las validaciones, mostrar preview (ya existe en el código)
             });
         }

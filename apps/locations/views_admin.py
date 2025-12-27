@@ -3,7 +3,7 @@ Vistas administrativas de ubicaciones - Solo staff/superuser, CRUD completo
 """
 
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView,
@@ -17,8 +17,11 @@ from .models import (
     City,
     Country,
     Hotel,
+    HotelAmenity,
+    HotelImage,
     HotelReservation,
     HotelRoom,
+    HotelRoomImage,
     HotelService,
     Rule,
     Season,
@@ -778,6 +781,8 @@ class AdminHotelDetailView(StaffRequiredMixin, DetailView):
         context["rooms"] = self.object.rooms.all()
         context["services"] = self.object.services.filter(is_active=True)
         context["reservations"] = self.object.reservations.all()[:10]
+        context["images"] = self.object.images.all()
+        context["amenities"] = self.object.amenities.all()
         return context
 
 
@@ -790,8 +795,109 @@ class AdminHotelCreateView(StaffRequiredMixin, CreateView):
     success_url = reverse_lazy("locations:admin_hotel_list")
 
     def form_valid(self, form):
-        messages.success(self.request, "Hotel creado exitosamente.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        hotel = self.object
+
+        # Procesar imágenes múltiples
+        images = self.request.FILES.getlist('hotel_images')
+        if images:
+            for index, image_file in enumerate(images):
+                if image_file:
+                    # Obtener datos adicionales del formulario usando el índice
+                    title = self.request.POST.get(f'image_title_{index}', '').strip() or None
+                    alt_text = self.request.POST.get(f'image_alt_{index}', '').strip() or None
+                    is_featured = self.request.POST.get(f'image_featured_{index}') == 'on'
+
+                    # Crear la imagen del hotel
+                    HotelImage.objects.create(
+                        hotel=hotel,
+                        image=image_file,
+                        title=title,
+                        alt_text=alt_text,
+                        is_featured=is_featured,
+                        order=hotel.images.count()  # Orden basado en el número actual de imágenes
+                    )
+
+        # Procesar amenidades seleccionadas (checkboxes)
+        amenity_count = 0
+
+        # Mapeo de valores de ícono a nombres y categorías
+        amenity_mapping = {
+            'wifi': {'name': 'WiFi Gratis', 'category': 'general'},
+            'parking': {'name': 'Estacionamiento', 'category': 'general'},
+            'pool': {'name': 'Piscina', 'category': 'general'},
+            'gym': {'name': 'Gimnasio', 'category': 'general'},
+            'spa': {'name': 'Spa', 'category': 'general'},
+            'restaurant': {'name': 'Restaurante', 'category': 'food_drink'},
+            'bar': {'name': 'Bar', 'category': 'food_drink'},
+            'room_service': {'name': 'Servicio a Habitación', 'category': 'services'},
+            'cable_tv': {'name': 'TV por Cable', 'category': 'entertainment'},
+            'streaming': {'name': 'Streaming', 'category': 'entertainment'},
+            'game_room': {'name': 'Sala de Juegos', 'category': 'entertainment'},
+            'laundry': {'name': 'Lavandería', 'category': 'services'},
+            'concierge': {'name': 'Concierge', 'category': 'services'},
+            '24h_reception': {'name': 'Recepción 24h', 'category': 'services'},
+            'airport_shuttle': {'name': 'Transporte Aeropuerto', 'category': 'services'},
+            'business_center': {'name': 'Centro de Negocios', 'category': 'services'},
+            'meeting_rooms': {'name': 'Salas de Reuniones', 'category': 'services'},
+            'wheelchair_accessible': {'name': 'Acceso para Sillas de Ruedas', 'category': 'accessibility'},
+            'elevator': {'name': 'Ascensor', 'category': 'accessibility'},
+            'pet_friendly': {'name': 'Admite Mascotas', 'category': 'general'},
+            'smoking_area': {'name': 'Área de Fumadores', 'category': 'general'},
+            'non_smoking': {'name': 'No Fumadores', 'category': 'general'},
+            'family_friendly': {'name': 'Apto para Familias', 'category': 'general'}
+        }
+
+        # Obtener amenidades seleccionadas (checkboxes)
+        selected_amenities = []
+        for key in self.request.POST.keys():
+            if key.startswith('amenity_') and key != 'amenity_available':
+                icon_value = key.replace('amenity_', '')
+                if icon_value in amenity_mapping:
+                    selected_amenities.append(icon_value)
+
+        # Crear nuevas amenidades seleccionadas
+        for icon_value in selected_amenities:
+            if icon_value in amenity_mapping:
+                HotelAmenity.objects.create(
+                    hotel=hotel,
+                    name=amenity_mapping[icon_value]['name'],
+                    category=amenity_mapping[icon_value]['category'],
+                    icon=icon_value,
+                    is_available=True,
+                    order=amenity_count
+                )
+                amenity_count += 1
+
+        # Procesar amenidades personalizadas
+        custom_index = 0
+        while True:
+            name = self.request.POST.get(f'custom_amenity_name_{custom_index}', '').strip()
+            if not name:
+                break
+
+            category = self.request.POST.get(f'custom_amenity_category_{custom_index}', 'general')
+            icon_value = self.request.POST.get(f'custom_amenity_icon_{custom_index}', 'other')
+            description = self.request.POST.get(f'custom_amenity_description_{custom_index}', '').strip() or None
+
+            HotelAmenity.objects.create(
+                hotel=hotel,
+                name=name,
+                category=category,
+                icon=icon_value,
+                description=description,
+                is_available=True,
+                order=hotel.amenities.count()
+            )
+            amenity_count += 1
+            custom_index += 1
+
+        messages.success(self.request, f"Hotel '{hotel.hotel_name}' creado exitosamente.")
+        if images:
+            messages.info(self.request, f"Se agregaron {len(images)} imagen(es) a la galería del hotel.")
+        if amenity_count > 0:
+            messages.info(self.request, f"Se agregaron {amenity_count} amenidad(es) al hotel.")
+        return response
 
 
 class AdminHotelUpdateView(StaffRequiredMixin, UpdateView):
@@ -810,8 +916,125 @@ class AdminHotelUpdateView(StaffRequiredMixin, UpdateView):
                 self.object.photo = None
                 self.object.save()
 
-        messages.success(self.request, "Hotel actualizado exitosamente.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        hotel = self.object
+
+        # Procesar imágenes múltiples
+        images = self.request.FILES.getlist('hotel_images')
+        if images:
+            # Obtener el último orden para continuar desde ahí
+            last_order = hotel.images.aggregate(
+                max_order=Max('order')
+            )['max_order'] or 0
+
+            for index, image_file in enumerate(images):
+                if image_file:
+                    # Obtener datos adicionales del formulario usando el índice
+                    title = self.request.POST.get(f'image_title_{index}', '').strip() or None
+                    alt_text = self.request.POST.get(f'image_alt_{index}', '').strip() or None
+                    is_featured = self.request.POST.get(f'image_featured_{index}') == 'on'
+
+                    # Crear la imagen del hotel
+                    HotelImage.objects.create(
+                        hotel=hotel,
+                        image=image_file,
+                        title=title,
+                        alt_text=alt_text,
+                        is_featured=is_featured,
+                        order=last_order + index + 1
+                    )
+
+        # Procesar amenidades seleccionadas (checkboxes)
+        amenity_count = 0
+
+        # Mapeo de valores de ícono a nombres y categorías
+        amenity_mapping = {
+            'wifi': {'name': 'WiFi Gratis', 'category': 'general'},
+            'parking': {'name': 'Estacionamiento', 'category': 'general'},
+            'pool': {'name': 'Piscina', 'category': 'general'},
+            'gym': {'name': 'Gimnasio', 'category': 'general'},
+            'spa': {'name': 'Spa', 'category': 'general'},
+            'restaurant': {'name': 'Restaurante', 'category': 'food_drink'},
+            'bar': {'name': 'Bar', 'category': 'food_drink'},
+            'room_service': {'name': 'Servicio a Habitación', 'category': 'services'},
+            'cable_tv': {'name': 'TV por Cable', 'category': 'entertainment'},
+            'streaming': {'name': 'Streaming', 'category': 'entertainment'},
+            'game_room': {'name': 'Sala de Juegos', 'category': 'entertainment'},
+            'laundry': {'name': 'Lavandería', 'category': 'services'},
+            'concierge': {'name': 'Concierge', 'category': 'services'},
+            '24h_reception': {'name': 'Recepción 24h', 'category': 'services'},
+            'airport_shuttle': {'name': 'Transporte Aeropuerto', 'category': 'services'},
+            'business_center': {'name': 'Centro de Negocios', 'category': 'services'},
+            'meeting_rooms': {'name': 'Salas de Reuniones', 'category': 'services'},
+            'wheelchair_accessible': {'name': 'Acceso para Sillas de Ruedas', 'category': 'accessibility'},
+            'elevator': {'name': 'Ascensor', 'category': 'accessibility'},
+            'pet_friendly': {'name': 'Admite Mascotas', 'category': 'general'},
+            'smoking_area': {'name': 'Área de Fumadores', 'category': 'general'},
+            'non_smoking': {'name': 'No Fumadores', 'category': 'general'},
+            'family_friendly': {'name': 'Apto para Familias', 'category': 'general'}
+        }
+
+        # Obtener amenidades seleccionadas (checkboxes)
+        selected_amenities = []
+        for key in self.request.POST.keys():
+            if key.startswith('amenity_') and key != 'amenity_available':
+                icon_value = key.replace('amenity_', '')
+                if icon_value in amenity_mapping:
+                    selected_amenities.append(icon_value)
+
+        # Eliminar amenidades existentes que no están seleccionadas (solo generales del hotel)
+        existing_amenities = hotel.amenities.filter(
+            category__in=['general', 'entertainment', 'food_drink', 'services', 'accessibility']
+        )
+        for existing in existing_amenities:
+            if existing.icon not in selected_amenities:
+                existing.delete()
+
+        # Crear nuevas amenidades seleccionadas
+        for icon_value in selected_amenities:
+            if icon_value in amenity_mapping:
+                # Verificar si ya existe
+                existing = hotel.amenities.filter(icon=icon_value).first()
+                if not existing:
+                    HotelAmenity.objects.create(
+                        hotel=hotel,
+                        name=amenity_mapping[icon_value]['name'],
+                        category=amenity_mapping[icon_value]['category'],
+                        icon=icon_value,
+                        is_available=True,
+                        order=amenity_count
+                    )
+                    amenity_count += 1
+
+        # Procesar amenidades personalizadas
+        custom_index = 0
+        while True:
+            name = self.request.POST.get(f'custom_amenity_name_{custom_index}', '').strip()
+            if not name:
+                break
+
+            category = self.request.POST.get(f'custom_amenity_category_{custom_index}', 'general')
+            icon_value = self.request.POST.get(f'custom_amenity_icon_{custom_index}', 'other')
+            description = self.request.POST.get(f'custom_amenity_description_{custom_index}', '').strip() or None
+
+            HotelAmenity.objects.create(
+                hotel=hotel,
+                name=name,
+                category=category,
+                icon=icon_value,
+                description=description,
+                is_available=True,
+                order=hotel.amenities.count()
+            )
+            amenity_count += 1
+            custom_index += 1
+
+        messages.success(self.request, f"Hotel '{hotel.hotel_name}' actualizado exitosamente.")
+        if images:
+            messages.info(self.request, f"Se agregaron {len(images)} nueva(s) imagen(es) a la galería del hotel.")
+        if amenity_count > 0:
+            messages.info(self.request, f"Se agregaron {amenity_count} nueva(s) amenidad(es) al hotel.")
+        return response
 
 
 class AdminHotelDeleteView(StaffRequiredMixin, DeleteView):
@@ -884,8 +1107,69 @@ class AdminHotelRoomCreateView(StaffRequiredMixin, CreateView):
     success_url = reverse_lazy("locations:admin_hotel_room_list")
 
     def form_valid(self, form):
-        messages.success(self.request, "Habitación creada exitosamente.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        room = self.object
+
+        # Procesar imágenes múltiples
+        images = self.request.FILES.getlist('room_images')
+        if images:
+            for index, image_file in enumerate(images):
+                if image_file:
+                    title = self.request.POST.get(f'room_image_title_{index}', '').strip() or None
+                    alt_text = self.request.POST.get(f'room_image_alt_{index}', '').strip() or None
+                    is_featured = self.request.POST.get(f'room_image_featured_{index}') == 'on'
+
+                    HotelRoomImage.objects.create(
+                        room=room,
+                        image=image_file,
+                        title=title,
+                        alt_text=alt_text,
+                        is_featured=is_featured,
+                        order=index
+                    )
+
+        # Procesar amenidades de habitación
+        amenity_count = 0
+        amenity_mapping = {
+            'air_conditioning': {'name': 'Aire Acondicionado', 'category': 'room'},
+            'heating': {'name': 'Calefacción', 'category': 'room'},
+            'tv': {'name': 'Televisión', 'category': 'room'},
+            'safe': {'name': 'Caja Fuerte', 'category': 'room'},
+            'minibar': {'name': 'Minibar', 'category': 'room'},
+            'balcony': {'name': 'Balcón', 'category': 'room'},
+            'hairdryer': {'name': 'Secador de Pelo', 'category': 'bathroom'},
+            'bathtub': {'name': 'Bañera', 'category': 'bathroom'},
+            'shower': {'name': 'Ducha', 'category': 'bathroom'}
+        }
+
+        selected_amenities = []
+        for key in self.request.POST.keys():
+            if key.startswith('room_amenity_'):
+                icon_value = key.replace('room_amenity_', '')
+                if icon_value in amenity_mapping:
+                    selected_amenities.append(icon_value)
+
+        for icon_value in selected_amenities:
+            if icon_value in amenity_mapping:
+                # Verificar si ya existe en el hotel
+                existing = room.hotel.amenities.filter(icon=icon_value).first()
+                if not existing:
+                    HotelAmenity.objects.create(
+                        hotel=room.hotel,
+                        name=amenity_mapping[icon_value]['name'],
+                        category=amenity_mapping[icon_value]['category'],
+                        icon=icon_value,
+                        is_available=True,
+                        order=room.hotel.amenities.count()
+                    )
+                    amenity_count += 1
+
+        messages.success(self.request, f"Habitación '{room.room_number}' creada exitosamente.")
+        if images:
+            messages.info(self.request, f"Se agregaron {len(images)} imagen(es) a la galería de la habitación.")
+        if amenity_count > 0:
+            messages.info(self.request, f"Se agregaron {amenity_count} amenidad(es) al hotel.")
+        return response
 
 
 class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
@@ -905,8 +1189,80 @@ class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
     success_url = reverse_lazy("locations:admin_hotel_room_list")
 
     def form_valid(self, form):
-        messages.success(self.request, "Habitación actualizada exitosamente.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        room = self.object
+
+        # Procesar imágenes múltiples
+        images = self.request.FILES.getlist('room_images')
+        if images:
+            last_order = room.images.aggregate(
+                max_order=Max('order')
+            )['max_order'] or 0
+
+            for index, image_file in enumerate(images):
+                if image_file:
+                    title = self.request.POST.get(f'room_image_title_{index}', '').strip() or None
+                    alt_text = self.request.POST.get(f'room_image_alt_{index}', '').strip() or None
+                    is_featured = self.request.POST.get(f'room_image_featured_{index}') == 'on'
+
+                    HotelRoomImage.objects.create(
+                        room=room,
+                        image=image_file,
+                        title=title,
+                        alt_text=alt_text,
+                        is_featured=is_featured,
+                        order=last_order + index + 1
+                    )
+
+        # Procesar amenidades de habitación
+        amenity_count = 0
+        amenity_mapping = {
+            'air_conditioning': {'name': 'Aire Acondicionado', 'category': 'room'},
+            'heating': {'name': 'Calefacción', 'category': 'room'},
+            'tv': {'name': 'Televisión', 'category': 'room'},
+            'safe': {'name': 'Caja Fuerte', 'category': 'room'},
+            'minibar': {'name': 'Minibar', 'category': 'room'},
+            'balcony': {'name': 'Balcón', 'category': 'room'},
+            'hairdryer': {'name': 'Secador de Pelo', 'category': 'bathroom'},
+            'bathtub': {'name': 'Bañera', 'category': 'bathroom'},
+            'shower': {'name': 'Ducha', 'category': 'bathroom'}
+        }
+
+        selected_amenities = []
+        for key in self.request.POST.keys():
+            if key.startswith('room_amenity_'):
+                icon_value = key.replace('room_amenity_', '')
+                if icon_value in amenity_mapping:
+                    selected_amenities.append(icon_value)
+
+        # Eliminar amenidades de habitación que no están seleccionadas
+        existing_room_amenities = room.hotel.amenities.filter(
+            category__in=['room', 'bathroom']
+        )
+        for existing in existing_room_amenities:
+            if existing.icon not in selected_amenities:
+                existing.delete()
+
+        for icon_value in selected_amenities:
+            if icon_value in amenity_mapping:
+                existing = room.hotel.amenities.filter(icon=icon_value).first()
+                if not existing:
+                    HotelAmenity.objects.create(
+                        hotel=room.hotel,
+                        name=amenity_mapping[icon_value]['name'],
+                        category=amenity_mapping[icon_value]['category'],
+                        icon=icon_value,
+                        is_available=True,
+                        order=room.hotel.amenities.count()
+                    )
+                    amenity_count += 1
+
+        messages.success(self.request, f"Habitación '{room.room_number}' actualizada exitosamente.")
+        if images:
+            messages.info(self.request, f"Se agregaron {len(images)} nueva(s) imagen(es) a la galería de la habitación.")
+        if amenity_count > 0:
+            messages.info(self.request, f"Se agregaron {amenity_count} nueva(s) amenidad(es) al hotel.")
+        return response
 
 
 class AdminHotelRoomDeleteView(StaffRequiredMixin, DeleteView):
@@ -1159,3 +1515,337 @@ class AdminHotelReservationDeleteView(StaffRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Reserva eliminada exitosamente.")
         return super().delete(request, *args, **kwargs)
+
+
+# ===== HOTEL IMAGE VIEWS (Admin) =====
+class AdminHotelImageListView(StaffRequiredMixin, ListView):
+    """Lista administrativa de imágenes de hotel"""
+
+    model = HotelImage
+    template_name = "locations/hotel_image_list.html"
+    context_object_name = "images"
+    paginate_by = 20
+
+    def get_queryset(self):
+        hotel_pk = self.kwargs.get("hotel_pk")
+        if hotel_pk:
+            return HotelImage.objects.filter(hotel_id=hotel_pk).order_by(
+                "order", "-is_featured", "-created_at"
+            )
+        return HotelImage.objects.select_related("hotel").order_by(
+            "hotel", "order", "-is_featured", "-created_at"
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        hotel_pk = self.kwargs.get("hotel_pk")
+        if hotel_pk:
+            context["hotel"] = Hotel.objects.get(pk=hotel_pk)
+        return context
+
+
+class AdminHotelImageCreateView(StaffRequiredMixin, CreateView):
+    """Crear imagen de hotel - Solo admin"""
+
+    model = HotelImage
+    template_name = "locations/hotel_image_form.html"
+    fields = ["hotel", "image", "title", "alt_text", "order", "is_featured"]
+    success_url = reverse_lazy("locations:admin_hotel_list")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Imagen agregada exitosamente.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        hotel_pk = self.object.hotel.pk
+        return reverse_lazy(
+            "locations:admin_hotel_image_list", kwargs={"hotel_pk": hotel_pk}
+        )
+
+
+class AdminHotelImageUpdateView(StaffRequiredMixin, UpdateView):
+    """Actualizar imagen de hotel - Solo admin"""
+
+    model = HotelImage
+    template_name = "locations/hotel_image_form.html"
+    fields = ["hotel", "image", "title", "alt_text", "order", "is_featured"]
+
+    def form_valid(self, form):
+        messages.success(self.request, "Imagen actualizada exitosamente.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "locations:admin_hotel_image_list",
+            kwargs={"hotel_pk": self.object.hotel.pk},
+        )
+
+
+class AdminHotelImageDeleteView(StaffRequiredMixin, DeleteView):
+    """Eliminar imagen de hotel - Solo admin"""
+
+    model = HotelImage
+    template_name = "locations/hotel_image_confirm_delete.html"
+
+    def delete(self, request, *args, **kwargs):
+        hotel_pk = self.get_object().hotel.pk
+        messages.success(request, "Imagen eliminada exitosamente.")
+        result = super().delete(request, *args, **kwargs)
+        return result
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "locations:admin_hotel_image_list",
+            kwargs={"hotel_pk": self.object.hotel.pk},
+        )
+
+
+# ===== HOTEL AMENITY VIEWS (Admin) =====
+class AdminHotelAmenityListView(StaffRequiredMixin, ListView):
+    """Lista administrativa de amenidades de hotel"""
+
+    model = HotelAmenity
+    template_name = "locations/hotel_amenity_list.html"
+    context_object_name = "amenities"
+    paginate_by = 50
+
+    def get_queryset(self):
+        hotel_pk = self.kwargs.get("hotel_pk")
+        queryset = HotelAmenity.objects.filter(hotel_id=hotel_pk) if hotel_pk else HotelAmenity.objects.select_related("hotel").all()
+
+        category = self.request.GET.get("category")
+        if category:
+            queryset = queryset.filter(category=category)
+
+        return queryset.order_by("category", "order", "name")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        hotel_pk = self.kwargs.get("hotel_pk")
+        if hotel_pk:
+            context["hotel"] = Hotel.objects.get(pk=hotel_pk)
+        context["category_filter"] = self.request.GET.get("category", "")
+        context["categories"] = HotelAmenity.AMENITY_CATEGORY_CHOICES
+        return context
+
+
+class AdminHotelAmenityCreateView(StaffRequiredMixin, CreateView):
+    """Crear amenidad de hotel - Solo admin"""
+
+    model = HotelAmenity
+    template_name = "locations/hotel_amenity_form.html"
+    fields = ["hotel", "name", "category", "icon", "description", "is_available", "order"]
+    success_url = reverse_lazy("locations:admin_hotel_list")
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Amenidad '{form.instance.name}' creada exitosamente.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        hotel_pk = self.object.hotel.pk
+        return reverse_lazy(
+            "locations:admin_hotel_amenity_list", kwargs={"hotel_pk": hotel_pk}
+        )
+
+
+class AdminHotelAmenityUpdateView(StaffRequiredMixin, UpdateView):
+    """Actualizar amenidad de hotel - Solo admin"""
+
+    model = HotelAmenity
+    template_name = "locations/hotel_amenity_form.html"
+    fields = ["hotel", "name", "category", "icon", "description", "is_available", "order"]
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Amenidad '{form.instance.name}' actualizada exitosamente.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "locations:admin_hotel_amenity_list",
+            kwargs={"hotel_pk": self.object.hotel.pk},
+        )
+
+
+class AdminHotelAmenityDeleteView(StaffRequiredMixin, DeleteView):
+    """Eliminar amenidad de hotel - Solo admin"""
+
+    model = HotelAmenity
+    template_name = "locations/hotel_amenity_confirm_delete.html"
+
+    def delete(self, request, *args, **kwargs):
+        amenity_name = self.get_object().name
+        messages.success(request, f"Amenidad '{amenity_name}' eliminada exitosamente.")
+        return super().delete(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "locations:admin_hotel_amenity_list",
+            kwargs={"hotel_pk": self.object.hotel.pk},
+        )
+
+
+# ===== HOTEL IMAGE VIEWS (Admin) =====
+class AdminHotelImageListView(StaffRequiredMixin, ListView):
+    """Lista administrativa de imágenes de hotel"""
+
+    model = HotelImage
+    template_name = "locations/hotel_image_list.html"
+    context_object_name = "images"
+    paginate_by = 20
+
+    def get_queryset(self):
+        hotel_pk = self.kwargs.get("hotel_pk")
+        if hotel_pk:
+            return HotelImage.objects.filter(hotel_id=hotel_pk).order_by(
+                "order", "-is_featured", "-created_at"
+            )
+        return HotelImage.objects.select_related("hotel").order_by(
+            "hotel", "order", "-is_featured", "-created_at"
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        hotel_pk = self.kwargs.get("hotel_pk")
+        if hotel_pk:
+            context["hotel"] = Hotel.objects.get(pk=hotel_pk)
+        return context
+
+
+class AdminHotelImageCreateView(StaffRequiredMixin, CreateView):
+    """Crear imagen de hotel - Solo admin"""
+
+    model = HotelImage
+    template_name = "locations/hotel_image_form.html"
+    fields = ["hotel", "image", "title", "alt_text", "order", "is_featured"]
+    success_url = reverse_lazy("locations:admin_hotel_list")
+
+    def form_valid(self, form):
+        messages.success(self.request, "Imagen agregada exitosamente.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        hotel_pk = self.object.hotel.pk
+        return reverse_lazy(
+            "locations:admin_hotel_image_list", kwargs={"hotel_pk": hotel_pk}
+        )
+
+
+class AdminHotelImageUpdateView(StaffRequiredMixin, UpdateView):
+    """Actualizar imagen de hotel - Solo admin"""
+
+    model = HotelImage
+    template_name = "locations/hotel_image_form.html"
+    fields = ["hotel", "image", "title", "alt_text", "order", "is_featured"]
+
+    def form_valid(self, form):
+        messages.success(self.request, "Imagen actualizada exitosamente.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "locations:admin_hotel_image_list",
+            kwargs={"hotel_pk": self.object.hotel.pk},
+        )
+
+
+class AdminHotelImageDeleteView(StaffRequiredMixin, DeleteView):
+    """Eliminar imagen de hotel - Solo admin"""
+
+    model = HotelImage
+    template_name = "locations/hotel_image_confirm_delete.html"
+
+    def delete(self, request, *args, **kwargs):
+        hotel_pk = self.get_object().hotel.pk
+        messages.success(request, "Imagen eliminada exitosamente.")
+        result = super().delete(request, *args, **kwargs)
+        return result
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "locations:admin_hotel_image_list",
+            kwargs={"hotel_pk": self.object.hotel.pk},
+        )
+
+
+# ===== HOTEL AMENITY VIEWS (Admin) =====
+class AdminHotelAmenityListView(StaffRequiredMixin, ListView):
+    """Lista administrativa de amenidades de hotel"""
+
+    model = HotelAmenity
+    template_name = "locations/hotel_amenity_list.html"
+    context_object_name = "amenities"
+    paginate_by = 50
+
+    def get_queryset(self):
+        hotel_pk = self.kwargs.get("hotel_pk")
+        queryset = HotelAmenity.objects.filter(hotel_id=hotel_pk) if hotel_pk else HotelAmenity.objects.select_related("hotel").all()
+
+        category = self.request.GET.get("category")
+        if category:
+            queryset = queryset.filter(category=category)
+
+        return queryset.order_by("category", "order", "name")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        hotel_pk = self.kwargs.get("hotel_pk")
+        if hotel_pk:
+            context["hotel"] = Hotel.objects.get(pk=hotel_pk)
+        context["category_filter"] = self.request.GET.get("category", "")
+        context["categories"] = HotelAmenity.AMENITY_CATEGORY_CHOICES
+        return context
+
+
+class AdminHotelAmenityCreateView(StaffRequiredMixin, CreateView):
+    """Crear amenidad de hotel - Solo admin"""
+
+    model = HotelAmenity
+    template_name = "locations/hotel_amenity_form.html"
+    fields = ["hotel", "name", "category", "icon", "description", "is_available", "order"]
+    success_url = reverse_lazy("locations:admin_hotel_list")
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Amenidad '{form.instance.name}' creada exitosamente.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        hotel_pk = self.object.hotel.pk
+        return reverse_lazy(
+            "locations:admin_hotel_amenity_list", kwargs={"hotel_pk": hotel_pk}
+        )
+
+
+class AdminHotelAmenityUpdateView(StaffRequiredMixin, UpdateView):
+    """Actualizar amenidad de hotel - Solo admin"""
+
+    model = HotelAmenity
+    template_name = "locations/hotel_amenity_form.html"
+    fields = ["hotel", "name", "category", "icon", "description", "is_available", "order"]
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Amenidad '{form.instance.name}' actualizada exitosamente.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "locations:admin_hotel_amenity_list",
+            kwargs={"hotel_pk": self.object.hotel.pk},
+        )
+
+
+class AdminHotelAmenityDeleteView(StaffRequiredMixin, DeleteView):
+    """Eliminar amenidad de hotel - Solo admin"""
+
+    model = HotelAmenity
+    template_name = "locations/hotel_amenity_confirm_delete.html"
+
+    def delete(self, request, *args, **kwargs):
+        amenity_name = self.get_object().name
+        messages.success(request, f"Amenidad '{amenity_name}' eliminada exitosamente.")
+        return super().delete(request, *args, **kwargs)
+
+    def get_success_url(self):
+        return reverse_lazy(
+            "locations:admin_hotel_amenity_list",
+            kwargs={"hotel_pk": self.object.hotel.pk},
+        )

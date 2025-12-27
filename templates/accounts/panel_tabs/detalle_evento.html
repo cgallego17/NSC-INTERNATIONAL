@@ -1,0 +1,1348 @@
+{% load i18n %}
+{% load static %}
+
+<div class="tab-content-header mb-4" id="event-details-section">
+    <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
+        <i class="fas fa-calendar-check me-2" style="color: var(--mlb-red);"></i>{% trans "Event Details" %}
+    </h4>
+    <p class="text-muted">{% trans "Event information and registration" %}</p>
+</div>
+
+{% if event %}
+    <div class="row g-4">
+        <!-- Lado Izquierdo - Información del Evento -->
+        <div class="col-lg-7">
+            <div class="event-info-card" style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <!-- Imagen del Evento -->
+                {% if event.image %}
+                    <div style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 25px;">
+                        <img src="{{ event.image.url }}" alt="{{ event.title }}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                    </div>
+                {% endif %}
+
+                <!-- Título y Categoría -->
+                <div class="mb-4">
+                    {% if event.category %}
+                        <span style="color: var(--mlb-red); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                            {{ event.category.name }}
+                        </span>
+                    {% endif %}
+                    <h2 style="color: var(--mlb-blue); font-weight: 800; font-size: 2rem; margin-top: 10px; margin-bottom: 15px;">
+                        {{ event.title }}
+                    </h2>
+                    {% if event.event_type %}
+                        <p style="color: #6c757d; font-size: 0.9rem; margin-bottom: 0;">
+                            <i class="fas fa-tag me-2" style="color: var(--mlb-red);"></i>{{ event.event_type.name }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <!-- Línea separadora -->
+                <div style="width: 100%; height: 2px; background: linear-gradient(90deg, var(--mlb-red) 0%, #b30029 100%); margin-bottom: 25px; border-radius: 2px;"></div>
+
+                <!-- Información del Evento -->
+                <div class="event-details mb-4">
+                    <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 20px;">
+                        <i class="fas fa-calendar-alt me-2" style="color: var(--mlb-red);"></i>{% trans "Event Information" %}
+                    </h5>
+                    <div class="row g-3">
+                        <!-- Fecha -->
+                        {% if event.start_date %}
+                            <div class="col-md-6">
+                                <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-calendar" style="color: white; font-size: 1rem;"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Start Date" %}</div>
+                                        <div style="font-weight: 600; color: var(--mlb-blue);">{{ event.start_date|date:"F d, Y" }}</div>
+                                        {% if event.end_date and event.end_date != event.start_date %}
+                                            <div style="font-size: 0.75rem; color: #6c757d; margin-top: 2px;">{% trans "End Date" %}: {{ event.end_date|date:"F d, Y" }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Ubicación -->
+                        {% if event.city or event.state or event.country or event.location %}
+                            <div class="col-md-6">
+                                <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-map-marker-alt" style="color: white; font-size: 1rem;"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Location" %}</div>
+                                        <div style="font-weight: 600; color: var(--mlb-blue);">
+                                            {% if event.city %}{{ event.city.name }}{% endif %}{% if event.state %}{% if event.city %}, {% endif %}{{ event.state.name }}{% endif %}{% if event.country %}{% if event.state or event.city %}, {% endif %}{{ event.country.name }}{% endif %}
+                                            {% if not event.city and not event.state and not event.country and event.location %}{{ event.location }}{% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Divisiones -->
+                        {% if event.divisions.exists %}
+                            <div class="col-md-6">
+                                <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-users" style="color: white; font-size: 1rem;"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Divisions" %}</div>
+                                        <div style="font-weight: 600; color: var(--mlb-blue);">
+                                            {% for division in event.divisions.all|slice:"0:3" %}
+                                                <span style="display: inline-block; background: var(--mlb-red); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; margin-right: 5px; margin-top: 3px;">{{ division.name }}</span>
+                                            {% endfor %}
+                                            {% if event.divisions.count > 3 %}
+                                                <span style="color: #6c757d; font-size: 0.8rem;">{% trans "and more" %}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Estado -->
+                        <div class="col-md-6">
+                            <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i class="fas fa-check-circle" style="color: white; font-size: 1rem;"></i>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Status" %}</div>
+                                    <div style="font-weight: 600; color: var(--mlb-blue); text-transform: capitalize;">{{ event.get_status_display }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hotel Sede -->
+                        {% if event.hotel %}
+                            <div class="col-md-6">
+                                <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                    {% if event.hotel.photo %}
+                                        <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                                            <img src="{{ event.hotel.photo.url }}" alt="{{ event.hotel.hotel_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                    {% else %}
+                                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i class="fas fa-hotel" style="color: white; font-size: 1rem;"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div style="flex: 1;">
+                                        <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Headquarters Hotel" %}</div>
+                                        <div style="font-weight: 600; color: var(--mlb-blue);">{{ event.hotel.hotel_name }}</div>
+                                        {% if event.hotel.address %}
+                                            <div style="font-size: 0.75rem; color: #6c757d; margin-top: 2px;">{{ event.hotel.address }}</div>
+                                        {% endif %}
+                                        <button type="button" class="btn btn-sm mt-2" data-bs-toggle="modal" data-bs-target="#hotelModal{{ event.hotel.pk }}"
+                                                style="background: var(--mlb-red); color: white; padding: 4px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; border: none; margin-top: 6px;">
+                                            <i class="fas fa-info-circle me-1"></i>{% trans "View Details" %}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Sitio Primario del Evento -->
+                        {% if event.primary_site %}
+                            <div class="col-md-6">
+                                <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                    {% if event.primary_site.image %}
+                                        <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                                            <img src="{{ event.primary_site.image.url }}" alt="{{ event.primary_site.site_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                    {% else %}
+                                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i class="fas fa-map-marked-alt" style="color: white; font-size: 1rem;"></i>
+                                        </div>
+                                    {% endif %}
+                                    <div style="flex: 1;">
+                                        <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Primary Site" %}</div>
+                                        <div style="font-weight: 600; color: var(--mlb-blue);">{{ event.primary_site.site_name }}</div>
+                                        {% if event.primary_site.address_1 %}
+                                            <div style="font-size: 0.75rem; color: #6c757d; margin-top: 2px;">{{ event.primary_site.address_1 }}{% if event.primary_site.address_2 %}, {{ event.primary_site.address_2 }}{% endif %}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Línea separadora -->
+                <div style="width: 100%; height: 2px; background: linear-gradient(90deg, var(--mlb-red) 0%, #b30029 100%); margin-bottom: 25px; margin-top: 25px; border-radius: 2px;"></div>
+
+                <!-- Descripción -->
+                {% if event.description %}
+                    <div class="mb-4">
+                        <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 15px;">
+                            <i class="fas fa-info-circle me-2" style="color: var(--mlb-red);"></i>{% trans "Description" %}
+                        </h5>
+                        <div style="color: #333; line-height: 1.8; font-size: 0.95rem; font-weight: normal;" class="event-description">{{ event.description|safe }}</div>
+                    </div>
+                {% endif %}
+
+                <!-- Enlace externo si existe -->
+                {% if event.external_link %}
+                    <div class="mt-4">
+                        <a href="{{ event.external_link }}" target="_blank" class="btn" style="background: var(--mlb-blue); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-external-link-alt"></i>{% trans "More Information" %}
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Lado Derecho - Checkout -->
+        <div class="col-lg-5">
+            <div class="checkout-card" style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); position: sticky; top: 20px;">
+                <h4 style="color: var(--mlb-blue); font-weight: 800; margin-bottom: 18px; border-bottom: 3px solid var(--mlb-red); padding-bottom: 12px; font-size: 1.2rem;">
+                    <i class="fas fa-shopping-cart me-2" style="color: var(--mlb-red);"></i>{% trans "Registration" %}
+                </h4>
+
+                <!-- Lista de Hijos/Jugadores -->
+                {% if children %}
+                    <form method="post" action="{% url 'accounts:register_children_to_event' event.pk %}" id="eventRegistrationForm">
+                        {% csrf_token %}
+                        <div class="children-list mb-3">
+                            <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 12px; font-size: 0.95rem;">
+                                <i class="fas fa-users me-2" style="color: var(--mlb-red);"></i>{% trans "Select Children/Players" %}
+                            </h5>
+
+                            {% for child in children %}
+                                <div class="child-item mb-2" style="border: 2px solid #e9ecef; border-radius: 8px; padding: 10px; transition: all 0.3s;">
+                                    <div class="form-check" style="display: flex; align-items: center; gap: 10px;">
+                                        <input class="form-check-input child-checkbox" type="checkbox" name="players" value="{{ child.pk }}" id="child_{{ child.pk }}"
+                                               style="width: 18px; height: 18px; cursor: pointer; margin: 0; flex-shrink: 0;">
+                                        <label class="form-check-label" for="child_{{ child.pk }}" style="cursor: pointer; width: 100%; margin: 0;">
+                                            <div style="display: flex; align-items: center; gap: 10px;">
+                                                <!-- Foto o Iniciales -->
+                                                <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%);">
+                                                    {% if child.user.profile.profile_picture %}
+                                                        <img src="{{ child.user.profile.profile_picture.url }}" alt="{% if child.user.get_full_name %}{{ child.user.get_full_name }}{% else %}{{ child.user.username }}{% endif %}" style="width: 100%; height: 100%; object-fit: cover;">
+                                                    {% else %}
+                                                        {% with first_name=child.user.first_name|default:"" last_name=child.user.last_name|default:"" %}
+                                                            {% if first_name or last_name %}
+                                                                <span style="color: white; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                                                    {% if first_name %}{{ first_name|slice:":1" }}{% endif %}{% if last_name %}{{ last_name|slice:":1" }}{% endif %}
+                                                                </span>
+                                                            {% else %}
+                                                                <i class="fas fa-user" style="color: white; font-size: 1rem;"></i>
+                                                            {% endif %}
+                                                        {% endwith %}
+                                                    {% endif %}
+                                                </div>
+                                                <!-- Información del jugador -->
+                                                <div style="flex: 1; min-width: 0;">
+                                                    <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.9rem; line-height: 1.2;">
+                                                        {% if child.user.get_full_name %}{{ child.user.get_full_name }}{% else %}{{ child.user.username }}{% endif %}
+                                                    </div>
+                                                    {% if child.division %}
+                                                        <div style="font-size: 0.75rem; color: #6c757d; margin-top: 2px;">
+                                                            <i class="fas fa-tag me-1" style="color: var(--mlb-red); font-size: 0.65rem;"></i>{{ child.division }}
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                <!-- Precio -->
+                                                <div class="child-price" style="font-weight: 700; color: var(--mlb-red); font-size: 0.95rem; flex-shrink: 0;">
+                                                    ${{ event.default_entry_fee|default:"0.00" }}
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Resumen de Precios -->
+                        <div class="price-summary mb-3" style="border-top: 2px solid #e9ecef; padding-top: 15px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="color: #6c757d; font-size: 0.85rem;">{% trans "Selected" %}:</span>
+                                <span id="selected-count" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem;">0</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="color: #6c757d; font-size: 0.85rem;">{% trans "Price per player" %}:</span>
+                                <span style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem;">${{ event.default_entry_fee|default:"0.00" }}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid var(--mlb-red); padding-top: 12px; margin-top: 12px;">
+                                <span style="font-weight: 800; color: var(--mlb-blue); font-size: 1.1rem;">{% trans "Total" %}:</span>
+                                <span id="total-price" style="font-weight: 800; color: var(--mlb-red); font-size: 1.3rem;">$0.00</span>
+                            </div>
+                        </div>
+
+                        <!-- Botón de Registro -->
+                        <button type="submit" class="btn w-100" id="register-btn" disabled
+                                style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; padding: 12px; border-radius: 10px; font-weight: 700; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 0.5px; border: none; transition: all 0.3s; opacity: 0.5; cursor: not-allowed;">
+                            <i class="fas fa-check-circle me-2"></i>{% trans "Register Selected" %}
+                        </button>
+                    </form>
+                {% else %}
+                    <div class="alert alert-info" style="background: #e7f3ff; border: 2px solid var(--mlb-blue); border-radius: 12px; padding: 20px; text-align: center;">
+                        <i class="fas fa-info-circle fa-2x mb-3" style="color: var(--mlb-blue);"></i>
+                        <p style="color: var(--mlb-blue); font-weight: 600; margin-bottom: 0;">
+                            {% trans "You don't have any children/players registered. Please register a child/player first." %}
+                        </p>
+                        <a href="{% url 'accounts:panel' %}" class="btn mt-3" style="background: var(--mlb-blue); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none;">
+                            <i class="fas fa-user-plus me-2"></i>{% trans "Register Child/Player" %}
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-warning" style="background: white; border-radius: 16px; padding: 40px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+        <i class="fas fa-exclamation-triangle fa-3x mb-3" style="color: #ffc107;"></i>
+        <h5 style="color: var(--mlb-blue); font-weight: 700;">{% trans "Event not found" %}</h5>
+        <p class="text-muted">{% trans "The event you are looking for does not exist or is not available." %}</p>
+    </div>
+{% endif %}
+
+<style>
+.child-item:hover {
+    border-color: var(--mlb-red) !important;
+    box-shadow: 0 2px 8px rgba(213, 0, 50, 0.2);
+    transform: translateY(-2px);
+}
+
+.child-checkbox:checked + label .child-item {
+    border-color: var(--mlb-red) !important;
+    background: #fff5f7;
+}
+
+#register-btn:not(:disabled) {
+    opacity: 1 !important;
+    cursor: pointer !important;
+}
+
+#register-btn:not(:disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(213, 0, 50, 0.4);
+}
+
+/* Estilos para el HTML de la descripción del evento */
+.event-description {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    font-weight: normal !important;
+    /* Colapsar espacios en blanco múltiples a uno solo */
+    white-space: normal;
+    text-rendering: optimizeLegibility;
+}
+
+/* Asegurar que todos los elementos colapsen espacios múltiples */
+.event-description * {
+    white-space: normal;
+}
+
+.event-description * {
+    font-weight: inherit;
+}
+
+/* No agregar márgenes automáticos - dejar que el HTML del evento controle el espaciado */
+.event-description p {
+    font-weight: normal;
+}
+
+.event-description span {
+    font-weight: normal;
+}
+
+.event-description div {
+    font-weight: normal;
+}
+
+.event-description ul,
+.event-description ol {
+    /* Dejar que el HTML controle el margin-left */
+}
+
+.event-description li {
+    font-weight: normal;
+}
+
+.event-description h1,
+.event-description h2,
+.event-description h3,
+.event-description h4,
+.event-description h5,
+.event-description h6 {
+    color: var(--mlb-blue);
+    font-weight: 700;
+}
+
+.event-description strong,
+.event-description b {
+    font-weight: 700;
+}
+
+.event-description em,
+.event-description i {
+    font-style: italic;
+    font-weight: normal;
+}
+
+.event-description a {
+    color: var(--mlb-red);
+    text-decoration: none;
+    transition: color 0.3s;
+    font-weight: normal;
+}
+
+.event-description a:hover {
+    color: #b30029;
+    text-decoration: underline;
+}
+
+.event-description img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+.event-description blockquote {
+    border-left: 4px solid var(--mlb-red);
+    padding-left: 1rem;
+    font-style: italic;
+    color: #6c757d;
+}
+
+.event-description code {
+    background: #f8f9fa;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+.event-description pre {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+}
+
+.event-description table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.event-description table th,
+.event-description table td {
+    padding: 0.75rem;
+    border: 1px solid #e9ecef;
+    text-align: left;
+}
+
+.event-description table th {
+    background: var(--mlb-blue);
+    color: white;
+    font-weight: 700;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Limpiar espacios duplicados en la descripción del evento
+    const eventDescription = document.querySelector('.event-description');
+    if (eventDescription) {
+        // Normalizar espacios en blanco: colapsar múltiples espacios a uno solo
+        const walker = document.createTreeWalker(
+            eventDescription,
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+        );
+
+        let node;
+        while (node = walker.nextNode()) {
+            // Reemplazar múltiples espacios en blanco con uno solo
+            node.textContent = node.textContent.replace(/\s+/g, ' ');
+        }
+    }
+
+    const checkboxes = document.querySelectorAll('.child-checkbox');
+    const selectedCount = document.getElementById('selected-count');
+    const totalPrice = document.getElementById('total-price');
+    const registerBtn = document.getElementById('register-btn');
+    const pricePerPlayer = parseFloat('{{ event.default_entry_fee|default:"0" }}') || 0;
+
+    function updateTotal() {
+        const selected = document.querySelectorAll('.child-checkbox:checked').length;
+        const total = selected * pricePerPlayer;
+
+        selectedCount.textContent = selected;
+        totalPrice.textContent = '$' + total.toFixed(2);
+
+        if (selected > 0) {
+            registerBtn.disabled = false;
+            registerBtn.style.opacity = '1';
+            registerBtn.style.cursor = 'pointer';
+        } else {
+            registerBtn.disabled = true;
+            registerBtn.style.opacity = '0.5';
+            registerBtn.style.cursor = 'not-allowed';
+        }
+    }
+
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateTotal);
+    });
+
+    // Actualizar al cargar la página
+    updateTotal();
+});
+</script>
+
+<!-- Modal de Detalles del Hotel -->
+{% if event.hotel %}
+<style>
+    /* Estilos tipo landing page en contenedor */
+    #hotelModal{{ event.hotel.pk }} .modal-dialog {
+        max-width: 1400px;
+        width: 95%;
+        margin: 30px auto;
+        height: auto;
+        position: relative;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .modal-content {
+        border: none;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        background: #ffffff;
+        height: auto;
+        max-height: 90vh;
+        position: relative;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .modal-body {
+        max-height: 90vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    /* Custom scrollbar para el modal */
+    #hotelModal{{ event.hotel.pk }} .modal-body::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .modal-body::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .modal-body::-webkit-scrollbar-thumb {
+        background: #f4a460;
+        border-radius: 5px;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .modal-body::-webkit-scrollbar-thumb:hover {
+        background: #d4a574;
+    }
+
+    /* Banner Hero Grande */
+    #hotelModal{{ event.hotel.pk }} .hero-banner {
+        position: relative;
+        width: 100%;
+        height: 450px;
+        min-height: 400px;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 20px 20px 0 0;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .hero-banner img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .hero-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 1;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .hero-content {
+        position: relative;
+        z-index: 2;
+        text-align: center;
+        color: white;
+        padding: 40px;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .hero-title {
+        font-size: 5rem;
+        font-weight: 900;
+        margin: 0 0 20px 0;
+        text-shadow: 0 3px 30px rgba(0,0,0,0.7);
+        font-family: 'Brush Script MT', cursive;
+        letter-spacing: 2px;
+        font-style: italic;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .hero-subtitle {
+        font-size: 1.3rem;
+        font-weight: 400;
+        margin: 0 0 40px 0;
+        text-shadow: 0 2px 15px rgba(0,0,0,0.6);
+        font-family: 'Georgia', serif;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .hero-cta {
+        display: inline-block;
+        padding: 18px 45px;
+        background: #f4a460;
+        color: white;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        border-radius: 50px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    #hotelModal{{ event.hotel.pk }} .hero-cta:hover {
+        background: #f5b77a;
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+
+    #hotelModal{{ event.hotel.pk }} .close-btn-hero {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        background: #2d2d2d;
+        border: none;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 1070;
+        color: white;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+        font-size: 1.3rem;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .close-btn-hero:hover {
+        background: #1a1a1a;
+        transform: scale(1.1);
+        box-shadow: 0 10px 35px rgba(0,0,0,0.35);
+        color: white;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .close-btn-hero i {
+        transition: transform 0.3s ease;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .close-btn-hero:hover i {
+        transform: rotate(90deg);
+    }
+
+    /* Ajustar posición del botón en pantallas pequeñas */
+    @media (max-width: 768px) {
+        #hotelModal{{ event.hotel.pk }} .close-btn-hero {
+            top: 15px;
+            right: 15px;
+            width: 55px;
+            height: 55px;
+            font-size: 1.2rem;
+        }
+    }
+
+    /* Grid de Servicios/Opciones */
+    #hotelModal{{ event.hotel.pk }} .services-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0;
+        background: #2a2a2a;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-card {
+        position: relative;
+        height: 350px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.4s ease;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s ease;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-card:hover img {
+        transform: scale(1.15);
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 70%, transparent 100%);
+        padding: 40px 30px 30px;
+        color: white;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-title {
+        font-size: 2.5rem;
+        font-weight: 900;
+        margin: 0;
+        text-transform: capitalize;
+        letter-spacing: 1px;
+        font-family: 'Arial Black', sans-serif;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-text-card {
+        background: #3a3a3a;
+        padding: 50px 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        color: white;
+        height: 350px;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-text-small {
+        font-size: 0.7rem;
+        color: #aaa;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-text-large {
+        font-size: 2rem;
+        font-weight: 900;
+        margin: 0 0 20px 0;
+        line-height: 1.3;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-text-link {
+        font-size: 0.8rem;
+        color: #ccc;
+        text-decoration: none;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        transition: color 0.3s ease;
+        font-weight: 600;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-text-link:hover {
+        color: white;
+    }
+
+    /* Sección de Habitaciones */
+    #hotelModal{{ event.hotel.pk }} .rooms-section {
+        padding: 80px 60px;
+        background: #fafafa;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .rooms-title {
+        text-align: center;
+        font-size: 2.8rem;
+        font-weight: 900;
+        margin: 0 0 60px 0;
+        color: #1a1a1a;
+        font-family: 'Arial Black', sans-serif;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .room-listing {
+        display: flex;
+        align-items: stretch;
+        margin-bottom: 50px;
+        gap: 0;
+        background: white;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    }
+
+    #hotelModal{{ event.hotel.pk }} .room-listing:last-child {
+        margin-bottom: 0;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .room-listing:nth-child(even) {
+        flex-direction: row-reverse;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .room-image {
+        flex: 1;
+        min-height: 320px;
+        overflow: hidden;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .room-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s ease;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .room-image:hover img {
+        transform: scale(1.08);
+    }
+
+    #hotelModal{{ event.hotel.pk }} .room-content {
+        flex: 1;
+        padding: 40px 45px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: white;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .room-name {
+        font-size: 2.2rem;
+        font-weight: 900;
+        margin: 0 0 15px 0;
+        color: #1a1a1a;
+        font-family: 'Arial Black', sans-serif;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .room-features {
+        font-size: 0.85rem;
+        color: #888;
+        margin: 0 0 25px 0;
+        font-weight: 500;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .room-description {
+        font-size: 0.95rem;
+        line-height: 1.9;
+        color: #666;
+        margin: 0 0 35px 0;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .room-price-section {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .price-from {
+        font-size: 0.8rem;
+        color: #aaa;
+        text-transform: capitalize;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .price-amount {
+        font-size: 2.5rem;
+        font-weight: 900;
+        color: #f4a460;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .price-per {
+        font-size: 0.9rem;
+        color: #aaa;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .room-detail-link {
+        color: #1a1a1a;
+        text-decoration: none;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        transition: color 0.3s ease;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .room-detail-link:hover {
+        color: #f4a460;
+    }
+
+    /* Sección de Servicios Extra */
+    #hotelModal{{ event.hotel.pk }} .extra-services {
+        padding: 50px 60px;
+        background: #f0ede8;
+        text-align: center;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .services-label {
+        font-size: 0.65rem;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        margin-bottom: 12px;
+        font-weight: 600;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .services-title {
+        font-size: 2.5rem;
+        font-weight: 900;
+        margin: 0 0 45px 0;
+        color: #1a1a1a;
+        font-family: 'Arial Black', sans-serif;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .services-grid-list {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 30px;
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-item {
+        text-align: center;
+        padding: 30px 20px;
+        background: white;
+        border-radius: 15px;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border-color: #f4a460;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-item-icon {
+        width: 65px;
+        height: 65px;
+        margin: 0 auto 18px;
+        background: linear-gradient(135deg, #f4a460 0%, #d4a574 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-item:hover .service-item-icon {
+        transform: scale(1.1);
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-item-icon i {
+        font-size: 1.8rem;
+        color: white;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-item-title {
+        font-size: 1rem;
+        font-weight: 800;
+        margin: 0 0 10px 0;
+        color: #1a1a1a;
+        font-family: 'Arial Black', sans-serif;
+    }
+
+    #hotelModal{{ event.hotel.pk }} .service-item-desc {
+        font-size: 0.85rem;
+        color: #777;
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    @media (max-width: 992px) {
+        #hotelModal{{ event.hotel.pk }} .services-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        #hotelModal{{ event.hotel.pk }} .room-listing {
+            flex-direction: column !important;
+        }
+
+        #hotelModal{{ event.hotel.pk }} .services-grid-list {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        #hotelModal{{ event.hotel.pk }} .hero-banner {
+            height: 350px;
+            min-height: 350px;
+        }
+
+        #hotelModal{{ event.hotel.pk }} .hero-title {
+            font-size: 2.5rem;
+        }
+
+        #hotelModal{{ event.hotel.pk }} .services-grid {
+            grid-template-columns: 1fr;
+        }
+
+        #hotelModal{{ event.hotel.pk }} .services-grid-list {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        #hotelModal{{ event.hotel.pk }} .service-item {
+            padding: 25px 20px;
+        }
+
+        #hotelModal{{ event.hotel.pk }} .rooms-section,
+        #hotelModal{{ event.hotel.pk }} .extra-services {
+            padding: 40px 30px;
+        }
+
+        #hotelModal{{ event.hotel.pk }} .rooms-title,
+        #hotelModal{{ event.hotel.pk }} .services-title {
+            font-size: 2.2rem;
+            margin-bottom: 40px;
+        }
+
+        #hotelModal{{ event.hotel.pk }} .room-listing {
+            margin-bottom: 35px;
+        }
+    }
+</style>
+
+<div class="modal fade" id="hotelModal{{ event.hotel.pk }}" tabindex="-1" aria-labelledby="hotelModalLabel{{ event.hotel.pk }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body p-0">
+                <!-- Botón de cerrar -->
+                <button type="button" class="close-btn-hero" data-bs-dismiss="modal" aria-label="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <!-- Banner Hero Grande -->
+                <div class="hero-banner">
+                    {% if event.hotel.images.exists %}
+                        {% with images=event.hotel.images.all %}
+                            {% for image in images %}
+                                {% if image.is_featured %}
+                                    <img src="{{ image.image.url }}" alt="{{ image.title|default:event.hotel.hotel_name }}">
+                                {% endif %}
+                            {% endfor %}
+                            {% comment %} Si no hay ninguna imagen destacada, mostrar la primera {% endcomment %}
+                            {% if not images.0.is_featured %}
+                                <img src="{{ images.0.image.url }}" alt="{{ event.hotel.hotel_name }}">
+                            {% endif %}
+                        {% endwith %}
+                    {% elif event.hotel.photo %}
+                        <img src="{{ event.hotel.photo.url }}" alt="{{ event.hotel.hotel_name }}">
+                    {% else %}
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                    {% endif %}
+                    <div class="hero-overlay"></div>
+                    <div class="hero-content">
+                        <h1 class="hero-title">{{ event.hotel.hotel_name }}</h1>
+                        {% if event.hotel.address %}
+                            <p class="hero-subtitle">{{ event.hotel.address }}</p>
+                        {% endif %}
+                        {% if event.hotel.registration_url %}
+                            <a href="{{ event.hotel.registration_url }}" target="_blank" class="hero-cta">
+                                {% trans "View Our Rooms" %} <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Grid de Servicios/Opciones -->
+                <div class="services-grid">
+                    <!-- Text Card 1 -->
+                    <div class="service-text-card">
+                        <div class="service-text-small">{% trans "SPECIAL OFFER" %}</div>
+                        <div class="service-text-large">{% trans "Up to 30% Off" %}</div>
+                        <a href="#" class="service-text-link">{% trans "Book Now" %} →</a>
+                    </div>
+
+                    <!-- Service Card 1 -->
+                    <div class="service-card">
+                        {% if event.hotel.images.exists %}
+                            {% with images_list=event.hotel.images.all %}
+                                {% if images_list|length > 1 %}
+                                    <img src="{{ images_list.1.image.url }}" alt="{% trans 'Stay' %}">
+                                {% else %}
+                                    <img src="{{ images_list.0.image.url }}" alt="{% trans 'Stay' %}">
+                                {% endif %}
+                            {% endwith %}
+                        {% elif event.hotel.photo %}
+                            <img src="{{ event.hotel.photo.url }}" alt="{% trans 'Stay' %}">
+                        {% else %}
+                            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                        {% endif %}
+                        <div class="service-overlay">
+                            <h3 class="service-title">{% trans "Stay" %}</h3>
+                        </div>
+                    </div>
+
+                    <!-- Service Card 2 -->
+                    <div class="service-card">
+                        {% if event.hotel.images.exists %}
+                            {% with images_list=event.hotel.images.all %}
+                                {% if images_list|length > 2 %}
+                                    <img src="{{ images_list.2.image.url }}" alt="{% trans 'Dine' %}">
+                                {% elif images_list|length > 0 %}
+                                    <img src="{{ images_list.0.image.url }}" alt="{% trans 'Dine' %}">
+                                {% endif %}
+                            {% endwith %}
+                        {% elif event.hotel.photo %}
+                            <img src="{{ event.hotel.photo.url }}" alt="{% trans 'Dine' %}">
+                        {% else %}
+                            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);"></div>
+                        {% endif %}
+                        <div class="service-overlay">
+                            <h3 class="service-title">{% trans "Dine" %}</h3>
+                        </div>
+                    </div>
+
+                    <!-- Text Card 2 -->
+                    <div class="service-text-card">
+                        <div class="service-text-small">{% trans "MEMBERSHIP" %}</div>
+                        <div class="service-text-large">{% trans "Win a 3-night getaway!" %}</div>
+                        <a href="#" class="service-text-link">{% trans "Get It Now" %} →</a>
+                    </div>
+
+                    <!-- Service Card 3 -->
+                    <div class="service-card">
+                        {% if event.hotel.images.exists %}
+                            {% with images_list=event.hotel.images.all %}
+                                {% if images_list|length > 3 %}
+                                    <img src="{{ images_list.3.image.url }}" alt="{% trans 'Meetings' %}">
+                                {% elif images_list|length > 0 %}
+                                    <img src="{{ images_list.0.image.url }}" alt="{% trans 'Meetings' %}">
+                                {% endif %}
+                            {% endwith %}
+                        {% elif event.hotel.photo %}
+                            <img src="{{ event.hotel.photo.url }}" alt="{% trans 'Meetings' %}">
+                        {% else %}
+                            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #28a745 0%, #20c997 100%);"></div>
+                        {% endif %}
+                        <div class="service-overlay">
+                            <h3 class="service-title">{% trans "Meetings" %}</h3>
+                        </div>
+                    </div>
+
+                    <!-- Service Card 4 -->
+                    <div class="service-card">
+                        {% if event.hotel.images.exists %}
+                            {% with images_list=event.hotel.images.all %}
+                                {% if images_list|length > 4 %}
+                                    <img src="{{ images_list.4.image.url }}" alt="{% trans 'Events' %}">
+                                {% elif images_list|length > 0 %}
+                                    <img src="{{ images_list.0.image.url }}" alt="{% trans 'Events' %}">
+                                {% endif %}
+                            {% endwith %}
+                        {% elif event.hotel.photo %}
+                            <img src="{{ event.hotel.photo.url }}" alt="{% trans 'Events' %}">
+                        {% else %}
+                            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%);"></div>
+                        {% endif %}
+                        <div class="service-overlay">
+                            <h3 class="service-title">{% trans "Events" %}</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección de Habitaciones -->
+                {% if available_rooms %}
+                    <div class="rooms-section">
+                        <h2 class="rooms-title">{% trans "Rooms & Suites" %}</h2>
+                        {% for room in available_rooms %}
+                            <div class="room-listing">
+                                <div class="room-image">
+                                    {% if event.hotel.photo %}
+                                        <img src="{{ event.hotel.photo.url }}" alt="{{ room.get_room_type_display }}">
+                                    {% else %}
+                                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%); display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-bed" style="font-size: 4rem; color: #ccc;"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div class="room-content">
+                                    <h3 class="room-name">{{ room.get_room_type_display }}</h3>
+                                    <p class="room-features">
+                                        {% if room.room_number %}{% trans "Room" %} {{ room.room_number }} • {% endif %}
+                                        {% if room.capacity %}{{ room.capacity }} {% trans "guests" %}{% endif %}
+                                        {% if event.hotel.city %} • {{ event.hotel.city.name }}{% endif %}
+                                    </p>
+                                    {% if room.description %}
+                                        <p class="room-description">{{ room.description|truncatewords:40 }}</p>
+                                    {% else %}
+                                        <p class="room-description">{% trans "Experience comfort and luxury in our beautifully designed rooms. Each room features modern amenities and stunning views to make your stay unforgettable." %}</p>
+                                    {% endif %}
+                                    <div class="room-price-section">
+                                        <span class="price-from">{% trans "from" %}</span>
+                                        <span class="price-amount">${{ room.price_per_night|floatformat:0 }}</span>
+                                        <span class="price-per">/{% trans "night" %}</span>
+                                    </div>
+                                    <a href="#" class="room-detail-link">{% trans "See Detail" %} →</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Sección de Servicios/Amenidades -->
+                {% if event.hotel.amenities.exists %}
+                    <div class="extra-services">
+                        <div style="text-align: center; margin-bottom: 45px;">
+                            <div class="services-label">{% trans "AMENITIES" %}</div>
+                            <h2 class="services-title">{% trans "Services" %}</h2>
+                        </div>
+                        <div class="services-grid-list">
+                            {% for amenity in event.hotel.amenities.all|slice:":12" %}
+                                <div class="service-item">
+                                    <div class="service-item-icon">
+                                        <i class="fas {{ amenity.get_icon_class }}"></i>
+                                    </div>
+                                    <h4 class="service-item-title">{{ amenity.name }}</h4>
+                                    {% if amenity.description %}
+                                        <p class="service-item-desc">{{ amenity.description|truncatewords:15 }}</p>
+                                    {% else %}
+                                        <p class="service-item-desc">{{ amenity.get_category_display }}</p>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Información del Hotel con diseño mejorado -->
+                {% if event.hotel.information %}
+                    <div style="padding: 70px 60px; background: #ffffff; position: relative;">
+                        <div style="max-width: 1100px; margin: 0 auto;">
+                            <!-- Header -->
+                            <div style="text-align: center; margin-bottom: 45px;">
+                                <div style="display: inline-block; padding: 10px 28px; background: linear-gradient(135deg, #f4a460 0%, #d4a574 100%); color: white; font-size: 0.65rem; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; border-radius: 50px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(244,164,96,0.3);">{% trans "DISCOVER" %}</div>
+                                <h2 style="font-size: 2.8rem; font-weight: 900; margin: 0; color: #1a1a1a; font-family: 'Arial Black', sans-serif; line-height: 1.2;">{% trans "About the Hotel" %}</h2>
+                            </div>
+
+                            <!-- Content Card -->
+                            <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); padding: 45px 50px; border-radius: 20px; border: 2px solid #f0f0f0; position: relative; overflow: hidden;">
+                                <!-- Decorative element -->
+                                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #f4a460 0%, transparent 100%);"></div>
+
+                                <!-- Icon decoration -->
+                                <div style="position: absolute; top: 30px; right: 30px; width: 80px; height: 80px; background: linear-gradient(135deg, rgba(244,164,96,0.1) 0%, rgba(244,164,96,0.05) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-hotel" style="font-size: 2rem; color: #f4a460; opacity: 0.4;"></i>
+                                </div>
+
+                                <!-- Text content -->
+                                <div style="position: relative; z-index: 1; font-size: 1rem; line-height: 1.9; color: #666; text-align: left; max-width: 900px;">
+                                    {{ event.hotel.information|safe }}
+                                </div>
+                            </div>
+
+                            <!-- Optional: Stats or highlights -->
+                            {% if event.hotel.capacity or event.hotel.total_rooms %}
+                                <div style="display: flex; justify-content: center; gap: 50px; margin-top: 40px; flex-wrap: wrap;">
+                                    {% if event.hotel.capacity %}
+                                        <div style="text-align: center;">
+                                            <div style="font-size: 2.5rem; font-weight: 900; color: #f4a460; font-family: 'Arial Black', sans-serif; margin-bottom: 5px;">{{ event.hotel.capacity }}</div>
+                                            <div style="font-size: 0.85rem; color: #999; text-transform: uppercase; letter-spacing: 2px;">{% trans "Guests Capacity" %}</div>
+                                        </div>
+                                    {% endif %}
+                                    {% if event.hotel.total_rooms %}
+                                        <div style="text-align: center;">
+                                            <div style="font-size: 2.5rem; font-weight: 900; color: #f4a460; font-family: 'Arial Black', sans-serif; margin-bottom: 5px;">{{ event.hotel.total_rooms }}</div>
+                                            <div style="font-size: 0.85rem; color: #999; text-transform: uppercase; letter-spacing: 2px;">{% trans "Total Rooms" %}</div>
+                                        </div>
+                                    {% endif %}
+                                    {% if available_rooms %}
+                                        <div style="text-align: center;">
+                                            <div style="font-size: 2.5rem; font-weight: 900; color: #28a745; font-family: 'Arial Black', sans-serif; margin-bottom: 5px;">{{ available_rooms|length }}</div>
+                                            <div style="font-size: 0.85rem; color: #999; text-transform: uppercase; letter-spacing: 2px;">{% trans "Available Now" %}</div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Sección de Contacto con diseño tipo tarjetas -->
+                {% if event.hotel.contact_name or event.hotel.contact_email or event.hotel.contact_phone %}
+                    <div style="padding: 100px 70px; background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%); position: relative;">
+                        <div style="max-width: 1100px; margin: 0 auto;">
+                            <div style="text-align: center; margin-bottom: 60px;">
+                                <div style="display: inline-block; padding: 12px 30px; background: #f4a460; color: white; font-size: 0.7rem; font-weight: 700; letter-spacing: 4px; text-transform: uppercase; border-radius: 50px; margin-bottom: 25px;">{% trans "GET IN TOUCH" %}</div>
+                                <h2 style="font-size: 3.5rem; font-weight: 900; margin: 0; color: white; font-family: 'Arial Black', sans-serif; line-height: 1.2;">{% trans "Contact Information" %}</h2>
+                            </div>
+
+                            {% if event.hotel.contact_name %}
+                                <p style="font-size: 1.5rem; font-weight: 700; color: #f4a460; text-align: center; margin-bottom: 50px;">{{ event.hotel.contact_name }}</p>
+                            {% endif %}
+
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 50px;">
+                                {% if event.hotel.contact_email %}
+                                    <div style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 2px solid rgba(244,164,96,0.3); border-radius: 20px; padding: 40px; text-align: center; transition: all 0.4s ease; cursor: pointer;" onmouseover="this.style.borderColor='#f4a460'; this.style.background='rgba(244,164,96,0.1)';" onmouseout="this.style.borderColor='rgba(244,164,96,0.3)'; this.style.background='rgba(255,255,255,0.05)';">
+                                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #f4a460 0%, #d4a574 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; box-shadow: 0 10px 30px rgba(244,164,96,0.3);">
+                                            <i class="fas fa-envelope" style="font-size: 2rem; color: white;"></i>
+                                        </div>
+                                        <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 15px; font-weight: 600;">{% trans "Email" %}</div>
+                                        <a href="mailto:{{ event.hotel.contact_email }}" style="color: white; text-decoration: none; font-size: 1.1rem; font-weight: 700; word-break: break-word; transition: color 0.3s ease;" onmouseover="this.style.color='#f4a460';" onmouseout="this.style.color='white';">{{ event.hotel.contact_email }}</a>
+                                    </div>
+                                {% endif %}
+
+                                {% if event.hotel.contact_phone %}
+                                    <div style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 2px solid rgba(244,164,96,0.3); border-radius: 20px; padding: 40px; text-align: center; transition: all 0.4s ease; cursor: pointer;" onmouseover="this.style.borderColor='#f4a460'; this.style.background='rgba(244,164,96,0.1)';" onmouseout="this.style.borderColor='rgba(244,164,96,0.3)'; this.style.background='rgba(255,255,255,0.05)';">
+                                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #f4a460 0%, #d4a574 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; box-shadow: 0 10px 30px rgba(244,164,96,0.3);">
+                                            <i class="fas fa-phone" style="font-size: 2rem; color: white;"></i>
+                                        </div>
+                                        <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 15px; font-weight: 600;">{% trans "Phone" %}</div>
+                                        <a href="tel:{{ event.hotel.contact_phone }}" style="color: white; text-decoration: none; font-size: 1.1rem; font-weight: 700; transition: color 0.3s ease;" onmouseover="this.style.color='#f4a460';" onmouseout="this.style.color='white';">{{ event.hotel.contact_phone }}</a>
+                                    </div>
+                                {% endif %}
+
+                                {% if event.hotel.city or event.hotel.state %}
+                                    <div style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 2px solid rgba(244,164,96,0.3); border-radius: 20px; padding: 40px; text-align: center; transition: all 0.4s ease; cursor: pointer;" onmouseover="this.style.borderColor='#f4a460'; this.style.background='rgba(244,164,96,0.1)';" onmouseout="this.style.borderColor='rgba(244,164,96,0.3)'; this.style.background='rgba(255,255,255,0.05)';">
+                                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #f4a460 0%, #d4a574 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; box-shadow: 0 10px 30px rgba(244,164,96,0.3);">
+                                            <i class="fas fa-map-marker-alt" style="font-size: 2rem; color: white;"></i>
+                                        </div>
+                                        <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 15px; font-weight: 600;">{% trans "Location" %}</div>
+                                        <div style="color: white; font-size: 1.1rem; font-weight: 700;">
+                                            {% if event.hotel.city %}{{ event.hotel.city.name }}{% endif %}
+                                            {% if event.hotel.state %}{% if event.hotel.city %}, {% endif %}{{ event.hotel.state.name }}{% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            {% if event.hotel.registration_url %}
+                                <div style="text-align: center; padding-top: 30px; border-top: 1px solid rgba(244,164,96,0.2);">
+                                    <a href="{{ event.hotel.registration_url }}" target="_blank" style="display: inline-block; padding: 22px 60px; background: linear-gradient(135deg, #f4a460 0%, #d4a574 100%); color: white; text-decoration: none; font-size: 0.85rem; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; border-radius: 50px; transition: all 0.4s ease; box-shadow: 0 10px 30px rgba(244,164,96,0.4);" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 15px 40px rgba(244,164,96,0.6)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(244,164,96,0.4)';">
+                                        <i class="fas fa-calendar-check me-3"></i>{% trans "Book Your Stay Now" %}
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- Footer con imagen de fondo -->
+                <div style="position: relative; height: 300px; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 0 0 20px 20px;">
+                    {% if event.hotel.photo %}
+                        <img src="{{ event.hotel.photo.url }}" alt="{{ event.hotel.hotel_name }}" style="position: absolute; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.4);">
+                    {% else %}
+                        <div style="position: absolute; width: 100%; height: 100%; background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);"></div>
+                    {% endif %}
+                    <div style="position: relative; z-index: 2; text-align: center; color: white; padding: 30px;">
+                        <h3 style="font-size: 2.5rem; font-weight: 900; margin: 0 0 15px 0; font-family: 'Brush Script MT', cursive; font-style: italic; text-shadow: 0 3px 20px rgba(0,0,0,0.8);">
+                            {{ event.hotel.hotel_name }}
+                        </h3>
+                        <p style="font-size: 1.1rem; margin: 0; opacity: 0.9; text-shadow: 0 2px 10px rgba(0,0,0,0.8);">{% trans "Your perfect escape awaits" %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+

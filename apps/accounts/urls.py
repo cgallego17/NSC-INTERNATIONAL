@@ -9,6 +9,7 @@ from . import (
     views,
     views_banners,
     views_dashboard_banners,
+    views_hotels,
     views_private,
     views_public,
     views_sponsors,
@@ -38,12 +39,6 @@ urlpatterns = [
         "players/<int:pk>/",
         views_public.FrontPlayerProfileView.as_view(),
         name="front_player_profile",
-    ),
-    # Editar jugador para front (requiere login)
-    path(
-        "players/<int:pk>/edit/",
-        views_public.FrontPlayerUpdateView.as_view(),
-        name="front_player_edit",
     ),
     # ===== URLs PRIVADAS =====
     # Logout (requiere login) - pero la URL debe estar disponible siempre
@@ -83,6 +78,23 @@ urlpatterns = [
         "players/<int:pk>/edit/",
         views_private.PlayerUpdateView.as_view(),
         name="player_edit",
+    ),
+    # Eventos en el panel
+    path(
+        "events/<int:pk>/",
+        views_private.PanelEventDetailView.as_view(),
+        name="panel_event_detail",
+    ),
+    path(
+        "events/<int:pk>/register/",
+        views_private.register_children_to_event,
+        name="register_children_to_event",
+    ),
+    # Editar jugador para front (requiere login) - después de la privada para evitar conflictos
+    path(
+        "front/players/<int:pk>/edit/",
+        views_public.FrontPlayerUpdateView.as_view(),
+        name="front_player_edit",
     ),
     # Registro de jugadores por padres
     path(
@@ -200,5 +212,96 @@ urlpatterns = [
         "dashboard-banners/<int:pk>/delete/",
         views_dashboard_banners.DashboardBannerDeleteView.as_view(),
         name="dashboard_banner_delete",
+    ),
+    # ===== GESTIÓN DE HOTELES =====
+    # Hoteles
+    path("hotels/", views_hotels.HotelListView.as_view(), name="hotel_list"),
+    path("hotels/create/", views_hotels.HotelCreateView.as_view(), name="hotel_create"),
+    path("hotels/<int:pk>/", views_hotels.HotelDetailView.as_view(), name="hotel_detail"),
+    path("hotels/<int:pk>/edit/", views_hotels.HotelUpdateView.as_view(), name="hotel_update"),
+    path("hotels/<int:pk>/delete/", views_hotels.HotelDeleteView.as_view(), name="hotel_delete"),
+    # Imágenes del Hotel
+    path(
+        "hotels/<int:hotel_pk>/images/",
+        views_hotels.HotelImageListView.as_view(),
+        name="hotel_image_list",
+    ),
+    path(
+        "hotels/<int:hotel_pk>/images/create/",
+        views_hotels.HotelImageCreateView.as_view(),
+        name="hotel_image_create",
+    ),
+    path(
+        "hotels/<int:hotel_pk>/images/<int:pk>/edit/",
+        views_hotels.HotelImageUpdateView.as_view(),
+        name="hotel_image_update",
+    ),
+    path(
+        "hotels/<int:hotel_pk>/images/<int:pk>/delete/",
+        views_hotels.HotelImageDeleteView.as_view(),
+        name="hotel_image_delete",
+    ),
+    # Amenidades del Hotel
+    path(
+        "hotels/<int:hotel_pk>/amenities/",
+        views_hotels.HotelAmenityListView.as_view(),
+        name="hotel_amenity_list",
+    ),
+    path(
+        "hotels/<int:hotel_pk>/amenities/create/",
+        views_hotels.HotelAmenityCreateView.as_view(),
+        name="hotel_amenity_create",
+    ),
+    path(
+        "hotels/<int:hotel_pk>/amenities/<int:pk>/edit/",
+        views_hotels.HotelAmenityUpdateView.as_view(),
+        name="hotel_amenity_update",
+    ),
+    path(
+        "hotels/<int:hotel_pk>/amenities/<int:pk>/delete/",
+        views_hotels.HotelAmenityDeleteView.as_view(),
+        name="hotel_amenity_delete",
+    ),
+    # Habitaciones del Hotel
+    path(
+        "hotels/<int:hotel_pk>/rooms/",
+        views_hotels.HotelRoomListView.as_view(),
+        name="hotel_room_list",
+    ),
+    path(
+        "hotels/<int:hotel_pk>/rooms/create/",
+        views_hotels.HotelRoomCreateView.as_view(),
+        name="hotel_room_create",
+    ),
+    path(
+        "hotels/<int:hotel_pk>/rooms/<int:pk>/edit/",
+        views_hotels.HotelRoomUpdateView.as_view(),
+        name="hotel_room_update",
+    ),
+    path(
+        "hotels/<int:hotel_pk>/rooms/<int:pk>/delete/",
+        views_hotels.HotelRoomDeleteView.as_view(),
+        name="hotel_room_delete",
+    ),
+    # Servicios del Hotel
+    path(
+        "hotels/<int:hotel_pk>/services/",
+        views_hotels.HotelServiceListView.as_view(),
+        name="hotel_service_list",
+    ),
+    path(
+        "hotels/<int:hotel_pk>/services/create/",
+        views_hotels.HotelServiceCreateView.as_view(),
+        name="hotel_service_create",
+    ),
+    path(
+        "hotels/<int:hotel_pk>/services/<int:pk>/edit/",
+        views_hotels.HotelServiceUpdateView.as_view(),
+        name="hotel_service_update",
+    ),
+    path(
+        "hotels/<int:hotel_pk>/services/<int:pk>/delete/",
+        views_hotels.HotelServiceDeleteView.as_view(),
+        name="hotel_service_delete",
     ),
 ]

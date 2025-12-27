@@ -20,14 +20,14 @@
     <div class="form-container">
         <form method="post" action="{% url 'accounts:parent_player_register' %}" enctype="multipart/form-data" id="parentPlayerForm" novalidate>
             {% csrf_token %}
-            
+
             {% if parent_player_form.non_field_errors %}
                 <div class="alert alert-danger mb-4 alert-persistent">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     {{ parent_player_form.non_field_errors }}
                 </div>
             {% endif %}
-            
+
             <!-- Información de Relación -->
             <div class="form-section mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
                 <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 600; font-size: 1.1rem;">
@@ -65,7 +65,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Información del Jugador -->
             <div class="form-section mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
                 <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 600; font-size: 1.1rem;">
@@ -101,7 +101,7 @@
                         {% endif %}
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="{{ parent_player_form.phone.id_for_label }}" class="form-label">
@@ -131,10 +131,10 @@
                             <i class="fas fa-magic me-1"></i>{% trans "Division and grade will be calculated automatically" %}
                         </small>
                     </div>
-                    
+
                 </div>
             </div>
-            
+
             <!-- Información Deportiva -->
             <div class="form-section mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
                 <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 600; font-size: 1.1rem;">
@@ -146,7 +146,7 @@
                         {% trans "Team and jersey number will be assigned by an administrator or manager." %}
                     </small>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label for="{{ parent_player_form.position.id_for_label }}" class="form-label">
@@ -177,7 +177,7 @@
                         {% endif %}
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="{{ parent_player_form.batting_hand.id_for_label }}" class="form-label required-field">
@@ -199,7 +199,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Elegibilidad y División -->
             <div class="form-section mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
                 <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 600; font-size: 1.1rem;">
@@ -217,7 +217,7 @@
                         {% trans "Players without approved age verification are not eligible until documentation is approved." %}
                     </small>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="{{ parent_player_form.grade.id_for_label }}" class="form-label required-field">
@@ -252,10 +252,10 @@
                         <small class="text-muted d-block mt-1">{% trans "Assigned automatically or by administrator" %}</small>
                     </div>
                 </div>
-                
+
                 <div class="mb-3">
                     <label for="{{ parent_player_form.age_verification_document.id_for_label }}" class="form-label required-field" style="font-weight: 700; color: var(--mlb-blue); font-size: 1.05rem; margin-bottom: 12px;">
-                        <i class="fas fa-file-upload me-2" style="color: var(--mlb-red);"></i>{% trans "Age Verification Document" %} 
+                        <i class="fas fa-file-upload me-2" style="color: var(--mlb-red);"></i>{% trans "Age Verification Document" %}
                         <span class="badge bg-danger ms-2" style="font-size: 0.75rem; padding: 4px 8px;">{% trans "REQUIRED" %}</span>
                     </label>
                     <div class="file-upload-area" id="ageVerificationUploadArea" style="border: 3px dashed var(--mlb-blue); border-radius: 12px; padding: 30px; text-align: center; background: linear-gradient(135deg, #f8f9fa 0%, #e7f3ff 100%); cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;" onmouseover="this.style.borderColor='var(--mlb-red)'; this.style.background='linear-gradient(135deg, #e7f3ff 0%, #fff5f5 100%)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(13, 44, 84, 0.15)';" onmouseout="this.style.borderColor='var(--mlb-blue)'; this.style.background='linear-gradient(135deg, #f8f9fa 0%, #e7f3ff 100%)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
@@ -287,7 +287,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <!-- Tallas de Uniformes -->
             <div class="form-section mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
                 <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 600; font-size: 1.1rem;">
@@ -299,7 +299,7 @@
                         <strong>{% trans "Required:" %}</strong> {% trans "All uniform sizes are required. Please select the appropriate sizes for each item." %}
                     </small>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="{{ parent_player_form.jersey_size.id_for_label }}" class="form-label required-field">
@@ -320,7 +320,7 @@
                         {% endif %}
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="{{ parent_player_form.batting_glove_size.id_for_label }}" class="form-label required-field">
@@ -341,7 +341,7 @@
                         {% endif %}
                     </div>
                 </div>
-                
+
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="{{ parent_player_form.shorts_size.id_for_label }}" class="form-label required-field">
@@ -354,7 +354,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Contacto de Emergencia -->
             <div class="form-section mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
                 <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 600; font-size: 1.1rem;">
@@ -396,7 +396,7 @@
                         {% endif %}
                     </div>
                 </div>
-                
+
                 <div class="mb-3">
                     <label for="{{ parent_player_form.medical_conditions.id_for_label }}" class="form-label required-field">
                         {% trans "Medical Conditions" %} *
@@ -411,7 +411,7 @@
                     </small>
                 </div>
             </div>
-            
+
             <!-- Botones de Acción -->
             <div class="form-actions mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
                 <div class="d-flex justify-content-between align-items-center">
@@ -460,11 +460,11 @@
     #formFloatingProgressBar {
         height: 6px !important;
     }
-    
+
     #formFloatingProgressBar:hover {
         height: 8px !important;
     }
-    
+
     #formProgressTextFloating {
         top: -28px !important;
         right: 10px !important;
@@ -475,9 +475,23 @@
 </style>
 
 <script>
+// Traducciones para JavaScript - Verificar si ya existe para evitar redeclaración
+if (typeof translations === 'undefined') {
+    var translations = {};
+}
+
+// Agregar traducciones del formulario de registro
+Object.assign(translations, {
+    fileTooLarge: "{% trans 'The file is too large. Maximum size allowed is 10MB.' %}",
+    fileTypeNotAllowed: "{% trans 'File type not allowed. Only PDF, JPG or PNG are accepted.' %}",
+    documentUploaded: "{% trans 'Document Uploaded' %}",
+    clickToChangeFile: "{% trans 'Click to change file' %}",
+    pleaseCompleteFields: "{% trans 'Please complete all required fields' %}"
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Formulario de registro de hijo cargado');
-    
+
     // ========== TEST COMPLETO DEL FORMULARIO ==========
     function testFormulario() {
         const tests = {
@@ -487,7 +501,7 @@ document.addEventListener('DOMContentLoaded', function() {
             cargaArchivos: false,
             validaciones: false
         };
-        
+
         // Test 1: Verificar campos requeridos
         const requiredFields = [
             'id_relationship',
@@ -496,7 +510,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'id_birth_date',
             'id_age_verification_document'
         ];
-        
+
         let camposEncontrados = 0;
         requiredFields.forEach(fieldId => {
             const field = document.getElementById(fieldId);
@@ -507,28 +521,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error(`❌ Campo requerido NO encontrado: ${fieldId}`);
             }
         });
-        
+
         tests.camposRequeridos = camposEncontrados === requiredFields.length;
         console.log(`📊 Campos requeridos: ${camposEncontrados}/${requiredFields.length}`);
-        
+
         // Test 2: Verificar cálculo automático de edad/división/grado
         const birthDateField = document.getElementById('id_birth_date');
         const gradeField = document.getElementById('id_grade');
         const divisionField = document.getElementById('id_division');
-        
+
         if (birthDateField && gradeField && divisionField) {
             tests.calculoAutomatico = true;
             console.log('✅ Campos de cálculo automático encontrados');
         } else {
             console.error('❌ Faltan campos para cálculo automático');
         }
-        
+
         // Test 3: Verificar indicador de progreso
         const progressBar = document.getElementById('formProgressBar');
         const progressText = document.getElementById('formProgressText');
         const floatingProgressBar = document.getElementById('formFloatingProgressBar');
         const floatingProgressBarInner = document.getElementById('formFloatingProgressBarInner');
-        
+
         if (floatingProgressBar && floatingProgressBarInner) {
             tests.progresoFormulario = true;
             console.log('✅ Indicador de progreso flotante encontrado');
@@ -538,25 +552,25 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             console.error('❌ Indicador de progreso NO encontrado');
         }
-        
+
         // Test 4: Verificar carga de archivos
         const fileInput = document.querySelector('#parentPlayerForm input[type="file"]');
         const fileUploadArea = document.querySelector('.file-upload-area');
-        
+
         if (fileInput && fileUploadArea) {
             tests.cargaArchivos = true;
             console.log('✅ Área de carga de archivos encontrada');
         } else {
             console.error('❌ Área de carga de archivos NO encontrada');
         }
-        
+
         // Test 5: Verificar validaciones HTML5
         const form = document.getElementById('parentPlayerForm');
         if (form && form.hasAttribute('novalidate')) {
             tests.validaciones = true;
             console.log('✅ Formulario configurado para validación personalizada');
         }
-        
+
         // Resumen de tests
         console.log('\n📋 RESUMEN DE TESTS:');
         console.log('===================');
@@ -564,31 +578,31 @@ document.addEventListener('DOMContentLoaded', function() {
             const icon = tests[test] ? '✅' : '❌';
             console.log(`${icon} ${test}: ${tests[test] ? 'PASADO' : 'FALLIDO'}`);
         });
-        
+
         const todosPasados = Object.values(tests).every(test => test === true);
         if (todosPasados) {
             console.log('\n🎉 ¡TODOS LOS TESTS PASARON!');
         } else {
             console.log('\n⚠️ ALGUNOS TESTS FALLARON');
         }
-        
+
         return tests;
     }
-    
+
     // Ejecutar tests después de un breve delay para asegurar que todo esté cargado
     setTimeout(testFormulario, 500);
-    
+
     // ========== FUNCIONALIDAD DEL FORMULARIO ==========
-    
+
     // Calcular progreso del formulario
     function updateFormProgress() {
         const form = document.getElementById('parentPlayerForm');
         if (!form) return;
-        
+
         // Obtener todos los campos requeridos
         const requiredInputs = form.querySelectorAll('input[required], select[required], textarea[required]');
         const requiredLabels = form.querySelectorAll('.required-field');
-        
+
         let totalRequired = requiredInputs.length;
         requiredLabels.forEach(label => {
             const fieldId = label.getAttribute('for');
@@ -599,7 +613,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        
+
         // Contar campos llenos
         let filledCount = 0;
         requiredInputs.forEach(input => {
@@ -607,7 +621,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 filledCount++;
             }
         });
-        
+
         requiredLabels.forEach(label => {
             const fieldId = label.getAttribute('for');
             if (fieldId) {
@@ -617,33 +631,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         });
-        
+
         const progress = totalRequired > 0 ? (filledCount / totalRequired) * 100 : 0;
         const progressBar = document.getElementById('formProgressBar');
         const progressText = document.getElementById('formProgressText');
-        
+
         // Actualizar barra flotante
         const floatingProgressBar = document.getElementById('formFloatingProgressBarInner');
         const floatingProgressText = document.getElementById('formProgressTextFloating');
-        
+
         if (progressBar) {
             progressBar.style.width = progress + '%';
         }
-        
+
         if (progressText) {
             progressText.textContent = Math.round(progress) + '%';
         }
-        
+
         // Actualizar barra flotante
         if (floatingProgressBar) {
             floatingProgressBar.style.width = progress + '%';
         }
-        
+
         if (floatingProgressText) {
             floatingProgressText.textContent = Math.round(progress) + '%';
         }
     }
-    
+
     // Actualizar progreso cuando cambian los campos
     const form = document.getElementById('parentPlayerForm');
     if (form) {
@@ -651,89 +665,136 @@ document.addEventListener('DOMContentLoaded', function() {
         form.addEventListener('change', updateFormProgress);
         updateFormProgress();
     }
-    
+
     // Cálculo automático de división y grado basado en fecha de nacimiento
     const birthDateField = document.getElementById('id_birth_date');
     const gradeField = document.getElementById('id_grade');
     const divisionField = document.getElementById('id_division');
-    
+
+    // Función para convertir formato de fecha a ISO
+    function convertDateToISO(dateField) {
+        if (!dateField || !dateField.value) return;
+
+        const currentValue = dateField.value.trim();
+
+        // Verificar si está en formato DD/MM/YYYY o DD-MM-YYYY
+        const datePattern = /^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/;
+        const match = currentValue.match(datePattern);
+
+        if (match) {
+            // Convertir de DD/MM/YYYY a YYYY-MM-DD
+            const day = match[1];
+            const month = match[2];
+            const year = match[3];
+            dateField.value = `${year}-${month}-${day}`;
+            console.log(`✅ Fecha convertida de ${currentValue} a ${dateField.value}`);
+        }
+    }
+
     // Campo de fecha simple - el navegador maneja el formato local automáticamente
     if (birthDateField) {
         // Asegurar que sea tipo date para mostrar calendario
         birthDateField.type = 'date';
+
+        // Convertir el valor inicial inmediatamente
+        convertDateToISO(birthDateField);
+
+        // También convertir cuando cambie el valor (por si se establece después)
+        birthDateField.addEventListener('input', function() {
+            convertDateToISO(this);
+        });
+
+        // Usar MutationObserver para detectar cambios en el atributo value
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+                    convertDateToISO(birthDateField);
+                }
+            });
+        });
+
+        observer.observe(birthDateField, {
+            attributes: true,
+            attributeFilter: ['value']
+        });
+
+        // Ejecutar conversión después de un pequeño delay para asegurar que el valor esté establecido
+        setTimeout(function() {
+            convertDateToISO(birthDateField);
+        }, 100);
     }
-    
+
     if (birthDateField && gradeField && divisionField) {
-        
+
         function calculateAgeAsOfApril30(birthDate) {
             if (!birthDate) return null;
-            
+
             const date = new Date(birthDate);
-            
+
             if (isNaN(date.getTime())) {
                 return null;
             }
-            
+
             const today = new Date();
             const currentYear = today.getFullYear();
             const cutoffDate = new Date(currentYear, 3, 30); // Mes 3 = abril (0-indexed)
-            
+
             let age = cutoffDate.getFullYear() - date.getFullYear();
             const monthDiff = cutoffDate.getMonth() - date.getMonth();
-            
+
             if (monthDiff < 0 || (monthDiff === 0 && cutoffDate.getDate() < date.getDate())) {
                 age -= 1;
             }
-            
+
             return age;
         }
-        
+
         function getAgeBasedDivision(age) {
             if (age === null || age === undefined || age < 5) return null;
             if (age >= 18) return '18U';
-            
+
             const divisionMap = {
                 5: '05U', 6: '06U', 7: '07U', 8: '08U', 9: '09U',
                 10: '10U', 11: '11U', 12: '12U', 13: '13U', 14: '14U',
                 15: '15U', 16: '16U', 17: '17U',
             };
-            
+
             return divisionMap[age] || null;
         }
-        
+
         function suggestGradeFromAge(age) {
             if (age === null || age === undefined) return null;
-            
+
             const ageToGradeMap = {
                 4: 'pre_k', 5: 'kindergarten', 6: '1st', 7: '2nd', 8: '3rd',
                 9: '4th', 10: '5th', 11: '6th', 12: '7th', 13: '8th',
                 14: '9th', 15: '10th', 16: '11th', 17: '12th', 18: '12th',
             };
-            
+
             return ageToGradeMap[age] || null;
         }
-        
+
         function updateDivisionAndGrade() {
             const birthDateValue = birthDateField.value;
-            
+
             if (!birthDateValue) {
                 if (divisionField && !divisionField.value) divisionField.value = '';
                 if (gradeField && !gradeField.value) gradeField.value = '';
                 return;
             }
-            
+
             const birthDate = new Date(birthDateValue);
-            
+
             if (isNaN(birthDate.getTime())) {
                 return;
             }
-            
+
             const age = calculateAgeAsOfApril30(birthDateValue);
-            
+
             if (age !== null) {
                 const suggestedDivision = getAgeBasedDivision(age);
                 const suggestedGrade = suggestGradeFromAge(age);
-                
+
                 // Actualizar división
                 if (divisionField && suggestedDivision) {
                     if (!divisionField.value || divisionField.value === '') {
@@ -744,7 +805,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         divisionField.value = suggestedDivision;
                     }
                 }
-                
+
                 // Actualizar grado
                 if (gradeField && suggestedGrade) {
                     const optionExists = Array.from(gradeField.options).some(opt => opt.value === suggestedGrade);
@@ -763,7 +824,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
-        
+
         birthDateField.addEventListener('change', updateDivisionAndGrade);
         birthDateField.addEventListener('blur', updateDivisionAndGrade);
         birthDateField.addEventListener('input', function() {
@@ -771,16 +832,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(updateDivisionAndGrade, 100);
             }
         });
-        
+
         if (birthDateField.value) {
             updateDivisionAndGrade();
         }
     }
-    
+
     // Mejorar el área de carga de archivos
     const fileInput = document.querySelector('#parentPlayerForm input[type="file"][name*="age_verification"]');
     const fileUploadArea = document.getElementById('ageVerificationUploadArea');
-    
+
     if (fileInput && fileUploadArea) {
         // Asegurar que el input esté dentro del área de carga
         if (!fileUploadArea.contains(fileInput)) {
@@ -793,22 +854,22 @@ document.addEventListener('DOMContentLoaded', function() {
             fileInput.style.left = '0';
             fileUploadArea.appendChild(fileInput);
         }
-        
+
         fileUploadArea.addEventListener('click', function(e) {
             if (e.target !== fileInput) {
                 fileInput.click();
             }
         });
-        
+
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const fileName = file.name;
                 const fileSize = (file.size / 1024 / 1024).toFixed(2);
-                
+
                 // Validar tamaño (máx 10MB)
                 if (file.size > 10 * 1024 * 1024) {
-                    alert('El archivo es demasiado grande. El tamaño máximo permitido es 10MB.');
+                    alert(translations.fileTooLarge);
                     fileInput.value = '';
                     fileUploadArea.style.borderColor = 'var(--mlb-red)';
                     fileUploadArea.style.background = '#fff5f5';
@@ -818,11 +879,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, 2000);
                     return;
                 }
-                
+
                 // Validar tipo de archivo
                 const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
                 if (!allowedTypes.includes(file.type)) {
-                    alert('Tipo de archivo no permitido. Solo se aceptan PDF, JPG o PNG.');
+                    alert(translations.fileTypeNotAllowed);
                     fileInput.value = '';
                     fileUploadArea.style.borderColor = 'var(--mlb-red)';
                     fileUploadArea.style.background = '#fff5f5';
@@ -832,45 +893,45 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, 2000);
                     return;
                 }
-                
+
                 // Actualizar el área con el archivo cargado
                 const contentDiv = fileUploadArea.querySelector('div[style*="position: relative"]');
                 if (contentDiv) {
                     contentDiv.innerHTML = `
                         <i class="fas fa-check-circle fa-3x mb-3" style="color: #28a745; animation: none;"></i>
                         <p class="mb-2" style="font-weight: 700; color: #28a745; font-size: 1.1rem;">
-                            <i class="fas fa-file-check me-2"></i>{% trans "Document Uploaded" %}
+                            <i class="fas fa-file-check me-2"></i>${translations.documentUploaded}
                         </p>
                         <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.95rem; word-break: break-word;">${fileName}</p>
                         <small class="text-muted d-block mt-2" style="font-size: 0.9rem;">${fileSize} MB</small>
                         <small class="text-success d-block mt-1" style="font-size: 0.85rem;">
-                            <i class="fas fa-check me-1"></i>{% trans "Click to change file" %}
+                            <i class="fas fa-check me-1"></i>${translations.clickToChangeFile}
                         </small>
                     `;
                 }
-                
+
                 fileUploadArea.style.borderColor = '#28a745';
                 fileUploadArea.style.borderWidth = '3px';
                 fileUploadArea.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
                 fileUploadArea.style.boxShadow = '0 4px 12px rgba(40, 167, 69, 0.2)';
-                
+
                 console.log(`✅ Archivo de verificación de edad cargado: ${fileName} (${fileSize} MB)`);
-                
+
                 updateFormProgress();
             }
         });
     }
-    
+
     // Validación antes de enviar
     if (form) {
         form.addEventListener('submit', function(e) {
             console.log('📤 Intentando enviar formulario...');
-            
+
             // Verificar campos requeridos
             const requiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
             let isValid = true;
             let missingFields = [];
-            
+
             requiredFields.forEach(field => {
                 if (!field.value || field.value.trim() === '') {
                     isValid = false;
@@ -882,14 +943,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     field.classList.remove('is-invalid');
                 }
             });
-            
+
             if (!isValid) {
                 e.preventDefault();
                 alert(translations.pleaseCompleteFields + '\n\n' + missingFields.join('\n'));
                 console.error('❌ Formulario inválido. Campos faltantes:', missingFields);
                 return false;
             }
-            
+
             console.log('✅ Formulario válido, enviando...');
         });
     }

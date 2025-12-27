@@ -1,19 +1,20 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{% get_current_language %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Panel - NCS International</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
-    
+
+
 </head>
 <body>
     {% include 'includes/navbar_mlb.html' %}
@@ -69,7 +70,7 @@
                     </div>
                 {% endif %}
             </div>
-            
+
             <!-- Dashboard Content -->
             <div class="dashboard-content-wrapper">
                 <!-- Acciones Rápidas -->
@@ -222,7 +223,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Contenedor de Contenido de Tabs -->
                     <div class="tab-content-container" style="margin-top: 20px; min-height: 400px;">
                         <div id="tab-content-inicio" class="tab-content active">
@@ -552,7 +553,7 @@
                             {% endif %}
                         </div>
                     </div>
-                    
+
                 </div>
             </div>
         </div>
@@ -564,7 +565,7 @@
             <p>&copy; 2025 NCS International. Todos los derechos reservados.</p>
         </div>
     </footer>
-    
+
     <!-- Botón Flotante del Carrito -->
     <button id="cartFloatingBtn" class="cart-floating-btn" onclick="toggleCartSidebar()">
         <i class="fas fa-shopping-cart"></i>
@@ -572,7 +573,7 @@
             <span class="cart-badge">{{ cart_count }}</span>
         {% endif %}
     </button>
-    
+
     <!-- Sidebar del Carrito -->
     <div id="cartSidebar" class="cart-sidebar">
         <div class="cart-sidebar-header">
@@ -625,7 +626,7 @@
         </div>
         {% endif %}
     </div>
-    
+
     <!-- Overlay del Sidebar -->
     <div id="cartSidebarOverlay" class="cart-sidebar-overlay" onclick="toggleCartSidebar()"></div>
 
@@ -636,7 +637,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const tabButtons = document.querySelectorAll('.tab-btn');
             const tabContents = document.querySelectorAll('.tab-content');
-            
+
             // Función para cargar iframe dinámicamente
             function loadIframe(tabContent, url) {
                 // Verificar si el iframe ya existe
@@ -647,7 +648,7 @@
                     iframeContainer.style.width = '100%';
                     iframeContainer.style.height = '600px';
                     iframeContainer.style.minHeight = '600px';
-                    
+
                     iframe = document.createElement('iframe');
                     iframe.src = url;
                     iframe.style.width = '100%';
@@ -655,7 +656,7 @@
                     iframe.style.border = 'none';
                     iframe.style.borderRadius = '12px';
                     iframe.style.minHeight = '600px';
-                    
+
                     // Si el tab tiene header, agregar el iframe después del header
                     const header = tabContent.querySelector('.tab-content-header');
                     if (header) {
@@ -676,40 +677,40 @@
                     }
                 }
             }
-            
+
             // Función para activar un tab
             function activateTab(tabId, button) {
                 // Remover clase active de todos los botones
                 tabButtons.forEach(btn => btn.classList.remove('active'));
-                
+
                 // Agregar clase active al botón clickeado
                 if (button) {
                     button.classList.add('active');
                 }
-                
+
                 // Ocultar todos los contenidos
                 tabContents.forEach(content => {
                     content.style.display = 'none';
                     content.classList.remove('active');
                 });
-                
+
                 // Mostrar el contenido correspondiente
                 const targetContent = document.getElementById('tab-content-' + tabId);
                 if (targetContent) {
                     targetContent.style.display = 'block';
                     targetContent.classList.add('active');
-                    
+
                     // Obtener la URL del botón
                     const url = button ? button.getAttribute('data-url') : null;
-                    
+
                     // Si hay una URL, verificar si necesita cargar iframe
                     if (url) {
                         const existingIframe = targetContent.querySelector('iframe');
-                        const hasStaticContent = targetContent.querySelector('.row') || 
-                                               targetContent.querySelector('.card') || 
+                        const hasStaticContent = targetContent.querySelector('.row') ||
+                                               targetContent.querySelector('.card') ||
                                                targetContent.querySelector('.welcome-content-item') ||
                                                targetContent.querySelector('.event-card');
-                        
+
                         // Si no hay iframe existente, crear uno
                         if (!existingIframe) {
                             // Si hay contenido estático, agregar iframe después
@@ -726,13 +727,13 @@
                     console.warn('No se encontró el contenido para el tab:', tabId);
                 }
             }
-            
+
             // Agregar event listeners a todos los botones
             tabButtons.forEach(button => {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    
+
                     const tabId = this.getAttribute('data-tab');
                     if (tabId) {
                         activateTab(tabId, this);
@@ -741,7 +742,7 @@
                     }
                 });
             });
-            
+
             // Activar el tab de inicio por defecto
             const inicioButton = document.querySelector('.tab-btn[data-tab="inicio"]');
             if (inicioButton) {
@@ -760,7 +761,7 @@
                     pause: 'hover',
                     wrap: true
                 });
-                
+
                 // Si solo hay un banner, duplicarlo para crear el efecto de bucle infinito
                 const items = dashboardBannerSlider.querySelectorAll('.carousel-item');
                 if (items.length === 1) {
@@ -778,7 +779,7 @@
                     pause: 'hover',
                     wrap: true
                 });
-                
+
                 // Si solo hay un banner, duplicarlo para crear el efecto de bucle infinito
                 const items = dashboardBannerSlider.querySelectorAll('.carousel-item');
                 if (items.length === 1) {
@@ -786,11 +787,11 @@
                     firstItem.classList.remove('active');
                     dashboardBannerSlider.querySelector('.carousel-inner').appendChild(firstItem);
                 }
-                
+
                 // Controlar la barra de progreso
                 const progressBar = dashboardBannerSlider.querySelector('.carousel-progress-bar');
                 let progressInterval;
-                
+
                 function resetProgress() {
                     if (progressBar) {
                         progressBar.style.width = '0%';
@@ -799,36 +800,36 @@
                         void progressBar.offsetWidth;
                     }
                 }
-                
+
                 function startProgress() {
                     resetProgress();
                     if (progressBar) {
                         progressBar.style.animation = 'progressBar 5s linear';
                     }
                 }
-                
+
                 // Reiniciar progreso cuando cambia el slide y asegurar bucle infinito
                 dashboardBannerSlider.addEventListener('slid.bs.carousel', function() {
                     startProgress();
                 });
-                
+
                 // Pausar progreso al hacer hover
                 dashboardBannerSlider.addEventListener('mouseenter', function() {
                     if (progressBar) {
                         progressBar.style.animationPlayState = 'paused';
                     }
                 });
-                
+
                 // Reanudar progreso al quitar hover
                 dashboardBannerSlider.addEventListener('mouseleave', function() {
                     if (progressBar) {
                         progressBar.style.animationPlayState = 'running';
                     }
                 });
-                
+
                 // Iniciar progreso en el primer slide
                 startProgress();
-                
+
                 // También iniciar cuando el carousel se muestra
                 const observer = new MutationObserver(function(mutations) {
                     mutations.forEach(function(mutation) {
@@ -840,7 +841,7 @@
                         }
                     });
                 });
-                
+
                 observer.observe(dashboardBannerSlider, {
                     attributes: true,
                     subtree: true,
@@ -860,18 +861,18 @@
                     window.adminDashboard.convertDjangoMessagesToToasts();
                 }
             }, 100);
-            
+
             // Cargar contenido del carrito en el sidebar
             {% if cart_count > 0 %}
                 loadCartSidebarContent();
             {% endif %}
         });
-        
+
         // Función para abrir/cerrar el sidebar del carrito
         function toggleCartSidebar() {
             const sidebar = document.getElementById('cartSidebar');
             const overlay = document.getElementById('cartSidebarOverlay');
-            
+
             if (sidebar.classList.contains('open')) {
                 sidebar.classList.remove('open');
                 overlay.classList.remove('show');
@@ -884,14 +885,14 @@
                 }
             }
         }
-        
+
         // Cargar contenido del carrito en el sidebar
         function loadCartSidebarContent() {
             const container = document.getElementById('cartSidebarContent');
             if (!container) return;
-            
+
             container.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div>';
-            
+
             // Usar AJAX para obtener el contenido del carrito
             fetch('{% url "locations:get_cart_json" %}')
                 .then(response => response.json())
@@ -913,11 +914,11 @@
                                 `;
                             }
                         });
-                        
+
                         if (data.items.length > 5) {
                             itemsHTML += `<div class="text-center mt-3"><small class="text-muted">Y ${data.items.length - 5} más...</small></div>`;
                         }
-                        
+
                         container.innerHTML = itemsHTML;
                     } else {
                         container.innerHTML = '<div class="text-center py-4"><i class="fas fa-shopping-cart fa-3x mb-3" style="color: #ccc;"></i><p class="text-muted">No hay items en el carrito.</p></div>';
@@ -928,7 +929,7 @@
                     container.innerHTML = '<div class="text-center py-4"><p class="text-danger">Error al cargar el carrito.</p></div>';
                 });
         }
-        
+
         // Cerrar sidebar con ESC
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
@@ -938,12 +939,12 @@
                 }
             }
         });
-        
+
         // Función para actualizar el badge del carrito (se puede llamar desde otras páginas)
         function updateCartBadge(count) {
             const badge = document.querySelector('.cart-badge');
             const floatingBtn = document.getElementById('cartFloatingBtn');
-            
+
             if (count > 0) {
                 if (badge) {
                     badge.textContent = count;
@@ -961,24 +962,24 @@
                 }
             }
         }
-        
+
         // Escuchar eventos de actualización del carrito (desde otras páginas)
         window.addEventListener('storage', function(e) {
             if (e.key === 'cart_updated') {
                 loadCartSidebarContent();
             }
         });
-        
+
         // Función global para cargar hotel en el modal
         function loadHotelInModal(hotelId) {
             console.log('loadHotelInModal llamado con ID:', hotelId);
             const modalBody = document.getElementById('hotelDetailModalBody');
-            
+
             if (!modalBody) {
                 console.error('Modal body no encontrado');
                 return;
             }
-            
+
             if (!hotelId) {
                 console.error('No se proporcionó el ID del hotel');
                 modalBody.innerHTML = `
@@ -989,7 +990,7 @@
                 `;
                 return;
             }
-            
+
             // Mostrar loading
             modalBody.innerHTML = `
                 <div class="text-center py-5" id="hotelLoadingSpinner">
@@ -999,12 +1000,12 @@
                     <p class="mt-3 text-muted">Cargando información del hotel...</p>
                 </div>
             `;
-            
+
             // Construir la URL correctamente
             const baseUrl = '{% url "locations:front_hotel_detail" 0 %}';
             const hotelUrl = baseUrl.replace('0', hotelId);
             console.log('URL del hotel:', hotelUrl);
-            
+
             // Cargar contenido del hotel usando AJAX
             fetch(hotelUrl, {
                 method: 'GET',
@@ -1017,7 +1018,7 @@
             .then(response => {
                 console.log('Response status:', response.status);
                 console.log('Content-Type:', response.headers.get('Content-Type'));
-                
+
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -1025,15 +1026,15 @@
             })
             .then(html => {
                 console.log('HTML recibido, longitud:', html.length);
-                
+
                 if (!html || html.trim().length === 0) {
                     throw new Error('El servidor devolvió una respuesta vacía');
                 }
-                
+
                 // El template AJAX ya devuelve solo el contenido sin layout
                 // Simplemente insertarlo directamente
                 modalBody.innerHTML = html;
-                
+
                 // Reinicializar cualquier JavaScript necesario después de un pequeño delay
                 setTimeout(() => {
                     initializeHotelModalContent();
@@ -1064,7 +1065,7 @@
                 `;
             });
         }
-        
+
         // También escuchar el evento de Bootstrap como respaldo
         document.addEventListener('DOMContentLoaded', function() {
             const hotelModal = document.getElementById('hotelDetailModal');
@@ -1080,18 +1081,18 @@
                 });
             }
         });
-        
+
         // Función para inicializar el contenido del modal después de cargar
         function initializeHotelModalContent() {
             // El script del template AJAX ya maneja toda la funcionalidad
             // Solo necesitamos asegurarnos de que los scripts se ejecuten
             console.log('Contenido del modal inicializado');
         }
-        
+
         // Efecto hover mejorado en las tarjetas de hoteles
         document.querySelectorAll('.hotel-card-dashboard').forEach(card => {
             const img = card.querySelector('.card-img-top');
-            
+
             card.addEventListener('mouseenter', function() {
                 this.style.transform = 'translateY(-8px)';
                 this.style.boxShadow = '0 15px 40px rgba(13, 44, 84, 0.2)';
@@ -1099,7 +1100,7 @@
                     img.style.transform = 'scale(1.05)';
                 }
             });
-            
+
             card.addEventListener('mouseleave', function() {
                 this.style.transform = 'translateY(0)';
                 this.style.boxShadow = '';
@@ -1109,7 +1110,7 @@
             });
         });
     </script>
-    
+
     <!-- Modal para Detalles del Hotel y Reserva -->
     <div class="modal fade" id="hotelDetailModal" tabindex="-1" aria-labelledby="hotelDetailModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-fullscreen-lg-down modal-dialog-scrollable" style="max-width: 95vw; width: 95vw;">
@@ -1131,7 +1132,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Modal para Detalles del Evento y Registro -->
     <div class="modal fade" id="eventDetailModal" tabindex="-1" aria-labelledby="eventDetailModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable" style="max-width: 95vw;">
@@ -1155,14 +1156,14 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Columna Derecha: Resumen de Compra -->
                         <div class="col-lg-4" style="background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%); padding: 20px; border-left: 2px solid #e5e7eb; overflow-y: auto; max-height: calc(95vh - 100px);">
                             <div class="sticky-top" style="top: 10px;">
                                 <h4 class="mb-3" style="color: var(--mlb-blue); font-weight: 800; font-size: 1.1rem;">
                                     <i class="fas fa-shopping-cart me-2"></i>Resumen de Registro
                                 </h4>
-                                
+
                                 <div id="registrationSummary" class="registration-summary">
                                     <!-- Selección de Jugadores -->
                                     <div class="mb-4">
@@ -1182,9 +1183,9 @@
                                             <i class="fas fa-info-circle me-1"></i>Selecciona los jugadores que se registrarán al evento
                                         </small>
                                     </div>
-                                    
+
                                     <hr style="border-color: #e5e7eb; margin: 20px 0;">
-                                    
+
                                     <div class="summary-item" style="padding: 5px 0;">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <label style="font-weight: 600; color: #1f2937; font-size: 0.75rem;">
@@ -1194,7 +1195,7 @@
                                         </div>
                                         <small class="text-muted" id="playerRegistrationCount" style="font-size: 0.65rem;">0 jugadores</small>
                                     </div>
-                                    
+
                                     <div class="summary-item" style="padding: 5px 0;">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div class="d-flex align-items-center" style="flex: 1; gap: 8px; flex-wrap: wrap;">
@@ -1217,7 +1218,7 @@
                                             <span class="summary-price" id="priceHotel" style="font-size: 0.8rem; margin-left: 10px;">$0.00</span>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="summary-item" style="padding: 5px 0;">
                                         <div class="d-flex justify-content-between align-items-center mb-1">
                                             <div class="form-check" style="margin: 0;">
@@ -1232,7 +1233,7 @@
                                             <i class="fas fa-info-circle me-1"></i>Ver Detalles
                                         </button>
                                     </div>
-                                    
+
                                     <div class="summary-item" style="padding: 5px 0;">
                                         <div class="d-flex justify-content-between align-items-center mb-1">
                                             <div class="form-check" style="margin: 0;">
@@ -1247,14 +1248,14 @@
                                             <i class="fas fa-info-circle me-1"></i>Ver Detalles
                                         </button>
                                     </div>
-                                    
+
                                     <hr style="border-color: #e5e7eb; margin: 8px 0;">
-                                    
+
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <h5 style="font-weight: 800; color: var(--mlb-blue); font-size: 0.9rem;">Total:</h5>
                                         <h5 id="registrationTotal" style="font-weight: 800; color: var(--mlb-red); font-size: 1.1rem;">$0.00</h5>
                                     </div>
-                                    
+
                                     <!-- Opciones de Pago Unificadas -->
                                     <div class="payment-options-container" style="background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%); border-radius: 8px; border: 1.5px solid #e5e7eb; padding: 0; overflow: hidden;">
                                         <!-- Header con Tabs -->
@@ -1274,7 +1275,7 @@
                                                 <div class="tab-indicator" style="position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--mlb-blue); opacity: 0;"></div>
                                             </div>
                                         </div>
-                                        
+
                                         <!-- Contenido: Pago Total -->
                                         <div id="paymentContentTotal" class="payment-content" style="padding: 10px; text-align: center;">
                                             <div style="margin-bottom: 8px;">
@@ -1287,7 +1288,7 @@
                                                 <i class="fas fa-check-circle me-1"></i>Pagar
                                             </button>
                                         </div>
-                                        
+
                                         <!-- Contenido: Pago en Plan -->
                                         <div id="paymentContentPlan" class="payment-content" style="display: none; padding: 10px; text-align: center;">
                                             <div style="margin-bottom: 8px;">
@@ -1309,7 +1310,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Modal para Detalles del Adicional -->
     <div class="modal fade" id="additionalDetailModal" tabindex="-1" aria-labelledby="additionalDetailModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-xl" style="max-width: 95vw;">
@@ -1328,7 +1329,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Modal para Personas Adicionales del Hotel -->
     <div class="modal fade" id="hotelAdditionalPersonsModal" tabindex="-1" aria-labelledby="hotelAdditionalPersonsModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -1384,7 +1385,7 @@
                             </form>
                         </div>
                     </div>
-                    
+
                     <!-- Tabla de personas adicionales -->
                     <div class="card" style="border-radius: 15px; border: 2px solid #e5e7eb;">
                         <div class="card-header" style="background: #f9fafb; border-bottom: 2px solid #e5e7eb; padding: 15px 20px;">
@@ -1425,9 +1426,9 @@
             </div>
         </div>
     </div>
-    
-    
-    
+
+
+
     <script>
         // Manejar clic en botón "Ver Detalles"
         document.addEventListener('DOMContentLoaded', function() {
@@ -1439,7 +1440,7 @@
                     }
                 });
             });
-            
+
             // Botón Volver
             const backBtn = document.getElementById('backToEventsList');
             if (backBtn) {
@@ -1448,7 +1449,7 @@
                 });
             }
         });
-        
+
         // Función para mostrar la lista de eventos
         function showEventsList() {
             document.getElementById('eventsListView').style.display = 'block';
@@ -1456,22 +1457,22 @@
             // Scroll al inicio del tab
             document.getElementById('events').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-        
+
         // Función para cargar información del evento
         function loadEventDetails(eventId) {
             // Ocultar lista y mostrar detalles
             document.getElementById('eventsListView').style.display = 'none';
             document.getElementById('eventDetailView').style.display = 'block';
-            
+
             // Scroll al inicio de la vista de detalles
             document.getElementById('eventDetailView').scrollIntoView({ behavior: 'smooth', block: 'start' });
             const contentDiv = document.getElementById('eventDetailContent');
             contentDiv.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div></div>';
-            
+
             // Resetear jugadores seleccionados y personas adicionales
             selectedPlayers.clear();
             additionalPersons = [];
-            
+
             // Hacer petición AJAX para obtener datos del evento
             fetch(`/events/api/detail/${eventId}/`)
                 .then(response => response.json())
@@ -1481,14 +1482,14 @@
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    contentDiv.innerHTML = '<div class="alert alert-danger">Error al cargar la información del evento.</div>';
+                    contentDiv.innerHTML = '<div class="alert alert-danger">{% trans "Error loading event information." %}</div>';
                 });
         }
-        
+
         // Función para renderizar detalles del evento
         function renderEventDetails(event) {
             const contentDiv = document.getElementById('eventDetailContent');
-            
+
             let locationInfo = '';
             if (event.country || event.state || event.city || event.primary_site) {
                 const parts = [];
@@ -1498,16 +1499,16 @@
                 if (event.country) parts.push(`<strong>País:</strong> ${event.country}`);
                 locationInfo = parts.join('<br>');
             }
-            
+
             let html = `
                 ${event.image ? `<div class="mb-4"><img src="${event.image}" alt="${event.title}" class="img-fluid rounded" style="max-height: 300px; width: 100%; object-fit: cover;"></div>` : ''}
-                
+
                 <h2 class="mb-3" style="color: var(--mlb-blue); font-weight: 900; font-size: 2rem;">${event.title}</h2>
-                
+
                 ${event.category ? `<span class="badge mb-3" style="background: var(--mlb-red); color: white; padding: 8px 16px; font-size: 0.9rem; font-weight: 700;">${event.category}</span>` : ''}
-                
+
                 ${event.description ? `<div class="mb-4" style="color: #4b5563; line-height: 1.8; font-size: 1rem;">${event.description}</div>` : ''}
-                
+
                 <div class="row g-3 mb-4">
                     ${event.start_date ? `
                         <div class="col-md-6">
@@ -1526,7 +1527,7 @@
                         </div>
                     ` : ''}
                 </div>
-                
+
                 ${locationInfo ? `
                     <div class="mb-4">
                         <h5 style="color: var(--mlb-blue); font-weight: 800; margin-bottom: 15px;"><i class="fas fa-map-marker-alt me-2"></i>Ubicación</h5>
@@ -1535,7 +1536,7 @@
                         </div>
                     </div>
                 ` : ''}
-                
+
                 ${event.divisions && event.divisions.length > 0 ? `
                     <div class="mb-4">
                         <h5 style="color: var(--mlb-blue); font-weight: 800; margin-bottom: 15px;"><i class="fas fa-users me-2"></i>Divisiones</h5>
@@ -1545,10 +1546,10 @@
                     </div>
                 ` : ''}
             `;
-            
+
             contentDiv.innerHTML = html;
         }
-        
+
         // Variable global para almacenar precios y jugadores seleccionados
         let eventPrices = {};
         let selectedPlayers = new Set();
@@ -1557,12 +1558,12 @@
         let availablePlayers = []; // Lista de jugadores disponibles del evento
         let currentEventHotel = null; // Información del hotel del evento actual
         let currentEventDates = null; // Fechas del evento actual
-        
+
         // Función para formatear números con separadores de miles
         function formatPrice(amount) {
             return amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
-        
+
         // Función para actualizar resumen de registro
         function updateRegistrationSummary(event) {
             // Guardar precios globalmente
@@ -1572,16 +1573,16 @@
                 welcomeDinner: parseFloat(event.welcome_dinner_price || 0),
                 uniformPackage: parseFloat(event.uniform_package_price || 0)
             };
-            
+
             // Guardar información del hotel del evento
             currentEventHotel = event.hotel_info || null;
-            
+
             // Guardar fechas del evento
             currentEventDates = {
                 start_date: event.start_date || null,
                 end_date: event.end_date || null
             };
-            
+
             // Guardar información del usuario actual y jugadores disponibles
             currentUser = {
                 name: '{{ user.get_full_name|default:user.username }}',
@@ -1589,29 +1590,29 @@
                 type: 'Registrante'
             };
             availablePlayers = event.players || [];
-            
+
             // Renderizar selección de jugadores
             renderPlayersSelection(availablePlayers);
-            
+
             // Actualizar precios unitarios
             document.getElementById('pricePlayerRegistration').textContent = `$${formatPrice(eventPrices.playerRegistration)}`;
             // El precio del hotel se actualizará en calculateTotal() basado en el número de personas
             document.getElementById('priceWelcomeDinner').textContent = `$${formatPrice(eventPrices.welcomeDinner)}`;
             document.getElementById('priceUniformPackage').textContent = `$${formatPrice(eventPrices.uniformPackage)}`;
-            
+
             // Calcular total inicial
             calculateTotal();
-            
+
             // Agregar listeners a los checkboxes
             document.getElementById('checkHotel').addEventListener('change', calculateTotal);
             document.getElementById('checkWelcomeDinner').addEventListener('change', calculateTotal);
             document.getElementById('checkUniformPackage').addEventListener('change', calculateTotal);
         }
-        
+
         // Función para renderizar selección de jugadores
         function renderPlayersSelection(players) {
             const playersDiv = document.getElementById('playersSelection');
-            
+
             if (!players || players.length === 0) {
                 playersDiv.innerHTML = `
                     <div class="empty-players-message">
@@ -1622,14 +1623,14 @@
                 updateSelectedPlayersCount();
                 return;
             }
-            
+
             let html = '';
             players.forEach((player, index) => {
                 const initial = player.name.charAt(0).toUpperCase();
-                const avatarContent = player.photo 
+                const avatarContent = player.photo
                     ? `<img src="${player.photo}" alt="${player.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`
                     : initial;
-                
+
                 html += `
                     <div class="player-checkbox-item">
                         <div class="form-check">
@@ -1649,11 +1650,11 @@
                     </div>
                 `;
             });
-            
+
             playersDiv.innerHTML = html;
             updateSelectedPlayersCount();
         }
-        
+
         // Función para actualizar contador de jugadores seleccionados
         function updateSelectedPlayersCount() {
             const count = selectedPlayers.size;
@@ -1667,7 +1668,7 @@
                 }
             }
         }
-        
+
         // Función para toggle de jugador (debe ser global)
         window.togglePlayer = function(playerId) {
             const checkbox = document.getElementById(`player_${playerId}`);
@@ -1678,19 +1679,19 @@
             }
             updateSelectedPlayersCount();
             calculateTotal();
-            
+
             // Actualizar tabla de personas si el modal está abierto
             const modal = document.getElementById('hotelAdditionalPersonsModal');
             if (modal && modal.classList.contains('show')) {
                 renderAdditionalPersonsTable();
             }
         };
-        
+
         // Función para calcular total
         function calculateTotal() {
             let total = 0;
             const playerCount = selectedPlayers.size;
-            
+
             // Individual Player Registration: precio por jugador seleccionado
             if (playerCount > 0) {
                 total += eventPrices.playerRegistration * playerCount;
@@ -1708,14 +1709,14 @@
                     countText.style.fontWeight = '500';
                 }
             }
-            
+
             // Hotel: precio por persona (jugadores seleccionados + persona que registra + personas adicionales)
             const hotelCheckbox = document.getElementById('checkHotel');
             const hotelPersonCount = playerCount + 1 + additionalPersons.length; // Jugadores + registrante + adicionales
-            
+
             // Actualizar contador siempre (incluso si no está seleccionado)
             updateHotelPersonCount(hotelCheckbox && hotelCheckbox.checked ? hotelPersonCount : 0);
-            
+
             if (hotelCheckbox && hotelCheckbox.checked) {
                 const hotelTotal = eventPrices.hotel * hotelPersonCount;
                 total += hotelTotal;
@@ -1731,47 +1732,47 @@
                     if (el) el.textContent = `$${formatPrice(eventPrices.hotel)}`;
                 });
             }
-            
+
             // Welcome Dinner: precio por jugador seleccionado si está marcado
             if (document.getElementById('checkWelcomeDinner').checked && playerCount > 0) {
                 total += eventPrices.welcomeDinner * playerCount;
             }
-            
+
             // Uniform Package: precio por jugador seleccionado si está marcado
             if (document.getElementById('checkUniformPackage').checked && playerCount > 0) {
                 total += eventPrices.uniformPackage * playerCount;
             }
-            
+
             // Actualizar total original
             document.getElementById('registrationTotal').textContent = `$${formatPrice(total)}`;
             document.getElementById('registrationTotalPlan').textContent = `$${formatPrice(total)}`;
-            
+
             // Calcular total con descuento (10% OFF)
             const totalWithDiscount = total * 0.9;
             document.getElementById('totalWithDiscount').textContent = `$${formatPrice(totalWithDiscount)}`;
             document.getElementById('originalTotal').textContent = `$${formatPrice(total)}`;
-            
+
             // Calcular pago en plan (dividir en 3 cuotas)
             const planPayments = 3;
             const planAmount = total / planPayments;
             document.getElementById('planPaymentAmount').textContent = `$${formatPrice(planAmount)}`;
         }
-        
+
         // Función para mostrar detalles del adicional
         function showAdditionalDetails(additionalType) {
             const modal = new bootstrap.Modal(document.getElementById('additionalDetailModal'));
             const contentDiv = document.getElementById('additionalDetailContent');
             const titleDiv = document.getElementById('additionalDetailModalLabel');
-            
+
             let title = '';
             let content = '';
             let icon = '';
-            
+
             switch(additionalType) {
                 case 'hotel':
                     title = 'Hotel Sede del Evento';
                     icon = '<i class="fas fa-hotel me-2"></i>';
-                    
+
                     if (currentEventHotel) {
                         // Mostrar información completa del hotel
                         const hotel = currentEventHotel;
@@ -1783,19 +1784,19 @@
                             if (hotel.city) parts.push(hotel.city);
                             locationInfo = parts.join(', ');
                         }
-                        
+
                         // Preparar imágenes para el slider (si hay múltiples, si no solo la principal)
                         const hotelImages = [];
                         if (hotel.photo) {
                             hotelImages.push(hotel.photo);
                         }
                         // Si hay más imágenes, agregarlas aquí
-                        
+
                         // Fechas del evento
                         const eventDates = currentEventDates || {};
                         const startDate = eventDates.start_date || 'No especificada';
                         const endDate = eventDates.end_date || 'No especificada';
-                        
+
                         content = `
                             <div style="background: white; border-radius: 0; overflow: hidden;">
                                 <!-- Header con Nombre y Ubicación -->
@@ -1822,7 +1823,7 @@
                                         ` : ''}
                                     </div>
                                 </div>
-                                
+
                                 <!-- Slider de Imágenes -->
                                 ${hotelImages.length > 0 ? `
                                     <div style="position: relative; background: #000; height: 500px; overflow: hidden;">
@@ -1833,7 +1834,7 @@
                                                 </div>
                                             `).join('')}
                                         </div>
-                                        
+
                                         ${hotelImages.length > 1 ? `
                                             <!-- Controles del Slider -->
                                             <button id="hotelSliderPrev" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.3s;" onmouseover="this.style.background='white'; this.style.transform='translateY(-50%) scale(1.1)';" onmouseout="this.style.background='rgba(255,255,255,0.9)'; this.style.transform='translateY(-50%) scale(1)';">
@@ -1842,7 +1843,7 @@
                                             <button id="hotelSliderNext" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transition: all 0.3s;" onmouseover="this.style.background='white'; this.style.transform='translateY(-50%) scale(1.1)';" onmouseout="this.style.background='rgba(255,255,255,0.9)'; this.style.transform='translateY(-50%) scale(1)';">
                                                 <i class="fas fa-chevron-right" style="color: var(--mlb-blue); font-size: 1.2rem;"></i>
                                             </button>
-                                            
+
                                             <!-- Indicadores -->
                                             <div style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 10;">
                                                 ${hotelImages.map((_, index) => `
@@ -1863,7 +1864,7 @@
                                         </div>
                                     </div>
                                 `}
-                                
+
                                 <!-- Contenido Principal en Grid -->
                                 <div style="padding: 40px; background: #f9fafb;">
                                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
@@ -1886,7 +1887,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            
+
                                             <!-- Dirección -->
                                             ${hotel.address ? `
                                                 <div style="margin-bottom: 25px; padding: 25px; background: white; border-radius: 16px; border: 2px solid #fee2e2; box-shadow: 0 4px 12px rgba(0,0,0,0.06); position: relative; overflow: hidden;">
@@ -1903,7 +1904,7 @@
                                                 </div>
                                             ` : ''}
                                         </div>
-                                        
+
                                         <!-- Columna Derecha -->
                                         <div>
                                             <!-- Información del Hotel -->
@@ -1921,7 +1922,7 @@
                                                     </div>
                                                 </div>
                                             ` : ''}
-                                            
+
                                             <!-- Nota Informativa -->
                                             <div style="padding: 25px; background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 50%, #fef2f2 100%); border-radius: 16px; border: 2px solid #bfdbfe; box-shadow: 0 4px 12px rgba(0,0,0,0.06); position: relative; overflow: hidden;">
                                                 <div style="position: absolute; top: -15px; right: -15px; width: 80px; height: 80px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 50%; opacity: 0.08;"></div>
@@ -1941,7 +1942,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Sección de Beneficios (Full Width) -->
                                     <div style="padding: 32px; background: linear-gradient(135deg, #fef2f2 0%, #ffffff 50%, #f0f9ff 100%); border-radius: 18px; border: 2px solid #fee2e2; box-shadow: 0 8px 24px rgba(213, 0, 50, 0.12); position: relative; overflow: hidden;">
                                         <div style="position: absolute; top: -25px; right: -25px; width: 120px; height: 120px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b91c1c 100%); border-radius: 50%; opacity: 0.12;"></div>
@@ -2006,7 +2007,7 @@
                                     <h3 style="color: white; font-weight: 900; font-size: 2rem; margin: 0 0 10px; text-shadow: 0 2px 8px rgba(0,0,0,0.3);">Paquete de Hotel</h3>
                                     <p style="color: rgba(255,255,255,0.95); font-size: 1.1rem; margin: 0; font-weight: 500;">Incluye alojamiento durante el evento</p>
                                 </div>
-                                
+
                                 <div style="padding: 30px;">
                                     <div style="margin-bottom: 25px; padding: 25px; background: linear-gradient(135deg, #fef2f2 0%, #ffffff 100%); border-radius: 12px; border: 2px solid #fee2e2;">
                                         <h6 style="color: var(--mlb-red); font-weight: 800; margin: 0 0 18px; font-size: 1.1rem; display: flex; align-items: center; gap: 10px;">
@@ -2039,7 +2040,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div style="background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%); border-radius: 12px; padding: 20px; border: 2px solid #bfdbfe; position: relative; overflow: hidden;">
                                         <div style="position: absolute; top: -10px; right: -10px; width: 60px; height: 60px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 50%; opacity: 0.1;"></div>
                                         <div style="position: relative; z-index: 1;">
@@ -2164,10 +2165,10 @@
                     icon = '<i class="fas fa-info-circle me-2"></i>';
                     content = '<p>Información no disponible.</p>';
             }
-            
+
             titleDiv.innerHTML = icon + title;
             contentDiv.innerHTML = content;
-            
+
             // Inicializar slider después de insertar el contenido (solo para hotel)
             if (additionalType === 'hotel') {
                 setTimeout(function() {
@@ -2175,11 +2176,11 @@
                     const indicators = document.querySelectorAll('.hotel-slider-indicator');
                     const prevBtn = document.getElementById('hotelSliderPrev');
                     const nextBtn = document.getElementById('hotelSliderNext');
-                    
+
                     if (slider && indicators && indicators.length > 1) {
                         let currentSlide = 0;
                         const totalSlides = indicators.length;
-                        
+
                         function updateSlider() {
                             if (slider) {
                                 slider.style.transform = 'translateX(-' + (currentSlide * 100) + '%)';
@@ -2190,21 +2191,21 @@
                                 }
                             });
                         }
-                        
+
                         if (prevBtn) {
                             prevBtn.addEventListener('click', function() {
                                 currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
                                 updateSlider();
                             });
                         }
-                        
+
                         if (nextBtn) {
                             nextBtn.addEventListener('click', function() {
                                 currentSlide = (currentSlide + 1) % totalSlides;
                                 updateSlider();
                             });
                         }
-                        
+
                         indicators.forEach(function(ind, index) {
                             if (ind) {
                                 ind.addEventListener('click', function() {
@@ -2213,7 +2214,7 @@
                                 });
                             }
                         });
-                        
+
                         // Auto-play opcional (cada 5 segundos)
                         setInterval(function() {
                             if (totalSlides > 1) {
@@ -2224,10 +2225,10 @@
                     }
                 }, 100);
             }
-            
+
             modal.show();
         }
-        
+
         // Función para actualizar el contador de personas del hotel
         function updateHotelPersonCount(count) {
             const countElements = document.querySelectorAll('#hotelPersonCount');
@@ -2235,7 +2236,7 @@
                 if (el) el.textContent = count;
             });
         }
-        
+
         // Función para abrir el modal de personas adicionales
         function openHotelAdditionalPersonsModal() {
             const modal = new bootstrap.Modal(document.getElementById('hotelAdditionalPersonsModal'));
@@ -2243,23 +2244,23 @@
             renderAdditionalPersonsTable();
             modal.show();
         }
-        
+
         // Función para agregar persona adicional
         function addAdditionalPerson(event) {
             event.preventDefault();
-            
+
             const firstName = document.getElementById('personFirstName').value.trim();
             const lastName = document.getElementById('personLastName').value.trim();
             const email = document.getElementById('personEmail').value.trim();
             const phone = document.getElementById('personPhone').value.trim();
             const relationship = document.getElementById('personRelationship').value;
-            
+
             // Validar email único
             if (additionalPersons.some(p => p.email === email)) {
-                alert('Este email ya está registrado. Por favor, usa otro email.');
+                alert("{% trans 'This email is already registered. Please use another email.' %}");
                 return;
             }
-            
+
             // Agregar persona
             const person = {
                 id: Date.now(), // ID temporal
@@ -2270,48 +2271,48 @@
                 phone: phone || 'N/A',
                 relationship: relationship
             };
-            
+
             additionalPersons.push(person);
-            
+
             // Limpiar formulario
             document.getElementById('addPersonForm').reset();
-            
+
             // Actualizar tabla y contador
             renderAdditionalPersonsTable();
             calculateTotal();
-            
+
             // Actualizar contador en el resumen
             updateHotelPersonCount(1 + selectedPlayers.size + additionalPersons.length);
         }
-        
+
         // Función para eliminar persona adicional
         function removeAdditionalPerson(personId) {
-            if (confirm('¿Estás seguro de que deseas eliminar esta persona?')) {
+            if (confirm("{% trans 'Are you sure you want to delete this person?' %}")) {
                 additionalPersons = additionalPersons.filter(p => p.id !== personId);
                 renderAdditionalPersonsTable();
                 calculateTotal();
-                
+
                 // Actualizar contador en el resumen
                 updateHotelPersonCount(1 + selectedPlayers.size + additionalPersons.length);
             }
         }
-        
+
         // Función para renderizar la tabla de personas adicionales
         function renderAdditionalPersonsTable() {
             const tbody = document.getElementById('additionalPersonsTableBody');
             const countElement = document.getElementById('additionalPersonsCount');
-            
+
             if (!tbody) return;
-            
+
             // Calcular total de personas (usuario + jugadores seleccionados + adicionales)
             const totalPersons = 1 + selectedPlayers.size + additionalPersons.length;
-            
+
             if (countElement) {
                 countElement.textContent = totalPersons;
             }
-            
+
             let html = '';
-            
+
             // 1. Usuario actual (Registrante)
             if (currentUser) {
                 html += `
@@ -2334,7 +2335,7 @@
                     </tr>
                 `;
             }
-            
+
             // 2. Jugadores seleccionados
             if (selectedPlayers.size > 0 && availablePlayers.length > 0) {
                 availablePlayers.forEach(player => {
@@ -2361,7 +2362,7 @@
                     }
                 });
             }
-            
+
             // 3. Personas adicionales
             if (additionalPersons.length > 0) {
                 const relationshipLabels = {
@@ -2370,7 +2371,7 @@
                     'coach': 'Entrenador/Entrenadora',
                     'other': 'Otro'
                 };
-                
+
                 additionalPersons.forEach(person => {
                     html += `
                         <tr style="border-bottom: 1px solid #f3f4f6;">
@@ -2391,7 +2392,7 @@
                     `;
                 });
             }
-            
+
             // Si no hay ninguna persona
             if (html === '') {
                 html = `
@@ -2403,10 +2404,10 @@
                     </tr>
                 `;
             }
-            
+
             tbody.innerHTML = html;
         }
-        
+
         // Event listeners para los tabs y botones de pago
         document.addEventListener('DOMContentLoaded', function() {
             // Manejo de tabs
@@ -2414,7 +2415,7 @@
             const tabPlan = document.getElementById('tabPlan');
             const contentTotal = document.getElementById('paymentContentTotal');
             const contentPlan = document.getElementById('paymentContentPlan');
-            
+
             if (tabTotal && tabPlan && contentTotal && contentPlan) {
                 tabTotal.addEventListener('click', function() {
                     // Activar tab Total
@@ -2424,12 +2425,12 @@
                     tabPlan.querySelector('.tab-indicator').style.opacity = '0';
                     tabTotal.style.background = 'linear-gradient(135deg, #fef2f2 0%, #ffffff 100%)';
                     tabPlan.style.background = 'linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%)';
-                    
+
                     // Mostrar contenido
                     contentTotal.style.display = 'block';
                     contentPlan.style.display = 'none';
                 });
-                
+
                 tabPlan.addEventListener('click', function() {
                     // Activar tab Plan
                     tabPlan.classList.add('payment-tab-active');
@@ -2438,37 +2439,37 @@
                     tabTotal.querySelector('.tab-indicator').style.opacity = '0';
                     tabPlan.style.background = 'linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%)';
                     tabTotal.style.background = 'linear-gradient(135deg, #fef2f2 0%, #ffffff 100%)';
-                    
+
                     // Mostrar contenido
                     contentPlan.style.display = 'block';
                     contentTotal.style.display = 'none';
                 });
             }
-            
+
             // Botón de pago total con descuento
             const btnPayTotal = document.getElementById('btnPayTotal');
             if (btnPayTotal) {
                 btnPayTotal.addEventListener('click', function() {
                     const total = parseFloat(document.getElementById('totalWithDiscount').textContent.replace('$', '').replace(',', ''));
                     const playerCount = selectedPlayers.size;
-                    
+
                     if (playerCount === 0) {
-                        alert('Por favor selecciona al menos un jugador');
+                        alert("{% trans 'Please select at least one player' %}");
                         return;
                     }
-                    
+
                     if (total === 0) {
-                        alert('El total debe ser mayor a $0.00');
+                        alert("{% trans 'The total must be greater than $0.00' %}");
                         return;
                     }
-                    
+
                     // Aquí puedes redirigir a la página de pago o procesar el pago
                     console.log('Procesar pago total con descuento:', total);
-                    alert(`Procesando pago total de $${total.toFixed(2)} con 10% de descuento`);
+                    alert(`{% trans 'Processing total payment of $' %}${total.toFixed(2)} {% trans 'with 10% discount' %}`);
                     // window.location.href = `/payment/total/?amount=${total}&event_id=${eventId}`;
                 });
             }
-            
+
             // Botón de pago en plan
             const btnPayPlan = document.getElementById('btnPayPlan');
             if (btnPayPlan) {
@@ -2476,20 +2477,20 @@
                     const total = parseFloat(document.getElementById('registrationTotal').textContent.replace('$', '').replace(',', ''));
                     const planAmount = parseFloat(document.getElementById('planPaymentAmount').textContent.replace('$', '').replace(',', ''));
                     const playerCount = selectedPlayers.size;
-                    
+
                     if (playerCount === 0) {
-                        alert('Por favor selecciona al menos un jugador');
+                        alert("{% trans 'Please select at least one player' %}");
                         return;
                     }
-                    
+
                     if (total === 0) {
-                        alert('El total debe ser mayor a $0.00');
+                        alert("{% trans 'The total must be greater than $0.00' %}");
                         return;
                     }
-                    
+
                     // Aquí puedes redirigir a la página de pago en plan o procesar el pago
                     console.log('Procesar pago en plan:', planAmount, 'por 3 cuotas');
-                    alert(`Procesando pago en plan: $${planAmount.toFixed(2)} por cuota (3 cuotas de $${planAmount.toFixed(2)} cada una)`);
+                    alert(`{% trans 'Processing payment plan: $' %}${planAmount.toFixed(2)} {% trans 'per installment (3 installments of $' %}${planAmount.toFixed(2)} {% trans 'each)' %}`);
                     // window.location.href = `/payment/plan/?amount=${planAmount}&total=${total}&event_id=${eventId}`;
                 });
             }

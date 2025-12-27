@@ -71,7 +71,8 @@ class EventListView(LoginRequiredMixin, ListView):
                     start_date__gte=today_start, start_date__lt=today_end
                 )
 
-        return queryset
+        # Ordenar por fecha de inicio más próxima primero
+        return queryset.order_by("start_date")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

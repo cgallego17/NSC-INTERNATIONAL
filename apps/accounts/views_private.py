@@ -2,15 +2,18 @@
 Vistas privadas - Requieren autenticación
 """
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Q
-from django.shortcuts import redirect
+from django.http import JsonResponse
+from django.shortcuts import redirect, get_object_or_404
 from django.urls import reverse_lazy
-from django.utils import timezone
+from django.utils import timezone, translation
+from django.views.decorators.http import require_POST
 from django.views.generic import (
     CreateView,
     DetailView,
@@ -108,8 +111,8 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
                 )
                 .prefetch_related("divisions")
                 .order_by(
-                    "-start_date"
-                )  # Más recientes primero (futuros y luego pasados)
+                    "start_date"
+                )  # Más próximos primero (orden ascendente por fecha)
             )
         except ImportError:
             context["upcoming_events"] = []
@@ -132,9 +135,25 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             context["all_teams"] = Team.objects.filter(manager=user).order_by(
                 "-created_at"
             )
-            context["all_players"] = Player.objects.filter(team__manager=user).order_by(
+            all_players = Player.objects.filter(team__manager=user).order_by(
                 "-created_at"
             )
+            # Anotar cada jugador con información sobre si es hijo del usuario actual
+            if profile.is_parent:
+                # Obtener IDs de jugadores que son hijos del usuario
+                child_player_ids = set(
+                    PlayerParent.objects.filter(parent=user).values_list(
+                        "player_id", flat=True
+                    )
+                )
+                # Agregar atributo is_child a cada jugador
+                for player in all_players:
+                    player.is_child = player.pk in child_player_ids
+            else:
+                # Si no es padre, ningún jugador es hijo
+                for player in all_players:
+                    player.is_child = False
+            context["all_players"] = all_players
 
         # Formulario de jugador (para managers)
         if profile.is_team_manager:
@@ -291,6 +310,18 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         return self.request.user.profile
 
     def form_valid(self, form):
+        # Guardar el perfil
+        profile = form.save()
+
+        # Si se actualizó el idioma preferido, guardarlo en la sesión
+        if "preferred_language" in form.cleaned_data:
+            preferred_language = form.cleaned_data["preferred_language"] or "en"
+            language_key = getattr(translation, "LANGUAGE_SESSION_KEY", "_language")
+            self.request.session[language_key] = preferred_language
+            self.request.session["user_selected_language"] = True
+            self.request.session.modified = True
+            translation.activate(preferred_language)
+
         messages.success(self.request, "Perfil actualizado exitosamente.")
         return super().form_valid(form)
 
@@ -535,29 +566,21 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_template_names(self):
         """Usar diferentes templates según si es padre o manager/admin"""
-        is_parent = False
-        if (
-            hasattr(self.request.user, "profile")
-            and self.request.user.profile.is_parent
-        ):
-            from .models import PlayerParent
+        player = self.get_object()
+        user = self.request.user
 
-            is_parent = PlayerParent.objects.filter(
-                parent=self.request.user, player=self.get_object()
-            ).exists()
+        # Verificar si existe la relación PlayerParent (independientemente de si el usuario es staff)
+        # Esto permite que incluso staff que son padres vean el template de hijo
+        is_parent = PlayerParent.objects.filter(
+            parent=user, player=player
+        ).exists()
 
-        is_parent_editing = is_parent and not (
-            self.request.user.is_staff or self.request.user.is_superuser
-        )
-
-        if is_parent_editing:
-            return [
-                "accounts/player_edit_hijo.html"
-            ]  # Template para padres editando hijos
+        # Si el usuario es padre del jugador (existe la relación PlayerParent),
+        # usar el template de hijo, independientemente de si es staff
+        if is_parent:
+            return ["accounts/player_edit_hijo.html"]
         else:
-            return [
-                "accounts/player_edit.html"
-            ]  # Template para managers/admins editando jugadores
+            return ["accounts/player_edit.html"]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -695,6 +718,142 @@ def profile_view(request):
     return redirect("accounts:panel")
 
 
-def profile_view(request):
-    """Vista de perfil que redirige al panel"""
-    return redirect("accounts:panel")
+class PanelEventDetailView(UserDashboardView):
+    """Vista para mostrar el detalle del evento en el panel con checkout"""
+
+    def get_context_data(self, **kwargs):
+        # Obtener el contexto base del dashboard
+        context = super().get_context_data(**kwargs)
+
+        user = self.request.user
+        event_id = self.kwargs.get("pk")
+
+        try:
+            from apps.events.models import Event, EventAttendance
+
+            # Obtener el evento
+            from apps.locations.models import HotelRoom
+
+            event = Event.objects.select_related(
+                "category", "event_type", "country", "state", "city",
+                "hotel", "hotel__city", "hotel__state", "hotel__country",
+                "primary_site"
+            ).prefetch_related(
+                "divisions",
+                "hotel__rooms",
+                "hotel__images",
+                "hotel__amenities"
+            ).get(pk=event_id)
+
+            # Obtener habitaciones disponibles del hotel
+            if event.hotel:
+                available_rooms = HotelRoom.objects.filter(
+                    hotel=event.hotel,
+                    is_available=True
+                ).select_related("hotel").order_by("room_type", "price_per_night")
+                context["available_rooms"] = available_rooms
+            else:
+                context["available_rooms"] = []
+
+            context["event"] = event
+            context["active_tab"] = "detalle-eventos"
+            context["event_detail_template"] = "accounts/panel_tabs/detalle_evento.html"
+
+            # Obtener los hijos/jugadores del usuario
+            children = []
+            if hasattr(user, "profile") and user.profile.is_parent:
+                # Obtener jugadores relacionados a través de PlayerParent
+                from .models import PlayerParent
+
+                player_parents = PlayerParent.objects.filter(
+                    parent=user
+                ).select_related("player", "player__user", "player__user__profile")
+
+                children = [pp.player for pp in player_parents if pp.player.is_active]
+
+            context["children"] = children
+
+            # Verificar si ya hay registros para este evento
+            registered_players = []
+            for child in children:
+                try:
+                    attendance = EventAttendance.objects.get(
+                        event=event, user=child.user
+                    )
+                    registered_players.append(child.pk)
+                except EventAttendance.DoesNotExist:
+                    pass
+
+            context["registered_players"] = registered_players
+
+        except Event.DoesNotExist:
+            context["event"] = None
+            messages.error(self.request, "Event not found.")
+        except ImportError:
+            context["event"] = None
+            messages.error(self.request, "Events app is not available.")
+
+        return context
+
+
+@login_required
+@require_POST
+def register_children_to_event(request, pk):
+    """Vista para registrar hijos/jugadores a un evento"""
+    try:
+        from apps.events.models import Event, EventAttendance
+
+        event = get_object_or_404(Event, pk=pk)
+        user = request.user
+
+        # Verificar que el usuario es padre
+        if not (hasattr(user, "profile") and user.profile.is_parent):
+            messages.error(request, "You must be a parent to register children to events.")
+            return redirect("accounts:panel")
+
+        # Obtener los IDs de los jugadores seleccionados
+        player_ids = request.POST.getlist("players")
+
+        if not player_ids:
+            messages.warning(request, "Please select at least one child/player to register.")
+            return redirect("accounts:panel_event_detail", pk=pk)
+
+        # Obtener los jugadores relacionados al usuario
+        from .models import PlayerParent, Player
+
+        player_parents = PlayerParent.objects.filter(
+            parent=user, player_id__in=player_ids
+        ).select_related("player")
+
+        registered_count = 0
+        for player_parent in player_parents:
+            player = player_parent.player
+            # Crear o actualizar el registro de asistencia
+            attendance, created = EventAttendance.objects.get_or_create(
+                event=event, user=player.user, defaults={"status": "pending"}
+            )
+            if created:
+                registered_count += 1
+            else:
+                # Si ya existe, actualizar el estado a pending si estaba cancelado
+                if attendance.status == "cancelled":
+                    attendance.status = "pending"
+                    attendance.save()
+                    registered_count += 1
+
+        if registered_count > 0:
+            messages.success(
+                request,
+                f"Successfully registered {registered_count} child/children to the event.",
+            )
+        else:
+            messages.info(request, "The selected children are already registered to this event.")
+
+        return redirect("accounts:panel_event_detail", pk=pk)
+
+    except ImportError:
+        messages.error(request, "Events app is not available.")
+        return redirect("accounts:panel")
+    except Exception as e:
+        messages.error(request, f"An error occurred: {str(e)}")
+        return redirect("accounts:panel")

@@ -8,17 +8,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% trans "My Account" %} - NCS International</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
     <!-- Panel Usuario CSS -->
     <link href="{% static 'css/panel_usuario.css' %}" rel="stylesheet">
-    
+
     <style>
         :root {
             --mlb-blue: #0d2c54;
@@ -27,19 +27,19 @@
             --mlb-gold: #ffd700;
             --mlb-dark: #1a1a1a;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Arial', 'Helvetica', sans-serif;
             background-color: #f5f5f5;
             color: #333;
         }
-        
+
         /* Top Bar */
         .top-bar {
             background: var(--mlb-dark);
@@ -47,24 +47,24 @@
             padding: 8px 0;
             font-size: 0.85rem;
         }
-        
+
         .top-bar a {
             color: #ccc;
             text-decoration: none;
             transition: color 0.3s;
         }
-        
+
         .top-bar a:hover {
             color: white;
         }
-        
+
         /* Language Selector with Flags Dropdown */
         .language-selector-wrapper {
             position: relative;
             display: inline-block;
             margin-right: 0;
         }
-        
+
         .language-selector-btn {
             background: transparent;
             border: 1px solid #555;
@@ -80,13 +80,13 @@
             min-width: 80px;
             justify-content: space-between;
         }
-        
+
         .language-selector-btn:hover {
             border-color: var(--mlb-gold);
             background: rgba(255, 215, 0, 0.1);
             color: white;
         }
-        
+
         .language-selector-btn .flag-icon {
             width: 20px;
             height: 15px;
@@ -96,29 +96,29 @@
             border-radius: 2px;
             flex-shrink: 0;
         }
-        
+
         .flag-icon.flag-us {
             background-image: url('https://flagcdn.com/w20/us.png');
         }
-        
+
         .flag-icon.flag-es {
             background-image: url('https://flagcdn.com/w20/es.png');
         }
-        
+
         .language-selector-btn .arrow-icon {
             font-size: 0.7rem;
             transition: transform 0.3s;
         }
-        
+
         .language-selector-btn.active {
             border-color: var(--mlb-gold);
             background: rgba(255, 215, 0, 0.15);
         }
-        
+
         .language-selector-btn.active .arrow-icon {
             transform: rotate(180deg);
         }
-        
+
         .language-dropdown {
             position: absolute;
             top: 100%;
@@ -136,13 +136,13 @@
             z-index: 1000;
             overflow: hidden;
         }
-        
+
         .language-dropdown.show {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
         }
-        
+
         .language-option {
             display: flex;
             align-items: center;
@@ -156,21 +156,21 @@
             font-family: inherit;
             font-size: inherit;
         }
-        
+
         .language-option:last-child {
             border-bottom: none;
         }
-        
+
         .language-option:hover {
             background: rgba(255, 215, 0, 0.15);
             color: white;
         }
-        
+
         .language-option.active {
             background: rgba(255, 215, 0, 0.2);
             color: var(--mlb-gold);
         }
-        
+
         .language-option .flag-icon {
             width: 24px;
             height: 18px;
@@ -180,13 +180,13 @@
             border-radius: 2px;
             flex-shrink: 0;
         }
-        
+
         .language-option .language-name {
             flex: 1;
             font-size: 0.85rem;
             font-weight: 500;
         }
-        
+
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .language-selector-btn {
@@ -194,23 +194,23 @@
                 padding: 4px 8px;
                 font-size: 0.8rem;
             }
-            
+
             .language-selector-btn .language-text {
                 display: none;
             }
-            
+
             .language-dropdown {
                 min-width: 130px;
             }
         }
-        
+
         /* Navbar MLB Style */
         .navbar-mlb {
             background: var(--mlb-blue) !important;
             padding: 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
-        
+
         .navbar-mlb .navbar-brand {
             font-size: 1.8rem;
             font-weight: 700;
@@ -220,14 +220,14 @@
             display: flex;
             align-items: center;
         }
-        
+
         .navbar-logo {
             height: 40px;
             width: auto;
             max-width: 180px;
             object-fit: contain;
         }
-        
+
         .navbar-mlb .nav-link {
             color: white !important;
             font-weight: 600;
@@ -237,11 +237,11 @@
             letter-spacing: 0.5px;
             transition: background 0.3s;
         }
-        
+
         .navbar-mlb .nav-link:hover {
             background: var(--mlb-light-blue);
         }
-        
+
         .navbar-mlb .nav-link.active {
             background: var(--mlb-red);
         }
@@ -396,12 +396,12 @@
             {% endif %}
         </div>
     </div>
-    
+
     <!-- Floating Progress Bar - Outside banner container -->
     <div class="carousel-progress" id="floatingProgressBar" style="position: fixed !important; bottom: 0 !important; left: 0 !important; width: 100% !important; height: 6px !important; background: rgba(0, 0, 0, 0.3) !important; z-index: 99999 !important; display: block !important; visibility: visible !important; opacity: 1 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important;">
         <div class="carousel-progress-bar" style="height: 100% !important; width: 0% !important; display: block !important; visibility: visible !important; opacity: 1 !important; background: linear-gradient(90deg, #d50032 0%, #ffd700 50%, #d50032 100%) !important;"></div>
     </div>
-    
+
     <!-- Dashboard Content -->
     <div class="dashboard-content-wrapper">
         <!-- Acciones Rápidas -->
@@ -431,7 +431,8 @@
                         <i class="fas fa-users"></i>
                         <span>{% trans "View Players" %}</span>
                     </button>
-                {% elif profile.is_parent %}
+                {% endif %}
+                {% if profile.is_parent %}
                     <button type="button" class="quick-action-btn tab-btn" data-tab="registrar-hijo" data-url="{% url 'accounts:parent_player_register' %}">
                         <i class="fas fa-user-plus"></i>
                         <span>{% trans "Register Child" %}</span>
@@ -440,7 +441,8 @@
                         <i class="fas fa-child"></i>
                         <span>{% trans "My Children/Players" %}</span>
                     </button>
-                {% else %}
+                {% endif %}
+                {% if not profile.is_team_manager and not profile.is_parent %}
                     {% if user.player_profile %}
                         <button type="button" class="quick-action-btn tab-btn" data-tab="mi-perfil" data-url="{% url 'accounts:player_detail' user.player_profile.pk %}">
                             <i class="fas fa-user"></i>
@@ -467,9 +469,15 @@
                     <i class="fas fa-user-cog"></i>
                     <span>{% trans "Edit Profile" %}</span>
                 </button>
+                {% if user.is_staff or user.is_superuser %}
+                    <button type="button" class="quick-action-btn tab-btn" data-tab="hoteles" data-url="{% url 'accounts:hotel_list' %}">
+                        <i class="fas fa-hotel"></i>
+                        <span>{% trans "Hotels" %}</span>
+                    </button>
+                {% endif %}
             </div>
         </div>
-        
+
         <!-- Contenedor de Contenido de Secciones -->
         <div class="tab-content-container">
             <div id="tab-content-inicio" class="tab-content active">
@@ -489,7 +497,8 @@
                 <div id="tab-content-ver-jugadores" class="tab-content" style="display: none;">
                     {% include 'accounts/panel_tabs/ver_jugadores.html' %}
                 </div>
-            {% elif profile.is_parent %}
+            {% endif %}
+            {% if profile.is_parent %}
                 <div id="tab-content-registrar-hijo" class="tab-content" style="display: none;">
                     {% include 'accounts/panel_tabs/registrar_hijo.html' %}
                 </div>
@@ -499,7 +508,8 @@
                 <div id="tab-content-editar-jugador" class="tab-content" style="display: none;">
                     <!-- Contenido se carga dinámicamente -->
                 </div>
-            {% else %}
+            {% endif %}
+            {% if not profile.is_team_manager and not profile.is_parent %}
                 {% if user.player_profile %}
                     <div id="tab-content-mi-perfil" class="tab-content" style="display: none;">
                         {% include 'accounts/panel_tabs/mi_perfil.html' %}
@@ -512,6 +522,13 @@
             <div id="tab-content-eventos" class="tab-content" style="display: none;">
                 {% include 'accounts/panel_tabs/eventos.html' %}
             </div>
+            <div id="tab-content-detalle-eventos" class="tab-content" style="display: none;">
+                {% if event_detail_template %}
+                    {% include event_detail_template %}
+                {% else %}
+                    {% include 'accounts/panel_tabs/detalle_evento.html' %}
+                {% endif %}
+            </div>
             <div id="tab-content-calendario" class="tab-content" style="display: none;">
                 {% include 'accounts/panel_tabs/calendario.html' %}
             </div>
@@ -523,11 +540,36 @@
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- Custom JS -->
     <script src="{% static 'js/admin.js' %}"></script>
-    
+
     <script>
+        // Traducciones para JavaScript
+        // Verificar si ya existe para evitar redeclaración
+        if (typeof translations === 'undefined') {
+            var translations = {};
+        }
+
+        // Agregar traducciones del panel principal
+        Object.assign(translations, {
+            loading: "{% trans 'Loading...' %}",
+            loadingForm: "{% trans 'Loading edit form...' %}",
+            backToChildren: "{% trans 'Back to My Children/Players' %}",
+            backToPlayers: "{% trans 'Back to View Players' %}",
+            saving: "{% trans 'Saving...' %}",
+            errorLoadingForm: "{% trans 'Error loading form' %}",
+            errorSaving: "{% trans 'Error saving. Please try again.' %}",
+            errorExtractingForm: "{% trans 'Could not extract edit form. Please reload the page and try again.' %}",
+            pleaseReload: "{% trans 'Please try again.' %}",
+            playerUpdated: "{% trans 'Player updated successfully' %}",
+            pleaseCompleteFields: "{% trans 'Please complete all required fields' %}",
+            editChildPlayer: "{% trans 'Edit Child/Player' %}",
+            editPlayer: "{% trans 'Edit Player' %}",
+            modifyChildInfo: "{% trans 'Modify your child information' %}",
+            modifyPlayerInfo: "{% trans 'Modify player information' %}"
+        });
+
         // Language Selector Dropdown
         function toggleLanguageDropdown() {
             const dropdown = document.getElementById('languageDropdown');
@@ -535,13 +577,13 @@
             dropdown.classList.toggle('show');
             btn.classList.toggle('active');
         }
-        
+
         // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             const wrapper = document.querySelector('.language-selector-wrapper');
             const dropdown = document.getElementById('languageDropdown');
             const btn = document.getElementById('languageSelectorBtn');
-            
+
             if (wrapper && !wrapper.contains(event.target)) {
                 dropdown.classList.remove('show');
                 btn.classList.remove('active');
@@ -552,7 +594,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const dashboardBannerSlider = document.getElementById('dashboardBannerSlider');
             const floatingProgressBar = document.getElementById('floatingProgressBar');
-            
+
             // Asegurar que la barra flotante sea visible SIEMPRE
             if (floatingProgressBar) {
                 floatingProgressBar.style.cssText = 'position: fixed !important; bottom: 0 !important; left: 0 !important; width: 100% !important; height: 6px !important; background: rgba(0, 0, 0, 0.3) !important; z-index: 99999 !important; display: block !important; visibility: visible !important; opacity: 1 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important;';
@@ -560,7 +602,7 @@
             } else {
                 console.error('❌ Barra flotante NO encontrada en el DOM');
             }
-            
+
             // Mostrar la barra incluso si no hay carousel
             if (floatingProgressBar && dashboardBannerSlider) {
                 const carousel = new bootstrap.Carousel(dashboardBannerSlider, {
@@ -569,7 +611,7 @@
                     pause: 'hover',
                     wrap: true
                 });
-                
+
                 // Si solo hay un banner, duplicarlo para crear el efecto de bucle infinito
                 const items = dashboardBannerSlider.querySelectorAll('.carousel-item');
                 if (items.length === 1) {
@@ -577,16 +619,16 @@
                     firstItem.classList.remove('active');
                     dashboardBannerSlider.querySelector('.carousel-inner').appendChild(firstItem);
                 }
-                
+
                 // Controlar la barra de progreso flotante
                 const progressBar = floatingProgressBar.querySelector('.carousel-progress-bar');
-                
+
                 if (progressBar) {
                     // Asegurar que la barra de progreso sea visible
                     progressBar.style.display = 'block';
                     progressBar.style.visibility = 'visible';
                 }
-                
+
                 function resetProgress() {
                     if (progressBar) {
                         progressBar.style.width = '0%';
@@ -594,7 +636,7 @@
                         void progressBar.offsetWidth;
                     }
                 }
-                
+
                 function startProgress() {
                     resetProgress();
                     if (progressBar) {
@@ -602,40 +644,40 @@
                         progressBar.style.animationPlayState = 'running';
                     }
                 }
-                
+
                 // Reiniciar progreso cuando cambia el slide
                 dashboardBannerSlider.addEventListener('slid.bs.carousel', function() {
                     startProgress();
                 });
-                
+
                 // Pausar progreso al hacer hover sobre el banner
                 dashboardBannerSlider.addEventListener('mouseenter', function() {
                     if (progressBar) {
                         progressBar.style.animationPlayState = 'paused';
                     }
                 });
-                
+
                 // Reanudar progreso al quitar hover
                 dashboardBannerSlider.addEventListener('mouseleave', function() {
                     if (progressBar) {
                         progressBar.style.animationPlayState = 'running';
                     }
                 });
-                
+
                 // Pausar progreso al hacer hover sobre la barra flotante
                 floatingProgressBar.addEventListener('mouseenter', function() {
                     if (progressBar) {
                         progressBar.style.animationPlayState = 'paused';
                     }
                 });
-                
+
                 // Reanudar progreso al quitar hover de la barra
                 floatingProgressBar.addEventListener('mouseleave', function() {
                     if (progressBar) {
                         progressBar.style.animationPlayState = 'running';
                     }
                 });
-                
+
                 // Iniciar progreso en el primer slide
                 setTimeout(function() {
                     startProgress();
@@ -649,12 +691,12 @@
                 }
             }
         });
-        
+
         // Preview de logo para formulario de equipo
         document.addEventListener('DOMContentLoaded', function() {
             const logoInput = document.getElementById('id_logo');
             const logoPreview = document.getElementById('logoPreview');
-            
+
             if (logoInput && logoPreview) {
                 logoInput.addEventListener('change', function(e) {
                     const file = e.target.files[0];
@@ -668,7 +710,7 @@
                     }
                 });
             }
-            
+
             // Inicializar tooltips de Bootstrap si existen
             if (typeof bootstrap !== 'undefined') {
                 const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -677,7 +719,7 @@
                 });
             }
         });
-        
+
         // Convert Django messages to modern toasts
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
@@ -686,42 +728,152 @@
                 }
             }, 100);
         });
-        
+
         // Funcionalidad de Tabs para Acciones Rápidas
         document.addEventListener('DOMContentLoaded', function() {
             const tabButtons = document.querySelectorAll('.tab-btn');
             const tabContents = document.querySelectorAll('.tab-content');
-            
+
             // Función para activar un tab
+            // Activar tab si viene desde la vista de detalle de evento y hacer scroll
+            function scrollToEventDetails() {
+                setTimeout(function() {
+                    const eventDetailsSection = document.getElementById('event-details-section');
+                    if (eventDetailsSection) {
+                        eventDetailsSection.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start',
+                            inline: 'nearest'
+                        });
+                    }
+                }, 300); // Pequeño delay para asegurar que el contenido esté renderizado
+            }
+
+            // Activar tab si viene desde la vista de detalle de evento
+            {% if active_tab %}
+                document.addEventListener('DOMContentLoaded', function() {
+                    const activeTabId = '{{ active_tab }}';
+                    const tabButton = document.querySelector(`[data-tab="${activeTabId}"]`);
+                    if (tabButton) {
+                        activateTab(activeTabId, tabButton);
+                    }
+                });
+
+                // Función para hacer scroll a la sección Event Details
+                function scrollToEventDetails() {
+                    // Intentar múltiples veces con diferentes delays para asegurar que el contenido esté renderizado
+                    const attempts = [300, 600, 1000];
+                    attempts.forEach((delay, index) => {
+                        setTimeout(() => {
+                            const eventDetailsSection = document.getElementById('event-details-section');
+                            if (eventDetailsSection) {
+                                const elementPosition = eventDetailsSection.getBoundingClientRect().top;
+                                const offsetPosition = elementPosition + window.pageYOffset - 120; // 120px de offset desde el top
+
+                                window.scrollTo({
+                                    top: offsetPosition,
+                                    behavior: 'smooth'
+                                });
+
+                                // Si encontramos el elemento, no intentar más
+                                return;
+                            } else if (index === attempts.length - 1) {
+                                // Si en el último intento no se encuentra, hacer scroll al tab
+                                const targetContent = document.getElementById('tab-content-detalle-eventos');
+                                if (targetContent) {
+                                    targetContent.scrollIntoView({
+                                        behavior: 'smooth',
+                                        block: 'start'
+                                    });
+                                }
+                            }
+                        }, delay);
+                    });
+                }
+
+                // Ejecutar scroll cuando el tab esté activo
+                if ('{{ active_tab }}' === 'detalle-eventos') {
+                    scrollToEventDetails();
+                }
+            {% endif %}
+
             function activateTab(tabId, button) {
                 // Remover clase active de todos los botones
                 tabButtons.forEach(btn => btn.classList.remove('active'));
-                
+
                 // Agregar clase active al botón clickeado
                 if (button) {
                     button.classList.add('active');
                 }
-                
+
                 // Ocultar todos los contenidos
                 tabContents.forEach(content => {
                     content.style.display = 'none';
                     content.classList.remove('active');
                 });
-                
+
                 // Mostrar el contenido correspondiente
                 const targetContent = document.getElementById('tab-content-' + tabId);
                 if (targetContent) {
                     targetContent.style.display = 'block';
                     targetContent.classList.add('active');
+
+                    // Hacer scroll suave hacia el contenido del tab
+                    if (tabId === 'detalle-eventos') {
+                        // Para el tab de detalle de eventos, hacer scroll a la sección Event Details
+                        // Usar múltiples intentos para asegurar que el contenido esté renderizado
+                        const scrollAttempts = [200, 400, 600, 800];
+                        scrollAttempts.forEach((delay) => {
+                            setTimeout(() => {
+                                const eventDetailsSection = document.getElementById('event-details-section');
+                                if (eventDetailsSection) {
+                                    const rect = eventDetailsSection.getBoundingClientRect();
+                                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                                    const targetPosition = rect.top + scrollTop - 120; // 120px de offset
+
+                                    window.scrollTo({
+                                        top: targetPosition,
+                                        behavior: delay === scrollAttempts[0] ? 'smooth' : 'auto' // Solo smooth en el primer intento
+                                    });
+                                }
+                            }, delay);
+                        });
+                    } else {
+                        // Para otros tabs, hacer scroll normal
+                        setTimeout(() => {
+                            targetContent.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start',
+                                inline: 'nearest'
+                            });
+                        }, 100);
+                    }
                 }
             }
-            
+
+            // Interceptar clics en enlaces de "Detail Event"
+            document.addEventListener('click', function(e) {
+                const detailEventLink = e.target.closest('.detail-event-btn');
+                if (detailEventLink && detailEventLink.href) {
+                    e.preventDefault();
+                    const url = new URL(detailEventLink.href);
+                    const pathParts = url.pathname.split('/');
+                    const eventId = pathParts[pathParts.length - 2]; // Obtener el ID del evento
+
+                    // Navegar a la URL
+                    window.location.href = detailEventLink.href;
+
+                    // El scroll se manejará cuando se cargue la página con active_tab
+                    return false;
+                }
+            });
+
             // Agregar event listeners a todos los botones
             tabButtons.forEach(button => {
                 button.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
-                    
+
                     const tabId = this.getAttribute('data-tab');
                     if (tabId) {
                         activateTab(tabId, this);
@@ -730,37 +882,64 @@
                     }
                 });
             });
-            
-            // Activar el tab de inicio por defecto
-            const inicioButton = document.querySelector('.tab-btn[data-tab="inicio"]');
-            if (inicioButton) {
-                activateTab('inicio', inicioButton);
-            }
+
+            // Activar el tab de inicio por defecto (solo si no hay un active_tab definido)
+            {% if active_tab %}
+                // Activar el tab especificado
+                const activeTabId = '{{ active_tab }}';
+                const activeTabButton = document.querySelector(`.tab-btn[data-tab="${activeTabId}"]`);
+                if (activeTabButton) {
+                    activateTab(activeTabId, activeTabButton);
+                } else {
+                    // Si no se encuentra el botón, activar el tab directamente
+                    const activeTabContent = document.getElementById('tab-content-' + activeTabId);
+                    if (activeTabContent) {
+                        activeTabContent.style.display = 'block';
+                        activeTabContent.classList.add('active');
+                        // Ocultar otros tabs
+                        tabContents.forEach(content => {
+                            if (content.id !== 'tab-content-' + activeTabId) {
+                                content.style.display = 'none';
+                                content.classList.remove('active');
+                            }
+                        });
+                    }
+                }
+            {% else %}
+                const inicioButton = document.querySelector('.tab-btn[data-tab="inicio"]');
+                if (inicioButton) {
+                    activateTab('inicio', inicioButton);
+                }
+            {% endif %}
         });
-        
+
         // Usar delegación de eventos para los botones de editar (funciona incluso si se agregan dinámicamente)
         // Este listener debe estar fuera de DOMContentLoaded para funcionar correctamente
         document.addEventListener('click', function(e) {
             // Verificar si el click fue en un botón de editar jugador
             const editButton = e.target.closest('.edit-player-btn');
             if (!editButton) return;
-            
+
             e.preventDefault();
             e.stopPropagation();
-            
+
             const url = editButton.getAttribute('data-url');
             const playerId = editButton.getAttribute('data-player-id');
             const isParent = editButton.getAttribute('data-is-parent') === 'true';
             const editType = editButton.getAttribute('data-edit-type') || (isParent ? 'hijo' : 'jugador');
-            
-            console.log('Edit button clicked, URL:', url);
-            console.log('Edit type:', editType, '(is_parent:', isParent, ')');
-            
+
+            console.log('=== EDIT BUTTON CLICKED ===');
+            console.log('URL:', url);
+            console.log('Player ID:', playerId);
+            console.log('Is Parent:', isParent);
+            console.log('Edit Type:', editType);
+            console.log('Expected Template:', editType === 'hijo' ? 'player_edit_hijo.html' : 'player_edit.html');
+
             if (!url) {
                 console.error('No se encontró la URL del formulario de edición');
                 return;
             }
-            
+
             // Obtener o crear el tab de editar jugador
             let editTab = document.getElementById('tab-content-editar-jugador');
             if (!editTab) {
@@ -775,36 +954,45 @@
                 editTab.style.display = 'none';
                 tabContainer.appendChild(editTab);
             }
-            
+
             // Función para activar un tab (definida localmente para evitar problemas de scope)
             function activateTabLocal(tabId, button) {
                 const tabButtons = document.querySelectorAll('.tab-btn');
                 const tabContents = document.querySelectorAll('.tab-content');
-                
+
                 tabButtons.forEach(btn => btn.classList.remove('active'));
                 if (button) {
                     button.classList.add('active');
                 }
-                
+
                 tabContents.forEach(content => {
                     content.style.display = 'none';
                     content.classList.remove('active');
                 });
-                
+
                 const targetContent = document.getElementById('tab-content-' + tabId);
                 if (targetContent) {
                     targetContent.style.display = 'block';
                     targetContent.classList.add('active');
+
+                    // Hacer scroll suave hacia el contenido del tab
+                    setTimeout(() => {
+                        targetContent.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start',
+                            inline: 'nearest'
+                        });
+                    }, 100);
                 }
             }
-            
+
             // Mostrar indicador de carga
-            editTab.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3">Cargando formulario de edición...</p></div>';
-            
+            editTab.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">' + translations.loading + '</span></div><p class="mt-3">' + translations.loadingForm + '</p></div>';
+
             console.log('Tab encontrado:', editTab);
             console.log('Tab display antes:', editTab.style.display);
             console.log('Tab classes antes:', editTab.className);
-            
+
             // Ocultar otros tabs primero
             const allTabs = document.querySelectorAll('.tab-content');
             allTabs.forEach(tab => {
@@ -813,27 +1001,36 @@
                     tab.classList.remove('active');
                 }
             });
-            
+
             // Ocultar botones de tabs activos
             const allTabButtons = document.querySelectorAll('.tab-btn');
             allTabButtons.forEach(btn => btn.classList.remove('active'));
-            
+
             // Asegurarse de que el tab sea visible - FORZAR VISIBILIDAD
             editTab.style.display = 'block !important';
             editTab.style.visibility = 'visible';
             editTab.style.opacity = '1';
             editTab.classList.add('active');
-            
+
             // También usar CSS inline para asegurar visibilidad
             editTab.setAttribute('style', 'display: block !important; visibility: visible !important; opacity: 1 !important;');
-            
+
+            // Hacer scroll suave hacia el tab de editar jugador
+            setTimeout(() => {
+                editTab.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                    inline: 'nearest'
+                });
+            }, 100);
+
             console.log('Tab display después:', editTab.style.display);
             console.log('Tab classes después:', editTab.className);
             console.log('Tab activado, cargando formulario desde:', url);
-            
+
             // Activar el tab usando la función local
             activateTabLocal('editar-jugador', null);
-            
+
             // Verificar que el tab sea visible después de activarlo
             setTimeout(() => {
                 const checkTab = document.getElementById('tab-content-editar-jugador');
@@ -848,7 +1045,7 @@
                     }
                 }
             }, 100);
-            
+
             // Cargar el contenido mediante AJAX
             fetch(url, {
                 method: 'GET',
@@ -860,28 +1057,55 @@
             .then(response => {
                 console.log('Respuesta recibida, status:', response.status);
                 if (!response.ok) {
-                    throw new Error('Error al cargar el formulario: ' + response.status);
+                    throw new Error(translations.errorLoadingForm + ': ' + response.status);
                 }
                 return response.text();
             })
             .then(html => {
-                console.log('Formulario cargado, procesando HTML...', html.substring(0, 500));
-                
+                console.log('=== FORMULARIO CARGADO ===');
+                console.log('HTML recibido, longitud:', html.length);
+                console.log('Primeros 500 caracteres:', html.substring(0, 500));
+
+                // Verificar qué template se cargó
+                if (html.includes('Edit Child/Player') || html.includes('Editar Hijo/Jugador')) {
+                    console.log('✅ Template detectado: player_edit_hijo.html (Editar Hijo)');
+                } else if (html.includes('Edit Player') || html.includes('Editar Jugador')) {
+                    console.log('✅ Template detectado: player_edit.html (Editar Jugador)');
+                } else {
+                    console.warn('⚠️ No se pudo detectar el template cargado');
+                }
+
                 // Crear un contenedor temporal para parsear el HTML
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = html;
-                
+
                 // El template player_edit.html extiende base.html, así que el HTML incluye toda la página
                 // El contenido está dentro de <main class="page-content"> y luego el bloque content
                 // Buscar directamente los elementos .tab-content-header y .form-container en todo el HTML
                 const existingHeader = tempDiv.querySelector('.tab-content-header');
                 const existingFormContainer = tempDiv.querySelector('.form-container');
                 const form = tempDiv.querySelector('form[method="post"]') || tempDiv.querySelector('form');
-                
-                console.log('Formulario encontrado:', form ? 'SÍ' : 'NO');
-                console.log('Header encontrado:', existingHeader ? 'SÍ' : 'NO');
-                console.log('FormContainer encontrado:', existingFormContainer ? 'SÍ' : 'NO');
-                
+
+                console.log('=== ELEMENTOS ENCONTRADOS ===');
+                console.log('Formulario encontrado:', form ? '✅ SÍ' : '❌ NO');
+                console.log('Header encontrado:', existingHeader ? '✅ SÍ' : '❌ NO');
+                console.log('FormContainer encontrado:', existingFormContainer ? '✅ SÍ' : '❌ NO');
+
+                // Verificar campos del formulario
+                if (form) {
+                    const hasEmail = form.querySelector('input[name="email"]');
+                    const hasBirthDate = form.querySelector('input[name="birth_date"]');
+                    const hasTeam = form.querySelector('select[name="team"]');
+                    console.log('Campos del formulario:');
+                    console.log('  - Email:', hasEmail ? '✅ Presente' : '❌ No presente');
+                    console.log('  - Birth Date:', hasBirthDate ? '✅ Presente' : '❌ No presente');
+                    console.log('  - Team:', hasTeam ? '✅ Presente' : '❌ No presente');
+                    if (hasTeam) {
+                        const teamDisabled = hasTeam.hasAttribute('disabled');
+                        console.log('  - Team disabled:', teamDisabled ? '✅ Sí (correcto para hijo)' : '❌ No');
+                    }
+                }
+
                 // Si no encontramos los elementos, buscar dentro de main.page-content
                 if (!existingHeader || !existingFormContainer) {
                     console.log('Buscando dentro de main.page-content...');
@@ -894,15 +1118,15 @@
                         }
                     }
                 }
-                
+
                 // Limpiar y preparar el tab
                 editTab.innerHTML = '';
-                
+
                 // Crear botón de volver (cambia según el tipo de edición)
                 const backButton = document.createElement('button');
                 backButton.className = 'btn btn-secondary mb-3';
                 if (isParent) {
-                    backButton.innerHTML = '<i class="fas fa-arrow-left me-2"></i>Volver a Mis Hijos/Jugadores';
+                    backButton.innerHTML = '<i class="fas fa-arrow-left me-2"></i>' + translations.backToChildren;
                     backButton.onclick = function(e) {
                         e.preventDefault();
                         const misHijosButton = document.querySelector('.tab-btn[data-tab="mis-hijos"]');
@@ -911,7 +1135,7 @@
                         }
                     };
                 } else {
-                    backButton.innerHTML = '<i class="fas fa-arrow-left me-2"></i>Volver a Ver Jugadores';
+                    backButton.innerHTML = '<i class="fas fa-arrow-left me-2"></i>' + translations.backToPlayers;
                     backButton.onclick = function(e) {
                         e.preventDefault();
                         const verJugadoresButton = document.querySelector('.tab-btn[data-tab="ver-jugadores"]');
@@ -922,12 +1146,12 @@
                 }
                 backButton.style.marginBottom = '15px';
                 editTab.appendChild(backButton);
-                
+
                 // Usar los elementos encontrados (buscar en todo el HTML si no se encontraron)
                 let finalHeader = existingHeader;
                 let finalFormContainer = existingFormContainer;
                 let finalForm = form;
-                
+
                 // Si no se encontraron, buscar dentro de main.page-content
                 if (!finalHeader || !finalFormContainer) {
                     const mainContent = tempDiv.querySelector('main.page-content') || tempDiv.querySelector('main');
@@ -937,23 +1161,23 @@
                         finalForm = finalForm || mainContent.querySelector('form[method="post"]') || mainContent.querySelector('form');
                     }
                 }
-                
+
                 // Último recurso: buscar en todo el tempDiv
                 finalHeader = finalHeader || tempDiv.querySelector('.tab-content-header');
                 finalFormContainer = finalFormContainer || tempDiv.querySelector('.form-container');
                 finalForm = finalForm || tempDiv.querySelector('form[method="post"]') || tempDiv.querySelector('form');
-                
+
                 if (finalHeader && finalFormContainer && finalForm) {
                     // Si el template ya tiene la estructura completa, copiarla directamente
                     console.log('Template tiene estructura completa (tab-content-header + form-container), copiando directamente');
-                    
+
                     // Clonar el header con todos sus estilos y contenido
                     const headerClone = finalHeader.cloneNode(true);
                     editTab.appendChild(headerClone);
-                    
+
                     // Clonar el contenedor del formulario con todos sus estilos y contenido
                     const formContainerClone = finalFormContainer.cloneNode(true);
-                    
+
                     // Actualizar la acción del formulario dentro del contenedor
                     const formInContainer = formContainerClone.querySelector('form');
                     if (formInContainer) {
@@ -961,7 +1185,7 @@
                         formInContainer.id = 'playerEditForm';
                         console.log('Action del formulario actualizado:', formInContainer.action);
                     }
-                    
+
                     // Actualizar el botón cancelar
                     const cancelBtn = formContainerClone.querySelector('.form-actions a[href*="player_detail"]');
                     if (cancelBtn) {
@@ -974,7 +1198,7 @@
                             }
                         };
                     }
-                    
+
                     editTab.appendChild(formContainerClone);
                     console.log('Template completo copiado correctamente');
                     console.log('Header clonado:', headerClone.outerHTML.substring(0, 200));
@@ -982,27 +1206,31 @@
                 } else if (form) {
                     // Si no tiene la estructura completa, crearla manualmente
                     console.log('Template no tiene estructura completa, creando manualmente');
-                    
+
+                    // Determinar el título según el tipo de edición
+                    const titleText = editType === 'hijo' ? translations.editChildPlayer : translations.editPlayer;
+                    const subtitleText = editType === 'hijo' ? translations.modifyChildInfo : translations.modifyPlayerInfo;
+
                     // Crear el header
                     const headerDiv = document.createElement('div');
                     headerDiv.className = 'tab-content-header mb-4';
                     headerDiv.innerHTML = `
                         <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
-                            <i class="fas fa-user-edit me-2" style="color: var(--mlb-red);"></i>Editar Jugador
+                            <i class="fas fa-user-edit me-2" style="color: var(--mlb-red);"></i>${titleText}
                         </h4>
-                        <p class="text-muted">Modifica la información del jugador</p>
+                        <p class="text-muted">${subtitleText}</p>
                     `;
                     editTab.appendChild(headerDiv);
-                    
+
                     // Crear el contenedor del formulario
                     const formContainer = document.createElement('div');
                     formContainer.className = 'form-container';
-                    
+
                     // Clonar el formulario completo con todo su contenido
                     const formClone = form.cloneNode(true);
                     formClone.action = url;
                     formClone.id = 'playerEditForm';
-                    
+
                     // Actualizar el botón cancelar si existe
                     const cancelBtn = formClone.querySelector('.form-actions a[href*="player_detail"]');
                     if (cancelBtn) {
@@ -1015,7 +1243,7 @@
                             }
                         };
                     }
-                    
+
                     formContainer.appendChild(formClone);
                     editTab.appendChild(formContainer);
                     console.log('Estructura creada manualmente');
@@ -1024,17 +1252,21 @@
                     console.warn('No se encontró formulario, intentando extraer con regex');
                     const formMatch = html.match(/<form[^>]*>[\s\S]*?<\/form>/i);
                     if (formMatch) {
+                        // Determinar el título según el tipo de edición
+                        const titleText = editType === 'hijo' ? translations.editChildPlayer : translations.editPlayer;
+                        const subtitleText = editType === 'hijo' ? translations.modifyChildInfo : translations.modifyPlayerInfo;
+
                         // Crear el header
                         const headerDiv = document.createElement('div');
                         headerDiv.className = 'tab-content-header mb-4';
                         headerDiv.innerHTML = `
                             <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
-                                <i class="fas fa-user-edit me-2" style="color: var(--mlb-red);"></i>Editar Jugador
+                                <i class="fas fa-user-edit me-2" style="color: var(--mlb-red);"></i>${titleText}
                             </h4>
-                            <p class="text-muted">Modifica la información del jugador</p>
+                            <p class="text-muted">${subtitleText}</p>
                         `;
                         editTab.appendChild(headerDiv);
-                        
+
                         // Crear el contenedor del formulario
                         const formContainer = document.createElement('div');
                         formContainer.className = 'form-container';
@@ -1042,19 +1274,28 @@
                         editTab.appendChild(formContainer);
                     } else {
                         // Último recurso: mostrar mensaje de error
-                        editTab.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>No se pudo extraer el formulario de edición. Por favor, recarga la página e intenta de nuevo.</div>';
+                        editTab.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>' + translations.errorExtractingForm + '</div>';
                     }
                 }
-                
+
                 console.log('Contenido agregado al tab, buscando formulario...');
                 console.log('HTML del tab después de agregar contenido:', editTab.innerHTML.substring(0, 500));
-                
+
+                // Hacer scroll hacia el tab después de cargar el contenido
+                setTimeout(() => {
+                    editTab.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                        inline: 'nearest'
+                    });
+                }, 200);
+
                 // Esperar un momento para que el DOM se actualice
                 setTimeout(() => {
                     // Interceptar el envío del formulario para mantenerlo en el panel
                     const form = editTab.querySelector('form');
                     console.log('Formulario encontrado:', form);
-                    
+
                     if (form) {
                         console.log('Formulario encontrado, agregando listener de submit');
                         console.log('Form action antes:', form.action);
@@ -1062,22 +1303,22 @@
                         form.action = url;
                         console.log('Form action después:', form.action);
                         console.log('Form method:', form.method);
-                    
+
                     // Asegurarse de que el formulario sea visible
                     form.style.display = 'block';
-                    
+
                     form.addEventListener('submit', function(e) {
                         e.preventDefault();
-                        
+
                         const formData = new FormData(form);
                         const submitButton = form.querySelector('button[type="submit"]');
                         const originalButtonText = submitButton ? submitButton.innerHTML : '';
-                        
+
                         if (submitButton) {
                             submitButton.disabled = true;
-                            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+                            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>' + translations.saving;
                         }
-                        
+
                         fetch(form.action || url, {
                             method: 'POST',
                             body: formData,
@@ -1100,14 +1341,14 @@
                                 // Éxito - mostrar mensaje y recargar el tab de mis-hijos
                                 const successMsg = document.createElement('div');
                                 successMsg.className = 'alert alert-success';
-                                successMsg.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + (data.message || 'Jugador actualizado exitosamente');
+                                successMsg.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + (data.message || translations.playerUpdated);
                                 // Insertar el mensaje antes del formulario
                                 if (form.parentNode) {
                                     form.parentNode.insertBefore(successMsg, form);
                                 } else {
                                     editTab.insertBefore(successMsg, form);
                                 }
-                                
+
                                 // Recargar el tab de mis-hijos después de 1.5 segundos
                                 setTimeout(() => {
                                     const misHijosButton = document.querySelector('.tab-btn[data-tab="mis-hijos"]');
@@ -1119,7 +1360,7 @@
                                 // Hay HTML de respuesta, podría ser un error o el formulario con errores
                                 const tempDiv = document.createElement('div');
                                 tempDiv.innerHTML = data.html;
-                                
+
                                 // Verificar si hay mensajes de error
                                 const errors = tempDiv.querySelector('.errorlist, .alert-danger, .non-field-errors');
                                 if (errors) {
@@ -1128,7 +1369,7 @@
                                     errorContainer.className = 'alert alert-danger mt-3';
                                     errorContainer.innerHTML = errors.innerHTML;
                                     form.parentNode.insertBefore(errorContainer, form);
-                                    
+
                                     if (submitButton) {
                                         submitButton.disabled = false;
                                         submitButton.innerHTML = originalButtonText;
@@ -1139,7 +1380,7 @@
                                     if (newForm) {
                                         form.parentNode.replaceChild(newForm.cloneNode(true), form);
                                     }
-                                    
+
                                     if (submitButton) {
                                         submitButton.disabled = false;
                                         submitButton.innerHTML = originalButtonText;
@@ -1151,9 +1392,9 @@
                             console.error('Error:', error);
                             const errorMsg = document.createElement('div');
                             errorMsg.className = 'alert alert-danger mt-3';
-                            errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Error al guardar. Por favor, intenta de nuevo.';
+                            errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + translations.errorSaving;
                             form.parentNode.insertBefore(errorMsg, form);
-                            
+
                             if (submitButton) {
                                 submitButton.disabled = false;
                                 submitButton.innerHTML = originalButtonText;
@@ -1165,83 +1406,153 @@
                     console.log('Contenido del tab:', editTab.innerHTML.substring(0, 1000));
                 }
                 }, 100); // Esperar 100ms para que el DOM se actualice
+
+                // Hacer scroll hacia el tab después de que se complete la carga
+                setTimeout(() => {
+                    editTab.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                        inline: 'nearest'
+                    });
+                }, 300);
             })
             .catch(error => {
                 console.error('Error al cargar el formulario:', error);
-                editTab.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar el formulario: ' + error.message + '. Por favor, intenta de nuevo.</div>';
+                editTab.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>' + translations.errorLoadingForm + ': ' + error.message + '. ' + translations.pleaseReload + '</div>';
+
+                // Hacer scroll incluso si hay error
+                setTimeout(() => {
+                    editTab.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                        inline: 'nearest'
+                    });
+                }, 200);
             });
         });
-        
+
         // JavaScript para calcular automáticamente división y grado basado en fecha de nacimiento
         document.addEventListener('DOMContentLoaded', function() {
             const birthDateField = document.getElementById('id_birth_date');
             const gradeField = document.getElementById('id_grade');
             const divisionField = document.getElementById('id_division');
-            
+
             if (!birthDateField) return;
-            
+
+            // Función para convertir formato de fecha a ISO
+            function convertDateToISO(dateField) {
+                if (!dateField || !dateField.value) return;
+
+                const currentValue = dateField.value.trim();
+
+                // Verificar si está en formato DD/MM/YYYY o DD-MM-YYYY
+                const datePattern = /^(\d{2})[\/\-](\d{2})[\/\-](\d{4})$/;
+                const match = currentValue.match(datePattern);
+
+                if (match) {
+                    // Convertir de DD/MM/YYYY a YYYY-MM-DD
+                    const day = match[1];
+                    const month = match[2];
+                    const year = match[3];
+                    dateField.value = `${year}-${month}-${day}`;
+                    console.log(`✅ Fecha convertida de ${currentValue} a ${dateField.value}`);
+                }
+            }
+
+            // Asegurar que sea tipo date
+            if (birthDateField.type !== 'date') {
+                birthDateField.type = 'date';
+            }
+
+            // Convertir el valor inicial inmediatamente
+            convertDateToISO(birthDateField);
+
+            // También convertir cuando cambie el valor
+            birthDateField.addEventListener('input', function() {
+                convertDateToISO(this);
+            });
+
+            // Usar MutationObserver para detectar cambios en el atributo value
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+                        convertDateToISO(birthDateField);
+                    }
+                });
+            });
+
+            observer.observe(birthDateField, {
+                attributes: true,
+                attributeFilter: ['value']
+            });
+
+            // Ejecutar conversión después de un pequeño delay para asegurar que el valor esté establecido
+            setTimeout(function() {
+                convertDateToISO(birthDateField);
+            }, 100);
+
             // Función para calcular la edad al 30 de abril
             function calculateAgeAsOfApril30(birthDate) {
                 if (!birthDate) return null;
-                
+
                 const today = new Date();
                 const currentYear = today.getFullYear();
                 const cutoffDate = new Date(currentYear, 3, 30); // Mes 3 = abril (0-indexed)
-                
+
                 let age = cutoffDate.getFullYear() - birthDate.getFullYear();
                 const monthDiff = cutoffDate.getMonth() - birthDate.getMonth();
-                
+
                 if (monthDiff < 0 || (monthDiff === 0 && cutoffDate.getDate() < birthDate.getDate())) {
                     age -= 1;
                 }
-                
+
                 return age;
             }
-            
+
             // Función para obtener la división basada en la edad
             function getAgeBasedDivision(age) {
                 if (age === null || age === undefined || age < 5) return null;
                 if (age >= 18) return '18U';
-                
+
                 const divisionMap = {
                     5: '05U', 6: '06U', 7: '07U', 8: '08U', 9: '09U',
                     10: '10U', 11: '11U', 12: '12U', 13: '13U', 14: '14U',
                     15: '15U', 16: '16U', 17: '17U',
                 };
-                
+
                 return divisionMap[age] || null;
             }
-            
+
             // Función para sugerir el grado basado en la edad
             function suggestGradeFromAge(age) {
                 if (age === null || age === undefined) return null;
-                
+
                 const ageToGradeMap = {
                     4: 'pre_k', 5: 'kindergarten', 6: '1st', 7: '2nd', 8: '3rd',
                     9: '4th', 10: '5th', 11: '6th', 12: '7th', 13: '8th',
                     14: '9th', 15: '10th', 16: '11th', 17: '12th', 18: '12th',
                 };
-                
+
                 return ageToGradeMap[age] || null;
             }
-            
+
             // Función para actualizar división y grado
             function updateDivisionAndGrade() {
                 const birthDateValue = birthDateField.value;
-                
+
                 if (!birthDateValue) {
                     if (divisionField && !divisionField.value) divisionField.value = '';
                     if (gradeField && !gradeField.value) gradeField.value = '';
                     return;
                 }
-                
+
                 const birthDate = new Date(birthDateValue);
                 const age = calculateAgeAsOfApril30(birthDate);
-                
+
                 if (age !== null) {
                     const suggestedDivision = getAgeBasedDivision(age);
                     const suggestedGrade = suggestGradeFromAge(age);
-                    
+
                     // Actualizar división
                     if (divisionField && suggestedDivision) {
                         if (!divisionField.value || divisionField.value === '') {
@@ -1251,7 +1562,7 @@
                             divisionField.value = suggestedDivision;
                         }
                     }
-                    
+
                     // Actualizar grado
                     if (gradeField && suggestedGrade) {
                         const optionExists = Array.from(gradeField.options).some(opt => opt.value === suggestedGrade);
@@ -1269,7 +1580,7 @@
                     }
                 }
             }
-            
+
             // Escuchar cambios en la fecha de nacimiento
             birthDateField.addEventListener('change', updateDivisionAndGrade);
             birthDateField.addEventListener('blur', updateDivisionAndGrade);
@@ -1278,7 +1589,7 @@
                     setTimeout(updateDivisionAndGrade, 100);
                 }
             });
-            
+
             // Si ya hay una fecha al cargar, calcular automáticamente
             if (birthDateField.value) {
                 updateDivisionAndGrade();

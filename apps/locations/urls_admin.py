@@ -184,6 +184,48 @@ urlpatterns = [
         views_admin.AdminHotelDeleteView.as_view(),
         name="admin_hotel_delete",
     ),
+    # Hotel Image URLs (admin)
+    path(
+        "admin/hotels/<int:hotel_pk>/images/",
+        views_admin.AdminHotelImageListView.as_view(),
+        name="admin_hotel_image_list",
+    ),
+    path(
+        "admin/hotels/<int:hotel_pk>/images/create/",
+        views_admin.AdminHotelImageCreateView.as_view(),
+        name="admin_hotel_image_create",
+    ),
+    path(
+        "admin/hotels/<int:hotel_pk>/images/<int:pk>/edit/",
+        views_admin.AdminHotelImageUpdateView.as_view(),
+        name="admin_hotel_image_update",
+    ),
+    path(
+        "admin/hotels/<int:hotel_pk>/images/<int:pk>/delete/",
+        views_admin.AdminHotelImageDeleteView.as_view(),
+        name="admin_hotel_image_delete",
+    ),
+    # Hotel Amenity URLs (admin)
+    path(
+        "admin/hotels/<int:hotel_pk>/amenities/",
+        views_admin.AdminHotelAmenityListView.as_view(),
+        name="admin_hotel_amenity_list",
+    ),
+    path(
+        "admin/hotels/<int:hotel_pk>/amenities/create/",
+        views_admin.AdminHotelAmenityCreateView.as_view(),
+        name="admin_hotel_amenity_create",
+    ),
+    path(
+        "admin/hotels/<int:hotel_pk>/amenities/<int:pk>/edit/",
+        views_admin.AdminHotelAmenityUpdateView.as_view(),
+        name="admin_hotel_amenity_update",
+    ),
+    path(
+        "admin/hotels/<int:hotel_pk>/amenities/<int:pk>/delete/",
+        views_admin.AdminHotelAmenityDeleteView.as_view(),
+        name="admin_hotel_amenity_delete",
+    ),
     # Hotel Room URLs (admin)
     path(
         "admin/hotel-rooms/",

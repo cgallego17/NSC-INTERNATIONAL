@@ -5,20 +5,281 @@
     </h4>
     <p class="text-muted">{% trans "Explore available events" %}</p>
 </div>
+
 {% if upcoming_events %}
-    <div style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-        {% for event in upcoming_events|slice:":10" %}
-            <div class="mb-3 p-3" style="border: 1px solid #e5e7eb; border-radius: 8px;">
-                <h5>{{ event.title }}</h5>
-                <p class="text-muted mb-0">{{ event.start_date|date:"d/m/Y" }}</p>
+    <div class="row g-4">
+        {% for event in upcoming_events|slice:"0:12" %}
+            <div class="col-12">
+                <div class="event-card" style="background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); transition: all 0.3s ease; display: flex; flex-direction: row; border: none; position: relative; min-height: 280px;"
+                     onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 40px rgba(0,0,0,0.15)';"
+                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.1)';">
+
+                    <!-- Imagen del evento - Lado izquierdo -->
+                    <div style="width: 280px; min-width: 280px; max-width: 280px; min-height: 280px; overflow: hidden; position: relative; background: #f8f9fa; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+                        {% if event.image %}
+                            <img src="{{ event.image.url }}" alt="{{ event.title }}" style="width: 100%; height: 100%; min-height: 280px; object-fit: contain; object-position: center; display: block; margin: 0; padding: 0;">
+                        {% else %}
+                            <div style="width: 100%; height: 100%; min-height: 280px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-calendar-alt" style="font-size: 3.5rem; color: rgba(255,255,255,0.3);"></i>
+                            </div>
+                        {% endif %}
+                        <!-- Badge de estado sobre la imagen -->
+                        {% if event.status == 'published' %}
+                            <div style="position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.95); color: var(--mlb-red); padding: 5px 10px; border-radius: 15px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; backdrop-filter: blur(10px); box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 10;">
+                                <i class="fas fa-check-circle me-1"></i>{% trans "Published" %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Contenido de la card - Lado derecho -->
+                    <div style="padding: 20px; flex: 1; display: flex; flex-direction: column; background: white; position: relative; min-height: 280px; justify-content: space-between; overflow: hidden;">
+                        <div style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+                            <!-- Categoría pequeña arriba -->
+                            {% if event.category %}
+                                <div style="margin-bottom: 8px;">
+                                    <span style="color: var(--mlb-red); font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                                        {{ event.category.name }}
+                                    </span>
+                                </div>
+                            {% endif %}
+
+                            <!-- Título del evento - Más pequeño -->
+                            <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.4rem; margin-bottom: 10px; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                {{ event.title }}
+                            </h4>
+
+                            <!-- Línea separadora -->
+                            <div style="width: 50px; height: 2px; background: linear-gradient(90deg, var(--mlb-red) 0%, #b30029 100%); margin-bottom: 12px; border-radius: 2px;"></div>
+
+                            <!-- Descripción -->
+                            {% if event.description %}
+                                <div style="color: #6c757d; font-size: 0.85rem; line-height: 1.5; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;">
+                                    {{ event.description|safe|truncatewords:180 }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Lista de características con checkmarks - Compacta -->
+                        <div style="margin-bottom: 12px;">
+                            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 12px;">
+                                <!-- Tipo de evento -->
+                                {% if event.event_type %}
+                                    <li style="display: flex; align-items: center; gap: 6px;">
+                                        <div style="width: 20px; height: 20px; border: 2px solid var(--mlb-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i class="fas fa-check" style="color: var(--mlb-red); font-size: 0.6rem;"></i>
+                                        </div>
+                                        <span style="color: var(--mlb-blue); font-size: 0.8rem; font-weight: 500;">
+                                            <i class="fas fa-tag me-1" style="color: var(--mlb-red); font-size: 0.7rem;"></i>
+                                            {{ event.event_type.name }}
+                                        </span>
+                                    </li>
+                                {% endif %}
+
+                                <!-- Fecha -->
+                                {% if event.start_date %}
+                                    <li style="display: flex; align-items: center; gap: 6px;">
+                                        <div style="width: 20px; height: 20px; border: 2px solid var(--mlb-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i class="fas fa-check" style="color: var(--mlb-red); font-size: 0.6rem;"></i>
+                                        </div>
+                                        <span style="color: var(--mlb-blue); font-size: 0.8rem; font-weight: 500;">
+                                            <i class="fas fa-calendar me-1" style="color: var(--mlb-red); font-size: 0.7rem;"></i>
+                                            {{ event.start_date|date:"M d" }}
+                                            {% if event.end_date and event.end_date != event.start_date %}
+                                                - {{ event.end_date|date:"M d" }}
+                                            {% endif %}
+                                        </span>
+                                    </li>
+                                {% endif %}
+
+                                <!-- Ubicación completa: País, Estado, Ciudad -->
+                                {% if event.country or event.state or event.city %}
+                                    <li style="display: flex; align-items: center; gap: 6px;">
+                                        <div style="width: 20px; height: 20px; border: 2px solid var(--mlb-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i class="fas fa-check" style="color: var(--mlb-red); font-size: 0.6rem;"></i>
+                                        </div>
+                                        <span style="color: var(--mlb-blue); font-size: 0.8rem; font-weight: 500; white-space: nowrap;">
+                                            <i class="fas fa-map-marker-alt me-1" style="color: var(--mlb-red); font-size: 0.7rem;"></i>
+                                            {% if event.city %}{{ event.city.name }}{% endif %}{% if event.state %}{% if event.city %}, {% endif %}{{ event.state.name }}{% endif %}{% if event.country %}{% if event.state or event.city %}, {% endif %}{{ event.country.name }}{% endif %}
+                                            {% if not event.city and not event.state and not event.country and event.location %}{{ event.location|truncatewords:2 }}{% endif %}
+                                        </span>
+                                    </li>
+                                {% elif event.location %}
+                                    <li style="display: flex; align-items: center; gap: 6px;">
+                                        <div style="width: 20px; height: 20px; border: 2px solid var(--mlb-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i class="fas fa-check" style="color: var(--mlb-red); font-size: 0.6rem;"></i>
+                                        </div>
+                                        <span style="color: var(--mlb-blue); font-size: 0.8rem; font-weight: 500;">
+                                            <i class="fas fa-map-marker-alt me-1" style="color: var(--mlb-red); font-size: 0.7rem;"></i>
+                                            {{ event.location|truncatewords:2 }}
+                                        </span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+
+                        <!-- Botones de acción - Más pequeños -->
+                        <div style="display: flex; gap: 8px; margin-top: auto; flex-wrap: wrap; flex-shrink: 0; padding-top: 4px;">
+                            <a href="{% url 'accounts:panel_event_detail' event.pk %}"
+                               class="detail-event-btn"
+                               data-event-id="{{ event.pk }}"
+                               style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; padding: 8px 16px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 10px rgba(213, 0, 50, 0.3); position: relative; overflow: hidden;"
+                               onmouseover="this.style.transform='translateY(-2px) scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(213, 0, 50, 0.5)'; this.style.background='linear-gradient(135deg, #ff1a4d 0%, var(--mlb-red) 100%)';"
+                               onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 2px 10px rgba(213, 0, 50, 0.3)'; this.style.background='linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%)';">
+                                <i class="fas fa-info-circle" style="font-size: 0.7rem; transition: transform 0.3s ease;"></i>{% trans "Detail Event" %}
+                                <span style="position: absolute; top: 50%; left: 50%; width: 0; height: 0; border-radius: 50%; background: rgba(255, 255, 255, 0.3); transform: translate(-50%, -50%); transition: width 0.6s, height 0.6s; pointer-events: none;"></span>
+                            </a>
+
+                            {% if event.requires_registration %}
+                                <a href="{% url 'events:attend' event.pk %}"
+                                   style="background: white; color: var(--mlb-red); padding: 8px 16px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.3s; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 6px; border: 2px solid var(--mlb-red);"
+                                   onmouseover="this.style.background='var(--mlb-red)'; this.style.color='white'; this.style.transform='translateY(-2px)';"
+                                   onmouseout="this.style.background='white'; this.style.color='var(--mlb-red)'; this.style.transform='translateY(0)';">
+                                    <i class="fas fa-user-plus" style="font-size: 0.7rem;"></i>{% trans "Register" %}
+                                </a>
+                            {% endif %}
+
+                            {% if event.external_link %}
+                                <a href="{{ event.external_link }}" target="_blank"
+                                   style="background: var(--mlb-blue); color: white; padding: 8px 16px; border-radius: 8px; font-weight: 600; text-decoration: none; transition: all 0.3s; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 6px;"
+                                   onmouseover="this.style.background='var(--mlb-light-blue)'; this.style.transform='translateY(-2px)';"
+                                   onmouseout="this.style.background='var(--mlb-blue)'; this.style.transform='translateY(0)';">
+                                    <i class="fas fa-external-link-alt" style="font-size: 0.7rem;"></i>{% trans "More Info" %}
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
             </div>
         {% endfor %}
     </div>
+
+    <!-- Botón para ver todos los eventos -->
+    <div class="text-center mt-5">
+        <a href="{% url 'events:list' %}"
+           class="btn"
+           style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; border: none; border-radius: 12px; padding: 14px 35px; font-weight: 700; text-transform: uppercase; font-size: 0.95rem; letter-spacing: 0.8px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(13, 44, 84, 0.3); transition: all 0.3s;"
+           onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 25px rgba(13, 44, 84, 0.4)';"
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(13, 44, 84, 0.3)';">
+            <i class="fas fa-calendar-check me-2"></i>{% trans "View All Events" %}
+        </a>
+    </div>
 {% else %}
-    <div style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center;">
-        <p class="text-muted">{% trans "No upcoming events." %}</p>
+    <div style="background: white; border-radius: 16px; padding: 60px 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center;">
+        <div style="width: 120px; height: 120px; margin: 0 auto 25px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(13, 44, 84, 0.2);">
+            <i class="fas fa-calendar-alt fa-3x" style="color: white;"></i>
+        </div>
+        <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 15px;">{% trans "No Upcoming Events" %}</h5>
+        <p class="text-muted mb-4" style="font-size: 1.1rem; max-width: 500px; margin-left: auto; margin-right: auto;">
+            {% trans "There are no upcoming events at the moment. Check back soon for new events!" %}
+        </p>
+        <a href="{% url 'events:list' %}"
+           class="btn"
+           style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; border: none; border-radius: 10px; padding: 12px 24px; font-weight: 600; text-decoration: none;">
+            <i class="fas fa-calendar me-2"></i>{% trans "Browse All Events" %}
+        </a>
     </div>
 {% endif %}
 
+<style>
+.event-card {
+    min-height: 280px;
+}
 
+/* Efectos para el botón Detail Event - "Clickeame" */
+.detail-event-btn {
+    position: relative;
+    overflow: hidden;
+    animation: clickMe 2s ease-in-out infinite;
+}
 
+/* Efecto de brillo que se mueve */
+.detail-event-btn::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 70%
+    );
+    transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    animation: shimmer 3s infinite;
+    pointer-events: none;
+}
+
+@keyframes shimmer {
+    0% {
+        transform: translateX(-100%) translateY(-100%) rotate(45deg);
+    }
+    100% {
+        transform: translateX(100%) translateY(100%) rotate(45deg);
+    }
+}
+
+/* Animación de "clickeame" - bounce y pulso */
+@keyframes clickMe {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 2px 10px rgba(213, 0, 50, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 4px 20px rgba(213, 0, 50, 0.6);
+    }
+}
+
+.detail-event-btn:hover {
+    animation: none;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(213, 0, 50, 0.7) !important;
+}
+
+.detail-event-btn:hover i {
+    animation: bounceIcon 0.6s ease-in-out infinite;
+}
+
+@keyframes bounceIcon {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    50% {
+        transform: translateX(3px);
+    }
+}
+
+.detail-event-btn:active {
+    transform: scale(0.95) translateY(0) !important;
+    box-shadow: 0 2px 8px rgba(213, 0, 50, 0.4) !important;
+}
+
+@media (max-width: 768px) {
+    .event-card {
+        flex-direction: column !important;
+        min-height: auto;
+    }
+
+    .event-card > div:first-child {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        min-height: 200px !important;
+        height: 200px !important;
+    }
+
+    .event-card > div:last-child {
+        min-height: auto !important;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 992px) {
+    .event-card > div:first-child {
+        width: 250px !important;
+        min-width: 250px !important;
+        max-width: 250px !important;
+    }
+}
+</style>

@@ -79,6 +79,14 @@ class UserProfile(models.Model):
         help_text="Instagram, Twitter, etc.",
     )
     is_active = models.BooleanField(default=True, verbose_name="Activo")
+    preferred_language = models.CharField(
+        max_length=10,
+        choices=[("en", "English"), ("es", "Spanish")],
+        default="en",
+        blank=True,
+        verbose_name="Idioma Preferido",
+        help_text="Idioma predeterminado para la plataforma",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

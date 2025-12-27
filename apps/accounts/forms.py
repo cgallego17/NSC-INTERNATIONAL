@@ -1,6 +1,7 @@
 import re
 
 from django import forms
+from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 from django.utils.text import slugify
@@ -479,6 +480,7 @@ class UserProfileForm(forms.ModelForm):
             "birth_date",
             "profile_picture",
             "bio",
+            "preferred_language",
         ]
         widgets = {
             "phone": forms.TextInput(attrs={"class": "form-control"}),
@@ -505,10 +507,25 @@ class UserProfileForm(forms.ModelForm):
                     "rows": 4,
                 }
             ),
+            "preferred_language": forms.Select(
+                attrs={"class": "form-select", "id": "id_preferred_language"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        # Configurar el campo de idioma preferido
+        self.fields["preferred_language"] = forms.ChoiceField(
+            choices=settings.LANGUAGES,
+            required=False,
+            initial="en",
+            widget=forms.Select(
+                attrs={"class": "form-select", "id": "id_preferred_language"}
+            ),
+            label=_("Preferred Language"),
+            help_text=_("Default language for the platform"),
+        )
 
         # Campos de ubicación con ModelChoiceField
         self.fields["country"] = forms.ModelChoiceField(
@@ -1057,7 +1074,7 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
     birth_date = forms.DateField(
         required=True,
         widget=forms.DateInput(
-            attrs={"class": "form-control", "type": "date", "data-format": "yyyy-MM-dd"}
+            attrs={"class": "form-control", "type": "date"}, format="%Y-%m-%d"
         ),
         help_text=_("Player's date of birth"),
     )
@@ -1399,6 +1416,44 @@ class PlayerUpdateForm(forms.ModelForm):
         help_text="Sube una nueva foto de perfil",
     )
 
+    # Campos del User y UserProfile para editar información personal
+    first_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    last_name2 = forms.CharField(
+        max_length=30,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    phone = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={"class": "form-control"}),
+    )
+    birth_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(
+            attrs={
+                "class": "form-control",
+                "type": "date",
+                "data-format": "yyyy-MM-dd",
+                "readonly": True,
+            }
+        ),
+        help_text=_("Player's date of birth (cannot be modified)"),
+    )
+
     class Meta:
         model = Player
         fields = [
@@ -1540,6 +1595,8 @@ class PlayerUpdateForm(forms.ModelForm):
             self.fields["age_verification_notes"].widget = forms.HiddenInput()
             self.fields["age_verification_status"].required = False
             self.fields["age_verification_notes"].required = False
+            # birth_date no es requerido en edición (ya existe)
+            self.fields["birth_date"].required = False
 
         # Cargar la foto de perfil actual si existe
         if self.instance and hasattr(self.instance, "user"):
@@ -1548,6 +1605,86 @@ class PlayerUpdateForm(forms.ModelForm):
                     self.fields["profile_picture"].initial = (
                         self.instance.user.profile.profile_picture
                     )
+                # Inicializar campos del User y UserProfile
+                if self.instance.user:
+                    self.fields["first_name"].initial = self.instance.user.first_name
+                    self.fields["last_name"].initial = self.instance.user.last_name
+                    # Separar last_name en last_name y last_name2 si es necesario
+                    # (asumiendo que last_name puede contener ambos apellidos)
+                    last_name_parts = self.instance.user.last_name.split(" ", 1)
+                    if len(last_name_parts) > 1:
+                        self.fields["last_name"].initial = last_name_parts[0]
+                        self.fields["last_name2"].initial = last_name_parts[1]
+                    # Inicializar email (solo para managers/admins, no para padres)
+                    if not (is_parent and not is_staff):
+                        # Para managers/admins, mostrar y inicializar email
+                        self.fields["email"].initial = self.instance.user.email
+                        self.fields["email"].required = True
+                    else:
+                        # Para padres, eliminar el campo email completamente (no debe aparecer)
+                        # No lo eliminamos, solo lo ocultamos como hidden para que no cause errores
+                        self.fields["email"].widget = forms.HiddenInput()
+                        self.fields["email"].required = False
+                        # Establecer un valor inicial para evitar errores de validación
+                        self.fields["email"].initial = self.instance.user.email
+                    # Inicializar phone y birth_date desde el profile
+                    if hasattr(self.instance.user, "profile"):
+                        self.fields["phone"].initial = (
+                            self.instance.user.profile.phone or ""
+                        )
+                        if self.instance.user.profile.birth_date:
+                            # El valor inicial será un objeto date, Django lo formateará correctamente
+                            # pero el JavaScript se encargará de convertir si es necesario
+                            self.fields["birth_date"].initial = (
+                                self.instance.user.profile.birth_date
+                            )
+                            # Hacer el campo readonly para que no se pueda modificar
+                            self.fields["birth_date"].widget.attrs["readonly"] = True
+                            self.fields["birth_date"].widget.attrs[
+                                "style"
+                            ] = "background-color: #e9ecef;"
+
+    def clean_email(self):
+        """Validar que el email sea único (excepto para el usuario actual)"""
+        email = self.cleaned_data.get("email")
+        if not email:
+            return email
+
+        # Verificar si el email ya está en uso por otro usuario
+        if self.instance and hasattr(self.instance, "user"):
+            from django.contrib.auth import get_user_model
+
+            User = get_user_model()
+            existing_user = (
+                User.objects.filter(email=email)
+                .exclude(pk=self.instance.user.pk)
+                .first()
+            )
+            if existing_user:
+                raise forms.ValidationError(
+                    _("This email is already registered. Please use another email.")
+                )
+        else:
+            # Si no hay instancia, verificar si el email ya existe
+            from django.contrib.auth import get_user_model
+
+            User = get_user_model()
+            if User.objects.filter(email=email).exists():
+                raise forms.ValidationError(
+                    _("This email is already registered. Please use another email.")
+                )
+
+        return email
+
+    def clean_birth_date(self):
+        """Validar que la fecha de nacimiento no se pueda modificar"""
+        birth_date = self.cleaned_data.get("birth_date")
+        # Si hay una instancia, mantener la fecha original
+        if self.instance and hasattr(self.instance, "user"):
+            if hasattr(self.instance.user, "profile"):
+                if self.instance.user.profile.birth_date:
+                    return self.instance.user.profile.birth_date
+        return birth_date
 
     def clean_division(self):
         """Validar que la división asignada sea válida según las reglas de elegibilidad"""
@@ -1599,6 +1736,44 @@ class PlayerUpdateForm(forms.ModelForm):
                         player.team = self.instance.team
                     player.jersey_number = self.instance.jersey_number
                     player.is_active = self.instance.is_active
+
+        # Actualizar información del User y UserProfile
+        if self.instance and hasattr(self.instance, "user"):
+            user = self.instance.user
+            # Actualizar campos del User
+            if "first_name" in self.cleaned_data:
+                user.first_name = self.cleaned_data["first_name"]
+            if "last_name" in self.cleaned_data and "last_name2" in self.cleaned_data:
+                # Combinar last_name y last_name2 en el campo last_name del User
+                last_name = self.cleaned_data["last_name"]
+                last_name2 = self.cleaned_data.get("last_name2", "").strip()
+                if last_name2:
+                    user.last_name = f"{last_name} {last_name2}"
+                else:
+                    user.last_name = last_name
+            elif "last_name" in self.cleaned_data:
+                user.last_name = self.cleaned_data["last_name"]
+            # Actualizar email solo si está en cleaned_data (no para padres)
+            if "email" in self.cleaned_data and self.cleaned_data["email"]:
+                user.email = self.cleaned_data["email"]
+
+            # Actualizar campos del UserProfile
+            if hasattr(user, "profile"):
+                if "phone" in self.cleaned_data:
+                    user.profile.phone = self.cleaned_data["phone"] or ""
+                # birth_date no se actualiza (es readonly)
+                # Guardar la foto de perfil si se subió una nueva
+                if (
+                    "profile_picture" in self.cleaned_data
+                    and self.cleaned_data["profile_picture"]
+                ):
+                    user.profile.profile_picture = self.cleaned_data["profile_picture"]
+
+                if commit:
+                    user.profile.save()
+
+            if commit:
+                user.save()
 
         if commit:
             player.save()

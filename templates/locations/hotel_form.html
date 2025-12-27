@@ -26,34 +26,34 @@
                         </a>
                     </div>
                 </div>
-                
+
                 <div class="card-body">
                     <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
                         {% csrf_token %}
-                        
+
                         {% if form.non_field_errors %}
                             <div class="alert alert-danger">
                                 <i class="fas fa-exclamation-triangle me-2"></i>
                                 {{ form.non_field_errors }}
                             </div>
                         {% endif %}
-                        
+
                         <!-- INFORMACIÓN BÁSICA -->
                         <div class="form-section">
                             <h5 class="section-title">
                                 <i class="fas fa-info-circle me-2"></i>Información Básica
                             </h5>
-                            
+
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group mb-3">
                                         <label for="hotel_name" class="form-label">
                                             <i class="fas fa-hotel me-1"></i>Nombre del Hotel <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" 
-                                               id="hotel_name" 
-                                               name="hotel_name" 
-                                               class="form-control" 
+                                        <input type="text"
+                                               id="hotel_name"
+                                               name="hotel_name"
+                                               class="form-control"
                                                value="{{ form.hotel_name.value|default:'' }}"
                                                placeholder="Ej: Hotel Grand Plaza"
                                                required>
@@ -70,10 +70,10 @@
                                         <label for="address" class="form-label">
                                             <i class="fas fa-map-marker-alt me-1"></i>Dirección <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" 
-                                               id="address" 
-                                               name="address" 
-                                               class="form-control" 
+                                        <input type="text"
+                                               id="address"
+                                               name="address"
+                                               class="form-control"
                                                value="{{ form.address.value|default:'' }}"
                                                placeholder="Dirección completa del hotel"
                                                required>
@@ -90,7 +90,7 @@
                             <h5 class="section-title">
                                 <i class="fas fa-globe me-2"></i>Ubicación
                             </h5>
-                            
+
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="form-group mb-3">
@@ -98,10 +98,10 @@
                                             <i class="fas fa-flag me-1"></i>País
                                         </label>
                                         <div class="autocomplete-wrapper">
-                                            <input 
-                                                type="text" 
-                                                id="country_search" 
-                                                class="form-control autocomplete-input" 
+                                            <input
+                                                type="text"
+                                                id="country_search"
+                                                class="form-control autocomplete-input"
                                                 placeholder="Buscar país..."
                                                 autocomplete="off"
                                             />
@@ -119,10 +119,10 @@
                                             <i class="fas fa-map me-1"></i>Estado
                                         </label>
                                         <div class="autocomplete-wrapper">
-                                            <input 
-                                                type="text" 
-                                                id="state_search" 
-                                                class="form-control autocomplete-input" 
+                                            <input
+                                                type="text"
+                                                id="state_search"
+                                                class="form-control autocomplete-input"
                                                 placeholder="Buscar estado..."
                                                 autocomplete="off"
                                                 disabled
@@ -141,10 +141,10 @@
                                             <i class="fas fa-city me-1"></i>Ciudad
                                         </label>
                                         <div class="autocomplete-wrapper">
-                                            <input 
-                                                type="text" 
-                                                id="city_search" 
-                                                class="form-control autocomplete-input" 
+                                            <input
+                                                type="text"
+                                                id="city_search"
+                                                class="form-control autocomplete-input"
                                                 placeholder="Buscar ciudad..."
                                                 autocomplete="off"
                                                 disabled
@@ -160,76 +160,29 @@
                             </div>
                         </div>
 
-                        <!-- CONTACTO Y CAPACIDAD -->
+                        <!-- CAPACIDAD -->
                         <div class="form-section">
                             <h5 class="section-title">
-                                <i class="fas fa-phone me-2"></i>Contacto y Capacidad
+                                <i class="fas fa-users me-2"></i>Capacidad
                             </h5>
-                            
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="form-group mb-3">
-                                        <label for="contact_name" class="form-label">
-                                            <i class="fas fa-user me-1"></i>Nombre de Contacto
-                                        </label>
-                                        <input type="text" 
-                                               id="contact_name" 
-                                               name="contact_name" 
-                                               class="form-control" 
-                                               value="{{ form.contact_name.value|default:'' }}"
-                                               placeholder="Nombre del contacto">
-                                        {% if form.contact_name.errors %}
-                                            <div class="text-danger">{{ form.contact_name.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group mb-3">
-                                        <label for="contact_email" class="form-label">
-                                            <i class="fas fa-envelope me-1"></i>Email de Contacto
-                                        </label>
-                                        <input type="email" 
-                                               id="contact_email" 
-                                               name="contact_email" 
-                                               class="form-control" 
-                                               value="{{ form.contact_email.value|default:'' }}"
-                                               placeholder="contacto@hotel.com">
-                                        {% if form.contact_email.errors %}
-                                            <div class="text-danger">{{ form.contact_email.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group mb-3">
-                                        <label for="contact_phone" class="form-label">
-                                            <i class="fas fa-phone me-1"></i>Teléfono de Contacto
-                                        </label>
-                                        <input type="text" 
-                                               id="contact_phone" 
-                                               name="contact_phone" 
-                                               class="form-control" 
-                                               value="{{ form.contact_phone.value|default:'' }}"
-                                               placeholder="+1 (555) 123-4567">
-                                        {% if form.contact_phone.errors %}
-                                            <div class="text-danger">{{ form.contact_phone.errors.0 }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            </div>
 
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="capacity" class="form-label">
-                                            <i class="fas fa-users me-1"></i>Capacidad
+                                            <i class="fas fa-users me-1"></i>Capacidad <span class="text-muted small">(Opcional)</span>
                                         </label>
-                                        <input type="number" 
-                                               id="capacity" 
-                                               name="capacity" 
-                                               class="form-control" 
+                                        <input type="number"
+                                               id="capacity"
+                                               name="capacity"
+                                               class="form-control"
                                                value="{{ form.capacity.value|default:'' }}"
                                                min="1"
                                                placeholder="Número de habitaciones o personas">
+                                        <small class="form-text text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Capacidad del hotel (número de habitaciones o personas)
+                                        </small>
                                         {% if form.capacity.errors %}
                                             <div class="text-danger">{{ form.capacity.errors.0 }}</div>
                                         {% endif %}
@@ -238,14 +191,18 @@
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="registration_url" class="form-label">
-                                            <i class="fas fa-link me-1"></i>URL de Registro
+                                            <i class="fas fa-link me-1"></i>URL de Registro <span class="text-muted small">(Opcional)</span>
                                         </label>
-                                        <input type="url" 
-                                               id="registration_url" 
-                                               name="registration_url" 
-                                               class="form-control" 
+                                        <input type="url"
+                                               id="registration_url"
+                                               name="registration_url"
+                                               class="form-control"
                                                value="{{ form.registration_url.value|default:'' }}"
                                                placeholder="https://ejemplo.com/registro">
+                                        <small class="form-text text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            URL para registro en el hotel
+                                        </small>
                                         {% if form.registration_url.errors %}
                                             <div class="text-danger">{{ form.registration_url.errors.0 }}</div>
                                         {% endif %}
@@ -254,31 +211,101 @@
                             </div>
                         </div>
 
-                        <!-- INFORMACIÓN ADICIONAL -->
+                        <!-- INFORMACIÓN DE CONTACTO -->
                         <div class="form-section">
                             <h5 class="section-title">
-                                <i class="fas fa-plus-circle me-2"></i>Información Adicional
+                                <i class="fas fa-address-card me-2"></i>Información de Contacto
                             </h5>
-                            
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="contact_name" class="form-label">
+                                            <i class="fas fa-user me-1"></i>Nombre de Contacto <span class="text-muted small">(Opcional)</span>
+                                        </label>
+                                        <input type="text"
+                                               id="contact_name"
+                                               name="contact_name"
+                                               class="form-control"
+                                               value="{{ form.contact_name.value|default:'' }}"
+                                               placeholder="Nombre del contacto">
+                                        <small class="form-text text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Nombre de la persona de contacto del hotel
+                                        </small>
+                                        {% if form.contact_name.errors %}
+                                            <div class="text-danger">{{ form.contact_name.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="contact_email" class="form-label">
+                                            <i class="fas fa-envelope me-1"></i>Email de Contacto <span class="text-muted small">(Opcional)</span>
+                                        </label>
+                                        <input type="email"
+                                               id="contact_email"
+                                               name="contact_email"
+                                               class="form-control"
+                                               value="{{ form.contact_email.value|default:'' }}"
+                                               placeholder="contacto@hotel.com">
+                                        <small class="form-text text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Correo electrónico de la persona de contacto
+                                        </small>
+                                        {% if form.contact_email.errors %}
+                                            <div class="text-danger">{{ form.contact_email.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="contact_phone" class="form-label">
+                                            <i class="fas fa-phone me-1"></i>Teléfono de Contacto <span class="text-muted small">(Opcional)</span>
+                                        </label>
+                                        <input type="text"
+                                               id="contact_phone"
+                                               name="contact_phone"
+                                               class="form-control"
+                                               value="{{ form.contact_phone.value|default:'' }}"
+                                               placeholder="+1 (555) 123-4567">
+                                        <small class="form-text text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Número de teléfono de la persona de contacto
+                                        </small>
+                                        {% if form.contact_phone.errors %}
+                                            <div class="text-danger">{{ form.contact_phone.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- FOTO DEL HOTEL -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-image me-2"></i>Foto del Hotel
+                            </h5>
+
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group mb-3">
                                         <label for="photo" class="form-label">
-                                            <i class="fas fa-image me-1"></i>Foto del Hotel
+                                            <i class="fas fa-image me-1"></i>Foto Principal <span class="text-muted small">(Opcional)</span>
                                         </label>
-                                        
+
                                         <!-- Foto Actual -->
                                         {% if object.photo %}
                                             <div class="current-photo-container mb-3 p-3" style="background: #f8f9fa; border-radius: 12px; border: 2px dashed #dee2e6;">
                                                 <div class="d-flex align-items-center gap-3">
                                                     <div class="photo-preview-wrapper">
-                                                        <img src="{{ object.photo.url }}" 
-                                                             alt="{{ object.hotel_name }}" 
+                                                        <img src="{{ object.photo.url }}"
+                                                             alt="{{ object.hotel_name }}"
                                                              id="currentPhotoPreview"
-                                                             class="img-fluid rounded shadow-sm" 
+                                                             class="img-fluid rounded shadow-sm"
                                                              style="max-width: 300px; max-height: 200px; object-fit: cover; cursor: pointer;"
                                                              onclick="document.getElementById('photo').click();">
-                                                        <div class="photo-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); border-radius: 8px; display: none; align-items: center; justify-content: center; color: white; cursor: pointer;" 
+                                                        <div class="photo-overlay" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); border-radius: 8px; display: none; align-items: center; justify-content: center; color: white; cursor: pointer;"
                                                              onclick="document.getElementById('photo').click();">
                                                             <i class="fas fa-camera fa-2x"></i>
                                                         </div>
@@ -313,13 +340,13 @@
                                                 </p>
                                             </div>
                                         {% endif %}
-                                        
+
                                         <!-- Input de Archivo -->
                                         <div class="file-input-wrapper">
-                                            <input type="file" 
-                                                   id="photo" 
-                                                   name="photo" 
-                                                   class="form-control" 
+                                            <input type="file"
+                                                   id="photo"
+                                                   name="photo"
+                                                   class="form-control"
                                                    accept="image/*"
                                                    onchange="previewPhoto(this);">
                                             <small class="form-text text-muted d-block mt-2">
@@ -327,7 +354,7 @@
                                                 Formatos aceptados: JPG, PNG, GIF. Tamaño máximo recomendado: 2MB
                                             </small>
                                         </div>
-                                        
+
                                         <!-- Previsualización de Nueva Foto -->
                                         <div id="newPhotoPreview" class="mt-3" style="display: none;">
                                             <div class="card border-0 shadow-sm">
@@ -340,16 +367,16 @@
                                                     </button>
                                                 </div>
                                                 <div class="card-body text-center p-3">
-                                                    <img id="photoPreviewImg" src="" alt="Vista previa" 
-                                                         class="img-fluid rounded shadow-sm" 
+                                                    <img id="photoPreviewImg" src="" alt="Vista previa"
+                                                         class="img-fluid rounded shadow-sm"
                                                          style="max-width: 100%; max-height: 400px; object-fit: contain;">
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <!-- Campo oculto para eliminar foto -->
                                         <input type="hidden" id="remove_photo" name="remove_photo" value="0">
-                                        
+
                                         {% if form.photo.errors %}
                                             <div class="text-danger mt-2">
                                                 <i class="fas fa-exclamation-triangle me-1"></i>
@@ -359,43 +386,199 @@
                                     </div>
                                 </div>
                             </div>
-                            
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="form-group mb-3">
-                                        <label for="is_active" class="form-label">
-                                            <i class="fas fa-toggle-on me-1"></i>Estado
-                                        </label>
-                                        <div class="form-check form-switch">
-                                            <input type="checkbox" 
-                                                   id="is_active" 
-                                                   name="is_active" 
-                                                   class="form-check-input" 
-                                                   {% if form.is_active.value %}checked{% endif %}>
-                                            <label class="form-check-label" for="is_active">
-                                                Activo
-                                            </label>
-                                        </div>
-                                        {% if form.is_active.errors %}
-                                            <div class="text-danger">{{ form.is_active.errors.0 }}</div>
-                                        {% endif %}
+
+                        </div>
+
+                        <!-- GALERÍA DE IMÁGENES -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-images me-2"></i>Galería de Imágenes
+                            </h5>
+
+                            <!-- Imágenes Existentes (solo en edición) -->
+                            {% if object and object.images.all %}
+                                <div class="mb-4">
+                                    <label class="form-label mb-3">
+                                        <i class="fas fa-image me-1"></i>Imágenes Actuales
+                                    </label>
+                                    <div class="row g-3" id="existing-images-container">
+                                        {% for image in object.images.all %}
+                                            <div class="col-md-3 col-sm-4 col-6" data-image-id="{{ image.pk }}">
+                                                <div class="card h-100 shadow-sm position-relative">
+                                                    <div class="position-relative" style="height: 150px; overflow: hidden;">
+                                                        <img src="{{ image.image.url }}"
+                                                             alt="{{ image.title|default:image.alt_text|default:'Imagen del hotel' }}"
+                                                             class="card-img-top h-100 w-100"
+                                                             style="object-fit: cover;">
+                                                        {% if image.is_featured %}
+                                                            <span class="badge bg-warning position-absolute top-0 start-0 m-2">
+                                                                <i class="fas fa-star me-1"></i>Destacada
+                                                            </span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="card-body p-2">
+                                                        <small class="text-muted d-block" style="font-size: 0.75rem;">
+                                                            {% if image.title %}
+                                                                {{ image.title|truncatewords:5 }}
+                                                            {% else %}
+                                                                Imagen #{{ forloop.counter }}
+                                                            {% endif %}
+                                                        </small>
+                                                        <div class="d-flex gap-1 mt-2">
+                                                            <a href="{% url 'locations:admin_hotel_image_update' hotel_pk=object.pk pk=image.pk %}"
+                                                               class="btn btn-sm btn-outline-primary flex-fill"
+                                                               title="Editar">
+                                                                <i class="fas fa-edit"></i>
+                                                            </a>
+                                                            <a href="{% url 'locations:admin_hotel_image_delete' hotel_pk=object.pk pk=image.pk %}"
+                                                               class="btn btn-sm btn-outline-danger"
+                                                               title="Eliminar"
+                                                               onclick="return confirm('¿Estás seguro de eliminar esta imagen?');">
+                                                                <i class="fas fa-trash"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="mt-3">
+                                        <a href="{% url 'locations:admin_hotel_image_list' hotel_pk=object.pk %}" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-images me-2"></i>Gestionar Todas las Imágenes
+                                        </a>
                                     </div>
                                 </div>
+                            {% endif %}
+
+                            <!-- Agregar Nuevas Imágenes -->
+                            <div class="mb-3">
+                                <label for="hotel_images" class="form-label">
+                                    <i class="fas fa-upload me-1"></i>Agregar Nuevas Imágenes <span class="text-muted small">(Opcional)</span>
+                                </label>
+                                <div class="file-upload-area"
+                                     id="imageUploadArea"
+                                     style="border: 2px dashed #dee2e6; border-radius: 12px; padding: 40px; text-align: center; background: #f8f9fa; cursor: pointer; transition: all 0.3s ease;"
+                                     onmouseover="this.style.borderColor='var(--mlb-blue)'; this.style.background='#f0f4ff';"
+                                     onmouseout="this.style.borderColor='#dee2e6'; this.style.background='#f8f9fa';">
+                                    <input type="file"
+                                           id="hotel_images"
+                                           name="hotel_images"
+                                           class="d-none"
+                                           accept="image/*"
+                                           multiple
+                                           onchange="handleImageUpload(this);">
+                                    <div onclick="document.getElementById('hotel_images').click();">
+                                        <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: #6c757d;"></i>
+                                        <p class="mb-2">
+                                            <strong>Haz clic para seleccionar imágenes</strong>
+                                        </p>
+                                        <p class="text-muted small mb-0">
+                                            Puedes seleccionar múltiples imágenes a la vez (JPG, PNG, GIF)
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Preview de imágenes seleccionadas -->
+                                <div id="imagePreviewContainer" class="mt-3" style="display: none;">
+                                    <label class="form-label">
+                                        <i class="fas fa-eye me-1"></i>Vista Previa de Imágenes Seleccionadas
+                                    </label>
+                                    <div class="row g-3" id="imagePreviewGrid"></div>
+                                </div>
                             </div>
+                        </div>
+
+                        <!-- AMENIDADES DEL HOTEL -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-star me-2"></i>Amenidades del Hotel
+                            </h5>
+
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-check-square me-1"></i>Selecciona las Amenidades del Hotel <span class="text-muted small">(Opcional)</span>
+                                </label>
+                                <p class="text-muted small mb-3">
+                                    Selecciona las amenidades generales que ofrece el hotel. Las amenidades de habitación se gestionan en el formulario de habitaciones.
+                                </p>
+
+                                <!-- Grid de checkboxes de amenidades -->
+                                <div class="row g-3" id="amenities-checkbox-container">
+                                    <!-- Las amenidades se generarán aquí con JavaScript -->
+                                </div>
+
+                                <!-- Amenidades personalizadas adicionales -->
+                                <div class="mt-4">
+                                    <label class="form-label">
+                                        <i class="fas fa-plus-circle me-1"></i>Agregar Amenidades Personalizadas <span class="text-muted small">(Opcional)</span>
+                                    </label>
+                                    <div id="custom-amenities-container">
+                                        <!-- Las amenidades personalizadas se agregarán aquí dinámicamente -->
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addCustomAmenityField();">
+                                        <i class="fas fa-plus me-2"></i>Agregar Amenidad Personalizada
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- INFORMACIÓN ADICIONAL -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-info-circle me-2"></i>Información Adicional
+                            </h5>
 
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group mb-3">
                                         <label for="information" class="form-label">
-                                            <i class="fas fa-info me-1"></i>Información Adicional
+                                            <i class="fas fa-align-left me-1"></i>Descripción/Información del Hotel <span class="text-muted small">(Opcional)</span>
                                         </label>
-                                        <textarea id="information" 
-                                                  name="information" 
-                                                  class="form-control" 
-                                                  rows="4"
-                                                  placeholder="Información adicional sobre el hotel">{{ form.information.value|default:'' }}</textarea>
+                                        <textarea id="information"
+                                                  name="information"
+                                                  class="form-control"
+                                                  rows="6"
+                                                  placeholder="Información adicional sobre el hotel, servicios, características, etc.">{{ form.information.value|default:'' }}</textarea>
+                                        <small class="form-text text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Puedes usar HTML para formatear el texto. Esta información se mostrará en la página de detalles del hotel.
+                                        </small>
                                         {% if form.information.errors %}
                                             <div class="text-danger">{{ form.information.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ESTADO Y CONFIGURACIÓN -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-cog me-2"></i>Estado y Configuración
+                            </h5>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group mb-3">
+                                        <label for="is_active" class="form-label">
+                                            <i class="fas fa-toggle-on me-1"></i>Estado del Hotel
+                                        </label>
+                                        <div class="form-check form-switch">
+                                            <input type="checkbox"
+                                                   id="is_active"
+                                                   name="is_active"
+                                                   class="form-check-input"
+                                                   {% if form.is_active.value %}checked{% endif %}>
+                                            <label class="form-check-label" for="is_active">
+                                                <strong>Hotel Activo</strong>
+                                            </label>
+                                        </div>
+                                        <small class="form-text text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Los hoteles inactivos no se mostrarán en las listas públicas ni estarán disponibles para eventos.
+                                        </small>
+                                        {% if form.is_active.errors %}
+                                            <div class="text-danger">{{ form.is_active.errors.0 }}</div>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -476,7 +659,7 @@
     font-size: 0.875rem;
 }
 
-[data-theme="dark"] .form-control, 
+[data-theme="dark"] .form-control,
 [data-theme="dark"] .form-select {
     background-color: #374151;
     border-color: #4b5563;
@@ -488,7 +671,7 @@
     box-shadow: 0 0 0 0.2rem rgba(74, 85, 104, 0.25);
 }
 
-[data-theme="dark"] .form-control:focus, 
+[data-theme="dark"] .form-control:focus,
 [data-theme="dark"] .form-select:focus {
     border-color: #6b7280;
     box-shadow: 0 0 0 0.2rem rgba(107, 114, 128, 0.25);
@@ -614,21 +797,21 @@
 function previewPhoto(input) {
     if (input.files && input.files[0]) {
         const reader = new FileReader();
-        
+
         reader.onload = function(e) {
             const previewDiv = document.getElementById('newPhotoPreview');
             const previewImg = document.getElementById('photoPreviewImg');
-            
+
             previewImg.src = e.target.result;
             previewDiv.style.display = 'block';
-            
+
             // Ocultar foto actual si existe
             const currentPhotoContainer = document.querySelector('.current-photo-container');
             if (currentPhotoContainer) {
                 currentPhotoContainer.style.opacity = '0.5';
             }
         };
-        
+
         reader.readAsDataURL(input.files[0]);
     }
 }
@@ -637,10 +820,10 @@ function clearPhotoPreview() {
     const input = document.getElementById('photo');
     const previewDiv = document.getElementById('newPhotoPreview');
     const currentPhotoContainer = document.querySelector('.current-photo-container');
-    
+
     input.value = '';
     previewDiv.style.display = 'none';
-    
+
     if (currentPhotoContainer) {
         currentPhotoContainer.style.opacity = '1';
     }
@@ -669,7 +852,7 @@ document.getElementById('photo').addEventListener('change', function(e) {
             clearPhotoPreview();
             return false;
         }
-        
+
         // Validar tipo de archivo
         const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
         if (!validTypes.includes(file.type)) {
@@ -686,36 +869,36 @@ document.addEventListener('DOMContentLoaded', function() {
     const countryInput = document.getElementById('country_search');
     const countryHidden = document.getElementById('id_country');
     const countrySuggestions = document.getElementById('country_suggestions');
-    
+
     const stateInput = document.getElementById('state_search');
     const stateHidden = document.getElementById('id_state');
     const stateSuggestions = document.getElementById('state_suggestions');
-    
+
     const cityInput = document.getElementById('city_search');
     const cityHidden = document.getElementById('id_city');
     const citySuggestions = document.getElementById('city_suggestions');
-    
+
     let selectedCountryId = null;
     let selectedStateId = null;
     let countrySearchTimeout = null;
     let stateSearchTimeout = null;
     let citySearchTimeout = null;
-    
+
     function highlightMatch(text, query) {
         if (!query) return text;
-        
+
         // Normalizar para comparar sin tildes
         const normalize = (str) => {
             return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
         };
-        
+
         const normalizedText = normalize(text);
         const normalizedQuery = normalize(query);
-        
+
         if (!normalizedText.includes(normalizedQuery)) {
             return text;
         }
-        
+
         // Crear un mapeo de posiciones normalizadas a posiciones originales
         const positionMap = [];
         let normalizedPos = 0;
@@ -727,89 +910,89 @@ document.addEventListener('DOMContentLoaded', function() {
                 normalizedPos++;
             }
         }
-        
+
         // Encontrar la posición de coincidencia
         const startIndex = normalizedText.indexOf(normalizedQuery);
         if (startIndex === -1) {
             return text;
         }
-        
+
         const endIndex = startIndex + normalizedQuery.length;
         const originalStart = positionMap[startIndex] || 0;
         const originalEnd = positionMap[endIndex - 1] !== undefined ? positionMap[endIndex - 1] + 1 : text.length;
-        
+
         // Construir el resultado resaltando la parte que coincide
         const before = text.substring(0, originalStart);
         const match = text.substring(originalStart, originalEnd);
         const after = text.substring(originalEnd);
-        
+
         return before + '<strong>' + match + '</strong>' + after;
     }
-    
+
     function renderSuggestions(container, items, input, hidden, query, onSelect) {
         container.innerHTML = '';
-        
+
         if (items.length === 0) {
             container.innerHTML = '<div class="autocomplete-suggestion"><span class="text-muted">No se encontraron resultados</span></div>';
             container.classList.add('show');
             return;
         }
-        
+
         items.forEach((item, index) => {
             const div = document.createElement('div');
             div.className = 'autocomplete-suggestion';
-            
+
             // Resaltar coincidencias en el nombre
             const highlightedName = highlightMatch(item.name, query);
-            
+
             div.innerHTML = `
                 <div class="suggestion-name">${highlightedName}</div>
                 ${item.code ? `<div class="suggestion-meta">Código: ${item.code}</div>` : ''}
             `;
-            
+
             div.addEventListener('click', function() {
                 input.value = item.name;
                 hidden.value = item.id;
                 container.classList.remove('show');
-                
+
                 if (onSelect) {
                     onSelect(item);
                 }
             });
-            
+
             // Resaltar al pasar el mouse
             div.addEventListener('mouseenter', function() {
                 this.classList.add('highlighted');
             });
-            
+
             div.addEventListener('mouseleave', function() {
                 this.classList.remove('highlighted');
             });
-            
+
             container.appendChild(div);
         });
-        
+
         container.classList.add('show');
     }
-    
+
     // Autocomplete para país
     countryInput.addEventListener('input', function() {
         const query = this.value.trim();
-        
+
         clearTimeout(countrySearchTimeout);
-        
+
         if (query.length === 0) {
             countrySuggestions.classList.remove('show');
             return;
         }
-        
+
         // Mostrar indicador de carga
         countrySuggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Buscando...</span></div>';
         countrySuggestions.classList.add('show');
-        
+
         countrySearchTimeout = setTimeout(() => {
             const url = `/locations/countries/api/?q=${encodeURIComponent(query)}`;
-            
+
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -832,37 +1015,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         }, 150);
     });
-    
+
     countryInput.addEventListener('focus', function() {
         if (countrySuggestions.querySelectorAll('.autocomplete-suggestion').length > 0) {
             countrySuggestions.classList.add('show');
         }
     });
-    
+
     // Autocomplete para estado (con filtro por país)
     stateInput.addEventListener('input', function() {
         const query = this.value.trim();
-        
+
         clearTimeout(stateSearchTimeout);
-        
+
         if (query.length === 0) {
             stateSuggestions.classList.remove('show');
             return;
         }
-        
+
         if (!selectedCountryId) {
             stateSuggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-muted">Seleccione primero un país</span></div>';
             stateSuggestions.classList.add('show');
             return;
         }
-        
+
         // Mostrar indicador de carga
         stateSuggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Buscando...</span></div>';
         stateSuggestions.classList.add('show');
-        
+
         stateSearchTimeout = setTimeout(() => {
             const url = `/locations/states/api/?country=${selectedCountryId}&q=${encodeURIComponent(query)}`;
-            
+
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -882,37 +1065,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         }, 150);
     });
-    
+
     stateInput.addEventListener('focus', function() {
         if (stateSuggestions.querySelectorAll('.autocomplete-suggestion').length > 0) {
             stateSuggestions.classList.add('show');
         }
     });
-    
+
     // Autocomplete para ciudad (con filtro por estado)
     cityInput.addEventListener('input', function() {
         const query = this.value.trim();
-        
+
         clearTimeout(citySearchTimeout);
-        
+
         if (query.length === 0) {
             citySuggestions.classList.remove('show');
             return;
         }
-        
+
         if (!selectedStateId) {
             citySuggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-muted">Seleccione primero un estado</span></div>';
             citySuggestions.classList.add('show');
             return;
         }
-        
+
         // Mostrar indicador de carga
         citySuggestions.innerHTML = '<div class="autocomplete-suggestion"><span class="text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Buscando...</span></div>';
         citySuggestions.classList.add('show');
-        
+
         citySearchTimeout = setTimeout(() => {
             const url = `/locations/cities/api/?state=${selectedStateId}&q=${encodeURIComponent(query)}`;
-            
+
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -924,13 +1107,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         }, 150);
     });
-    
+
     cityInput.addEventListener('focus', function() {
         if (citySuggestions.querySelectorAll('.autocomplete-suggestion').length > 0) {
             citySuggestions.classList.add('show');
         }
     });
-    
+
     // Cerrar sugerencias al hacer clic fuera
     document.addEventListener('click', function(e) {
         if (!countryInput.contains(e.target) && !countrySuggestions.contains(e.target)) {
@@ -943,13 +1126,13 @@ document.addEventListener('DOMContentLoaded', function() {
             citySuggestions.classList.remove('show');
         }
     });
-    
+
     // Cargar valores iniciales si existen (para edición) - Carga secuencial
     {% if form.country.value %}
         const initialCountryId = {{ form.country.value }};
         const initialStateId = {% if form.state.value %}{{ form.state.value }}{% else %}null{% endif %};
         const initialCityId = {% if form.city.value %}{{ form.city.value }}{% else %}null{% endif %};
-        
+
         // Cargar país primero usando ID específico
         fetch(`/locations/countries/api/?id=${initialCountryId}`)
             .then(response => response.json())
@@ -960,7 +1143,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     countryHidden.value = country.id;
                     selectedCountryId = country.id;
                     stateInput.removeAttribute('disabled');
-                    
+
                     // Si hay estado, cargarlo después del país usando ID específico
                     if (initialStateId) {
                         return fetch(`/locations/states/api/?id=${initialStateId}`)
@@ -972,7 +1155,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     stateHidden.value = state.id;
                                     selectedStateId = state.id;
                                     cityInput.removeAttribute('disabled');
-                                    
+
                                     // Si hay ciudad, cargarla después del estado usando ID específico
                                     if (initialCityId) {
                                         return fetch(`/locations/cities/api/?id=${initialCityId}`)
@@ -995,6 +1178,349 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     {% endif %}
 });
+
+// Manejo de múltiples imágenes
+let imageFileMap = new Map(); // Mapa para mantener la relación archivo -> índice
+
+function handleImageUpload(input) {
+    const files = input.files;
+    const previewContainer = document.getElementById('imagePreviewContainer');
+    const previewGrid = document.getElementById('imagePreviewGrid');
+
+    if (files.length === 0) {
+        previewContainer.style.display = 'none';
+        previewGrid.innerHTML = '';
+        imageFileMap.clear();
+        return;
+    }
+
+    previewContainer.style.display = 'block';
+    previewGrid.innerHTML = '';
+    imageFileMap.clear();
+
+    Array.from(files).forEach((file, index) => {
+        if (!file.type.startsWith('image/')) {
+            alert(`El archivo "${file.name}" no es una imagen válida.`);
+            return;
+        }
+
+        // Validar tamaño (5MB máximo)
+        const maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert(`La imagen "${file.name}" es demasiado grande. Máximo 5MB.`);
+            return;
+        }
+
+        // Guardar el archivo en el mapa
+        const fileId = `file_${Date.now()}_${index}`;
+        imageFileMap.set(fileId, file);
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const col = document.createElement('div');
+            col.className = 'col-md-3 col-sm-4 col-6';
+            col.setAttribute('data-file-id', fileId);
+            col.setAttribute('data-file-index', index);
+
+            col.innerHTML = `
+                <div class="card h-100 shadow-sm">
+                    <div style="height: 150px; overflow: hidden; position: relative;">
+                        <img src="${e.target.result}"
+                             alt="Preview ${index + 1}"
+                             class="card-img-top h-100 w-100"
+                             style="object-fit: cover;">
+                        <button type="button"
+                                class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
+                                onclick="removeImagePreview('${fileId}');"
+                                title="Eliminar">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="card-body p-2">
+                        <input type="text"
+                               name="image_title_${index}"
+                               class="form-control form-control-sm mb-2"
+                               placeholder="Título (opcional)">
+                        <input type="text"
+                               name="image_alt_${index}"
+                               class="form-control form-control-sm mb-2"
+                               placeholder="Texto alternativo (opcional)">
+                        <div class="form-check">
+                            <input type="checkbox"
+                                   name="image_featured_${index}"
+                                   id="image_featured_${fileId}"
+                                   class="form-check-input">
+                            <label class="form-check-label small" for="image_featured_${fileId}">
+                                Destacada
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            previewGrid.appendChild(col);
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+function removeImagePreview(fileId) {
+    // Remover del mapa
+    imageFileMap.delete(fileId);
+
+    // Remover el preview visual
+    const col = document.querySelector(`[data-file-id="${fileId}"]`);
+    if (col) {
+        col.remove();
+    }
+
+    // Actualizar el input file
+    const input = document.getElementById('hotel_images');
+    const dt = new DataTransfer();
+
+    // Agregar solo los archivos que aún están en el mapa
+    imageFileMap.forEach((file) => {
+        dt.items.add(file);
+    });
+
+    input.files = dt.files;
+
+    // Re-renderizar los previews con índices actualizados
+    if (input.files.length > 0) {
+        handleImageUpload(input);
+    } else {
+        // Si no hay más imágenes, ocultar el contenedor
+        document.getElementById('imagePreviewContainer').style.display = 'none';
+    }
+}
+
+// Permitir arrastrar y soltar imágenes
+const uploadArea = document.getElementById('imageUploadArea');
+if (uploadArea) {
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.style.borderColor = 'var(--mlb-blue)';
+        this.style.background = '#e7f3ff';
+    });
+
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.style.borderColor = '#dee2e6';
+        this.style.background = '#f8f9fa';
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.style.borderColor = '#dee2e6';
+        this.style.background = '#f8f9fa';
+
+        const files = e.dataTransfer.files;
+        const input = document.getElementById('hotel_images');
+
+        // Crear un nuevo DataTransfer para agregar los archivos
+        const dt = new DataTransfer();
+        Array.from(input.files).forEach(file => dt.items.add(file));
+        Array.from(files).forEach(file => {
+            if (file.type.startsWith('image/')) {
+                dt.items.add(file);
+            }
+        });
+
+        input.files = dt.files;
+        handleImageUpload(input);
+    });
+}
+
+// Manejo de amenidades con checkboxes
+// Amenidades predefinidas del hotel (excluyendo room y bathroom)
+const hotelAmenities = [
+    {value: 'wifi', label: 'WiFi Gratis', icon: 'fa-wifi', category: 'general'},
+    {value: 'parking', label: 'Estacionamiento', icon: 'fa-parking', category: 'general'},
+    {value: 'pool', label: 'Piscina', icon: 'fa-swimming-pool', category: 'general'},
+    {value: 'gym', label: 'Gimnasio', icon: 'fa-dumbbell', category: 'general'},
+    {value: 'spa', label: 'Spa', icon: 'fa-spa', category: 'general'},
+    {value: 'restaurant', label: 'Restaurante', icon: 'fa-utensils', category: 'food_drink'},
+    {value: 'bar', label: 'Bar', icon: 'fa-glass-martini-alt', category: 'food_drink'},
+    {value: 'room_service', label: 'Servicio a Habitación', icon: 'fa-concierge-bell', category: 'services'},
+    {value: 'cable_tv', label: 'TV por Cable', icon: 'fa-satellite-dish', category: 'entertainment'},
+    {value: 'streaming', label: 'Streaming', icon: 'fa-play-circle', category: 'entertainment'},
+    {value: 'game_room', label: 'Sala de Juegos', icon: 'fa-gamepad', category: 'entertainment'},
+    {value: 'laundry', label: 'Lavandería', icon: 'fa-tshirt', category: 'services'},
+    {value: 'concierge', label: 'Concierge', icon: 'fa-user-tie', category: 'services'},
+    {value: '24h_reception', label: 'Recepción 24h', icon: 'fa-clock', category: 'services'},
+    {value: 'airport_shuttle', label: 'Transporte Aeropuerto', icon: 'fa-shuttle-van', category: 'services'},
+    {value: 'business_center', label: 'Centro de Negocios', icon: 'fa-briefcase', category: 'services'},
+    {value: 'meeting_rooms', label: 'Salas de Reuniones', icon: 'fa-users', category: 'services'},
+    {value: 'wheelchair_accessible', label: 'Acceso para Sillas de Ruedas', icon: 'fa-wheelchair', category: 'accessibility'},
+    {value: 'elevator', label: 'Ascensor', icon: 'fa-elevator', category: 'accessibility'},
+    {value: 'pet_friendly', label: 'Admite Mascotas', icon: 'fa-paw', category: 'general'},
+    {value: 'smoking_area', label: 'Área de Fumadores', icon: 'fa-smoking', category: 'general'},
+    {value: 'non_smoking', label: 'No Fumadores', icon: 'fa-smoking-ban', category: 'general'},
+    {value: 'family_friendly', label: 'Apto para Familias', icon: 'fa-child', category: 'general'}
+];
+
+// Obtener amenidades existentes del hotel (si está editando)
+const existingAmenities = [
+    {% if object %}
+        {% for amenity in object.amenities.all %}
+            {% if amenity.category != 'room' and amenity.category != 'bathroom' %}
+                '{{ amenity.icon }}'{% if not forloop.last %},{% endif %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+];
+
+// Renderizar checkboxes de amenidades
+function renderAmenityCheckboxes() {
+    const container = document.getElementById('amenities-checkbox-container');
+    container.innerHTML = '';
+
+    hotelAmenities.forEach(amenity => {
+        const isChecked = existingAmenities.includes(amenity.value);
+        const col = document.createElement('div');
+        col.className = 'col-md-3 col-sm-4 col-6';
+
+        const checkboxId = `amenity_${amenity.value}`;
+        const cardId = `amenity_card_${amenity.value}`;
+
+        col.innerHTML = `
+            <div class="form-check form-check-card p-3 border rounded h-100 amenity-card"
+                 id="${cardId}"
+                 style="cursor: pointer; transition: all 0.2s;"
+                 onmouseover="this.style.borderColor='var(--mlb-blue)'; this.style.background='#f8f9ff';"
+                 onmouseout="this.style.borderColor='#dee2e6'; this.style.background='white';">
+                <input type="checkbox"
+                       name="amenity_${amenity.value}"
+                       id="${checkboxId}"
+                       value="${amenity.value}"
+                       class="form-check-input amenity-checkbox"
+                       ${isChecked ? 'checked' : ''}
+                       style="cursor: pointer; z-index: 2; position: relative;">
+                <label class="form-check-label w-100" for="${checkboxId}" style="cursor: pointer; z-index: 1; position: relative;">
+                    <i class="fas ${amenity.icon} me-2" style="color: #f4a460;"></i>
+                    <strong>${amenity.label}</strong>
+                </label>
+            </div>
+        `;
+        container.appendChild(col);
+
+        // Agregar event listeners después de crear el elemento
+        const card = document.getElementById(cardId);
+        const checkbox = document.getElementById(checkboxId);
+
+        // Click en el card (excepto en el checkbox mismo)
+        card.addEventListener('click', function(e) {
+            // Si el click fue directamente en el checkbox o label, no hacer nada (ya se maneja automáticamente)
+            if (e.target === checkbox || e.target.closest('label')) {
+                return;
+            }
+            // Si el click fue en otra parte del card, toggle el checkbox
+            e.preventDefault();
+            checkbox.checked = !checkbox.checked;
+            // Disparar evento change para que otros listeners puedan reaccionar
+            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+
+        // Actualizar estilo del card cuando cambia el checkbox
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                card.style.borderColor = 'var(--mlb-blue)';
+                card.style.background = '#e7f3ff';
+                card.style.boxShadow = '0 2px 8px rgba(13, 44, 84, 0.15)';
+            } else {
+                card.style.borderColor = '#dee2e6';
+                card.style.background = 'white';
+                card.style.boxShadow = 'none';
+            }
+        });
+
+        // Aplicar estilo inicial si está marcado
+        if (isChecked) {
+            card.style.borderColor = 'var(--mlb-blue)';
+            card.style.background = '#e7f3ff';
+            card.style.boxShadow = '0 2px 8px rgba(13, 44, 84, 0.15)';
+        }
+    });
+}
+
+// Inicializar checkboxes al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    renderAmenityCheckboxes();
+});
+
+// Manejo de amenidades personalizadas
+let customAmenityCounter = 0;
+
+function addCustomAmenityField() {
+    const container = document.getElementById('custom-amenities-container');
+    const index = customAmenityCounter++;
+
+    const amenityCard = document.createElement('div');
+    amenityCard.className = 'card mb-3 border';
+    amenityCard.setAttribute('data-custom-amenity-index', index);
+    amenityCard.innerHTML = `
+        <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0">
+                    <i class="fas fa-star me-2" style="color: #f4a460;"></i>Amenidad Personalizada #${index + 1}
+                </h6>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeCustomAmenityField(this);">
+                    <i class="fas fa-times"></i> Eliminar
+                </button>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small">Nombre de la Amenidad <span class="text-danger">*</span></label>
+                    <input type="text"
+                           name="custom_amenity_name_${index}"
+                           class="form-control form-control-sm"
+                           placeholder="Ej: Terraza, Jardín, Biblioteca..."
+                           required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">Categoría</label>
+                    <select name="custom_amenity_category_${index}" class="form-select form-select-sm">
+                        <option value="general">General</option>
+                        <option value="entertainment">Entretenimiento</option>
+                        <option value="food_drink">Comida y Bebida</option>
+                        <option value="services">Servicios</option>
+                        <option value="accessibility">Accesibilidad</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small">Ícono</label>
+                    <select name="custom_amenity_icon_${index}" class="form-select form-select-sm">
+                        <option value="other">Otro</option>
+                        <option value="wifi">WiFi</option>
+                        <option value="parking">Estacionamiento</option>
+                        <option value="pool">Piscina</option>
+                        <option value="gym">Gimnasio</option>
+                        <option value="spa">Spa</option>
+                        <option value="restaurant">Restaurante</option>
+                        <option value="bar">Bar</option>
+                    </select>
+                </div>
+                <div class="col-md-12">
+                    <label class="form-label small">Descripción <span class="text-muted">(Opcional)</span></label>
+                    <textarea name="custom_amenity_description_${index}"
+                              class="form-control form-control-sm"
+                              rows="2"
+                              placeholder="Descripción detallada de la amenidad..."></textarea>
+                </div>
+            </div>
+        </div>
+    `;
+
+    container.appendChild(amenityCard);
+}
+
+function removeCustomAmenityField(button) {
+    const card = button.closest('.card');
+    card.remove();
+}
+
 </script>
 {% endblock %}
 

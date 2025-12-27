@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NSC International 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-26 14:09-0500\n"
+"POT-Creation-Date: 2025-12-27 04:20-0500\n"
 "PO-Revision-Date: 2025-01-01 00:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
@@ -15,51 +15,60 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: .\apps\accounts\forms.py:27 .\apps\accounts\forms.py:813
-#: .\templates\accounts\public_home.html:2800
+#: .\apps\accounts\forms.py:29
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1257
+#: .\templates\accounts\panel_tabs\perfil.html:49
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:58
+#: .\templates\accounts\player_edit.html:71
+#: .\templates\accounts\public_home.html:3142
+#: .\templates\events\public_detail.html:2117
+#: .\templates\events\public_list.html:1420
 msgid "Email"
 msgstr "Correo Electrónico"
 
-#: .\apps\accounts\forms.py:31
+#: .\apps\accounts\forms.py:33
 #, fuzzy
 #| msgid "your@email.com"
 msgid "you@email.com"
 msgstr "tu@email.com"
 
-#: .\apps\accounts\forms.py:36
+#: .\apps\accounts\forms.py:38
 msgid "Please enter your email address."
 msgstr "Por favor, ingresa tu correo electrónico."
 
-#: .\apps\accounts\forms.py:37
+#: .\apps\accounts\forms.py:39
 msgid "Please enter a valid email address."
 msgstr "Por favor, ingresa un correo electrónico válido."
 
-#: .\apps\accounts\forms.py:42 .\templates\accounts\public_home.html:2817
+#: .\apps\accounts\forms.py:44 .\templates\accounts\public_home.html:3159
+#: .\templates\events\public_detail.html:2134
+#: .\templates\events\public_list.html:1437
 msgid "Password"
 msgstr "Contraseña"
 
-#: .\apps\accounts\forms.py:44 .\templates\accounts\public_home.html:2823
+#: .\apps\accounts\forms.py:46 .\templates\accounts\public_home.html:3165
+#: .\templates\events\public_detail.html:2140
+#: .\templates\events\public_list.html:1443
 msgid "Enter your password"
 msgstr "Ingresa tu contraseña"
 
-#: .\apps\accounts\forms.py:46
+#: .\apps\accounts\forms.py:48
 #, fuzzy
 #| msgid "Enter your password"
 msgid "Please enter your password."
 msgstr "Ingresa tu contraseña"
 
-#: .\apps\accounts\forms.py:63
+#: .\apps\accounts\forms.py:65
 msgid "Email is required."
 msgstr "El correo electrónico es requerido."
 
-#: .\apps\accounts\forms.py:75
+#: .\apps\accounts\forms.py:76
 #, fuzzy
 #| msgid "Enter your password"
 msgid "Please enter a correct email and password."
 msgstr "Por favor, ingresa un correo electrónico y contraseña correctos."
 
-#: .\apps\accounts\forms.py:119 .\apps\accounts\forms.py:833
-#: .\apps\accounts\forms.py:1093
+#: .\apps\accounts\forms.py:119
 #, fuzzy
 #| msgid "Season description (optional)"
 msgid "Second last name (optional)"
@@ -75,152 +84,1442 @@ msgstr "Número de teléfono"
 msgid "Secondary phone (optional)"
 msgstr "Teléfono secundario (opcional)"
 
-#: .\apps\accounts\forms.py:198 .\apps\accounts\forms.py:524
-#: .\apps\accounts\forms.py:758
+#: .\apps\accounts\forms.py:198 .\apps\accounts\forms.py:534
+#: .\apps\accounts\forms.py:756
 msgid "Select a country"
 msgstr "Selecciona un país"
 
-msgid "Select a state"
-msgstr "Selecciona un estado"
-
-msgid "Select a city"
-msgstr "Selecciona una ciudad"
-
-msgid "Upload a new profile picture"
-msgstr "Sube una nueva foto de perfil"
-
-#: .\apps\accounts\forms.py:221 .\apps\accounts\forms.py:492
+#: .\apps\accounts\forms.py:221
 #, fuzzy
 #| msgid "Full hotel address"
 msgid "Full address"
 msgstr "Dirección completa"
 
-#: .\apps\accounts\forms.py:250 .\apps\accounts\forms.py:512
+#: .\apps\accounts\forms.py:250
 msgid "Tell us about yourself..."
 msgstr "Cuéntanos sobre ti..."
 
-#: .\apps\accounts\forms.py:388 .\apps\accounts\forms.py:980
-#: .\apps\accounts\forms.py:1286
+#: .\apps\accounts\forms.py:388 .\apps\accounts\forms.py:961
+#: .\apps\accounts\forms.py:1293 .\apps\accounts\forms.py:1665
+#: .\apps\accounts\forms.py:1674 .\templates\accounts\user_dashboard.html:2260
 msgid "This email is already registered. Please use another email."
 msgstr "Este email ya está registrado. Por favor, usa otro email."
 
-#: .\apps\accounts\forms.py:396 .\apps\accounts\forms.py:988
-#: .\apps\accounts\forms.py:1294
+#: .\apps\accounts\forms.py:396 .\apps\accounts\forms.py:969
+#: .\apps\accounts\forms.py:1301
 #, fuzzy
 #| msgid "First name"
 msgid "First name is required."
 msgstr "El nombre es requerido."
 
-#: .\apps\accounts\forms.py:403 .\apps\accounts\forms.py:995
-#: .\apps\accounts\forms.py:1301
+#: .\apps\accounts\forms.py:403 .\apps\accounts\forms.py:976
+#: .\apps\accounts\forms.py:1308
 msgid "Last name is required."
 msgstr "El apellido es requerido."
 
-#: .\apps\accounts\forms.py:730
+#: .\apps\accounts\forms.py:526 .\templates\accounts\panel_tabs\perfil.html:98
 #, fuzzy
-#| msgid "Description"
-msgid "Team description"
-msgstr "Descripción del equipo"
+#| msgid "Preferred Position"
+msgid "Preferred Language"
+msgstr "Idioma Preferido"
 
-#: .\apps\accounts\forms.py:818
-msgid "First name"
-msgstr "Nombre"
+#: .\apps\accounts\forms.py:527
+msgid "Default language for the platform"
+msgstr "Idioma predeterminado para la plataforma"
 
-#: .\apps\accounts\forms.py:824 .\apps\accounts\forms.py:1084
-msgid "Last name"
-msgstr "Apellido"
+#: .\apps\accounts\forms.py:541 .\apps\accounts\forms.py:765
+msgid "Select a state"
+msgstr "Selecciona un estado"
 
-#: .\apps\accounts\forms.py:839
-msgid "Temporary password"
-msgstr "Contraseña temporal"
+#: .\apps\accounts\forms.py:548 .\apps\accounts\forms.py:772
+msgid "Select a city"
+msgstr "Selecciona una ciudad"
 
-#: .\apps\accounts\forms.py:841
+#: .\apps\accounts\forms.py:826
 msgid "The player will be able to change their password later"
 msgstr "El jugador podrá cambiar su contraseña después"
 
-#: .\apps\accounts\forms.py:847
-msgid "Phone"
-msgstr "Teléfono"
-
-#: .\apps\accounts\forms.py:883 .\apps\accounts\forms.py:1156
-#, fuzzy
-#| msgid "e.g.: 10"
-msgid "e.g.: 5'10\""
-msgstr "Ej: 5'10\""
-
-#: .\apps\accounts\forms.py:1077
-#, fuzzy
-#| msgid "Players"
-msgid "Player name"
-msgstr "Nombre del jugador"
-
-#: .\apps\accounts\forms.py:1101
-#, fuzzy
-#| msgid "Players"
-msgid "Player phone"
-msgstr "Teléfono del jugador"
-
-#: .\apps\accounts\forms.py:1111
+#: .\apps\accounts\forms.py:1079
 msgid "Player's date of birth"
 msgstr "Fecha de nacimiento del jugador"
 
-#: .\apps\accounts\forms.py:1115
+#: .\apps\accounts\forms.py:1083
 msgid "Father"
 msgstr "Padre"
 
-#: .\apps\accounts\forms.py:1116
+#: .\apps\accounts\forms.py:1084
 msgid "Mother"
 msgstr "Madre"
 
-#: .\apps\accounts\forms.py:1117
+#: .\apps\accounts\forms.py:1085
 msgid "Guardian"
 msgstr "Acudiente"
 
-#: .\apps\accounts\forms.py:1118
+#: .\apps\accounts\forms.py:1086
 msgid "Other"
 msgstr "Otro"
 
-#: .\apps\accounts\forms.py:1121
+#: .\apps\accounts\forms.py:1089
 msgid "Relationship to the player"
 msgstr "Relación con el jugador"
 
-#: .\apps\accounts\forms.py:1128
+#: .\apps\accounts\forms.py:1096
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:50
 msgid "Primary Contact"
 msgstr "Contacto Principal"
 
-#: .\apps\accounts\forms.py:1129
+#: .\apps\accounts\forms.py:1097
 msgid "Check if you are the primary contact for the player"
 msgstr "Marcar si eres el contacto principal del jugador"
 
-#: .\apps\accounts\forms.py:1465
-msgid "Specify medical conditions or \"None\""
-msgstr "Especifica condiciones médicas o \"Ninguna\""
+#: .\apps\accounts\forms.py:1454
+#, fuzzy
+#| msgid "Player's date of birth"
+msgid "Player's date of birth (cannot be modified)"
+msgstr "Fecha de nacimiento del jugador"
 
-#: .\apps\accounts\forms.py:1484
-msgid "Notes on age verification"
-msgstr "Notas sobre la verificación de edad"
-
-#: .\apps\accounts\forms.py:1653
+#: .\apps\accounts\forms.py:1809
 #, fuzzy
 #| msgid "Season description (optional)"
 msgid "Banner title (optional)"
 msgstr "Título del banner (opcional)"
 
-#: .\apps\accounts\views_public.py:283
+#: .\apps\accounts\views_public.py:324
 msgid "This account is inactive. Please contact the administrator."
 msgstr ""
 
-#: .\apps\accounts\views_public.py:302
+#: .\apps\accounts\views_public.py:343
 msgid ""
 "Players cannot log in. Please contact your parent/guardian to manage your "
 "information."
 msgstr ""
 
-#: .\apps\accounts\views_public.py:316 .\apps\accounts\views_public.py:323
+#: .\apps\accounts\views_public.py:357 .\apps\accounts\views_public.py:364
 #, fuzzy, python-format
 #| msgid "Welcome!"
 msgid "Welcome, %(name)s!"
 msgstr "¡Bienvenido!"
+
+#: .\apps\events\views_public.py:78
+msgid "Upcoming"
+msgstr ""
+
+#: .\apps\events\views_public.py:79
+msgid "Ongoing"
+msgstr ""
+
+#: .\apps\events\views_public.py:80
+msgid "Past"
+msgstr ""
+
+#: .\apps\events\views_public.py:81
+msgid "Today"
+msgstr ""
+
+#: .\force_reload_translations.py:27
+#: .\templates\accounts\panel_tabs\mis_hijos.html:45
+msgid "Pending"
+msgstr "Pendiente"
+
+#: .\force_reload_translations.py:28
+#: .\templates\accounts\panel_tabs\mis_hijos.html:119
+msgid "Total Players"
+msgstr "Total de Jugadores"
+
+#: .\force_reload_translations.py:29
+#: .\templates\accounts\panel_tabs\mis_hijos.html:126
+msgid "Different Teams"
+msgstr "Equipos Diferentes"
+
+#: .\force_reload_translations.py:30
+#: .\templates\accounts\panel_tabs\detalle_evento.html:93
+#: .\templates\accounts\panel_tabs\mis_hijos.html:133
+#: .\templates\events\public_detail.html:1821
+msgid "Divisions"
+msgstr "Divisiones"
+
+#: .\force_reload_translations.py:31
+#: .\templates\accounts\panel_tabs\mis_hijos.html:41
+msgid "Verified"
+msgstr "Verificado"
+
+#: .\force_reload_translations.py:32
+#: .\templates\accounts\panel_tabs\mis_hijos.html:57
+#: .\templates\accounts\panel_tabs\ver_jugadores.html:46
+msgid "No team assigned"
+msgstr "Sin equipo asignado"
+
+#: .\templates\accounts\front_player_edit.html:285
+#: .\templates\accounts\front_player_profile.html:658
+#: .\templates\accounts\panel_usuario.html:10
+#: .\templates\accounts\panel_usuario.html:302
+#: .\templates\accounts\panel_usuario.html:340
+#: .\templates\accounts\parent_player_register.html:225
+#: .\templates\accounts\parent_player_register.html:251
+#: .\templates\accounts\parent_player_register.html:633
+#: .\templates\accounts\player_register.html:217
+#: .\templates\accounts\player_register.html:249
+#: .\templates\accounts\profile_edit.html:235
+#: .\templates\accounts\profile_edit.html:267
+#: .\templates\accounts\public_home.html:2332
+#: .\templates\accounts\public_home.html:2370
+#: .\templates\accounts\public_home.html:3066
+#: .\templates\accounts\public_player_list.html:382
+#: .\templates\accounts\team_detail.html:256
+#: .\templates\accounts\team_form.html:222
+#: .\templates\accounts\team_form.html:242
+#: .\templates\accounts\team_list.html:247 .\templates\base_mlb.html:222
+#: .\templates\events\public_detail.html:1513
+#: .\templates\events\public_detail.html:1551
+#: .\templates\events\public_detail.html:2041
+#: .\templates\events\public_list.html:1092
+#: .\templates\events\public_list.html:1130
+#: .\templates\events\public_list.html:1344
+#: .\templates\includes\navbar_mlb.html:66
+msgid "My Account"
+msgstr "Mi Cuenta"
+
+#: .\templates\accounts\panel_tabs\calendario.html:4
+#: .\templates\accounts\panel_usuario.html:466
+msgid "Calendar"
+msgstr "Calendario"
+
+#: .\templates\accounts\panel_tabs\calendario.html:6
+msgid "Calendar view of events"
+msgstr "Vista de calendario de eventos"
+
+#: .\templates\accounts\panel_tabs\calendario.html:9
+msgid "Calendar view coming soon"
+msgstr "Vista de calendario próximamente"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:4
+msgid "Create New Team"
+msgstr "Crear Nuevo Equipo"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:6
+msgid "Register a new team in the system"
+msgstr "Registra un nuevo equipo en el sistema"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:23
+msgid "Basic Information"
+msgstr "Información Básica"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:28
+msgid "Team Name"
+msgstr "Nombre del Equipo"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:39
+#, fuzzy
+#| msgid "Description"
+msgid "Team Description"
+msgstr "Descripción del equipo"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:50
+msgid "Team Logo"
+msgstr "Logo del Equipo"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:54
+msgid "Click to upload logo"
+msgstr "Haz clic para subir el logo"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:55
+msgid "JPG, PNG or GIF (max. 5MB)"
+msgstr "JPG, PNG o GIF (máx. 5MB)"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:58
+msgid "Preview"
+msgstr "Vista previa"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:69
+#: .\templates\accounts\panel_tabs\detalle_evento.html:75
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1277
+#: .\templates\events\public_detail.html:1604
+#: .\templates\events\public_detail.html:1787
+#: .\templates\events\public_detail.html:1852
+msgid "Location"
+msgstr "Ubicación"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:74
+msgid "Country"
+msgstr "País"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:83
+msgid "State"
+msgstr "Estado"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:92
+msgid "City"
+msgstr "Ciudad"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:105
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1244
+msgid "Contact Information"
+msgstr "Información de Contacto"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:110
+msgid "Contact Email"
+msgstr "Correo de Contacto"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:119
+msgid "Contact Phone"
+msgstr "Teléfono de Contacto"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:130
+msgid "Website"
+msgstr "Sitio Web"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:143
+#: .\templates\accounts\panel_tabs\perfil.html:114
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:419
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:160
+#: .\templates\accounts\player_edit.html:467
+#: .\templates\accounts\player_edit_hijo.html:420
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: .\templates\accounts\panel_tabs\crear_equipo.html:146
+#: .\templates\accounts\panel_usuario.html:420
+msgid "Create Team"
+msgstr "Crear Equipo"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:6
+#, fuzzy
+#| msgid "Events"
+msgid "Event Details"
+msgstr "Eventos"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:8
+msgid "Event information and registration"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:46
+#, fuzzy
+#| msgid "User Information"
+msgid "Event Information"
+msgstr "Información de Usuario"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:57
+#: .\templates\events\public_detail.html:1757
+#, fuzzy
+#| msgid "Birth Date"
+msgid "Start Date"
+msgstr "Fecha de Nacimiento"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:60
+#: .\templates\events\public_detail.html:1772
+msgid "End Date"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:99
+msgid "and more"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:114
+#, fuzzy
+#| msgid "State"
+msgid "Status"
+msgstr "Estado"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:134
+msgid "Headquarters Hotel"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:141
+#, fuzzy
+#| msgid "Location"
+msgid "View Details"
+msgstr "Ver Detalles"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:162
+#: .\templates\events\public_detail.html:1872
+#, fuzzy
+#| msgid "Primary Contact"
+msgid "Primary Site"
+msgstr "Contacto Principal"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:181
+msgid "Description"
+msgstr "Descripción"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:191
+#, fuzzy
+#| msgid "Sports Information"
+msgid "More Information"
+msgstr "Información Deportiva"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:202
+#, fuzzy
+#| msgid "Register"
+msgid "Registration"
+msgstr "Inscribirse"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:211
+#, fuzzy
+#| msgid "My Children/Players"
+msgid "Select Children/Players"
+msgstr "Mis Hijos/Jugadores"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:262
+#, fuzzy
+#| msgid "Select a state"
+msgid "Selected"
+msgstr "Selecciona un estado"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:266
+msgid "Price per player"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:270
+msgid "Total"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:278
+#, fuzzy
+#| msgid "Register Child"
+msgid "Register Selected"
+msgstr "Registrar Hijo"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:285
+#, fuzzy
+#| msgid "You don't have any registered teams yet."
+msgid ""
+"You don't have any children/players registered. Please register a child/"
+"player first."
+msgstr "Aún no tienes equipos registrados."
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:288
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:4
+msgid "Register Child/Player"
+msgstr "Registrar Hijo/Jugador"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:298
+msgid "Event not found"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:299
+msgid "The event you are looking for does not exist or is not available."
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1037
+msgid "View Our Rooms"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1047
+msgid "SPECIAL OFFER"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1048
+#, python-format
+msgid "Up to 30%% Off"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1049
+msgid "Book Now"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1055
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1060
+msgid "Stay"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1067
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1072
+msgid "Dine"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1078
+msgid "MEMBERSHIP"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1079
+msgid "Win a 3-night getaway!"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1080
+msgid "Get It Now"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1086
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1091
+#, fuzzy
+#| msgid "Save Settings"
+msgid "Meetings"
+msgstr "Guardar Configuración"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1098
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1103
+#: .\templates\accounts\panel_tabs\eventos.html:4
+#: .\templates\accounts\panel_usuario.html:330
+#: .\templates\accounts\panel_usuario.html:459
+#: .\templates\accounts\public_home.html:2360
+#: .\templates\accounts\public_home.html:3057 .\templates\base_mlb.html:223
+#: .\templates\events\public_detail.html:1541
+#: .\templates\events\public_detail.html:1577
+#: .\templates\events\public_detail.html:2032
+#: .\templates\events\public_list.html:1120
+#: .\templates\events\public_list.html:1335
+msgid "Events"
+msgstr "Eventos"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1111
+msgid "Rooms & Suites"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1126
+msgid "Room"
+msgstr "Habitación"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1127
+msgid "guests"
+msgstr "huéspedes"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1133
+msgid ""
+"Experience comfort and luxury in our beautifully designed rooms. Each room "
+"features modern amenities and stunning views to make your stay unforgettable."
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1136
+msgid "from"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1138
+#, fuzzy
+#| msgid "Right"
+msgid "night"
+msgstr "Derecho"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1140
+#, fuzzy
+#| msgid "Location"
+msgid "See Detail"
+msgstr "Ver Detalles"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1150
+msgid "AMENITIES"
+msgstr "SERVICIOS"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1151
+msgid "Services"
+msgstr "Servicios"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1158
+msgid "Pick Up & Drop"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1159
+msgid "Airport transfer service for your comfort"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1165
+msgid "Parking Space"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1166
+msgid "Private parking for your convenience"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1172
+#, fuzzy
+#| msgid "Welcome!"
+msgid "Welcome Drink"
+msgstr "¡Bienvenido!"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1173
+msgid "Perfect refreshment to start your stay"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1179
+msgid "Hot & Cold Water"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1180
+msgid "24/7 water service for your comfort"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1191
+msgid "DISCOVER"
+msgstr "DESCUBRE"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1192
+msgid "About the Hotel"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1217
+#, fuzzy
+#| msgid "Capacity"
+msgid "Guests Capacity"
+msgstr "Capacidad"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1223
+#, fuzzy
+#| msgid "Available Rooms"
+msgid "Total Rooms"
+msgstr "Habitaciones Disponibles"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1229
+#, fuzzy
+#| msgid "Available"
+msgid "Available Now"
+msgstr "Disponible"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1243
+msgid "GET IN TOUCH"
+msgstr "CONTÁCTANOS"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1267
+#: .\templates\accounts\panel_tabs\perfil.html:67
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:108
+#: .\templates\accounts\player_edit.html:81
+#: .\templates\accounts\player_edit_hijo.html:70
+msgid "Phone"
+msgstr "Teléfono"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1289
+msgid "Book Your Stay Now"
+msgstr "Reserva Tu Estadía Ahora"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1308
+msgid "Your perfect escape awaits"
+msgstr "Tu escapada perfecta te espera"
+
+#: .\templates\accounts\panel_tabs\eventos.html:6
+msgid "Explore available events"
+msgstr "Explora eventos disponibles"
+
+#: .\templates\accounts\panel_tabs\eventos.html:29
+msgid "Published"
+msgstr "Publicado"
+
+#: .\templates\accounts\panel_tabs\eventos.html:127
+msgid "Detail Event"
+msgstr "Ver Detalles"
+
+#: .\templates\accounts\panel_tabs\eventos.html:136
+msgid "Register"
+msgstr "Inscribirse"
+
+#: .\templates\accounts\panel_tabs\eventos.html:145
+msgid "More Info"
+msgstr "Más Información"
+
+#: .\templates\accounts\panel_tabs\eventos.html:162
+#: .\templates\events\public_detail.html:1641
+#: .\templates\events\public_detail.html:1945
+msgid "View All Events"
+msgstr "Ver Todos los Eventos"
+
+#: .\templates\accounts\panel_tabs\eventos.html:170
+msgid "No Upcoming Events"
+msgstr "No Hay Eventos Próximos"
+
+#: .\templates\accounts\panel_tabs\eventos.html:172
+msgid ""
+"There are no upcoming events at the moment. Check back soon for new events!"
+msgstr ""
+"No hay eventos próximos en este momento. ¡Vuelve pronto para ver nuevos "
+"eventos!"
+
+#: .\templates\accounts\panel_tabs\eventos.html:177
+msgid "Browse All Events"
+msgstr "Explorar Todos los Eventos"
+
+#: .\templates\accounts\panel_tabs\inicio.html:21
+msgid "Welcome!"
+msgstr "¡Bienvenido!"
+
+#: .\templates\accounts\panel_tabs\inicio.html:23
+msgid ""
+"This is your welcome area. The administrator can configure the content from "
+"the administration panel."
+msgstr ""
+"Esta es tu zona de bienvenida. El administrador puede configurar el "
+"contenido desde el panel de administración."
+
+#: .\templates\accounts\panel_tabs\mi_perfil.html:4
+msgid "My Player Profile"
+msgstr "Mi Perfil de Jugador"
+
+#: .\templates\accounts\panel_tabs\mi_perfil.html:6
+msgid "View and manage your information as a player"
+msgstr "Ver y gestionar tu información como jugador"
+
+#: .\templates\accounts\panel_tabs\mi_perfil.html:10
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:88
+#: .\templates\accounts\player_edit.html:126
+msgid "Team"
+msgstr "Equipo"
+
+#: .\templates\accounts\panel_tabs\mi_perfil.html:10
+msgid "No team"
+msgstr "Sin equipo"
+
+#: .\templates\accounts\panel_tabs\mis_equipos.html:4
+#: .\templates\accounts\panel_usuario.html:428
+msgid "My Teams"
+msgstr "Mis Equipos"
+
+#: .\templates\accounts\panel_tabs\mis_equipos.html:6
+msgid "Manage your registered teams"
+msgstr "Gestiona tus equipos registrados"
+
+#: .\templates\accounts\panel_tabs\mis_equipos.html:13
+#, python-format
+msgid "%(count)s player"
+msgid_plural "%(count)s players"
+msgstr[0] ""
+msgstr[1] ""
+
+#: .\templates\accounts\panel_tabs\mis_equipos.html:19
+msgid "You don't have any registered teams yet."
+msgstr "Aún no tienes equipos registrados."
+
+#: .\templates\accounts\panel_tabs\mis_hijos.html:5
+#: .\templates\accounts\panel_usuario.html:442
+msgid "My Children/Players"
+msgstr "Mis Hijos/Jugadores"
+
+#: .\templates\accounts\panel_tabs\mis_hijos.html:7
+msgid "Manage registered players"
+msgstr "Gestiona jugadores registrados"
+
+#: .\templates\accounts\panel_tabs\mis_hijos.html:103
+#: .\templates\accounts\panel_tabs\ver_jugadores.html:71
+msgid "View"
+msgstr "Ver"
+
+#: .\templates\accounts\panel_tabs\mis_hijos.html:106
+#: .\templates\accounts\panel_tabs\ver_jugadores.html:74
+msgid "Edit Child"
+msgstr "Editar Hijo"
+
+#: .\templates\accounts\panel_tabs\mis_hijos.html:142
+#: .\templates\accounts\panel_tabs\ver_jugadores.html:86
+msgid "No Players Registered Yet"
+msgstr "Aún No Hay Jugadores Registrados"
+
+#: .\templates\accounts\panel_tabs\mis_hijos.html:144
+msgid ""
+"You haven't registered any players yet. Start by registering your first "
+"child/player."
+msgstr ""
+"Aún no has registrado ningún jugador. Comienza registrando tu primer hijo/"
+"jugador."
+
+#: .\templates\accounts\panel_tabs\mis_hijos.html:147
+msgid "Register First Player"
+msgstr "Registrar Primer Jugador"
+
+#: .\templates\accounts\panel_tabs\perfil.html:4
+#: .\templates\accounts\panel_usuario.html:470
+msgid "Edit Profile"
+msgstr "Editar Perfil"
+
+#: .\templates\accounts\panel_tabs\perfil.html:6
+msgid "Update your personal and profile information"
+msgstr "Actualiza tu información personal y de perfil"
+
+#: .\templates\accounts\panel_tabs\perfil.html:24
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:23
+msgid "User Information"
+msgstr "Información de Usuario"
+
+#: .\templates\accounts\panel_tabs\perfil.html:29
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:77
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:28
+#: .\templates\accounts\player_edit.html:39
+#: .\templates\accounts\player_edit_hijo.html:39
+msgid "First Name"
+msgstr "Nombre"
+
+#: .\templates\accounts\panel_tabs\perfil.html:38
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:86
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:37
+#: .\templates\accounts\player_edit.html:48
+#: .\templates\accounts\player_edit_hijo.html:48
+msgid "Last Name"
+msgstr "Apellido"
+
+#: .\templates\accounts\panel_tabs\perfil.html:62
+msgid "Profile Information"
+msgstr "Información de Perfil"
+
+#: .\templates\accounts\panel_tabs\perfil.html:76
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:119
+#: .\templates\accounts\player_edit.html:96
+#: .\templates\accounts\player_edit_hijo.html:81
+msgid "Birth Date"
+msgstr "Fecha de Nacimiento"
+
+#: .\templates\accounts\panel_tabs\perfil.html:87
+msgid "Profile Picture"
+msgstr "Foto de Perfil"
+
+#: .\templates\accounts\panel_tabs\perfil.html:117
+#: .\templates\accounts\player_edit.html:470
+#: .\templates\accounts\player_edit_hijo.html:423
+msgid "Save Changes"
+msgstr "Guardar Cambios"
+
+#: .\templates\accounts\panel_tabs\perfil_publico.html:4
+msgid "My Public Profile"
+msgstr "Mi Perfil Público"
+
+#: .\templates\accounts\panel_tabs\perfil_publico.html:6
+msgid "View how your public profile looks"
+msgstr "Ver cómo se ve tu perfil público"
+
+#: .\templates\accounts\panel_tabs\perfil_publico.html:10
+msgid "This is your public profile"
+msgstr "Este es tu perfil público"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:6
+msgid ""
+"Complete the information to register your child as a player in the system"
+msgstr ""
+"Completa la información para registrar a tu hijo como jugador en el sistema"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:15
+msgid "Note:"
+msgstr "Nota:"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:15
+msgid "Players registered by parents"
+msgstr "Los jugadores registrados por padres"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:15
+msgid "CANNOT log in"
+msgstr "NO PUEDEN iniciar sesión"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:15
+msgid "You will manage all their information from your dashboard."
+msgstr "Gestionarás toda su información desde tu panel."
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:34
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:391
+#: .\templates\accounts\player_edit.html:439
+#: .\templates\accounts\player_edit_hijo.html:392
+msgid "Relationship with Player"
+msgstr "Relación con el Jugador"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:39
+msgid "Relationship"
+msgstr "Relación"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:46
+msgid "Your legal relationship with the player"
+msgstr "Tu relación legal con el jugador"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:72
+#: .\templates\accounts\player_edit.html:34
+#: .\templates\accounts\player_edit_hijo.html:34
+msgid "Personal Information"
+msgstr "Información Personal"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:95
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:46
+#: .\templates\accounts\player_edit.html:57
+#: .\templates\accounts\player_edit_hijo.html:57
+msgid "Second Last Name"
+msgstr "Segundo Apellido"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:96
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:109
+#: .\templates\accounts\player_edit.html:58
+#: .\templates\accounts\player_edit.html:82
+#: .\templates\accounts\player_edit_hijo.html:58
+#: .\templates\accounts\player_edit_hijo.html:71
+msgid "optional"
+msgstr "opcional"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:115
+#: .\templates\accounts\player_edit.html:88
+#: .\templates\accounts\player_edit_hijo.html:77
+msgid "Format: (123) 456-7890"
+msgstr "Formato: (123) 456-7890"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:131
+msgid "Division and grade will be calculated automatically"
+msgstr "La división y el grado se calcularán automáticamente"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:141
+#: .\templates\accounts\player_edit.html:115
+#: .\templates\accounts\player_edit_hijo.html:99
+msgid "Sports Information"
+msgstr "Información Deportiva"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:146
+#: .\templates\accounts\player_edit_hijo.html:104
+msgid "Team and jersey number will be assigned by an administrator or manager."
+msgstr ""
+"El equipo y número de jersey serán asignados por un administrador o manager."
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:153
+#: .\templates\accounts\player_edit.html:147
+#: .\templates\accounts\player_edit_hijo.html:119
+msgid "Preferred Position"
+msgstr "Posición Preferida"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:162
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:117
+#: .\templates\accounts\player_edit.html:156
+#: .\templates\accounts\player_edit_hijo.html:128
+msgid "Height"
+msgstr "Estatura"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:168
+#: .\templates\accounts\player_edit.html:162
+#: .\templates\accounts\player_edit_hijo.html:134
+#, fuzzy
+#| msgid "Ex: 5'10\""
+msgid "Ex: 5'10\\"
+msgstr "Ej: 5'10\""
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:172
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:127
+#: .\templates\accounts\player_edit.html:166
+#: .\templates\accounts\player_edit_hijo.html:138
+msgid "Weight (lbs)"
+msgstr "Peso (lbs)"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:184
+#: .\templates\accounts\player_edit.html:178
+#: .\templates\accounts\player_edit_hijo.html:150
+msgid "Batting Hand"
+msgstr "Mano de Bateo"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:193
+#: .\templates\accounts\player_edit.html:187
+#: .\templates\accounts\player_edit_hijo.html:159
+msgid "Throwing Hand"
+msgstr "Mano de Lanzamiento"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:206
+#: .\templates\accounts\player_edit.html:216
+#: .\templates\accounts\player_edit_hijo.html:172
+msgid "Eligibility and Division"
+msgstr "Elegibilidad y División"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:211
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:299
+#: .\templates\accounts\player_edit_hijo.html:201
+#: .\templates\accounts\player_edit_hijo.html:300
+msgid "Required:"
+msgstr "Requerido:"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:211
+#: .\templates\accounts\player_edit_hijo.html:201
+msgid ""
+"Grade and Division are required fields. They will be calculated "
+"automatically based on birth date, but you can modify them if needed."
+msgstr ""
+"Grado y División son campos requeridos. Se calcularán automáticamente "
+"basándose en la fecha de nacimiento, pero puedes modificarlos si es "
+"necesario."
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:217
+#: .\templates\accounts\player_edit_hijo.html:207
+msgid ""
+"Players without approved age verification are not eligible until "
+"documentation is approved."
+msgstr ""
+"Los jugadores sin verificación de edad aprobada no son elegibles hasta que "
+"se apruebe la documentación."
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:224
+#: .\templates\accounts\player_edit.html:245
+#: .\templates\accounts\player_edit_hijo.html:214
+msgid "Current Grade"
+msgstr "Grado Actual"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:236
+#: .\templates\accounts\player_edit_hijo.html:226
+msgid "Will be calculated automatically"
+msgstr "Se calculará automáticamente"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:241
+#: .\templates\accounts\player_edit.html:259
+#: .\templates\accounts\player_edit_hijo.html:231
+msgid "Assigned Division"
+msgstr "División Asignada"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:252
+#: .\templates\accounts\player_edit_hijo.html:242
+msgid "Assigned automatically or by administrator"
+msgstr "Asignada automáticamente o por administrador"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:258
+#: .\templates\accounts\player_edit.html:275
+#: .\templates\accounts\player_edit_hijo.html:248
+msgid "Age Verification Document"
+msgstr "Documento de Verificación de Edad"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:259
+#: .\templates\accounts\player_edit.html:276
+#: .\templates\accounts\player_edit_hijo.html:249
+msgid "REQUIRED"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:264
+#: .\templates\accounts\player_edit.html:291
+#: .\templates\accounts\player_edit_hijo.html:264
+msgid "Click to upload document"
+msgstr "Haz clic para subir documento"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:265
+#: .\templates\accounts\player_edit.html:292
+#: .\templates\accounts\player_edit_hijo.html:265
+msgid "REQUIRED FIELD"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:266
+#: .\templates\accounts\player_edit.html:294
+#: .\templates\accounts\player_edit_hijo.html:267
+msgid "PDF, JPG, PNG (max. 10MB)"
+msgstr "PDF, JPG, PNG (máx. 10MB)"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:267
+#: .\templates\accounts\player_edit.html:295
+#: .\templates\accounts\player_edit_hijo.html:268
+msgid "Birth certificate, passport or ID (original or digital)"
+msgstr "Certificado de nacimiento, pasaporte o ID (original o digital)"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:294
+#: .\templates\accounts\player_edit.html:348
+#: .\templates\accounts\player_edit_hijo.html:295
+msgid "Uniform Sizes"
+msgstr "Tallas de Uniformes"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:299
+#: .\templates\accounts\player_edit_hijo.html:300
+msgid ""
+"All uniform sizes are required. Please select the appropriate sizes for each "
+"item."
+msgstr ""
+"Todas las tallas de uniforme son requeridas. Por favor, selecciona las "
+"tallas apropiadas para cada artículo."
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:306
+#: .\templates\accounts\player_edit.html:354
+#: .\templates\accounts\player_edit_hijo.html:307
+msgid "Jersey Size"
+msgstr "Talla de Jersey"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:315
+#: .\templates\accounts\player_edit.html:363
+#: .\templates\accounts\player_edit_hijo.html:316
+msgid "Hat Size"
+msgstr "Talla de Gorra"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:327
+#: .\templates\accounts\player_edit.html:375
+#: .\templates\accounts\player_edit_hijo.html:328
+msgid "Batting Glove Size"
+msgstr "Talla de Guante de Bateo"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:336
+#: .\templates\accounts\player_edit.html:384
+#: .\templates\accounts\player_edit_hijo.html:337
+msgid "Batting Helmet Size"
+msgstr "Talla de Casco de Bateo"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:348
+#: .\templates\accounts\player_edit.html:396
+#: .\templates\accounts\player_edit_hijo.html:349
+msgid "Pants Size"
+msgstr "Talla de Pantalones"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:361
+#: .\templates\accounts\player_edit.html:409
+#: .\templates\accounts\player_edit_hijo.html:362
+msgid "Emergency Contact"
+msgstr "Contacto de Emergencia"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:366
+#: .\templates\accounts\player_edit.html:414
+#: .\templates\accounts\player_edit_hijo.html:367
+msgid "Information used only in case of medical emergency."
+msgstr "Información utilizada solo en caso de emergencia médica."
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:372
+#: .\templates\accounts\player_edit.html:420
+#: .\templates\accounts\player_edit_hijo.html:373
+msgid "Contact Name"
+msgstr "Nombre del Contacto"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:381
+#: .\templates\accounts\player_edit.html:429
+#: .\templates\accounts\player_edit_hijo.html:382
+msgid "Emergency Phone"
+msgstr "Teléfono de Emergencia"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:387
+#: .\templates\accounts\player_edit.html:435
+#: .\templates\accounts\player_edit_hijo.html:388
+msgid "24/7 available number"
+msgstr "Número disponible 24/7"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:402
+#: .\templates\accounts\player_edit.html:450
+#: .\templates\accounts\player_edit_hijo.html:403
+msgid "Medical Conditions"
+msgstr "Condiciones Médicas"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:410
+#: .\templates\accounts\player_edit.html:458
+#: .\templates\accounts\player_edit_hijo.html:411
+#, fuzzy
+#| msgid ""
+#| "Allergies, asthma, medications, etc. If there are no conditions, write "
+#| "\"None\"."
+msgid ""
+"Allergies, asthma, medications, etc. If there are no conditions, write \\"
+msgstr ""
+"Alergias, asma, medicamentos, etc. Si no hay condiciones, escribe "
+"\"Ninguna\"."
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:422
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:4
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:163
+#: .\templates\accounts\panel_usuario.html:424
+msgid "Register Player"
+msgstr "Registrar Jugador"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:485
+#, fuzzy
+#| msgid "The file is too large. Maximum size is 10MB."
+msgid "The file is too large. Maximum size allowed is 10MB."
+msgstr "El archivo es demasiado grande. El tamaño máximo es 10MB."
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:486
+#: .\templates\accounts\player_edit.html:526
+#: .\templates\accounts\player_edit_hijo.html:479
+#, fuzzy
+#| msgid "File type not allowed. Only PDF, JPG and PNG are accepted."
+msgid "File type not allowed. Only PDF, JPG or PNG are accepted."
+msgstr "Tipo de archivo no permitido. Solo se aceptan PDF, JPG y PNG."
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:487
+#: .\templates\accounts\player_edit.html:537
+#: .\templates\accounts\player_edit_hijo.html:490
+msgid "Document Uploaded"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:488
+#: .\templates\accounts\player_edit.html:542
+#: .\templates\accounts\player_edit_hijo.html:495
+#, fuzzy
+#| msgid "Click to upload logo"
+msgid "Click to change file"
+msgstr "Haz clic para subir el logo"
+
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:489
+#: .\templates\accounts\panel_usuario.html:560
+#, fuzzy
+#| msgid "Please complete all required fields:"
+msgid "Please complete all required fields"
+msgstr "Por favor, completa todos los campos requeridos:"
+
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:6
+msgid "Register a new player for your teams"
+msgstr "Registra un nuevo jugador para tus equipos"
+
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:52
+msgid "Optional"
+msgstr "Opcional"
+
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:67
+#, fuzzy
+#| msgid "Temporary password"
+msgid "Temporary Password"
+msgstr "Contraseña temporal"
+
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:83
+msgid "Player Information"
+msgstr "Información del Jugador"
+
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:97
+#: .\templates\accounts\player_edit.html:135
+msgid "Jersey Number"
+msgstr "Número de Jersey"
+
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:108
+msgid "Position"
+msgstr "Posición"
+
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:123
+msgid "Ex: 6'2\\"
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:138
+msgid "Batting"
+msgstr "Bateo"
+
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:147
+msgid "Throwing"
+msgstr "Lanzamiento"
+
+#: .\templates\accounts\panel_tabs\ver_jugadores.html:4
+#: .\templates\accounts\panel_usuario.html:432
+msgid "View Players"
+msgstr "Ver Jugadores"
+
+#: .\templates\accounts\panel_tabs\ver_jugadores.html:6
+msgid "List of registered players"
+msgstr "Lista de jugadores registrados"
+
+#: .\templates\accounts\panel_tabs\ver_jugadores.html:74
+#: .\templates\accounts\panel_usuario.html:562
+#: .\templates\accounts\player_edit.html:15
+msgid "Edit Player"
+msgstr "Editar Jugador"
+
+#: .\templates\accounts\panel_tabs\ver_jugadores.html:88
+msgid "You haven't registered any players yet."
+msgstr "Aún no has registrado ningún jugador."
+
+#: .\templates\accounts\panel_usuario.html:295
+msgid "Spanish"
+msgstr "Español"
+
+#: .\templates\accounts\panel_usuario.html:304
+#: .\templates\accounts\public_home.html:2334
+#: .\templates\events\public_detail.html:1515
+#: .\templates\events\public_list.html:1094
+msgid "Log Out"
+msgstr "Cerrar Sesión"
+
+#: .\templates\accounts\panel_usuario.html:306
+#: .\templates\accounts\public_home.html:2336
+#: .\templates\accounts\public_home.html:3022
+#: .\templates\accounts\public_home.html:3071
+#: .\templates\accounts\public_home.html:3118
+#: .\templates\accounts\public_home.html:3182
+#: .\templates\events\public_detail.html:1517
+#: .\templates\events\public_detail.html:2046
+#: .\templates\events\public_detail.html:2093
+#: .\templates\events\public_detail.html:2157
+#: .\templates\events\public_list.html:1096
+#: .\templates\events\public_list.html:1349
+#: .\templates\events\public_list.html:1396
+#: .\templates\events\public_list.html:1460
+msgid "Log In"
+msgstr "Iniciar Sesión"
+
+#: .\templates\accounts\panel_usuario.html:308
+#: .\templates\accounts\panel_usuario.html:345
+#: .\templates\accounts\public_home.html:2338
+#: .\templates\accounts\public_home.html:2375
+#: .\templates\accounts\public_home.html:3025
+#: .\templates\accounts\public_home.html:3075
+#: .\templates\events\public_detail.html:1519
+#: .\templates\events\public_detail.html:1556
+#: .\templates\events\public_detail.html:2050
+#: .\templates\events\public_list.html:1098
+#: .\templates\events\public_list.html:1135
+#: .\templates\events\public_list.html:1353
+msgid "Sign Up"
+msgstr "Registrarse"
+
+#: .\templates\accounts\panel_usuario.html:327
+#: .\templates\accounts\panel_usuario.html:415
+#: .\templates\accounts\public_home.html:2357
+#: .\templates\accounts\public_home.html:3053 .\templates\base_mlb.html:220
+#: .\templates\events\public_detail.html:1538
+#: .\templates\events\public_detail.html:1575
+#: .\templates\events\public_detail.html:2028
+#: .\templates\events\public_list.html:1117
+#: .\templates\events\public_list.html:1331
+msgid "Home"
+msgstr "Inicio"
+
+#: .\templates\accounts\panel_usuario.html:333
+#: .\templates\accounts\public_home.html:2363
+#: .\templates\accounts\public_home.html:3061 .\templates\base_mlb.html:224
+#: .\templates\events\public_detail.html:1544
+#: .\templates\events\public_detail.html:2036
+#: .\templates\events\public_list.html:1123
+#: .\templates\events\public_list.html:1339
+msgid "Teams"
+msgstr "Equipos"
+
+#: .\templates\accounts\panel_usuario.html:336
+#: .\templates\accounts\public_home.html:2366
+#: .\templates\events\public_detail.html:1547
+#: .\templates\events\public_list.html:1126
+msgid "Players"
+msgstr "Jugadores"
+
+#: .\templates\accounts\panel_usuario.html:390
+#: .\templates\accounts\public_home.html:2463
+#: .\templates\events\public_list.html:1271
+#: .\templates\events\public_list.html:1278
+msgid "Previous"
+msgstr "Anterior"
+
+#: .\templates\accounts\panel_usuario.html:394
+#: .\templates\accounts\public_home.html:2467
+#: .\templates\events\public_list.html:1296
+#: .\templates\events\public_list.html:1303
+msgid "Next"
+msgstr "Siguiente"
+
+#: .\templates\accounts\panel_usuario.html:410
+msgid "Quick Actions"
+msgstr "Acciones Rápidas"
+
+#: .\templates\accounts\panel_usuario.html:438
+msgid "Register Child"
+msgstr "Registrar Hijo"
+
+#: .\templates\accounts\panel_usuario.html:449
+msgid "My Profile"
+msgstr "Mi Perfil"
+
+#: .\templates\accounts\panel_usuario.html:453
+msgid "Public Profile"
+msgstr "Perfil Público"
+
+#: .\templates\accounts\panel_usuario.html:550
+#: .\templates\accounts\public_home.html:2522
+msgid "Loading..."
+msgstr ""
+
+#: .\templates\accounts\panel_usuario.html:551
+msgid "Loading edit form..."
+msgstr ""
+
+#: .\templates\accounts\panel_usuario.html:552
+msgid "Back to My Children/Players"
+msgstr "Volver a Mis Hijos/Jugadores"
+
+#: .\templates\accounts\panel_usuario.html:553
+msgid "Back to View Players"
+msgstr "Volver a Ver Jugadores"
+
+#: .\templates\accounts\panel_usuario.html:554
+msgid "Saving..."
+msgstr ""
+
+#: .\templates\accounts\panel_usuario.html:555
+msgid "Error loading form"
+msgstr ""
+
+#: .\templates\accounts\panel_usuario.html:556
+msgid "Error saving. Please try again."
+msgstr ""
+
+#: .\templates\accounts\panel_usuario.html:557
+msgid "Could not extract edit form. Please reload the page and try again."
+msgstr ""
+
+#: .\templates\accounts\panel_usuario.html:558
+msgid "Please try again."
+msgstr ""
+
+#: .\templates\accounts\panel_usuario.html:559
+msgid "Player updated successfully"
+msgstr ""
+
+#: .\templates\accounts\panel_usuario.html:561
+#: .\templates\accounts\player_edit_hijo.html:15
+msgid "Edit Child/Player"
+msgstr "Editar Hijo/Jugador"
+
+#: .\templates\accounts\panel_usuario.html:563
+msgid "Modify your child information"
+msgstr "Modifica la información de tu hijo"
+
+#: .\templates\accounts\panel_usuario.html:564
+#: .\templates\accounts\player_edit.html:17
+msgid "Modify player information"
+msgstr "Modifica la información del jugador"
+
+#: .\templates\accounts\player_edit.html:202
+#, fuzzy
+#| msgid "View Players"
+msgid "Active Player"
+msgstr "Ver Jugadores"
+
+#: .\templates\accounts\player_edit.html:225
+#: .\templates\accounts\player_edit_hijo.html:181
+#, fuzzy
+#| msgid "Player Information"
+msgid "Eligibility Information"
+msgstr "Información del Jugador"
+
+#: .\templates\accounts\player_edit.html:226
+#: .\templates\accounts\player_edit_hijo.html:182
+msgid "Age as of April 30"
+msgstr ""
+
+#: .\templates\accounts\player_edit.html:226
+#: .\templates\accounts\player_edit_hijo.html:182
+msgid "years"
+msgstr ""
+
+#: .\templates\accounts\player_edit.html:228
+#: .\templates\accounts\player_edit_hijo.html:184
+#, fuzzy
+#| msgid "Assigned Division"
+msgid "Age-based division"
+msgstr "División Asignada"
+
+#: .\templates\accounts\player_edit.html:231
+#: .\templates\accounts\player_edit_hijo.html:187
+msgid "Grade-based division"
+msgstr ""
+
+#: .\templates\accounts\player_edit.html:234
+#: .\templates\accounts\player_edit_hijo.html:190
+#, fuzzy
+#| msgid "Eligibility and Division"
+msgid "Eligible divisions"
+msgstr "Elegibilidad y División"
+
+#: .\templates\accounts\player_edit.html:283
+#: .\templates\accounts\player_edit_hijo.html:256
+#, fuzzy
+#| msgid "Current Grade"
+msgid "Current Document"
+msgstr "Grado Actual"
+
+#: .\templates\accounts\player_edit.html:286
+#: .\templates\accounts\player_edit_hijo.html:259
+msgid "View current document"
+msgstr ""
+
+#: .\templates\accounts\player_edit.html:288
+#: .\templates\accounts\player_edit_hijo.html:261
+#, fuzzy
+#| msgid "Click to upload document"
+msgid "Click to upload new document"
+msgstr "Haz clic para subir documento"
+
+#: .\templates\accounts\player_edit.html:322
+#, fuzzy
+#| msgid "Age Verification Document"
+msgid "Verification Status"
+msgstr "Documento de Verificación de Edad"
+
+#: .\templates\accounts\player_edit.html:335
+#, fuzzy
+#| msgid "Age Verification Document"
+msgid "Verification Notes"
+msgstr "Documento de Verificación de Edad"
+
+#: .\templates\accounts\player_edit.html:518
+#: .\templates\accounts\player_edit_hijo.html:471
+#, fuzzy
+#| msgid "The file is too large. Maximum size is 10MB."
+msgid "The file is too large. Maximum allowed size is 10MB."
+msgstr "El archivo es demasiado grande. El tamaño máximo es 10MB."
+
+#: .\templates\accounts\player_edit_hijo.html:17
+#, fuzzy
+#| msgid "Profile Information"
+msgid "Modify your child's information"
+msgstr "Modifica la información de tu hijo"
 
 #: .\templates\accounts\public_home.html:10
 #, fuzzy
@@ -228,126 +1527,69 @@ msgstr "¡Bienvenido!"
 msgid "NCS International - Professional Baseball"
 msgstr "NSC International - Béisbol Profesional"
 
-#: .\templates\accounts\public_home.html:2051
-msgid "My Account"
-msgstr "Mi Cuenta"
-
-#: .\templates\accounts\public_home.html:2053
-msgid "Log Out"
-msgstr "Cerrar Sesión"
-
-#: .\templates\accounts\public_home.html:2055
-#: .\templates\accounts\public_home.html:2718
-#: .\templates\accounts\public_home.html:2750
-#: .\templates\accounts\public_home.html:2776
-#: .\templates\accounts\public_home.html:2840
-msgid "Log In"
-msgstr "Iniciar Sesión"
-
-#: .\templates\accounts\public_home.html:2057
-#: .\templates\accounts\public_home.html:2094
-#: .\templates\accounts\public_home.html:2749
-msgid "Sign Up"
-msgstr "Registrarse"
-
-#: .\templates\accounts\public_home.html:2076
-#: .\templates\accounts\public_home.html:2743
-msgid "Home"
-msgstr "Inicio"
-
-#: .\templates\accounts\public_home.html:2079
-#: .\templates\accounts\public_home.html:2746
-msgid "Events"
-msgstr "Eventos"
-
-#: .\templates\accounts\public_home.html:2082
-#: .\templates\accounts\public_home.html:2747
-msgid "Teams"
-msgstr "Equipos"
-
-#: .\templates\accounts\public_home.html:2085
-msgid "Players"
-msgstr "Jugadores"
-
-#: .\templates\accounts\public_home.html:2089
-#: .\templates\accounts\public_home.html:2745
-msgid "Panel"
-msgstr "Panel"
-
-#: .\templates\accounts\public_home.html:2182
-msgid "Previous"
-msgstr "Anterior"
-
-#: .\templates\accounts\public_home.html:2186
-msgid "Next"
-msgstr "Siguiente"
-
-#: .\templates\accounts\public_home.html:2208
-#: .\templates\accounts\public_home.html:3044
+#: .\templates\accounts\public_home.html:2489
+#: .\templates\accounts\public_home.html:3420
 msgid "Your browser does not support video playback."
 msgstr "Tu navegador no soporta la reproducción de video."
 
-#: .\templates\accounts\public_home.html:2218
+#: .\templates\accounts\public_home.html:2498
 msgid "Watch later"
 msgstr "Ver más tarde"
 
-#: .\templates\accounts\public_home.html:2222
-#: .\templates\accounts\public_home.html:2224
+#: .\templates\accounts\public_home.html:2502
+#: .\templates\accounts\public_home.html:2504
 msgid "Enable sound"
 msgstr "Activar sonido"
 
-#: .\templates\accounts\public_home.html:2223
+#: .\templates\accounts\public_home.html:2503
 msgid "Mute"
 msgstr "Silenciar"
 
-#: .\templates\accounts\public_home.html:2227
+#: .\templates\accounts\public_home.html:2507
 msgid "Share"
 msgstr "Compartir"
 
-#: .\templates\accounts\public_home.html:2227
+#: .\templates\accounts\public_home.html:2507
 msgid "Link copied to clipboard"
 msgstr "Enlace copiado al portapapeles"
 
-#: .\templates\accounts\public_home.html:2241
+#: .\templates\accounts\public_home.html:2521
 msgid "NEXT EVENT"
 msgstr "PRÓXIMO EVENTO"
 
-#: .\templates\accounts\public_home.html:2242
-msgid "Loading..."
-msgstr ""
-
-#: .\templates\accounts\public_home.html:2245
+#: .\templates\accounts\public_home.html:2525
 msgid "Loading event information..."
 msgstr ""
 
-#: .\templates\accounts\public_home.html:2261
+#: .\templates\accounts\public_home.html:2541
 #, fuzzy
 #| msgid "VIEW MÉRIDA EVENT"
 msgid "VIEW EVENT"
 msgstr "VER EVENTO DE MÉRIDA"
 
-#: .\templates\accounts\public_home.html:2280
-#: .\templates\accounts\public_home.html:3083
+#: .\templates\accounts\public_home.html:2560
+#: .\templates\accounts\public_home.html:3496
 msgid "Tournament / Showcase"
 msgstr "Torneo / Showcase"
 
-#: .\templates\accounts\public_home.html:2281
-#: .\templates\accounts\public_home.html:3084
+#: .\templates\accounts\public_home.html:2561
+#: .\templates\accounts\public_home.html:3499
+#: .\templates\events\public_list.html:1154
 #, fuzzy
 #| msgid "Available Categories"
 msgid "All Categories"
 msgstr "Categorías disponibles"
 
-#: .\templates\accounts\public_home.html:2313
+#: .\templates\accounts\public_home.html:2600
 msgid "2026 EVENT CALENDAR"
 msgstr "CALENDARIO DE EVENTOS 2026"
 
-#: .\templates\accounts\public_home.html:2320
+#: .\templates\accounts\public_home.html:2614
 msgid "REGIONAL EXPANSION AND NEW NATIONAL AND REGIONAL CHAMPIONSHIPS FOR 2026"
 msgstr ""
 "EXPANSIÓN REGIONAL Y NUEVOS CAMPEONATOS NACIONALES Y REGIONALES PARA 2026"
 
-#: .\templates\accounts\public_home.html:2327
+#: .\templates\accounts\public_home.html:2628
 #, fuzzy
 #| msgid ""
 #| "As we move forward into 2026, NSC International continues to elevate its "
@@ -371,41 +1613,42 @@ msgstr ""
 "en todo el país, NSC se mantiene dedicado a ofrecer el más alto estándar de "
 "competencia y experiencia para jugadores, entrenadores y familias por igual."
 
-#: .\templates\accounts\public_home.html:2339
+#: .\templates\accounts\public_home.html:2640
 msgid "NCS CALENDAR"
 msgstr "CALENDARIO NCS"
 
-#: .\templates\accounts\public_home.html:2351
+#: .\templates\accounts\public_home.html:2652
+#: .\templates\events\public_list.html:1188
 msgid "EVENTS"
 msgstr "EVENTOS"
 
-#: .\templates\accounts\public_home.html:2352
+#: .\templates\accounts\public_home.html:2653
 msgid "VIEW ALL"
 msgstr "VER TODOS"
 
-#: .\templates\accounts\public_home.html:2409
-#: .\templates\accounts\public_home.html:2430
-#: .\templates\accounts\public_home.html:2451
-#: .\templates\accounts\public_home.html:2471
+#: .\templates\accounts\public_home.html:2710
+#: .\templates\accounts\public_home.html:2731
+#: .\templates\accounts\public_home.html:2752
+#: .\templates\accounts\public_home.html:2772
 msgid "COMING SOON"
 msgstr "PRÓXIMAMENTE"
 
-#: .\templates\accounts\public_home.html:2413
-#: .\templates\accounts\public_home.html:2434
-#: .\templates\accounts\public_home.html:2455
-#: .\templates\accounts\public_home.html:2475
+#: .\templates\accounts\public_home.html:2714
+#: .\templates\accounts\public_home.html:2735
+#: .\templates\accounts\public_home.html:2756
+#: .\templates\accounts\public_home.html:2776
 msgid "Very soon"
 msgstr "Muy pronto"
 
-#: .\templates\accounts\public_home.html:2512
+#: .\templates\accounts\public_home.html:2815
 msgid "SHOWCASES AND PROSPECT GATEWAYS"
 msgstr "SHOWCASES Y PORTALES DE PROSPECTO"
 
-#: .\templates\accounts\public_home.html:2519
+#: .\templates\accounts\public_home.html:2824
 msgid "REGIONAL AND NATIONAL SHOWCASES"
 msgstr "SHOWCASES REGIONALES Y NACIONALES"
 
-#: .\templates\accounts\public_home.html:2526
+#: .\templates\accounts\public_home.html:2833
 msgid ""
 "Perfect Game is thrilled to offer showcases (HS) and Prospect Gateways (13U/"
 "14U) across the country for the 2025 calendar. This includes regional events "
@@ -419,98 +1662,514 @@ msgstr ""
 "esfuerza por ofrecer los mejores eventos y experiencias para todos los "
 "jugadores, entrenadores y familias en todo el país."
 
-#: .\templates\accounts\public_home.html:2530
+#: .\templates\accounts\public_home.html:2837
 msgid "SHOWCASE SCHEDULE"
 msgstr "CALENDARIO DE SHOWCASES"
 
-#: .\templates\accounts\public_home.html:2531
+#: .\templates\accounts\public_home.html:2838
 msgid "GATEWAY SCHEDULE"
 msgstr "CALENDARIO DE GATEWAYS"
 
-#: .\templates\accounts\public_home.html:2584
-msgid "Follow us on Instagram"
-msgstr "Síguenos en Instagram"
-
-#: .\templates\accounts\public_home.html:2617
+#: .\templates\accounts\public_home.html:2849
 msgid "SPONSORS"
 msgstr "PATROCINADORES"
 
-#: .\templates\accounts\public_home.html:2813
-msgid "NCS International was designed to provide opportunities for players and teams through our national and international tournaments and showcases."
-msgstr "NCS International fue diseñado para brindar oportunidades a jugadores y equipos a través de nuestros torneos y showcases nacionales e internacionales."
+#: .\templates\accounts\public_home.html:2891
+msgid "Follow us on Instagram"
+msgstr "Síguenos en Instagram"
 
-#: .\templates\accounts\public_home.html:2711
-msgid "Ready to Get Started?"
-msgstr "¿Listo para Comenzar?"
+#: .\templates\accounts\public_home.html:3018
+msgid "Get Started Today"
+msgstr "Comienza Hoy"
 
-#: .\templates\accounts\public_home.html:2712
-msgid "Join the best professional baseball management platform"
-msgstr "Únete a la mejor plataforma de gestión de béisbol profesional"
-
-#: .\templates\accounts\public_home.html:2715
-msgid "Sign Up Now"
-msgstr "Registrarse Ahora"
-
-#: .\templates\accounts\public_home.html:2722
-msgid "Go to Panel"
-msgstr "Ir al Panel"
-
-#: .\templates\accounts\public_home.html:2738
-msgid ""
-"The professional platform to manage tournaments, teams and baseball players. "
-"Complete sports management system."
+#: .\templates\accounts\public_home.html:3019
+msgid "Create a Profile • Player Profile • Team Profile • Register for Events"
 msgstr ""
-"La plataforma profesional para gestionar torneos, equipos y jugadores de "
-"béisbol. Sistema completo de gestión deportiva."
+"Crea un Perfil • Perfil de Jugador • Perfil de Equipo • Regístrate para "
+"Eventos"
 
-#: .\templates\accounts\public_home.html:2742
+#: .\templates\accounts\public_home.html:3029
+msgid "Go to My Account"
+msgstr "Ir a Mi Cuenta"
+
+#: .\templates\accounts\public_home.html:3045
+#: .\templates\events\public_detail.html:2020
+#: .\templates\events\public_list.html:1323
+msgid ""
+"NCS International was designed to provide opportunities for players and "
+"teams through our national and international tournaments and showcases."
+msgstr ""
+"NCS International fue diseñado para brindar oportunidades a jugadores y "
+"equipos a través de nuestros torneos y showcases nacionales e "
+"internacionales."
+
+#: .\templates\accounts\public_home.html:3049
+#: .\templates\events\public_detail.html:2024
+#: .\templates\events\public_list.html:1327
 msgid "Quick Links"
 msgstr "Enlaces Rápidos"
 
-#: .\templates\accounts\public_home.html:2754
+#: .\templates\accounts\public_home.html:3081
+#: .\templates\events\public_detail.html:2056
+#: .\templates\events\public_list.html:1359
 msgid "Contact"
 msgstr "Contacto"
 
-#: .\templates\accounts\public_home.html:2763
+#: .\templates\accounts\public_home.html:3105
+#: .\templates\events\public_detail.html:2080
+#: .\templates\events\public_list.html:1383
 msgid "All rights reserved."
 msgstr "Todos los derechos reservados."
 
-#: .\templates\accounts\public_home.html:2777
-#: .\templates\accounts\public_home.html:3176
+#: .\templates\accounts\public_home.html:3119
+#: .\templates\accounts\public_home.html:3609
+#: .\templates\events\public_detail.html:2094
+#: .\templates\events\public_list.html:1397
 msgid "Close"
 msgstr "Cerrar"
 
-#: .\templates\accounts\public_home.html:2780
+#: .\templates\accounts\public_home.html:3122
+#: .\templates\events\public_detail.html:2097
+#: .\templates\events\public_list.html:1400
 #, fuzzy
 #| msgid "Access your NSC International account"
 msgid "Access your NCS International account"
 msgstr "Accede a tu cuenta de NSC International"
 
-#: .\templates\accounts\public_home.html:2794
+#: .\templates\accounts\public_home.html:3136
+#: .\templates\events\public_detail.html:2111
+#: .\templates\events\public_list.html:1414
 msgid "Please verify your credentials and try again."
 msgstr "Por favor, verifica tus credenciales e intenta nuevamente."
 
-#: .\templates\accounts\public_home.html:2806
+#: .\templates\accounts\public_home.html:3148
+#: .\templates\events\public_detail.html:2123
+#: .\templates\events\public_list.html:1426
 msgid "your@email.com"
 msgstr "tu@email.com"
 
-#: .\templates\accounts\public_home.html:2834
+#: .\templates\accounts\public_home.html:3176
+#: .\templates\events\public_detail.html:2151
+#: .\templates\events\public_list.html:1454
 msgid "Remember me"
 msgstr "Recordarme"
 
-#: .\templates\accounts\public_home.html:2846
+#: .\templates\accounts\public_home.html:3188
+#: .\templates\events\public_detail.html:2163
+#: .\templates\events\public_list.html:1466
 msgid "Don't have an account? <a href=\"/accounts/register/\">Sign up here</a>"
 msgstr "¿No tienes cuenta? <a href=\"/accounts/register/\">Regístrate aquí</a>"
 
-#: .\templates\accounts\public_home.html:3080
+#: .\templates\accounts\public_home.html:3487
 msgid "Event"
 msgstr "Evento"
 
-#: .\templates\accounts\public_home.html:3081
+#: .\templates\accounts\public_home.html:3490
 #, fuzzy
 #| msgid "Experience NSC International events"
 msgid "Experience NCS International events"
 msgstr "Vive la experiencia de eventos NSC International"
+
+#: .\templates\accounts\public_home.html:3526
+msgid "No videos available"
+msgstr ""
+
+#: .\templates\accounts\public_home.html:3527
+#, fuzzy
+#| msgid "No upcoming events."
+msgid "Check back soon for upcoming events"
+msgstr "No hay eventos próximos."
+
+#: .\templates\accounts\public_register.html:1726
+msgid "Please select a valid image (JPG, PNG or GIF)"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1732
+#, fuzzy
+#| msgid "The file is too large. Maximum size is 10MB."
+msgid "The image is too large. Maximum size is 5MB"
+msgstr "El archivo es demasiado grande. El tamaño máximo es 10MB."
+
+#: .\templates\accounts\user_dashboard.html:1485
+msgid "Error loading event information."
+msgstr ""
+
+#: .\templates\accounts\user_dashboard.html:2290
+msgid "Are you sure you want to delete this person?"
+msgstr ""
+
+#: .\templates\accounts\user_dashboard.html:2457
+#: .\templates\accounts\user_dashboard.html:2482
+msgid "Please select at least one player"
+msgstr ""
+
+#: .\templates\accounts\user_dashboard.html:2462
+#: .\templates\accounts\user_dashboard.html:2487
+msgid "The total must be greater than $0.00"
+msgstr ""
+
+#: .\templates\accounts\user_dashboard.html:2468
+msgid "Processing total payment of $"
+msgstr ""
+
+#: .\templates\accounts\user_dashboard.html:2468
+#, python-format
+msgid "with 10%% discount"
+msgstr ""
+
+#: .\templates\accounts\user_dashboard.html:2493
+msgid "Processing payment plan: $"
+msgstr ""
+
+#: .\templates\accounts\user_dashboard.html:2493
+msgid "per installment (3 installments of $"
+msgstr ""
+
+#: .\templates\accounts\user_dashboard.html:2493
+msgid "each)"
+msgstr ""
+
+#: .\templates\events\public_detail.html:10
+#, fuzzy
+#| msgid "Experience NSC International events"
+msgid "NCS International"
+msgstr "Vive la experiencia de eventos NSC International"
+
+#: .\templates\events\public_detail.html:1591
+msgid "Date"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1611
+#: .\templates\events\public_detail.html:1811
+msgid "Entry Fee"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1619
+#: .\templates\events\public_detail.html:1637
+#: .\templates\events\public_detail.html:1941
+#, fuzzy
+#| msgid "Register Child"
+msgid "Register Now"
+msgstr "Registrar Hijo"
+
+#: .\templates\events\public_detail.html:1623
+msgid "Learn More"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1632
+msgid "Don't Miss Out!"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1633
+msgid "Join us for this incredible event and be part of the action"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1650
+msgid "Why Attend?"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1651
+msgid "Discover what makes this event special and why you should be part of it"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1658
+#, fuzzy
+#| msgid "Position"
+msgid "Competition"
+msgstr "Posición"
+
+#: .\templates\events\public_detail.html:1659
+msgid ""
+"Experience high-level competition with top players and teams from around the "
+"world"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1665
+msgid "Networking"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1666
+msgid ""
+"Connect with coaches, scouts, and fellow athletes to expand your network"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1672
+msgid "Exposure"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1673
+msgid ""
+"Get noticed by scouts and recruiters looking for the next generation of "
+"talent"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1679
+msgid "Development"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1680
+msgid "Improve your skills through professional coaching and competitive play"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1686
+msgid "International"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1687
+msgid ""
+"Participate in an international event with diverse participants and cultures"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1693
+#, fuzzy
+#| msgid "Description"
+msgid "Recognition"
+msgstr "Descripción"
+
+#: .\templates\events\public_detail.html:1694
+msgid "Earn recognition and awards for outstanding performance and achievement"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1703
+msgid "Important Dates"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1704
+msgid "Mark your calendar with these key dates for the event"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1714
+#: .\templates\events\public_detail.html:1799
+msgid "Registration Deadline"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1715
+msgid ""
+"Last day to register for the event. Don't miss your chance to participate!"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1726
+msgid "Payment Deadline"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1727
+msgid "Complete your payment by this date to secure your spot in the event"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1738
+#, fuzzy
+#| msgid "Events"
+msgid "Event Dates"
+msgstr "Eventos"
+
+#: .\templates\events\public_detail.html:1739
+msgid ""
+"The main event takes place during these dates. Get ready for an "
+"unforgettable experience!"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1835
+msgid "About This Event"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1845
+#, fuzzy
+#| msgid "Location"
+msgid "Location Details"
+msgstr "Ubicación"
+
+#: .\templates\events\public_detail.html:1862
+#, fuzzy
+#| msgid "Full hotel address"
+msgid "Address"
+msgstr "Dirección completa"
+
+#: .\templates\events\public_detail.html:1888
+msgid "Accommodation"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1895
+msgid "Main Hotel"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1913
+msgid "Additional Hotel"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1933
+msgid "Ready to Join?"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1936
+msgid "Don't miss this opportunity to be part of an amazing event"
+msgstr ""
+
+#: .\templates\events\public_detail.html:1948
+msgid "Back to Home"
+msgstr "Volver al Inicio"
+
+#: .\templates\events\public_detail.html:1959
+#, fuzzy
+#| msgid "Events"
+msgid "Related Events"
+msgstr "Eventos"
+
+#: .\templates\events\public_detail.html:1960
+msgid "You might also be interested in these events"
+msgstr ""
+
+#: .\templates\events\public_list.html:10
+#, fuzzy
+#| msgid "Experience NSC International events"
+msgid "Events - NCS International"
+msgstr "Vive la experiencia de eventos NSC International"
+
+#: .\templates\events\public_list.html:1148
+#, fuzzy
+#| msgid "Search city..."
+msgid "Search"
+msgstr "Buscar ciudad..."
+
+#: .\templates\events\public_list.html:1149
+#, fuzzy
+#| msgid "Search teams..."
+msgid "Search events..."
+msgstr "Buscar equipos..."
+
+#: .\templates\events\public_list.html:1152
+#, fuzzy
+#| msgid "Available Categories"
+msgid "Category"
+msgstr "Categorías disponibles"
+
+#: .\templates\events\public_list.html:1161
+#, fuzzy
+#| msgid "Event"
+msgid "Event Type"
+msgstr "Evento"
+
+#: .\templates\events\public_list.html:1163
+msgid "All Types"
+msgstr ""
+
+#: .\templates\events\public_list.html:1170
+msgid "Time"
+msgstr ""
+
+#: .\templates\events\public_list.html:1172
+#, fuzzy
+#| msgid "Events"
+msgid "All Events"
+msgstr "Eventos"
+
+#: .\templates\events\public_list.html:1179
+msgid "Filter"
+msgstr ""
+
+#: .\templates\events\public_list.html:1180
+msgid "Clear"
+msgstr ""
+
+#: .\templates\events\public_list.html:1254
+msgid "No events found"
+msgstr ""
+
+#: .\templates\events\public_list.html:1255
+msgid "Try adjusting your filters or check back later."
+msgstr ""
+
+#: .\templates\events\public_list.html:1264
+msgid "Events pagination"
+msgstr ""
+
+#: .\templates\events\public_list.html:1268
+#: .\templates\events\public_list.html:1275
+#, fuzzy
+#| msgid "First name"
+msgid "First"
+msgstr "Nombre"
+
+#: .\templates\events\public_list.html:1299
+#: .\templates\events\public_list.html:1306
+#, fuzzy
+#| msgid "Last name"
+msgid "Last"
+msgstr "Apellido"
+
+#, fuzzy
+#~| msgid "Contact Phone"
+#~ msgid "Contact Person"
+#~ msgstr "Teléfono de Contacto"
+
+#~ msgid "Available Rooms"
+#~ msgstr "Habitaciones Disponibles"
+
+#, fuzzy
+#~| msgid "Available"
+#~ msgid "available"
+#~ msgstr "Disponible"
+
+#~ msgid "per night"
+#~ msgstr "por noche"
+
+#~ msgid "Hotel Registration"
+#~ msgstr "Registro en el Hotel"
+
+#, fuzzy
+#~| msgid "Register Child"
+#~ msgid "Register at Hotel"
+#~ msgstr "Registrar Hijo"
+
+#, fuzzy
+#~| msgid "User Information"
+#~ msgid "Information"
+#~ msgstr "Información de Usuario"
+
+#~ msgid "Upload a new profile picture"
+#~ msgstr "Sube una nueva foto de perfil"
+
+#, fuzzy
+#~| msgid "e.g.: 10"
+#~ msgid "e.g.: 5'10\""
+#~ msgstr "Ej: 5'10\""
+
+#, fuzzy
+#~| msgid "Players"
+#~ msgid "Player name"
+#~ msgstr "Nombre del jugador"
+
+#, fuzzy
+#~| msgid "Players"
+#~ msgid "Player phone"
+#~ msgstr "Teléfono del jugador"
+
+#~ msgid "Specify medical conditions or \"None\""
+#~ msgstr "Especifica condiciones médicas o \"Ninguna\""
+
+#~ msgid "Notes on age verification"
+#~ msgstr "Notas sobre la verificación de edad"
+
+#~ msgid "Panel"
+#~ msgstr "Panel"
+
+#~ msgid "Ready to Get Started?"
+#~ msgstr "¿Listo para Comenzar?"
+
+#~ msgid "Join the best professional baseball management platform"
+#~ msgstr "Únete a la mejor plataforma de gestión de béisbol profesional"
+
+#~ msgid "Sign Up Now"
+#~ msgstr "Registrarse Ahora"
+
+#~ msgid "Go to Panel"
+#~ msgstr "Ir al Panel"
+
+#~ msgid ""
+#~ "The professional platform to manage tournaments, teams and baseball "
+#~ "players. Complete sports management system."
+#~ msgstr ""
+#~ "La plataforma profesional para gestionar torneos, equipos y jugadores de "
+#~ "béisbol. Sistema completo de gestión deportiva."
 
 #~ msgid "Edit Schedule Settings"
 #~ msgstr "Editar Configuración Schedule"
@@ -533,17 +2192,8 @@ msgstr "Vive la experiencia de eventos NSC International"
 #~ msgid "Subtitle"
 #~ msgstr "Subtítulo"
 
-#~ msgid "Description"
-#~ msgstr "Descripción"
-
 #~ msgid "Spanish Content"
 #~ msgstr "Contenido en Español"
-
-#~ msgid "Cancel"
-#~ msgstr "Cancelar"
-
-#~ msgid "Save Settings"
-#~ msgstr "Guardar Configuración"
 
 #~ msgid "Edit Showcase Settings"
 #~ msgstr "Editar Configuración Showcase"
@@ -555,500 +2205,116 @@ msgstr "Vive la experiencia de eventos NSC International"
 #~ "Gestiona la imagen y contenido de la sección 'Showcases and Prospect "
 #~ "Gateways' del home"
 
-msgid "Calendar"
-msgstr "Calendario"
+#~ msgid "Progress"
+#~ msgstr "Progreso"
 
+#~ msgid "Ex: 6'2\" or 5'10\""
+#~ msgstr "Ej: 6'2\" o 5'10\""
 
+#~ msgid ""
+#~ "Select the corresponding sizes. You can leave them blank and update them "
+#~ "later."
+#~ msgstr ""
+#~ "Selecciona las tallas correspondientes. Puedes dejarlas en blanco y "
+#~ "actualizarlas después."
 
+#~ msgid "English"
+#~ msgstr "Inglés"
 
+#~ msgid "player"
+#~ msgid_plural "players"
+#~ msgstr[0] "jugador"
+#~ msgstr[1] "jugadores"
 
+#~ msgid "No players registered yet."
+#~ msgstr "Aún no hay jugadores registrados."
 
-msgid "Create Team"
-msgstr "Crear Equipo"
+#~ msgid "Edit"
+#~ msgstr "Editar"
 
-msgid "Create New Team"
-msgstr "Crear Nuevo Equipo"
+#~ msgid "Pre-K"
+#~ msgstr "Pre-K"
 
-msgid "Register a new team in the system"
-msgstr "Registra un nuevo equipo en el sistema"
+#~ msgid "Kindergarten"
+#~ msgstr "Jardín de Infantes"
 
-msgid "Team Name"
-msgstr "Nombre del Equipo"
+#~ msgid "1st Grade"
+#~ msgstr "1er Grado"
 
-msgid "Team Logo"
-msgstr "Logo del Equipo"
+#~ msgid "2nd Grade"
+#~ msgstr "2do Grado"
 
-msgid "Click to upload logo"
-msgstr "Haz clic para subir el logo"
+#~ msgid "3rd Grade"
+#~ msgstr "3er Grado"
 
-msgid "JPG, PNG or GIF (max. 5MB)"
-msgstr "JPG, PNG o GIF (máx. 5MB)"
+#~ msgid "4th Grade"
+#~ msgstr "4to Grado"
 
-msgid "The file is too large. Maximum size is 10MB."
-msgstr "El archivo es demasiado grande. El tamaño máximo es 10MB."
+#~ msgid "5th Grade"
+#~ msgstr "5to Grado"
 
-msgid "File type not allowed. Only PDF, JPG and PNG are accepted."
-msgstr "Tipo de archivo no permitido. Solo se aceptan PDF, JPG y PNG."
+#~ msgid "6th Grade"
+#~ msgstr "6to Grado"
 
-msgid "Please complete all required fields:"
-msgstr "Por favor, completa todos los campos requeridos:"
+#~ msgid "7th Grade"
+#~ msgstr "7mo Grado"
 
-msgid "Welcome!"
-msgstr "¡Bienvenido!"
+#~ msgid "8th Grade"
+#~ msgstr "8vo Grado"
 
-msgid ""
-"This is your welcome area. The administrator can configure the content "
-"from the administration panel."
-msgstr ""
-"Esta es tu zona de bienvenida. El administrador puede configurar el "
-"contenido desde el panel de administración."
+#~ msgid "9th Grade"
+#~ msgstr "9no Grado"
 
+#~ msgid "10th Grade"
+#~ msgstr "10mo Grado"
 
+#~ msgid "11th Grade"
+#~ msgstr "11mo Grado"
 
-msgid "My Teams"
-msgstr "Mis Equipos"
+#~ msgid "12th Grade"
+#~ msgstr "12mo Grado"
 
-msgid "My Children/Players"
-msgstr "Mis Hijos/Jugadores"
+#~ msgid "Pitcher"
+#~ msgstr "Lanzador"
 
-msgid "Edit Profile"
-msgstr "Editar Perfil"
+#~ msgid "Catcher"
+#~ msgstr "Receptor"
 
+#~ msgid "First Base"
+#~ msgstr "Primera Base"
 
+#~ msgid "Second Base"
+#~ msgstr "Segunda Base"
 
+#~ msgid "Third Base"
+#~ msgstr "Tercera Base"
 
+#~ msgid "Shortstop"
+#~ msgstr "Campo Corto"
 
+#~ msgid "Left Field"
+#~ msgstr "Jardín Izquierdo"
 
-msgid "Register Player"
-msgstr "Registrar Jugador"
+#~ msgid "Center Field"
+#~ msgstr "Jardín Central"
 
-msgid "View Players"
-msgstr "Ver Jugadores"
+#~ msgid "Right Field"
+#~ msgstr "Jardín Derecho"
 
-msgid "Quick Actions"
-msgstr "Acciones Rápidas"
+#~ msgid "Designated Hitter"
+#~ msgstr "Bateador Designado"
 
-msgid "Register Child"
-msgstr "Registrar Hijo"
+#~ msgid "Utility"
+#~ msgstr "Utilidad"
 
-msgid "Register Child/Player"
-msgstr "Registrar Hijo/Jugador"
+#~ msgid "Left"
+#~ msgstr "Izquierdo"
 
-msgid "Complete the information to register your child as a player in the system"
-msgstr "Completa la información para registrar a tu hijo como jugador en el sistema"
-
-msgid "Note:"
-msgstr "Nota:"
-
-msgid "Players registered by parents"
-msgstr "Los jugadores registrados por padres"
-
-msgid "CANNOT log in"
-msgstr "NO PUEDEN iniciar sesión"
-
-msgid "You will manage all their information from your dashboard."
-msgstr "Gestionarás toda su información desde tu panel."
-
-msgid "Progress"
-msgstr "Progreso"
-
-msgid "Relationship with Player"
-msgstr "Relación con el Jugador"
-
-msgid "Relationship"
-msgstr "Relación"
-
-msgid "Your legal relationship with the player"
-msgstr "Tu relación legal con el jugador"
-
-msgid "Personal Information"
-msgstr "Información Personal"
-
-msgid "First Name"
-msgstr "Nombre"
-
-msgid "Last Name"
-msgstr "Apellido"
-
-msgid "Second Last Name"
-msgstr "Segundo Apellido"
-
-msgid "optional"
-msgstr "opcional"
-
-msgid "Optional"
-msgstr "Opcional"
-
-msgid "Ex: 6'2\" or 5'10\""
-msgstr "Ej: 6'2\" o 5'10\""
-
-msgid "Batting"
-msgstr "Bateo"
-
-msgid "Throwing"
-msgstr "Lanzamiento"
-
-msgid "Jersey Number"
-msgstr "Número de Jersey"
-
-msgid "Position"
-msgstr "Posición"
-
-msgid "Team"
-msgstr "Equipo"
-
-msgid "Preview"
-msgstr "Vista previa"
-
-msgid "Format: (123) 456-7890"
-msgstr "Formato: (123) 456-7890"
-
-msgid "Birth Date"
-msgstr "Fecha de Nacimiento"
-
-msgid "Division and grade will be calculated automatically"
-msgstr "La división y el grado se calcularán automáticamente"
-
-msgid "Sports Information"
-msgstr "Información Deportiva"
-
-msgid "Team and jersey number will be assigned by an administrator or manager."
-msgstr "El equipo y número de jersey serán asignados por un administrador o manager."
-
-msgid "Preferred Position"
-msgstr "Posición Preferida"
-
-msgid "Height"
-msgstr "Estatura"
-
-msgid "Ex: 5'10\""
-msgstr "Ej: 5'10\""
-
-msgid "Weight (lbs)"
-msgstr "Peso (lbs)"
-
-msgid "Batting Hand"
-msgstr "Mano de Bateo"
-
-msgid "Throwing Hand"
-msgstr "Mano de Lanzamiento"
-
-msgid "Eligibility and Division"
-msgstr "Elegibilidad y División"
-
-msgid "Players without approved age verification are not eligible until documentation is approved."
-msgstr "Los jugadores sin verificación de edad aprobada no son elegibles hasta que se apruebe la documentación."
-
-msgid "Current Grade"
-msgstr "Grado Actual"
-
-msgid "Will be calculated automatically"
-msgstr "Se calculará automáticamente"
-
-msgid "Assigned Division"
-msgstr "División Asignada"
-
-msgid "Assigned automatically or by administrator"
-msgstr "Asignada automáticamente o por administrador"
-
-msgid "Age Verification Document"
-msgstr "Documento de Verificación de Edad"
-
-msgid "Click to upload document"
-msgstr "Haz clic para subir documento"
-
-msgid "PDF, JPG, PNG (max. 10MB)"
-msgstr "PDF, JPG, PNG (máx. 10MB)"
-
-msgid "Birth certificate, passport or ID (original or digital)"
-msgstr "Certificado de nacimiento, pasaporte o ID (original o digital)"
-
-msgid "Uniform Sizes"
-msgstr "Tallas de Uniformes"
-
-msgid "Select the corresponding sizes. You can leave them blank and update them later."
-msgstr "Selecciona las tallas correspondientes. Puedes dejarlas en blanco y actualizarlas después."
-
-msgid "Jersey Size"
-msgstr "Talla de Jersey"
-
-msgid "Hat Size"
-msgstr "Talla de Gorra"
-
-msgid "Batting Glove Size"
-msgstr "Talla de Guante de Bateo"
-
-msgid "Batting Helmet Size"
-msgstr "Talla de Casco de Bateo"
-
-msgid "Pants Size"
-msgstr "Talla de Pantalones"
-
-msgid "Emergency Contact"
-msgstr "Contacto de Emergencia"
-
-msgid "Information used only in case of medical emergency."
-msgstr "Información utilizada solo en caso de emergencia médica."
-
-msgid "Contact Name"
-msgstr "Nombre del Contacto"
-
-msgid "Emergency Phone"
-msgstr "Teléfono de Emergencia"
-
-msgid "24/7 available number"
-msgstr "Número disponible 24/7"
-
-msgid "Medical Conditions"
-msgstr "Condiciones Médicas"
-
-msgid "Allergies, asthma, medications, etc. If there are no conditions, write \"None\"."
-msgstr "Alergias, asma, medicamentos, etc. Si no hay condiciones, escribe \"Ninguna\"."
-
-msgid "English"
-msgstr "Inglés"
-
-msgid "Spanish"
-msgstr "Español"
-
-msgid "player"
-msgid_plural "players"
-msgstr[0] "jugador"
-msgstr[1] "jugadores"
-
-msgid "My Profile"
-msgstr "Mi Perfil"
-
-msgid "My Player Profile"
-msgstr "Mi Perfil de Jugador"
-
-msgid "My Public Profile"
-msgstr "Mi Perfil Público"
-
-msgid "No team"
-msgstr "Sin equipo"
-
-msgid "Manage your registered teams"
-msgstr "Gestiona tus equipos registrados"
-
-msgid "List of registered players"
-msgstr "Lista de jugadores registrados"
-
-msgid "Manage registered players"
-msgstr "Gestiona jugadores registrados"
-
-msgid "View and manage your information as a player"
-msgstr "Ver y gestionar tu información como jugador"
-
-msgid "View how your public profile looks"
-msgstr "Ver cómo se ve tu perfil público"
-
-msgid "This is your public profile"
-msgstr "Este es tu perfil público"
-
-msgid "Explore available events"
-msgstr "Explora eventos disponibles"
-
-msgid "Calendar view of events"
-msgstr "Vista de calendario de eventos"
-
-msgid "Calendar view coming soon"
-msgstr "Vista de calendario próximamente"
-
-msgid "You don't have any registered teams yet."
-msgstr "Aún no tienes equipos registrados."
-
-msgid "You haven't registered any players yet."
-msgstr "Aún no has registrado ningún jugador."
-
-msgid "No players registered yet."
-msgstr "Aún no hay jugadores registrados."
-
-msgid "Verified"
-msgstr "Verificado"
-
-msgid "Pending"
-msgstr "Pendiente"
-
-msgid "View"
-msgstr "Ver"
-
-msgid "Edit"
-msgstr "Editar"
-
-msgid "Total Players"
-msgstr "Total de Jugadores"
-
-msgid "Different Teams"
-msgstr "Equipos Diferentes"
-
-msgid "Divisions"
-msgstr "Divisiones"
-
-msgid "No Players Registered Yet"
-msgstr "Aún No Hay Jugadores Registrados"
-
-msgid "You haven't registered any players yet. Start by registering your first child/player."
-msgstr "Aún no has registrado ningún jugador. Comienza registrando tu primer hijo/jugador."
-
-msgid "Register First Player"
-msgstr "Registrar Primer Jugador"
-
-msgid "No team assigned"
-msgstr "Sin equipo asignado"
-
-msgid "Pre-K"
-msgstr "Pre-K"
-
-msgid "Kindergarten"
-msgstr "Jardín de Infantes"
-
-msgid "1st Grade"
-msgstr "1er Grado"
-
-msgid "2nd Grade"
-msgstr "2do Grado"
-
-msgid "3rd Grade"
-msgstr "3er Grado"
-
-msgid "4th Grade"
-msgstr "4to Grado"
-
-msgid "5th Grade"
-msgstr "5to Grado"
-
-msgid "6th Grade"
-msgstr "6to Grado"
-
-msgid "7th Grade"
-msgstr "7mo Grado"
-
-msgid "8th Grade"
-msgstr "8vo Grado"
-
-msgid "9th Grade"
-msgstr "9no Grado"
-
-msgid "10th Grade"
-msgstr "10mo Grado"
-
-msgid "11th Grade"
-msgstr "11mo Grado"
-
-msgid "12th Grade"
-msgstr "12mo Grado"
-
-msgid "Pitcher"
-msgstr "Lanzador"
-
-msgid "Catcher"
-msgstr "Receptor"
-
-msgid "First Base"
-msgstr "Primera Base"
-
-msgid "Second Base"
-msgstr "Segunda Base"
-
-msgid "Third Base"
-msgstr "Tercera Base"
-
-msgid "Shortstop"
-msgstr "Campo Corto"
-
-msgid "Left Field"
-msgstr "Jardín Izquierdo"
-
-msgid "Center Field"
-msgstr "Jardín Central"
-
-msgid "Right Field"
-msgstr "Jardín Derecho"
-
-msgid "Designated Hitter"
-msgstr "Bateador Designado"
-
-msgid "Utility"
-msgstr "Utilidad"
-
-msgid "Left"
-msgstr "Izquierdo"
-
-msgid "Right"
-msgstr "Derecho"
-
-msgid "Switch"
-msgstr "Ambidiestro"
-
-msgid "No upcoming events."
-msgstr "No hay eventos próximos."
-
-msgid "Update your personal and profile information"
-msgstr "Actualiza tu información personal y de perfil"
-
-msgid "User Information"
-msgstr "Información de Usuario"
-
-msgid "Profile Information"
-msgstr "Información de Perfil"
-
-msgid "Profile Picture"
-msgstr "Foto de Perfil"
-
-msgid "Register a new player for your teams"
-msgstr "Registra un nuevo jugador para tus equipos"
-
-msgid "Save Changes"
-msgstr "Guardar Cambios"
-
-msgid "Basic Information"
-msgstr "Información Básica"
-
-msgid "Contact Information"
-msgstr "Información de Contacto"
-
-msgid "Location"
-msgstr "Ubicación"
-
-msgid "Country"
-msgstr "País"
-
-msgid "State"
-msgstr "Estado"
-
-msgid "City"
-msgstr "Ciudad"
-
-msgid "Contact Email"
-msgstr "Correo de Contacto"
-
-msgid "Contact Phone"
-msgstr "Teléfono de Contacto"
-
-msgid "Website"
-msgstr "Sitio Web"
-
-msgid "Player Information"
-msgstr "Información del Jugador"
-
-msgid "Public Profile"
-msgstr "Perfil Público"
-
-msgid "Get Started Today"
-msgstr "Comienza Hoy"
-
-msgid "Create a Profile • Player Profile • Team Profile • Register for Events"
-msgstr "Crea un Perfil • Perfil de Jugador • Perfil de Equipo • Regístrate para Eventos"
-
-#~ msgid "Go to My Account"
-#~ msgstr "Ir a Mi Cuenta"
+#~ msgid "Switch"
+#~ msgstr "Ambidiestro"
 
 #~ msgid "Sign In"
 #~ msgstr "Iniciar Sesión"
-
-#~ msgid "Back to Home"
-#~ msgstr "Volver al Inicio"
 
 #~ msgid "Don't have an account?"
 #~ msgstr "¿No tienes una cuenta?"
@@ -1061,9 +2327,6 @@ msgstr "Crea un Perfil • Perfil de Jugador • Perfil de Equipo • Regístrat
 
 #~ msgid "Search by name..."
 #~ msgstr "Buscar por nombre..."
-
-#~ msgid "Search teams..."
-#~ msgstr "Buscar equipos..."
 
 #~ msgid "email@example.com"
 #~ msgstr "correo@ejemplo.com"
@@ -1139,9 +2402,6 @@ msgstr "Crea un Perfil • Perfil de Jugador • Perfil de Equipo • Regístrat
 
 #~ msgid "Search state..."
 #~ msgstr "Buscar estado..."
-
-#~ msgid "Search city..."
-#~ msgstr "Buscar ciudad..."
 
 #~ msgid "Name, address, city..."
 #~ msgstr "Nombre, dirección, ciudad..."
@@ -1241,4 +2501,3 @@ msgstr "Crea un Perfil • Perfil de Jugador • Perfil de Equipo • Regístrat
 #~ "Vive la experiencia NSC International en <strong>Mérida, Yucatán</"
 #~ "strong>: competencia, visibilidad y desarrollo para atletas y familias. "
 #~ "Consulta fechas, sedes y categorías disponibles."
-

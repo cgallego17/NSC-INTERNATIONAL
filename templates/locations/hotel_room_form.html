@@ -26,24 +26,24 @@
                         </a>
                     </div>
                 </div>
-                
+
                 <div class="card-body">
                     <form method="post" class="needs-validation" novalidate>
                         {% csrf_token %}
-                        
+
                         {% if form.non_field_errors %}
                             <div class="alert alert-danger">
                                 <i class="fas fa-exclamation-triangle me-2"></i>
                                 {{ form.non_field_errors }}
                             </div>
                         {% endif %}
-                        
+
                         <!-- INFORMACIÓN BÁSICA -->
                         <div class="form-section">
                             <h5 class="section-title">
                                 <i class="fas fa-info-circle me-2"></i>Información Básica
                             </h5>
-                            
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
@@ -53,7 +53,7 @@
                                         <select id="hotel" name="hotel" class="form-select" required>
                                             <option value="">Selecciona Hotel</option>
                                             {% for choice in form.hotel.field.queryset %}
-                                                <option value="{{ choice.id }}" 
+                                                <option value="{{ choice.id }}"
                                                         {% if form.hotel.value == choice.id %}selected{% endif %}>
                                                     {{ choice.hotel_name }}
                                                 </option>
@@ -69,10 +69,10 @@
                                         <label for="room_number" class="form-label">
                                             <i class="fas fa-hashtag me-1"></i>Número de Habitación <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" 
-                                               id="room_number" 
-                                               name="room_number" 
-                                               class="form-control" 
+                                        <input type="text"
+                                               id="room_number"
+                                               name="room_number"
+                                               class="form-control"
                                                value="{{ form.room_number.value|default:'' }}"
                                                placeholder="Ej: 101, 205, Suite A"
                                                required>
@@ -92,7 +92,7 @@
                                         <select id="room_type" name="room_type" class="form-select" required>
                                             {% for value, label in form.room_type.field.choices %}
                                                 {% if value %}
-                                                    <option value="{{ value }}" 
+                                                    <option value="{{ value }}"
                                                             {% if form.room_type.value == value %}selected{% endif %}>
                                                         {{ label }}
                                                     </option>
@@ -109,10 +109,10 @@
                                         <label for="capacity" class="form-label">
                                             <i class="fas fa-users me-1"></i>Capacidad <span class="text-danger">*</span>
                                         </label>
-                                        <input type="number" 
-                                               id="capacity" 
-                                               name="capacity" 
-                                               class="form-control" 
+                                        <input type="number"
+                                               id="capacity"
+                                               name="capacity"
+                                               class="form-control"
                                                value="{{ form.capacity.value|default:'' }}"
                                                min="1"
                                                placeholder="Número de personas"
@@ -127,10 +127,10 @@
                                         <label for="price_per_night" class="form-label">
                                             <i class="fas fa-dollar-sign me-1"></i>Precio por Noche <span class="text-danger">*</span>
                                         </label>
-                                        <input type="number" 
-                                               id="price_per_night" 
-                                               name="price_per_night" 
-                                               class="form-control" 
+                                        <input type="number"
+                                               id="price_per_night"
+                                               name="price_per_night"
+                                               class="form-control"
                                                value="{{ form.price_per_night.value|default:'' }}"
                                                step="0.01"
                                                min="0"
@@ -149,16 +149,16 @@
                             <h5 class="section-title">
                                 <i class="fas fa-plus-circle me-2"></i>Información Adicional
                             </h5>
-                            
+
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group mb-3">
                                         <label for="description" class="form-label">
                                             <i class="fas fa-info me-1"></i>Descripción
                                         </label>
-                                        <textarea id="description" 
-                                                  name="description" 
-                                                  class="form-control" 
+                                        <textarea id="description"
+                                                  name="description"
+                                                  class="form-control"
                                                   rows="4"
                                                   placeholder="Descripción de la habitación (amenidades, vista, etc.)">{{ form.description.value|default:'' }}</textarea>
                                         {% if form.description.errors %}
@@ -172,10 +172,10 @@
                                             <i class="fas fa-toggle-on me-1"></i>Disponibilidad
                                         </label>
                                         <div class="form-check form-switch">
-                                            <input type="checkbox" 
-                                                   id="is_available" 
-                                                   name="is_available" 
-                                                   class="form-check-input" 
+                                            <input type="checkbox"
+                                                   id="is_available"
+                                                   name="is_available"
+                                                   class="form-check-input"
                                                    {% if form.is_available.value %}checked{% endif %}>
                                             <label class="form-check-label" for="is_available">
                                                 Habitación disponible para reservas
@@ -185,6 +185,121 @@
                                             <div class="text-danger">{{ form.is_available.errors.0 }}</div>
                                         {% endif %}
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GALERÍA DE IMÁGENES -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-images me-2"></i>Galería de Imágenes
+                            </h5>
+
+                            <!-- Imágenes Existentes (solo en edición) -->
+                            {% if object and object.images.all %}
+                                <div class="mb-4">
+                                    <label class="form-label mb-3">
+                                        <i class="fas fa-image me-1"></i>Imágenes Actuales
+                                    </label>
+                                    <div class="row g-3" id="existing-room-images-container">
+                                        {% for image in object.images.all %}
+                                            <div class="col-md-3 col-sm-4 col-6" data-image-id="{{ image.pk }}">
+                                                <div class="card h-100 shadow-sm position-relative">
+                                                    <div class="position-relative" style="height: 150px; overflow: hidden;">
+                                                        <img src="{{ image.image.url }}"
+                                                             alt="{{ image.title|default:image.alt_text|default:'Imagen de la habitación' }}"
+                                                             class="card-img-top h-100 w-100"
+                                                             style="object-fit: cover;">
+                                                        {% if image.is_featured %}
+                                                            <span class="badge bg-warning position-absolute top-0 start-0 m-2">
+                                                                <i class="fas fa-star me-1"></i>Destacada
+                                                            </span>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="card-body p-2">
+                                                        <small class="text-muted d-block" style="font-size: 0.75rem;">
+                                                            {% if image.title %}
+                                                                {{ image.title|truncatewords:5 }}
+                                                            {% else %}
+                                                                Imagen #{{ forloop.counter }}
+                                                            {% endif %}
+                                                        </small>
+                                                        <div class="d-flex gap-1 mt-2">
+                                                            <a href="{% url 'locations:admin_hotel_room_image_update' room_pk=object.pk pk=image.pk %}"
+                                                               class="btn btn-sm btn-outline-primary flex-fill"
+                                                               title="Editar">
+                                                                <i class="fas fa-edit"></i>
+                                                            </a>
+                                                            <a href="{% url 'locations:admin_hotel_room_image_delete' room_pk=object.pk pk=image.pk %}"
+                                                               class="btn btn-sm btn-outline-danger"
+                                                               title="Eliminar"
+                                                               onclick="return confirm('¿Estás seguro de eliminar esta imagen?');">
+                                                                <i class="fas fa-trash"></i>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            <!-- Agregar Nuevas Imágenes -->
+                            <div class="mb-3">
+                                <label for="room_images" class="form-label">
+                                    <i class="fas fa-upload me-1"></i>Agregar Nuevas Imágenes <span class="text-muted small">(Opcional)</span>
+                                </label>
+                                <div class="file-upload-area"
+                                     id="roomImageUploadArea"
+                                     style="border: 2px dashed #dee2e6; border-radius: 12px; padding: 40px; text-align: center; background: #f8f9fa; cursor: pointer; transition: all 0.3s ease;"
+                                     onmouseover="this.style.borderColor='var(--mlb-blue)'; this.style.background='#f0f4ff';"
+                                     onmouseout="this.style.borderColor='#dee2e6'; this.style.background='#f8f9fa';">
+                                    <input type="file"
+                                           id="room_images"
+                                           name="room_images"
+                                           class="d-none"
+                                           accept="image/*"
+                                           multiple
+                                           onchange="handleRoomImageUpload(this);">
+                                    <div onclick="document.getElementById('room_images').click();">
+                                        <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: #6c757d;"></i>
+                                        <p class="mb-2">
+                                            <strong>Haz clic para seleccionar imágenes</strong>
+                                        </p>
+                                        <p class="text-muted small mb-0">
+                                            Puedes seleccionar múltiples imágenes a la vez (JPG, PNG, GIF)
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Preview de imágenes seleccionadas -->
+                                <div id="roomImagePreviewContainer" class="mt-3" style="display: none;">
+                                    <label class="form-label">
+                                        <i class="fas fa-eye me-1"></i>Vista Previa de Imágenes Seleccionadas
+                                    </label>
+                                    <div class="row g-3" id="roomImagePreviewGrid"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- AMENIDADES DE LA HABITACIÓN -->
+                        <div class="form-section">
+                            <h5 class="section-title">
+                                <i class="fas fa-star me-2"></i>Amenidades de la Habitación
+                            </h5>
+
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-check-square me-1"></i>Selecciona las Amenidades de la Habitación <span class="text-muted small">(Opcional)</span>
+                                </label>
+                                <p class="text-muted small mb-3">
+                                    Selecciona las amenidades específicas de esta habitación (habitación y baño).
+                                </p>
+
+                                <!-- Grid de checkboxes de amenidades -->
+                                <div class="row g-3" id="room-amenities-checkbox-container">
+                                    <!-- Las amenidades se generarán aquí con JavaScript -->
                                 </div>
                             </div>
                         </div>
@@ -263,7 +378,7 @@
     font-size: 0.875rem;
 }
 
-[data-theme="dark"] .form-control, 
+[data-theme="dark"] .form-control,
 [data-theme="dark"] .form-select {
     background-color: #374151;
     border-color: #4b5563;
@@ -275,12 +390,250 @@
     box-shadow: 0 0 0 0.2rem rgba(74, 85, 104, 0.25);
 }
 
-[data-theme="dark"] .form-control:focus, 
+[data-theme="dark"] .form-control:focus,
 [data-theme="dark"] .form-select:focus {
     border-color: #6b7280;
     box-shadow: 0 0 0 0.2rem rgba(107, 114, 128, 0.25);
 }
 </style>
+
+<script>
+// Manejo de múltiples imágenes de habitación
+let roomImageFileMap = new Map();
+
+function handleRoomImageUpload(input) {
+    const files = input.files;
+    const previewContainer = document.getElementById('roomImagePreviewContainer');
+    const previewGrid = document.getElementById('roomImagePreviewGrid');
+
+    if (files.length === 0) {
+        previewContainer.style.display = 'none';
+        previewGrid.innerHTML = '';
+        return;
+    }
+
+    previewContainer.style.display = 'block';
+    previewGrid.innerHTML = '';
+    roomImageFileMap.clear();
+
+    Array.from(files).forEach((file, index) => {
+        if (!file.type.startsWith('image/')) {
+            alert(`El archivo "${file.name}" no es una imagen válida.`);
+            return;
+        }
+
+        const maxSize = 5 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert(`La imagen "${file.name}" es demasiado grande. Máximo 5MB.`);
+            return;
+        }
+
+        const fileId = `file_${Date.now()}_${index}`;
+        roomImageFileMap.set(fileId, file);
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const col = document.createElement('div');
+            col.className = 'col-md-3 col-sm-4 col-6';
+            col.setAttribute('data-file-id', fileId);
+            col.setAttribute('data-file-index', index);
+
+            col.innerHTML = `
+                <div class="card h-100 shadow-sm">
+                    <div style="height: 150px; overflow: hidden; position: relative;">
+                        <img src="${e.target.result}"
+                             alt="Preview ${index + 1}"
+                             class="card-img-top h-100 w-100"
+                             style="object-fit: cover;">
+                        <button type="button"
+                                class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
+                                onclick="removeRoomImagePreview('${fileId}');"
+                                title="Eliminar">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="card-body p-2">
+                        <input type="text"
+                               name="room_image_title_${index}"
+                               class="form-control form-control-sm mb-2"
+                               placeholder="Título (opcional)">
+                        <input type="text"
+                               name="room_image_alt_${index}"
+                               class="form-control form-control-sm mb-2"
+                               placeholder="Texto alternativo (opcional)">
+                        <div class="form-check">
+                            <input type="checkbox"
+                                   name="room_image_featured_${index}"
+                                   id="room_image_featured_${fileId}"
+                                   class="form-check-input">
+                            <label class="form-check-label small" for="room_image_featured_${fileId}">
+                                Destacada
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            previewGrid.appendChild(col);
+        };
+
+        reader.readAsDataURL(file);
+    });
+}
+
+function removeRoomImagePreview(fileId) {
+    roomImageFileMap.delete(fileId);
+    const col = document.querySelector(`[data-file-id="${fileId}"]`);
+    if (col) {
+        col.remove();
+    }
+
+    const input = document.getElementById('room_images');
+    const dt = new DataTransfer();
+    roomImageFileMap.forEach((file) => {
+        dt.items.add(file);
+    });
+    input.files = dt.files;
+
+    if (input.files.length > 0) {
+        handleRoomImageUpload(input);
+    } else {
+        document.getElementById('roomImagePreviewContainer').style.display = 'none';
+    }
+}
+
+// Drag and drop para imágenes de habitación
+const roomUploadArea = document.getElementById('roomImageUploadArea');
+if (roomUploadArea) {
+    roomUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.style.borderColor = 'var(--mlb-blue)';
+        this.style.background = '#e7f3ff';
+    });
+
+    roomUploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.style.borderColor = '#dee2e6';
+        this.style.background = '#f8f9fa';
+    });
+
+    roomUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.style.borderColor = '#dee2e6';
+        this.style.background = '#f8f9fa';
+
+        const files = e.dataTransfer.files;
+        const input = document.getElementById('room_images');
+        const dt = new DataTransfer();
+        Array.from(input.files).forEach(file => dt.items.add(file));
+        Array.from(files).forEach(file => {
+            if (file.type.startsWith('image/')) {
+                dt.items.add(file);
+            }
+        });
+        input.files = dt.files;
+        handleRoomImageUpload(input);
+    });
+}
+
+// Manejo de amenidades de habitación con checkboxes
+// Amenidades predefinidas de habitación (solo room y bathroom)
+const roomAmenities = [
+    {value: 'air_conditioning', label: 'Aire Acondicionado', icon: 'fa-snowflake', category: 'room'},
+    {value: 'heating', label: 'Calefacción', icon: 'fa-fire', category: 'room'},
+    {value: 'tv', label: 'Televisión', icon: 'fa-tv', category: 'room'},
+    {value: 'safe', label: 'Caja Fuerte', icon: 'fa-lock', category: 'room'},
+    {value: 'minibar', label: 'Minibar', icon: 'fa-wine-bottle', category: 'room'},
+    {value: 'balcony', label: 'Balcón', icon: 'fa-door-open', category: 'room'},
+    {value: 'hairdryer', label: 'Secador de Pelo', icon: 'fa-wind', category: 'bathroom'},
+    {value: 'bathtub', label: 'Bañera', icon: 'fa-bath', category: 'bathroom'},
+    {value: 'shower', label: 'Ducha', icon: 'fa-shower', category: 'bathroom'}
+];
+
+// Obtener amenidades existentes del hotel (solo room y bathroom)
+const existingRoomAmenities = [
+    {% if object %}
+        {% for amenity in object.hotel.amenities.all %}
+            {% if amenity.category == 'room' or amenity.category == 'bathroom' %}
+                '{{ amenity.icon }}'{% if not forloop.last %},{% endif %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+];
+
+// Renderizar checkboxes de amenidades de habitación
+function renderRoomAmenityCheckboxes() {
+    const container = document.getElementById('room-amenities-checkbox-container');
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    roomAmenities.forEach(amenity => {
+        const isChecked = existingRoomAmenities.includes(amenity.value);
+        const col = document.createElement('div');
+        col.className = 'col-md-3 col-sm-4 col-6';
+
+        const checkboxId = `room_amenity_${amenity.value}`;
+        const cardId = `room_amenity_card_${amenity.value}`;
+
+        col.innerHTML = `
+            <div class="form-check form-check-card p-3 border rounded h-100 amenity-card"
+                 id="${cardId}"
+                 style="cursor: pointer; transition: all 0.2s;"
+                 onmouseover="this.style.borderColor='var(--mlb-blue)'; this.style.background='#f8f9ff';"
+                 onmouseout="if(!this.querySelector('.amenity-checkbox').checked) { this.style.borderColor='#dee2e6'; this.style.background='white'; }">
+                <input type="checkbox"
+                       name="room_amenity_${amenity.value}"
+                       id="${checkboxId}"
+                       value="${amenity.value}"
+                       class="form-check-input amenity-checkbox"
+                       ${isChecked ? 'checked' : ''}
+                       style="cursor: pointer; z-index: 2; position: relative;">
+                <label class="form-check-label w-100" for="${checkboxId}" style="cursor: pointer; z-index: 1; position: relative;">
+                    <i class="fas ${amenity.icon} me-2" style="color: #f4a460;"></i>
+                    <strong>${amenity.label}</strong>
+                </label>
+            </div>
+        `;
+        container.appendChild(col);
+
+        const card = document.getElementById(cardId);
+        const checkbox = document.getElementById(checkboxId);
+
+        card.addEventListener('click', function(e) {
+            if (e.target === checkbox || e.target.closest('label')) {
+                return;
+            }
+            e.preventDefault();
+            checkbox.checked = !checkbox.checked;
+            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                card.style.borderColor = 'var(--mlb-blue)';
+                card.style.background = '#e7f3ff';
+                card.style.boxShadow = '0 2px 8px rgba(13, 44, 84, 0.15)';
+            } else {
+                card.style.borderColor = '#dee2e6';
+                card.style.background = 'white';
+                card.style.boxShadow = 'none';
+            }
+        });
+
+        if (isChecked) {
+            card.style.borderColor = 'var(--mlb-blue)';
+            card.style.background = '#e7f3ff';
+            card.style.boxShadow = '0 2px 8px rgba(13, 44, 84, 0.15)';
+        }
+    });
+}
+
+// Inicializar checkboxes al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    renderRoomAmenityCheckboxes();
+});
+</script>
 {% endblock %}
 
 

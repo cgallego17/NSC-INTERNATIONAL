@@ -9,7 +9,7 @@
     <div class="form-container">
         <form method="post" action="{% url 'accounts:profile_edit' %}" enctype="multipart/form-data" id="profileForm">
             {% csrf_token %}
-            
+
             {% if user_form.non_field_errors or profile_form.non_field_errors %}
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-triangle me-2"></i>
@@ -17,7 +17,7 @@
                     {{ profile_form.non_field_errors }}
                 </div>
             {% endif %}
-            
+
             <!-- Información de Usuario -->
             <div class="form-section">
                 <div class="form-section-title">
@@ -55,7 +55,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Información de Perfil -->
             <div class="form-section">
                 <div class="form-section-title">
@@ -92,8 +92,22 @@
                         {% endif %}
                     </div>
                 </div>
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="{{ profile_form.preferred_language.id_for_label }}" class="form-label">
+                            <i class="fas fa-language me-1"></i>{% trans "Preferred Language" %}
+                        </label>
+                        {{ profile_form.preferred_language }}
+                        {% if profile_form.preferred_language.help_text %}
+                            <small class="form-text text-muted">{{ profile_form.preferred_language.help_text }}</small>
+                        {% endif %}
+                        {% if profile_form.preferred_language.errors %}
+                            <div class="error-message">{{ profile_form.preferred_language.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
-            
+
             <!-- Botones de Acción -->
             <div class="form-actions">
                 <a href="{% url 'accounts:panel' %}" class="btn btn-form-cancel">

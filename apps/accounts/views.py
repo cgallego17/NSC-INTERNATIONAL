@@ -130,11 +130,42 @@ class PublicHomeView(TemplateView):
 
         # Obtener configuraciones del sitio
         try:
+            from django.utils.translation import get_language
             from .models import SiteSettings
 
-            context["site_settings"] = SiteSettings.load()
+            site_settings = SiteSettings.load()
+            context["site_settings"] = site_settings
+            # Pasar traducciones al JavaScript
+            context["site_settings_translations"] = (
+                site_settings.get_translations_dict()
+            )
+            # Obtener el idioma actual del request
+            current_lang = get_language() or "en"
+            # Pasar valores directamente para facilitar el acceso en templates
+            # Usar el idioma actual del request para obtener los valores correctos
+            context["schedule_title"] = site_settings.get_schedule_title(current_lang)
+            context["schedule_subtitle"] = site_settings.get_schedule_subtitle(
+                current_lang
+            )
+            context["schedule_description"] = site_settings.get_schedule_description(
+                current_lang
+            )
+            context["showcase_title"] = site_settings.get_showcase_title(current_lang)
+            context["showcase_subtitle"] = site_settings.get_showcase_subtitle(
+                current_lang
+            )
+            context["showcase_description"] = site_settings.get_showcase_description(
+                current_lang
+            )
         except ImportError:
             context["site_settings"] = None
+            context["site_settings_translations"] = None
+            context["schedule_title"] = None
+            context["schedule_subtitle"] = None
+            context["schedule_description"] = None
+            context["showcase_title"] = None
+            context["showcase_subtitle"] = None
+            context["showcase_description"] = None
 
         # Obtener sponsors activos
         try:
