@@ -9,7 +9,23 @@
         "--profile",
         "black"
     ],
-    "editor.formatOnSave": true,
+    "editor.formatOnSave": false,
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "files.insertFinalNewline": false,
+        "files.trimTrailingWhitespace": true
+    },
+    "[html]": {
+        "editor.formatOnSave": false,
+        "files.insertFinalNewline": false,
+        "files.trimTrailingWhitespace": true
+    },
+    "[django-html]": {
+        "editor.formatOnSave": false,
+        "files.insertFinalNewline": false,
+        "files.trimTrailingWhitespace": true
+    },
     "editor.codeActionsOnSave": {
         "source.organizeImports": "explicit"
     },
@@ -32,18 +48,6 @@
     "python.analysis.typeCheckingMode": "basic",
     "files.insertFinalNewline": false,
     "files.trimTrailingWhitespace": true,
-    "[html]": {
-        "files.insertFinalNewline": false,
-        "files.trimTrailingWhitespace": true
-    },
-    "[django-html]": {
-        "files.insertFinalNewline": false,
-        "files.trimTrailingWhitespace": true
-    },
-    "[python]": {
-        "files.insertFinalNewline": false,
-        "files.trimTrailingWhitespace": true
-    },
     "files.associations": {
         "*.html": "django-html"
     },
