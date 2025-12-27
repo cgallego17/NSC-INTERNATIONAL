@@ -583,3 +583,4 @@ class HotelServiceDeleteView(StaffRequiredMixin, DeleteView):
         context["hotel"] = self.object.hotel
         return context
 
+
