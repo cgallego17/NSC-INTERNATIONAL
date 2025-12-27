@@ -8,14 +8,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% trans "Events - NCS International" %}</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
     <style>
         :root {
             --mlb-blue: #0d2c54;
@@ -24,19 +24,19 @@
             --mlb-gold: #ffd700;
             --mlb-dark: #1a1a1a;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Arial', 'Helvetica', sans-serif;
             background-color: #f5f5f5;
             color: #333;
         }
-        
+
         /* Top Bar */
         .top-bar {
             background: var(--mlb-dark);
@@ -44,24 +44,24 @@
             padding: 8px 0;
             font-size: 0.85rem;
         }
-        
+
         .top-bar a {
             color: #ccc;
             text-decoration: none;
             transition: color 0.3s;
         }
-        
+
         .top-bar a:hover {
             color: white;
         }
-        
+
         /* Language Selector with Flags Dropdown */
         .language-selector-wrapper {
             position: relative;
             display: inline-block;
             margin-right: 0;
         }
-        
+
         .language-selector-btn {
             background: transparent;
             border: 1px solid #555;
@@ -77,13 +77,13 @@
             min-width: 80px;
             justify-content: space-between;
         }
-        
+
         .language-selector-btn:hover {
             border-color: var(--mlb-gold);
             background: rgba(255, 215, 0, 0.1);
             color: white;
         }
-        
+
         .language-selector-btn .flag-icon {
             width: 20px;
             height: 15px;
@@ -93,29 +93,29 @@
             border-radius: 2px;
             flex-shrink: 0;
         }
-        
+
         .flag-icon.flag-us {
             background-image: url('https://flagcdn.com/w20/us.png');
         }
-        
+
         .flag-icon.flag-es {
             background-image: url('https://flagcdn.com/w20/es.png');
         }
-        
+
         .language-selector-btn .arrow-icon {
             font-size: 0.7rem;
             transition: transform 0.3s;
         }
-        
+
         .language-selector-btn.active {
             border-color: var(--mlb-gold);
             background: rgba(255, 215, 0, 0.15);
         }
-        
+
         .language-selector-btn.active .arrow-icon {
             transform: rotate(180deg);
         }
-        
+
         .language-dropdown {
             position: absolute;
             top: 100%;
@@ -133,13 +133,13 @@
             z-index: 1000;
             overflow: hidden;
         }
-        
+
         .language-dropdown.show {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
         }
-        
+
         .language-option {
             display: flex;
             align-items: center;
@@ -153,21 +153,21 @@
             font-family: inherit;
             font-size: inherit;
         }
-        
+
         .language-option:last-child {
             border-bottom: none;
         }
-        
+
         .language-option:hover {
             background: rgba(255, 215, 0, 0.15);
             color: white;
         }
-        
+
         .language-option.active {
             background: rgba(255, 215, 0, 0.2);
             color: var(--mlb-gold);
         }
-        
+
         .language-option .flag-icon {
             width: 24px;
             height: 18px;
@@ -177,13 +177,13 @@
             border-radius: 2px;
             flex-shrink: 0;
         }
-        
+
         .language-option .language-name {
             flex: 1;
             font-size: 0.85rem;
             font-weight: 500;
         }
-        
+
         /* Responsive adjustments */
         @media (max-width: 768px) {
             .language-selector-btn {
@@ -191,23 +191,23 @@
                 padding: 4px 8px;
                 font-size: 0.8rem;
             }
-            
+
             .language-selector-btn .language-text {
                 display: none;
             }
-            
+
             .language-dropdown {
                 min-width: 130px;
             }
         }
-        
+
         /* Navbar MLB Style */
         .navbar-mlb {
             background: var(--mlb-blue) !important;
             padding: 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
-        
+
         .navbar-mlb .navbar-brand {
             font-size: 1.8rem;
             font-weight: 700;
@@ -217,14 +217,14 @@
             display: flex;
             align-items: center;
         }
-        
+
         .navbar-logo {
             height: 40px;
             width: auto;
             max-width: 180px;
             object-fit: contain;
         }
-        
+
         .navbar-mlb .nav-link {
             color: white !important;
             font-weight: 600;
@@ -234,15 +234,15 @@
             letter-spacing: 0.5px;
             transition: background 0.3s;
         }
-        
+
         .navbar-mlb .nav-link:hover {
             background: var(--mlb-light-blue);
         }
-        
+
         .navbar-mlb .nav-link.active {
             background: var(--mlb-red);
         }
-        
+
         /* Events Filters Section */
         .events-filters-section {
             background: white;
@@ -250,7 +250,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             margin-bottom: 0;
         }
-        
+
         .events-filters-form {
             max-width: 1400px;
             margin: 0 auto;
@@ -259,12 +259,12 @@
             flex-wrap: wrap;
             align-items: end;
         }
-        
+
         .filter-group {
             flex: 1;
             min-width: 200px;
         }
-        
+
         .filter-group label {
             display: block;
             font-weight: 600;
@@ -274,7 +274,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
+
         .filter-group select,
         .filter-group input {
             width: 100%;
@@ -284,19 +284,19 @@
             font-size: 0.95rem;
             transition: all 0.3s;
         }
-        
+
         .filter-group select:focus,
         .filter-group input:focus {
             outline: none;
             border-color: var(--mlb-blue);
             box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.25);
         }
-        
+
         .filter-actions {
             display: flex;
             gap: 10px;
         }
-        
+
         .btn-filter {
             background: var(--mlb-blue);
             color: white;
@@ -309,28 +309,28 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
+
         .btn-filter:hover {
             background: var(--mlb-red);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(213, 0, 50, 0.3);
         }
-        
+
         .btn-filter-clear {
             background: #6c757d;
         }
-        
+
         .btn-filter-clear:hover {
             background: #5a6268;
         }
-        
+
         /* Events News Style Section */
         .events-news-section {
             background: var(--mlb-blue);
             padding: 60px 40px;
             margin: 0;
         }
-        
+
         .events-news-header {
             display: flex;
             justify-content: space-between;
@@ -341,7 +341,7 @@
             margin-right: auto;
             padding: 0 20px;
         }
-        
+
         .events-news-title {
             font-size: 3rem;
             font-weight: 900;
@@ -350,7 +350,7 @@
             letter-spacing: 3px;
             margin: 0;
         }
-        
+
         .events-news-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -358,21 +358,21 @@
             max-width: 1400px;
             margin: 0 auto;
         }
-        
+
         @media (max-width: 1200px) {
             .events-news-grid {
                 grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
                 gap: 25px;
             }
         }
-        
+
         @media (max-width: 768px) {
             .events-news-grid {
                 grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
                 gap: 20px;
             }
         }
-        
+
         .event-news-card {
             background: transparent;
             border-radius: 12px;
@@ -383,13 +383,13 @@
             border: 2px solid transparent;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        
+
         .event-news-card:hover {
             transform: translateY(-8px) scale(1.02);
             border-color: rgba(255, 255, 255, 0.4);
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
         }
-        
+
         .event-news-image {
             position: relative;
             width: 100%;
@@ -397,18 +397,18 @@
             overflow: hidden;
             background: linear-gradient(135deg, rgba(13, 44, 84, 0.9) 0%, rgba(19, 36, 72, 0.9) 100%);
         }
-        
+
         .event-news-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             transition: transform 0.3s;
         }
-        
+
         .event-news-card:hover .event-news-image img {
             transform: scale(1.1);
         }
-        
+
         .event-news-placeholder {
             width: 100%;
             height: 100%;
@@ -417,12 +417,12 @@
             justify-content: center;
             background: linear-gradient(135deg, rgba(13, 44, 84, 0.8) 0%, rgba(19, 36, 72, 0.8) 100%);
         }
-        
+
         .event-news-placeholder i {
             font-size: 4rem;
             color: rgba(255, 255, 255, 0.3);
         }
-        
+
         .event-news-overlay {
             position: absolute;
             top: 0;
@@ -434,7 +434,7 @@
             align-items: flex-start;
             padding: 15px;
         }
-        
+
         .event-news-date {
             color: white;
             font-weight: 700;
@@ -447,7 +447,7 @@
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
+
         .event-news-type {
             position: absolute;
             top: 12px;
@@ -462,7 +462,7 @@
             letter-spacing: 0.5px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
         }
-        
+
         .event-news-content {
             background: rgba(13, 44, 84, 0.95);
             padding: 28px 24px;
@@ -472,19 +472,19 @@
             transition: all 0.4s ease;
             position: relative;
         }
-        
+
         .event-news-card:hover .event-news-content {
             background: rgba(13, 44, 84, 1);
             padding-bottom: 32px;
         }
-        
+
         .event-news-content-inner {
             width: 100%;
             display: flex;
             flex-direction: column;
             gap: 16px;
         }
-        
+
         .event-news-title-card {
             color: white;
             font-size: 1.15rem;
@@ -500,13 +500,13 @@
             text-overflow: ellipsis;
             min-height: 3.2em;
         }
-        
+
         .event-news-meta {
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
-        
+
         .event-news-meta-item {
             display: flex;
             align-items: center;
@@ -516,7 +516,7 @@
             font-weight: 500;
             padding: 6px 0;
         }
-        
+
         .event-news-meta-item i {
             color: var(--mlb-red);
             font-size: 1rem;
@@ -524,12 +524,12 @@
             text-align: center;
             flex-shrink: 0;
         }
-        
+
         .event-news-meta-item span {
             flex: 1;
             line-height: 1.4;
         }
-        
+
         .event-news-description {
             color: rgba(255, 255, 255, 0.75);
             font-size: 0.85rem;
@@ -541,21 +541,21 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        
+
         /* Pagination */
         .pagination-section {
             background: var(--mlb-blue);
             padding: 40px 20px;
             text-align: center;
         }
-        
+
         .pagination {
             display: flex;
             justify-content: center;
             gap: 10px;
             flex-wrap: wrap;
         }
-        
+
         .pagination .page-link {
             background: rgba(255, 255, 255, 0.1);
             border: 2px solid rgba(255, 255, 255, 0.2);
@@ -566,25 +566,25 @@
             font-weight: 600;
             transition: all 0.3s;
         }
-        
+
         .pagination .page-link:hover {
             background: var(--mlb-red);
             border-color: var(--mlb-red);
             color: white;
             transform: translateY(-2px);
         }
-        
+
         .pagination .page-item.active .page-link {
             background: var(--mlb-red);
             border-color: var(--mlb-red);
             color: white;
         }
-        
+
         .pagination .page-item.disabled .page-link {
             opacity: 0.5;
             cursor: not-allowed;
         }
-        
+
         /* Footer MLB Style */
         .footer-mlb {
             background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
@@ -593,7 +593,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .footer-mlb::before {
             content: '';
             position: absolute;
@@ -603,12 +603,12 @@
             height: 3px;
             background: linear-gradient(90deg, var(--mlb-red) 0%, var(--mlb-blue) 50%, var(--mlb-red) 100%);
         }
-        
+
         .footer-mlb .container-fluid {
             position: relative;
             z-index: 1;
         }
-        
+
         .footer-mlb h5 {
             color: white;
             font-weight: 700;
@@ -619,7 +619,7 @@
             position: relative;
             padding-bottom: 12px;
         }
-        
+
         .footer-mlb h5::after {
             content: '';
             position: absolute;
@@ -630,31 +630,31 @@
             background: var(--mlb-red);
             border-radius: 2px;
         }
-        
+
         .footer-mlb .footer-col {
             padding: 0 20px;
         }
-        
+
         .footer-mlb .footer-logo-section {
             margin-bottom: 20px;
         }
-        
+
         .footer-mlb .footer-logo-section img {
             filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.1));
             transition: transform 0.3s ease;
         }
-        
+
         .footer-mlb .footer-logo-section:hover img {
             transform: scale(1.05);
         }
-        
+
         .footer-mlb p {
             color: #b0b0b0;
             line-height: 1.8;
             font-size: 0.95rem;
             margin-bottom: 0;
         }
-        
+
         .footer-mlb a {
             color: #ccc;
             text-decoration: none;
@@ -668,7 +668,7 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        
+
         .footer-mlb a i {
             margin-right: 8px;
             width: 18px;
@@ -677,7 +677,7 @@
             opacity: 0.8;
             transition: all 0.3s ease;
         }
-        
+
         .footer-mlb a:hover {
             color: white;
             background: rgba(213, 0, 50, 0.15);
@@ -685,13 +685,13 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(213, 0, 50, 0.2);
         }
-        
+
         .footer-mlb a:hover i {
             opacity: 1;
             color: var(--mlb-red);
             transform: scale(1.1);
         }
-        
+
         .footer-mlb .quick-links {
             display: flex !important;
             flex-direction: row;
@@ -699,7 +699,7 @@
             gap: 8px;
             margin-top: 10px;
         }
-        
+
         .footer-mlb .quick-links a {
             display: inline-flex !important;
             align-items: center;
@@ -708,18 +708,18 @@
             visibility: visible !important;
             opacity: 1 !important;
         }
-        
+
         .footer-mlb .contact-info {
             color: #b0b0b0;
         }
-        
+
         .footer-mlb .contact-info p {
             margin-bottom: 12px;
             display: flex;
             align-items: center;
             font-size: 0.95rem;
         }
-        
+
         .footer-mlb .contact-info i {
             margin-right: 12px;
             width: 20px;
@@ -727,7 +727,7 @@
             font-size: 1rem;
             opacity: 0.9;
         }
-        
+
         .footer-bottom {
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             padding: 25px 0;
@@ -735,115 +735,115 @@
             text-align: center;
             background: rgba(0, 0, 0, 0.3);
         }
-        
+
         .footer-bottom p {
             color: #888;
             font-size: 0.9rem;
             margin: 0;
         }
-        
+
         @media (max-width: 768px) {
             .footer-mlb {
                 padding: 40px 0 0;
             }
-            
+
             .footer-mlb .footer-col {
                 padding: 0 15px;
                 margin-bottom: 40px;
             }
-            
+
             .footer-mlb .quick-links {
                 flex-direction: column;
                 gap: 8px;
             }
-            
+
             .footer-mlb a {
                 width: 100%;
                 justify-content: flex-start;
             }
-            
+
             .events-filters-form {
                 flex-direction: column;
             }
-            
+
             .filter-group {
                 width: 100%;
             }
-            
+
             .filter-actions {
                 width: 100%;
             }
-            
+
             .btn-filter {
                 flex: 1;
             }
-            
+
             .events-news-section {
                 padding: 40px 20px;
             }
-            
+
             .events-news-title {
                 font-size: 2rem;
             }
-            
+
             .events-news-grid {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 15px;
             }
-            
+
             .event-news-image {
                 height: 240px;
             }
-            
+
             .event-news-content {
                 padding: 22px 18px;
                 min-height: 120px;
             }
-            
+
             .event-news-title-card {
                 font-size: 1rem;
                 line-height: 1.4;
                 min-height: 2.8em;
             }
-            
+
             .event-news-meta-item {
                 font-size: 0.85rem;
                 gap: 8px;
                 padding: 5px 0;
             }
-            
+
             .event-news-meta-item i {
                 font-size: 0.9rem;
                 width: 18px;
             }
-            
+
             .event-news-description {
                 font-size: 0.8rem;
             }
         }
-        
+
         @media (max-width: 576px) {
             .events-news-grid {
                 grid-template-columns: 1fr;
                 gap: 20px;
             }
-            
+
             .events-news-header {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 20px;
             }
-            
+
             .event-news-image {
                 height: 220px;
             }
-            
+
             .event-news-content {
                 padding: 20px 16px;
                 min-height: 110px;
             }
         }
-        
+
         /* Mejoras adicionales para las tarjetas */
         .event-news-card::before {
             content: '';
@@ -858,21 +858,21 @@
             pointer-events: none;
             z-index: 1;
         }
-        
+
         .event-news-card:hover::before {
             opacity: 1;
         }
-        
+
         .event-news-image img {
             filter: brightness(0.95);
             transition: filter 0.4s, transform 0.6s;
         }
-        
+
         .event-news-card:hover .event-news-image img {
             filter: brightness(1.05);
             transform: scale(1.08);
         }
-        
+
         /* Modal Login Styles */
         .modal-mlb .modal-content {
             border-radius: 15px;
@@ -880,7 +880,7 @@
             overflow: hidden;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
         }
-        
+
         .modal-mlb .modal-header {
             background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
             color: white;
@@ -889,7 +889,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .modal-mlb .modal-header::before {
             content: '';
             position: absolute;
@@ -899,16 +899,16 @@
             height: 200%;
             background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
         }
-        
+
         .modal-mlb .modal-header .btn-close {
             filter: brightness(0) invert(1);
             opacity: 0.9;
         }
-        
+
         .modal-mlb .modal-header .btn-close:hover {
             opacity: 1;
         }
-        
+
         .modal-mlb .modal-title {
             font-size: 1.8rem;
             font-weight: 900;
@@ -917,11 +917,11 @@
             position: relative;
             z-index: 1;
         }
-        
+
         .modal-mlb .modal-body {
             padding: 40px;
         }
-        
+
         .modal-mlb .form-label {
             font-weight: 600;
             color: var(--mlb-blue);
@@ -930,7 +930,7 @@
             font-size: 0.85rem;
             letter-spacing: 0.5px;
         }
-        
+
         .modal-mlb .form-control {
             border: 2px solid #e9ecef;
             border-radius: 8px;
@@ -938,30 +938,30 @@
             transition: all 0.3s;
             font-size: 1rem;
         }
-        
+
         .modal-mlb .form-control:focus {
             border-color: var(--mlb-blue);
             box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.25);
         }
-        
+
         .modal-mlb .form-check-input {
             width: 1.25rem;
             height: 1.25rem;
             border: 2px solid #e9ecef;
             margin-top: 0.3rem;
         }
-        
+
         .modal-mlb .form-check-input:checked {
             background-color: var(--mlb-red);
             border-color: var(--mlb-red);
         }
-        
+
         .modal-mlb .form-check-label {
             font-weight: 500;
             color: #555;
             margin-left: 8px;
         }
-        
+
         .modal-mlb .error-message {
             background: #fee;
             border: 1px solid var(--mlb-red);
@@ -972,32 +972,32 @@
             font-weight: 600;
             font-size: 0.9rem;
         }
-        
+
         .modal-mlb .field-error {
             color: var(--mlb-red);
             font-size: 0.85rem;
             margin-top: 5px;
             font-weight: 600;
         }
-        
+
         .modal-mlb .modal-footer {
             padding: 20px 40px;
             background: #f8f9fa;
             border-top: 1px solid #e9ecef;
             text-align: center;
         }
-        
+
         .modal-mlb .modal-footer a {
             color: var(--mlb-blue);
             font-weight: 600;
             text-decoration: none;
         }
-        
+
         .modal-mlb .modal-footer a:hover {
             color: var(--mlb-red);
             text-decoration: underline;
         }
-        
+
         .login-icon-modal {
             font-size: 3rem;
             margin-bottom: 15px;
@@ -1006,7 +1006,7 @@
             z-index: 1;
             text-align: center;
         }
-        
+
         .badge-mlb {
             background: var(--mlb-red);
             color: white;
@@ -1016,7 +1016,7 @@
             font-weight: 700;
             text-transform: uppercase;
         }
-        
+
         .btn-mlb {
             background: var(--mlb-red);
             color: white;
@@ -1028,7 +1028,7 @@
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(213, 0, 50, 0.3);
         }
-        
+
         .btn-mlb:hover {
             background: #b30029;
             transform: translateY(-2px);
@@ -1106,7 +1106,7 @@
     <nav class="navbar navbar-expand-lg navbar-mlb">
         <div class="container-fluid px-0">
             <a class="navbar-brand" href="/">
-                <img src="{% static 'images/ncs-white.svg' %}" alt="NCS International" class="navbar-logo">
+                <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" class="navbar-logo">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: white;">
                 <span style="color: white;"><i class="fas fa-bars"></i></span>
@@ -1191,8 +1191,8 @@
             {% for event in events %}
                 <a href="{% url 'events:public_detail' event.pk %}" class="event-news-card">
                     <div class="event-news-image">
-                        {% if event.image %}
-                            <img src="{{ event.image.url }}" alt="{{ event.title }}">
+                        {% if event.logo %}
+                            <img src="{{ event.logo }}" alt="{{ event.title }}">
                         {% else %}
                             <div class="event-news-placeholder">
                                 <i class="fas fa-baseball-ball"></i>
@@ -1278,7 +1278,7 @@
                             <span class="page-link">{% trans "Previous" %}</span>
                         </li>
                     {% endif %}
-                    
+
                     {% for num in page_obj.paginator.page_range %}
                         {% if page_obj.number == num %}
                             <li class="page-item active">
@@ -1290,7 +1290,7 @@
                             </li>
                         {% endif %}
                     {% endfor %}
-                    
+
                     {% if page_obj.has_next %}
                         <li class="page-item">
                             <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.event_type %}&event_type={{ request.GET.event_type }}{% endif %}{% if request.GET.time_filter %}&time_filter={{ request.GET.time_filter }}{% endif %}">{% trans "Next" %}</a>
@@ -1317,7 +1317,7 @@
             <div class="row" style="max-width: 1400px; margin: 0 auto;">
                 <div class="col-md-4 footer-col">
                     <div class="footer-logo-section">
-                        <img src="{% static 'images/ncs-white.svg' %}" alt="NCS International" style="height: 40px; width: auto; margin-bottom: 20px;">
+                        <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" style="height: 40px; width: auto; margin-bottom: 20px;">
                     </div>
                     <p>
                         {% trans "NCS International was designed to provide opportunities for players and teams through our national and international tournaments and showcases." %}
@@ -1398,11 +1398,11 @@
                 </div>
                 <div class="modal-body">
                     <p class="text-center mb-4" style="color: #666; position: relative; z-index: 1;">{% trans "Access your NCS International account" %}</p>
-                    
+
                     <form method="post" action="{% url 'accounts:login' %}">
                         {% csrf_token %}
                         <input type="hidden" name="next" value="{{ request.GET.next|default:request.path }}">
-                        
+
                         {% if form.non_field_errors %}
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle me-2"></i>
@@ -1414,15 +1414,15 @@
                                 {% trans "Please verify your credentials and try again." %}
                             </div>
                         {% endif %}
-                        
+
                         <div class="mb-3">
                             <label for="id_username_modal" class="form-label">
                                 <i class="fas fa-envelope me-1"></i>{% trans "Email" %}
                             </label>
-                            <input type="email" 
-                                   id="id_username_modal" 
-                                   name="username" 
-                                   class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
+                            <input type="email"
+                                   id="id_username_modal"
+                                   name="username"
+                                   class="form-control {% if form.username.errors %}is-invalid{% endif %}"
                                    placeholder="{% trans 'your@email.com' %}"
                                    value="{% if form.username.value %}{{ form.username.value }}{% elif request.POST.username %}{{ request.POST.username }}{% endif %}"
                                    required
@@ -1431,22 +1431,22 @@
                                 <div class="field-error">{{ form.username.errors.0 }}</div>
                             {% endif %}
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="id_password_modal" class="form-label">
                                 <i class="fas fa-lock me-1"></i>{% trans "Password" %}
                             </label>
-                            <input type="password" 
-                                   id="id_password_modal" 
-                                   name="password" 
-                                   class="form-control {% if form.password.errors %}is-invalid{% endif %}" 
+                            <input type="password"
+                                   id="id_password_modal"
+                                   name="password"
+                                   class="form-control {% if form.password.errors %}is-invalid{% endif %}"
                                    placeholder="{% trans 'Enter your password' %}"
                                    required>
                             {% if form.password.errors %}
                                 <div class="field-error">{{ form.password.errors.0 }}</div>
                             {% endif %}
                         </div>
-                        
+
                         <div class="mb-4">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me_modal">
@@ -1455,7 +1455,7 @@
                                 </label>
                             </div>
                         </div>
-                        
+
                         <button type="submit" class="btn btn-mlb w-100">
                             <i class="fas fa-sign-in-alt me-2"></i>{% trans "Log In" %}
                         </button>
@@ -1472,7 +1472,7 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         // Language Selector Dropdown
         function toggleLanguageDropdown() {
@@ -1481,13 +1481,13 @@
             dropdown.classList.toggle('show');
             btn.classList.toggle('active');
         }
-        
+
         // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             const wrapper = document.querySelector('.language-selector-wrapper');
             const dropdown = document.getElementById('languageDropdown');
             const btn = document.getElementById('languageSelectorBtn');
-            
+
             if (wrapper && !wrapper.contains(event.target)) {
                 dropdown.classList.remove('show');
                 btn.classList.remove('active');

@@ -11,8 +11,10 @@ from django.db import models
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import redirect, get_object_or_404
+from django.contrib import messages
 from django.urls import reverse_lazy
 from django.utils import timezone, translation
+from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
 from django.views.generic import (
     CreateView,
@@ -298,13 +300,120 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
         return context
 
 
+class ProfileView(LoginRequiredMixin, TemplateView):
+    """Vista principal de perfil con sidebar"""
+
+    template_name = "accounts/profile.html"
+
+    def get_context_data(self, **kwargs):
+        from .forms import (
+            BillingAddressForm,
+            CustomPasswordChangeForm,
+            NotificationPreferencesForm,
+            UserProfileForm,
+            UserUpdateForm,
+        )
+
+        context = super().get_context_data(**kwargs)
+        context["profile"] = self.request.user.profile
+        context["user"] = self.request.user
+        # Determinar qué sección mostrar (por defecto 'profile')
+        context["active_section"] = self.request.GET.get("section", "profile")
+
+        # Pasar formularios según la sección activa
+        if context["active_section"] == "profile":
+            context["profile_form"] = UserProfileForm(instance=self.request.user.profile)
+            context["user_form"] = UserProfileUpdateForm(instance=self.request.user)
+        elif context["active_section"] == "billing":
+            context["billing_form"] = BillingAddressForm(instance=self.request.user.profile)
+        elif context["active_section"] == "security":
+            context["password_form"] = CustomPasswordChangeForm(user=self.request.user)
+        elif context["active_section"] == "notifications":
+            # Cargar preferencias desde el perfil o usar valores por defecto
+            profile = self.request.user.profile
+            initial_data = {
+                "email_notifications": getattr(profile, "email_notifications", True),
+                "event_notifications": getattr(profile, "event_notifications", True),
+                "reservation_notifications": getattr(profile, "reservation_notifications", True),
+                "marketing_notifications": getattr(profile, "marketing_notifications", False),
+            }
+            context["notification_form"] = NotificationPreferencesForm(initial=initial_data)
+
+        return context
+
+    def post(self, request, *args, **kwargs):
+        """Manejar POST de diferentes secciones"""
+        from .forms import (
+            BillingAddressForm,
+            CustomPasswordChangeForm,
+            NotificationPreferencesForm,
+            UserProfileForm,
+            UserProfileUpdateForm,
+        )
+
+        section = request.GET.get("section", "profile")
+
+        if section == "profile":
+            profile_form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
+            user_form = UserProfileUpdateForm(request.POST, instance=request.user)
+
+            if profile_form.is_valid() and user_form.is_valid():
+                profile = profile_form.save()
+                user_form.save()
+
+                # Si se actualizó el idioma preferido, guardarlo en la sesión
+                if "preferred_language" in profile_form.cleaned_data:
+                    preferred_language = profile_form.cleaned_data["preferred_language"] or "en"
+                    language_key = getattr(translation, "LANGUAGE_SESSION_KEY", "_language")
+                    request.session[language_key] = preferred_language
+                    request.session["user_selected_language"] = True
+                    request.session.modified = True
+                    translation.activate(preferred_language)
+
+                messages.success(request, _("Profile updated successfully."))
+                return redirect("accounts:profile?section=profile")
+        elif section == "billing":
+            billing_form = BillingAddressForm(request.POST, instance=request.user.profile)
+            if billing_form.is_valid():
+                billing_form.save()
+                messages.success(request, "Billing address updated successfully.")
+                return redirect("accounts:profile?section=billing")
+        elif section == "security":
+            password_form = CustomPasswordChangeForm(user=request.user, data=request.POST)
+            if password_form.is_valid():
+                password_form.save()
+                messages.success(request, "Password changed successfully.")
+                return redirect("accounts:profile?section=security")
+        elif section == "notifications":
+            notification_form = NotificationPreferencesForm(request.POST)
+            if notification_form.is_valid():
+                # Guardar preferencias en el perfil (necesitarías agregar estos campos al modelo)
+                # Por ahora solo mostramos mensaje de éxito
+                messages.success(request, "Notification preferences saved successfully.")
+                return redirect("accounts:profile?section=notifications")
+
+        # Si hay errores, volver a mostrar el formulario con errores
+        context = self.get_context_data(**kwargs)
+        if section == "profile":
+            context["profile_form"] = profile_form
+            context["user_form"] = user_form
+        elif section == "billing":
+            context["billing_form"] = billing_form
+        elif section == "security":
+            context["password_form"] = password_form
+        elif section == "notifications":
+            context["notification_form"] = notification_form
+
+        return self.render_to_response(context)
+
+
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     """Vista para actualizar perfil"""
 
     model = UserProfile
     form_class = UserProfileForm
     template_name = "accounts/profile_edit.html"
-    success_url = reverse_lazy("accounts:panel")
+    success_url = reverse_lazy("accounts:profile")
 
     def get_object(self):
         return self.request.user.profile

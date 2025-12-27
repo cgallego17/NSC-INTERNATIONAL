@@ -1,0 +1,116 @@
+{% load i18n %}
+
+<div class="profile-section">
+    <div class="section-header mb-4">
+        <h4 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 8px;">
+            <i class="fas fa-bell me-2" style="color: var(--mlb-red);"></i>{% trans "Notification Settings" %}
+        </h4>
+        <p class="text-muted mb-0">{% trans "Manage how you receive notifications" %}</p>
+    </div>
+
+    <div class="notifications-content">
+        <div class="card" style="border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div class="card-body p-4">
+                {% if notification_form %}
+                    <form method="post" action="{% url 'accounts:profile' %}?section=notifications">
+                        {% csrf_token %}
+
+                        {% if notification_form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                {{ notification_form.non_field_errors }}
+                            </div>
+                        {% endif %}
+
+                        <!-- Email Notifications -->
+                        <div class="notification-item mb-4 pb-4 border-bottom">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-envelope me-2"></i>{{ notification_form.email_notifications.label }}
+                                    </h6>
+                                    <p class="text-muted mb-0 small">{% trans "Receive notifications via email" %}</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    {{ notification_form.email_notifications }}
+                                    <label class="form-check-label" for="{{ notification_form.email_notifications.id_for_label }}"></label>
+                                </div>
+                            </div>
+                            {% if notification_form.email_notifications.errors %}
+                                <div class="text-danger small">{{ notification_form.email_notifications.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Event Notifications -->
+                        <div class="notification-item mb-4 pb-4 border-bottom">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-calendar-alt me-2"></i>{{ notification_form.event_notifications.label }}
+                                    </h6>
+                                    <p class="text-muted mb-0 small">{% trans "Get notified about upcoming events" %}</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    {{ notification_form.event_notifications }}
+                                    <label class="form-check-label" for="{{ notification_form.event_notifications.id_for_label }}"></label>
+                                </div>
+                            </div>
+                            {% if notification_form.event_notifications.errors %}
+                                <div class="text-danger small">{{ notification_form.event_notifications.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Reservation Notifications -->
+                        <div class="notification-item mb-4 pb-4 border-bottom">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-hotel me-2"></i>{{ notification_form.reservation_notifications.label }}
+                                    </h6>
+                                    <p class="text-muted mb-0 small">{% trans "Receive updates about your reservations" %}</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    {{ notification_form.reservation_notifications }}
+                                    <label class="form-check-label" for="{{ notification_form.reservation_notifications.id_for_label }}"></label>
+                                </div>
+                            </div>
+                            {% if notification_form.reservation_notifications.errors %}
+                                <div class="text-danger small">{{ notification_form.reservation_notifications.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Marketing Notifications -->
+                        <div class="notification-item">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <h6 class="mb-1">
+                                        <i class="fas fa-bullhorn me-2"></i>{{ notification_form.marketing_notifications.label }}
+                                    </h6>
+                                    <p class="text-muted mb-0 small">{% trans "Receive promotional emails and updates" %}</p>
+                                </div>
+                                <div class="form-check form-switch">
+                                    {{ notification_form.marketing_notifications }}
+                                    <label class="form-check-label" for="{{ notification_form.marketing_notifications.id_for_label }}"></label>
+                                </div>
+                            </div>
+                            {% if notification_form.marketing_notifications.errors %}
+                                <div class="text-danger small">{{ notification_form.marketing_notifications.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mt-4 d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>{% trans "Save Preferences" %}
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>{% trans "Notification form is not available." %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+

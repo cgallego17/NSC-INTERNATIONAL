@@ -36,6 +36,7 @@ urlpatterns = [
     path("locations/", include("apps.locations.urls")),
     path("accounts/", include("apps.accounts.urls")),  # Login público aquí
     path("users/", include("django.contrib.auth.urls")),  # Mantener para compatibilidad
+    path("media/", include("apps.media.urls")),  # Multimedia
     path("i18n/setlang/", set_language, name="set_language"),  # Language switching
 ]
 
@@ -43,3 +44,7 @@ urlpatterns = [
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    # Serve multimedia files
+    multimedia_root = getattr(settings, 'MULTIMEDIA_ROOT', None)
+    if multimedia_root:
+        urlpatterns += static(settings.MULTIMEDIA_URL, document_root=multimedia_root)

@@ -140,7 +140,7 @@
 <body data-theme="light">
 
     {% block navbar %}
-        {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.namespace == 'events' or request.resolver_match.namespace == 'locations' or request.resolver_match.namespace == 'accounts' %}
+        {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.namespace == 'events' or request.resolver_match.namespace == 'locations' or request.resolver_match.namespace == 'accounts' or request.resolver_match.namespace == 'media' %}
             <!-- Topbar (solo para dashboard) -->
             <header class="topbar">
         <div class="topbar-container">
@@ -281,18 +281,18 @@
         {% endif %}
     {% endblock %}
 
-    {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.namespace == 'events' or request.resolver_match.namespace == 'locations' or request.resolver_match.namespace == 'accounts' %}
+    {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.namespace == 'events' or request.resolver_match.namespace == 'locations' or request.resolver_match.namespace == 'accounts' or request.resolver_match.namespace == 'media' %}
     <!-- Sidebar (solo para dashboard) -->
     <aside id="sidebar" class="sidebar">
         <!-- Header aplicación -->
         <div class="sb-header d-flex align-items-center justify-content-center">
             <div class="hide-mini">
                 <div class="app-brand d-flex align-items-center justify-content-center">
-                    <img src="{% static 'images/ncs-white.svg' %}" alt="NCS International" style="height: 40px; width: auto; max-width: 180px; object-fit: contain;">
+                    <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" style="height: 40px; width: auto; max-width: 180px; object-fit: contain;">
                 </div>
             </div>
             <div class="app-logo-mini">
-                <img src="{% static 'images/ncs-white.svg' %}" alt="NCS International" style="height: 35px; width: auto; max-width: 60px; object-fit: contain;">
+                <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" style="height: 35px; width: auto; max-width: 60px; object-fit: contain;">
             </div>
         </div>
 
@@ -355,6 +355,12 @@
                 <i class="bi bi-calendar-check me-2"></i>Reservas
             </a>
         </div>
+
+        <!-- Multimedia -->
+        <a href="{% url 'media:list' %}" class="sb-item{% if active_section == 'media' %} active{% endif %}" data-bs-title="Multimedia">
+            <i class="sb-ico bi bi-images"></i>
+            <span class="hide-mini">Multimedia</span>
+        </a>
 
         <!-- Contactos -->
         <button class="sb-item w-100{% if active_section == 'contacts' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbContacts" aria-expanded="{% if active_section == 'contacts' %}true{% else %}false{% endif %}" data-bs-title="Contactos">
@@ -439,9 +445,9 @@
     {% endif %}
 
     <!-- Main Content -->
-    <div class="main-content{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'accounts' %} container{% endif %}" id="mainContent"{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'accounts' %} style="padding: 40px 0; min-height: calc(100vh - 200px);"{% endif %}>
+    <div class="main-content{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'accounts' and request.resolver_match.namespace != 'media' %} container{% endif %}" id="mainContent"{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'accounts' and request.resolver_match.namespace != 'media' %} style="padding: 40px 0; min-height: calc(100vh - 200px);"{% endif %}>
         <!-- Page Content -->
-        <main class="page-content{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'accounts' %}" style="padding: 0;"{% endif %}>
+        <main class="page-content{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'accounts' and request.resolver_match.namespace != 'media' %}" style="padding: 0;"{% endif %}>
             {% if messages %}
                 <div class="messages-container">
                     {% for message in messages %}

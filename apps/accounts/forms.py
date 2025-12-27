@@ -2,7 +2,7 @@ import re
 
 from django import forms
 from django.conf import settings
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, UserCreationForm
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
@@ -669,7 +669,7 @@ class UserCreateForm(UserCreationForm):
 
 
 class UserUpdateForm(forms.ModelForm):
-    """Formulario para actualizar información básica del usuario"""
+    """Formulario para actualizar información básica del usuario (admin)"""
 
     user_type = forms.ChoiceField(
         choices=UserProfile.USER_TYPE_CHOICES,
@@ -711,6 +711,23 @@ class UserUpdateForm(forms.ModelForm):
             user.profile.user_type = self.cleaned_data.get("user_type", "player")
             user.profile.save()
         return user
+
+
+class UserProfileUpdateForm(forms.ModelForm):
+    """Formulario simplificado para actualizar información básica del usuario en el perfil"""
+
+    class Meta:
+        model = User
+        fields = [
+            "first_name",
+            "last_name",
+            "email",
+        ]
+        widgets = {
+            "first_name": forms.TextInput(attrs={"class": "form-control"}),
+            "last_name": forms.TextInput(attrs={"class": "form-control"}),
+            "email": forms.EmailInput(attrs={"class": "form-control"}),
+        }
 
 
 class TeamForm(forms.ModelForm):
@@ -1875,6 +1892,98 @@ class HomeBannerForm(forms.ModelForm):
             "order": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
         }
 
+
+class BillingAddressForm(forms.ModelForm):
+    """Formulario para dirección de facturación"""
+
+    class Meta:
+        model = UserProfile
+        fields = [
+            "address",
+            "address_line_2",
+            "city",
+            "state",
+            "country",
+            "postal_code",
+        ]
+        widgets = {
+            "address": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": _("Enter street address"),
+                }
+            ),
+            "address_line_2": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _("Apartment, suite, etc. (optional)"),
+                }
+            ),
+            "city": forms.Select(attrs={"class": "form-select"}),
+            "state": forms.Select(attrs={"class": "form-select"}),
+            "country": forms.Select(attrs={"class": "form-select"}),
+            "postal_code": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _("Enter postal code"),
+                }
+            ),
+        }
+        labels = {
+            "address": _("Street Address"),
+            "address_line_2": _("Address Line 2"),
+            "city": _("City"),
+            "state": _("State/Province"),
+            "country": _("Country"),
+            "postal_code": _("Postal Code"),
+        }
+
+
+class CustomPasswordChangeForm(PasswordChangeForm):
+    """Formulario personalizado para cambio de contraseña"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["old_password"].widget.attrs.update(
+            {"class": "form-control", "placeholder": _("Enter current password")}
+        )
+        self.fields["new_password1"].widget.attrs.update(
+            {"class": "form-control", "placeholder": _("Enter new password")}
+        )
+        self.fields["new_password2"].widget.attrs.update(
+            {"class": "form-control", "placeholder": _("Confirm new password")}
+        )
+
+
+class NotificationPreferencesForm(forms.Form):
+    """Formulario para preferencias de notificaciones"""
+
+    email_notifications = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        label=_("Email Notifications"),
+    )
+    event_notifications = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        label=_("Event Notifications"),
+    )
+    reservation_notifications = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        label=_("Reservation Notifications"),
+    )
+    marketing_notifications = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        label=_("Marketing Notifications"),
+    )
+
     def clean(self):
         cleaned_data = super().clean()
         banner_type = cleaned_data.get("banner_type")
@@ -2230,3 +2339,95 @@ class SponsorForm(forms.ModelForm):
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "order": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
         }
+
+
+class BillingAddressForm(forms.ModelForm):
+    """Formulario para dirección de facturación"""
+
+    class Meta:
+        model = UserProfile
+        fields = [
+            "address",
+            "address_line_2",
+            "city",
+            "state",
+            "country",
+            "postal_code",
+        ]
+        widgets = {
+            "address": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": _("Enter street address"),
+                }
+            ),
+            "address_line_2": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _("Apartment, suite, etc. (optional)"),
+                }
+            ),
+            "city": forms.Select(attrs={"class": "form-select"}),
+            "state": forms.Select(attrs={"class": "form-select"}),
+            "country": forms.Select(attrs={"class": "form-select"}),
+            "postal_code": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": _("Enter postal code"),
+                }
+            ),
+        }
+        labels = {
+            "address": _("Street Address"),
+            "address_line_2": _("Address Line 2"),
+            "city": _("City"),
+            "state": _("State/Province"),
+            "country": _("Country"),
+            "postal_code": _("Postal Code"),
+        }
+
+
+class CustomPasswordChangeForm(PasswordChangeForm):
+    """Formulario personalizado para cambio de contraseña"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["old_password"].widget.attrs.update(
+            {"class": "form-control", "placeholder": _("Enter current password")}
+        )
+        self.fields["new_password1"].widget.attrs.update(
+            {"class": "form-control", "placeholder": _("Enter new password")}
+        )
+        self.fields["new_password2"].widget.attrs.update(
+            {"class": "form-control", "placeholder": _("Confirm new password")}
+        )
+
+
+class NotificationPreferencesForm(forms.Form):
+    """Formulario para preferencias de notificaciones"""
+
+    email_notifications = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        label=_("Email Notifications"),
+    )
+    event_notifications = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        label=_("Event Notifications"),
+    )
+    reservation_notifications = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        label=_("Reservation Notifications"),
+    )
+    marketing_notifications = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        label=_("Marketing Notifications"),
+    )

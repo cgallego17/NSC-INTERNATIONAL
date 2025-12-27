@@ -8,14 +8,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ event.title }} - {% trans "NCS International" %}</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
     <style>
         :root {
             --mlb-blue: #0d2c54;
@@ -24,19 +24,19 @@
             --mlb-gold: #ffd700;
             --mlb-dark: #1a1a1a;
         }
-        
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Arial', 'Helvetica', sans-serif;
             background-color: #f5f5f5;
             color: #333;
         }
-        
+
         /* Top Bar */
         .top-bar {
             background: var(--mlb-dark);
@@ -44,24 +44,24 @@
             padding: 8px 0;
             font-size: 0.85rem;
         }
-        
+
         .top-bar a {
             color: #ccc;
             text-decoration: none;
             transition: color 0.3s;
         }
-        
+
         .top-bar a:hover {
             color: white;
         }
-        
+
         /* Language Selector with Flags Dropdown */
         .language-selector-wrapper {
             position: relative;
             display: inline-block;
             margin-right: 0;
         }
-        
+
         .language-selector-btn {
             background: transparent;
             border: 1px solid #555;
@@ -77,13 +77,13 @@
             min-width: 80px;
             justify-content: space-between;
         }
-        
+
         .language-selector-btn:hover {
             border-color: var(--mlb-gold);
             background: rgba(255, 215, 0, 0.1);
             color: white;
         }
-        
+
         .language-selector-btn .flag-icon {
             width: 20px;
             height: 15px;
@@ -93,29 +93,29 @@
             border-radius: 2px;
             flex-shrink: 0;
         }
-        
+
         .flag-icon.flag-us {
             background-image: url('https://flagcdn.com/w20/us.png');
         }
-        
+
         .flag-icon.flag-es {
             background-image: url('https://flagcdn.com/w20/es.png');
         }
-        
+
         .language-selector-btn .arrow-icon {
             font-size: 0.7rem;
             transition: transform 0.3s;
         }
-        
+
         .language-selector-btn.active {
             border-color: var(--mlb-gold);
             background: rgba(255, 215, 0, 0.15);
         }
-        
+
         .language-selector-btn.active .arrow-icon {
             transform: rotate(180deg);
         }
-        
+
         .language-dropdown {
             position: absolute;
             top: 100%;
@@ -133,13 +133,13 @@
             z-index: 1000;
             overflow: hidden;
         }
-        
+
         .language-dropdown.show {
             opacity: 1;
             visibility: visible;
             transform: translateY(0);
         }
-        
+
         .language-option {
             display: flex;
             align-items: center;
@@ -153,21 +153,21 @@
             font-family: inherit;
             font-size: inherit;
         }
-        
+
         .language-option:last-child {
             border-bottom: none;
         }
-        
+
         .language-option:hover {
             background: rgba(255, 215, 0, 0.15);
             color: white;
         }
-        
+
         .language-option.active {
             background: rgba(255, 215, 0, 0.2);
             color: var(--mlb-gold);
         }
-        
+
         .language-option .flag-icon {
             width: 24px;
             height: 18px;
@@ -177,36 +177,36 @@
             border-radius: 2px;
             flex-shrink: 0;
         }
-        
+
         .language-option .language-name {
             flex: 1;
             font-size: 0.85rem;
             font-weight: 500;
         }
-        
+
         @media (max-width: 768px) {
             .language-selector-btn {
                 min-width: 70px;
                 padding: 4px 8px;
                 font-size: 0.8rem;
             }
-            
+
             .language-selector-btn .language-text {
                 display: none;
             }
-            
+
             .language-dropdown {
                 min-width: 130px;
             }
         }
-        
+
         /* Navbar MLB Style */
         .navbar-mlb {
             background: var(--mlb-blue) !important;
             padding: 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
-        
+
         .navbar-mlb .navbar-brand {
             font-size: 1.8rem;
             font-weight: 700;
@@ -216,14 +216,14 @@
             display: flex;
             align-items: center;
         }
-        
+
         .navbar-logo {
             height: 40px;
             width: auto;
             max-width: 180px;
             object-fit: contain;
         }
-        
+
         .navbar-mlb .nav-link {
             color: white !important;
             font-weight: 600;
@@ -233,15 +233,15 @@
             letter-spacing: 0.5px;
             transition: background 0.3s;
         }
-        
+
         .navbar-mlb .nav-link:hover {
             background: var(--mlb-light-blue);
         }
-        
+
         .navbar-mlb .nav-link.active {
             background: var(--mlb-red);
         }
-        
+
         /* Minimalist Hero Section */
         .event-hero-section {
             position: relative;
@@ -252,7 +252,7 @@
             display: flex;
             align-items: center;
         }
-        
+
         .event-hero-image {
             width: 100%;
             height: 100%;
@@ -264,7 +264,7 @@
             z-index: 1;
             opacity: 0.3;
         }
-        
+
         .event-hero-overlay {
             position: absolute;
             top: 0;
@@ -274,7 +274,7 @@
             background: rgba(13, 44, 84, 0.85);
             z-index: 2;
         }
-        
+
         .event-hero-content {
             position: relative;
             z-index: 3;
@@ -285,27 +285,27 @@
             width: 100%;
             text-align: center;
         }
-        
+
         .event-hero-breadcrumb {
             margin-bottom: 30px;
             font-size: 0.9rem;
         }
-        
+
         .event-hero-breadcrumb a {
             color: rgba(255, 255, 255, 0.7);
             text-decoration: none;
             transition: color 0.3s;
         }
-        
+
         .event-hero-breadcrumb a:hover {
             color: white;
         }
-        
+
         .event-hero-breadcrumb span {
             color: rgba(255, 255, 255, 0.5);
             margin: 0 12px;
         }
-        
+
         .event-hero-title {
             font-size: 4.5rem;
             font-weight: 800;
@@ -313,7 +313,7 @@
             line-height: 1.2;
             letter-spacing: -1px;
         }
-        
+
         .event-hero-subtitle {
             font-size: 1.4rem;
             opacity: 0.9;
@@ -324,7 +324,7 @@
             margin-left: auto;
             margin-right: auto;
         }
-        
+
         .hero-meta-minimal {
             display: flex;
             justify-content: center;
@@ -334,18 +334,18 @@
             padding-top: 40px;
             border-top: 1px solid rgba(255, 255, 255, 0.2);
         }
-        
+
         .hero-meta-item-minimal {
             text-align: center;
         }
-        
+
         .hero-meta-item-minimal i {
             font-size: 1.5rem;
             color: var(--mlb-gold);
             margin-bottom: 10px;
             display: block;
         }
-        
+
         .hero-meta-item-minimal-label {
             font-size: 0.85rem;
             opacity: 0.7;
@@ -353,31 +353,31 @@
             letter-spacing: 1px;
             margin-bottom: 8px;
         }
-        
+
         .hero-meta-item-minimal-value {
             font-size: 1.1rem;
             font-weight: 600;
         }
-        
+
         .hero-cta-buttons {
             display: flex;
             gap: 20px;
             justify-content: center;
             flex-wrap: wrap;
         }
-        
+
         /* Landing Page Sections */
         .landing-section {
             padding: 100px 40px;
             max-width: 1400px;
             margin: 0 auto;
         }
-        
+
         .section-header {
             text-align: center;
             margin-bottom: 70px;
         }
-        
+
         .section-title {
             font-size: 2.5rem;
             font-weight: 700;
@@ -385,7 +385,7 @@
             margin-bottom: 20px;
             letter-spacing: -1px;
         }
-        
+
         .section-subtitle {
             font-size: 1.15rem;
             color: #6c757d;
@@ -395,7 +395,7 @@
             margin-right: auto;
             line-height: 1.7;
         }
-        
+
         /* Minimalist Features Grid */
         .features-grid {
             display: grid;
@@ -403,17 +403,17 @@
             gap: 50px;
             margin-top: 80px;
         }
-        
+
         .feature-card {
             text-align: center;
             padding: 0;
             transition: transform 0.3s;
         }
-        
+
         .feature-card:hover {
             transform: translateY(-5px);
         }
-        
+
         .feature-icon {
             width: 60px;
             height: 60px;
@@ -428,12 +428,12 @@
             margin: 0 auto 25px;
             transition: all 0.3s;
         }
-        
+
         .feature-card:hover .feature-icon {
             background: var(--mlb-blue);
             color: white;
         }
-        
+
         .feature-title {
             font-size: 1.3rem;
             font-weight: 700;
@@ -441,24 +441,24 @@
             margin-bottom: 15px;
             letter-spacing: -0.5px;
         }
-        
+
         .feature-description {
             font-size: 1rem;
             color: #6c757d;
             line-height: 1.7;
         }
-        
+
         /* Minimalist Timeline Section */
         .timeline-section {
             background: #f8f9fa;
             padding: 100px 40px;
         }
-        
+
         .timeline-container {
             max-width: 800px;
             margin: 0 auto;
         }
-        
+
         .timeline-item {
             display: flex;
             gap: 30px;
@@ -466,13 +466,13 @@
             padding-bottom: 60px;
             border-bottom: 1px solid #e9ecef;
         }
-        
+
         .timeline-item:last-child {
             border-bottom: none;
             margin-bottom: 0;
             padding-bottom: 0;
         }
-        
+
         .timeline-icon {
             width: 50px;
             height: 50px;
@@ -485,11 +485,11 @@
             font-size: 1.2rem;
             flex-shrink: 0;
         }
-        
+
         .timeline-content {
             flex: 1;
         }
-        
+
         .timeline-date {
             font-size: 0.95rem;
             font-weight: 600;
@@ -498,7 +498,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        
+
         .timeline-title {
             font-size: 1.3rem;
             font-weight: 700;
@@ -506,13 +506,13 @@
             margin-bottom: 10px;
             letter-spacing: -0.5px;
         }
-        
+
         .timeline-description {
             color: #6c757d;
             line-height: 1.7;
             font-size: 1rem;
         }
-        
+
         .event-hero-meta {
             display: flex;
             flex-wrap: wrap;
@@ -520,7 +520,7 @@
             margin-top: 40px;
             animation: fadeInUp 1s ease-out 0.6s both;
         }
-        
+
         .event-hero-meta-item {
             display: flex;
             align-items: center;
@@ -534,18 +534,18 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             transition: all 0.3s;
         }
-        
+
         .event-hero-meta-item:hover {
             background: rgba(255, 255, 255, 0.2);
             transform: translateY(-2px);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
-        
+
         .event-hero-meta-item i {
             color: var(--mlb-gold);
             font-size: 1.3rem;
         }
-        
+
         .event-hero-badge {
             background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%);
             color: white;
@@ -558,12 +558,12 @@
             box-shadow: 0 4px 15px rgba(213, 0, 50, 0.4);
             transition: all 0.3s;
         }
-        
+
         .event-hero-badge:hover {
             transform: scale(1.05);
             box-shadow: 0 6px 20px rgba(213, 0, 50, 0.5);
         }
-        
+
         /* Minimalist CTA Section */
         .event-cta-section {
             background: var(--mlb-red);
@@ -571,33 +571,33 @@
             text-align: center;
             color: white;
         }
-        
+
         .event-cta-content {
             max-width: 700px;
             margin: 0 auto;
         }
-        
+
         .event-cta-title {
             font-size: 2rem;
             font-weight: 700;
             margin-bottom: 20px;
             letter-spacing: -0.5px;
         }
-        
+
         .event-cta-subtitle {
             font-size: 1.1rem;
             margin-bottom: 40px;
             opacity: 0.9;
             line-height: 1.6;
         }
-        
+
         .event-cta-buttons {
             display: flex;
             gap: 15px;
             justify-content: center;
             flex-wrap: wrap;
         }
-        
+
         /* Event Detail Content - Enhanced */
         .event-detail-content {
             background: white;
@@ -605,11 +605,11 @@
             max-width: 1400px;
             margin: 0 auto;
         }
-        
+
         .event-detail-section {
             margin-bottom: 70px;
         }
-        
+
         .event-detail-section-title {
             font-size: 2.5rem;
             font-weight: 900;
@@ -621,7 +621,7 @@
             position: relative;
             display: inline-block;
         }
-        
+
         .event-detail-section-title::after {
             content: '';
             position: absolute;
@@ -632,14 +632,14 @@
             background: linear-gradient(90deg, var(--mlb-red) 0%, var(--mlb-gold) 100%);
             border-radius: 3px;
         }
-        
+
         .event-info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 25px;
             margin-bottom: 40px;
         }
-        
+
         .event-info-card {
             background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
             padding: 35px;
@@ -649,7 +649,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .event-info-card::before {
             content: '';
             position: absolute;
@@ -660,18 +660,18 @@
             background: linear-gradient(180deg, var(--mlb-red) 0%, var(--mlb-blue) 100%);
             transition: width 0.4s;
         }
-        
+
         .event-info-card:hover {
             transform: translateY(-8px) scale(1.02);
             box-shadow: 0 12px 30px rgba(13, 44, 84, 0.15);
             border-color: var(--mlb-red);
         }
-        
+
         .event-info-card:hover::before {
             width: 100%;
             opacity: 0.05;
         }
-        
+
         .event-info-card-icon {
             width: 70px;
             height: 70px;
@@ -686,12 +686,12 @@
             box-shadow: 0 4px 15px rgba(13, 44, 84, 0.3);
             transition: all 0.4s;
         }
-        
+
         .event-info-card:hover .event-info-card-icon {
             transform: scale(1.1) rotate(5deg);
             box-shadow: 0 6px 20px rgba(13, 44, 84, 0.4);
         }
-        
+
         .event-info-card-label {
             font-size: 0.9rem;
             color: #6c757d;
@@ -700,14 +700,14 @@
             font-weight: 700;
             margin-bottom: 12px;
         }
-        
+
         .event-info-card-value {
             font-size: 1.25rem;
             color: #212529;
             font-weight: 800;
             line-height: 1.5;
         }
-        
+
         /* Highlight Box */
         .event-highlight-box {
             background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
@@ -718,7 +718,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .event-highlight-box::before {
             content: '';
             position: absolute;
@@ -728,12 +728,12 @@
             height: 200%;
             background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
         }
-        
+
         .event-highlight-content {
             position: relative;
             z-index: 1;
         }
-        
+
         .event-highlight-title {
             font-size: 2rem;
             font-weight: 900;
@@ -741,19 +741,19 @@
             letter-spacing: 2px;
             margin-bottom: 20px;
         }
-        
+
         .event-highlight-text {
             font-size: 1.15rem;
             line-height: 1.8;
             opacity: 0.95;
         }
-        
+
         .event-description-content {
             font-size: 1.1rem;
             line-height: 1.8;
             color: #495057;
         }
-        
+
         .event-description-content h1,
         .event-description-content h2,
         .event-description-content h3 {
@@ -762,29 +762,29 @@
             margin-bottom: 15px;
             font-weight: 700;
         }
-        
+
         .event-description-content p {
             margin-bottom: 20px;
         }
-        
+
         .event-description-content ul,
         .event-description-content ol {
             margin-bottom: 20px;
             padding-left: 30px;
         }
-        
+
         /* Related Events Section */
         .related-events-section {
             background: var(--mlb-blue);
             padding: 60px 40px;
             margin: 0;
         }
-        
+
         .related-events-header {
             text-align: center;
             margin-bottom: 40px;
         }
-        
+
         .related-events-title {
             font-size: 2.5rem;
             font-weight: 900;
@@ -793,12 +793,12 @@
             letter-spacing: 3px;
             margin-bottom: 15px;
         }
-        
+
         .related-events-subtitle {
             color: rgba(255, 255, 255, 0.8);
             font-size: 1.1rem;
         }
-        
+
         .events-news-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -806,7 +806,7 @@
             max-width: 1400px;
             margin: 0 auto;
         }
-        
+
         .event-news-card {
             background: transparent;
             border-radius: 12px;
@@ -817,13 +817,13 @@
             border: 2px solid transparent;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
-        
+
         .event-news-card:hover {
             transform: translateY(-8px);
             border-color: rgba(255, 255, 255, 0.3);
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
         }
-        
+
         .event-news-image {
             position: relative;
             width: 100%;
@@ -831,18 +831,18 @@
             overflow: hidden;
             background: linear-gradient(135deg, rgba(13, 44, 84, 0.9) 0%, rgba(19, 36, 72, 0.9) 100%);
         }
-        
+
         .event-news-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
             transition: transform 0.4s;
         }
-        
+
         .event-news-card:hover .event-news-image img {
             transform: scale(1.1);
         }
-        
+
         .event-news-placeholder {
             width: 100%;
             height: 100%;
@@ -851,12 +851,12 @@
             justify-content: center;
             background: linear-gradient(135deg, rgba(13, 44, 84, 0.8) 0%, rgba(19, 36, 72, 0.8) 100%);
         }
-        
+
         .event-news-placeholder i {
             font-size: 4rem;
             color: rgba(255, 255, 255, 0.3);
         }
-        
+
         .event-news-overlay {
             position: absolute;
             top: 0;
@@ -868,7 +868,7 @@
             align-items: flex-start;
             padding: 15px;
         }
-        
+
         .event-news-date {
             color: white;
             font-weight: 700;
@@ -879,7 +879,7 @@
             padding: 6px 12px;
             border-radius: 6px;
         }
-        
+
         .event-news-type {
             position: absolute;
             top: 12px;
@@ -893,7 +893,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
+
         .event-news-content {
             background: rgba(13, 44, 84, 0.95);
             padding: 24px 20px;
@@ -901,11 +901,11 @@
             display: flex;
             align-items: center;
         }
-        
+
         .event-news-content-inner {
             width: 100%;
         }
-        
+
         .event-news-title-card {
             color: white;
             font-size: 1rem;
@@ -915,13 +915,13 @@
             margin: 0 0 12px 0;
             line-height: 1.4;
         }
-        
+
         .event-news-meta {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
-        
+
         .event-news-meta-item {
             display: flex;
             align-items: center;
@@ -929,13 +929,13 @@
             color: rgba(255, 255, 255, 0.85);
             font-size: 0.85rem;
         }
-        
+
         .event-news-meta-item i {
             color: var(--mlb-red);
             font-size: 0.9rem;
             width: 16px;
         }
-        
+
         /* Footer MLB Style */
         .footer-mlb {
             background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
@@ -944,7 +944,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .footer-mlb::before {
             content: '';
             position: absolute;
@@ -954,12 +954,12 @@
             height: 3px;
             background: linear-gradient(90deg, var(--mlb-red) 0%, var(--mlb-blue) 50%, var(--mlb-red) 100%);
         }
-        
+
         .footer-mlb .container-fluid {
             position: relative;
             z-index: 1;
         }
-        
+
         .footer-mlb h5 {
             color: white;
             font-weight: 700;
@@ -970,7 +970,7 @@
             position: relative;
             padding-bottom: 12px;
         }
-        
+
         .footer-mlb h5::after {
             content: '';
             position: absolute;
@@ -981,31 +981,31 @@
             background: var(--mlb-red);
             border-radius: 2px;
         }
-        
+
         .footer-mlb .footer-col {
             padding: 0 20px;
         }
-        
+
         .footer-mlb .footer-logo-section {
             margin-bottom: 20px;
         }
-        
+
         .footer-mlb .footer-logo-section img {
             filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.1));
             transition: transform 0.3s ease;
         }
-        
+
         .footer-mlb .footer-logo-section:hover img {
             transform: scale(1.05);
         }
-        
+
         .footer-mlb p {
             color: #b0b0b0;
             line-height: 1.8;
             font-size: 0.95rem;
             margin-bottom: 0;
         }
-        
+
         .footer-mlb a {
             color: #ccc;
             text-decoration: none;
@@ -1019,7 +1019,7 @@
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
-        
+
         .footer-mlb a i {
             margin-right: 8px;
             width: 18px;
@@ -1028,7 +1028,7 @@
             opacity: 0.8;
             transition: all 0.3s ease;
         }
-        
+
         .footer-mlb a:hover {
             color: white;
             background: rgba(213, 0, 50, 0.15);
@@ -1036,13 +1036,13 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(213, 0, 50, 0.2);
         }
-        
+
         .footer-mlb a:hover i {
             opacity: 1;
             color: var(--mlb-red);
             transform: scale(1.1);
         }
-        
+
         .footer-mlb .quick-links {
             display: flex !important;
             flex-direction: row;
@@ -1050,7 +1050,7 @@
             gap: 8px;
             margin-top: 10px;
         }
-        
+
         .footer-mlb .quick-links a {
             display: inline-flex !important;
             align-items: center;
@@ -1059,18 +1059,18 @@
             visibility: visible !important;
             opacity: 1 !important;
         }
-        
+
         .footer-mlb .contact-info {
             color: #b0b0b0;
         }
-        
+
         .footer-mlb .contact-info p {
             margin-bottom: 12px;
             display: flex;
             align-items: center;
             font-size: 0.95rem;
         }
-        
+
         .footer-mlb .contact-info i {
             margin-right: 12px;
             width: 20px;
@@ -1078,7 +1078,7 @@
             font-size: 1rem;
             opacity: 0.9;
         }
-        
+
         .footer-bottom {
             border-top: 1px solid rgba(255, 255, 255, 0.1);
             padding: 25px 0;
@@ -1086,13 +1086,13 @@
             text-align: center;
             background: rgba(0, 0, 0, 0.3);
         }
-        
+
         .footer-bottom p {
             color: #888;
             font-size: 0.9rem;
             margin: 0;
         }
-        
+
         .badge-mlb {
             background: var(--mlb-red);
             color: white;
@@ -1102,7 +1102,7 @@
             font-weight: 700;
             text-transform: uppercase;
         }
-        
+
         /* Minimalist Buttons */
         .btn-mlb {
             background: var(--mlb-red);
@@ -1117,14 +1117,14 @@
             font-size: 1rem;
             letter-spacing: 0.5px;
         }
-        
+
         .btn-mlb:hover {
             background: #b30029;
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(213, 0, 50, 0.3);
             color: white;
         }
-        
+
         .btn-mlb-outline {
             background: transparent;
             color: white;
@@ -1138,12 +1138,12 @@
             font-size: 1rem;
             letter-spacing: 0.5px;
         }
-        
+
         .btn-mlb-outline:hover {
             background: white;
             color: var(--mlb-red);
         }
-        
+
         .btn-mlb-secondary {
             background: var(--mlb-blue);
             color: white;
@@ -1157,14 +1157,14 @@
             font-size: 1rem;
             letter-spacing: 0.5px;
         }
-        
+
         .btn-mlb-secondary:hover {
             background: var(--mlb-light-blue);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(13, 44, 84, 0.3);
             color: white;
         }
-        
+
         /* Modal Login Styles */
         .modal-mlb .modal-content {
             border-radius: 15px;
@@ -1172,7 +1172,7 @@
             overflow: hidden;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
         }
-        
+
         .modal-mlb .modal-header {
             background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
             color: white;
@@ -1181,7 +1181,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .modal-mlb .modal-header::before {
             content: '';
             position: absolute;
@@ -1191,16 +1191,16 @@
             height: 200%;
             background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
         }
-        
+
         .modal-mlb .modal-header .btn-close {
             filter: brightness(0) invert(1);
             opacity: 0.9;
         }
-        
+
         .modal-mlb .modal-header .btn-close:hover {
             opacity: 1;
         }
-        
+
         .modal-mlb .modal-title {
             font-size: 1.8rem;
             font-weight: 900;
@@ -1209,11 +1209,11 @@
             position: relative;
             z-index: 1;
         }
-        
+
         .modal-mlb .modal-body {
             padding: 40px;
         }
-        
+
         .modal-mlb .form-label {
             font-weight: 600;
             color: var(--mlb-blue);
@@ -1222,7 +1222,7 @@
             font-size: 0.85rem;
             letter-spacing: 0.5px;
         }
-        
+
         .modal-mlb .form-control {
             border: 2px solid #e9ecef;
             border-radius: 8px;
@@ -1230,30 +1230,30 @@
             transition: all 0.3s;
             font-size: 1rem;
         }
-        
+
         .modal-mlb .form-control:focus {
             border-color: var(--mlb-blue);
             box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.25);
         }
-        
+
         .modal-mlb .form-check-input {
             width: 1.25rem;
             height: 1.25rem;
             border: 2px solid #e9ecef;
             margin-top: 0.3rem;
         }
-        
+
         .modal-mlb .form-check-input:checked {
             background-color: var(--mlb-red);
             border-color: var(--mlb-red);
         }
-        
+
         .modal-mlb .form-check-label {
             font-weight: 500;
             color: #555;
             margin-left: 8px;
         }
-        
+
         .modal-mlb .error-message {
             background: #fee;
             border: 1px solid var(--mlb-red);
@@ -1264,32 +1264,32 @@
             font-weight: 600;
             font-size: 0.9rem;
         }
-        
+
         .modal-mlb .field-error {
             color: var(--mlb-red);
             font-size: 0.85rem;
             margin-top: 5px;
             font-weight: 600;
         }
-        
+
         .modal-mlb .modal-footer {
             padding: 20px 40px;
             background: #f8f9fa;
             border-top: 1px solid #e9ecef;
             text-align: center;
         }
-        
+
         .modal-mlb .modal-footer a {
             color: var(--mlb-blue);
             font-weight: 600;
             text-decoration: none;
         }
-        
+
         .modal-mlb .modal-footer a:hover {
             color: var(--mlb-red);
             text-decoration: underline;
         }
-        
+
         .login-icon-modal {
             font-size: 3rem;
             margin-bottom: 15px;
@@ -1298,159 +1298,159 @@
             z-index: 1;
             text-align: center;
         }
-        
+
         @media (max-width: 768px) {
             .event-hero-section {
                 min-height: 75vh;
             }
-            
+
             .event-hero-image {
                 min-height: 75vh;
             }
-            
+
             .event-hero-title {
                 font-size: 2.5rem;
             }
-            
+
             .event-hero-subtitle {
                 font-size: 1.1rem;
             }
-            
+
             .event-hero-content {
                 padding: 80px 20px 60px;
             }
-            
+
             .hero-meta-minimal {
                 gap: 30px;
                 flex-direction: column;
             }
-            
+
             .hero-cta-buttons {
                 flex-direction: column;
             }
-            
+
             .hero-cta-buttons .btn-mlb,
             .hero-cta-buttons .btn-mlb-outline {
                 width: 100%;
             }
-            
+
             .section-title {
                 font-size: 2rem;
             }
-            
+
             .section-subtitle {
                 font-size: 1rem;
             }
-            
+
             .features-grid {
                 grid-template-columns: 1fr;
                 gap: 50px;
             }
-            
+
             .timeline-item {
                 flex-direction: column;
                 gap: 20px;
             }
-            
+
             .landing-section {
                 padding: 80px 20px;
             }
-            
+
             .timeline-section {
                 padding: 80px 20px;
             }
-            
+
             .event-cta-section {
                 padding: 60px 20px;
             }
-            
+
             .event-cta-title {
                 font-size: 1.75rem;
             }
-            
+
             .event-cta-section {
                 padding: 40px 20px;
             }
-            
+
             .event-cta-title {
                 font-size: 1.8rem;
             }
-            
+
             .event-cta-subtitle {
                 font-size: 1rem;
             }
-            
+
             .event-cta-buttons {
                 flex-direction: column;
             }
-            
+
             .event-cta-buttons .btn-mlb,
             .event-cta-buttons .btn-mlb-outline {
                 width: 100%;
             }
-            
+
             .event-detail-content {
                 padding: 40px 20px;
             }
-            
+
             .event-detail-section {
                 margin-bottom: 50px;
             }
-            
+
             .event-detail-section-title {
                 font-size: 1.8rem;
             }
-            
+
             .event-info-grid {
                 grid-template-columns: 1fr;
                 gap: 20px;
             }
-            
+
             .event-info-card {
                 padding: 25px;
             }
-            
+
             .event-highlight-box {
                 padding: 30px 20px;
             }
-            
+
             .event-highlight-title {
                 font-size: 1.5rem;
             }
-            
+
             .event-highlight-text {
                 font-size: 1rem;
             }
-            
+
             .related-events-title {
                 font-size: 1.8rem;
             }
-            
+
             .events-news-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .btn-mlb,
             .btn-mlb-outline,
             .btn-mlb-secondary {
                 padding: 15px 30px;
                 font-size: 0.95rem;
             }
-            
+
             .footer-mlb {
                 padding: 40px 0 0;
             }
-            
+
             .footer-mlb .footer-col {
                 padding: 0 15px;
                 margin-bottom: 40px;
             }
-            
+
             .footer-mlb .quick-links {
                 flex-direction: column;
                 gap: 8px;
             }
-            
+
             .footer-mlb a {
                 width: 100%;
                 justify-content: flex-start;
@@ -1527,7 +1527,7 @@
     <nav class="navbar navbar-expand-lg navbar-mlb">
         <div class="container-fluid px-0">
             <a class="navbar-brand" href="/">
-                <img src="{% static 'images/ncs-white.svg' %}" alt="NCS International" class="navbar-logo">
+                <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" class="navbar-logo">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: white;">
                 <span style="color: white;"><i class="fas fa-bars"></i></span>
@@ -1564,8 +1564,8 @@
 
     <!-- Minimalist Hero Section -->
     <section class="event-hero-section">
-        {% if event.image %}
-            <img src="{{ event.image.url }}" alt="{{ event.title }}" class="event-hero-image">
+        {% if event.logo %}
+            <img src="{{ event.logo }}" alt="{{ event.title }}" class="event-hero-image">
         {% else %}
             <div class="event-hero-image" style="background: var(--mlb-blue);"></div>
         {% endif %}
@@ -1763,7 +1763,7 @@
                         </div>
                     </div>
                 {% endif %}
-                
+
                 {% if event.end_date %}
                     <div class="event-info-card">
                         <div class="event-info-card-icon" style="background: var(--mlb-red);">
@@ -1778,7 +1778,7 @@
                         </div>
                     </div>
                 {% endif %}
-                
+
                 {% if event.city %}
                     <div class="event-info-card">
                         <div class="event-info-card-icon" style="background: #28a745;">
@@ -1790,7 +1790,7 @@
                         </div>
                     </div>
                 {% endif %}
-                
+
                 {% if event.entry_deadline %}
                     <div class="event-info-card">
                         <div class="event-info-card-icon" style="background: #ffc107; color: #212529;">
@@ -1802,7 +1802,7 @@
                         </div>
                     </div>
                 {% endif %}
-                
+
                 {% if event.default_entry_fee %}
                     <div class="event-info-card">
                         <div class="event-info-card-icon" style="background: #17a2b8;">
@@ -1812,7 +1812,7 @@
                         <div class="event-info-card-value">${{ event.default_entry_fee|floatformat:2 }}</div>
                     </div>
                 {% endif %}
-                
+
                 {% if event.divisions.all %}
                     <div class="event-info-card">
                         <div class="event-info-card-icon" style="background: #6f42c1;">
@@ -1853,7 +1853,7 @@
                             <div class="event-info-card-value">{{ event.location }}</div>
                         </div>
                     {% endif %}
-                    
+
                     {% if event.address %}
                         <div class="event-info-card">
                             <div class="event-info-card-icon" style="background: #fd7e14;">
@@ -1863,7 +1863,7 @@
                             <div class="event-info-card-value">{{ event.address|linebreaks }}</div>
                         </div>
                     {% endif %}
-                    
+
                     {% if event.primary_site %}
                         <div class="event-info-card">
                             <div class="event-info-card-icon" style="background: #20c997;">
@@ -1904,7 +1904,7 @@
                             </div>
                         </div>
                     {% endif %}
-                    
+
                     {% for hotel in event.additional_hotels.all %}
                         <div class="event-info-card">
                             <div class="event-info-card-icon" style="background: #e83e8c;">
@@ -1963,8 +1963,8 @@
                 {% for related_event in related_events %}
                     <a href="{% url 'events:public_detail' related_event.pk %}" class="event-news-card">
                         <div class="event-news-image">
-                            {% if related_event.image %}
-                                <img src="{{ related_event.image.url }}" alt="{{ related_event.title }}">
+                            {% if related_event.logo %}
+                                <img src="{{ related_event.logo }}" alt="{{ related_event.title }}">
                             {% else %}
                                 <div class="event-news-placeholder">
                                     <i class="fas fa-baseball-ball"></i>
@@ -2014,7 +2014,7 @@
             <div class="row" style="max-width: 1400px; margin: 0 auto;">
                 <div class="col-md-4 footer-col">
                     <div class="footer-logo-section">
-                        <img src="{% static 'images/ncs-white.svg' %}" alt="NCS International" style="height: 40px; width: auto; margin-bottom: 20px;">
+                        <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" style="height: 40px; width: auto; margin-bottom: 20px;">
                     </div>
                     <p>
                         {% trans "NCS International was designed to provide opportunities for players and teams through our national and international tournaments and showcases." %}
@@ -2095,11 +2095,11 @@
                 </div>
                 <div class="modal-body">
                     <p class="text-center mb-4" style="color: #666; position: relative; z-index: 1;">{% trans "Access your NCS International account" %}</p>
-                    
+
                     <form method="post" action="{% url 'accounts:login' %}">
                         {% csrf_token %}
                         <input type="hidden" name="next" value="{{ request.GET.next|default:request.path }}">
-                        
+
                         {% if form.non_field_errors %}
                             <div class="error-message">
                                 <i class="fas fa-exclamation-circle me-2"></i>
@@ -2111,15 +2111,15 @@
                                 {% trans "Please verify your credentials and try again." %}
                             </div>
                         {% endif %}
-                        
+
                         <div class="mb-3">
                             <label for="id_username_modal" class="form-label">
                                 <i class="fas fa-envelope me-1"></i>{% trans "Email" %}
                             </label>
-                            <input type="email" 
-                                   id="id_username_modal" 
-                                   name="username" 
-                                   class="form-control {% if form.username.errors %}is-invalid{% endif %}" 
+                            <input type="email"
+                                   id="id_username_modal"
+                                   name="username"
+                                   class="form-control {% if form.username.errors %}is-invalid{% endif %}"
                                    placeholder="{% trans 'your@email.com' %}"
                                    value="{% if form.username.value %}{{ form.username.value }}{% elif request.POST.username %}{{ request.POST.username }}{% endif %}"
                                    required
@@ -2128,22 +2128,22 @@
                                 <div class="field-error">{{ form.username.errors.0 }}</div>
                             {% endif %}
                         </div>
-                        
+
                         <div class="mb-3">
                             <label for="id_password_modal" class="form-label">
                                 <i class="fas fa-lock me-1"></i>{% trans "Password" %}
                             </label>
-                            <input type="password" 
-                                   id="id_password_modal" 
-                                   name="password" 
-                                   class="form-control {% if form.password.errors %}is-invalid{% endif %}" 
+                            <input type="password"
+                                   id="id_password_modal"
+                                   name="password"
+                                   class="form-control {% if form.password.errors %}is-invalid{% endif %}"
                                    placeholder="{% trans 'Enter your password' %}"
                                    required>
                             {% if form.password.errors %}
                                 <div class="field-error">{{ form.password.errors.0 }}</div>
                             {% endif %}
                         </div>
-                        
+
                         <div class="mb-4">
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me_modal">
@@ -2152,7 +2152,7 @@
                                 </label>
                             </div>
                         </div>
-                        
+
                         <button type="submit" class="btn btn-mlb w-100">
                             <i class="fas fa-sign-in-alt me-2"></i>{% trans "Log In" %}
                         </button>
@@ -2169,7 +2169,7 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         // Language Selector Dropdown
         function toggleLanguageDropdown() {
@@ -2178,13 +2178,13 @@
             dropdown.classList.toggle('show');
             btn.classList.toggle('active');
         }
-        
+
         // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             const wrapper = document.querySelector('.language-selector-wrapper');
             const dropdown = document.getElementById('languageDropdown');
             const btn = document.getElementById('languageSelectorBtn');
-            
+
             if (wrapper && !wrapper.contains(event.target)) {
                 dropdown.classList.remove('show');
                 btn.classList.remove('active');

@@ -356,6 +356,18 @@ class Event(models.Model):
 
     # Información adicional
     image = models.ImageField(upload_to="events/", blank=True, null=True)
+    banner = models.URLField(
+        blank=True,
+        null=True,
+        help_text="URL del banner del evento desde el sistema multimedia",
+        verbose_name="Banner del Evento",
+    )
+    logo = models.URLField(
+        blank=True,
+        null=True,
+        help_text="URL del logo del evento desde el sistema multimedia",
+        verbose_name="Logo del Evento",
+    )
     external_link = models.URLField(blank=True, help_text="Enlace externo relacionado")
     notes = models.TextField(blank=True, help_text="Notas internas")
 
@@ -671,7 +683,7 @@ class EventContact(models.Model):
         elif self.organization:
             return f"{self.name} ({self.organization})"
         return self.name
-    
+
     @property
     def display_title(self):
         """Retorna el cargo y organización formateado"""

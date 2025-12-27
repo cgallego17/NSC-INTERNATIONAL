@@ -14,8 +14,9 @@ urlpatterns = [
 
     # Panel y perfil
     path('dashboard/', views_private.UserDashboardView.as_view(), name='dashboard'),
-    path('profile/', views_private.profile_view, name='profile'),
+    path('profile/', views_private.ProfileView.as_view(), name='profile'),
     path('profile/edit/', views_private.ProfileUpdateView.as_view(), name='profile_edit'),
+    path('profile/billing/', views_private.ProfileView.as_view(), name='profile_billing'),
     path('profile/user-edit/', views_private.UserInfoUpdateView.as_view(), name='user_edit'),
 
     # Equipos

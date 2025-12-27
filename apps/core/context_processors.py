@@ -168,6 +168,11 @@ def sidebar_context(request):
             "section": "home_content",
             "subsection": "edit_contact",
         },
+        "media:list": {"section": "media", "subsection": "list"},
+        "media:create": {"section": "media", "subsection": "create"},
+        "media:detail": {"section": "media", "subsection": "list"},
+        "media:update": {"section": "media", "subsection": "list"},
+        "media:delete": {"section": "media", "subsection": "list"},
     }
 
     try:
@@ -235,6 +240,9 @@ def sidebar_context(request):
                 if "/players" in current_path:
                     active_section = "players"
                     active_subsection = "player_list"
+            elif current_path.startswith("/media/"):
+                active_section = "media"
+                active_subsection = "list"
 
     except (Resolver404, Exception) as e:
         # Si no se puede resolver la URL, usar fallback por ruta
@@ -262,6 +270,9 @@ def sidebar_context(request):
                 active_subsection = "user_list"
             elif "/players" in current_path:
                 active_section = "players"
+        elif current_path.startswith("/media/"):
+            active_section = "media"
+            active_subsection = "list"
 
     return {
         "active_section": active_section,

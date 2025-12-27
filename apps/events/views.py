@@ -386,7 +386,7 @@ class EventDetailAPIView(LoginRequiredMixin, View):
             "title": event.title,
             "description": event.description or "",
             "category": event.category.name if event.category else None,
-            "image": event.image.url if event.image else None,
+            "logo": event.logo if event.logo else None,
             "start_date": (
                 event.start_date.strftime("%d %b %Y") if event.start_date else None
             ),

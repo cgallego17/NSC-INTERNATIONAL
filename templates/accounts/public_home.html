@@ -1428,6 +1428,48 @@
             background-color: rgba(0, 0, 0, 0.5);
         }
 
+        /* Barra de progreso del video promocional */
+        .video-promo-progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .video-promo-progress-bar-inner {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #d50032 0%, #ff4444 50%, #d50032 100%);
+            background-size: 200% 100%;
+            transition: width 0.1s linear;
+            box-shadow: 0 0 20px rgba(213, 0, 50, 0.6);
+            position: relative;
+            animation: videoProgressBarGradient 3s linear infinite;
+        }
+
+        @keyframes videoProgressBarGradient {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .video-promo-progress-bar:hover {
+            height: 10px;
+        }
+
+        .video-promo-progress-bar:hover .video-promo-progress-bar-inner {
+            box-shadow: 0 0 30px rgba(213, 0, 50, 0.8);
+        }
+
+        @media (max-width: 768px) {
+            .video-promo-progress-bar {
+                height: 6px;
+            }
+        }
+
         /* Floating Video Container */
         .video-promo-floating {
             position: fixed;
@@ -1603,8 +1645,37 @@
             color: rgba(255, 255, 255, 0.9);
             font-size: 1.05rem;
             line-height: 1.6;
-            margin: -15px 0 25px 0;
+            margin: 0 0 25px 0;
         }
+
+        .video-promo-description p {
+            margin-bottom: 10px;
+        }
+
+        .video-promo-description p:last-child {
+            margin-bottom: 0;
+        }
+
+        .video-promo-description strong,
+        .video-promo-description b {
+            font-weight: 600;
+        }
+
+        .video-promo-description em,
+        .video-promo-description i {
+            font-style: italic;
+        }
+
+        .video-promo-description ul,
+        .video-promo-description ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .video-promo-description li {
+            margin-bottom: 5px;
+        }
+
 
         .video-promo-logo {
             display: flex;
@@ -1628,27 +1699,28 @@
         }
 
         .video-promo-title {
-            margin-bottom: 40px;
+            margin-bottom: 20px;
         }
 
         .video-promo-title-accent {
             display: block;
             color: var(--mlb-red);
-            font-size: 2.5rem;
+            font-size: 1.5rem;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            line-height: 1.2;
+            letter-spacing: 1.5px;
+            line-height: 1.3;
+            margin-bottom: 5px;
         }
 
         .video-promo-title-main {
             display: block;
             color: white;
-            font-size: 2.6rem;
+            font-size: 1.8rem;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 3px;
-            line-height: 1.2;
+            letter-spacing: 2px;
+            line-height: 1.3;
             word-wrap: break-word;
             overflow-wrap: break-word;
         }
@@ -1657,7 +1729,8 @@
             display: flex;
             gap: 12px;
             margin-bottom: 30px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            align-items: center;
         }
 
         .video-promo-option-btn {
@@ -1675,6 +1748,8 @@
             cursor: pointer;
             transition: all 0.3s;
             text-decoration: none;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .video-promo-option-btn:hover {
@@ -1906,11 +1981,11 @@
             }
 
             .video-promo-title-accent {
-                font-size: 2rem;
+                font-size: 1.3rem;
             }
 
             .video-promo-title-main {
-                font-size: 2rem;
+                font-size: 1.5rem;
             }
         }
 
@@ -1924,21 +1999,23 @@
             }
 
             .video-promo-title-accent {
-                font-size: 1.5rem;
+                font-size: 1.1rem;
             }
 
             .video-promo-title-main {
-                font-size: 2.5rem;
+                font-size: 1.3rem;
             }
 
             .video-promo-options {
                 justify-content: center;
+                flex-wrap: nowrap;
             }
 
             .video-promo-option-btn {
-                flex: 1;
+                flex: 0 1 auto;
                 min-width: 80px;
                 justify-content: center;
+                white-space: nowrap;
             }
         }
 
@@ -2346,7 +2423,7 @@
     <nav class="navbar navbar-expand-lg navbar-mlb">
         <div class="container-fluid px-0">
             <a class="navbar-brand" href="/">
-                <img src="{% static 'images/ncs-white.svg' %}" alt="NCS International" class="navbar-logo">
+                <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" class="navbar-logo">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: white;">
                 <span style="color: white;"><i class="fas fa-bars"></i></span>
@@ -2492,7 +2569,7 @@
                             <div class="video-promo-overlay-top">
                                 <div class="video-promo-overlay-content">
                                     <div class="video-promo-logo-small">
-                                        <img src="{% static 'images/ncs-white.svg' %}" alt="NCS International" style="height: 30px; width: auto;">
+                                        <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" style="height: 30px; width: auto;">
                                     </div>
                                     <div class="video-promo-overlay-actions">
                                         <button class="video-promo-action-btn" title="{% trans 'Watch later' %}">
@@ -2509,6 +2586,10 @@
                                         </button>
                                     </div>
                                 </div>
+                            </div>
+                            <!-- Barra de progreso del video promocional -->
+                            <div id="videoPromoProgressBar" class="video-promo-progress-bar">
+                                <div id="videoPromoProgressBarInner" class="video-promo-progress-bar-inner"></div>
                             </div>
                         </div>
                     </div>
@@ -2553,12 +2634,12 @@
                 {% for event in promo_events %}
                 {
                     "id": {{ event.id }},
-                    "title": {{ event.title|escapejs|safe }},
-                    "description": {{ event.description|escapejs|safe|truncatewords:30 }},
-                    "video_url": {{ event.video_url|escapejs|safe }},
+                    "title": "{{ event.title|escapejs }}",
+                    "description": "{{ event.description|striptags|escapejs|truncatewords:30 }}",
+                    "video_url": {% if event.video_url %}"{{ event.video_url|escapejs }}"{% else %}null{% endif %},
                     "location": "{% if event.city %}{{ event.city.name }}{% if event.state %}, {{ event.state.name }}{% endif %}{% else %}{{ event.location|default:"-" }}{% endif %}",
-                    "event_type": "{% if event.event_type %}{{ event.event_type.name }}{% else %}{% trans 'Tournament / Showcase' %}{% endif %}",
-                    "divisions": "{% for division in event.divisions.all %}{{ division.name }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans 'All Categories' %}{% endfor %}",
+                    "event_type": "{% if event.event_type %}{{ event.event_type.name|escapejs }}{% else %}{% trans 'Tournament / Showcase' %}{% endif %}",
+                    "divisions": "{% for division in event.divisions.all %}{{ division.name|escapejs }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans 'All Categories' %}{% endfor %}",
                     "start_date": "{{ event.start_date|date:'Y-m-d' }}",
                     "detail_url": "{% url 'events:public_detail' event.pk %}"
                 }{% if not forloop.last %},{% endif %}
@@ -2656,8 +2737,8 @@
             {% for event in upcoming_events|slice:":4" %}
                 <a href="{% url 'events:detail' event.pk %}" class="event-news-card">
                     <div class="event-news-image">
-                        {% if event.image %}
-                            <img src="{{ event.image.url }}" alt="{{ event.title }}">
+                        {% if event.logo %}
+                            <img src="{{ event.logo }}" alt="{{ event.title }}">
                         {% else %}
                             <div class="event-news-placeholder">
                                 <i class="fas fa-baseball-ball"></i>
@@ -3039,7 +3120,7 @@
             <div class="row" style="max-width: 1400px; margin: 0 auto;">
                 <div class="col-md-4 footer-col">
                     <div class="footer-logo-section">
-                        <img src="{% static 'images/ncs-white.svg' %}" alt="NCS International" style="height: 40px; width: auto; margin-bottom: 20px;">
+                        <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" style="height: 40px; width: auto; margin-bottom: 20px;">
                     </div>
                     <p>
                         {% trans "NCS International was designed to provide opportunities for players and teams through our national and international tournaments and showcases." %}
@@ -3299,10 +3380,25 @@
             const eventsDataScript = document.getElementById('promoEventsData');
             if (!eventsDataScript) return;
 
-            const eventsData = JSON.parse(eventsDataScript.textContent);
-            const events = eventsData.events || [];
+            let eventsData;
+            try {
+                eventsData = JSON.parse(eventsDataScript.textContent);
+            } catch (e) {
+                console.error('Error al parsear promoEventsData:', e);
+                console.error('Contenido del script:', eventsDataScript.textContent.substring(0, 500));
+                return;
+            }
 
-            if (events.length === 0) return;
+            const events = eventsData.events || [];
+            console.log('Eventos parseados:', events.length, 'eventos');
+            if (events.length > 0) {
+                console.log('Primer evento:', events[0]);
+            }
+
+            if (events.length === 0) {
+                console.warn('No hay eventos disponibles');
+                return;
+            }
 
             const video = document.getElementById('videoPromoPlayer');
             if (!video) return;
@@ -3312,8 +3408,10 @@
 
             // Función para convertir URL de YouTube/Vimeo a formato directo si es necesario
             function getVideoSource(videoUrl) {
-                // Si es una URL directa de video, usarla directamente
-                if (videoUrl.match(/\.(mp4|webm|ogg|m3u8)$/i)) {
+                if (!videoUrl) return null;
+
+                // Si es una URL directa de video (incluyendo videos del sistema multimedia), usarla directamente
+                if (videoUrl.match(/\.(mp4|webm|ogg|m3u8)$/i) || videoUrl.includes('/multimedia/') || videoUrl.includes('/media/')) {
                     return videoUrl;
                 }
                 // Si es YouTube, convertir a formato embed
@@ -3331,8 +3429,8 @@
 
             // Función para cargar un video
             function loadVideo(event) {
-                if (!event || !event.video_url) {
-                    // Si no hay video, pasar al siguiente evento
+                if (!event) {
+                    // Si no hay evento, pasar al siguiente
                     if (events.length > 1) {
                         setTimeout(nextVideo, 1000);
                     }
@@ -3342,6 +3440,14 @@
                 // Actualizar información del evento PRIMERO (antes de cargar el video)
                 updateEventInfo(event);
 
+                // Si no hay video_url, pasar al siguiente evento
+                if (!event.video_url) {
+                    if (events.length > 1) {
+                        setTimeout(nextVideo, 1000);
+                    }
+                    return;
+                }
+
                 // Limpiar HLS anterior si existe
                 if (hls) {
                     hls.destroy();
@@ -3350,10 +3456,38 @@
 
                 // Limpiar sources anteriores y remover listeners
                 video.innerHTML = '';
-                video.removeEventListener('ended', nextVideo);
+                // Remover listener anterior si existe
+                const oldEndedHandler = video._endedHandler;
+                if (oldEndedHandler) {
+                    video.removeEventListener('ended', oldEndedHandler);
+                }
+                // Reiniciar la barra de progreso
+                const progressBar = document.getElementById('videoPromoProgressBarInner');
+                if (progressBar) {
+                    progressBar.style.width = '0%';
+                }
 
                 const videoUrl = event.video_url;
+                console.log('Cargando video para evento:', event.title, 'URL:', videoUrl);
+
+                if (!videoUrl) {
+                    console.warn('No hay video_url para el evento:', event.title);
+                    if (events.length > 1) {
+                        setTimeout(nextVideo, 1000);
+                    }
+                    return;
+                }
+
                 const videoSource = getVideoSource(videoUrl);
+                console.log('Video source procesado:', videoSource);
+
+                if (!videoSource) {
+                    console.warn('No se pudo procesar la URL del video:', videoUrl);
+                    if (events.length > 1) {
+                        setTimeout(nextVideo, 1000);
+                    }
+                    return;
+                }
 
                 // Si es YouTube o Vimeo, usar iframe
                 if (videoSource.includes('youtube.com/embed') || videoSource.includes('vimeo.com/video')) {
@@ -3403,7 +3537,16 @@
                     const oldIframe = document.getElementById('videoPromoIframe');
                     if (oldIframe) oldIframe.remove();
 
+                    // Definir handler para cuando termine el video (antes de usarlo)
+                    const endedHandler = function() {
+                        console.log('Video terminado, cambiando al siguiente evento');
+                        nextVideo();
+                    };
+                    // Guardar referencia para poder removerlo después si es necesario
+                    video._endedHandler = endedHandler;
+
                     // Es un video directo
+                    console.log('Cargando video directo:', videoSource);
                     const source = document.createElement('source');
                     source.src = videoSource;
 
@@ -3414,13 +3557,48 @@
                         source.type = 'video/mp4';
                     } else if (videoSource.includes('.webm')) {
                         source.type = 'video/webm';
+                    } else {
+                        // Si no tiene extensión, intentar detectar desde la URL
+                        source.type = 'video/mp4'; // Por defecto MP4
                     }
 
                     video.appendChild(source);
                     video.appendChild(document.createTextNode('{% trans "Your browser does not support video playback." %}'));
 
+                    // Agregar listeners para debugging
+                    video.addEventListener('loadedmetadata', function() {
+                        console.log('Video metadata cargado, duración:', video.duration);
+                    }, { once: true });
+
+                    video.addEventListener('canplay', function() {
+                        console.log('Video puede reproducirse');
+                    }, { once: true });
+
+                    video.addEventListener('error', function(e) {
+                        console.error('Error en el video:', e);
+                        console.error('Video error code:', video.error ? video.error.code : 'unknown');
+                        console.error('Video error message:', video.error ? video.error.message : 'unknown');
+                        console.error('Video src:', video.currentSrc);
+                    }, { once: true });
+
                     // Agregar listener para cuando termine el video
-                    video.addEventListener('ended', nextVideo, { once: true });
+                    video.addEventListener('ended', endedHandler);
+
+                    // Agregar listener para actualizar la barra de progreso
+                    const progressBar = document.getElementById('videoPromoProgressBarInner');
+                    video.addEventListener('timeupdate', function() {
+                        if (progressBar && video.duration) {
+                            const progress = (video.currentTime / video.duration) * 100;
+                            progressBar.style.width = progress + '%';
+                        }
+                    });
+
+                    // Reiniciar la barra de progreso cuando el video se carga
+                    video.addEventListener('loadedmetadata', function() {
+                        if (progressBar) {
+                            progressBar.style.width = '0%';
+                        }
+                    }, { once: true });
 
                     // Si es HLS y el navegador no lo soporta nativamente, usar hls.js
                     if (videoSource.includes('.m3u8') && video.canPlayType('application/vnd.apple.mpegurl') === '') {
@@ -3431,6 +3609,8 @@
                             hls.on(Hls.Events.MANIFEST_PARSED, function() {
                                 video.play().catch(() => {});
                             });
+                            // Asegurar que el listener 'ended' esté activo para HLS
+                            video.addEventListener('ended', endedHandler);
                             hls.on(Hls.Events.ERROR, function(event, data) {
                                 if (data.fatal) {
                                     // Si hay error fatal, pasar al siguiente video
@@ -3447,6 +3627,8 @@
                                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
                                     video.play().catch(() => {});
                                 });
+                                // Asegurar que el listener 'ended' esté activo para HLS
+                                video.addEventListener('ended', endedHandler);
                                 hls.on(Hls.Events.ERROR, function(event, data) {
                                     if (data.fatal) {
                                         setTimeout(nextVideo, 2000);
@@ -3456,12 +3638,33 @@
                             document.head.appendChild(script);
                         }
                     } else {
+                        console.log('Cargando video sin HLS');
                         video.load();
-                        video.play().catch((error) => {
-                            console.error('Error playing video:', error);
-                            // Si hay error al reproducir, pasar al siguiente video después de 2 segundos
-                            setTimeout(nextVideo, 2000);
-                        });
+                        // Esperar a que el video esté listo antes de reproducir
+                        video.addEventListener('canplaythrough', function() {
+                            console.log('Video listo para reproducir completamente');
+                            video.play().then(() => {
+                                console.log('Video reproducido exitosamente');
+                            }).catch((error) => {
+                                console.error('Error playing video:', error);
+                                setTimeout(nextVideo, 2000);
+                            });
+                        }, { once: true });
+
+                        // Fallback: intentar reproducir después de un tiempo si canplaythrough no se dispara
+                        setTimeout(() => {
+                            if (video.readyState >= 2) { // HAVE_CURRENT_DATA
+                                console.log('Intentando reproducir video (fallback)');
+                                video.play().then(() => {
+                                    console.log('Video reproducido exitosamente (fallback)');
+                                }).catch((error) => {
+                                    console.error('Error playing video (fallback):', error);
+                                    setTimeout(nextVideo, 2000);
+                                });
+                            } else {
+                                console.warn('Video no está listo, readyState:', video.readyState);
+                            }
+                        }, 2000);
                     }
 
                     // También escuchar errores del video
@@ -3487,7 +3690,7 @@
                     titleEl.textContent = (event.title || '{% trans "Event" %}').toUpperCase();
                 }
                 if (descEl) {
-                    descEl.textContent = event.description || '{% trans "Experience NCS International events" %}';
+                    descEl.innerHTML = event.description || '{% trans "Experience NCS International events" %}';
                 }
                 if (locationEl) {
                     locationEl.textContent = event.location || '-';
@@ -3519,8 +3722,11 @@
 
             // Cargar el primer video al iniciar
             if (events.length > 0) {
+                console.log('Iniciando carga del primer video');
+                console.log('Primer evento completo:', events[0]);
                 loadVideo(events[0]);
             } else {
+                console.warn('No hay eventos con videos disponibles');
                 // Si no hay eventos, mostrar mensaje
                 updateEventInfo({
                     title: '{% trans "No videos available" %}',

@@ -39,7 +39,8 @@ class EventForm(forms.ModelForm):
             "hotel",  # HOTEL SEDE SELECT
             "additional_hotels",  # HOTELES ADICIONALES SELECT MULTIPLE
             "event_contact",  # CONTACTO EVENTO SELECT
-            "image",  # LOGO EVENTO
+            "banner",  # BANNER DEL EVENTO
+            "logo",  # LOGO DEL EVENTO (desde medios)
             "video_url",  # VIDEO EVENTO
             "email_welcome_body",  # BODY DEL CORREO HTML
         ]
@@ -205,6 +206,20 @@ class EventForm(forms.ModelForm):
                     "required": False,
                 }
             ),
+            "banner": forms.URLInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "URL del banner desde medios",
+                    "required": False,
+                }
+            ),
+            "logo": forms.URLInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "URL del logo desde medios",
+                    "required": False,
+                }
+            ),
             "video_url": forms.URLInput(
                 attrs={
                     "class": "form-control",
@@ -244,6 +259,8 @@ class EventForm(forms.ModelForm):
             "additional_hotels": "Hoteles Adicionales",
             "event_contact": "Contactos",
             "image": "Logo del Evento",
+            "banner": "Banner del Evento",
+            "logo": "Logo del Evento (desde medios)",
             "video_url": "Video del Evento",
             "email_welcome_body": "Cuerpo del Correo de Bienvenida (HTML)",
         }

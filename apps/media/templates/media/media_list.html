@@ -1,0 +1,1315 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Multimedia" %} - NCS Eventos{% endblock %}
+
+{% block extra_css %}
+<style>
+    .media-list-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        padding: 2rem 2rem 2rem 3rem;
+        min-height: 100vh;
+    }
+
+    @media (max-width: 992px) {
+        .media-list-container {
+            padding: 2rem 1.5rem;
+        }
+    }
+
+    .media-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+
+    .media-item {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .media-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    }
+
+    .media-item.selected {
+        border: 3px solid var(--mlb-red);
+        box-shadow: 0 4px 16px rgba(213, 0, 50, 0.3);
+    }
+
+    .media-item-checkbox {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        z-index: 15;
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+        opacity: 0.9;
+        transition: opacity 0.2s, transform 0.2s;
+        background: white;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .media-item-checkbox:hover {
+        opacity: 1;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+
+    .media-item-checkbox:checked {
+        background-color: var(--mlb-red);
+        border-color: var(--mlb-red);
+    }
+
+    .media-preview {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        background: #f5f5f5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .media-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+    }
+
+    .media-item:hover .media-preview img {
+        transform: scale(1.05);
+    }
+
+    .media-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s;
+        z-index: 2;
+        pointer-events: none;
+    }
+
+    .media-item:hover .media-overlay {
+        opacity: 1;
+    }
+
+    .media-overlay i {
+        color: white;
+        font-size: 2.5rem;
+    }
+
+    .media-preview .file-icon {
+        font-size: 4rem;
+        color: #999;
+    }
+
+    .video-thumbnail-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .video-thumbnail-placeholder {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .video-play-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 4rem;
+        color: rgba(255, 255, 255, 0.9);
+        z-index: 1;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+    }
+
+    .media-item:hover .video-play-overlay {
+        color: var(--mlb-red);
+        transform: translate(-50%, -50%) scale(1.1);
+        transition: all 0.3s;
+    }
+
+    .media-info {
+        padding: 1rem;
+    }
+
+    .media-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .media-meta {
+        font-size: 0.75rem;
+        color: #666;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .upload-zone {
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        padding: 3rem;
+        text-align: center;
+        background: #f9f9f9;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+
+    .upload-zone:hover {
+        border-color: var(--mlb-red);
+        background: #fff;
+    }
+
+    .upload-zone.dragover {
+        border-color: var(--mlb-red);
+        background: #fff5f5;
+    }
+
+    /* Lightbox/Modal para imágenes y videos */
+    .media-viewer-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        cursor: pointer;
+    }
+
+    .media-viewer-modal.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .media-viewer-wrapper {
+        display: flex;
+        width: 95%;
+        max-width: 1400px;
+        height: 90vh;
+        background: #1a1a1a;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        cursor: default;
+    }
+
+    .media-viewer-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        background: #000;
+        overflow: hidden;
+    }
+
+    .media-viewer-content img {
+        max-width: 100%;
+        max-height: 90vh;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .media-viewer-content video {
+        max-width: 100%;
+        max-height: 90vh;
+        border-radius: 8px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    .media-viewer-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        font-size: 1.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        transition: background 0.3s;
+    }
+
+    .media-viewer-close:hover {
+        background: rgba(213, 0, 50, 0.9);
+    }
+
+    .media-viewer-sidebar {
+        width: 400px;
+        background: #1f1f1f;
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto;
+        color: white;
+    }
+
+    .media-viewer-sidebar-header {
+        padding: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .media-viewer-sidebar-header h3 {
+        margin: 0;
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    .media-viewer-sidebar-content {
+        flex: 1;
+        padding: 20px;
+    }
+
+    .media-viewer-info {
+        display: none; /* Ocultar el info antiguo */
+    }
+
+    .media-viewer-form-group {
+        margin-bottom: 20px;
+    }
+
+    .media-viewer-form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.8);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .media-viewer-form-group input,
+    .media-viewer-form-group textarea {
+        width: 100%;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        color: white;
+        font-size: 0.9rem;
+        font-family: inherit;
+        transition: all 0.3s;
+    }
+
+    .media-viewer-form-group input:focus,
+    .media-viewer-form-group textarea:focus {
+        outline: none;
+        border-color: var(--mlb-red);
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 0 3px rgba(213, 0, 50, 0.1);
+    }
+
+    .media-viewer-form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .media-viewer-form-group .readonly-field {
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(255, 255, 255, 0.1);
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+
+    .media-viewer-form-group .url-display {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .media-viewer-form-group .url-display input {
+        flex: 1;
+        font-family: 'Courier New', monospace;
+        font-size: 0.85rem;
+    }
+
+    .media-viewer-form-group .copy-url-btn {
+        background: var(--mlb-red);
+        border: none;
+        color: white;
+        padding: 10px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: background 0.3s;
+        white-space: nowrap;
+    }
+
+    .media-viewer-form-group .copy-url-btn:hover {
+        background: #b8002e;
+    }
+
+    .media-viewer-form-group .copy-url-btn.copied {
+        background: #28a745;
+    }
+
+    .media-viewer-meta {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .media-viewer-meta-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        font-size: 0.85rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .media-viewer-meta-item:last-child {
+        border-bottom: none;
+    }
+
+    .media-viewer-meta-label {
+        color: rgba(255, 255, 255, 0.6);
+        font-weight: 500;
+    }
+
+    .media-viewer-meta-value {
+        color: white;
+        font-weight: 600;
+    }
+
+    .media-viewer-save-btn {
+        margin-top: 20px;
+        width: 100%;
+        padding: 12px;
+        background: var(--mlb-red);
+        border: none;
+        color: white;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+
+    .media-viewer-save-btn:hover {
+        background: #b8002e;
+    }
+
+    .media-viewer-save-btn:disabled {
+        background: rgba(255, 255, 255, 0.1);
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .media-viewer-save-btn.saving {
+        background: #666;
+    }
+
+    .media-viewer-info h4 {
+        margin: 0 0 10px 0;
+        font-size: 1.3rem;
+        font-weight: 600;
+    }
+
+    .media-viewer-info p {
+        margin: 0 0 8px 0;
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    .media-viewer-info .info-row {
+        display: flex;
+        align-items: center;
+        margin: 8px 0;
+        font-size: 0.85rem;
+    }
+
+    .media-viewer-info .info-label {
+        font-weight: 600;
+        min-width: 100px;
+        opacity: 0.8;
+    }
+
+    .media-viewer-info .info-value {
+        flex: 1;
+        word-break: break-all;
+    }
+
+    .media-viewer-info .url-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        padding: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+    }
+
+    .media-viewer-info .url-container input {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-family: 'Courier New', monospace;
+        cursor: text;
+    }
+
+    .media-viewer-info .url-container input:focus {
+        outline: none;
+        border-color: var(--mlb-red);
+        background: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 0 0 2px rgba(213, 0, 50, 0.2);
+    }
+
+    .media-viewer-info .url-container input::selection {
+        background: var(--mlb-red);
+        color: white;
+    }
+
+    .media-viewer-info .copy-btn {
+        background: var(--mlb-red);
+        border: none;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: background 0.3s;
+    }
+
+    .media-viewer-info .copy-btn:hover {
+        background: #b8002e;
+    }
+
+    .media-viewer-info .copy-btn:active {
+        transform: scale(0.95);
+    }
+
+    .media-viewer-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        font-size: 1.5rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+        transition: background 0.3s;
+    }
+
+    .media-viewer-nav:hover {
+        background: rgba(213, 0, 50, 0.9);
+    }
+
+    .media-viewer-nav.prev {
+        left: 20px;
+    }
+
+    .media-viewer-nav.next {
+        right: 20px;
+    }
+
+    .media-viewer-nav:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="media-list-container">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3 mb-0 text-gray-800">
+                    <i class="fas fa-images me-2"></i>{% trans "Multimedia" %}
+                </h1>
+                <p class="text-muted">{% trans "Gestiona tus archivos multimedia" %}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-danger" id="bulkDeleteBtn" style="display: none;">
+                    <i class="fas fa-trash me-2"></i>{% trans "Eliminar Seleccionados" %}
+                </button>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                    <i class="fas fa-upload me-2"></i>{% trans "Subir Archivos" %}
+                </button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="search" class="form-label">{% trans "Buscar" %}</label>
+                        <input type="text" class="form-control" id="search" name="search"
+                               value="{{ current_search }}" placeholder="{% trans 'Título, descripción, etiquetas...' %}">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="type" class="form-label">{% trans "Tipo" %}</label>
+                        <select class="form-select" id="type" name="type">
+                            <option value="">{% trans "Todos los Tipos" %}</option>
+                            {% for value, label in file_types %}
+                                <option value="{{ value }}" {% if current_type == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">{% trans "Estado" %}</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="active" {% if current_status == 'active' %}selected{% endif %}>{% trans "Activos" %}</option>
+                            <option value="archived" {% if current_status == 'archived' %}selected{% endif %}>{% trans "Archivados" %}</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-2"></i>{% trans "Filtrar" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Media Grid -->
+        {% if media_files %}
+            <div class="media-grid" id="mediaGrid">
+                {% for media in media_files %}
+                    <div class="media-item" data-id="{{ media.id }}" data-type="{{ media.file_type }}"
+                         data-url="{{ media.get_file_url }}" data-original-url="{{ media.original_file.url }}"
+                         data-title="{{ media.title }}" data-description="{{ media.description|default:'' }}"
+                         data-alt-text="{{ media.alt_text|default:'' }}" data-tags="{{ media.tags|default:'' }}"
+                         data-file-size="{% if media.processed_file_size %}{{ media.processed_file_size|filesizeformat }}{% else %}{{ media.file_size|filesizeformat }}{% endif %}"
+                         data-created="{{ media.created_at|date:'Y-m-d H:i' }}"
+                         {% if media.file_type == 'image' and media.width and media.height %}
+                         data-width="{{ media.width }}" data-height="{{ media.height }}"
+                         {% elif media.file_type == 'video' and media.width and media.height %}
+                         data-width="{{ media.width }}" data-height="{{ media.height }}"
+                         {% endif %}>
+                        <input type="checkbox" class="media-item-checkbox form-check-input" value="{{ media.id }}">
+                        <div class="media-preview">
+                            {% if media.file_type == 'image' %}
+                                <img src="{{ media.get_file_url }}" alt="{{ media.alt_text|default:media.title }}" loading="lazy">
+                                <div class="media-overlay">
+                                    <i class="fas fa-eye"></i>
+                                </div>
+                            {% elif media.file_type == 'video' %}
+                                {% with thumbnail_url=media.get_thumbnail_url %}
+                                    {% if thumbnail_url %}
+                                        <img src="{{ thumbnail_url }}" alt="{{ media.title }}" class="video-thumbnail-img" loading="lazy">
+                                    {% else %}
+                                        <div class="video-thumbnail-placeholder">
+                                            <i class="fas fa-video file-icon"></i>
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                                <div class="video-play-overlay">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                                <div class="media-overlay">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            {% elif media.file_type == 'document' %}
+                                <i class="fas fa-file-pdf file-icon"></i>
+                                <div class="media-overlay">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </div>
+                            {% elif media.file_type == 'audio' %}
+                                <i class="fas fa-music file-icon"></i>
+                                <div class="media-overlay">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            {% else %}
+                                <i class="fas fa-file file-icon"></i>
+                                <div class="media-overlay">
+                                    <i class="fas fa-download"></i>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="media-info">
+                            <div class="media-title" title="{{ media.title }}">{{ media.title }}</div>
+                            <div class="media-meta">
+                                <span>
+                                    {% if media.file_type == 'image' %}
+                                        <i class="fas fa-image"></i>
+                                    {% elif media.file_type == 'video' %}
+                                        <i class="fas fa-video"></i>
+                                    {% elif media.file_type == 'document' %}
+                                        <i class="fas fa-file"></i>
+                                    {% else %}
+                                        <i class="fas fa-file"></i>
+                                    {% endif %}
+                                </span>
+                                <span>
+                                    {% if media.processed_file_size %}
+                                        {{ media.processed_file_size|filesizeformat }}
+                                    {% else %}
+                                        {{ media.file_size|filesizeformat }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_type %}&type={{ current_type }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">{% trans "Anterior" %}</a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_type %}&type={{ current_type }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if current_search %}&search={{ current_search }}{% endif %}{% if current_type %}&type={{ current_type }}{% endif %}{% if current_status %}&status={{ current_status }}{% endif %}">{% trans "Siguiente" %}</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-images" style="font-size: 4rem; color: #ddd;"></i>
+                <p class="text-muted mt-3">{% trans "No hay archivos multimedia" %}</p>
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                    <i class="fas fa-upload me-2"></i>{% trans "Subir tu primer archivo" %}
+                </button>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{% trans "Subir Archivos" %}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="upload-zone" id="uploadZone">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 3rem; color: #999; margin-bottom: 1rem;"></i>
+                    <p class="mb-2">{% trans "Arrastra archivos aquí o haz clic para seleccionar" %}</p>
+                    <p class="text-muted small">{% trans "Imágenes, videos, documentos, audio" %}</p>
+                    <input type="file" id="fileInput" multiple accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.rtf,.bmp,.webp,.svg,.tiff,.tif,.flv,.webm,.mkv,.wav,.ogg,.aac,.flac,.m4a" style="display: none;">
+                </div>
+                <div id="uploadProgress" class="mt-3" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cerrar" %}</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Selección múltiple
+    const checkboxes = document.querySelectorAll('.media-item-checkbox');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    const mediaItems = document.querySelectorAll('.media-item');
+
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const mediaItem = this.closest('.media-item');
+            if (this.checked) {
+                mediaItem.classList.add('selected');
+            } else {
+                mediaItem.classList.remove('selected');
+            }
+            updateBulkActions();
+        });
+    });
+
+    // Viewer modal para imágenes y videos
+    const viewerModal = document.createElement('div');
+    viewerModal.className = 'media-viewer-modal';
+    viewerModal.innerHTML = `
+        <button class="media-viewer-close" onclick="closeMediaViewer()">
+            <i class="fas fa-times"></i>
+        </button>
+        <button class="media-viewer-nav prev" onclick="navigateMedia(-1)">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="media-viewer-nav next" onclick="navigateMedia(1)">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        <div class="media-viewer-wrapper">
+            <div class="media-viewer-content"></div>
+            <div class="media-viewer-sidebar">
+                <div class="media-viewer-sidebar-header">
+                    <h3>Información del Archivo</h3>
+                </div>
+                <div class="media-viewer-sidebar-content" id="mediaViewerSidebarContent">
+                    <!-- Contenido dinámico -->
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(viewerModal);
+
+    let currentMediaIndex = -1;
+    let mediaItemsArray = [];
+
+    // Función para abrir viewer
+    function openMediaViewer(index) {
+        currentMediaIndex = index;
+        mediaItemsArray = Array.from(document.querySelectorAll('.media-item[data-type="image"], .media-item[data-type="video"]'));
+
+        if (mediaItemsArray.length === 0) return;
+
+        const media = mediaItemsArray[index];
+        const type = media.dataset.type;
+        const url = media.dataset.url;
+        const originalUrl = media.dataset.originalUrl;
+        const title = media.dataset.title;
+        const description = media.dataset.description || '';
+        const altText = media.dataset.altText || '';
+        const tags = media.dataset.tags || '';
+        const fileSize = media.dataset.fileSize || 'N/A';
+        const created = media.dataset.created || 'N/A';
+        const width = media.dataset.width || '';
+        const height = media.dataset.height || '';
+
+        const content = viewerModal.querySelector('.media-viewer-content');
+        const sidebarContent = viewerModal.querySelector('#mediaViewerSidebarContent');
+        const mediaId = media.dataset.id;
+
+        content.innerHTML = '';
+        sidebarContent.innerHTML = '';
+
+        // Contenido multimedia (izquierda)
+        if (type === 'image') {
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = title;
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '100%';
+            img.style.objectFit = 'contain';
+            content.appendChild(img);
+        } else if (type === 'video') {
+            const video = document.createElement('video');
+            video.src = url;
+            video.controls = true;
+            video.autoplay = true;
+            video.style.maxWidth = '100%';
+            video.style.maxHeight = '100%';
+            content.appendChild(video);
+        }
+
+        // Panel de información editable (derecha)
+        const displayUrl = url || originalUrl;
+        let sidebarHTML = `
+            <form id="mediaEditForm" data-media-id="${mediaId}">
+                <div class="media-viewer-form-group">
+                    <label for="mediaTitle"><i class="fas fa-heading"></i> Título</label>
+                    <input type="text" id="mediaTitle" name="title" value="${title || ''}" required>
+                </div>
+
+                <div class="media-viewer-form-group">
+                    <label for="mediaDescription"><i class="fas fa-align-left"></i> Descripción</label>
+                    <textarea id="mediaDescription" name="description" rows="4">${description || ''}</textarea>
+                </div>
+
+                ${type === 'image' ? `
+                <div class="media-viewer-form-group">
+                    <label for="mediaAltText"><i class="fas fa-image"></i> Texto Alternativo (Alt Text)</label>
+                    <input type="text" id="mediaAltText" name="alt_text" value="${altText}" placeholder="Descripción para accesibilidad">
+                </div>
+                ` : ''}
+
+                <div class="media-viewer-form-group">
+                    <label for="mediaTags"><i class="fas fa-tags"></i> Etiquetas</label>
+                    <input type="text" id="mediaTags" name="tags" value="${tags}" placeholder="Separadas por comas">
+                </div>
+
+                <div class="media-viewer-form-group">
+                    <label><i class="fas fa-link"></i> URL del Archivo</label>
+                    <div class="url-display">
+                        <input type="text" id="mediaUrlInput" value="${displayUrl}" readonly class="readonly-field">
+                        <button type="button" class="copy-url-btn" onclick="copyMediaUrl()">
+                            <i class="fas fa-copy"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="media-viewer-meta">
+                    ${width && height ? `
+                    <div class="media-viewer-meta-item">
+                        <span class="media-viewer-meta-label"><i class="fas fa-expand"></i> Dimensiones</span>
+                        <span class="media-viewer-meta-value">${width} × ${height} px</span>
+                    </div>
+                    ` : ''}
+                    <div class="media-viewer-meta-item">
+                        <span class="media-viewer-meta-label"><i class="fas fa-hdd"></i> Tamaño</span>
+                        <span class="media-viewer-meta-value">${fileSize}</span>
+                    </div>
+                    <div class="media-viewer-meta-item">
+                        <span class="media-viewer-meta-label"><i class="fas fa-calendar"></i> Fecha</span>
+                        <span class="media-viewer-meta-value">${created}</span>
+                    </div>
+                    <div class="media-viewer-meta-item">
+                        <span class="media-viewer-meta-label"><i class="fas fa-file"></i> Tipo</span>
+                        <span class="media-viewer-meta-value" style="text-transform: capitalize;">${type}</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="media-viewer-save-btn" id="saveMediaBtn">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+            </form>
+        `;
+
+        sidebarContent.innerHTML = sidebarHTML;
+
+        viewerModal.classList.add('active');
+        updateNavButtons();
+    }
+
+    // Función para cerrar viewer (global para onclick)
+    window.closeMediaViewer = function() {
+        viewerModal.classList.remove('active');
+        const video = viewerModal.querySelector('video');
+        if (video) {
+            video.pause();
+            video.src = '';
+        }
+    };
+
+    // Función para copiar URL (global para onclick)
+    window.copyMediaUrl = function() {
+        const urlInput = document.getElementById('mediaUrlInput');
+        if (urlInput) {
+            urlInput.select();
+            urlInput.setSelectionRange(0, 99999); // Para móviles
+            try {
+                document.execCommand('copy');
+                // Feedback visual
+                const btn = event.target.closest('.copy-url-btn');
+                if (btn) {
+                    btn.classList.add('copied');
+                    btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                    setTimeout(() => {
+                        btn.classList.remove('copied');
+                        btn.innerHTML = '<i class="fas fa-copy"></i> Copiar';
+                    }, 2000);
+                }
+            } catch (err) {
+                // Fallback: usar Clipboard API
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(urlInput.value).then(() => {
+                        const btn = event.target.closest('.copy-url-btn');
+                        if (btn) {
+                            btn.classList.add('copied');
+                            btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+                            setTimeout(() => {
+                                btn.classList.remove('copied');
+                                btn.innerHTML = '<i class="fas fa-copy"></i> Copiar';
+                            }, 2000);
+                        }
+                    });
+                } else {
+                    alert('No se pudo copiar la URL');
+                }
+            }
+        }
+    };
+
+    // Manejar envío del formulario de edición
+    viewerModal.addEventListener('submit', function(e) {
+        if (e.target.id === 'mediaEditForm') {
+            e.preventDefault();
+            const form = e.target;
+            const mediaId = form.dataset.mediaId;
+            const saveBtn = document.getElementById('saveMediaBtn');
+
+            // Deshabilitar botón
+            saveBtn.disabled = true;
+            saveBtn.classList.add('saving');
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+
+            // Obtener datos del formulario
+            const formData = {
+                title: document.getElementById('mediaTitle').value,
+                description: document.getElementById('mediaDescription').value,
+                alt_text: document.getElementById('mediaAltText') ? document.getElementById('mediaAltText').value : '',
+                tags: document.getElementById('mediaTags').value,
+            };
+
+            // Enviar actualización
+            const updateUrl = `/media/${mediaId}/update-ajax/`;
+            fetch(updateUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken') || '{{ csrf_token }}'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar datos en el media-item
+                    const mediaItem = document.querySelector(`.media-item[data-id="${mediaId}"]`);
+                    if (mediaItem) {
+                        mediaItem.dataset.title = data.title;
+                        mediaItem.dataset.description = data.description || '';
+                        if (data.alt_text) mediaItem.dataset.altText = data.alt_text;
+                        if (data.tags) mediaItem.dataset.tags = data.tags;
+                    }
+
+                    // Feedback visual
+                    saveBtn.classList.remove('saving');
+                    saveBtn.innerHTML = '<i class="fas fa-check"></i> Guardado!';
+                    saveBtn.style.background = '#28a745';
+                    setTimeout(() => {
+                        saveBtn.disabled = false;
+                        saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Cambios';
+                        saveBtn.style.background = '';
+                    }, 2000);
+                } else {
+                    throw new Error(data.error || 'Error al guardar');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                saveBtn.disabled = false;
+                saveBtn.classList.remove('saving');
+                saveBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+                saveBtn.style.background = '#dc3545';
+                setTimeout(() => {
+                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Guardar Cambios';
+                    saveBtn.style.background = '';
+                }, 3000);
+                alert('Error al guardar: ' + error.message);
+            });
+        }
+    });
+
+    // Función para navegar (global para onclick)
+    window.navigateMedia = function(direction) {
+        if (currentMediaIndex === -1) return;
+        const newIndex = currentMediaIndex + direction;
+        if (newIndex >= 0 && newIndex < mediaItemsArray.length) {
+            openMediaViewer(newIndex);
+        }
+    };
+
+    // Actualizar botones de navegación
+    function updateNavButtons() {
+        const prevBtn = viewerModal.querySelector('.prev');
+        const nextBtn = viewerModal.querySelector('.next');
+        prevBtn.disabled = currentMediaIndex <= 0;
+        nextBtn.disabled = currentMediaIndex >= mediaItemsArray.length - 1;
+    }
+
+    // Cerrar con ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && viewerModal.classList.contains('active')) {
+            closeMediaViewer();
+        } else if (e.key === 'ArrowLeft' && viewerModal.classList.contains('active')) {
+            navigateMedia(-1);
+        } else if (e.key === 'ArrowRight' && viewerModal.classList.contains('active')) {
+            navigateMedia(1);
+        }
+    });
+
+    // Cerrar al hacer clic fuera del contenido
+    viewerModal.addEventListener('click', function(e) {
+        if (e.target === viewerModal || e.target.classList.contains('media-viewer-modal')) {
+            closeMediaViewer();
+        }
+    });
+
+    // Manejar clics en checkboxes directamente
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevenir que el evento llegue al media-item
+            // El evento 'change' ya maneja updateBulkActions()
+        });
+    });
+
+    // Manejar clics en items de media
+    mediaItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            // No abrir si se hace clic en el checkbox o en su contenedor
+            if (e.target.type === 'checkbox' ||
+                e.target.classList.contains('media-item-checkbox') ||
+                e.target.closest('.media-item-checkbox')) {
+                e.stopPropagation();
+                return;
+            }
+
+            const type = this.dataset.type;
+
+            // Abrir viewer para imágenes y videos
+            if (type === 'image' || type === 'video') {
+                e.preventDefault();
+                e.stopPropagation();
+                const allMedia = Array.from(document.querySelectorAll('.media-item[data-type="image"], .media-item[data-type="video"]'));
+                const index = allMedia.indexOf(this);
+                if (index !== -1) {
+                    openMediaViewer(index);
+                }
+            } else if (type === 'document') {
+                // Abrir documento en nueva pestaña
+                e.preventDefault();
+                e.stopPropagation();
+                window.open(this.dataset.originalUrl, '_blank');
+            } else if (type === 'audio') {
+                // Reproducir audio
+                e.preventDefault();
+                e.stopPropagation();
+                const audio = new Audio(this.dataset.url);
+                audio.play();
+            }
+        });
+    });
+
+    function updateBulkActions() {
+        const selected = document.querySelectorAll('.media-item-checkbox:checked');
+        if (selected.length > 0) {
+            bulkDeleteBtn.style.display = 'block';
+        } else {
+            bulkDeleteBtn.style.display = 'none';
+        }
+    }
+
+    // Bulk delete
+    bulkDeleteBtn.addEventListener('click', function() {
+        const selected = Array.from(document.querySelectorAll('.media-item-checkbox:checked')).map(cb => cb.value);
+        if (confirm('¿Estás seguro de eliminar ' + selected.length + ' archivo(s)?')) {
+            fetch('{% url "media:bulk_delete" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ids: selected})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            });
+        }
+    });
+
+    // Upload functionality
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const uploadProgress = document.getElementById('uploadProgress');
+
+    uploadZone.addEventListener('click', () => fileInput.click());
+
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        handleFiles(files);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+    });
+
+    function handleFiles(files) {
+        if (!files || files.length === 0) {
+            alert('No se seleccionaron archivos');
+            return;
+        }
+
+        uploadProgress.style.display = 'block';
+        const filesArray = Array.from(files);
+        let completed = 0;
+        const total = filesArray.length;
+
+        // Crear barra de progreso con información
+        uploadProgress.innerHTML = `
+            <div class="mb-2">
+                <small class="text-muted">Subiendo ${total} archivo(s)...</small>
+            </div>
+            <div class="progress mb-2" style="height: 25px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated"
+                     role="progressbar"
+                     id="uploadProgressBar"
+                     style="width: 0%"
+                     aria-valuenow="0"
+                     aria-valuemin="0"
+                     aria-valuemax="100">
+                    0%
+                </div>
+            </div>
+            <div id="uploadStatus" class="small text-muted"></div>
+        `;
+
+        const progressBar = document.getElementById('uploadProgressBar');
+        const uploadStatus = document.getElementById('uploadStatus');
+
+        filesArray.forEach((file, index) => {
+            const formData = new FormData();
+            formData.append('original_file', file);
+
+            // Obtener nombre sin extensión para el título
+            const fileName = file.name.replace(/\.[^/.]+$/, "");
+            formData.append('title', fileName);
+
+            const xhr = new XMLHttpRequest();
+
+            // Actualizar progreso de subida del archivo individual
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const fileProgress = (e.loaded / e.total) * 100;
+                    const overallProgress = ((completed + (fileProgress / 100)) / total) * 100;
+                    progressBar.style.width = overallProgress + '%';
+                    progressBar.setAttribute('aria-valuenow', overallProgress);
+                    progressBar.textContent = Math.round(overallProgress) + '%';
+                    uploadStatus.textContent = `Subiendo: ${file.name} (${Math.round(fileProgress)}%)`;
+                }
+            });
+
+            xhr.addEventListener('load', () => {
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.success) {
+                            completed++;
+                            const overallProgress = (completed / total) * 100;
+                            progressBar.style.width = overallProgress + '%';
+                            progressBar.setAttribute('aria-valuenow', overallProgress);
+                            progressBar.textContent = Math.round(overallProgress) + '%';
+                            uploadStatus.textContent = `Completado: ${file.name}`;
+
+                            if (completed === total) {
+                                progressBar.classList.remove('progress-bar-animated');
+                                progressBar.classList.add('bg-success');
+                                uploadStatus.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> Todos los archivos subidos exitosamente. Recargando...</span>';
+                                setTimeout(() => {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else {
+                            throw new Error(data.error || 'Error desconocido');
+                        }
+                    } catch (error) {
+                        console.error('Error al procesar respuesta:', error);
+                        alert('Error al subir ' + file.name + ': ' + error.message);
+                    }
+                } else {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        throw new Error(data.error || 'Error al subir archivo');
+                    } catch (error) {
+                        alert('Error al subir ' + file.name + ': ' + (error.message || 'Error desconocido'));
+                    }
+                }
+            });
+
+            xhr.addEventListener('error', () => {
+                alert('Error de red al subir ' + file.name);
+            });
+
+            xhr.open('POST', '{% url "media:upload_ajax" %}');
+            xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken') || '{{ csrf_token }}');
+            xhr.send(formData);
+        });
+    }
+
+    // Función helper para obtener cookie CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+});
+</script>
+{% endblock %}
+

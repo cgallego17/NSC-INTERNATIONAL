@@ -367,9 +367,9 @@
                                     {% for event in upcoming_events|slice:":6" %}
                                         <div class="col-md-6 col-lg-4">
                                             <div class="event-card">
-                                                {% if event.image %}
+                                                {% if event.logo %}
                                                     <div class="event-card-image">
-                                                        <img src="{{ event.image.url }}" alt="{{ event.title }}">
+                                                        <img src="{{ event.logo }}" alt="{{ event.title }}">
                                                     </div>
                                                 {% else %}
                                                     <div class="event-card-image">
@@ -1501,7 +1501,7 @@
             }
 
             let html = `
-                ${event.image ? `<div class="mb-4"><img src="${event.image}" alt="${event.title}" class="img-fluid rounded" style="max-height: 300px; width: 100%; object-fit: cover;"></div>` : ''}
+                ${event.logo ? `<div class="mb-4"><img src="${event.logo}" alt="${event.title}" class="img-fluid rounded" style="max-height: 300px; width: 100%; object-fit: contain; background: #f8f9fa;"></div>` : ''}
 
                 <h2 class="mb-3" style="color: var(--mlb-blue); font-weight: 900; font-size: 2rem;">${event.title}</h2>
 
