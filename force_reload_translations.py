@@ -31,3 +31,4 @@ print(f'Divisions: {_("Divisions")}')
 print(f'Verified: {_("Verified")}')
 print(f'No team assigned: {_("No team assigned")}')
 
+

@@ -98,3 +98,4 @@ class SponsorDeleteView(StaffRequiredMixin, DeleteView):
 
 
 
+
