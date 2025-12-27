@@ -1,20 +1,21 @@
+import re
+
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
-import re
 
-from apps.locations.models import Country, State, City
+from apps.locations.models import City, Country, State
 
 from .models import (
-    UserProfile,
-    Team,
+    HomeBanner,
     Player,
     PlayerParent,
-    HomeBanner,
     SiteSettings,
     Sponsor,
+    Team,
+    UserProfile,
 )
 
 
@@ -71,9 +72,7 @@ class EmailAuthenticationForm(AuthenticationForm):
             # No revelar que el email no existe por seguridad
             # Usar un username que no existe para que la autenticación falle
             # y Django muestre un mensaje genérico
-            raise forms.ValidationError(
-                _("Please enter a correct email and password.")
-            )
+            raise forms.ValidationError(_("Please enter a correct email and password."))
         except User.MultipleObjectsReturned:
             # Si hay múltiples usuarios con el mismo email (no debería pasar)
             # Usar el primero
@@ -482,19 +481,14 @@ class UserProfileForm(forms.ModelForm):
             "bio",
         ]
         widgets = {
-            "phone": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Teléfono"}
-            ),
+            "phone": forms.TextInput(attrs={"class": "form-control"}),
             "address": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "rows": 3,
-                    "placeholder": _("Full address"),
                 }
             ),
-            "postal_code": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Código Postal"}
-            ),
+            "postal_code": forms.TextInput(attrs={"class": "form-control"}),
             "birth_date": forms.DateInput(
                 attrs={"class": "form-control", "type": "date"}
             ),
@@ -509,7 +503,6 @@ class UserProfileForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 4,
-                    "placeholder": _("Tell us about yourself..."),
                 }
             ),
         }
@@ -528,14 +521,14 @@ class UserProfileForm(forms.ModelForm):
         self.fields["state"] = forms.ModelChoiceField(
             queryset=State.objects.none(),
             required=False,
-            empty_label="Selecciona un estado",
+            empty_label=_("Select a state"),
             widget=forms.Select(attrs={"class": "form-select", "id": "id_state"}),
         )
 
         self.fields["city"] = forms.ModelChoiceField(
             queryset=City.objects.none(),
             required=False,
-            empty_label="Selecciona una ciudad",
+            empty_label=_("Select a city"),
             widget=forms.Select(attrs={"class": "form-select", "id": "id_city"}),
         )
 
@@ -720,31 +713,19 @@ class TeamForm(forms.ModelForm):
             "contact_phone",
         ]
         widgets = {
-            "name": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Nombre del equipo"}
-            ),
+            "name": forms.TextInput(attrs={"class": "form-control"}),
             "description": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "rows": 4,
-                    "placeholder": _("Team description"),
                 }
             ),
             "logo": forms.FileInput(
                 attrs={"class": "form-control", "accept": "image/*"}
             ),
-            "website": forms.URLInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": "https://tu-sitio-web.com",
-                }
-            ),
-            "contact_email": forms.EmailInput(
-                attrs={"class": "form-control", "placeholder": "email@ejemplo.com"}
-            ),
-            "contact_phone": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "+1 (555) 123-4567"}
-            ),
+            "website": forms.URLInput(attrs={"class": "form-control"}),
+            "contact_email": forms.EmailInput(attrs={"class": "form-control"}),
+            "contact_phone": forms.TextInput(attrs={"class": "form-control"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -764,14 +745,14 @@ class TeamForm(forms.ModelForm):
         self.fields["state"] = forms.ModelChoiceField(
             queryset=State.objects.none(),
             required=False,
-            empty_label="Selecciona un estado",
+            empty_label=_("Select a state"),
             widget=forms.Select(attrs={"class": "form-select", "id": "id_team_state"}),
         )
 
         self.fields["city"] = forms.ModelChoiceField(
             queryset=City.objects.none(),
             required=False,
-            empty_label="Selecciona una ciudad",
+            empty_label=_("Select a city"),
             widget=forms.Select(attrs={"class": "form-select", "id": "id_team_city"}),
         )
 
@@ -809,43 +790,28 @@ class TeamForm(forms.ModelForm):
 class PlayerRegistrationForm(forms.ModelForm):
     """Formulario para que managers registren jugadores"""
 
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": _("Email")})
-    )
+    email = forms.EmailField(widget=forms.EmailInput(attrs={"class": "form-control"}))
     first_name = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": _("First name")}
-        ),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     last_name = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": _("Last name")}
-        ),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     last_name2 = forms.CharField(
         max_length=30,
         required=False,
-        widget=forms.TextInput(
-            attrs={
-                "class": "form-control",
-                "placeholder": _("Second last name (optional)"),
-            }
-        ),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     password = forms.CharField(
-        widget=forms.PasswordInput(
-            attrs={"class": "form-control", "placeholder": _("Temporary password")}
-        ),
+        widget=forms.PasswordInput(attrs={"class": "form-control"}),
         help_text=_("The player will be able to change their password later"),
     )
     phone = forms.CharField(
         max_length=20,
         required=False,
-        widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": _("Phone")}
-        ),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     birth_date = forms.DateField(
         required=False,
@@ -879,16 +845,14 @@ class PlayerRegistrationForm(forms.ModelForm):
             "team": forms.Select(attrs={"class": "form-select"}),
             "jersey_number": forms.NumberInput(attrs={"class": "form-control"}),
             "position": forms.Select(attrs={"class": "form-select"}),
-            "height": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": _("e.g.: 5'10\"")}
-            ),
+            "height": forms.TextInput(attrs={"class": "form-control"}),
             "weight": forms.NumberInput(attrs={"class": "form-control"}),
             "batting_hand": forms.Select(attrs={"class": "form-select"}),
             "throwing_hand": forms.Select(attrs={"class": "form-select"}),
             "emergency_contact_name": forms.TextInput(attrs={"class": "form-control"}),
             "emergency_contact_phone": forms.TextInput(attrs={"class": "form-control"}),
             "emergency_contact_relation": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Ej: Padre, Madre, etc."}
+                attrs={"class": "form-control"}
             ),
             "medical_conditions": forms.Textarea(
                 attrs={"class": "form-control", "rows": 3}
@@ -1073,41 +1037,28 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
     first_name = forms.CharField(
         max_length=30,
         required=True,
-        widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": _("Player name")}
-        ),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     last_name = forms.CharField(
         max_length=30,
         required=True,
-        widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": _("Last name")}
-        ),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     last_name2 = forms.CharField(
         max_length=30,
         required=False,
-        widget=forms.TextInput(
-            attrs={
-                "class": "form-control",
-                "placeholder": _("Second last name (optional)"),
-            }
-        ),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     phone = forms.CharField(
         max_length=20,
         required=False,
-        widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": _("Player phone")}
-        ),
+        widget=forms.TextInput(attrs={"class": "form-control"}),
     )
     birth_date = forms.DateField(
         required=True,
-        widget=forms.DateInput(attrs={
-            "class": "form-control", 
-            "type": "date",
-            "data-format": "yyyy-MM-dd"
-        }),
+        widget=forms.DateInput(
+            attrs={"class": "form-control", "type": "date", "data-format": "yyyy-MM-dd"}
+        ),
         help_text=_("Player's date of birth"),
     )
     relationship = forms.ChoiceField(
@@ -1151,30 +1102,44 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
             "age_verification_document",
         ]
         widgets = {
-            "position": forms.Select(attrs={"class": "form-select"}),
+            "position": forms.Select(attrs={"class": "form-select", "required": True}),
             "height": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": _("e.g.: 5'10\"")}
+                attrs={"class": "form-control", "required": True}
             ),
-            "weight": forms.NumberInput(attrs={"class": "form-control"}),
-            "batting_hand": forms.Select(attrs={"class": "form-select"}),
-            "throwing_hand": forms.Select(attrs={"class": "form-select"}),
-            "emergency_contact_name": forms.TextInput(attrs={"class": "form-control"}),
-            "emergency_contact_phone": forms.TextInput(attrs={"class": "form-control"}),
+            "weight": forms.NumberInput(
+                attrs={"class": "form-control", "required": True}
+            ),
+            "batting_hand": forms.Select(
+                attrs={"class": "form-select", "required": True}
+            ),
+            "throwing_hand": forms.Select(
+                attrs={"class": "form-select", "required": True}
+            ),
+            "emergency_contact_name": forms.TextInput(
+                attrs={"class": "form-control", "required": True}
+            ),
+            "emergency_contact_phone": forms.TextInput(
+                attrs={"class": "form-control", "required": True}
+            ),
             "emergency_contact_relation": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Ej: Padre, Madre, etc."}
+                attrs={"class": "form-control", "required": True}
             ),
             "medical_conditions": forms.Textarea(
-                attrs={"class": "form-control", "rows": 3}
+                attrs={"class": "form-control", "rows": 3, "required": True}
             ),
             "jersey_size": forms.Select(attrs={"class": "form-select"}),
             "hat_size": forms.Select(attrs={"class": "form-select"}),
             "batting_glove_size": forms.Select(attrs={"class": "form-select"}),
             "batting_helmet_size": forms.Select(attrs={"class": "form-select"}),
             "shorts_size": forms.Select(attrs={"class": "form-select"}),
-            "grade": forms.Select(attrs={"class": "form-select"}),
-            "division": forms.Select(attrs={"class": "form-select"}),
+            "grade": forms.Select(attrs={"class": "form-select", "required": True}),
+            "division": forms.Select(attrs={"class": "form-select", "required": True}),
             "age_verification_document": forms.FileInput(
-                attrs={"class": "form-control", "accept": ".pdf,.jpg,.jpeg,.png"}
+                attrs={
+                    "class": "form-control",
+                    "accept": ".pdf,.jpg,.jpeg,.png",
+                    "required": True,
+                }
             ),
         }
 
@@ -1183,6 +1148,31 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Los padres NO pueden seleccionar equipo - será asignado por admin o manager
         # El campo 'team' no está en los fields del Meta, así que no aparecerá en el formulario
+
+        # Hacer todos los campos obligatorios excepto last_name2 y phone
+        # Los campos que ya están en el Meta se configuran en los widgets
+        # Campos adicionales que necesitan ser obligatorios:
+        self.fields["position"].required = True
+        self.fields["height"].required = True
+        self.fields["weight"].required = True
+        self.fields["batting_hand"].required = True
+        self.fields["throwing_hand"].required = True
+        self.fields["emergency_contact_name"].required = True
+        self.fields["emergency_contact_phone"].required = True
+        self.fields["emergency_contact_relation"].required = True
+        self.fields["medical_conditions"].required = True
+        self.fields["grade"].required = True
+        self.fields["division"].required = True
+        self.fields["age_verification_document"].required = True
+
+        # Tallas de uniformes también son obligatorias
+        self.fields["jersey_size"].required = True
+        self.fields["hat_size"].required = True
+        self.fields["batting_glove_size"].required = True
+        self.fields["batting_helmet_size"].required = True
+        self.fields["shorts_size"].required = True
+
+        # last_name2 y phone ya están como required=False, no los cambiamos
 
         if self.parent:
             # Pre-llenar los campos de contacto de emergencia con los datos del padre
@@ -1309,9 +1299,10 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         return birth_date
 
     def save(self, commit=True):
-        from django.contrib.auth.models import User
         import secrets
         import string
+
+        from django.contrib.auth.models import User
 
         # Generar username automáticamente
         first_name = self.cleaned_data["first_name"]
@@ -1441,28 +1432,19 @@ class PlayerUpdateForm(forms.ModelForm):
                 attrs={"class": "form-control", "placeholder": "Número de jersey"}
             ),
             "position": forms.Select(attrs={"class": "form-select"}),
-            "height": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Ej: 6'2\""}
-            ),
-            "weight": forms.NumberInput(
-                attrs={"class": "form-control", "placeholder": "Peso en libras"}
-            ),
+            "height": forms.TextInput(attrs={"class": "form-control"}),
+            "weight": forms.NumberInput(attrs={"class": "form-control"}),
             "batting_hand": forms.Select(attrs={"class": "form-select"}),
             "throwing_hand": forms.Select(attrs={"class": "form-select"}),
-            "emergency_contact_name": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Nombre del contacto"}
-            ),
-            "emergency_contact_phone": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Teléfono del contacto"}
-            ),
+            "emergency_contact_name": forms.TextInput(attrs={"class": "form-control"}),
+            "emergency_contact_phone": forms.TextInput(attrs={"class": "form-control"}),
             "emergency_contact_relation": forms.TextInput(
-                attrs={"class": "form-control", "placeholder": "Ej: Padre, Madre, etc."}
+                attrs={"class": "form-control"}
             ),
             "medical_conditions": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "rows": 3,
-                    "placeholder": _('Specify medical conditions or "None"'),
                 }
             ),
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
@@ -1481,7 +1463,6 @@ class PlayerUpdateForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "rows": 3,
-                    "placeholder": _("Notes on age verification"),
                 }
             ),
         }
@@ -1765,6 +1746,10 @@ class SiteSettingsForm(forms.ModelForm):
             "showcase_title_es",
             "showcase_subtitle_es",
             "showcase_description_es",
+            # Contact Information
+            "contact_email",
+            "contact_phone",
+            "contact_address",
         ]
         widgets = {
             "schedule_image": forms.FileInput(
@@ -1860,6 +1845,57 @@ class SiteSettingsForm(forms.ModelForm):
                     "class": "form-control",
                     "rows": 5,
                     "placeholder": "Descripción del Showcase en español...",
+                }
+            ),
+            # Contact Information
+            "contact_email": forms.EmailInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "info@nscinternational.com",
+                }
+            ),
+            "contact_phone": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "+1 (555) 123-4567",
+                }
+            ),
+            "contact_address": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "México",
+                }
+            ),
+        }
+
+
+class ContactSettingsForm(forms.ModelForm):
+    """Formulario para editar solo la información de contacto"""
+
+    class Meta:
+        model = SiteSettings
+        fields = [
+            "contact_email",
+            "contact_phone",
+            "contact_address",
+        ]
+        widgets = {
+            "contact_email": forms.EmailInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "info@nscinternational.com",
+                }
+            ),
+            "contact_phone": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "+1 (555) 123-4567",
+                }
+            ),
+            "contact_address": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "México",
                 }
             ),
         }

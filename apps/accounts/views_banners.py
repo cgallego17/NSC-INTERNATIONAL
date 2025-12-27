@@ -18,10 +18,11 @@ from django.views.generic import (
 from apps.core.mixins import StaffRequiredMixin
 
 from .forms import (
+    ContactSettingsForm,
     HomeBannerForm,
-    SiteSettingsForm,
     ScheduleSettingsForm,
     ShowcaseSettingsForm,
+    SiteSettingsForm,
 )
 from .models import DashboardBanner, HomeBanner, SiteSettings, Sponsor
 
@@ -161,6 +162,31 @@ class ShowcaseSettingsUpdateView(StaffRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
+class ContactSettingsUpdateView(StaffRequiredMixin, UpdateView):
+    """Editar solo la información de contacto"""
+
+    model = SiteSettings
+    form_class = ContactSettingsForm
+    template_name = "accounts/edit_contact_settings.html"
+    success_url = reverse_lazy("accounts:home_content_admin")
+
+    def get_object(self, queryset=None):
+        """Obtener o crear la instancia única de SiteSettings"""
+        return SiteSettings.load()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["site_settings"] = self.get_object()
+        return context
+
+    def form_valid(self, form):
+        """Procesar el formulario cuando es válido"""
+        messages.success(
+            self.request, "Información de contacto actualizada exitosamente."
+        )
+        return super().form_valid(form)
+
+
 class SiteSettingsRedirectView(StaffRequiredMixin, TemplateView):
     """Redirección desde la URL antigua a la nueva página de administración"""
 
@@ -214,3 +240,4 @@ class HomeContentAdminView(StaffRequiredMixin, TemplateView):
             context["recent_dashboard_banners"] = []
 
         return context
+

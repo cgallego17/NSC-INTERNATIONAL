@@ -308,6 +308,62 @@
             </div>
         </div>
 
+        <!-- Información de Contacto -->
+        <div class="admin-card">
+            <div class="admin-card-header">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-envelope admin-card-icon"></i>
+                    <h2 class="admin-card-title mb-0">Información de Contacto</h2>
+                </div>
+                <a href="{% url 'accounts:edit_contact_settings' %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-pencil me-1"></i>Editar
+                </a>
+            </div>
+            <p class="text-muted mb-3">
+                Configura la información de contacto que se muestra en el footer del sitio.
+            </p>
+            <div class="section-preview">
+                <div class="row">
+                    <div class="col-md-4">
+                        <h6 class="mb-2">
+                            <i class="bi bi-envelope me-2"></i>Email:
+                        </h6>
+                        <p class="mb-3">
+                            {% if site_settings.contact_email %}
+                                <strong>{{ site_settings.contact_email }}</strong>
+                            {% else %}
+                                <span class="text-muted">No configurado</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="mb-2">
+                            <i class="bi bi-telephone me-2"></i>Teléfono:
+                        </h6>
+                        <p class="mb-3">
+                            {% if site_settings.contact_phone %}
+                                <strong>{{ site_settings.contact_phone }}</strong>
+                            {% else %}
+                                <span class="text-muted">No configurado</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="col-md-4">
+                        <h6 class="mb-2">
+                            <i class="bi bi-geo-alt me-2"></i>Dirección:
+                        </h6>
+                        <p class="mb-3">
+                            {% if site_settings.contact_address %}
+                                <strong>{{ site_settings.contact_address }}</strong>
+                            {% else %}
+                                <span class="text-muted">No configurado</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Banners del Panel de Usuario -->
         <div class="admin-card">
             <div class="admin-card-header">
@@ -488,5 +544,7 @@
     </div>
 </div>
 {% endblock %}
+
+
 
 

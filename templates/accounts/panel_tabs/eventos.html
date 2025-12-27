@@ -1,8 +1,9 @@
+{% load i18n %}
 <div class="tab-content-header mb-4">
     <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
-        <i class="fas fa-calendar-alt me-2" style="color: var(--mlb-red);"></i>Eventos
+        <i class="fas fa-calendar-alt me-2" style="color: var(--mlb-red);"></i>{% trans "Events" %}
     </h4>
-    <p class="text-muted">Explora los eventos disponibles</p>
+    <p class="text-muted">{% trans "Explore available events" %}</p>
 </div>
 {% if upcoming_events %}
     <div style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
@@ -15,7 +16,7 @@
     </div>
 {% else %}
     <div style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); text-align: center;">
-        <p class="text-muted">No hay eventos próximos.</p>
+        <p class="text-muted">{% trans "No upcoming events." %}</p>
     </div>
 {% endif %}
 

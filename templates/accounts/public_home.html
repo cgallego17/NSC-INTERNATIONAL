@@ -845,36 +845,180 @@
         
         /* Footer MLB Style */
         .footer-mlb {
-            background: var(--mlb-dark);
+            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
             color: #ccc;
-            padding: 40px 0 20px;
+            padding: 60px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .footer-mlb::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--mlb-red) 0%, var(--mlb-blue) 50%, var(--mlb-red) 100%);
+        }
+        
+        .footer-mlb .container-fluid {
+            position: relative;
+            z-index: 1;
         }
         
         .footer-mlb h5 {
             color: white;
             font-weight: 700;
             text-transform: uppercase;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            position: relative;
+            padding-bottom: 12px;
+        }
+        
+        .footer-mlb h5::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background: var(--mlb-red);
+            border-radius: 2px;
+        }
+        
+        .footer-mlb .footer-col {
+            padding: 0 20px;
+        }
+        
+        .footer-mlb .footer-logo-section {
             margin-bottom: 20px;
-            font-size: 1rem;
+        }
+        
+        .footer-mlb .footer-logo-section img {
+            filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.1));
+            transition: transform 0.3s ease;
+        }
+        
+        .footer-mlb .footer-logo-section:hover img {
+            transform: scale(1.05);
+        }
+        
+        .footer-mlb p {
+            color: #b0b0b0;
+            line-height: 1.8;
+            font-size: 0.95rem;
+            margin-bottom: 0;
         }
         
         .footer-mlb a {
             color: #ccc;
             text-decoration: none;
-            transition: color 0.3s;
-            display: block;
-            margin-bottom: 10px;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 15px;
+            font-size: 0.95rem;
+            border-radius: 6px;
+            margin: 4px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .footer-mlb a i {
+            margin-right: 8px;
+            width: 18px;
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            transition: all 0.3s ease;
         }
         
         .footer-mlb a:hover {
-            color: var(--mlb-gold);
+            color: white;
+            background: rgba(213, 0, 50, 0.15);
+            border-color: var(--mlb-red);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(213, 0, 50, 0.2);
+        }
+        
+        .footer-mlb a:hover i {
+            opacity: 1;
+            color: var(--mlb-red);
+            transform: scale(1.1);
+        }
+        
+        .footer-mlb .quick-links {
+            display: flex !important;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .footer-mlb .quick-links a {
+            display: inline-flex !important;
+            align-items: center;
+            min-width: auto;
+            white-space: nowrap;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        
+        .footer-mlb .contact-info {
+            color: #b0b0b0;
+        }
+        
+        .footer-mlb .contact-info p {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            font-size: 0.95rem;
+        }
+        
+        .footer-mlb .contact-info i {
+            margin-right: 12px;
+            width: 20px;
+            color: var(--mlb-red);
+            font-size: 1rem;
+            opacity: 0.9;
         }
         
         .footer-bottom {
-            border-top: 1px solid #333;
-            padding-top: 20px;
-            margin-top: 30px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 25px 0;
+            margin-top: 50px;
             text-align: center;
+            background: rgba(0, 0, 0, 0.3);
+        }
+        
+        .footer-bottom p {
+            color: #888;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        @media (max-width: 768px) {
+            .footer-mlb {
+                padding: 40px 0 0;
+            }
+            
+            .footer-mlb .footer-col {
+                padding: 0 15px;
+                margin-bottom: 40px;
+            }
+            
+            .footer-mlb .quick-links {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .footer-mlb a {
+                width: 100%;
+                justify-content: flex-start;
+            }
         }
         
         /* Badge */
@@ -1383,16 +1527,12 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            color: white;
-            font-weight: 700;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
         }
         
-        .video-promo-logo-small i {
-            font-size: 1.2rem;
-            color: var(--mlb-red);
+        .video-promo-logo-small img {
+            height: 30px;
+            width: auto;
+            max-width: 200px;
         }
         
         .video-promo-overlay-actions {
@@ -1581,46 +1721,183 @@
 
         /* Sponsors Section */
         .sponsors-section {
-            padding: 50px 0;
-            background: linear-gradient(135deg, #0a2e4a 0%, #0d2c54 100%);
+            padding: 80px 0;
+            background: #0a1e3a;
+            position: relative;
+            overflow: hidden;
         }
+        
+        .sponsors-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(13, 44, 84, 0.8) 0%, rgba(10, 30, 58, 0.9) 100%);
+            z-index: 0;
+        }
+        
+        .sponsors-section .container {
+            position: relative;
+            z-index: 1;
+        }
+        
         .sponsors-title {
             color: white;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 50px;
             font-weight: 800;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             text-transform: uppercase;
+            font-size: 2rem;
+            position: relative;
         }
+        
+        .sponsors-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: var(--mlb-red);
+            border-radius: 2px;
+        }
+        
         .sponsors-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 40px;
             align-items: center;
             justify-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
         }
+        
         .sponsor-card {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 12px;
-            padding: 16px;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 20px;
             width: 100%;
             max-width: 220px;
             display: flex;
             align-items: center;
             justify-content: center;
-            min-height: 80px;
-            transition: transform 0.2s, box-shadow 0.2s;
+            min-height: 120px;
+            transition: all 0.4s ease;
+            position: relative;
         }
+        
+        .sponsor-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+        
+        .sponsor-card:hover::before {
+            opacity: 1;
+        }
+        
         .sponsor-card img {
-            max-width: 100%;
-            max-height: 60px;
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            max-height: 120px;
             object-fit: contain;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));
+            transition: all 0.4s ease;
+            position: relative;
+            z-index: 1;
         }
+        
         .sponsor-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+            transform: translateY(-8px);
+        }
+        
+        .sponsor-card:hover img {
+            transform: scale(1.08);
+            filter: drop-shadow(0 4px 12px rgba(255, 255, 255, 0.3));
+        }
+        
+        @media (max-width: 1200px) {
+            .sponsors-grid {
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                gap: 35px;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .sponsors-section {
+                padding: 60px 0;
+            }
+            .sponsors-title {
+                font-size: 1.75rem;
+                margin-bottom: 40px;
+            }
+            .sponsors-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 30px;
+                padding: 15px;
+            }
+            .sponsor-card {
+                max-width: 180px;
+                min-height: 110px;
+                padding: 15px;
+            }
+            .sponsor-card img {
+                max-width: 160px;
+                max-height: 110px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sponsors-section {
+                padding: 50px 0;
+            }
+            .sponsors-title {
+                font-size: 1.5rem;
+                margin-bottom: 35px;
+            }
+            .sponsors-grid {
+                grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+                gap: 25px;
+                padding: 10px;
+            }
+            .sponsor-card {
+                max-width: 150px;
+                min-height: 100px;
+                padding: 12px;
+            }
+            .sponsor-card img {
+                max-width: 130px;
+                max-height: 100px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .sponsors-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+            .sponsor-card {
+                max-width: 100%;
+                min-height: 90px;
+                padding: 10px;
+            }
+            .sponsor-card img {
+                max-width: 100%;
+                max-height: 90px;
+            }
         }
         
         @media (max-width: 992px) {
@@ -2006,8 +2283,12 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <span><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</span>
-                    <span class="ms-4"><i class="fas fa-envelope me-2"></i>info@nscinternational.com</span>
+                    {% if site_settings.contact_phone %}
+                        <span><i class="fas fa-phone me-2"></i>{{ site_settings.contact_phone }}</span>
+                    {% endif %}
+                    {% if site_settings.contact_email %}
+                        <span class="{% if site_settings.contact_phone %}ms-4{% endif %}"><i class="fas fa-envelope me-2"></i>{{ site_settings.contact_email }}</span>
+                    {% endif %}
                 </div>
                 <div class="col-md-6 text-end">
                     <!-- Language Selector with Flags Dropdown -->
@@ -2076,7 +2357,7 @@
                         <a class="nav-link active" href="/">{% trans "Home" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#eventos">{% trans "Events" %}</a>
+                        <a class="nav-link" href="{% url 'events:public_list' %}">{% trans "Events" %}</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="#equipos">{% trans "Teams" %}</a>
@@ -2211,8 +2492,7 @@
                             <div class="video-promo-overlay-top">
                                 <div class="video-promo-overlay-content">
                                     <div class="video-promo-logo-small">
-                                        <i class="fas fa-baseball-ball"></i>
-                                        <span>NCS INTERNATIONAL</span>
+                                        <img src="{% static 'images/ncs-white.svg' %}" alt="NCS International" style="height: 30px; width: auto;">
                                     </div>
                                     <div class="video-promo-overlay-actions">
                                         <button class="video-promo-action-btn" title="{% trans 'Watch later' %}">
@@ -2280,7 +2560,7 @@
                     "event_type": "{% if event.event_type %}{{ event.event_type.name }}{% else %}{% trans 'Tournament / Showcase' %}{% endif %}",
                     "divisions": "{% for division in event.divisions.all %}{{ division.name }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans 'All Categories' %}{% endfor %}",
                     "start_date": "{{ event.start_date|date:'Y-m-d' }}",
-                    "detail_url": "{% url 'events:detail' event.pk %}"
+                    "detail_url": "{% url 'events:public_detail' event.pk %}"
                 }{% if not forloop.last %},{% endif %}
                 {% endfor %}
             {% endif %}
@@ -2306,23 +2586,44 @@
                 <!-- Right Column - Content -->
                 <div class="col-lg-6">
                     <div class="schedule-content">
-                        <h2 class="schedule-heading" data-i18n="schedule_title">
-                            {% if site_settings %}
-                                {{ site_settings.get_schedule_title }}
+                        <h2 class="schedule-heading">
+                            {% if schedule_title %}
+                                {{ schedule_title }}
+                            {% elif site_settings %}
+                                {% get_current_language as CURRENT_LANG %}
+                                {% if CURRENT_LANG == 'es' %}
+                                    {{ site_settings.schedule_title_es|default:site_settings.schedule_title_en }}
+                                {% else %}
+                                    {{ site_settings.schedule_title_en|default:"2026 EVENT CALENDAR" }}
+                                {% endif %}
                             {% else %}
                                 {% trans "2026 EVENT CALENDAR" %}
                             {% endif %}
                         </h2>
-                        <h3 class="schedule-subheading" data-i18n="schedule_subtitle">
-                            {% if site_settings %}
-                                {{ site_settings.get_schedule_subtitle }}
+                        <h3 class="schedule-subheading">
+                            {% if schedule_subtitle %}
+                                {{ schedule_subtitle }}
+                            {% elif site_settings %}
+                                {% get_current_language as CURRENT_LANG %}
+                                {% if CURRENT_LANG == 'es' %}
+                                    {{ site_settings.schedule_subtitle_es|default:site_settings.schedule_subtitle_en }}
+                                {% else %}
+                                    {{ site_settings.schedule_subtitle_en|default:"REGIONAL EXPANSION AND NEW NATIONAL AND REGIONAL CHAMPIONSHIPS FOR 2026" }}
+                                {% endif %}
                             {% else %}
                                 {% trans "REGIONAL EXPANSION AND NEW NATIONAL AND REGIONAL CHAMPIONSHIPS FOR 2026" %}
                             {% endif %}
                         </h3>
-                        <p class="schedule-description" data-i18n="schedule_description">
-                            {% if site_settings %}
-                                {{ site_settings.get_schedule_description }}
+                        <p class="schedule-description">
+                            {% if schedule_description %}
+                                {{ schedule_description }}
+                            {% elif site_settings %}
+                                {% get_current_language as CURRENT_LANG %}
+                                {% if CURRENT_LANG == 'es' %}
+                                    {{ site_settings.schedule_description_es|default:site_settings.schedule_description_en }}
+                                {% else %}
+                                    {{ site_settings.schedule_description_en|default:"" }}
+                                {% endif %}
                             {% else %}
                                 {% blocktrans %}As we move forward into 2026, NCS International continues to elevate its tournament and showcase platform. With a regional presence expansion for ages 7U-18U, new and improved National and Regional Championship events, and an even broader showcase schedule across the country, NCS remains dedicated to providing the highest standard of competition and experience for players, coaches and families alike.{% endblocktrans %}
                             {% endif %}
@@ -2336,7 +2637,7 @@
                                     </a>
                                 {% endfor %}
                             {% else %}
-                                <a href="{% url 'events:list' %}" class="schedule-category-btn">{% trans "NCS CALENDAR" %}</a>
+                                <a href="{% url 'events:public_list' %}" class="schedule-category-btn">{% trans "NCS CALENDAR" %}</a>
                             {% endif %}
                         </div>
                     </div>
@@ -2505,22 +2806,28 @@
                 <!-- Right Column - Content -->
                 <div class="col-lg-6">
                     <div class="schedule-content">
-                        <h2 class="schedule-heading" data-i18n="showcase_title">
-                            {% if site_settings %}
+                        <h2 class="schedule-heading">
+                            {% if showcase_title %}
+                                {{ showcase_title }}
+                            {% elif site_settings %}
                                 {{ site_settings.get_showcase_title }}
                             {% else %}
                                 {% trans "SHOWCASES AND PROSPECT GATEWAYS" %}
                             {% endif %}
                         </h2>
-                        <h3 class="schedule-subheading" data-i18n="showcase_subtitle">
-                            {% if site_settings %}
+                        <h3 class="schedule-subheading">
+                            {% if showcase_subtitle %}
+                                {{ showcase_subtitle }}
+                            {% elif site_settings %}
                                 {{ site_settings.get_showcase_subtitle }}
                             {% else %}
                                 {% trans "REGIONAL AND NATIONAL SHOWCASES" %}
                             {% endif %}
                         </h3>
-                        <p class="schedule-description" data-i18n="showcase_description">
-                            {% if site_settings %}
+                        <p class="schedule-description">
+                            {% if showcase_description %}
+                                {{ showcase_description }}
+                            {% elif site_settings %}
                                 {{ site_settings.get_showcase_description }}
                             {% else %}
                                 {% blocktrans %}Perfect Game is thrilled to offer showcases (HS) and Prospect Gateways (13U/14U) across the country for the 2025 calendar. This includes regional events for all ages and new invite only events! PG strives to delivery the very best events and experience for all players, coaches and families across the country.{% endblocktrans %}
@@ -2539,7 +2846,7 @@
     <!-- Sponsors Section -->
     <section class="sponsors-section">
         <div class="container">
-            <h2 class="sponsors-title">SPONSORS</h2>
+            <h2 class="sponsors-title" data-i18n="SPONSORS">{% trans "SPONSORS" %}</h2>
             <div class="sponsors-grid">
                 {% if sponsors %}
                     {% for sponsor in sponsors %}
@@ -2581,7 +2888,7 @@
     <!-- Instagram Style Gallery Section -->
     <section class="instagram-gallery-section">
         <div class="instagram-gallery-header">
-            <h2><i class="fab fa-instagram"></i> {% trans "Follow us on Instagram" %}</h2>
+            <h2 data-i18n="Follow us on Instagram"><i class="fab fa-instagram"></i> {% trans "Follow us on Instagram" %}</h2>
             <a href="https://www.instagram.com/{{ instagram_username }}/" target="_blank" rel="noopener noreferrer" class="instagram-follow-link">
                 @{{ instagram_username }}
             </a>
@@ -2708,14 +3015,14 @@
     <section class="cta-section">
         <div class="container-fluid px-4">
             <div style="max-width: 1200px; margin: 0 auto;">
-            <h2>{% trans "Get Started Today" %}</h2>
-            <p>{% trans "Create a Profile • Player Profile • Team Profile • Register for Events" %}</p>
+            <h2 data-i18n="Get Started Today">{% trans "Get Started Today" %}</h2>
+            <p data-i18n="Create a Profile • Player Profile • Team Profile • Register for Events">{% trans "Create a Profile • Player Profile • Team Profile • Register for Events" %}</p>
             {% if not user.is_authenticated %}
-                <a href="/accounts/register/" class="btn btn-mlb me-3">
-                    <i class="fas fa-user-plus me-2"></i>{% trans "Sign Up Now" %}
-                </a>
-                <a href="#" class="btn btn-mlb-outline" data-bs-toggle="modal" data-bs-target="#loginModal">
+                <a href="#" class="btn btn-mlb me-3" data-bs-toggle="modal" data-bs-target="#loginModal">
                     <i class="fas fa-sign-in-alt me-2"></i>{% trans "Log In" %}
+                </a>
+                <a href="/accounts/register/" class="btn btn-mlb-outline">
+                    <i class="fas fa-user-plus me-2"></i>{% trans "Sign Up" %}
                 </a>
             {% else %}
                 <a href="{% url 'accounts:panel' %}" class="btn btn-mlb">
@@ -2730,37 +3037,72 @@
     <footer class="footer-mlb">
         <div class="container-fluid px-4">
             <div class="row" style="max-width: 1400px; margin: 0 auto;">
-                <div class="col-md-4 mb-4">
-                    <h5>
-                        <i class="fas fa-baseball-ball me-2"></i>NCS International
-                    </h5>
-                    <p style="line-height: 1.8;">
-                        {% blocktrans %}The professional platform to manage tournaments, teams and baseball players. Complete sports management system.{% endblocktrans %}
+                <div class="col-md-4 footer-col">
+                    <div class="footer-logo-section">
+                        <img src="{% static 'images/ncs-white.svg' %}" alt="NCS International" style="height: 40px; width: auto; margin-bottom: 20px;">
+                    </div>
+                    <p>
+                        {% trans "NCS International was designed to provide opportunities for players and teams through our national and international tournaments and showcases." %}
                     </p>
                 </div>
-                <div class="col-md-4 mb-4">
+                <div class="col-md-4 footer-col">
                     <h5>{% trans "Quick Links" %}</h5>
-                    <a href="/">{% trans "Home" %}</a>
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'accounts:panel' %}">{% trans "My Account" %}</a>
-                        <a href="{% url 'events:list' %}">{% trans "Events" %}</a>
-                        <a href="/accounts/teams/">{% trans "Teams" %}</a>
-                    {% else %}
-                        <a href="/accounts/register/">{% trans "Sign Up" %}</a>
-                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">{% trans "Log In" %}</a>
-                    {% endif %}
+                    <div class="quick-links">
+                        <a href="/">
+                            <i class="fas fa-home"></i>
+                            <span>{% trans "Home" %}</span>
+                        </a>
+                        <a href="{% url 'events:public_list' %}">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>{% trans "Events" %}</span>
+                        </a>
+                        <a href="/accounts/teams/">
+                            <i class="fas fa-users"></i>
+                            <span>{% trans "Teams" %}</span>
+                        </a>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'accounts:panel' %}">
+                                <i class="fas fa-user-circle"></i>
+                                <span>{% trans "My Account" %}</span>
+                            </a>
+                        {% else %}
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                <i class="fas fa-sign-in-alt"></i>
+                                <span>{% trans "Log In" %}</span>
+                            </a>
+                            <a href="/accounts/register/">
+                                <i class="fas fa-user-plus"></i>
+                                <span>{% trans "Sign Up" %}</span>
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="col-md-4 mb-4">
+                <div class="col-md-4 footer-col">
                     <h5>{% trans "Contact" %}</h5>
-                    <p style="line-height: 1.8;">
-                        <i class="fas fa-envelope me-2"></i>info@nscinternational.com<br>
-                        <i class="fas fa-phone me-2"></i>+1 (555) 123-4567<br>
-                        <i class="fas fa-map-marker-alt me-2"></i>México
-                    </p>
+                    <div class="contact-info">
+                        {% if site_settings.contact_email %}
+                        <p>
+                            <i class="fas fa-envelope"></i>
+                            <span>{{ site_settings.contact_email }}</span>
+                        </p>
+                        {% endif %}
+                        {% if site_settings.contact_phone %}
+                        <p>
+                            <i class="fas fa-phone"></i>
+                            <span>{{ site_settings.contact_phone }}</span>
+                        </p>
+                        {% endif %}
+                        {% if site_settings.contact_address %}
+                        <p>
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>{{ site_settings.contact_address }}</span>
+                        </p>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p class="mb-0">&copy; 2025 NCS International. {% trans "All rights reserved." %}</p>
+                <p>&copy; 2025 NCS International. {% trans "All rights reserved." %}</p>
             </div>
         </div>
     </footer>
@@ -2859,25 +3201,37 @@
     {% if site_settings_translations %}
     {{ site_settings_translations|json_script:"site-settings-translations" }}
     <script>
-        // Inyectar traducciones de la base de datos en el sistema i18n
-        const translationsElement = document.getElementById('site-settings-translations');
-        if (translationsElement && window.i18nManager && window.i18nManager.translations) {
-            try {
-                const dbTranslations = JSON.parse(translationsElement.textContent);
-                // Fusionar traducciones de la BD con las del JavaScript
-                Object.keys(dbTranslations).forEach(lang => {
-                    if (window.i18nManager.translations[lang]) {
-                        Object.assign(window.i18nManager.translations[lang], dbTranslations[lang]);
+        // Inyectar traducciones de la base de datos en el sistema i18n ANTES de aplicar traducciones
+        // Esto asegura que las traducciones de la BD tengan prioridad
+        (function() {
+            const translationsElement = document.getElementById('site-settings-translations');
+            if (translationsElement) {
+                try {
+                    const dbTranslations = JSON.parse(translationsElement.textContent);
+                    // Si i18nManager ya existe, fusionar las traducciones
+                    if (window.i18nManager && window.i18nManager.translations) {
+                        Object.keys(dbTranslations).forEach(lang => {
+                            if (window.i18nManager.translations[lang]) {
+                                // Las traducciones de la BD tienen prioridad
+                                window.i18nManager.translations[lang] = {
+                                    ...window.i18nManager.translations[lang],
+                                    ...dbTranslations[lang]
+                                };
+                            } else {
+                                window.i18nManager.translations[lang] = dbTranslations[lang];
+                            }
+                        });
+                        // Re-aplicar traducciones con los nuevos valores de la BD
+                        window.i18nManager.applyTranslations();
                     } else {
-                        window.i18nManager.translations[lang] = dbTranslations[lang];
+                        // Si i18nManager aún no existe, guardar las traducciones para cuando se cree
+                        window._dbTranslations = dbTranslations;
                     }
-                });
-                // Re-aplicar traducciones con los nuevos valores
-                window.i18nManager.applyTranslations();
-            } catch (e) {
-                console.error('Error loading translations from database:', e);
+                } catch (e) {
+                    console.error('Error loading translations from database:', e);
+                }
             }
-        }
+        })();
     </script>
     {% endif %}
     
@@ -2977,7 +3331,16 @@
             
             // Función para cargar un video
             function loadVideo(event) {
-                if (!event || !event.video_url) return;
+                if (!event || !event.video_url) {
+                    // Si no hay video, pasar al siguiente evento
+                    if (events.length > 1) {
+                        setTimeout(nextVideo, 1000);
+                    }
+                    return;
+                }
+                
+                // Actualizar información del evento PRIMERO (antes de cargar el video)
+                updateEventInfo(event);
                 
                 // Limpiar HLS anterior si existe
                 if (hls) {
@@ -2985,18 +3348,16 @@
                     hls = null;
                 }
                 
-                // Limpiar sources anteriores
+                // Limpiar sources anteriores y remover listeners
                 video.innerHTML = '';
+                video.removeEventListener('ended', nextVideo);
                 
                 const videoUrl = event.video_url;
                 const videoSource = getVideoSource(videoUrl);
                 
-                // Si es YouTube o Vimeo, usar iframe (pero no podemos detectar cuando termina)
-                // Por ahora, solo usamos videos directos para poder detectar el evento 'ended'
-                // Si es YouTube/Vimeo, intentamos extraer el video directo o usar el iframe con timeout
+                // Si es YouTube o Vimeo, usar iframe
                 if (videoSource.includes('youtube.com/embed') || videoSource.includes('vimeo.com/video')) {
-                    // Para YouTube/Vimeo, usamos un iframe pero con un timeout para cambiar
-                    // (ya que no podemos detectar cuando termina)
+                    // Para YouTube/Vimeo, usamos un iframe
                     const iframe = document.createElement('iframe');
                     iframe.id = 'videoPromoIframe';
                     iframe.src = videoSource;
@@ -3019,14 +3380,29 @@
                         videoContainer.appendChild(iframe);
                     }
                     
-                    // Para YouTube/Vimeo, cambiar después de 30 segundos (aproximado)
-                    // ya que no podemos detectar cuando termina
-                    setTimeout(nextVideo, 30000);
+                    // Para YouTube/Vimeo, usar postMessage API para detectar cuando termina
+                    // Si no está disponible, usar un timeout más largo (60 segundos)
+                    let timeoutId = setTimeout(() => {
+                        nextVideo();
+                    }, 60000); // 60 segundos como fallback
+                    
+                    // Intentar detectar cuando termina el video de YouTube/Vimeo
+                    if (iframe.contentWindow) {
+                        // Escuchar mensajes del iframe (si el video soporta postMessage)
+                        window.addEventListener('message', function onMessage(e) {
+                            if (e.data === 'ended' || e.data === 'video-ended') {
+                                clearTimeout(timeoutId);
+                                window.removeEventListener('message', onMessage);
+                                nextVideo();
+                            }
+                        });
+                    }
                 } else {
                     // Es un video directo - mostrar el video y ocultar iframe si existe
                     video.style.display = 'block';
                     const oldIframe = document.getElementById('videoPromoIframe');
                     if (oldIframe) oldIframe.remove();
+                    
                     // Es un video directo
                     const source = document.createElement('source');
                     source.src = videoSource;
@@ -3043,6 +3419,9 @@
                     video.appendChild(source);
                     video.appendChild(document.createTextNode('{% trans "Your browser does not support video playback." %}'));
                     
+                    // Agregar listener para cuando termine el video
+                    video.addEventListener('ended', nextVideo, { once: true });
+                    
                     // Si es HLS y el navegador no lo soporta nativamente, usar hls.js
                     if (videoSource.includes('.m3u8') && video.canPlayType('application/vnd.apple.mpegurl') === '') {
                         if (typeof Hls !== 'undefined') {
@@ -3051,6 +3430,12 @@
                             hls.attachMedia(video);
                             hls.on(Hls.Events.MANIFEST_PARSED, function() {
                                 video.play().catch(() => {});
+                            });
+                            hls.on(Hls.Events.ERROR, function(event, data) {
+                                if (data.fatal) {
+                                    // Si hay error fatal, pasar al siguiente video
+                                    setTimeout(nextVideo, 2000);
+                                }
                             });
                         } else {
                             const script = document.createElement('script');
@@ -3062,41 +3447,89 @@
                                 hls.on(Hls.Events.MANIFEST_PARSED, function() {
                                     video.play().catch(() => {});
                                 });
+                                hls.on(Hls.Events.ERROR, function(event, data) {
+                                    if (data.fatal) {
+                                        setTimeout(nextVideo, 2000);
+                                    }
+                                });
                             };
                             document.head.appendChild(script);
                         }
                     } else {
                         video.load();
-                        video.play().catch(() => {});
+                        video.play().catch((error) => {
+                            console.error('Error playing video:', error);
+                            // Si hay error al reproducir, pasar al siguiente video después de 2 segundos
+                            setTimeout(nextVideo, 2000);
+                        });
                     }
+                    
+                    // También escuchar errores del video
+                    video.addEventListener('error', function() {
+                        console.error('Video error, moving to next');
+                        setTimeout(nextVideo, 2000);
+                    }, { once: true });
                 }
-                
-                // Actualizar información del evento
-                updateEventInfo(event);
             }
             
             // Función para actualizar la información del evento
             function updateEventInfo(event) {
-                document.getElementById('promoTitleMain').textContent = event.title.toUpperCase() || '{% trans "Event" %}';
-                document.getElementById('promoDescription').innerHTML = event.description || '{% trans "Experience NCS International events" %}';
-                document.getElementById('promoLocation').textContent = event.location || '-';
-                document.getElementById('promoType').textContent = event.event_type || '{% trans "Tournament / Showcase" %}';
-                document.getElementById('promoDivisions').textContent = event.divisions || '{% trans "All Categories" %}';
-                document.getElementById('promoEventLink').href = event.detail_url || '#';
+                if (!event) return;
+                
+                const titleEl = document.getElementById('promoTitleMain');
+                const descEl = document.getElementById('promoDescription');
+                const locationEl = document.getElementById('promoLocation');
+                const typeEl = document.getElementById('promoType');
+                const divisionsEl = document.getElementById('promoDivisions');
+                const linkEl = document.getElementById('promoEventLink');
+                
+                if (titleEl) {
+                    titleEl.textContent = (event.title || '{% trans "Event" %}').toUpperCase();
+                }
+                if (descEl) {
+                    descEl.textContent = event.description || '{% trans "Experience NCS International events" %}';
+                }
+                if (locationEl) {
+                    locationEl.textContent = event.location || '-';
+                }
+                if (typeEl) {
+                    typeEl.textContent = event.event_type || '{% trans "Tournament / Showcase" %}';
+                }
+                if (divisionsEl) {
+                    divisionsEl.textContent = event.divisions || '{% trans "All Categories" %}';
+                }
+                if (linkEl) {
+                    linkEl.href = event.detail_url || '#';
+                }
             }
             
             // Función para cambiar al siguiente video
             function nextVideo() {
+                if (events.length === 0) return;
+                
+                // Avanzar al siguiente índice (con loop)
                 currentIndex = (currentIndex + 1) % events.length;
-                loadVideo(events[currentIndex]);
+                
+                // Cargar el siguiente video
+                const nextEvent = events[currentIndex];
+                if (nextEvent) {
+                    loadVideo(nextEvent);
+                }
             }
             
-            // Escuchar cuando termine el video
-            video.addEventListener('ended', nextVideo);
-            
-            // Cargar el primer video
+            // Cargar el primer video al iniciar
             if (events.length > 0) {
                 loadVideo(events[0]);
+            } else {
+                // Si no hay eventos, mostrar mensaje
+                updateEventInfo({
+                    title: '{% trans "No videos available" %}',
+                    description: '{% trans "Check back soon for upcoming events" %}',
+                    location: '-',
+                    event_type: '-',
+                    divisions: '-',
+                    detail_url: '#'
+                });
             }
         })();
 

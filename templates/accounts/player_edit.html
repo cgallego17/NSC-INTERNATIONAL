@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load i18n %}
 
 {% block title %}Editar Jugador - NCS International{% endblock %}
 
@@ -9,441 +10,405 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="h3 mb-1">
-                        <i class="fas fa-user-edit me-2 text-primary"></i>Editar Jugador
-                    </h1>
-                    <p class="text-muted mb-0">
-                        Modifica la información del jugador: {{ object.user.get_full_name|default:object.user.username }}
-                    </p>
-                </div>
-                <a href="{% url 'accounts:player_detail' object.pk %}" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>Volver
-                </a>
-            </div>
-        </div>
-    </div>
+<div class="tab-content-header mb-4">
+    <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
+        <i class="fas fa-user-edit me-2" style="color: var(--mlb-red);"></i>Editar Jugador
+    </h4>
+    <p class="text-muted">Modifica la información del jugador: {{ object.user.get_full_name|default:object.user.username }}</p>
+</div>
 
-    <!-- Form -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="mb-0 text-primary">
-                        <i class="fas fa-baseball-ball me-2"></i>Información del Jugador
-                    </h5>
-                </div>
-                <div class="card-body p-4">
-                    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
-                        {% csrf_token %}
-                        
-                        {% if form.non_field_errors %}
-                            <div class="alert alert-danger">
-                                {{ form.non_field_errors }}
+<div class="form-container">
+    <form method="post" enctype="multipart/form-data" id="playerEditForm">
+        {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+        
+        <!-- Foto de Perfil -->
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="fas fa-camera me-2"></i>Foto de Perfil
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="text-center mb-3">
+                        {% if object.user.profile.profile_picture %}
+                            <img src="{{ object.user.profile.profile_picture.url }}" 
+                                 alt="Foto actual" 
+                                 id="current-profile-picture" 
+                                 class="rounded-circle border border-primary"
+                                 style="width: 200px; height: 200px; object-fit: cover;">
+                        {% else %}
+                            <div id="current-profile-picture" 
+                                 class="rounded-circle border border-primary d-flex align-items-center justify-content-center mx-auto"
+                                 style="width: 200px; height: 200px; background: #f8f9fa;">
+                                <i class="fas fa-user fa-5x text-muted"></i>
                             </div>
                         {% endif %}
-                        
-                        <!-- Foto de Perfil -->
-                        <div class="mb-4">
-                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
-                                <i class="fas fa-camera text-primary me-2"></i>
-                                <h6 class="mb-0 text-primary fw-bold">Foto de Perfil</h6>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <div class="text-center mb-3">
-                                        {% if object.user.profile.profile_picture %}
-                                            <img src="{{ object.user.profile.profile_picture.url }}" 
-                                                 alt="Foto actual" 
-                                                 id="current-profile-picture" 
-                                                 class="rounded-circle border border-primary"
-                                                 style="width: 200px; height: 200px; object-fit: cover;">
-                                        {% else %}
-                                            <div id="current-profile-picture" 
-                                                 class="rounded-circle border border-primary d-flex align-items-center justify-content-center mx-auto"
-                                                 style="width: 200px; height: 200px; background: #f8f9fa;">
-                                                <i class="fas fa-user fa-5x text-muted"></i>
-                                            </div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="text-center">
-                                        <label for="id_profile_picture" class="btn btn-primary" style="cursor: pointer;">
-                                            <i class="fas fa-upload me-1"></i>Subir Nueva Foto
-                                        </label>
-                                        {{ form.profile_picture }}
-                                        {% if form.profile_picture.errors %}
-                                            <div class="text-danger small mt-2">{{ form.profile_picture.errors }}</div>
-                                        {% endif %}
-                                        <div class="text-muted small mt-2">Formatos: JPG, PNG, GIF. Máx: 5MB</div>
-                                    </div>
-                                    <div id="profile-picture-preview" class="text-center mt-3" style="display: none;">
-                                        <p class="mb-2"><strong>Vista Previa:</strong></p>
-                                        <img id="preview-image" src="#" alt="Vista previa" 
-                                             class="rounded-circle border border-success"
-                                             style="width: 200px; height: 200px; object-fit: cover;">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Información Deportiva -->
-                        <div class="mb-4">
-                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
-                                <i class="fas fa-baseball-ball text-primary me-2"></i>
-                                <h6 class="mb-0 text-primary fw-bold">Información Deportiva</h6>
-                            </div>
-                            
-                            {% if is_parent_editing %}
-                                <!-- Campos ocultos para mantener valores cuando padre edita -->
-                                {% if form.team_hidden %}
-                                    {{ form.team_hidden }}
-                                {% endif %}
-                                {{ form.team.as_hidden }}
-                                {{ form.jersey_number.as_hidden }}
-                                {{ form.is_active.as_hidden }}
-                            {% else %}
-                                <!-- Campos visibles para admin/manager -->
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label for="{{ form.team.id_for_label }}" class="form-label fw-semibold">
-                                            <i class="fas fa-users me-1 text-muted"></i>Equipo
-                                        </label>
-                                        {{ form.team }}
-                                        {% if form.team_hidden %}
-                                            {{ form.team_hidden }}
-                                        {% endif %}
-                                        {% if form.team.errors %}
-                                            <div class="text-danger small mt-1">{{ form.team.errors }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="{{ form.jersey_number.id_for_label }}" class="form-label fw-semibold">
-                                            <i class="fas fa-hashtag me-1 text-muted"></i>Número de Jersey
-                                        </label>
-                                        {{ form.jersey_number }}
-                                        {% if form.jersey_number.errors %}
-                                            <div class="text-danger small mt-1">{{ form.jersey_number.errors }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            {% endif %}
-                            
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-4">
-                                    <label for="{{ form.position.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-map-marker-alt me-1 text-muted"></i>Posición
-                                    </label>
-                                    {{ form.position }}
-                                    {% if form.position.errors %}
-                                        <div class="text-danger small mt-1">{{ form.position.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="{{ form.height.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-ruler-vertical me-1 text-muted"></i>Estatura
-                                    </label>
-                                    {{ form.height }}
-                                    {% if form.height.errors %}
-                                        <div class="text-danger small mt-1">{{ form.height.errors }}</div>
-                                    {% endif %}
-                                    <small class="text-muted">Ej: 6'2"</small>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="{{ form.weight.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-weight me-1 text-muted"></i>Peso (lbs)
-                                    </label>
-                                    {{ form.weight }}
-                                    {% if form.weight.errors %}
-                                        <div class="text-danger small mt-1">{{ form.weight.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-6">
-                                    <label for="{{ form.batting_hand.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-hand-paper me-1 text-muted"></i>Bateo
-                                    </label>
-                                    {{ form.batting_hand }}
-                                    {% if form.batting_hand.errors %}
-                                        <div class="text-danger small mt-1">{{ form.batting_hand.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="{{ form.throwing_hand.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-hand-rock me-1 text-muted"></i>Lanzamiento
-                                    </label>
-                                    {{ form.throwing_hand }}
-                                    {% if form.throwing_hand.errors %}
-                                        <div class="text-danger small mt-1">{{ form.throwing_hand.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Elegibilidad y División -->
-                        <div class="mb-4">
-                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
-                                <i class="fas fa-check-circle text-primary me-2"></i>
-                                <h6 class="mb-0 text-primary fw-bold">Elegibilidad y División</h6>
-                            </div>
-                            
-                            {% if object %}
-                                {% with age=object.calculate_age_as_of_april_30 age_division=object.get_age_based_division grade_division=object.get_grade_based_division eligible=object.get_eligible_divisions %}
-                                    {% if age %}
-                                        <div class="alert alert-info mb-3">
-                                            <i class="fas fa-info-circle me-2"></i>
-                                            <strong>Información de Elegibilidad:</strong><br>
-                                            <strong>Edad al 30 de abril:</strong> {{ age }} años<br>
-                                            {% if age_division %}
-                                                <strong>División basada en edad:</strong> {{ age_division }}<br>
-                                            {% endif %}
-                                            {% if grade_division %}
-                                                <strong>División basada en grado:</strong> {{ grade_division }}<br>
-                                            {% endif %}
-                                            {% if eligible %}
-                                                <strong>Divisiones elegibles:</strong> {{ eligible|join:", " }}
-                                            {% endif %}
-                                        </div>
-                                    {% endif %}
-                                {% endwith %}
-                            {% endif %}
-                            
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="{{ form.grade.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-graduation-cap me-1 text-muted"></i>Grado Actual
-                                    </label>
-                                    {{ form.grade }}
-                                    {% if form.grade.help_text %}
-                                        <small class="text-muted d-block mt-1">{{ form.grade.help_text }}</small>
-                                    {% endif %}
-                                    {% if form.grade.errors %}
-                                        <div class="text-danger small mt-1">{{ form.grade.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="{{ form.division.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-users me-1 text-muted"></i>División Asignada
-                                    </label>
-                                    {{ form.division }}
-                                    {% if form.division.help_text %}
-                                        <small class="text-muted d-block mt-1">{{ form.division.help_text }}</small>
-                                    {% endif %}
-                                    {% if form.division.errors %}
-                                        <div class="text-danger small mt-1">{{ form.division.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-6">
-                                    <label for="{{ form.age_verification_document.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-file-upload me-1 text-muted"></i>Documento de Verificación de Edad
-                                    </label>
-                                    {{ form.age_verification_document }}
-                                    {% if object.age_verification_document %}
-                                        <div class="mt-2">
-                                            <a href="{{ object.age_verification_document.url }}" target="_blank" class="btn btn-sm btn-outline-info">
-                                                <i class="fas fa-file me-1"></i>Ver documento actual
-                                            </a>
-                                        </div>
-                                    {% endif %}
-                                    {% if form.age_verification_document.help_text %}
-                                        <small class="text-muted d-block mt-1">{{ form.age_verification_document.help_text }}</small>
-                                    {% endif %}
-                                    {% if form.age_verification_document.errors %}
-                                        <div class="text-danger small mt-1">{{ form.age_verification_document.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                {% if not is_parent_editing %}
-                                    {% if user.profile.is_team_manager or user.is_staff or user.is_superuser %}
-                                        <div class="col-md-6">
-                                            <label for="{{ form.age_verification_status.id_for_label }}" class="form-label fw-semibold">
-                                                <i class="fas fa-check-circle me-1 text-muted"></i>Estado de Verificación
-                                            </label>
-                                            {{ form.age_verification_status }}
-                                            {% if form.age_verification_status.errors %}
-                                                <div class="text-danger small mt-1">{{ form.age_verification_status.errors }}</div>
-                                            {% endif %}
-                                        </div>
-                                    {% endif %}
-                                {% endif %}
-                            </div>
-                            
-                            {% if not is_parent_editing %}
-                                {% if user.profile.is_team_manager or user.is_staff or user.is_superuser %}
-                                    <div class="mt-3">
-                                        <label for="{{ form.age_verification_notes.id_for_label }}" class="form-label fw-semibold">
-                                            <i class="fas fa-sticky-note me-1 text-muted"></i>Notas de Verificación
-                                        </label>
-                                        {{ form.age_verification_notes }}
-                                        {% if form.age_verification_notes.errors %}
-                                            <div class="text-danger small mt-1">{{ form.age_verification_notes.errors }}</div>
-                                        {% endif %}
-                                    </div>
-                                {% endif %}
-                            {% endif %}
-                        </div>
-                        
-                        <!-- Tallas de Uniformes -->
-                        <div class="mb-4">
-                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
-                                <i class="fas fa-tshirt text-primary me-2"></i>
-                                <h6 class="mb-0 text-primary fw-bold">Tallas de Uniformes</h6>
-                            </div>
-                            <div class="alert alert-info mb-3">
-                                <i class="fas fa-info-circle me-2"></i>
-                                <strong>Nota:</strong> Selecciona una talla por cada categoría de uniforme.
-                            </div>
-                            
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="{{ form.jersey_size.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-tshirt me-1 text-muted"></i>Talla de Jersey
-                                    </label>
-                                    {{ form.jersey_size }}
-                                    {% if form.jersey_size.errors %}
-                                        <div class="text-danger small mt-1">{{ form.jersey_size.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="{{ form.hat_size.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-hat-cowboy me-1 text-muted"></i>Talla de Gorra
-                                    </label>
-                                    {{ form.hat_size }}
-                                    {% if form.hat_size.errors %}
-                                        <div class="text-danger small mt-1">{{ form.hat_size.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-6">
-                                    <label for="{{ form.batting_glove_size.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-hand-paper me-1 text-muted"></i>Talla de Guante de Bateo
-                                    </label>
-                                    {{ form.batting_glove_size }}
-                                    {% if form.batting_glove_size.errors %}
-                                        <div class="text-danger small mt-1">{{ form.batting_glove_size.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="{{ form.batting_helmet_size.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-hard-hat me-1 text-muted"></i>Talla de Casco de Bateo
-                                    </label>
-                                    {{ form.batting_helmet_size }}
-                                    {% if form.batting_helmet_size.errors %}
-                                        <div class="text-danger small mt-1">{{ form.batting_helmet_size.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-6">
-                                    <label for="{{ form.shorts_size.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-tshirt me-1 text-muted"></i>Talla de Pantalones
-                                    </label>
-                                    {{ form.shorts_size }}
-                                    {% if form.shorts_size.errors %}
-                                        <div class="text-danger small mt-1">{{ form.shorts_size.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Contacto de Emergencia -->
-                        <div class="mb-4">
-                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
-                                <i class="fas fa-phone-alt text-primary me-2"></i>
-                                <h6 class="mb-0 text-primary fw-bold">Contacto de Emergencia</h6>
-                            </div>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label for="{{ form.emergency_contact_name.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-user me-1 text-muted"></i>Nombre
-                                    </label>
-                                    {{ form.emergency_contact_name }}
-                                    {% if form.emergency_contact_name.errors %}
-                                        <div class="text-danger small mt-1">{{ form.emergency_contact_name.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="{{ form.emergency_contact_phone.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-phone me-1 text-muted"></i>Teléfono
-                                    </label>
-                                    {{ form.emergency_contact_phone }}
-                                    {% if form.emergency_contact_phone.errors %}
-                                        <div class="text-danger small mt-1">{{ form.emergency_contact_phone.errors }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="{{ form.emergency_contact_relation.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-users me-1 text-muted"></i>Relación
-                                    </label>
-                                    {{ form.emergency_contact_relation }}
-                                    {% if form.emergency_contact_relation.errors %}
-                                        <div class="text-danger small mt-1">{{ form.emergency_contact_relation.errors }}</div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            <div class="mt-3">
-                                <label for="{{ form.medical_conditions.id_for_label }}" class="form-label fw-semibold">
-                                    <i class="fas fa-heartbeat me-1 text-muted"></i>Condiciones Médicas
-                                </label>
-                                {{ form.medical_conditions }}
-                                {% if form.medical_conditions.errors %}
-                                    <div class="text-danger small mt-1">{{ form.medical_conditions.errors }}</div>
-                                {% endif %}
-                                <small class="text-muted">Especifica cualquier condición médica relevante o "Ninguna"</small>
-                            </div>
-                        </div>
-                        
-                        <!-- Estado (Solo para managers/staff) -->
-                        {% if not is_parent_editing %}
-                            {% if user.profile.is_team_manager or user.is_staff or user.is_superuser %}
-                                <div class="mb-4">
-                                    <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
-                                        <i class="fas fa-toggle-on text-primary me-2"></i>
-                                        <h6 class="mb-0 text-primary fw-bold">Estado</h6>
-                                    </div>
-                                    <div class="form-check form-switch form-switch-lg">
-                                        {{ form.is_active }}
-                                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
-                                            Jugador Activo
-                                        </label>
-                                        {% if form.is_active.errors %}
-                                            <div class="text-danger small mt-1">{{ form.is_active.errors }}</div>
-                                        {% endif %}
-                                    </div>
-                                </div>
-                            {% endif %}
+                    </div>
+                    <div class="text-center">
+                        <label for="id_profile_picture" class="btn btn-primary" style="cursor: pointer;">
+                            <i class="fas fa-upload me-1"></i>Subir Nueva Foto
+                        </label>
+                        {{ form.profile_picture }}
+                        {% if form.profile_picture.errors %}
+                            <div class="error-message">{{ form.profile_picture.errors }}</div>
                         {% endif %}
-                        
-                        <!-- Botones -->
-                        <div class="row mt-4 pt-3 border-top">
-                            <div class="col-12">
-                                <div class="d-flex justify-content-end gap-2">
-                                    <a href="{% url 'accounts:player_detail' object.pk %}" class="btn btn-outline-secondary btn-lg">
-                                        <i class="fas fa-times me-2"></i>Cancelar
-                                    </a>
-                                    <button type="submit" class="btn btn-primary btn-lg">
-                                        <i class="fas fa-save me-2"></i>Guardar Cambios
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
+                        <div class="help-text">Formatos: JPG, PNG, GIF. Máx: 5MB</div>
+                    </div>
+                    <div id="profile-picture-preview" class="text-center mt-3" style="display: none;">
+                        <p class="mb-2"><strong>Vista Previa:</strong></p>
+                        <img id="preview-image" src="#" alt="Vista previa" 
+                             class="rounded-circle border border-success"
+                             style="width: 200px; height: 200px; object-fit: cover;">
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+        
+        <!-- Información Deportiva -->
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="fas fa-baseball-ball me-2"></i>Información Deportiva
+            </div>
+            
+            {% if is_parent_editing %}
+                <!-- Campos ocultos para mantener valores cuando padre edita -->
+                {% if form.team_hidden %}
+                    {{ form.team_hidden }}
+                {% endif %}
+                {{ form.team.as_hidden }}
+                {{ form.jersey_number.as_hidden }}
+                {{ form.is_active.as_hidden }}
+            {% else %}
+                <!-- Campos visibles para admin/manager -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.team.id_for_label }}" class="form-label required-field">
+                            <i class="fas fa-users me-1"></i>Equipo
+                        </label>
+                        {{ form.team }}
+                        {% if form.team_hidden %}
+                            {{ form.team_hidden }}
+                        {% endif %}
+                        {% if form.team.errors %}
+                            <div class="error-message">{{ form.team.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.jersey_number.id_for_label }}" class="form-label">
+                            <i class="fas fa-hashtag me-1"></i>Número de Jersey
+                        </label>
+                        {{ form.jersey_number }}
+                        {% if form.jersey_number.errors %}
+                            <div class="error-message">{{ form.jersey_number.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.position.id_for_label }}" class="form-label">
+                        <i class="fas fa-map-marker-alt me-1"></i>Posición
+                    </label>
+                    {{ form.position }}
+                    {% if form.position.errors %}
+                        <div class="error-message">{{ form.position.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.height.id_for_label }}" class="form-label">
+                        <i class="fas fa-ruler-vertical me-1"></i>Estatura
+                    </label>
+                    {{ form.height }}
+                    {% if form.height.errors %}
+                        <div class="error-message">{{ form.height.errors }}</div>
+                    {% endif %}
+                    <div class="help-text">Ej: 6'2" o 5'10"</div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.weight.id_for_label }}" class="form-label">
+                        <i class="fas fa-weight me-1"></i>Peso (lbs)
+                    </label>
+                    {{ form.weight }}
+                    {% if form.weight.errors %}
+                        <div class="error-message">{{ form.weight.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.batting_hand.id_for_label }}" class="form-label">
+                        <i class="fas fa-hand-paper me-1"></i>Bateo
+                    </label>
+                    {{ form.batting_hand }}
+                    {% if form.batting_hand.errors %}
+                        <div class="error-message">{{ form.batting_hand.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.throwing_hand.id_for_label }}" class="form-label">
+                        <i class="fas fa-hand-paper me-1"></i>Lanzamiento
+                    </label>
+                    {{ form.throwing_hand }}
+                    {% if form.throwing_hand.errors %}
+                        <div class="error-message">{{ form.throwing_hand.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Elegibilidad y División -->
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="fas fa-check-circle me-2"></i>Elegibilidad y División
+            </div>
+            
+            {% if object %}
+                {% with age=object.calculate_age_as_of_april_30 age_division=object.get_age_based_division grade_division=object.get_grade_based_division eligible=object.get_eligible_divisions %}
+                    {% if age %}
+                        <div class="alert alert-info mb-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Información de Elegibilidad:</strong><br>
+                            <strong>Edad al 30 de abril:</strong> {{ age }} años<br>
+                            {% if age_division %}
+                                <strong>División basada en edad:</strong> {{ age_division }}<br>
+                            {% endif %}
+                            {% if grade_division %}
+                                <strong>División basada en grado:</strong> {{ grade_division }}<br>
+                            {% endif %}
+                            {% if eligible %}
+                                <strong>Divisiones elegibles:</strong> {{ eligible|join:", " }}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+            {% endif %}
+                            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.grade.id_for_label }}" class="form-label required-field">
+                        <i class="fas fa-graduation-cap me-1"></i>Grado Actual
+                    </label>
+                    {{ form.grade }}
+                    {% if form.grade.help_text %}
+                        <div class="help-text">{{ form.grade.help_text }}</div>
+                    {% endif %}
+                    {% if form.grade.errors %}
+                        <div class="error-message">{{ form.grade.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.division.id_for_label }}" class="form-label required-field">
+                        <i class="fas fa-users me-1"></i>División Asignada
+                    </label>
+                    {{ form.division }}
+                    {% if form.division.help_text %}
+                        <div class="help-text">{{ form.division.help_text }}</div>
+                    {% endif %}
+                    {% if form.division.errors %}
+                        <div class="error-message">{{ form.division.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.age_verification_document.id_for_label }}" class="form-label required-field">
+                        <i class="fas fa-file-upload me-1"></i>Documento de Verificación de Edad
+                    </label>
+                    {{ form.age_verification_document }}
+                    {% if object.age_verification_document %}
+                        <div class="mt-2">
+                            <a href="{{ object.age_verification_document.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                <i class="fas fa-file me-1"></i>Ver documento actual
+                            </a>
+                        </div>
+                    {% endif %}
+                    {% if form.age_verification_document.help_text %}
+                        <div class="help-text">{{ form.age_verification_document.help_text }}</div>
+                    {% endif %}
+                    {% if form.age_verification_document.errors %}
+                        <div class="error-message">{{ form.age_verification_document.errors }}</div>
+                    {% endif %}
+                </div>
+                {% if not is_parent_editing %}
+                    {% if user.profile.is_team_manager or user.is_staff or user.is_superuser %}
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.age_verification_status.id_for_label }}" class="form-label">
+                                <i class="fas fa-check-circle me-1"></i>Estado de Verificación
+                            </label>
+                            {{ form.age_verification_status }}
+                            {% if form.age_verification_status.errors %}
+                                <div class="error-message">{{ form.age_verification_status.errors }}</div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+            
+            {% if not is_parent_editing %}
+                {% if user.profile.is_team_manager or user.is_staff or user.is_superuser %}
+                    <div class="mb-3">
+                        <label for="{{ form.age_verification_notes.id_for_label }}" class="form-label">
+                            <i class="fas fa-sticky-note me-1"></i>Notas de Verificación
+                        </label>
+                        {{ form.age_verification_notes }}
+                        {% if form.age_verification_notes.errors %}
+                            <div class="error-message">{{ form.age_verification_notes.errors }}</div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            {% endif %}
+        </div>
+                        
+        <!-- Tallas de Uniformes -->
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="fas fa-tshirt me-2"></i>Tallas de Uniformes
+            </div>
+            <div class="alert alert-info mb-3">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Nota:</strong> Selecciona una talla por cada categoría de uniforme.
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.jersey_size.id_for_label }}" class="form-label required-field">
+                        <i class="fas fa-tshirt me-1"></i>Talla de Jersey
+                    </label>
+                    {{ form.jersey_size }}
+                    {% if form.jersey_size.errors %}
+                        <div class="error-message">{{ form.jersey_size.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.hat_size.id_for_label }}" class="form-label required-field">
+                        <i class="fas fa-hat-cowboy me-1"></i>Talla de Gorra
+                    </label>
+                    {{ form.hat_size }}
+                    {% if form.hat_size.errors %}
+                        <div class="error-message">{{ form.hat_size.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.batting_glove_size.id_for_label }}" class="form-label required-field">
+                        <i class="fas fa-hand-paper me-1"></i>Talla de Guante de Bateo
+                    </label>
+                    {{ form.batting_glove_size }}
+                    {% if form.batting_glove_size.errors %}
+                        <div class="error-message">{{ form.batting_glove_size.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.batting_helmet_size.id_for_label }}" class="form-label required-field">
+                        <i class="fas fa-hard-hat me-1"></i>Talla de Casco de Bateo
+                    </label>
+                    {{ form.batting_helmet_size }}
+                    {% if form.batting_helmet_size.errors %}
+                        <div class="error-message">{{ form.batting_helmet_size.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.shorts_size.id_for_label }}" class="form-label required-field">
+                        <i class="fas fa-tshirt me-1"></i>Talla de Pantalones
+                    </label>
+                    {{ form.shorts_size }}
+                    {% if form.shorts_size.errors %}
+                        <div class="error-message">{{ form.shorts_size.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contacto de Emergencia -->
+        <div class="form-section">
+            <div class="form-section-title">
+                <i class="fas fa-phone-alt me-2"></i>Contacto de Emergencia
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.emergency_contact_name.id_for_label }}" class="form-label">
+                        <i class="fas fa-user me-1"></i>Nombre
+                    </label>
+                    {{ form.emergency_contact_name }}
+                    {% if form.emergency_contact_name.errors %}
+                        <div class="error-message">{{ form.emergency_contact_name.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.emergency_contact_phone.id_for_label }}" class="form-label">
+                        <i class="fas fa-phone me-1"></i>Teléfono
+                    </label>
+                    {{ form.emergency_contact_phone }}
+                    {% if form.emergency_contact_phone.errors %}
+                        <div class="error-message">{{ form.emergency_contact_phone.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.emergency_contact_relation.id_for_label }}" class="form-label">
+                        <i class="fas fa-users me-1"></i>Relación
+                    </label>
+                    {{ form.emergency_contact_relation }}
+                    {% if form.emergency_contact_relation.errors %}
+                        <div class="error-message">{{ form.emergency_contact_relation.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label for="{{ form.medical_conditions.id_for_label }}" class="form-label">
+                    <i class="fas fa-heartbeat me-1"></i>Condiciones Médicas
+                </label>
+                {{ form.medical_conditions }}
+                {% if form.medical_conditions.errors %}
+                    <div class="error-message">{{ form.medical_conditions.errors }}</div>
+                {% endif %}
+                <div class="help-text">Especifica cualquier condición médica relevante o "Ninguna"</div>
+            </div>
+        </div>
+        
+        <!-- Estado (Solo para managers/staff) -->
+        {% if not is_parent_editing %}
+            {% if user.profile.is_team_manager or user.is_staff or user.is_superuser %}
+                <div class="form-section">
+                    <div class="form-section-title">
+                        <i class="fas fa-toggle-on me-2"></i>Estado
+                    </div>
+                    <div class="form-check form-switch form-switch-lg">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                            Jugador Activo
+                        </label>
+                        {% if form.is_active.errors %}
+                            <div class="error-message">{{ form.is_active.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+        
+        <!-- Botones de Acción -->
+        <div class="form-actions">
+            <a href="{% url 'accounts:player_detail' object.pk %}" class="btn btn-form-cancel">
+                <i class="fas fa-times me-2"></i>Cancelar
+            </a>
+            <button type="submit" class="btn btn-form-submit">
+                <i class="fas fa-save me-2"></i>Guardar Cambios
+            </button>
+        </div>
+    </form>
 </div>
 
 <style>

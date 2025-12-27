@@ -1,8 +1,9 @@
+{% load i18n %}
 <div class="tab-content-header mb-4">
     <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
-        <i class="fas fa-user-plus me-2" style="color: var(--mlb-red);"></i>Registrar Jugador
+        <i class="fas fa-user-plus me-2" style="color: var(--mlb-red);"></i>{% trans "Register Player" %}
     </h4>
-    <p class="text-muted">Registra un nuevo jugador para tus equipos</p>
+    <p class="text-muted">{% trans "Register a new player for your teams" %}</p>
 </div>
 {% if player_form %}
     <div class="form-container">
@@ -19,12 +20,12 @@
             <!-- Información de Usuario -->
             <div class="form-section">
                 <div class="form-section-title">
-                    <i class="fas fa-user me-2"></i>Información de Usuario
+                    <i class="fas fa-user me-2"></i>{% trans "User Information" %}
                 </div>
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label for="{{ player_form.first_name.id_for_label }}" class="form-label required-field">
-                            <i class="fas fa-user me-1"></i>Nombre
+                            <i class="fas fa-user me-1"></i>{% trans "First Name" %}
                         </label>
                         {{ player_form.first_name }}
                         {% if player_form.first_name.errors %}
@@ -33,7 +34,7 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="{{ player_form.last_name.id_for_label }}" class="form-label required-field">
-                            <i class="fas fa-user me-1"></i>Primer Apellido
+                            <i class="fas fa-user me-1"></i>{% trans "Last Name" %}
                         </label>
                         {{ player_form.last_name }}
                         {% if player_form.last_name.errors %}
@@ -42,19 +43,19 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="{{ player_form.last_name2.id_for_label }}" class="form-label">
-                            <i class="fas fa-user me-1"></i>Segundo Apellido
+                            <i class="fas fa-user me-1"></i>{% trans "Second Last Name" %}
                         </label>
                         {{ player_form.last_name2 }}
                         {% if player_form.last_name2.errors %}
                             <div class="error-message">{{ player_form.last_name2.errors }}</div>
                         {% endif %}
-                        <div class="help-text">Opcional</div>
+                        <div class="help-text">{% trans "Optional" %}</div>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="{{ player_form.email.id_for_label }}" class="form-label required-field">
-                            <i class="fas fa-envelope me-1"></i>Email
+                            <i class="fas fa-envelope me-1"></i>{% trans "Email" %}
                         </label>
                         {{ player_form.email }}
                         {% if player_form.email.errors %}
@@ -63,7 +64,7 @@
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="{{ player_form.password.id_for_label }}" class="form-label required-field">
-                            <i class="fas fa-lock me-1"></i>Contraseña Temporal
+                            <i class="fas fa-lock me-1"></i>{% trans "Temporary Password" %}
                         </label>
                         {{ player_form.password }}
                         {% if player_form.password.help_text %}
@@ -79,12 +80,12 @@
             <!-- Información del Jugador -->
             <div class="form-section">
                 <div class="form-section-title">
-                    <i class="fas fa-baseball-ball me-2"></i>Información del Jugador
+                    <i class="fas fa-baseball-ball me-2"></i>{% trans "Player Information" %}
                 </div>
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="{{ player_form.team.id_for_label }}" class="form-label required-field">
-                            <i class="fas fa-users me-1"></i>Equipo
+                            <i class="fas fa-users me-1"></i>{% trans "Team" %}
                         </label>
                         {{ player_form.team }}
                         {% if player_form.team.errors %}
@@ -93,7 +94,7 @@
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="{{ player_form.jersey_number.id_for_label }}" class="form-label">
-                            <i class="fas fa-hashtag me-1"></i>Número de Jersey
+                            <i class="fas fa-hashtag me-1"></i>{% trans "Jersey Number" %}
                         </label>
                         {{ player_form.jersey_number }}
                         {% if player_form.jersey_number.errors %}
@@ -104,7 +105,7 @@
                 <div class="row">
                     <div class="col-md-4 mb-3">
                         <label for="{{ player_form.position.id_for_label }}" class="form-label">
-                            <i class="fas fa-map-marker-alt me-1"></i>Posición
+                            <i class="fas fa-map-marker-alt me-1"></i>{% trans "Position" %}
                         </label>
                         {{ player_form.position }}
                         {% if player_form.position.errors %}
@@ -113,17 +114,17 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="{{ player_form.height.id_for_label }}" class="form-label">
-                            <i class="fas fa-ruler-vertical me-1"></i>Estatura
+                            <i class="fas fa-ruler-vertical me-1"></i>{% trans "Height" %}
                         </label>
                         {{ player_form.height }}
                         {% if player_form.height.errors %}
                             <div class="error-message">{{ player_form.height.errors }}</div>
                         {% endif %}
-                        <div class="help-text">Ej: 6'2" o 5'10"</div>
+                        <div class="help-text">{% trans "Ex: 6'2\" or 5'10\"" %}</div>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="{{ player_form.weight.id_for_label }}" class="form-label">
-                            <i class="fas fa-weight me-1"></i>Peso (lbs)
+                            <i class="fas fa-weight me-1"></i>{% trans "Weight (lbs)" %}
                         </label>
                         {{ player_form.weight }}
                         {% if player_form.weight.errors %}
@@ -134,7 +135,7 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label for="{{ player_form.batting_hand.id_for_label }}" class="form-label">
-                            <i class="fas fa-hand-paper me-1"></i>Bateo
+                            <i class="fas fa-hand-paper me-1"></i>{% trans "Batting" %}
                         </label>
                         {{ player_form.batting_hand }}
                         {% if player_form.batting_hand.errors %}
@@ -143,7 +144,7 @@
                     </div>
                     <div class="col-md-6 mb-3">
                         <label for="{{ player_form.throwing_hand.id_for_label }}" class="form-label">
-                            <i class="fas fa-hand-paper me-1"></i>Lanzamiento
+                            <i class="fas fa-hand-paper me-1"></i>{% trans "Throwing" %}
                         </label>
                         {{ player_form.throwing_hand }}
                         {% if player_form.throwing_hand.errors %}
@@ -156,10 +157,10 @@
             <!-- Botones de Acción -->
             <div class="form-actions">
                 <a href="{% url 'accounts:panel' %}" class="btn btn-form-cancel">
-                    <i class="fas fa-times me-2"></i>Cancelar
+                    <i class="fas fa-times me-2"></i>{% trans "Cancel" %}
                 </a>
                 <button type="submit" class="btn btn-form-submit">
-                    <i class="fas fa-save me-2"></i>Registrar Jugador
+                    <i class="fas fa-save me-2"></i>{% trans "Register Player" %}
                 </button>
             </div>
         </form>

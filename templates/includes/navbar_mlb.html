@@ -4,8 +4,12 @@
     <div class="container">
         <div class="row align-items-center">
             <div class="col-md-6">
-                <span><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</span>
-                <span class="ms-4"><i class="fas fa-envelope me-2"></i>info@nscinternational.com</span>
+                {% if site_settings.contact_phone %}
+                    <span><i class="fas fa-phone me-2"></i>{{ site_settings.contact_phone }}</span>
+                {% endif %}
+                {% if site_settings.contact_email %}
+                    <span class="{% if site_settings.contact_phone %}ms-4{% endif %}"><i class="fas fa-envelope me-2"></i>{{ site_settings.contact_email }}</span>
+                {% endif %}
             </div>
             <div class="col-md-6 text-end">
                 <!-- Language Selector -->
@@ -72,6 +76,8 @@
         </div>
     </div>
 </nav>
+
+
 
 
 

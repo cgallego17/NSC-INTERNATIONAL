@@ -1,8 +1,9 @@
+from datetime import date
+
 from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
-from datetime import date
 
 
 class UserProfile(models.Model):
@@ -678,7 +679,7 @@ class DashboardContent(models.Model):
         choices=USER_TYPE_CHOICES,
         default="all",
         verbose_name="Tipo de Usuario",
-        help_text="Seleccione para qué tipo de usuario es este contenido"
+        help_text="Seleccione para qué tipo de usuario es este contenido",
     )
     is_active = models.BooleanField(default=True, verbose_name="Activo")
     order = models.PositiveIntegerField(default=0, verbose_name="Orden")
@@ -819,7 +820,7 @@ class SiteSettings(models.Model):
         verbose_name="Schedule Description (English)",
         help_text="Descripción de la sección Schedule en inglés",
     )
-    
+
     # Campos en español
     schedule_title_es = models.CharField(
         max_length=200,
@@ -839,7 +840,7 @@ class SiteSettings(models.Model):
         verbose_name="Schedule Description (Spanish)",
         help_text="Descripción de la sección Schedule en español",
     )
-    
+
     # Campos legacy (mantener por compatibilidad, usar los nuevos métodos)
     schedule_title = models.CharField(
         max_length=200,
@@ -887,7 +888,7 @@ class SiteSettings(models.Model):
         verbose_name="Showcase Description (English)",
         help_text="Descripción de la sección Showcase en inglés",
     )
-    
+
     # Campos en español
     showcase_title_es = models.CharField(
         max_length=200,
@@ -907,7 +908,7 @@ class SiteSettings(models.Model):
         verbose_name="Showcase Description (Spanish)",
         help_text="Descripción de la sección Showcase en español",
     )
-    
+
     # Campos legacy (mantener por compatibilidad)
     showcase_title = models.CharField(
         max_length=200,
@@ -936,6 +937,24 @@ class SiteSettings(models.Model):
         verbose_name="Banner de Bienvenida del Panel",
         help_text="Imagen que se muestra en el welcome banner del panel de usuario (/accounts/panel/)",
     )
+    # Información de contacto
+    contact_email = models.EmailField(
+        blank=True,
+        verbose_name="Email de Contacto",
+        help_text="Email que se muestra en el footer",
+    )
+    contact_phone = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name="Teléfono de Contacto",
+        help_text="Teléfono que se muestra en el footer",
+    )
+    contact_address = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="Dirección de Contacto",
+        help_text="Dirección o ubicación que se muestra en el footer",
+    )
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -955,100 +974,125 @@ class SiteSettings(models.Model):
         """Cargar o crear la instancia única de configuración"""
         obj, created = cls.objects.get_or_create(pk=1)
         return obj
-    
+
     # Métodos para obtener valores según el idioma
     def get_schedule_title(self, lang=None):
         """Retorna el título del schedule según el idioma especificado o el actual"""
         from django.utils.translation import get_language
-        target_lang = (lang or get_language() or 'en')[:2]
-        if target_lang == 'es':
-            return self.schedule_title_es or self.schedule_title_en or "CALENDARIO DE EVENTOS 2026"
+
+        target_lang = (lang or get_language() or "en")[:2]
+        if target_lang == "es":
+            return (
+                self.schedule_title_es
+                or self.schedule_title_en
+                or "CALENDARIO DE EVENTOS 2026"
+            )
         return self.schedule_title_en or "2026 EVENT CALENDAR"
-    
+
     def get_schedule_subtitle(self, lang=None):
         """Retorna el subtítulo del schedule según el idioma especificado o el actual"""
         from django.utils.translation import get_language
-        target_lang = (lang or get_language() or 'en')[:2]
-        if target_lang == 'es':
-            return self.schedule_subtitle_es or self.schedule_subtitle_en or "EXPANSIÓN REGIONAL Y NUEVOS CAMPEONATOS NACIONALES Y REGIONALES PARA 2026"
-        return self.schedule_subtitle_en or "REGIONAL EXPANSION AND NEW NATIONAL AND REGIONAL CHAMPIONSHIPS FOR 2026"
-    
+
+        target_lang = (lang or get_language() or "en")[:2]
+        if target_lang == "es":
+            return (
+                self.schedule_subtitle_es
+                or self.schedule_subtitle_en
+                or "EXPANSIÓN REGIONAL Y NUEVOS CAMPEONATOS NACIONALES Y REGIONALES PARA 2026"
+            )
+        return (
+            self.schedule_subtitle_en
+            or "REGIONAL EXPANSION AND NEW NATIONAL AND REGIONAL CHAMPIONSHIPS FOR 2026"
+        )
+
     def get_schedule_description(self, lang=None):
         """Retorna la descripción del schedule según el idioma especificado o el actual"""
         from django.utils.translation import get_language
-        target_lang = (lang or get_language() or 'en')[:2]
-        if target_lang == 'es':
+
+        target_lang = (lang or get_language() or "en")[:2]
+        if target_lang == "es":
             return self.schedule_description_es or self.schedule_description_en or ""
         return self.schedule_description_en or ""
-    
+
     def get_showcase_title(self, lang=None):
         """Retorna el título del showcase según el idioma especificado o el actual"""
         from django.utils.translation import get_language
-        target_lang = (lang or get_language() or 'en')[:2]
-        if target_lang == 'es':
-            return self.showcase_title_es or self.showcase_title_en or "SHOWCASES Y PORTALES DE PROSPECTO"
+
+        target_lang = (lang or get_language() or "en")[:2]
+        if target_lang == "es":
+            return (
+                self.showcase_title_es
+                or self.showcase_title_en
+                or "SHOWCASES Y PORTALES DE PROSPECTO"
+            )
         return self.showcase_title_en or "SHOWCASES AND PROSPECT GATEWAYS"
-    
+
     def get_showcase_subtitle(self, lang=None):
         """Retorna el subtítulo del showcase según el idioma especificado o el actual"""
         from django.utils.translation import get_language
-        target_lang = (lang or get_language() or 'en')[:2]
-        if target_lang == 'es':
-            return self.showcase_subtitle_es or self.showcase_subtitle_en or "SHOWCASES REGIONALES Y NACIONALES"
+
+        target_lang = (lang or get_language() or "en")[:2]
+        if target_lang == "es":
+            return (
+                self.showcase_subtitle_es
+                or self.showcase_subtitle_en
+                or "SHOWCASES REGIONALES Y NACIONALES"
+            )
         return self.showcase_subtitle_en or "REGIONAL AND NATIONAL SHOWCASES"
-    
+
     def get_showcase_description(self, lang=None):
         """Retorna la descripción del showcase según el idioma especificado o el actual"""
         from django.utils.translation import get_language
-        target_lang = (lang or get_language() or 'en')[:2]
-        if target_lang == 'es':
+
+        target_lang = (lang or get_language() or "en")[:2]
+        if target_lang == "es":
             return self.showcase_description_es or self.showcase_description_en or ""
         return self.showcase_description_en or ""
-    
+
     # Métodos legacy (mantener por compatibilidad)
     def get_schedule_title_translated(self):
         """[DEPRECATED] Usar get_schedule_title()"""
         return self.get_schedule_title()
-    
+
     def get_schedule_subtitle_translated(self):
         """[DEPRECATED] Usar get_schedule_subtitle()"""
         return self.get_schedule_subtitle()
-    
+
     def get_schedule_description_translated(self):
         """[DEPRECATED] Usar get_schedule_description()"""
         return self.get_schedule_description()
-    
+
     def get_showcase_title_translated(self):
         """[DEPRECATED] Usar get_showcase_title()"""
         return self.get_showcase_title()
-    
+
     def get_showcase_subtitle_translated(self):
         """[DEPRECATED] Usar get_showcase_subtitle()"""
         return self.get_showcase_subtitle()
-    
+
     def get_showcase_description_translated(self):
         """[DEPRECATED] Usar get_showcase_description()"""
         return self.get_showcase_description()
-    
+
     def get_translations_dict(self):
         """Retorna un diccionario con todas las traducciones para uso en JavaScript"""
         return {
-            'en': {
-                'schedule_title': self.get_schedule_title('en'),
-                'schedule_subtitle': self.get_schedule_subtitle('en'),
-                'schedule_description': self.get_schedule_description('en'),
-                'showcase_title': self.get_showcase_title('en'),
-                'showcase_subtitle': self.get_showcase_subtitle('en'),
-                'showcase_description': self.get_showcase_description('en'),
+            "en": {
+                "schedule_title": self.get_schedule_title("en"),
+                "schedule_subtitle": self.get_schedule_subtitle("en"),
+                "schedule_description": self.get_schedule_description("en"),
+                "showcase_title": self.get_showcase_title("en"),
+                "showcase_subtitle": self.get_showcase_subtitle("en"),
+                "showcase_description": self.get_showcase_description("en"),
             },
-            'es': {
-                'schedule_title': self.get_schedule_title('es'),
-                'schedule_subtitle': self.get_schedule_subtitle('es'),
-                'schedule_description': self.get_schedule_description('es'),
-                'showcase_title': self.get_showcase_title('es'),
-                'showcase_subtitle': self.get_showcase_subtitle('es'),
-                'showcase_description': self.get_showcase_description('es'),
-            }
+            "es": {
+                "schedule_title": self.get_schedule_title("es"),
+                "schedule_subtitle": self.get_schedule_subtitle("es"),
+                "schedule_description": self.get_schedule_description("es"),
+                "showcase_title": self.get_showcase_title("es"),
+                "showcase_subtitle": self.get_showcase_subtitle("es"),
+                "showcase_description": self.get_showcase_description("es"),
+            },
         }
 
 

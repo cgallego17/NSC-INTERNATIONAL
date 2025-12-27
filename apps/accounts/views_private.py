@@ -4,9 +4,10 @@ Vistas privadas - Requieren autenticación
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
-from django.contrib.auth.mixins import UserPassesTestMixin
+from django.db import models
+from django.db.models import Q
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -14,22 +15,21 @@ from django.views.generic import (
     CreateView,
     DetailView,
     ListView,
-    UpdateView,
     TemplateView,
+    UpdateView,
 )
-from django.db.models import Q
-from django.db import models
+
+from apps.core.mixins import ManagerRequiredMixin
 
 from .forms import (
+    ParentPlayerRegistrationForm,
+    PlayerRegistrationForm,
+    PlayerUpdateForm,
+    TeamForm,
     UserProfileForm,
     UserUpdateForm,
-    TeamForm,
-    PlayerRegistrationForm,
-    ParentPlayerRegistrationForm,
-    PlayerUpdateForm,
 )
-from .models import UserProfile, Team, Player, PlayerParent, DashboardContent
-from apps.core.mixins import ManagerRequiredMixin
+from .models import DashboardContent, Player, PlayerParent, Team, UserProfile
 
 
 class UserDashboardView(LoginRequiredMixin, TemplateView):
@@ -38,29 +38,9 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
     template_name = "accounts/panel_usuario.html"
 
     def dispatch(self, request, *args, **kwargs):
-        """Establecer inglés como idioma predeterminado si no hay idioma en la sesión"""
-        from django.utils import translation
-        from django.conf import settings
-        
-        # Forzar inglés si el usuario no ha seleccionado explícitamente un idioma
-        language_key = getattr(translation, "LANGUAGE_SESSION_KEY", "_language")
-        user_selected_key = 'user_selected_language'
-        user_selected = request.session.get(user_selected_key, False)
-        session_language = request.session.get(language_key)
-        
-        if not user_selected:
-            # El usuario no ha seleccionado un idioma explícitamente, forzar inglés
-            request.session[language_key] = settings.LANGUAGE_CODE
-            request.session.modified = True
-            translation.activate(settings.LANGUAGE_CODE)
-        elif session_language:
-            # El usuario seleccionó un idioma, usar ese
-            translation.activate(session_language)
-        else:
-            # Por seguridad, establecer inglés
-            request.session[language_key] = settings.LANGUAGE_CODE
-            translation.activate(settings.LANGUAGE_CODE)
-        
+        """Respetar el idioma seleccionado por el usuario"""
+        # El idioma se maneja automáticamente por Django i18n
+        # No necesitamos forzar ningún idioma aquí
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -195,7 +175,8 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
 
         # Calcular total del carrito
         from decimal import Decimal
-        from apps.locations.models import HotelRoom, HotelService, Hotel
+
+        from apps.locations.models import Hotel, HotelRoom, HotelService
 
         cart_total = Decimal("0.00")
         for item_id, item_data in cart.items():
@@ -504,7 +485,9 @@ class ParentPlayerRegistrationView(LoginRequiredMixin, CreateView):
         player = form.save()
         player_name = player.user.get_full_name() or player.user.username
         messages.success(
-            self.request, f"¡Jugador {player_name} registrado exitosamente!"
+            self.request,
+            f"¡Jugador {player_name} registrado exitosamente! El perfil está listo para usar.",
+            extra_tags="player_registered",
         )
         return redirect("accounts:panel")
 
@@ -564,6 +547,10 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
         context["is_parent_editing"] = is_parent and not (
             self.request.user.is_staff or self.request.user.is_superuser
         )
+        # Indicar si es una petición AJAX para devolver solo el contenido del formulario
+        context["is_ajax"] = (
+            self.request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        )
         return context
 
     def get_success_url(self):
@@ -594,15 +581,26 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
                 ]
                 player.user.profile.save()
             player.save()
-            messages.success(
-                self.request, "Información del jugador actualizada exitosamente."
-            )
-            return redirect("accounts:player_detail", pk=player.pk)
         else:
-            messages.success(
-                self.request, "Información del jugador actualizada exitosamente."
+            form.save()
+
+        messages.success(
+            self.request, "Información del jugador actualizada exitosamente."
+        )
+
+        # Si es una petición AJAX, devolver una respuesta JSON
+        if self.request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            from django.http import JsonResponse
+
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": "Jugador actualizado exitosamente",
+                    "redirect_url": str(self.get_success_url()),
+                }
             )
-            return super().form_valid(form)
+
+        return redirect(self.get_success_url())
 
 
 class UserListView(UserPassesTestMixin, LoginRequiredMixin, ListView):

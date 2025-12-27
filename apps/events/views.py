@@ -158,8 +158,9 @@ class EventCreateView(LoginRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Agregar divisiones al contexto para JavaScript
-        from .models import Division
         import json
+
+        from .models import Division
 
         divisions_queryset = Division.objects.filter(is_active=True).order_by("name")
         context["available_divisions"] = json.dumps(
@@ -211,6 +212,33 @@ class EventDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, "Evento eliminado exitosamente.")
         return super().delete(request, *args, **kwargs)
+
+
+class EventTogglePublishView(LoginRequiredMixin, View):
+    """Vista para publicar/despublicar un evento"""
+
+    def post(self, request, pk):
+        event = get_object_or_404(Event, pk=pk)
+
+        if event.status == "published":
+            event.status = "draft"
+            action = "despublicado"
+        else:
+            event.status = "published"
+            action = "publicado"
+
+        event.save()
+        messages.success(request, f'Evento "{event.title}" {action} exitosamente.')
+
+        # Redirigir de vuelta a la lista con los mismos filtros
+        redirect_url = reverse_lazy("events:list")
+        query_params = request.GET.urlencode()
+        if query_params:
+            redirect_url = f"{redirect_url}?{query_params}"
+
+        from django.shortcuts import redirect
+
+        return redirect(redirect_url)
 
 
 class EventDetailAPIView(LoginRequiredMixin, View):
@@ -525,7 +553,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         # Estadísticas de usuarios
         try:
             from django.contrib.auth import get_user_model
-            from apps.accounts.models import UserProfile, Player
+
+            from apps.accounts.models import Player, UserProfile
 
             User = get_user_model()
             total_users = User.objects.count()

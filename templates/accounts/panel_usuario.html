@@ -1,19 +1,360 @@
-{% extends 'base_mlb.html' %}
 {% load static %}
 {% load i18n %}
-
-{% block title %}{% trans "My Account" %} - NCS International{% endblock %}
-
-{% block extra_css %}
+{% load translation_tags %}
+{% get_current_language as CURRENT_LANGUAGE %}
+<!DOCTYPE html>
+<html lang="{% if CURRENT_LANGUAGE %}{{ CURRENT_LANGUAGE|slice:":2" }}{% else %}en{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "My Account" %} - NCS International</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
     <!-- Panel Usuario CSS -->
     <link href="{% static 'css/panel_usuario.css' %}" rel="stylesheet">
-{% endblock %}
+    
+    <style>
+        :root {
+            --mlb-blue: #0d2c54;
+            --mlb-red: #d50032;
+            --mlb-light-blue: #132448;
+            --mlb-gold: #ffd700;
+            --mlb-dark: #1a1a1a;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+            background: var(--mlb-dark);
+            color: white;
+            padding: 8px 0;
+            font-size: 0.85rem;
+        }
+        
+        .top-bar a {
+            color: #ccc;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .top-bar a:hover {
+            color: white;
+        }
+        
+        /* Language Selector with Flags Dropdown */
+        .language-selector-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-right: 0;
+        }
+        
+        .language-selector-btn {
+            background: transparent;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 80px;
+            justify-content: space-between;
+        }
+        
+        .language-selector-btn:hover {
+            border-color: var(--mlb-gold);
+            background: rgba(255, 215, 0, 0.1);
+            color: white;
+        }
+        
+        .language-selector-btn .flag-icon {
+            width: 20px;
+            height: 15px;
+            display: inline-block;
+            background-size: cover;
+            background-position: center;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        
+        .flag-icon.flag-us {
+            background-image: url('https://flagcdn.com/w20/us.png');
+        }
+        
+        .flag-icon.flag-es {
+            background-image: url('https://flagcdn.com/w20/es.png');
+        }
+        
+        .language-selector-btn .arrow-icon {
+            font-size: 0.7rem;
+            transition: transform 0.3s;
+        }
+        
+        .language-selector-btn.active {
+            border-color: var(--mlb-gold);
+            background: rgba(255, 215, 0, 0.15);
+        }
+        
+        .language-selector-btn.active .arrow-icon {
+            transform: rotate(180deg);
+        }
+        
+        .language-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 5px;
+            background: var(--mlb-dark);
+            border: 1px solid #555;
+            border-radius: 4px;
+            min-width: 150px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s;
+            z-index: 1000;
+            overflow: hidden;
+        }
+        
+        .language-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        .language-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            color: #ccc;
+            text-decoration: none;
+            transition: all 0.2s;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: inherit;
+        }
+        
+        .language-option:last-child {
+            border-bottom: none;
+        }
+        
+        .language-option:hover {
+            background: rgba(255, 215, 0, 0.15);
+            color: white;
+        }
+        
+        .language-option.active {
+            background: rgba(255, 215, 0, 0.2);
+            color: var(--mlb-gold);
+        }
+        
+        .language-option .flag-icon {
+            width: 24px;
+            height: 18px;
+            display: inline-block;
+            background-size: cover;
+            background-position: center;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        
+        .language-option .language-name {
+            flex: 1;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .language-selector-btn {
+                min-width: 70px;
+                padding: 4px 8px;
+                font-size: 0.8rem;
+            }
+            
+            .language-selector-btn .language-text {
+                display: none;
+            }
+            
+            .language-dropdown {
+                min-width: 130px;
+            }
+        }
+        
+        /* Navbar MLB Style */
+        .navbar-mlb {
+            background: var(--mlb-blue) !important;
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        
+        .navbar-mlb .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white !important;
+            padding: 15px 20px;
+            background: var(--mlb-red);
+            display: flex;
+            align-items: center;
+        }
+        
+        .navbar-logo {
+            height: 40px;
+            width: auto;
+            max-width: 180px;
+            object-fit: contain;
+        }
+        
+        .navbar-mlb .nav-link {
+            color: white !important;
+            font-weight: 600;
+            padding: 20px 15px !important;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            transition: background 0.3s;
+        }
+        
+        .navbar-mlb .nav-link:hover {
+            background: var(--mlb-light-blue);
+        }
+        
+        .navbar-mlb .nav-link.active {
+            background: var(--mlb-red);
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    {% if site_settings.contact_phone %}
+                        <span><i class="fas fa-phone me-2"></i>{{ site_settings.contact_phone }}</span>
+                    {% endif %}
+                    {% if site_settings.contact_email %}
+                        <span class="{% if site_settings.contact_phone %}ms-4{% endif %}"><i class="fas fa-envelope me-2"></i>{{ site_settings.contact_email }}</span>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 text-end">
+                    <!-- Language Selector with Flags Dropdown -->
+                    {% get_current_language as CURRENT_LANGUAGE %}
+                    {% if not CURRENT_LANGUAGE or CURRENT_LANGUAGE == '' %}{% get_language_info for 'en' as lang_info %}{% endif %}
+                    <div class="language-selector-wrapper">
+                        <button type="button" class="language-selector-btn" id="languageSelectorBtn" onclick="toggleLanguageDropdown()">
+                            <span class="flag-icon {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}flag-es{% else %}flag-us{% endif %}"></span>
+                            <span class="language-text">
+                                {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}
+                                    ES
+                                {% else %}
+                                    EN
+                                {% endif %}
+                            </span>
+                            <i class="fas fa-chevron-down arrow-icon"></i>
+                        </button>
+                        <div class="language-dropdown" id="languageDropdown">
+                            <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-en">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/accounts/panel/' }}">
+                                <input type="hidden" name="language" value="en">
+                                <button type="submit" class="language-option {% if CURRENT_LANGUAGE != 'es' and CURRENT_LANGUAGE|slice:":2" != 'es' %}active{% endif %}" style="background: none; border: none; width: 100%; text-align: left; padding: 10px; cursor: pointer;">
+                                    <span class="flag-icon flag-us"></span>
+                                    <span class="language-name">English</span>
+                                </button>
+                            </form>
+                            <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-es">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/accounts/panel/' }}">
+                                <input type="hidden" name="language" value="es">
+                                <button type="submit" class="language-option {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}active{% endif %}" style="background: none; border: none; width: 100%; text-align: left; padding: 10px; cursor: pointer;">
+                                    <span class="flag-icon flag-es"></span>
+                                    <span class="language-name">{% trans "Spanish" %}</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <span class="mx-2">|</span>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'accounts:panel' %}"><i class="fas fa-user me-1"></i>{% trans "My Account" %}</a>
+                        <span class="mx-2">|</span>
+                        <a href="{% url 'accounts:logout' %}">{% trans "Log Out" %}</a>
+                    {% else %}
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">{% trans "Log In" %}</a>
+                        <span class="mx-2">|</span>
+                        <a href="/accounts/register/">{% trans "Sign Up" %}</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 
-{% block content %}
+    <!-- Navbar MLB Style -->
+    <nav class="navbar navbar-expand-lg navbar-mlb">
+        <div class="container-fluid px-0">
+            <a class="navbar-brand" href="/">
+                <img src="{% static 'images/ncs-white.svg' %}" alt="NCS International" class="navbar-logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: white;">
+                <span style="color: white;"><i class="fas fa-bars"></i></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">{% trans "Home" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'events:list' %}">{% trans "Events" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/accounts/teams/">{% trans "Teams" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:public_player_list' %}">{% trans "Players" %}</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{% url 'accounts:panel' %}">{% trans "My Account" %}</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/accounts/register/">
+                                <span class="badge-mlb">{% trans "Sign Up" %}</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <!-- Messages (hidden, converted to toasts) -->
     <div class="messages-container" style="display: none;">
         {% for message in messages %}
-            <div class="django-message" data-tag="{{ message.tags }}" data-message="{{ message|escapejs }}">
+            <div class="django-message" data-tag="{{ message.tags }}" data-message="{{ message|escapejs }}" data-extra-tags="{{ message.extra_tags|default:'' }}">
             </div>
         {% endfor %}
     </div>
@@ -46,17 +387,19 @@
             {% if dashboard_banners|length >= 1 or not dashboard_banners %}
                 <button class="carousel-control-prev" type="button" data-bs-target="#dashboardBannerSlider" data-bs-slide="prev" style="left: 10px; width: 40px; height: 40px; top: 50%; transform: translateY(-50%);">
                     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Anterior</span>
+                    <span class="visually-hidden">{% trans "Previous" %}</span>
                 </button>
                 <button class="carousel-control-next" type="button" data-bs-target="#dashboardBannerSlider" data-bs-slide="next" style="right: 10px; width: 40px; height: 40px; top: 50%; transform: translateY(-50%);">
                     <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                    <span class="visually-hidden">Siguiente</span>
+                    <span class="visually-hidden">{% trans "Next" %}</span>
                 </button>
-                <div class="carousel-progress">
-                    <div class="carousel-progress-bar"></div>
-                </div>
             {% endif %}
         </div>
+    </div>
+    
+    <!-- Floating Progress Bar - Outside banner container -->
+    <div class="carousel-progress" id="floatingProgressBar" style="position: fixed !important; bottom: 0 !important; left: 0 !important; width: 100% !important; height: 6px !important; background: rgba(0, 0, 0, 0.3) !important; z-index: 99999 !important; display: block !important; visibility: visible !important; opacity: 1 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important;">
+        <div class="carousel-progress-bar" style="height: 100% !important; width: 0% !important; display: block !important; visibility: visible !important; opacity: 1 !important; background: linear-gradient(90deg, #d50032 0%, #ffd700 50%, #d50032 100%) !important;"></div>
     </div>
     
     <!-- Dashboard Content -->
@@ -64,65 +407,65 @@
         <!-- Acciones Rápidas -->
         <div class="quick-actions-section">
             <h5 class="quick-actions-title">
-                <i class="fas fa-bolt me-2"></i>Acciones Rápidas
+                <i class="fas fa-bolt me-2"></i>{% trans "Quick Actions" %}
             </h5>
             <div class="quick-actions">
                 <button type="button" class="quick-action-btn tab-btn active" data-tab="inicio">
                     <i class="fas fa-home"></i>
-                    <span>Inicio</span>
+                    <span>{% trans "Home" %}</span>
                 </button>
                 {% if profile.is_team_manager %}
                     <button type="button" class="quick-action-btn tab-btn" data-tab="crear-equipo" data-url="{% url 'accounts:team_create' %}">
                         <i class="fas fa-plus-circle"></i>
-                        <span>Crear Equipo</span>
+                        <span>{% trans "Create Team" %}</span>
                     </button>
                     <button type="button" class="quick-action-btn tab-btn" data-tab="registrar-jugador" data-url="{% url 'accounts:player_register' %}">
                         <i class="fas fa-user-plus"></i>
-                        <span>Registrar Jugador</span>
+                        <span>{% trans "Register Player" %}</span>
                     </button>
                     <button type="button" class="quick-action-btn tab-btn" data-tab="mis-equipos" data-url="{% url 'accounts:team_list' %}">
                         <i class="fas fa-users"></i>
-                        <span>Mis Equipos</span>
+                        <span>{% trans "My Teams" %}</span>
                     </button>
                     <button type="button" class="quick-action-btn tab-btn" data-tab="ver-jugadores" data-url="{% url 'accounts:player_list' %}">
                         <i class="fas fa-users"></i>
-                        <span>Ver Jugadores</span>
+                        <span>{% trans "View Players" %}</span>
                     </button>
                 {% elif profile.is_parent %}
                     <button type="button" class="quick-action-btn tab-btn" data-tab="registrar-hijo" data-url="{% url 'accounts:parent_player_register' %}">
                         <i class="fas fa-user-plus"></i>
-                        <span>Registrar Hijo</span>
+                        <span>{% trans "Register Child" %}</span>
                     </button>
                     <button type="button" class="quick-action-btn tab-btn" data-tab="mis-hijos" data-url="{% url 'accounts:player_list' %}">
                         <i class="fas fa-child"></i>
-                        <span>Mis Hijos/Jugadores</span>
+                        <span>{% trans "My Children/Players" %}</span>
                     </button>
                 {% else %}
                     {% if user.player_profile %}
                         <button type="button" class="quick-action-btn tab-btn" data-tab="mi-perfil" data-url="{% url 'accounts:player_detail' user.player_profile.pk %}">
                             <i class="fas fa-user"></i>
-                            <span>Mi Perfil</span>
+                            <span>{% trans "My Profile" %}</span>
                         </button>
                         <button type="button" class="quick-action-btn tab-btn" data-tab="perfil-publico" data-url="{% url 'accounts:front_player_profile' user.player_profile.pk %}">
                             <i class="fas fa-id-card"></i>
-                            <span>Perfil Público</span>
+                            <span>{% trans "Public Profile" %}</span>
                         </button>
                     {% endif %}
                 {% endif %}
                 <button type="button" class="quick-action-btn tab-btn" data-tab="eventos" data-url="{% url 'events:list' %}">
                     <i class="fas fa-calendar-alt"></i>
-                    <span>Eventos</span>
+                    <span>{% trans "Events" %}</span>
                     {% if upcoming_events %}
                         <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ upcoming_events|length }}</span>
                     {% endif %}
                 </button>
                 <button type="button" class="quick-action-btn tab-btn" data-tab="calendario" data-url="{% url 'events:calendar' %}">
                     <i class="fas fa-calendar"></i>
-                    <span>Calendario</span>
+                    <span>{% trans "Calendar" %}</span>
                 </button>
                 <button type="button" class="quick-action-btn tab-btn" data-tab="perfil" data-url="{% url 'accounts:profile_edit' %}">
                     <i class="fas fa-user-cog"></i>
-                    <span>Editar Perfil</span>
+                    <span>{% trans "Edit Profile" %}</span>
                 </button>
             </div>
         </div>
@@ -153,6 +496,9 @@
                 <div id="tab-content-mis-hijos" class="tab-content" style="display: none;">
                     {% include 'accounts/panel_tabs/mis_hijos.html' %}
                 </div>
+                <div id="tab-content-editar-jugador" class="tab-content" style="display: none;">
+                    <!-- Contenido se carga dinámicamente -->
+                </div>
             {% else %}
                 {% if user.player_profile %}
                     <div id="tab-content-mi-perfil" class="tab-content" style="display: none;">
@@ -174,19 +520,49 @@
             </div>
         </div>
     </div>
-{% endblock %}
 
-{% block extra_js %}
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
     <!-- Custom JS -->
     <script src="{% static 'js/admin.js' %}"></script>
     
     <script>
-        // Inicializar el carousel del dashboard banner con barra de progreso
+        // Language Selector Dropdown
+        function toggleLanguageDropdown() {
+            const dropdown = document.getElementById('languageDropdown');
+            const btn = document.getElementById('languageSelectorBtn');
+            dropdown.classList.toggle('show');
+            btn.classList.toggle('active');
+        }
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const wrapper = document.querySelector('.language-selector-wrapper');
+            const dropdown = document.getElementById('languageDropdown');
+            const btn = document.getElementById('languageSelectorBtn');
+            
+            if (wrapper && !wrapper.contains(event.target)) {
+                dropdown.classList.remove('show');
+                btn.classList.remove('active');
+            }
+        });
+
+        // Inicializar el carousel del dashboard banner con barra de progreso flotante
         document.addEventListener('DOMContentLoaded', function() {
             const dashboardBannerSlider = document.getElementById('dashboardBannerSlider');
-            if (dashboardBannerSlider) {
-                // No necesitamos ajustar altura manualmente - el CSS maneja todo igual que hero-mlb
-                
+            const floatingProgressBar = document.getElementById('floatingProgressBar');
+            
+            // Asegurar que la barra flotante sea visible SIEMPRE
+            if (floatingProgressBar) {
+                floatingProgressBar.style.cssText = 'position: fixed !important; bottom: 0 !important; left: 0 !important; width: 100% !important; height: 6px !important; background: rgba(0, 0, 0, 0.3) !important; z-index: 99999 !important; display: block !important; visibility: visible !important; opacity: 1 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important;';
+                console.log('✅ Barra flotante encontrada y configurada:', floatingProgressBar);
+            } else {
+                console.error('❌ Barra flotante NO encontrada en el DOM');
+            }
+            
+            // Mostrar la barra incluso si no hay carousel
+            if (floatingProgressBar && dashboardBannerSlider) {
                 const carousel = new bootstrap.Carousel(dashboardBannerSlider, {
                     interval: 5000,
                     ride: 'carousel',
@@ -202,32 +578,19 @@
                     dashboardBannerSlider.querySelector('.carousel-inner').appendChild(firstItem);
                 }
                 
-                // Ajustar altura inicial
-                adjustCarouselHeight();
+                // Controlar la barra de progreso flotante
+                const progressBar = floatingProgressBar.querySelector('.carousel-progress-bar');
                 
-                // Ajustar altura cuando cambia el slide
-                dashboardBannerSlider.addEventListener('slid.bs.carousel', function() {
-                    adjustCarouselHeight();
-                });
-                
-                // Ajustar altura al redimensionar la ventana
-                let resizeTimeout;
-                window.addEventListener('resize', function() {
-                    clearTimeout(resizeTimeout);
-                    resizeTimeout = setTimeout(function() {
-                        adjustCarouselHeight();
-                    }, 250);
-                });
-                
-                // Controlar la barra de progreso
-                const progressBar = dashboardBannerSlider.querySelector('.carousel-progress-bar');
-                let progressInterval;
+                if (progressBar) {
+                    // Asegurar que la barra de progreso sea visible
+                    progressBar.style.display = 'block';
+                    progressBar.style.visibility = 'visible';
+                }
                 
                 function resetProgress() {
                     if (progressBar) {
                         progressBar.style.width = '0%';
                         progressBar.style.animation = 'none';
-                        // Forzar reflow para reiniciar la animación
                         void progressBar.offsetWidth;
                     }
                 }
@@ -236,6 +599,7 @@
                     resetProgress();
                     if (progressBar) {
                         progressBar.style.animation = 'progressBar 5s linear';
+                        progressBar.style.animationPlayState = 'running';
                     }
                 }
                 
@@ -244,7 +608,7 @@
                     startProgress();
                 });
                 
-                // Pausar progreso al hacer hover
+                // Pausar progreso al hacer hover sobre el banner
                 dashboardBannerSlider.addEventListener('mouseenter', function() {
                     if (progressBar) {
                         progressBar.style.animationPlayState = 'paused';
@@ -258,8 +622,31 @@
                     }
                 });
                 
+                // Pausar progreso al hacer hover sobre la barra flotante
+                floatingProgressBar.addEventListener('mouseenter', function() {
+                    if (progressBar) {
+                        progressBar.style.animationPlayState = 'paused';
+                    }
+                });
+                
+                // Reanudar progreso al quitar hover de la barra
+                floatingProgressBar.addEventListener('mouseleave', function() {
+                    if (progressBar) {
+                        progressBar.style.animationPlayState = 'running';
+                    }
+                });
+                
                 // Iniciar progreso en el primer slide
-                startProgress();
+                setTimeout(function() {
+                    startProgress();
+                }, 100);
+            } else if (floatingProgressBar && !dashboardBannerSlider) {
+                // Si no hay carousel, mostrar la barra pero sin animación
+                console.log('⚠️ No hay carousel, pero la barra se mantiene visible');
+                const progressBar = floatingProgressBar.querySelector('.carousel-progress-bar');
+                if (progressBar) {
+                    progressBar.style.width = '0%';
+                }
             }
         });
         
@@ -349,6 +736,402 @@
             if (inicioButton) {
                 activateTab('inicio', inicioButton);
             }
+        });
+        
+        // Usar delegación de eventos para los botones de editar (funciona incluso si se agregan dinámicamente)
+        // Este listener debe estar fuera de DOMContentLoaded para funcionar correctamente
+        document.addEventListener('click', function(e) {
+            // Verificar si el click fue en un botón de editar jugador
+            const editButton = e.target.closest('.edit-player-btn');
+            if (!editButton) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const url = editButton.getAttribute('data-url');
+            const playerId = editButton.getAttribute('data-player-id');
+            
+            console.log('Edit button clicked, URL:', url);
+            
+            if (!url) {
+                console.error('No se encontró la URL del formulario de edición');
+                return;
+            }
+            
+            // Obtener o crear el tab de editar jugador
+            let editTab = document.getElementById('tab-content-editar-jugador');
+            if (!editTab) {
+                const tabContainer = document.querySelector('.tab-content-container');
+                if (!tabContainer) {
+                    console.error('No se encontró el contenedor de tabs');
+                    return;
+                }
+                editTab = document.createElement('div');
+                editTab.id = 'tab-content-editar-jugador';
+                editTab.className = 'tab-content';
+                editTab.style.display = 'none';
+                tabContainer.appendChild(editTab);
+            }
+            
+            // Función para activar un tab (definida localmente para evitar problemas de scope)
+            function activateTabLocal(tabId, button) {
+                const tabButtons = document.querySelectorAll('.tab-btn');
+                const tabContents = document.querySelectorAll('.tab-content');
+                
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                if (button) {
+                    button.classList.add('active');
+                }
+                
+                tabContents.forEach(content => {
+                    content.style.display = 'none';
+                    content.classList.remove('active');
+                });
+                
+                const targetContent = document.getElementById('tab-content-' + tabId);
+                if (targetContent) {
+                    targetContent.style.display = 'block';
+                    targetContent.classList.add('active');
+                }
+            }
+            
+            // Mostrar indicador de carga
+            editTab.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3">Cargando formulario de edición...</p></div>';
+            
+            console.log('Tab encontrado:', editTab);
+            console.log('Tab display antes:', editTab.style.display);
+            console.log('Tab classes antes:', editTab.className);
+            
+            // Ocultar otros tabs primero
+            const allTabs = document.querySelectorAll('.tab-content');
+            allTabs.forEach(tab => {
+                if (tab.id !== 'tab-content-editar-jugador') {
+                    tab.style.display = 'none';
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // Ocultar botones de tabs activos
+            const allTabButtons = document.querySelectorAll('.tab-btn');
+            allTabButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Asegurarse de que el tab sea visible - FORZAR VISIBILIDAD
+            editTab.style.display = 'block !important';
+            editTab.style.visibility = 'visible';
+            editTab.style.opacity = '1';
+            editTab.classList.add('active');
+            
+            // También usar CSS inline para asegurar visibilidad
+            editTab.setAttribute('style', 'display: block !important; visibility: visible !important; opacity: 1 !important;');
+            
+            console.log('Tab display después:', editTab.style.display);
+            console.log('Tab classes después:', editTab.className);
+            console.log('Tab activado, cargando formulario desde:', url);
+            
+            // Activar el tab usando la función local
+            activateTabLocal('editar-jugador', null);
+            
+            // Verificar que el tab sea visible después de activarlo
+            setTimeout(() => {
+                const checkTab = document.getElementById('tab-content-editar-jugador');
+                if (checkTab) {
+                    console.log('Verificación - Tab display:', checkTab.style.display);
+                    console.log('Verificación - Tab visible:', checkTab.offsetParent !== null);
+                    if (checkTab.style.display === 'none' || checkTab.offsetParent === null) {
+                        console.warn('Tab no es visible, forzando visibilidad...');
+                        checkTab.style.display = 'block';
+                        checkTab.style.visibility = 'visible';
+                        checkTab.style.opacity = '1';
+                    }
+                }
+            }, 100);
+            
+            // Cargar el contenido mediante AJAX
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                console.log('Respuesta recibida, status:', response.status);
+                if (!response.ok) {
+                    throw new Error('Error al cargar el formulario: ' + response.status);
+                }
+                return response.text();
+            })
+            .then(html => {
+                console.log('Formulario cargado, procesando HTML...', html.substring(0, 500));
+                
+                // Crear un contenedor temporal para parsear el HTML
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                
+                // El template player_edit.html ya tiene tab-content-header y form-container
+                // Buscar si el HTML ya incluye estos elementos dentro del bloque content
+                const contentBlock = tempDiv.querySelector('div.tab-content-header') || 
+                                   tempDiv.querySelector('div.form-container') ||
+                                   tempDiv.querySelector('div.container-fluid') ||
+                                   tempDiv.querySelector('main') ||
+                                   tempDiv.querySelector('body');
+                
+                // Buscar el formulario
+                let form = tempDiv.querySelector('form[method="post"]');
+                if (!form) {
+                    form = tempDiv.querySelector('form');
+                }
+                
+                console.log('Formulario encontrado:', form ? 'SÍ' : 'NO');
+                console.log('ContentBlock encontrado:', contentBlock ? contentBlock.className : 'NO ENCONTRADO');
+                
+                // Limpiar y preparar el tab
+                editTab.innerHTML = '';
+                
+                // Crear botón de volver
+                const backButton = document.createElement('button');
+                backButton.className = 'btn btn-secondary mb-3';
+                backButton.innerHTML = '<i class="fas fa-arrow-left me-2"></i>Volver a Mis Hijos/Jugadores';
+                backButton.style.marginBottom = '15px';
+                backButton.onclick = function(e) {
+                    e.preventDefault();
+                    const misHijosButton = document.querySelector('.tab-btn[data-tab="mis-hijos"]');
+                    if (misHijosButton) {
+                        misHijosButton.click();
+                    }
+                };
+                editTab.appendChild(backButton);
+                
+                // El template player_edit.html ya tiene tab-content-header y form-container
+                // Buscar si el HTML ya incluye estos elementos
+                const existingHeader = tempDiv.querySelector('.tab-content-header');
+                const existingFormContainer = tempDiv.querySelector('.form-container');
+                
+                if (existingHeader && existingFormContainer && form) {
+                    // Si el template ya tiene la estructura completa, copiarla directamente
+                    console.log('Template tiene estructura completa (tab-content-header + form-container), copiando directamente');
+                    
+                    // Clonar el header
+                    const headerClone = existingHeader.cloneNode(true);
+                    editTab.appendChild(headerClone);
+                    
+                    // Clonar el contenedor del formulario
+                    const formContainerClone = existingFormContainer.cloneNode(true);
+                    
+                    // Actualizar la acción del formulario dentro del contenedor
+                    const formInContainer = formContainerClone.querySelector('form');
+                    if (formInContainer) {
+                        formInContainer.action = url;
+                        formInContainer.id = 'playerEditForm';
+                        console.log('Action del formulario actualizado:', formInContainer.action);
+                    }
+                    
+                    // Actualizar el botón cancelar
+                    const cancelBtn = formContainerClone.querySelector('.form-actions a[href*="player_detail"]');
+                    if (cancelBtn) {
+                        cancelBtn.href = 'javascript:void(0)';
+                        cancelBtn.onclick = function(e) {
+                            e.preventDefault();
+                            const misHijosButton = document.querySelector('.tab-btn[data-tab="mis-hijos"]');
+                            if (misHijosButton) {
+                                misHijosButton.click();
+                            }
+                        };
+                    }
+                    
+                    editTab.appendChild(formContainerClone);
+                    console.log('Template completo copiado correctamente');
+                } else if (form) {
+                    // Si no tiene la estructura completa, crearla manualmente
+                    console.log('Template no tiene estructura completa, creando manualmente');
+                    
+                    // Crear el header
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'tab-content-header mb-4';
+                    headerDiv.innerHTML = `
+                        <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
+                            <i class="fas fa-user-edit me-2" style="color: var(--mlb-red);"></i>Editar Jugador
+                        </h4>
+                        <p class="text-muted">Modifica la información del jugador</p>
+                    `;
+                    editTab.appendChild(headerDiv);
+                    
+                    // Crear el contenedor del formulario
+                    const formContainer = document.createElement('div');
+                    formContainer.className = 'form-container';
+                    
+                    // Clonar el formulario completo con todo su contenido
+                    const formClone = form.cloneNode(true);
+                    formClone.action = url;
+                    formClone.id = 'playerEditForm';
+                    
+                    // Actualizar el botón cancelar si existe
+                    const cancelBtn = formClone.querySelector('.form-actions a[href*="player_detail"]');
+                    if (cancelBtn) {
+                        cancelBtn.href = 'javascript:void(0)';
+                        cancelBtn.onclick = function(e) {
+                            e.preventDefault();
+                            const misHijosButton = document.querySelector('.tab-btn[data-tab="mis-hijos"]');
+                            if (misHijosButton) {
+                                misHijosButton.click();
+                            }
+                        };
+                    }
+                    
+                    formContainer.appendChild(formClone);
+                    editTab.appendChild(formContainer);
+                    console.log('Estructura creada manualmente');
+                } else {
+                    // Si no encontramos contenido, intentar extraer solo el form del HTML usando regex
+                    console.warn('No se encontró formulario, intentando extraer con regex');
+                    const formMatch = html.match(/<form[^>]*>[\s\S]*?<\/form>/i);
+                    if (formMatch) {
+                        // Crear el header
+                        const headerDiv = document.createElement('div');
+                        headerDiv.className = 'tab-content-header mb-4';
+                        headerDiv.innerHTML = `
+                            <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
+                                <i class="fas fa-user-edit me-2" style="color: var(--mlb-red);"></i>Editar Jugador
+                            </h4>
+                            <p class="text-muted">Modifica la información del jugador</p>
+                        `;
+                        editTab.appendChild(headerDiv);
+                        
+                        // Crear el contenedor del formulario
+                        const formContainer = document.createElement('div');
+                        formContainer.className = 'form-container';
+                        formContainer.innerHTML = formMatch[0];
+                        editTab.appendChild(formContainer);
+                    } else {
+                        // Último recurso: mostrar mensaje de error
+                        editTab.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>No se pudo extraer el formulario de edición. Por favor, recarga la página e intenta de nuevo.</div>';
+                    }
+                }
+                
+                console.log('Contenido agregado al tab, buscando formulario...');
+                console.log('HTML del tab después de agregar contenido:', editTab.innerHTML.substring(0, 500));
+                
+                // Esperar un momento para que el DOM se actualice
+                setTimeout(() => {
+                    // Interceptar el envío del formulario para mantenerlo en el panel
+                    const form = editTab.querySelector('form');
+                    console.log('Formulario encontrado:', form);
+                    
+                    if (form) {
+                        console.log('Formulario encontrado, agregando listener de submit');
+                        console.log('Form action antes:', form.action);
+                        // Siempre actualizar la acción del formulario con la URL correcta
+                        form.action = url;
+                        console.log('Form action después:', form.action);
+                        console.log('Form method:', form.method);
+                    
+                    // Asegurarse de que el formulario sea visible
+                    form.style.display = 'block';
+                    
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        
+                        const formData = new FormData(form);
+                        const submitButton = form.querySelector('button[type="submit"]');
+                        const originalButtonText = submitButton ? submitButton.innerHTML : '';
+                        
+                        if (submitButton) {
+                            submitButton.disabled = true;
+                            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+                        }
+                        
+                        fetch(form.action || url, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            credentials: 'same-origin'
+                        })
+                        .then(response => {
+                            // Verificar si la respuesta es JSON (éxito) o HTML (error)
+                            const contentType = response.headers.get('content-type');
+                            if (contentType && contentType.includes('application/json')) {
+                                return response.json();
+                            } else {
+                                return response.text().then(text => ({ html: text }));
+                            }
+                        })
+                        .then(data => {
+                            if (data.success) {
+                                // Éxito - mostrar mensaje y recargar el tab de mis-hijos
+                                const successMsg = document.createElement('div');
+                                successMsg.className = 'alert alert-success';
+                                successMsg.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + (data.message || 'Jugador actualizado exitosamente');
+                                // Insertar el mensaje antes del formulario
+                                if (form.parentNode) {
+                                    form.parentNode.insertBefore(successMsg, form);
+                                } else {
+                                    editTab.insertBefore(successMsg, form);
+                                }
+                                
+                                // Recargar el tab de mis-hijos después de 1.5 segundos
+                                setTimeout(() => {
+                                    const misHijosButton = document.querySelector('.tab-btn[data-tab="mis-hijos"]');
+                                    if (misHijosButton) {
+                                        window.location.reload();
+                                    }
+                                }, 1500);
+                            } else if (data.html) {
+                                // Hay HTML de respuesta, podría ser un error o el formulario con errores
+                                const tempDiv = document.createElement('div');
+                                tempDiv.innerHTML = data.html;
+                                
+                                // Verificar si hay mensajes de error
+                                const errors = tempDiv.querySelector('.errorlist, .alert-danger, .non-field-errors');
+                                if (errors) {
+                                    // Mostrar errores
+                                    const errorContainer = document.createElement('div');
+                                    errorContainer.className = 'alert alert-danger mt-3';
+                                    errorContainer.innerHTML = errors.innerHTML;
+                                    form.parentNode.insertBefore(errorContainer, form);
+                                    
+                                    if (submitButton) {
+                                        submitButton.disabled = false;
+                                        submitButton.innerHTML = originalButtonText;
+                                    }
+                                } else {
+                                    // Podría ser el formulario actualizado, reemplazar el contenido
+                                    const newForm = tempDiv.querySelector('form');
+                                    if (newForm) {
+                                        form.parentNode.replaceChild(newForm.cloneNode(true), form);
+                                    }
+                                    
+                                    if (submitButton) {
+                                        submitButton.disabled = false;
+                                        submitButton.innerHTML = originalButtonText;
+                                    }
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            const errorMsg = document.createElement('div');
+                            errorMsg.className = 'alert alert-danger mt-3';
+                            errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Error al guardar. Por favor, intenta de nuevo.';
+                            form.parentNode.insertBefore(errorMsg, form);
+                            
+                            if (submitButton) {
+                                submitButton.disabled = false;
+                                submitButton.innerHTML = originalButtonText;
+                            }
+                        });
+                    });
+                } else {
+                    console.error('Formulario NO encontrado después de agregar contenido');
+                    console.log('Contenido del tab:', editTab.innerHTML.substring(0, 1000));
+                }
+                }, 100); // Esperar 100ms para que el DOM se actualice
+            })
+            .catch(error => {
+                console.error('Error al cargar el formulario:', error);
+                editTab.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar el formulario: ' + error.message + '. Por favor, intenta de nuevo.</div>';
+            });
         });
         
         // JavaScript para calcular automáticamente división y grado basado en fecha de nacimiento
@@ -464,4 +1247,7 @@
             }
         });
     </script>
-{% endblock %}
+</body>
+</html>
+
+</html>

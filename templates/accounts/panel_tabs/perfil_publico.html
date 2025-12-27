@@ -1,12 +1,13 @@
+{% load i18n %}
 <div class="tab-content-header mb-4">
     <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
-        <i class="fas fa-id-card me-2" style="color: var(--mlb-red);"></i>Mi Perfil Público
+        <i class="fas fa-id-card me-2" style="color: var(--mlb-red);"></i>{% trans "My Public Profile" %}
     </h4>
-    <p class="text-muted">Visualiza cómo se ve tu perfil público</p>
+    <p class="text-muted">{% trans "View how your public profile looks" %}</p>
 </div>
 <div style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
     <h5>{{ user.player_profile.user.get_full_name|default:user.player_profile.user.username }}</h5>
-    <p class="text-muted">Este es tu perfil público</p>
+    <p class="text-muted">{% trans "This is your public profile" %}</p>
 </div>
 
 

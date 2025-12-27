@@ -2,31 +2,29 @@
 Vistas públicas - No requieren autenticación
 """
 
+import requests
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView as BaseLoginView
+from django.db.models import Q
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.generic import (
     CreateView,
-    TemplateView,
     DetailView,
     ListView,
+    TemplateView,
     UpdateView,
 )
-from django.db.models import Q
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib import messages
-from django.shortcuts import redirect
-from django.urls import reverse_lazy
 
-from django.conf import settings
-from django.http import JsonResponse, HttpResponse
-import requests
-from .forms import PublicRegistrationForm, EmailAuthenticationForm, PlayerUpdateForm
-from .models import Team, Player, PlayerParent
+from .forms import EmailAuthenticationForm, PlayerUpdateForm, PublicRegistrationForm
+from .models import Player, PlayerParent, Team
 
 
 class PublicHomeView(TemplateView):
@@ -42,16 +40,23 @@ class PublicHomeView(TemplateView):
             from apps.events.models import Event
 
             now = timezone.now()
+            # Mostrar eventos futuros que no estén cancelados (incluye draft y published)
             upcoming_events = (
-                Event.objects.filter(start_date__gte=now.date(), status="published")
+                Event.objects.filter(start_date__gte=now.date())
+                .exclude(status="cancelled")
+                .exclude(status="completed")
                 .select_related("category")
-                .prefetch_related("divisions")[:6]
+                .prefetch_related("divisions")
+                .order_by("start_date")[:6]  # Ordenar por fecha más próxima primero
             )
 
-            # Eventos de hoy
-            today_events = Event.objects.filter(
-                start_date=now.date(), status="published"
-            )[:3]
+            # Eventos de hoy (que no estén cancelados)
+            today_events = (
+                Event.objects.filter(start_date=now.date())
+                .exclude(status="cancelled")
+                .exclude(status="completed")
+                .order_by("start_date")[:3]
+            )  # Ordenar por fecha/hora más próxima primero
 
             context["upcoming_events"] = upcoming_events
             context["today_events"] = today_events
@@ -89,7 +94,8 @@ class PublicHomeView(TemplateView):
             if not future_merida:
                 future_merida = (
                     Event.objects.exclude(status="cancelled")
-                    .filter(start_date__gte=now.date(), status="published")
+                    .exclude(status="completed")
+                    .filter(start_date__gte=now.date())
                     .select_related("category", "event_type", "city", "state")
                     .prefetch_related("divisions")
                     .order_by("start_date")
@@ -102,21 +108,25 @@ class PublicHomeView(TemplateView):
             # Priorizar eventos futuros con video_url, luego los más recientes
             promo_events = (
                 Event.objects.exclude(status="cancelled")
+                .exclude(status="completed")
                 .exclude(video_url__isnull=True)
                 .exclude(video_url="")
-                .filter(status="published")
                 .select_related("category", "event_type", "city", "state", "country")
                 .prefetch_related("divisions")
                 .order_by("start_date")
             )
-            
+
             # Si hay eventos futuros, priorizarlos
             future_promo_events = promo_events.filter(start_date__gte=now.date())
             if future_promo_events.exists():
-                context["promo_events"] = list(future_promo_events[:10])  # Máximo 10 eventos
+                context["promo_events"] = list(
+                    future_promo_events[:10]
+                )  # Máximo 10 eventos
             else:
                 # Si no hay futuros, tomar los más recientes
-                context["promo_events"] = list(promo_events.order_by("-start_date")[:10])
+                context["promo_events"] = list(
+                    promo_events.order_by("-start_date")[:10]
+                )
         except ImportError:
             context["upcoming_events"] = []
             context["today_events"] = []
@@ -154,6 +164,7 @@ class PublicHomeView(TemplateView):
         # Obtener banners activos del home
         try:
             from .models import HomeBanner
+
             context["home_banners"] = HomeBanner.objects.filter(
                 is_active=True
             ).order_by("order", "-created_at")
@@ -162,18 +173,48 @@ class PublicHomeView(TemplateView):
 
         # Obtener configuraciones del sitio
         try:
+            from django.utils.translation import get_language
+
             from .models import SiteSettings
+
             site_settings = SiteSettings.load()
             context["site_settings"] = site_settings
             # Pasar traducciones al JavaScript
-            context["site_settings_translations"] = site_settings.get_translations_dict()
+            context["site_settings_translations"] = (
+                site_settings.get_translations_dict()
+            )
+            # Obtener el idioma actual del request
+            current_lang = get_language() or "en"
+            # Pasar valores directamente para facilitar el acceso en templates
+            # Usar el idioma actual del request para obtener los valores correctos
+            context["schedule_title"] = site_settings.get_schedule_title(current_lang)
+            context["schedule_subtitle"] = site_settings.get_schedule_subtitle(
+                current_lang
+            )
+            context["schedule_description"] = site_settings.get_schedule_description(
+                current_lang
+            )
+            context["showcase_title"] = site_settings.get_showcase_title(current_lang)
+            context["showcase_subtitle"] = site_settings.get_showcase_subtitle(
+                current_lang
+            )
+            context["showcase_description"] = site_settings.get_showcase_description(
+                current_lang
+            )
         except ImportError:
             context["site_settings"] = None
             context["site_settings_translations"] = None
+            context["schedule_title"] = None
+            context["schedule_subtitle"] = None
+            context["schedule_description"] = None
+            context["showcase_title"] = None
+            context["showcase_subtitle"] = None
+            context["showcase_description"] = None
 
         # Obtener sponsors activos
         try:
             from .models import Sponsor
+
             context["sponsors"] = Sponsor.objects.filter(is_active=True).order_by(
                 "order", "name"
             )
@@ -393,8 +434,9 @@ class PublicPlayerProfileView(DetailView):
 
         # Obtener eventos relacionados si existe la app events
         try:
-            from apps.events.models import Event
             from django.utils import timezone
+
+            from apps.events.models import Event
 
             # Eventos futuros relacionados con la división del jugador
             upcoming_events = []
@@ -435,8 +477,9 @@ class FrontPlayerProfileView(LoginRequiredMixin, DetailView):
 
         # Obtener eventos relacionados si existe la app events
         try:
-            from apps.events.models import Event
             from django.utils import timezone
+
+            from apps.events.models import Event
 
             # Eventos futuros relacionados con la división del jugador
             upcoming_events = []
@@ -552,8 +595,9 @@ def instagram_posts_api(request):
     Siempre devuelve exactamente 12 posts (completa con placeholders si es necesario)
     """
     try:
-        from .instagram_api import get_instagram_posts
         from urllib.parse import quote
+
+        from .instagram_api import get_instagram_posts
 
         username = getattr(settings, "INSTAGRAM_USERNAME", "ncs_international")
         # Solicitar 6 posts del RSS feed

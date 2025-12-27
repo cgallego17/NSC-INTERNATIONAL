@@ -2,15 +2,16 @@
 URLs de accounts - Combinación de públicas y privadas
 """
 
-from django.urls import path
 from django.contrib.auth import views as auth_views
+from django.urls import path
+
 from . import (
-    views_public,
-    views_private,
-    views_banners,
-    views_sponsors,
-    views_dashboard_banners,
     views,
+    views_banners,
+    views_dashboard_banners,
+    views_private,
+    views_public,
+    views_sponsors,
 )
 
 app_name = "accounts"
@@ -140,6 +141,11 @@ urlpatterns = [
         "edit-showcase-settings/",
         views_banners.ShowcaseSettingsUpdateView.as_view(),
         name="edit_showcase_settings",
+    ),
+    path(
+        "edit-contact-settings/",
+        views_banners.ContactSettingsUpdateView.as_view(),
+        name="edit_contact_settings",
     ),
     # Administración de Contenido del Home
     path(

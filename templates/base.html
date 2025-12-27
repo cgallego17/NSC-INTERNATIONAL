@@ -1,4 +1,5 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -379,10 +380,17 @@
 
         <!-- Contenido del Home (solo staff) -->
         {% if user.is_staff or user.is_superuser %}
-        <a href="{% url 'accounts:home_content_admin' %}" class="sb-item{% if active_section == 'home_content' %} active{% endif %}" data-bs-title="Contenido del Home">
+        <button class="sb-item w-100{% if active_section == 'home_content' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbHomeContent" aria-expanded="{% if active_section == 'home_content' %}true{% else %}false{% endif %}" data-bs-title="Contenido del Home">
             <i class="sb-ico bi bi-house-door"></i>
             <span class="hide-mini">Contenido del Home</span>
-        </a>
+            <i class="sb-right bi {% if active_section == 'home_content' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
+        </button>
+        <div id="sbHomeContent" class="collapse sb-sub{% if active_section == 'home_content' %} show{% endif %}">
+            <a class="link{% if active_subsection == 'home_content_admin' %} active{% endif %}" href="{% url 'accounts:home_content_admin' %}">Administración</a>
+            <a class="link{% if active_subsection == 'edit_schedule' %} active{% endif %}" href="{% url 'accounts:edit_schedule_settings' %}">Editar Schedule</a>
+            <a class="link{% if active_subsection == 'edit_showcase' %} active{% endif %}" href="{% url 'accounts:edit_showcase_settings' %}">Editar Showcase</a>
+            <a class="link{% if active_subsection == 'edit_contact' %} active{% endif %}" href="{% url 'accounts:edit_contact_settings' %}">Información de Contacto</a>
+        </div>
         {% endif %}
 
         <!-- Usuarios (solo staff) -->

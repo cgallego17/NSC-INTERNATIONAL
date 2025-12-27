@@ -95,3 +95,5 @@ class SponsorDeleteView(StaffRequiredMixin, DeleteView):
         return super().delete(request, *args, **kwargs)
 
 
+
+

@@ -152,6 +152,22 @@ def sidebar_context(request):
         "accounts:player_register": {"section": "players", "subsection": "player_list"},
         "accounts:player_edit": {"section": "players", "subsection": "player_list"},
         "accounts:user_list": {"section": "users", "subsection": "user_list"},
+        "accounts:home_content_admin": {
+            "section": "home_content",
+            "subsection": "home_content_admin",
+        },
+        "accounts:edit_schedule_settings": {
+            "section": "home_content",
+            "subsection": "edit_schedule",
+        },
+        "accounts:edit_showcase_settings": {
+            "section": "home_content",
+            "subsection": "edit_showcase",
+        },
+        "accounts:edit_contact_settings": {
+            "section": "home_content",
+            "subsection": "edit_contact",
+        },
     }
 
     try:
@@ -251,3 +267,19 @@ def sidebar_context(request):
         "active_section": active_section,
         "active_subsection": active_subsection,
     }
+
+
+def site_settings(request):
+    """
+    Context processor para hacer disponible site_settings en todos los templates
+    """
+    try:
+        from apps.accounts.models import SiteSettings
+
+        return {
+            "site_settings": SiteSettings.load(),
+        }
+    except Exception:
+        return {
+            "site_settings": None,
+        }

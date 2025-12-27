@@ -10,18 +10,18 @@ class AdminDashboard {
         // Initialize theme
         const savedTheme = localStorage.getItem('theme') || 'light';
         this.setTheme(savedTheme);
-        
+
         // Initialize sidebar state
         const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
         if (sidebarCollapsed) {
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
             const floatingToggle = document.getElementById('floatingSidebarToggle');
-            
+
             if (sidebar && mainContent) {
                 sidebar.classList.add('collapsed');
                 mainContent.classList.add('sidebar-collapsed');
-                
+
                 // Show floating toggle button
                 if (floatingToggle) {
                     floatingToggle.style.display = 'flex';
@@ -31,10 +31,10 @@ class AdminDashboard {
 
         // Load notifications count
         this.loadNotificationCount();
-        
+
         // Initialize theme toggle (only if it exists)
         this.initializeThemeToggle();
-        
+
         // Convert Django messages to modern toasts
         this.convertDjangoMessagesToToasts();
     }
@@ -45,7 +45,7 @@ class AdminDashboard {
             const currentTheme = document.body.getAttribute('data-theme') || 'light';
             const sunIcon = themeToggle.querySelector('.fa-sun');
             const moonIcon = themeToggle.querySelector('.fa-moon');
-            
+
             if (sunIcon && moonIcon) {
                 if (currentTheme === 'dark') {
                     sunIcon.style.opacity = '0.5';
@@ -65,19 +65,19 @@ class AdminDashboard {
     setupEventListeners() {
         // ===== TOPBAR BUTTONS =====
         this.setupTopbarButtons();
-        
+
         // ===== SIDEBAR CONTROLS =====
         this.setupSidebarControls();
-        
+
         // ===== SEARCH FUNCTIONALITY =====
         this.setupSearchFunctionality();
-        
+
         // ===== NOTIFICATION SYSTEM =====
         this.setupNotificationSystem();
-        
+
         // ===== USER MENU SYSTEM =====
         this.setupUserMenuSystem();
-        
+
         // ===== GLOBAL EVENT LISTENERS =====
         this.setupGlobalEventListeners();
     }
@@ -119,7 +119,7 @@ class AdminDashboard {
         const btnTheme = document.getElementById('btnTheme');
         const btnMini = document.getElementById('btnMini');
         const btnMiniOpen = document.getElementById('btnMiniOpen');
-        
+
         console.log('Sidebar elements found:', {
             mobileMenuToggle: !!mobileMenuToggle,
             sidebarToggle: !!sidebarToggle,
@@ -129,7 +129,7 @@ class AdminDashboard {
             btnMini: !!btnMini,
             btnMiniOpen: !!btnMiniOpen
         });
-        
+
         if (mobileMenuToggle) {
             mobileMenuToggle.addEventListener('click', () => this.toggleMobileMenu());
         }
@@ -167,20 +167,20 @@ class AdminDashboard {
         const mainContent = document.getElementById('mainContent');
         const sidebarToggle = document.getElementById('sidebarToggle');
         const toggleIcon = sidebarToggle?.querySelector('i');
-        
+
         console.log('Elements found:', { sidebar, mainContent, sidebarToggle, toggleIcon });
-        
+
         if (sidebar && mainContent) {
             const isMini = sidebar.classList.contains('mini');
             console.log('Current state - isMini:', isMini);
-            
+
             // Toggle sidebar state
             sidebar.classList.toggle('mini');
             mainContent.classList.toggle('sidebar-mini');
-            
+
             const newState = sidebar.classList.contains('mini');
             console.log('New state - isMini:', newState);
-            
+
             // Update toggle button icon with smooth transition
             if (toggleIcon) {
                 toggleIcon.style.transform = 'rotate(180deg)';
@@ -195,13 +195,13 @@ class AdminDashboard {
                     toggleIcon.style.transform = 'rotate(0deg)';
                 }, 150);
             }
-            
+
             // Save state to localStorage
             localStorage.setItem('sb-mini', newState ? '1' : '0');
-            
+
             // Enable/disable tooltips
             this.enableMiniTooltips();
-            
+
             // Dispatch custom event for other components
             window.dispatchEvent(new CustomEvent('sidebarToggle', {
                 detail: { collapsed: newState }
@@ -214,7 +214,7 @@ class AdminDashboard {
     enableMiniTooltips() {
         const sidebar = document.getElementById('sidebar');
         if (!sidebar) return;
-        
+
         const need = sidebar.classList.contains('mini');
         document.querySelectorAll('.sb-item, #btnMiniOpen').forEach(el => {
             const tip = el.getAttribute('data-bs-title');
@@ -231,22 +231,22 @@ class AdminDashboard {
         const sidebar = document.getElementById('sidebar');
         const themeToggle = document.getElementById('themeToggle');
         const btnTheme = document.getElementById('btnTheme');
-        
+
         if (!sidebar) {
             console.error('Sidebar not found');
             return;
         }
-        
+
         const isLight = sidebar.classList.contains('light');
         const newTheme = isLight ? 'dark' : 'light';
-        
+
         console.log('Current theme is light:', isLight, 'Switching to:', newTheme);
-        
+
         if (newTheme === 'light') {
             // Cambiar a tema claro
             sidebar.classList.add('light');
             document.body.style.background = '#e5e7eb';
-            
+
             // Actualizar iconos
             if (btnTheme) {
                 btnTheme.innerHTML = '<i class="bi bi-brightness-high"></i>';
@@ -257,13 +257,13 @@ class AdminDashboard {
                     icon.className = 'fas fa-sun';
                 }
             }
-            
+
             localStorage.setItem('sb-theme', 'light');
         } else {
             // Cambiar a tema oscuro
             sidebar.classList.remove('light');
             document.body.style.background = '#dfe3ea';
-            
+
             // Actualizar iconos
             if (btnTheme) {
                 btnTheme.innerHTML = '<i class="bi bi-moon"></i>';
@@ -274,10 +274,10 @@ class AdminDashboard {
                     icon.className = 'fas fa-moon';
                 }
             }
-            
+
             localStorage.setItem('sb-theme', 'dark');
         }
-        
+
         // Dispatch custom event for other components
         window.dispatchEvent(new CustomEvent('themeToggle', {
             detail: { theme: newTheme }
@@ -286,7 +286,7 @@ class AdminDashboard {
 
     setupModernSidebar(sidebar, btnTheme, btnMini, btnMiniOpen) {
         console.log('Setting up modern sidebar with elements:', { btnTheme: !!btnTheme, btnMini: !!btnMini, btnMiniOpen: !!btnMiniOpen });
-        
+
         // Tema
         if (btnTheme) {
             btnTheme.addEventListener('click', (e) => {
@@ -295,7 +295,7 @@ class AdminDashboard {
                 this.toggleTheme();
             });
         }
-        
+
         // Aplicar tema guardado al cargar
         const savedTheme = localStorage.getItem('sb-theme') || 'dark';
         if (savedTheme === 'light') {
@@ -334,7 +334,7 @@ class AdminDashboard {
                 this.toggleSidebar();
             });
         }
-        
+
         if (btnMiniOpen) {
             btnMiniOpen.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -342,20 +342,20 @@ class AdminDashboard {
                 this.toggleSidebar();
             });
         }
-        
+
         // Restaurar estado del sidebar
         const savedState = localStorage.getItem('sb-mini') === '1';
         if (savedState) {
             sidebar.classList.add('mini');
-        const mainContent = document.getElementById('mainContent');
+            const mainContent = document.getElementById('mainContent');
             if (mainContent) {
                 mainContent.classList.add('sidebar-mini');
             }
         }
-        
+
         // Configurar estado activo del sidebar
         this.setupActiveSidebarState();
-        
+
         this.enableMiniTooltips();
     }
 
@@ -363,7 +363,7 @@ class AdminDashboard {
         // El estado activo ahora se maneja desde Django con context processors
         // Solo necesitamos verificar que los elementos estén correctamente configurados
         console.log('✅ Sidebar active state managed by Django context processor');
-        
+
         // Verificar elementos activos
         const activeItems = document.querySelectorAll('.sb-item.active, .sb-sub .link.active');
         console.log('📊 Active items found:', activeItems.length);
@@ -378,7 +378,7 @@ class AdminDashboard {
     setupSearchFunctionality() {
         const searchInput = document.getElementById('searchInput');
         const searchSuggestions = document.getElementById('searchSuggestions');
-        
+
         if (searchInput) {
             // Search input events
             searchInput.addEventListener('input', (e) => this.handleSearchInput(e.target.value));
@@ -394,11 +394,11 @@ class AdminDashboard {
         const notificationPanel = document.getElementById('notificationPanel');
         const closeNotifications = document.getElementById('closeNotifications');
         const markAllRead = document.getElementById('markAllRead');
-        
+
         if (notificationBtn && notificationPanel) {
             notificationBtn.addEventListener('click', () => this.toggleNotifications());
         }
-        
+
         if (closeNotifications) {
             closeNotifications.addEventListener('click', () => this.closeNotifications());
         }
@@ -412,7 +412,7 @@ class AdminDashboard {
     setupUserMenuSystem() {
         const userMenuBtn = document.getElementById('userMenuBtn');
         const userDropdown = document.getElementById('userDropdown');
-        
+
         if (userMenuBtn && userDropdown) {
             userMenuBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -459,7 +459,7 @@ class AdminDashboard {
     setTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
         localStorage.setItem('theme', theme);
-        
+
         const themeToggle = document.getElementById('themeToggle');
         if (themeToggle) {
             const icon = themeToggle.querySelector('i');
@@ -480,7 +480,7 @@ class AdminDashboard {
     toggleNotifications() {
         const notificationPanel = document.getElementById('notificationPanel');
         notificationPanel.classList.toggle('show');
-        
+
         if (notificationPanel.classList.contains('show')) {
             this.loadNotifications();
         }
@@ -564,7 +564,7 @@ class AdminDashboard {
 
     handleGlobalSearch(query) {
         if (query.length < 2) return;
-        
+
         // Simulate search functionality
         console.log('Searching for:', query);
         // In a real app, this would make an AJAX call to search endpoint
@@ -573,12 +573,12 @@ class AdminDashboard {
     handleResize() {
         const sidebar = document.getElementById('sidebar');
         const mainContent = document.getElementById('mainContent');
-        
+
         // Only proceed if both elements exist
         if (!sidebar || !mainContent) {
             return;
         }
-        
+
         if (window.innerWidth <= 768) {
             sidebar.classList.remove('collapsed');
             mainContent.classList.remove('sidebar-collapsed');
@@ -603,10 +603,10 @@ class AdminDashboard {
     showToast(message, type = 'info', title = null, duration = 5000) {
         // Modern toast notification implementation
         const toastContainer = document.getElementById('toastContainer') || this.createToastContainer();
-        
+
         // Generate unique ID for this toast
         const toastId = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        
+
         // Get icon based on type
         const icons = {
             'success': 'fa-check-circle',
@@ -615,17 +615,24 @@ class AdminDashboard {
             'info': 'fa-info-circle',
             'primary': 'fa-bell'
         };
-        
+
         const icon = icons[type] || icons['info'];
-        
+
         // Create toast element
         const toast = document.createElement('div');
         toast.id = toastId;
-        toast.className = `modern-toast toast-${type}`;
+        let toastClass = `modern-toast toast-${type}`;
+
+        // Add special class for player registration
+        if (title && title.includes('Registro') || message.includes('Jugador') && message.includes('registrado')) {
+            toastClass += ' player-registered';
+        }
+
+        toast.className = toastClass;
         toast.setAttribute('role', 'alert');
         toast.setAttribute('aria-live', 'assertive');
         toast.setAttribute('aria-atomic', 'true');
-        
+
         toast.innerHTML = `
             <div class="toast-content">
                 <div class="toast-icon">
@@ -643,21 +650,21 @@ class AdminDashboard {
                 <div class="toast-progress-bar"></div>
             </div>
         `;
-        
+
         toastContainer.appendChild(toast);
-        
+
         // Animate in
         setTimeout(() => {
             toast.classList.add('show');
         }, 10);
-        
+
         // Start progress bar animation
         const progressBar = toast.querySelector('.toast-progress-bar');
         if (progressBar && duration > 0) {
             progressBar.style.animationDuration = `${duration}ms`;
             progressBar.style.animationPlayState = 'running';
         }
-        
+
         // Auto-remove after duration
         let autoRemoveTimer;
         if (duration > 0) {
@@ -665,14 +672,14 @@ class AdminDashboard {
                 this.hideToast(toast);
             }, duration);
         }
-        
+
         // Close button handler
         const closeBtn = toast.querySelector('.toast-close');
         closeBtn.addEventListener('click', () => {
             if (autoRemoveTimer) clearTimeout(autoRemoveTimer);
             this.hideToast(toast);
         });
-        
+
         // Pause progress on hover
         toast.addEventListener('mouseenter', () => {
             if (progressBar) {
@@ -682,7 +689,7 @@ class AdminDashboard {
                 clearTimeout(autoRemoveTimer);
             }
         });
-        
+
         // Resume progress on leave
         toast.addEventListener('mouseleave', () => {
             if (progressBar && duration > 0) {
@@ -700,14 +707,14 @@ class AdminDashboard {
                 }
             }
         });
-        
+
         return toast;
     }
-    
+
     hideToast(toast) {
         toast.classList.remove('show');
         toast.classList.add('hide');
-        
+
         setTimeout(() => {
             if (toast.parentNode) {
                 toast.parentNode.removeChild(toast);
@@ -718,30 +725,40 @@ class AdminDashboard {
     createToastContainer() {
         const container = document.getElementById('toastContainer');
         if (container) return container;
-        
+
         const newContainer = document.createElement('div');
         newContainer.id = 'toastContainer';
         newContainer.className = 'modern-toast-container';
         document.body.appendChild(newContainer);
         return newContainer;
     }
-    
+
     convertDjangoMessagesToToasts() {
         // Find all Django messages and convert them to toasts
         const messages = document.querySelectorAll('.django-message');
         messages.forEach(msg => {
             const tag = msg.getAttribute('data-tag');
             const message = msg.getAttribute('data-message');
-            
+            const extraTags = msg.getAttribute('data-extra-tags') || '';
+
             // Map Django message tags to toast types
             let toastType = 'info';
             if (tag === 'success') toastType = 'success';
             else if (tag === 'error' || tag === 'danger') toastType = 'error';
             else if (tag === 'warning') toastType = 'warning';
             else if (tag === 'info') toastType = 'info';
-            
+
+            // Special handling for player registration
+            let title = null;
+            let duration = 5000;
+            if (extraTags.includes('player_registered') || message.includes('Jugador') && message.includes('registrado')) {
+                toastType = 'success';
+                title = '¡Registro Exitoso!';
+                duration = 6000; // Show longer for important messages
+            }
+
             // Show toast
-            this.showToast(message, toastType);
+            this.showToast(message, toastType, title, duration);
         });
     }
 
@@ -779,27 +796,27 @@ window.AdminUtils = {
             window.adminDashboard.showToast(message, type);
         }
     },
-    
+
     confirmDialog: (message, callback) => {
         if (window.adminDashboard) {
             window.adminDashboard.confirmDialog(message, callback);
         }
     },
-    
+
     formatCurrency: (amount) => {
         if (window.adminDashboard) {
             return window.adminDashboard.formatCurrency(amount);
         }
         return amount;
     },
-    
+
     formatDate: (date) => {
         if (window.adminDashboard) {
             return window.adminDashboard.formatDate(date);
         }
         return date;
     },
-    
+
     formatNumber: (num) => {
         if (window.adminDashboard) {
             return window.adminDashboard.formatNumber(num);
@@ -813,7 +830,7 @@ window.ChartUtils = {
     createLineChart: (canvasId, data, options = {}) => {
         const ctx = document.getElementById(canvasId);
         if (!ctx) return null;
-        
+
         const defaultOptions = {
             responsive: true,
             maintainAspectRatio: false,
@@ -836,18 +853,18 @@ window.ChartUtils = {
                 }
             }
         };
-        
+
         return new Chart(ctx, {
             type: 'line',
             data: data,
             options: { ...defaultOptions, ...options }
         });
     },
-    
+
     createDoughnutChart: (canvasId, data, options = {}) => {
         const ctx = document.getElementById(canvasId);
         if (!ctx) return null;
-        
+
         const defaultOptions = {
             responsive: true,
             maintainAspectRatio: false,
@@ -861,7 +878,7 @@ window.ChartUtils = {
                 }
             }
         };
-        
+
         return new Chart(ctx, {
             type: 'doughnut',
             data: data,
@@ -874,53 +891,53 @@ window.ChartUtils = {
 function initializeSidebarEnhancements() {
     // Add hover effects to navigation items
     const navItems = document.querySelectorAll('.nav-item');
-    
+
     navItems.forEach(item => {
         const link = item.querySelector('.nav-link');
-        
+
         // Add ripple effect on click
-        link.addEventListener('click', function(e) {
+        link.addEventListener('click', function (e) {
             const ripple = document.createElement('span');
             const rect = this.getBoundingClientRect();
             const size = Math.max(rect.width, rect.height);
             const x = e.clientX - rect.left - size / 2;
             const y = e.clientY - rect.top - size / 2;
-            
+
             ripple.style.width = ripple.style.height = size + 'px';
             ripple.style.left = x + 'px';
             ripple.style.top = y + 'px';
             ripple.classList.add('ripple');
-            
+
             this.appendChild(ripple);
-            
+
             setTimeout(() => {
                 ripple.remove();
             }, 600);
         });
-        
+
         // Add subtle animation on hover
-        link.addEventListener('mouseenter', function() {
+        link.addEventListener('mouseenter', function () {
             if (!this.closest('.nav-item').classList.contains('active')) {
                 this.style.transform = 'translateX(2px)';
             }
         });
-        
-        link.addEventListener('mouseleave', function() {
+
+        link.addEventListener('mouseleave', function () {
             if (!this.closest('.nav-item').classList.contains('active')) {
                 this.style.transform = 'translateX(0)';
             }
         });
     });
-    
+
     // Add section collapse/expand functionality
     const sectionTitles = document.querySelectorAll('.nav-section-title');
     sectionTitles.forEach(title => {
         title.style.cursor = 'pointer';
-        title.addEventListener('click', function() {
+        title.addEventListener('click', function () {
             const section = this.closest('.nav-section');
             const nextSection = section.nextElementSibling;
             let itemsToToggle = [];
-            
+
             // Find all nav items until next section
             let current = section.nextElementSibling;
             while (current && !current.classList.contains('nav-section')) {
@@ -929,12 +946,12 @@ function initializeSidebarEnhancements() {
                 }
                 current = current.nextElementSibling;
             }
-            
+
             // Toggle visibility
             itemsToToggle.forEach(item => {
                 item.style.display = item.style.display === 'none' ? 'block' : 'none';
             });
-            
+
             // Add visual indicator
             this.classList.toggle('collapsed');
         });
@@ -949,14 +966,14 @@ document.addEventListener('DOMContentLoaded', () => {
 // ===== TOPBAR BUTTON FUNCTIONS =====
 
 // Mobile Menu Toggle
-AdminDashboard.prototype.toggleMobileMenu = function() {
+AdminDashboard.prototype.toggleMobileMenu = function () {
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.getElementById('mainContent');
-    
+
     if (sidebar && mainContent) {
         sidebar.classList.toggle('mobile-open');
         mainContent.classList.toggle('mobile-sidebar-open');
-        
+
         // Prevent body scroll when mobile menu is open
         if (sidebar.classList.contains('mobile-open')) {
             document.body.style.overflow = 'hidden';
@@ -967,10 +984,10 @@ AdminDashboard.prototype.toggleMobileMenu = function() {
 }
 
 // Fullscreen Toggle
-AdminDashboard.prototype.toggleFullscreen = function() {
+AdminDashboard.prototype.toggleFullscreen = function () {
     const fullscreenToggle = document.getElementById('fullscreenToggle');
     const icon = fullscreenToggle.querySelector('i');
-    
+
     if (!document.fullscreenElement) {
         // Enter fullscreen
         document.documentElement.requestFullscreen().then(() => {
@@ -991,15 +1008,15 @@ AdminDashboard.prototype.toggleFullscreen = function() {
 }
 
 // Search Functions
-AdminDashboard.prototype.handleSearchInput = function(value) {
+AdminDashboard.prototype.handleSearchInput = function (value) {
     const searchClear = document.getElementById('searchClear');
     const searchSuggestions = document.getElementById('searchSuggestions');
-    
+
     // Show/hide clear button
     if (searchClear) {
         searchClear.style.display = value.length > 0 ? 'block' : 'none';
     }
-    
+
     // Handle search suggestions
     if (value.length > 2) {
         this.showSearchSuggestions();
@@ -1009,33 +1026,33 @@ AdminDashboard.prototype.handleSearchInput = function(value) {
     }
 }
 
-AdminDashboard.prototype.showSearchSuggestions = function() {
+AdminDashboard.prototype.showSearchSuggestions = function () {
     const searchSuggestions = document.getElementById('searchSuggestions');
     if (searchSuggestions) {
         searchSuggestions.style.display = 'block';
     }
 }
 
-AdminDashboard.prototype.hideSearchSuggestions = function() {
+AdminDashboard.prototype.hideSearchSuggestions = function () {
     const searchSuggestions = document.getElementById('searchSuggestions');
     if (searchSuggestions) {
         searchSuggestions.style.display = 'none';
     }
 }
 
-AdminDashboard.prototype.loadSearchSuggestions = function(query) {
+AdminDashboard.prototype.loadSearchSuggestions = function (query) {
     const searchSuggestions = document.getElementById('searchSuggestions');
     if (!searchSuggestions) return;
-    
+
     // Mock search suggestions - replace with real API call
     const suggestions = [
         { type: 'event', title: 'Evento: Conferencia de Tecnología', url: '/events/1' },
         { type: 'user', title: 'Usuario: Juan Pérez', url: '/users/1' },
         { type: 'setting', title: 'Configuración: Notificaciones', url: '/settings/notifications' }
-    ].filter(item => 
+    ].filter(item =>
         item.title.toLowerCase().includes(query.toLowerCase())
     );
-    
+
     if (suggestions.length > 0) {
         searchSuggestions.innerHTML = suggestions.map(suggestion => `
             <div class="suggestion-item" data-url="${suggestion.url}">
@@ -1043,7 +1060,7 @@ AdminDashboard.prototype.loadSearchSuggestions = function(query) {
                 <span>${suggestion.title}</span>
             </div>
         `).join('');
-        
+
         // Add click handlers to suggestions
         searchSuggestions.querySelectorAll('.suggestion-item').forEach(item => {
             item.addEventListener('click', () => {
@@ -1055,7 +1072,7 @@ AdminDashboard.prototype.loadSearchSuggestions = function(query) {
     }
 }
 
-AdminDashboard.prototype.getSuggestionIcon = function(type) {
+AdminDashboard.prototype.getSuggestionIcon = function (type) {
     const icons = {
         'event': 'calendar',
         'user': 'user',
@@ -1064,10 +1081,10 @@ AdminDashboard.prototype.getSuggestionIcon = function(type) {
     return icons[type] || 'search';
 }
 
-AdminDashboard.prototype.handleSearchKeydown = function(e) {
+AdminDashboard.prototype.handleSearchKeydown = function (e) {
     const searchSuggestions = document.getElementById('searchSuggestions');
     const suggestions = searchSuggestions?.querySelectorAll('.suggestion-item');
-    
+
     if (e.key === 'Escape') {
         this.hideSearchSuggestions();
         document.getElementById('searchInput').blur();
@@ -1078,38 +1095,38 @@ AdminDashboard.prototype.handleSearchKeydown = function(e) {
     }
 }
 
-AdminDashboard.prototype.clearSearch = function() {
+AdminDashboard.prototype.clearSearch = function () {
     const searchInput = document.getElementById('searchInput');
     const searchClear = document.getElementById('searchClear');
     const searchSuggestions = document.getElementById('searchSuggestions');
-    
+
     if (searchInput) {
         searchInput.value = '';
         searchInput.focus();
     }
-    
+
     if (searchClear) {
         searchClear.style.display = 'none';
     }
-    
+
     if (searchSuggestions) {
         searchSuggestions.style.display = 'none';
     }
 }
 
 // Notification Functions
-AdminDashboard.prototype.toggleNotifications = function() {
+AdminDashboard.prototype.toggleNotifications = function () {
     const notificationPanel = document.getElementById('notificationPanel');
     const notificationBtn = document.getElementById('notificationsBtn');
-    
+
     if (notificationPanel) {
         notificationPanel.classList.toggle('show');
-        
+
         // Update button state
         if (notificationBtn) {
             notificationBtn.classList.toggle('active');
         }
-        
+
         // Load notifications when opening
         if (notificationPanel.classList.contains('show')) {
             this.loadNotifications();
@@ -1117,23 +1134,23 @@ AdminDashboard.prototype.toggleNotifications = function() {
     }
 }
 
-AdminDashboard.prototype.closeNotifications = function() {
+AdminDashboard.prototype.closeNotifications = function () {
     const notificationPanel = document.getElementById('notificationPanel');
     const notificationBtn = document.getElementById('notificationsBtn');
-    
+
     if (notificationPanel) {
         notificationPanel.classList.remove('show');
     }
-    
+
     if (notificationBtn) {
         notificationBtn.classList.remove('active');
     }
 }
 
-AdminDashboard.prototype.loadNotifications = function() {
+AdminDashboard.prototype.loadNotifications = function () {
     const notificationList = document.getElementById('notificationList');
     if (!notificationList) return;
-    
+
     // Mock notifications - replace with real API call
     const notifications = [
         {
@@ -1161,7 +1178,7 @@ AdminDashboard.prototype.loadNotifications = function() {
             type: 'warning'
         }
     ];
-    
+
     if (notifications.length > 0) {
         notificationList.innerHTML = notifications.map(notification => `
             <div class="notification-item ${notification.read ? 'read' : 'unread'}" data-id="${notification.id}">
@@ -1178,7 +1195,7 @@ AdminDashboard.prototype.loadNotifications = function() {
                 </button>
             </div>
         `).join('');
-        
+
         // Add click handlers
         notificationList.querySelectorAll('.notification-item').forEach(item => {
             item.addEventListener('click', (e) => {
@@ -1187,7 +1204,7 @@ AdminDashboard.prototype.loadNotifications = function() {
                 }
             });
         });
-        
+
         notificationList.querySelectorAll('.notification-mark-read').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -1204,7 +1221,7 @@ AdminDashboard.prototype.loadNotifications = function() {
     }
 }
 
-AdminDashboard.prototype.getNotificationIcon = function(type) {
+AdminDashboard.prototype.getNotificationIcon = function (type) {
     const icons = {
         'success': 'check-circle',
         'info': 'info-circle',
@@ -1214,36 +1231,36 @@ AdminDashboard.prototype.getNotificationIcon = function(type) {
     return icons[type] || 'bell';
 }
 
-AdminDashboard.prototype.markNotificationAsRead = function(notificationId) {
+AdminDashboard.prototype.markNotificationAsRead = function (notificationId) {
     // Update UI
     const notificationItem = document.querySelector(`[data-id="${notificationId}"]`);
     if (notificationItem) {
         notificationItem.classList.remove('unread');
         notificationItem.classList.add('read');
     }
-    
+
     // Update badge count
     this.updateNotificationBadge();
-    
+
     // Here you would make an API call to mark as read
     console.log(`Marking notification ${notificationId} as read`);
 }
 
-AdminDashboard.prototype.markAllNotificationsRead = function() {
+AdminDashboard.prototype.markAllNotificationsRead = function () {
     const notificationItems = document.querySelectorAll('.notification-item.unread');
     notificationItems.forEach(item => {
         item.classList.remove('unread');
         item.classList.add('read');
     });
-    
+
     this.updateNotificationBadge();
     console.log('All notifications marked as read');
 }
 
-AdminDashboard.prototype.updateNotificationBadge = function() {
+AdminDashboard.prototype.updateNotificationBadge = function () {
     const badge = document.getElementById('notificationBadge');
     const unreadCount = document.querySelectorAll('.notification-item.unread').length;
-    
+
     if (badge) {
         badge.textContent = unreadCount;
         badge.style.display = unreadCount > 0 ? 'flex' : 'none';
@@ -1251,13 +1268,13 @@ AdminDashboard.prototype.updateNotificationBadge = function() {
 }
 
 // User Menu Functions
-AdminDashboard.prototype.toggleUserDropdown = function() {
+AdminDashboard.prototype.toggleUserDropdown = function () {
     const userDropdown = document.getElementById('userDropdown');
     const userMenuBtn = document.getElementById('userMenuBtn');
-    
+
     if (userDropdown) {
         userDropdown.classList.toggle('show');
-        
+
         // Update button state
         if (userMenuBtn) {
             userMenuBtn.classList.toggle('active');
@@ -1265,21 +1282,21 @@ AdminDashboard.prototype.toggleUserDropdown = function() {
     }
 }
 
-AdminDashboard.prototype.closeUserDropdown = function() {
+AdminDashboard.prototype.closeUserDropdown = function () {
     const userDropdown = document.getElementById('userDropdown');
     const userMenuBtn = document.getElementById('userMenuBtn');
-    
+
     if (userDropdown) {
         userDropdown.classList.remove('show');
     }
-    
+
     if (userMenuBtn) {
         userMenuBtn.classList.remove('active');
     }
 }
 
 // Global Event Handlers
-AdminDashboard.prototype.handleOutsideClick = function(e) {
+AdminDashboard.prototype.handleOutsideClick = function (e) {
     if (!e.target.closest('.user-menu')) {
         this.closeUserDropdown();
     }
@@ -1291,7 +1308,7 @@ AdminDashboard.prototype.handleOutsideClick = function(e) {
     }
 }
 
-AdminDashboard.prototype.handleKeyboardShortcuts = function(e) {
+AdminDashboard.prototype.handleKeyboardShortcuts = function (e) {
     // Ctrl + K for search focus
     if (e.ctrlKey && e.key === 'k') {
         e.preventDefault();
@@ -1300,14 +1317,14 @@ AdminDashboard.prototype.handleKeyboardShortcuts = function(e) {
             searchInput.focus();
         }
     }
-    
+
     // Escape to close dropdowns
     if (e.key === 'Escape') {
         this.closeUserDropdown();
         this.closeNotifications();
         this.hideSearchSuggestions();
     }
-    
+
     // Ctrl + B for sidebar toggle
     if (e.ctrlKey && e.key === 'b') {
         e.preventDefault();
@@ -1324,7 +1341,7 @@ document.addEventListener('keydown', (e) => {
             window.adminDashboard.toggleSidebar();
         }
     }
-    
+
     // Escape to close sidebar on mobile
     if (e.key === 'Escape') {
         const sidebar = document.getElementById('sidebar');

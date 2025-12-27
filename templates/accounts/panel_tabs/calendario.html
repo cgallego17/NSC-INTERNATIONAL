@@ -1,11 +1,12 @@
+{% load i18n %}
 <div class="tab-content-header mb-4">
     <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
-        <i class="fas fa-calendar me-2" style="color: var(--mlb-red);"></i>Calendario
+        <i class="fas fa-calendar me-2" style="color: var(--mlb-red);"></i>{% trans "Calendar" %}
     </h4>
-    <p class="text-muted">Vista de calendario de eventos</p>
+    <p class="text-muted">{% trans "Calendar view of events" %}</p>
 </div>
 <div style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
-    <p class="text-muted">Vista de calendario próximamente</p>
+    <p class="text-muted">{% trans "Calendar view coming soon" %}</p>
 </div>
 
 
