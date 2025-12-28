@@ -90,6 +90,12 @@ urlpatterns = [
         views_private.register_children_to_event,
         name="register_children_to_event",
     ),
+    # Wallet
+    path(
+        "wallet/add-funds/",
+        views_private.wallet_add_funds,
+        name="wallet_add_funds",
+    ),
     # Editar jugador para front (requiere login) - después de la privada para evitar conflictos
     path(
         "front/players/<int:pk>/edit/",
@@ -217,9 +223,19 @@ urlpatterns = [
     # Hoteles
     path("hotels/", views_hotels.HotelListView.as_view(), name="hotel_list"),
     path("hotels/create/", views_hotels.HotelCreateView.as_view(), name="hotel_create"),
-    path("hotels/<int:pk>/", views_hotels.HotelDetailView.as_view(), name="hotel_detail"),
-    path("hotels/<int:pk>/edit/", views_hotels.HotelUpdateView.as_view(), name="hotel_update"),
-    path("hotels/<int:pk>/delete/", views_hotels.HotelDeleteView.as_view(), name="hotel_delete"),
+    path(
+        "hotels/<int:pk>/", views_hotels.HotelDetailView.as_view(), name="hotel_detail"
+    ),
+    path(
+        "hotels/<int:pk>/edit/",
+        views_hotels.HotelUpdateView.as_view(),
+        name="hotel_update",
+    ),
+    path(
+        "hotels/<int:pk>/delete/",
+        views_hotels.HotelDeleteView.as_view(),
+        name="hotel_delete",
+    ),
     # Imágenes del Hotel
     path(
         "hotels/<int:hotel_pk>/images/",

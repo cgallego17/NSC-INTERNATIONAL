@@ -13,8 +13,12 @@
         <!-- Lado Izquierdo - Información del Evento -->
         <div class="col-lg-7">
             <div class="event-info-card" style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-                <!-- Imagen del Evento -->
-                {% if event.logo %}
+                <!-- Banner del Evento -->
+                {% if event.banner %}
+                    <div style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 25px;">
+                        <img src="{{ event.banner }}" alt="{{ event.title }}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                    </div>
+                {% elif event.logo %}
                     <div style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 25px;">
                         <img src="{{ event.logo }}" alt="{{ event.title }}" style="width: 100%; height: 100%; object-fit: contain; object-position: center; background: #f8f9fa;">
                     </div>
@@ -171,6 +175,85 @@
                     </div>
                 </div>
 
+                <!-- Video del Evento -->
+                {% if event.video_url %}
+                    <div class="mb-4" style="margin-top: 30px;">
+                        <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 20px;">
+                            <i class="fas fa-video me-2" style="color: var(--mlb-red);"></i>{% trans "Event Video" %}
+                        </h5>
+                        <div id="event-video-container" style="position: relative; width: 100%; padding-bottom: 56.25%; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); background: #000;">
+    <script>
+        // Definir funciones globales ANTES de la IIFE para que estén disponibles
+        (function() {
+            // Estas funciones se definirán dentro de la IIFE pero estarán disponibles globalmente
+            window._hotelModalInit{{ event.hotel.pk }} = function() {
+                // Esta función se llamará cuando el DOM esté listo
+                const script = document.currentScript || document.querySelector('script[data-hotel-pk="{{ event.hotel.pk }}"]');
+                if (script) {
+                    script.dispatchEvent(new CustomEvent('init-hotel-modal'));
+                }
+            };
+        })();
+
+        (function() {
+                                    const videoUrl = '{{ event.video_url|escapejs }}';
+                                    const container = document.getElementById('event-video-container');
+
+                                    function extractYouTubeId(url) {
+                                        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                                        const match = url.match(regExp);
+                                        return (match && match[2].length === 11) ? match[2] : null;
+                                    }
+
+                                    function extractVimeoId(url) {
+                                        const regExp = /(?:vimeo\.com\/)(?:.*\/)?(\d+)/;
+                                        const match = url.match(regExp);
+                                        return match ? match[1] : null;
+                                    }
+
+                                    let iframe = null;
+
+                                    if (videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be')) {
+                                        const videoId = extractYouTubeId(videoUrl);
+                                        if (videoId) {
+                                            iframe = document.createElement('iframe');
+                                            iframe.src = 'https://www.youtube.com/embed/' + videoId;
+                                            iframe.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;';
+                                            iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+                                            iframe.setAttribute('allowfullscreen', '');
+                                        }
+                                    } else if (videoUrl.includes('vimeo.com')) {
+                                        const videoId = extractVimeoId(videoUrl);
+                                        if (videoId) {
+                                            iframe = document.createElement('iframe');
+                                            iframe.src = 'https://player.vimeo.com/video/' + videoId;
+                                            iframe.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;';
+                                            iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture');
+                                            iframe.setAttribute('allowfullscreen', '');
+                                        }
+                                    } else {
+                                        const video = document.createElement('video');
+                                        video.controls = true;
+                                        video.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; background: #000;';
+                                        const source = document.createElement('source');
+                                        source.src = videoUrl;
+                                        source.type = 'video/mp4';
+                                        video.appendChild(source);
+                                        video.appendChild(document.createTextNode('{% trans "Your browser does not support the video tag." %}'));
+                                        iframe = video;
+                                    }
+
+                                    if (iframe) {
+                                        container.appendChild(iframe);
+                                    } else {
+                                        container.innerHTML = '<div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white;"><i class="fas fa-exclamation-triangle me-2"></i>{% trans "Invalid video URL" %}</div>';
+                                    }
+                                })();
+                            </script>
+                        </div>
+                    </div>
+                {% endif %}
+
                 <!-- Línea separadora -->
                 <div style="width: 100%; height: 2px; background: linear-gradient(90deg, var(--mlb-red) 0%, #b30029 100%); margin-bottom: 25px; margin-top: 25px; border-radius: 2px;"></div>
 
@@ -212,7 +295,7 @@
                             </h5>
 
                             {% for child in children %}
-                                <div class="child-item mb-2" style="border: 2px solid #e9ecef; border-radius: 8px; padding: 10px; transition: all 0.3s;">
+                                <div class="child-item mb-2" style="border: 2px solid #e9ecef; border-radius: 8px; padding: 10px; transition: all 0.3s;" data-child-id="{{ child.pk }}" data-birth-date="{% if child.user.profile.birth_date %}{{ child.user.profile.birth_date|date:'Y-m-d' }}{% endif %}">
                                     <div class="form-check" style="display: flex; align-items: center; gap: 10px;">
                                         <input class="form-check-input child-checkbox" type="checkbox" name="players" value="{{ child.pk }}" id="child_{{ child.pk }}"
                                                style="width: 18px; height: 18px; cursor: pointer; margin: 0; flex-shrink: 0;">
@@ -271,6 +354,73 @@
                                 <span id="total-price" style="font-weight: 800; color: var(--mlb-red); font-size: 1.3rem;">$0.00</span>
                             </div>
                         </div>
+
+                        <!-- Opción de Estadía en Hotel -->
+                        {% if event.hotel %}
+                            <div class="mb-3" style="border-top: 2px solid #e9ecef; padding-top: 15px;">
+                                <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 2px solid #e9ecef; border-radius: 12px; overflow: hidden; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.05);"
+                                     onmouseover="this.style.borderColor='var(--mlb-red)'; this.style.boxShadow='0 4px 16px rgba(213, 0, 50, 0.2)'; this.style.transform='translateY(-2px)';"
+                                     onmouseout="this.style.borderColor='#e9ecef'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'; this.style.transform='translateY(0)';">
+                                    <div style="display: flex; align-items: stretch; gap: 0;">
+                                        <!-- Imagen del Hotel -->
+                                        <div style="width: 100px; flex-shrink: 0; position: relative; overflow: hidden;">
+                                            {% if event.hotel.photo %}
+                                                <img src="{{ event.hotel.photo.url }}" alt="{{ event.hotel.hotel_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            {% elif event.hotel.images.exists %}
+                                                {% with first_image=event.hotel.images.first %}
+                                                    <img src="{{ first_image.image.url }}" alt="{{ event.hotel.hotel_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                                {% endwith %}
+                                            {% else %}
+                                                <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); display: flex; align-items: center; justify-content: center;">
+                                                    <i class="fas fa-hotel" style="color: white; font-size: 2rem;"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div style="position: absolute; top: 8px; left: 8px; background: rgba(213, 0, 50, 0.9); color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                                                <i class="fas fa-hotel me-1"></i>{% trans "Hotel" %}
+                                            </div>
+                                        </div>
+
+                                        <!-- Contenido -->
+                                        <div style="flex: 1; padding: 15px; display: flex; flex-direction: column; justify-content: space-between;">
+                                            <div>
+                                                <div style="display: flex; align-items: start; justify-content: space-between; margin-bottom: 8px;">
+                                                    <div style="flex: 1;">
+                                                        <h6 style="font-weight: 800; color: var(--mlb-blue); font-size: 1rem; margin: 0 0 4px 0;">
+                                                            {{ event.hotel.hotel_name }}
+                                                        </h6>
+                                                        {% if event.hotel.address %}
+                                                            <div style="font-size: 0.75rem; color: #6c757d; margin-bottom: 6px;">
+                                                                <i class="fas fa-map-marker-alt me-1" style="color: var(--mlb-red); font-size: 0.7rem;"></i>{{ event.hotel.address|truncatewords:8 }}
+                                                            </div>
+                                                        {% endif %}
+                                                        {% if event.start_date and event.end_date %}
+                                                            <div style="font-size: 0.75rem; color: #6c757d;">
+                                                                <i class="fas fa-calendar-alt me-1" style="color: var(--mlb-red); font-size: 0.7rem;"></i>
+                                                                {{ event.start_date|date:"M d" }} - {{ event.end_date|date:"M d, Y" }}
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Botón -->
+                                            <div style="margin-top: 12px;">
+                                                <button type="button"
+                                                        class="btn btn-sm w-100"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#hotelReservationModal{{ event.hotel.pk }}"
+                                                        style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; border: none; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;"
+                                                        onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 4px 12px rgba(213, 0, 50, 0.4)';"
+                                                        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
+                                                    <i class="fas fa-plus"></i>
+                                                    <span>{% trans "Add Hotel Stay" %}</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
 
                         <!-- Botón de Registro -->
                         <button type="submit" class="btn w-100" id="register-btn" disabled
@@ -1344,5 +1494,1115 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </div>
 
+{% endif %}
+
+<!-- Modal para Reserva de Hotel -->
+{% if event.hotel %}
+    <div class="modal fade" id="hotelReservationModal{{ event.hotel.pk }}" tabindex="-1" aria-labelledby="hotelReservationModalLabel{{ event.hotel.pk }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+                <div class="modal-header" style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; padding: 20px 25px; border: none;">
+                    <h5 class="modal-title" id="hotelReservationModalLabel{{ event.hotel.pk }}" style="font-weight: 800; font-size: 1.3rem;">
+                        <i class="fas fa-hotel me-2"></i>{% trans "Hotel Reservation" %}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="hotelReservationForm{{ event.hotel.pk }}" method="get" action="{% url 'locations:front_hotel_reservation_create' %}">
+                    <div class="modal-body" style="padding: 0;">
+                        <!-- Información del Hotel -->
+                        <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); padding: 20px 25px; border-bottom: 2px solid #e9ecef;">
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                {% if event.hotel.photo %}
+                                    <div style="width: 80px; height: 80px; border-radius: 12px; overflow: hidden; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                        <img src="{{ event.hotel.photo.url }}" alt="{{ event.hotel.hotel_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    </div>
+                                {% elif event.hotel.images.exists %}
+                                    {% with first_image=event.hotel.images.first %}
+                                        <div style="width: 80px; height: 80px; border-radius: 12px; overflow: hidden; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                            <img src="{{ first_image.image.url }}" alt="{{ event.hotel.hotel_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                    {% endwith %}
+                                {% endif %}
+                                <div style="flex: 1;">
+                                    <h6 style="font-weight: 800; color: var(--mlb-blue); font-size: 1.1rem; margin: 0 0 6px 0;">
+                                        {{ event.hotel.hotel_name }}
+                                    </h6>
+                                    {% if event.hotel.address %}
+                                        <div style="font-size: 0.85rem; color: #6c757d; margin-bottom: 4px;">
+                                            <i class="fas fa-map-marker-alt me-1" style="color: var(--mlb-red);"></i>{{ event.hotel.address|truncatewords:12 }}
+                                        </div>
+                                    {% endif %}
+                                    {% if event.start_date and event.end_date %}
+                                        <div style="font-size: 0.85rem; color: #6c757d;">
+                                            <i class="fas fa-calendar-alt me-1" style="color: var(--mlb-red);"></i>
+                                            <strong>{% trans "Check-in" %}:</strong> {{ event.start_date|date:"M d, Y" }}
+                                            <span class="mx-2">•</span>
+                                            <strong>{% trans "Check-out" %}:</strong> {{ event.end_date|date:"M d, Y" }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contenido del Formulario -->
+                        <div style="padding: 25px;">
+                            <!-- Mensaje de advertencia si no hay jugadores/hijos -->
+                            <div class="alert alert-warning mb-3" id="no-children-warning{{ event.hotel.pk }}" style="display: none; border-radius: 8px; padding: 12px 15px;">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <strong>{% trans "Required" %}:</strong> {% trans "You must select at least one player or add at least one child to continue." %}
+                            </div>
+
+                            <!-- Niños/Jugadores Seleccionados -->
+                            <div class="mb-4" id="selected-children-section{{ event.hotel.pk }}" style="display: none;">
+                                <div style="background: linear-gradient(135deg, #fff5f7 0%, #ffffff 100%); border: 2px solid var(--mlb-red); border-radius: 12px; padding: 20px;">
+                                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
+                                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i class="fas fa-child" style="color: white; font-size: 1.3rem;"></i>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="font-weight: 800; color: var(--mlb-blue); font-size: 1rem; margin-bottom: 4px;">
+                                                {% trans "Selected Children/Players" %}
+                                            </div>
+                                            <div style="font-size: 0.85rem; color: #6c757d;">
+                                                <span id="children-count{{ event.hotel.pk }}">0</span> {% trans "selected" %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="children-list{{ event.hotel.pk }}" style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                        <!-- Se llenará con JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Personas Adicionales -->
+                            <div class="mb-4">
+                                <div style="background: linear-gradient(135deg, #e7f3ff 0%, #ffffff 100%); border: 2px solid var(--mlb-blue); border-radius: 12px; padding: 20px;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                <i class="fas fa-user-plus" style="color: white; font-size: 1.3rem;"></i>
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: 800; color: var(--mlb-blue); font-size: 1rem; margin-bottom: 4px;">
+                                                    {% trans "Additional Adults" %}
+                                                </div>
+                                                <div style="font-size: 0.85rem; color: #6c757d;">
+                                                    {% trans "Adults (18+) staying at the hotel" %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="button"
+                                                class="btn btn-sm add-adult-button"
+                                                id="add-adult-btn{{ event.hotel.pk }}"
+                                                data-hotel-pk="{{ event.hotel.pk }}"
+                                                onclick="if(typeof window.addAdultForm{{ event.hotel.pk }} === 'function') { window.addAdultForm{{ event.hotel.pk }}(); } else { console.error('Function not found'); }"
+                                                style="background: var(--mlb-blue); color: white; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 600; font-size: 0.85rem;">
+                                            <i class="fas fa-plus me-1"></i>{% trans "Add Adult" %}
+                                        </button>
+                                    </div>
+
+                                    <!-- Contenedor de formularios de adultos -->
+                                    <div id="adults-forms-container{{ event.hotel.pk }}">
+                                        <!-- Se llenará dinámicamente con JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Niños Adicionales (no jugadores) -->
+                            <div class="mb-4" id="additional-children-section{{ event.hotel.pk }}" style="display: none;">
+                                <div style="background: linear-gradient(135deg, #fff5f7 0%, #ffffff 100%); border: 2px solid var(--mlb-red); border-radius: 12px; padding: 20px;">
+                                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
+                                        <div style="display: flex; align-items: center; gap: 12px;">
+                                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                <i class="fas fa-baby" style="color: white; font-size: 1.3rem;"></i>
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: 800; color: var(--mlb-blue); font-size: 1rem; margin-bottom: 4px;">
+                                                    {% trans "Additional Children" %}
+                                                </div>
+                                                <div style="font-size: 0.85rem; color: #6c757d;">
+                                                    {% trans "Children (under 18) not registered as players" %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button type="button"
+                                                class="btn btn-sm add-child-button"
+                                                id="add-child-btn{{ event.hotel.pk }}"
+                                                data-hotel-pk="{{ event.hotel.pk }}"
+                                                onclick="if(typeof window.addChildForm{{ event.hotel.pk }} === 'function') { window.addChildForm{{ event.hotel.pk }}(); } else { console.error('Function not found'); }"
+                                                style="background: var(--mlb-red); color: white; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 600; font-size: 0.85rem;">
+                                            <i class="fas fa-plus me-1"></i>{% trans "Add Child" %}
+                                        </button>
+                                    </div>
+
+                                    <!-- Contenedor de formularios de niños adicionales -->
+                                    <div id="additional-children-forms-container{{ event.hotel.pk }}">
+                                        <!-- Se llenará dinámicamente con JavaScript -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Resumen Total -->
+                            <div class="mb-4" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 12px; padding: 20px; color: white;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-users" style="font-size: 1.5rem;"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 4px;">{% trans "Total People" %}</div>
+                                            <div style="font-weight: 800; font-size: 1.8rem;">
+                                                <span id="total-people-count{{ event.hotel.pk }}">1</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 4px;">{% trans "Breakdown" %}</div>
+                                        <div style="font-size: 0.9rem; font-weight: 600;">
+                                            <div><span id="adults-count{{ event.hotel.pk }}">1</span> {% trans "adults" %}</div>
+                                            <div id="players-breakdown{{ event.hotel.pk }}" style="display: none;">
+                                                <span id="players-count-breakdown{{ event.hotel.pk }}">0</span> {% trans "players" %}
+                                            </div>
+                                            <div id="additional-children-breakdown{{ event.hotel.pk }}" style="display: none;">
+                                                <span id="additional-children-count-breakdown{{ event.hotel.pk }}">0</span> {% trans "additional children" %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <input type="hidden" name="hotel" value="{{ event.hotel.pk }}">
+                            <input type="hidden" id="number_of_adults{{ event.hotel.pk }}" name="number_of_adults" value="1">
+                            {% if event.start_date %}
+                                <input type="hidden" name="check_in" value="{{ event.start_date|date:'Y-m-d' }}">
+                            {% endif %}
+                            {% if event.end_date %}
+                                <input type="hidden" name="check_out" value="{{ event.end_date|date:'Y-m-d' }}">
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 2px solid #e9ecef; padding: 20px 25px; background: #f8f9fa;">
+                        <button type="button"
+                                class="btn btn-secondary cancel-modal-btn"
+                                data-bs-dismiss="modal"
+                                style="padding: 10px 20px; border-radius: 8px; font-weight: 600;">
+                            <i class="fas fa-times me-1"></i>{% trans "Cancel" %}
+                        </button>
+                        <button type="button"
+                                class="btn"
+                                id="show-rooms-btn{{ event.hotel.pk }}"
+                                style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; font-weight: 700; padding: 10px 25px; border-radius: 8px; border: none;"
+                                onclick="showHotelRooms{{ event.hotel.pk }}()">
+                            <i class="fas fa-bed me-1"></i>{% trans "Show Available Rooms" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Definir funciones globales INMEDIATAMENTE (fuera de IIFE)
+        window.addAdultForm{{ event.hotel.pk }} = function() {
+            console.log('addAdultForm{{ event.hotel.pk }} called (global)');
+            // Esta función será reemplazada por la versión completa cuando se ejecute la IIFE
+            // Por ahora, intentar obtener referencias y llamar a funciones auxiliares
+            const container = document.getElementById('adults-forms-container{{ event.hotel.pk }}');
+            if (!container) {
+                console.error('Container not found');
+                return;
+            }
+            const existingForms = container.querySelectorAll('.adult-form-item');
+            const newIndex = existingForms.length + 1;
+
+            if (window._createAdultForm{{ event.hotel.pk }}) {
+                const newForm = window._createAdultForm{{ event.hotel.pk }}(newIndex);
+                if (newForm) {
+                    container.appendChild(newForm);
+                    if (window._updatePeopleCount{{ event.hotel.pk }}) {
+                        window._updatePeopleCount{{ event.hotel.pk }}();
+                    }
+                }
+            } else {
+                console.error('_createAdultForm{{ event.hotel.pk }} not available yet');
+                // Esperar un momento y reintentar
+                setTimeout(function() {
+                    if (window._createAdultForm{{ event.hotel.pk }}) {
+                        window.addAdultForm{{ event.hotel.pk }}();
+                    } else {
+                        alert('Por favor, espere un momento y vuelva a intentar.');
+                    }
+                }, 100);
+            }
+        };
+
+        (function() {
+            const modalId = 'hotelReservationModal{{ event.hotel.pk }}';
+            const modal = document.getElementById(modalId);
+            const adultsFormsContainer = document.getElementById('adults-forms-container{{ event.hotel.pk }}');
+            const adultsCountHidden = document.getElementById('number_of_adults{{ event.hotel.pk }}');
+            const childrenInfo = document.getElementById('selected-children-info{{ event.hotel.pk }}');
+            const childrenList = document.getElementById('children-list{{ event.hotel.pk }}');
+            const totalPeopleCount = document.getElementById('total-people-count{{ event.hotel.pk }}');
+            const adultsCount = document.getElementById('adults-count{{ event.hotel.pk }}');
+            const childrenCount = document.getElementById('children-count{{ event.hotel.pk }}');
+            const additionalChildrenContainer = document.getElementById('additional-children-forms-container{{ event.hotel.pk }}');
+            const showRoomsBtn = document.getElementById('show-rooms-btn{{ event.hotel.pk }}');
+
+            let adultFormCount = 1;
+            let additionalChildFormCount = 0;
+
+            // Función para calcular edad desde fecha de nacimiento
+            function calculateAge(birthDate) {
+                if (!birthDate) return '';
+                const today = new Date();
+                const birth = new Date(birthDate);
+                let age = today.getFullYear() - birth.getFullYear();
+                const monthDiff = today.getMonth() - birth.getMonth();
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                    age--;
+                }
+                return age > 0 ? age : '';
+            }
+
+            // Función para actualizar la edad mostrada cuando cambia la fecha de nacimiento
+            window.updateAdultAge{{ event.hotel.pk }} = function(dateInput, index) {
+                const ageDisplay = document.querySelector('.adult-age-display-' + index);
+                if (ageDisplay && dateInput.value) {
+                    const age = calculateAge(dateInput.value);
+                    if (age) {
+                        ageDisplay.textContent = age + ' {% trans "years old" %}';
+                        ageDisplay.style.color = 'var(--mlb-blue)';
+                    } else {
+                        ageDisplay.textContent = '';
+                    }
+                }
+            };
+
+            // Función para crear un formulario de adulto - EXPONER GLOBALMENTE
+            function createAdultForm(index) {
+                return _createAdultFormInternal(index);
+            }
+
+            // Función interna para crear formulario
+            function _createAdultFormInternal(index) {
+                const formDiv = document.createElement('div');
+                formDiv.className = 'adult-form-item';
+                formDiv.style.cssText = 'background: white; border: 2px solid #e9ecef; border-radius: 10px; padding: 15px; margin-bottom: 15px; transition: all 0.3s;';
+                formDiv.onmouseover = function() {
+                    this.style.borderColor = 'var(--mlb-blue)';
+                    this.style.boxShadow = '0 2px 8px rgba(13, 44, 84, 0.1)';
+                };
+                formDiv.onmouseout = function() {
+                    this.style.borderColor = '#e9ecef';
+                    this.style.boxShadow = 'none';
+                };
+
+                const isFirst = index === 1;
+                const canRemove = !isFirst;
+
+                // Obtener datos del usuario para el primer adulto
+                let userBirthDate = '';
+                let userBirthDateValue = '';
+                let initialAgeDisplay = '';
+                if (isFirst) {
+                    {% if user.profile.birth_date %}
+                        userBirthDate = '{{ user.profile.birth_date|date:"Y-m-d" }}';
+                        userBirthDateValue = ' value="' + userBirthDate + '"';
+                        const calculatedAge = calculateAge(userBirthDate);
+                        if (calculatedAge) {
+                            initialAgeDisplay = calculatedAge + ' {% trans "years old" %}';
+                        }
+                    {% endif %}
+                }
+
+                formDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-user" style="color: white;"></i>
+                            </div>
+                            <div style="font-weight: 700; color: var(--mlb-blue);">
+                                ${isFirst ? '{% trans "Primary Guest" %}' : '{% trans "Adult" %} ' + index}
+                            </div>
+                        </div>
+                        ${canRemove ? '<button type="button" class="btn btn-sm btn-danger" onclick="removeAdultForm{{ event.hotel.pk }}(' + index + ')" style="padding: 4px 10px; border-radius: 6px; border: none;"><i class="fas fa-times"></i></button>' : ''}
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem;">
+                                <i class="fas fa-user me-1" style="color: var(--mlb-red);"></i>{% trans "Full Name" %} <span style="color: var(--mlb-red);">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control adult-name-input"
+                                   name="adult_name_${index}"
+                                   data-index="${index}"
+                                   ${isFirst ? 'value="{{ user.get_full_name|default:user.username }}"' : ''}
+                                   required
+                                   style="border: 2px solid #e9ecef; border-radius: 8px; padding: 10px;"
+                                   onfocus="this.style.borderColor='var(--mlb-blue)';"
+                                   onblur="this.style.borderColor='#e9ecef';">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem;">
+                                <i class="fas fa-envelope me-1" style="color: var(--mlb-red);"></i>{% trans "Email" %} <span style="color: var(--mlb-red);">*</span>
+                            </label>
+                            <input type="email"
+                                   class="form-control adult-email-input"
+                                   name="adult_email_${index}"
+                                   data-index="${index}"
+                                   ${isFirst ? 'value="{{ user.email }}"' : ''}
+                                   required
+                                   style="border: 2px solid #e9ecef; border-radius: 8px; padding: 10px;"
+                                   onfocus="this.style.borderColor='var(--mlb-blue)';"
+                                   onblur="this.style.borderColor='#e9ecef';">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem;">
+                                <i class="fas fa-phone me-1" style="color: var(--mlb-red);"></i>{% trans "Phone" %} <span style="color: var(--mlb-red);">*</span>
+                            </label>
+                            <input type="tel"
+                                   class="form-control adult-phone-input"
+                                   name="adult_phone_${index}"
+                                   data-index="${index}"
+                                   ${isFirst && user.profile.phone ? 'value="{{ user.profile.phone }}"' : ''}
+                                   required
+                                   style="border: 2px solid #e9ecef; border-radius: 8px; padding: 10px;"
+                                   onfocus="this.style.borderColor='var(--mlb-blue)';"
+                                   onblur="this.style.borderColor='#e9ecef';">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem;">
+                                <i class="fas fa-birthday-cake me-1" style="color: var(--mlb-red);"></i>{% trans "Date of Birth" %} <span style="color: var(--mlb-red);">*</span>
+                            </label>
+                            <input type="date"
+                                   class="form-control adult-birthdate-input"
+                                   name="adult_birthdate_${index}"
+                                   data-index="${index}"
+                                   max="${new Date().toISOString().split('T')[0]}"
+                                   ${userBirthDateValue}
+                                   required
+                                   style="border: 2px solid #e9ecef; border-radius: 8px; padding: 10px;"
+                                   onchange="updateAdultAge{{ event.hotel.pk }}(this, ${index})"
+                                   onfocus="this.style.borderColor='var(--mlb-blue)';"
+                                   onblur="this.style.borderColor='#e9ecef';">
+                            <small class="text-muted" style="font-size: 0.75rem; display: block; margin-top: 4px;">
+                                <span class="adult-age-display-${index}" style="color: var(--mlb-blue); font-weight: 600;">
+                                    ${initialAgeDisplay}
+                                </span>
+                            </small>
+                        </div>
+                    </div>
+                `;
+
+                formDiv.setAttribute('data-adult-index', index);
+                return formDiv;
+            }
+
+            // Exponer funciones globalmente
+            window._createAdultForm{{ event.hotel.pk }} = _createAdultFormInternal;
+            window._updatePeopleCount{{ event.hotel.pk }} = updatePeopleCount;
+
+            // Reemplazar la función global con la versión completa que tiene acceso a las variables locales
+            window.addAdultForm{{ event.hotel.pk }} = function() {
+                try {
+                    console.log('addAdultForm{{ event.hotel.pk }} called (full version)');
+
+                    // Obtener el contenedor
+                    let container = adultsFormsContainer;
+                    if (!container) {
+                        container = document.getElementById('adults-forms-container{{ event.hotel.pk }}');
+                        if (!container) {
+                            console.error('adultsFormsContainer not found');
+                            alert('Error: No se pudo encontrar el contenedor de formularios');
+                            return;
+                        }
+                    }
+
+                    adultFormCount++;
+                    console.log('Creating adult form', adultFormCount);
+                    const newForm = createAdultForm(adultFormCount);
+
+                    if (newForm && container) {
+                        container.appendChild(newForm);
+                        console.log('Adult form added successfully');
+                        updatePeopleCount();
+                    } else {
+                        console.error('Failed to create or append adult form');
+                        alert('Error: No se pudo agregar el formulario de adulto');
+                    }
+                } catch (error) {
+                    console.error('Error in addAdultForm:', error);
+                    alert('Error al agregar adulto: ' + error.message);
+                }
+            };
+
+            // Función para remover un formulario de adulto
+            window.removeAdultForm{{ event.hotel.pk }} = function(index) {
+                const formToRemove = adultsFormsContainer.querySelector(`[data-adult-index="${index}"]`);
+                if (formToRemove && index !== 1) {
+                    formToRemove.remove();
+                    // Renumerar los formularios restantes
+                    renumberAdultForms();
+                    updatePeopleCount();
+                }
+            };
+
+            // Función para renumerar los formularios
+            function renumberAdultForms() {
+                const forms = adultsFormsContainer.querySelectorAll('.adult-form-item');
+                adultFormCount = forms.length;
+                forms.forEach((form, idx) => {
+                    const newIndex = idx + 1;
+                    form.setAttribute('data-adult-index', newIndex);
+                    const inputs = form.querySelectorAll('input[data-index]');
+                    inputs.forEach(input => {
+                        const oldIndex = input.getAttribute('data-index');
+                        input.setAttribute('name', input.getAttribute('name').replace(`_${oldIndex}`, `_${newIndex}`));
+                        input.setAttribute('data-index', newIndex);
+                    });
+                    const titleDiv = form.querySelector('div[style*="font-weight: 700"]');
+                    if (titleDiv && newIndex !== 1) {
+                        titleDiv.textContent = '{% trans "Adult" %} ' + newIndex;
+                    }
+                });
+            }
+
+            // Función para crear un formulario de niño adicional
+            function createChildForm(index) {
+                const formDiv = document.createElement('div');
+                formDiv.className = 'additional-child-form-item';
+                formDiv.style.cssText = 'background: white; border: 2px solid #e9ecef; border-radius: 10px; padding: 15px; margin-bottom: 15px; transition: all 0.3s;';
+                formDiv.setAttribute('data-child-index', index);
+
+                formDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                <i class="fas fa-baby" style="color: white;"></i>
+                            </div>
+                            <div style="font-weight: 700; color: var(--mlb-blue);">
+                                {% trans "Child" %} ${index}
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="removeChildForm{{ event.hotel.pk }}(${index})" style="padding: 4px 10px; border-radius: 6px; border: none;">
+                            <i class="fas fa-times"></i> {% trans "Remove" %}
+                        </button>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem;">
+                                <i class="fas fa-user me-1" style="color: var(--mlb-red);"></i>{% trans "Full Name" %} <span style="color: var(--mlb-red);">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control child-name-input"
+                                   name="additional_child_name_${index}"
+                                   data-index="${index}"
+                                   required
+                                   style="border: 2px solid #e9ecef; border-radius: 8px; padding: 10px;"
+                                   onfocus="this.style.borderColor='var(--mlb-blue)';"
+                                   onblur="this.style.borderColor='#e9ecef';">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem;">
+                                <i class="fas fa-birthday-cake me-1" style="color: var(--mlb-red);"></i>{% trans "Date of Birth" %} <span style="color: var(--mlb-red);">*</span>
+                            </label>
+                            <input type="date"
+                                   class="form-control child-birthdate-input"
+                                   name="additional_child_birthdate_${index}"
+                                   data-index="${index}"
+                                   max="${new Date().toISOString().split('T')[0]}"
+                                   required
+                                   style="border: 2px solid #e9ecef; border-radius: 8px; padding: 10px;"
+                                   onchange="updateChildAge${event.hotel.pk}(this, ${index})"
+                                   onfocus="this.style.borderColor='var(--mlb-blue)';"
+                                   onblur="this.style.borderColor='#e9ecef';">
+                            <small class="text-muted" style="font-size: 0.75rem; display: block; margin-top: 4px;">
+                                <span class="child-age-display-${index}" style="color: var(--mlb-blue); font-weight: 600;"></span>
+                            </small>
+                        </div>
+                    </div>
+                `;
+
+                return formDiv;
+            }
+
+            // Función para actualizar la edad mostrada cuando cambia la fecha de nacimiento del niño
+            window.updateChildAge{{ event.hotel.pk }} = function(dateInput, index) {
+                const ageDisplay = document.querySelector('.child-age-display-' + index);
+                if (ageDisplay && dateInput.value) {
+                    const age = calculateAge(dateInput.value);
+                    if (age) {
+                        ageDisplay.textContent = age + ' {% trans "years old" %}';
+                        ageDisplay.style.color = 'var(--mlb-blue)';
+                    } else {
+                        ageDisplay.textContent = '';
+                    }
+                }
+            };
+
+            // Función para agregar un formulario de niño adicional
+            window.addChildForm{{ event.hotel.pk }} = function() {
+                additionalChildFormCount++;
+                const newForm = createChildForm(additionalChildFormCount);
+                additionalChildrenContainer.appendChild(newForm);
+                updatePeopleCount();
+            };
+
+            // Función para remover un formulario de niño adicional
+            window.removeChildForm{{ event.hotel.pk }} = function(index) {
+                const formToRemove = additionalChildrenContainer.querySelector(`[data-child-index="${index}"]`);
+                if (formToRemove) {
+                    formToRemove.remove();
+                    renumberChildForms();
+                    updatePeopleCount();
+                }
+            };
+
+            // Función para renumerar los formularios de niños adicionales
+            function renumberChildForms() {
+                const forms = additionalChildrenContainer.querySelectorAll('.additional-child-form-item');
+                additionalChildFormCount = forms.length;
+                forms.forEach((form, idx) => {
+                    const newIndex = idx + 1;
+                    form.setAttribute('data-child-index', newIndex);
+                    const inputs = form.querySelectorAll('input[data-index]');
+                    inputs.forEach(input => {
+                        const oldIndex = input.getAttribute('data-index');
+                        input.setAttribute('name', input.getAttribute('name').replace(`_${oldIndex}`, `_${newIndex}`));
+                        input.setAttribute('data-index', newIndex);
+                    });
+                    const titleDiv = form.querySelector('div[style*="font-weight: 700"]');
+                    if (titleDiv) {
+                        titleDiv.textContent = '{% trans "Child" %} ' + newIndex;
+                    }
+                });
+            }
+
+            function updatePeopleCount() {
+                const adults = adultsFormsContainer.querySelectorAll('.adult-form-item').length;
+                const checkboxes = document.querySelectorAll('.child-checkbox:checked');
+                const selectedPlayers = checkboxes.length;
+                const additionalChildren = additionalChildrenContainer.querySelectorAll('.additional-child-form-item').length;
+                const totalPeople = adults + selectedPlayers + additionalChildren;
+
+                // Actualizar campo hidden
+                if (adultsCountHidden) {
+                    adultsCountHidden.value = adults;
+                }
+
+                // Actualizar contador de adultos
+                if (adultsCount) {
+                    adultsCount.textContent = adults;
+                }
+
+                // Mostrar/ocultar sección de jugadores seleccionados
+                const playersSection = document.getElementById('selected-children-section{{ event.hotel.pk }}');
+                const playersBreakdown = document.getElementById('players-breakdown{{ event.hotel.pk }}');
+                const playersCountBreakdown = document.getElementById('players-count-breakdown{{ event.hotel.pk }}');
+                const playersCountDisplay = document.getElementById('children-count{{ event.hotel.pk }}');
+
+                if (selectedPlayers > 0) {
+                    if (playersSection) {
+                        playersSection.style.display = 'block';
+                    }
+                    if (playersBreakdown) {
+                        playersBreakdown.style.display = 'block';
+                    }
+                    if (playersCountBreakdown) {
+                        playersCountBreakdown.textContent = selectedPlayers;
+                    }
+                    if (playersCountDisplay) {
+                        playersCountDisplay.textContent = selectedPlayers;
+                    }
+                } else {
+                    if (playersSection) {
+                        playersSection.style.display = 'none';
+                    }
+                    if (playersBreakdown) {
+                        playersBreakdown.style.display = 'none';
+                    }
+                }
+
+                // Mostrar/ocultar sección de niños adicionales
+                const additionalChildrenSection = document.getElementById('additional-children-section{{ event.hotel.pk }}');
+                const additionalChildrenBreakdown = document.getElementById('additional-children-breakdown{{ event.hotel.pk }}');
+                const additionalChildrenCountBreakdown = document.getElementById('additional-children-count-breakdown{{ event.hotel.pk }}');
+
+                if (additionalChildren > 0) {
+                    if (additionalChildrenSection) {
+                        additionalChildrenSection.style.display = 'block';
+                    }
+                    if (additionalChildrenBreakdown) {
+                        additionalChildrenBreakdown.style.display = 'block';
+                    }
+                    if (additionalChildrenCountBreakdown) {
+                        additionalChildrenCountBreakdown.textContent = additionalChildren;
+                    }
+                } else {
+                    if (additionalChildrenSection) {
+                        additionalChildrenSection.style.display = 'none';
+                    }
+                    if (additionalChildrenBreakdown) {
+                        additionalChildrenBreakdown.style.display = 'none';
+                    }
+                }
+
+                    // Crear cards para cada jugador seleccionado con foto y nombre
+                    if (childrenList) {
+                        childrenList.innerHTML = '';
+                        checkboxes.forEach(function(checkbox) {
+                            const childItem = checkbox.closest('.child-item');
+                            if (!childItem) return;
+
+                            // Buscar el nombre del niño
+                            const nameDiv = childItem.querySelector('div[style*="font-weight: 700"][style*="color: var(--mlb-blue)"]');
+                            let childName = '';
+                            if (nameDiv) {
+                                childName = nameDiv.textContent.trim();
+                            } else {
+                                // Fallback: buscar cualquier div con font-weight: 700
+                                const nameFallback = childItem.querySelector('div[style*="font-weight: 700"]');
+                                if (nameFallback) {
+                                    childName = nameFallback.textContent.trim();
+                                }
+                            }
+
+                            // Buscar la foto del niño
+                            const photoDiv = childItem.querySelector('div[style*="border-radius: 50%"][style*="overflow: hidden"]');
+                            let photoHTML = '';
+
+                            if (photoDiv) {
+                                const img = photoDiv.querySelector('img');
+                                if (img && img.src) {
+                                    // Hay foto
+                                    photoHTML = '<div style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; flex-shrink: 0; border: 3px solid var(--mlb-red); box-shadow: 0 2px 8px rgba(213, 0, 50, 0.2);"><img src="' + img.src + '" alt="' + childName + '" style="width: 100%; height: 100%; object-fit: cover;"></div>';
+                                } else {
+                                    // No hay foto, usar el contenido del div (iniciales o icono)
+                                    const photoContent = photoDiv.innerHTML;
+                                    photoHTML = '<div style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; flex-shrink: 0; border: 3px solid var(--mlb-red); background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.1rem; box-shadow: 0 2px 8px rgba(213, 0, 50, 0.2);">' + photoContent + '</div>';
+                                }
+                            } else {
+                                // Fallback si no se encuentra el div de foto
+                                photoHTML = '<div style="width: 60px; height: 60px; border-radius: 50%; overflow: hidden; flex-shrink: 0; border: 3px solid var(--mlb-red); background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 2px 8px rgba(213, 0, 50, 0.2);"><i class="fas fa-child" style="font-size: 1.5rem;"></i></div>';
+                            }
+
+                            // Buscar la división si existe
+                            const divisionDiv = childItem.querySelector('div[style*="font-size: 0.75rem"][style*="color: #6c757d"]');
+                            let divisionText = '';
+                            if (divisionDiv) {
+                                divisionText = divisionDiv.textContent.trim();
+                            }
+
+                            // Crear la tarjeta
+                            const card = document.createElement('div');
+                            card.style.cssText = 'display: flex; align-items: center; gap: 15px; background: white; padding: 15px; border-radius: 12px; border: 2px solid var(--mlb-red); margin-bottom: 12px; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.05);';
+                            card.onmouseover = function() {
+                                this.style.boxShadow = '0 4px 16px rgba(213, 0, 50, 0.25)';
+                                this.style.transform = 'translateY(-2px)';
+                                this.style.borderColor = 'var(--mlb-red)';
+                            };
+                            card.onmouseout = function() {
+                                this.style.boxShadow = '0 2px 8px rgba(0,0,0,0.05)';
+                                this.style.transform = 'translateY(0)';
+                                this.style.borderColor = 'var(--mlb-red)';
+                            };
+
+                                // Calcular la edad del niño desde birth_date si está disponible
+                                let childAgeDisplay = '';
+                                let childBirthDateDisplay = '';
+                                const birthDateAttr = childItem.getAttribute('data-birth-date');
+                                if (birthDateAttr && birthDateAttr !== '') {
+                                    const calculatedAge = calculateAge(birthDateAttr);
+                                    if (calculatedAge) {
+                                        childAgeDisplay = calculatedAge;
+                                    }
+                                    // Formatear fecha para mostrar
+                                    const dateObj = new Date(birthDateAttr);
+                                    if (!isNaN(dateObj.getTime())) {
+                                        childBirthDateDisplay = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                                    }
+                                }
+
+                                // Nombre del niño
+                                let nameHTML = '<div style="flex: 1;"><div style="font-weight: 800; color: var(--mlb-blue); font-size: 1rem; margin-bottom: 4px;">' + (childName || '{% trans "Player" %}') + '</div>';
+                                if (divisionText) {
+                                    nameHTML += '<div style="font-size: 0.8rem; color: #6c757d; margin-bottom: 8px;"><i class="fas fa-tag me-1" style="color: var(--mlb-red); font-size: 0.7rem;"></i>' + divisionText + '</div>';
+                                }
+                                if (childBirthDateDisplay) {
+                                    nameHTML += '<div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;"><span style="font-size: 0.8rem; color: var(--mlb-blue); font-weight: 600; display: flex; align-items: center; gap: 4px;"><i class="fas fa-birthday-cake" style="color: var(--mlb-red); font-size: 0.75rem;"></i>{% trans "Date of Birth" %}:</span><span style="font-size: 0.85rem; color: var(--mlb-blue); font-weight: 600; background: #f8f9fa; padding: 4px 10px; border-radius: 6px; border: 1px solid #e9ecef;">' + childBirthDateDisplay + '</span></div>';
+                                    if (childAgeDisplay) {
+                                        nameHTML += '<div style="font-size: 0.75rem; color: #6c757d; margin-top: 4px;"><i class="fas fa-calendar-alt me-1" style="color: var(--mlb-red); font-size: 0.7rem;"></i><strong>' + childAgeDisplay + '</strong> {% trans "years old" %}</div>';
+                                    }
+                                } else {
+                                    nameHTML += '<div style="font-size: 0.75rem; color: #6c757d; margin-top: 8px; font-style: italic;"><i class="fas fa-info-circle me-1" style="color: var(--mlb-red);"></i>{% trans "Date of birth not available" %}</div>';
+                                }
+                                nameHTML += '</div>';
+
+                            card.innerHTML = photoHTML + nameHTML;
+                            childrenList.appendChild(card);
+                        });
+                    }
+                } else {
+                    if (childrenSection) {
+                        childrenSection.style.display = 'none';
+                    }
+                    if (childrenBreakdown) {
+                        childrenBreakdown.style.display = 'none';
+                    }
+                }
+
+                if (totalPeopleCount) {
+                    totalPeopleCount.textContent = totalPeople;
+                }
+
+                // Validar que el primer adulto tenga todos los campos llenos
+                const firstAdultForm = adultsFormsContainer.querySelector('[data-adult-index="1"]');
+                let isFirstAdultValid = true;
+                if (firstAdultForm) {
+                    const nameInput = firstAdultForm.querySelector('.adult-name-input');
+                    const emailInput = firstAdultForm.querySelector('.adult-email-input');
+                    const phoneInput = firstAdultForm.querySelector('.adult-phone-input');
+                    const birthdateInput = firstAdultForm.querySelector('.adult-birthdate-input');
+
+                    if (!nameInput || !nameInput.value.trim() ||
+                        !emailInput || !emailInput.value.trim() ||
+                        !phoneInput || !phoneInput.value.trim() ||
+                        !birthdateInput || !birthdateInput.value) {
+                        isFirstAdultValid = false;
+                    } else {
+                        // Validar que tenga al menos 18 años
+                        const age = calculateAge(birthdateInput.value);
+                        if (!age || age < 18) {
+                            isFirstAdultValid = false;
+                        }
+                    }
+                } else {
+                    isFirstAdultValid = false; // No hay formulario de adulto principal
+                }
+
+                // Validar que haya al menos un jugador o hijo seleccionado
+                const hasPlayerOrChild = selectedPlayers > 0 || additionalChildren > 0;
+
+                // Mostrar/ocultar mensaje de advertencia
+                const noChildrenWarning = document.getElementById('no-children-warning{{ event.hotel.pk }}');
+                if (noChildrenWarning) {
+                    if (!hasPlayerOrChild && adults >= 1 && isFirstAdultValid) {
+                        noChildrenWarning.style.display = 'block';
+                    } else {
+                        noChildrenWarning.style.display = 'none';
+                    }
+                }
+
+                // Habilitar/deshabilitar botón de mostrar habitaciones
+                if (showRoomsBtn) {
+                    if (totalPeople > 0 && isFirstAdultValid && adults >= 1 && hasPlayerOrChild) {
+                        showRoomsBtn.disabled = false;
+                        showRoomsBtn.style.opacity = '1';
+                        showRoomsBtn.style.cursor = 'pointer';
+                    } else {
+                        showRoomsBtn.disabled = true;
+                        showRoomsBtn.style.opacity = '0.5';
+                        showRoomsBtn.style.cursor = 'not-allowed';
+                    }
+                }
+            }
+
+            // Función para mostrar habitaciones del hotel filtradas por capacidad
+            window.showHotelRooms{{ event.hotel.pk }} = function() {
+                const adults = adultsFormsContainer.querySelectorAll('.adult-form-item').length;
+                const checkboxes = document.querySelectorAll('.child-checkbox:checked');
+                const selectedPlayers = checkboxes.length;
+                const additionalChildren = additionalChildrenContainer.querySelectorAll('.additional-child-form-item').length;
+                const totalPeople = adults + selectedPlayers + additionalChildren;
+
+                // Validar que haya al menos un adulto
+                if (adults < 1) {
+                    alert('{% trans "At least one adult is required" %}');
+                    return;
+                }
+
+                // Validar que haya al menos un jugador o hijo seleccionado
+                if (selectedPlayers === 0 && additionalChildren === 0) {
+                    alert('{% trans "You must select at least one player or add at least one child" %}');
+                    return;
+                }
+
+                // Cerrar la modal de reserva
+                const reservationModal = bootstrap.Modal.getInstance(modal);
+                if (reservationModal) {
+                    // Mover el foco fuera del modal antes de cerrarlo
+                    const activeElement = document.activeElement;
+                    if (activeElement && modal.contains(activeElement)) {
+                        const triggerButton = document.querySelector('[data-bs-target="#hotelReservationModal{{ event.hotel.pk }}"]');
+                        if (triggerButton) {
+                            triggerButton.focus();
+                        }
+                    }
+                    reservationModal.hide();
+                }
+
+                // Abrir la modal del hotel
+                const hotelModalElement = document.getElementById('hotelModal{{ event.hotel.pk }}');
+                if (hotelModalElement) {
+                    const hotelModal = new bootstrap.Modal(hotelModalElement);
+                    hotelModal.show();
+
+                    // Filtrar habitaciones por capacidad cuando se abra la modal
+                    hotelModalElement.addEventListener('shown.bs.modal', function filterRooms() {
+                        const roomListings = hotelModalElement.querySelectorAll('.room-listing');
+                        roomListings.forEach(function(roomListing) {
+                            const capacityText = roomListing.querySelector('.room-features');
+                            if (capacityText) {
+                                const capacityMatch = capacityText.textContent.match(/(\d+)\s+guests?/i);
+                                if (capacityMatch) {
+                                    const roomCapacity = parseInt(capacityMatch[1]);
+                                    if (roomCapacity < totalPeople) {
+                                        roomListing.style.display = 'none';
+                                    } else {
+                                        roomListing.style.display = 'flex';
+                                        // Resaltar habitaciones que cumplen con la capacidad
+                                        roomListing.style.border = '3px solid var(--mlb-red)';
+                                        roomListing.style.boxShadow = '0 4px 20px rgba(213, 0, 50, 0.3)';
+                                    }
+                                }
+                            }
+                        });
+
+                        // Mostrar mensaje si no hay habitaciones disponibles
+                        const visibleRooms = Array.from(roomListings).filter(r => r.style.display !== 'none');
+                        const roomsSection = hotelModalElement.querySelector('.rooms-section');
+                        if (visibleRooms.length === 0 && roomsSection) {
+                            const noRoomsMsg = document.createElement('div');
+                            noRoomsMsg.className = 'alert alert-warning';
+                            noRoomsMsg.style.cssText = 'text-align: center; padding: 30px; margin: 20px 0;';
+                            noRoomsMsg.innerHTML = `
+                                <i class="fas fa-exclamation-triangle fa-2x mb-3" style="color: #ffc107;"></i>
+                                <h5>{% trans "No rooms available" %}</h5>
+                                <p>{% trans "There are no rooms available for" %} ${totalPeople} {% trans "people" %}.</p>
+                            `;
+                            const roomsTitle = roomsSection.querySelector('.rooms-title');
+                            if (roomsTitle && !roomsSection.querySelector('.alert-warning')) {
+                                roomsTitle.insertAdjacentElement('afterend', noRoomsMsg);
+                            }
+                        }
+
+                        // Remover el listener después de ejecutarse una vez
+                        hotelModalElement.removeEventListener('shown.bs.modal', filterRooms);
+                    }, { once: true });
+                }
+            };
+
+            if (modal) {
+                // Manejar el foco antes de que el modal se oculte
+                // Manejar el foco antes de que el modal se oculte
+                modal.addEventListener('hide.bs.modal', function(event) {
+                    // Quitar el foco del elemento activo dentro del modal
+                    const activeElement = document.activeElement;
+                    if (activeElement && modal.contains(activeElement)) {
+                        // Blur el elemento activo inmediatamente
+                        if (typeof activeElement.blur === 'function') {
+                            activeElement.blur();
+                        }
+                    }
+                });
+
+                // Manejar el foco después de que el modal se haya ocultado
+                modal.addEventListener('hidden.bs.modal', function(event) {
+                    // Mover el foco al botón que abrió el modal
+                    const triggerButton = document.querySelector('[data-bs-target="#hotelReservationModal{{ event.hotel.pk }}"]');
+                    if (triggerButton) {
+                        triggerButton.focus();
+                    }
+                });
+
+                // Agregar event listener al botón de cancelar para manejar el foco
+                const cancelBtn = modal.querySelector('.cancel-modal-btn');
+                if (cancelBtn) {
+                    cancelBtn.addEventListener('click', function(e) {
+                        // Quitar el foco inmediatamente
+                        if (document.activeElement && modal.contains(document.activeElement)) {
+                            document.activeElement.blur();
+                        }
+                    });
+                }
+
+                modal.addEventListener('show.bs.modal', function() {
+                    // Inicializar con el primer adulto
+                    if (adultsFormsContainer && adultsFormsContainer.children.length === 0) {
+                        const firstForm = createAdultForm(1);
+                        adultsFormsContainer.appendChild(firstForm);
+                    }
+                    updatePeopleCount();
+                    // Agregar listeners a los botones cuando el modal se abre
+                    attachButtonListeners();
+                });
+
+                // Escuchar cambios en los checkboxes de niños
+                const checkboxes = document.querySelectorAll('.child-checkbox');
+                checkboxes.forEach(function(checkbox) {
+                    checkbox.addEventListener('change', updatePeopleCount);
+                });
+
+                // Escuchar cambios en los inputs de adultos
+                adultsFormsContainer.addEventListener('input', function(event) {
+                    if (event.target.classList.contains('adult-name-input') ||
+                        event.target.classList.contains('adult-email-input') ||
+                        event.target.classList.contains('adult-phone-input') ||
+                        event.target.classList.contains('adult-birthdate-input')) {
+                        updatePeopleCount();
+                    }
+                });
+
+                // Escuchar cambios en los campos de fecha de nacimiento
+                adultsFormsContainer.addEventListener('change', function(event) {
+                    if (event.target.classList.contains('adult-birthdate-input')) {
+                        const index = event.target.getAttribute('data-index');
+                        updateAdultAge{{ event.hotel.pk }}(event.target, index);
+                        updatePeopleCount();
+                    }
+                });
+
+                // Escuchar cambios en los inputs de niños adicionales
+                if (additionalChildrenContainer) {
+                    additionalChildrenContainer.addEventListener('input', function(event) {
+                        if (event.target.classList.contains('child-name-input') ||
+                            event.target.classList.contains('child-birthdate-input')) {
+                            updatePeopleCount();
+                        }
+                    });
+
+                    additionalChildrenContainer.addEventListener('change', function(event) {
+                        if (event.target.classList.contains('child-birthdate-input')) {
+                            const index = event.target.getAttribute('data-index');
+                            updateChildAge{{ event.hotel.pk }}(event.target, index);
+                            updatePeopleCount();
+                        }
+                    });
+                }
+            }
+
+            // Interceptar el submit del formulario para procesar los datos de adultos
+            const form = document.getElementById('hotelReservationForm{{ event.hotel.pk }}');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    const adults = adultsFormsContainer.querySelectorAll('.adult-form-item').length;
+                    if (adults < 1) {
+                        e.preventDefault();
+                        alert('{% trans "At least one adult is required" %}');
+                        return false;
+                    }
+
+                    // Validar todos los adultos
+                    const adultForms = adultsFormsContainer.querySelectorAll('.adult-form-item');
+                    for (let i = 0; i < adultForms.length; i++) {
+                        const adultForm = adultForms[i];
+                        const nameInput = adultForm.querySelector('input[name^="adult_name_"]');
+                        const emailInput = adultForm.querySelector('input[name^="adult_email_"]');
+                        const phoneInput = adultForm.querySelector('input[name^="adult_phone_"]');
+                        const birthdateInput = adultForm.querySelector('input[name^="adult_birthdate_"]');
+
+                        if (!nameInput || !nameInput.value.trim()) {
+                            e.preventDefault();
+                            alert('{% trans "Please fill in the name of all adults" %}');
+                            nameInput.focus();
+                            return false;
+                        }
+                        if (!emailInput || !emailInput.value.trim()) {
+                            e.preventDefault();
+                            alert('{% trans "Please fill in the email of all adults" %}');
+                            emailInput.focus();
+                            return false;
+                        }
+                        if (!phoneInput || !phoneInput.value.trim()) {
+                            e.preventDefault();
+                            alert('{% trans "Please fill in the phone of all adults" %}');
+                            phoneInput.focus();
+                            return false;
+                        }
+                        if (!birthdateInput || !birthdateInput.value) {
+                            e.preventDefault();
+                            alert('{% trans "Please fill in the date of birth of all adults" %}');
+                            birthdateInput.focus();
+                            return false;
+                        }
+
+                        // Validar que el adulto tenga al menos 18 años
+                        const age = calculateAge(birthdateInput.value);
+                        if (!age || age < 18) {
+                            e.preventDefault();
+                            alert('{% trans "All adults must be at least 18 years old" %}');
+                            birthdateInput.focus();
+                            return false;
+                        }
+                    }
+
+                    // Obtener datos del primer adulto (huésped principal)
+                    const firstAdultForm = adultsFormsContainer.querySelector('[data-adult-index="1"]');
+                    if (firstAdultForm) {
+                        const nameInput = firstAdultForm.querySelector('input[name^="adult_name_"]');
+                        const emailInput = firstAdultForm.querySelector('input[name^="adult_email_"]');
+                        const phoneInput = firstAdultForm.querySelector('input[name^="adult_phone_"]');
+
+                        // Agregar campos hidden con los datos del huésped principal
+                        const nameParam = document.createElement('input');
+                        nameParam.type = 'hidden';
+                        nameParam.name = 'guest_name';
+                        nameParam.value = nameInput.value.trim();
+                        form.appendChild(nameParam);
+
+                        const emailParam = document.createElement('input');
+                        emailParam.type = 'hidden';
+                        emailParam.name = 'guest_email';
+                        emailParam.value = emailInput.value.trim();
+                        form.appendChild(emailParam);
+
+                        const phoneParam = document.createElement('input');
+                        phoneParam.type = 'hidden';
+                        phoneParam.name = 'guest_phone';
+                        phoneParam.value = phoneInput.value.trim();
+                        form.appendChild(phoneParam);
+
+                        // Calcular número total de huéspedes (adultos + niños)
+                        const checkboxes = document.querySelectorAll('.child-checkbox:checked');
+                        const children = checkboxes.length;
+                        const totalGuests = adults + children;
+
+                        const guestsParam = document.createElement('input');
+                        guestsParam.type = 'hidden';
+                        guestsParam.name = 'number_of_guests';
+                        guestsParam.value = totalGuests;
+                        form.appendChild(guestsParam);
+                    }
+                });
+            }
+
+            // Usar event delegation para los botones (funciona incluso si se agregan dinámicamente)
+            if (modal) {
+                // Event delegation en el modal para el botón de agregar adulto
+                modal.addEventListener('click', function(e) {
+                    if (e.target && (e.target.id === 'add-adult-btn{{ event.hotel.pk }}' || e.target.closest('#add-adult-btn{{ event.hotel.pk }}'))) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (typeof window.addAdultForm{{ event.hotel.pk }} === 'function') {
+                            window.addAdultForm{{ event.hotel.pk }}();
+                        } else {
+                            console.error('addAdultForm{{ event.hotel.pk }} is not defined');
+                        }
+                    }
+
+                    if (e.target && (e.target.id === 'add-child-btn{{ event.hotel.pk }}' || e.target.closest('#add-child-btn{{ event.hotel.pk }}'))) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (typeof window.addChildForm{{ event.hotel.pk }} === 'function') {
+                            window.addChildForm{{ event.hotel.pk }}();
+                        } else {
+                            console.error('addChildForm{{ event.hotel.pk }} is not defined');
+                        }
+                    }
+                });
+            }
+        })();
+    </script>
 {% endif %}
 

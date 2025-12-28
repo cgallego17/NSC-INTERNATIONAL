@@ -280,7 +280,9 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
         # Obtener reservas del usuario para el dashboard
         try:
             from apps.locations.models import HotelReservation
+            from django.core.paginator import Paginator
 
+            # Reservas para el dashboard (últimas 5)
             context["user_reservations"] = (
                 HotelReservation.objects.filter(user=user)
                 .select_related("hotel", "room")
@@ -292,10 +294,50 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             context["pending_reservations"] = HotelReservation.objects.filter(
                 user=user, status="pending"
             ).count()
+
+            # Reservas para la tab de reservas (con paginación)
+            reservations_queryset = (
+                HotelReservation.objects.filter(user=user)
+                .select_related("hotel", "room")
+                .order_by("-created_at")
+            )
+
+            # Filtro por estado si viene en GET
+            status_filter = self.request.GET.get("status")
+            if status_filter:
+                reservations_queryset = reservations_queryset.filter(status=status_filter)
+
+            # Paginación
+            paginator = Paginator(reservations_queryset, 10)  # 10 reservas por página
+            page_number = self.request.GET.get("page", 1)
+            reservations_page = paginator.get_page(page_number)
+
+            context["reservations"] = reservations_page
+            context["is_paginated"] = reservations_page.has_other_pages()
+            context["page_obj"] = reservations_page
+            context["status_choices"] = HotelReservation.RESERVATION_STATUS_CHOICES
         except Exception:
             context["user_reservations"] = []
             context["total_reservations"] = 0
             context["pending_reservations"] = 0
+            context["reservations"] = []
+            context["is_paginated"] = False
+            context["status_choices"] = []
+
+        # Obtener o crear wallet del usuario
+        try:
+            from .models import UserWallet, WalletTransaction
+
+            wallet, created = UserWallet.objects.get_or_create(user=user)
+            context["wallet"] = wallet
+            # Obtener últimas transacciones
+            context["wallet_transactions"] = (
+                WalletTransaction.objects.filter(wallet=wallet)
+                .order_by("-created_at")[:10]
+            )
+        except Exception:
+            context["wallet"] = None
+            context["wallet_transactions"] = []
 
         return context
 
@@ -966,3 +1008,37 @@ def register_children_to_event(request, pk):
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect("accounts:panel")
+
+
+@login_required
+@require_POST
+def wallet_add_funds(request):
+    """Vista para agregar fondos a la wallet del usuario"""
+    from .models import UserWallet
+    from decimal import Decimal
+
+    try:
+        amount = Decimal(request.POST.get("amount", "0"))
+        description = request.POST.get("description", "Depósito de fondos")
+
+        if amount <= 0:
+            messages.error(request, "El monto debe ser mayor a cero.")
+            return redirect("accounts:panel")
+
+        # Obtener o crear wallet
+        wallet, created = UserWallet.objects.get_or_create(user=request.user)
+
+        # Aquí iría la integración con el gateway de pagos
+        # Por ahora, simulamos el depósito directamente
+        # En producción, esto debería redirigir a un gateway de pago
+        wallet.add_funds(amount, description)
+
+        messages.success(
+            request, f"${amount} agregados exitosamente a tu billetera."
+        )
+    except ValueError as e:
+        messages.error(request, str(e))
+    except Exception as e:
+        messages.error(request, f"Error al procesar el depósito: {str(e)}")
+
+    return redirect("accounts:panel")

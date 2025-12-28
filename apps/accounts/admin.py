@@ -12,6 +12,8 @@ from .models import (
     SiteSettings,
     Sponsor,
     DashboardBanner,
+    UserWallet,
+    WalletTransaction,
 )
 
 
@@ -119,7 +121,7 @@ class DashboardContentAdmin(admin.ModelAdmin):
             {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
         ),
     )
-    
+
     class Media:
         css = {
             'all': ('admin/css/widgets.css',)
@@ -238,3 +240,47 @@ class SponsorAdmin(admin.ModelAdmin):
             {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
         ),
     )
+
+
+@admin.register(UserWallet)
+class UserWalletAdmin(admin.ModelAdmin):
+    list_display = ["user", "balance", "created_at", "updated_at"]
+    list_filter = ["created_at", "updated_at"]
+    search_fields = [
+        "user__username",
+        "user__first_name",
+        "user__last_name",
+        "user__email",
+    ]
+    readonly_fields = ["created_at", "updated_at"]
+    fieldsets = (
+        (
+            "Información",
+            {"fields": ("user", "balance")},
+        ),
+        (
+            "Auditoría",
+            {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
+        ),
+    )
+
+
+@admin.register(WalletTransaction)
+class WalletTransactionAdmin(admin.ModelAdmin):
+    list_display = [
+        "wallet",
+        "transaction_type",
+        "amount",
+        "balance_after",
+        "created_at",
+    ]
+    list_filter = ["transaction_type", "created_at"]
+    search_fields = [
+        "wallet__user__username",
+        "wallet__user__first_name",
+        "wallet__user__last_name",
+        "description",
+        "reference_id",
+    ]
+    readonly_fields = ["created_at"]
+    date_hierarchy = "created_at"

@@ -1,0 +1,188 @@
+{% load i18n %}
+{% load static %}
+
+<div class="tab-content-header mb-4">
+    <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
+        <i class="fas fa-calendar-check me-2" style="color: var(--mlb-red);"></i>{% trans "My Reservations" %}
+    </h4>
+    <p class="text-muted mb-0">{% trans "View and manage your hotel reservations" %}</p>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4" style="border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-radius: 12px;">
+    <div class="card-body">
+        <form method="get" class="row g-3" id="reservationFilterForm">
+            <div class="col-md-4">
+                <label for="status" class="form-label">
+                    <i class="fas fa-filter me-1"></i>{% trans "Status" %}
+                </label>
+                <select class="form-select" id="status" name="status">
+                    <option value="">{% trans "All" %}</option>
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}"
+                                {% if request.GET.status == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-search me-1"></i>{% trans "Filter" %}
+                </button>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <a href="{% url 'locations:front_hotel_reservation_list' %}" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-times me-1"></i>{% trans "Clear" %}
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Reservations Cards -->
+{% if reservations %}
+    <div class="row g-4">
+        {% for reservation in reservations %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm" style="border: none; border-radius: 16px; overflow: hidden; transition: all 0.3s ease;"
+                     onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 40px rgba(0,0,0,0.15)';"
+                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.1)';">
+
+                    <!-- Card Header with Status -->
+                    <div class="card-header text-white" style="background: {% if reservation.status == 'confirmed' %}linear-gradient(135deg, #28a745 0%, #20c997 100%){% elif reservation.status == 'pending' %}linear-gradient(135deg, #ffc107 0%, #ff9800 100%){% elif reservation.status == 'cancelled' %}linear-gradient(135deg, #dc3545 0%, #c82333 100%){% elif reservation.status == 'checked_in' %}linear-gradient(135deg, #17a2b8 0%, #138496 100%){% elif reservation.status == 'checked_out' %}linear-gradient(135deg, #6c757d 0%, #5a6268 100%){% else %}#0d2c54{% endif %}; border: none; padding: 15px 20px;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <strong style="font-size: 1rem;">{% trans "Reservation" %} #{{ reservation.id }}</strong>
+                            <span class="badge bg-light text-dark" style="font-size: 0.75rem; padding: 5px 10px;">
+                                {{ reservation.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="card-body" style="padding: 20px;">
+                        <h6 class="card-title mb-3" style="color: var(--mlb-blue); font-weight: 700; font-size: 1.1rem;">
+                            <i class="fas fa-hotel me-2" style="color: var(--mlb-red);"></i>{{ reservation.hotel.hotel_name }}
+                        </h6>
+
+                        <div class="reservation-details" style="margin-bottom: 15px;">
+                            <p class="mb-2" style="color: #6c757d; font-size: 0.9rem;">
+                                <i class="fas fa-bed me-2" style="color: var(--mlb-red); width: 20px;"></i>
+                                <strong>{% trans "Room" %}:</strong> #{{ reservation.room.room_number }}
+                            </p>
+                            <p class="mb-2" style="color: #6c757d; font-size: 0.9rem;">
+                                <i class="fas fa-calendar me-2" style="color: var(--mlb-red); width: 20px;"></i>
+                                <strong>{% trans "Check-in" %}:</strong> {{ reservation.check_in|date:"d/m/Y" }}
+                            </p>
+                            <p class="mb-2" style="color: #6c757d; font-size: 0.9rem;">
+                                <i class="fas fa-calendar-check me-2" style="color: var(--mlb-red); width: 20px;"></i>
+                                <strong>{% trans "Check-out" %}:</strong> {{ reservation.check_out|date:"d/m/Y" }}
+                            </p>
+                            <p class="mb-2" style="color: #6c757d; font-size: 0.9rem;">
+                                <i class="fas fa-moon me-2" style="color: var(--mlb-red); width: 20px;"></i>
+                                <strong>{% trans "Nights" %}:</strong> {{ reservation.number_of_nights }} {% trans "night" %}{{ reservation.number_of_nights|pluralize }}
+                            </p>
+                            <p class="mb-0" style="color: #6c757d; font-size: 0.9rem;">
+                                <i class="fas fa-users me-2" style="color: var(--mlb-red); width: 20px;"></i>
+                                <strong>{% trans "Guests" %}:</strong> {{ reservation.number_of_guests }} {% trans "person" %}{{ reservation.number_of_guests|pluralize }}
+                            </p>
+                        </div>
+
+                        <hr style="margin: 15px 0; border-color: #e9ecef;">
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">{% trans "Total Amount" %}</small>
+                                <h5 class="text-primary mb-0" style="font-weight: 700; font-size: 1.5rem;">
+                                    ${{ reservation.total_amount|floatformat:2 }}
+                                </h5>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted d-block" style="font-size: 0.75rem;">{% trans "Created" %}</small>
+                                <small class="text-muted" style="font-size: 0.75rem;">
+                                    {{ reservation.created_at|date:"d/m/Y" }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Footer -->
+                    <div class="card-footer bg-white" style="border: none; padding: 15px 20px; border-top: 1px solid #e9ecef;">
+                        <a href="{% url 'locations:front_hotel_reservation_detail' reservation.pk %}"
+                           class="btn btn-sm btn-outline-primary w-100 mb-2" style="border-radius: 8px;">
+                            <i class="fas fa-eye me-1"></i>{% trans "View Details" %}
+                        </a>
+                        {% if reservation.status == 'pending' %}
+                            <a href="{% url 'locations:front_hotel_reservation_checkout' reservation.pk %}"
+                               class="btn btn-sm btn-success w-100" style="border-radius: 8px;">
+                                <i class="fas fa-credit-card me-1"></i>{% trans "Pay Now" %}
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+        <nav aria-label="Reservations pagination" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                            <i class="fas fa-angle-double-left"></i> {% trans "First" %}
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                            <i class="fas fa-angle-left"></i> {% trans "Previous" %}
+                        </a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">
+                        {% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                            {% trans "Next" %} <i class="fas fa-angle-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}">
+                            {% trans "Last" %} <i class="fas fa-angle-double-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+{% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+        <div style="background: white; border-radius: 16px; padding: 60px 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+            <i class="fas fa-calendar-check" style="font-size: 4rem; color: #dee2e6; margin-bottom: 20px;"></i>
+            <h5 class="text-muted mb-3" style="font-weight: 600;">{% trans "No reservations yet" %}</h5>
+            <p class="text-muted mb-0">{% trans "You don't have any reservations at the moment." %}</p>
+        </div>
+    </div>
+{% endif %}
+
+<script>
+    // Auto-submit form when status changes (optional enhancement)
+    document.addEventListener('DOMContentLoaded', function() {
+        const statusSelect = document.getElementById('status');
+        if (statusSelect) {
+            statusSelect.addEventListener('change', function() {
+                // Optional: Auto-submit on change
+                // document.getElementById('reservationFilterForm').submit();
+            });
+        }
+    });
+</script>
+

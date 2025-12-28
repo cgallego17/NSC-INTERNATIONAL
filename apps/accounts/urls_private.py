@@ -34,5 +34,8 @@ urlpatterns = [
     # Eventos en el panel
     path('events/<int:pk>/', views_private.PanelEventDetailView.as_view(), name='panel_event_detail'),
     path('events/<int:pk>/register/', views_private.register_children_to_event, name='register_children_to_event'),
+
+    # Wallet
+    path('wallet/add-funds/', views_private.wallet_add_funds, name='wallet_add_funds'),
 ]
 

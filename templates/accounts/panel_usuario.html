@@ -465,16 +465,21 @@
                     <i class="fas fa-calendar"></i>
                     <span>{% trans "Calendar" %}</span>
                 </button>
+                <button type="button" class="quick-action-btn tab-btn" data-tab="reservas" data-url="{% url 'locations:front_hotel_reservation_list' %}">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>{% trans "Reservations" %}</span>
+                    {% if pending_reservations > 0 %}
+                        <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ pending_reservations }}</span>
+                    {% endif %}
+                </button>
+                <button type="button" class="quick-action-btn tab-btn" data-tab="plan-pagos">
+                    <i class="fas fa-credit-card"></i>
+                    <span>{% trans "Plans & Payments" %}</span>
+                </button>
                 <button type="button" class="quick-action-btn tab-btn" data-tab="perfil" data-url="{% url 'accounts:profile' %}">
                     <i class="fas fa-user"></i>
                     <span>{% trans "Profile" %}</span>
                 </button>
-                {% if user.is_staff or user.is_superuser %}
-                    <button type="button" class="quick-action-btn tab-btn" data-tab="hoteles" data-url="{% url 'accounts:hotel_list' %}">
-                        <i class="fas fa-hotel"></i>
-                        <span>{% trans "Hotels" %}</span>
-                    </button>
-                {% endif %}
             </div>
         </div>
 
@@ -531,6 +536,12 @@
             </div>
             <div id="tab-content-calendario" class="tab-content" style="display: none;">
                 {% include 'accounts/panel_tabs/calendario.html' %}
+            </div>
+            <div id="tab-content-reservas" class="tab-content" style="display: none;">
+                {% include 'accounts/panel_tabs/reservas.html' %}
+            </div>
+            <div id="tab-content-plan-pagos" class="tab-content" style="display: none;">
+                {% include 'accounts/panel_tabs/plan_pagos.html' %}
             </div>
             <div id="tab-content-perfil" class="tab-content" style="display: none;">
                 {% include 'accounts/profile.html' %}

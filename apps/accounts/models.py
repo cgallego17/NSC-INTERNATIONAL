@@ -1,4 +1,5 @@
 from datetime import date
+from decimal import Decimal
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -1209,3 +1210,136 @@ class Sponsor(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class UserWallet(models.Model):
+    """Billetera digital del usuario para realizar pagos"""
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="wallet",
+        verbose_name="Usuario",
+    )
+    balance = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        verbose_name="Balance",
+        help_text="Balance actual de la billetera",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Fecha de Actualización")
+
+    class Meta:
+        verbose_name = "Billetera de Usuario"
+        verbose_name_plural = "Billeteras de Usuario"
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        return f"Wallet de {self.user.get_full_name()} - ${self.balance}"
+
+    def add_funds(self, amount, description="Depósito"):
+        """Agregar fondos a la billetera"""
+        if amount <= 0:
+            raise ValueError("El monto debe ser mayor a cero")
+        self.balance += Decimal(str(amount))
+        self.save()
+        # Crear transacción
+        WalletTransaction.objects.create(
+            wallet=self,
+            transaction_type="deposit",
+            amount=amount,
+            description=description,
+            balance_after=self.balance,
+        )
+        return self.balance
+
+    def deduct_funds(self, amount, description="Pago"):
+        """Deducir fondos de la billetera"""
+        if amount <= 0:
+            raise ValueError("El monto debe ser mayor a cero")
+        if self.balance < Decimal(str(amount)):
+            raise ValueError("Balance insuficiente")
+        self.balance -= Decimal(str(amount))
+        self.save()
+        # Crear transacción
+        WalletTransaction.objects.create(
+            wallet=self,
+            transaction_type="payment",
+            amount=amount,
+            description=description,
+            balance_after=self.balance,
+        )
+        return self.balance
+
+    def refund(self, amount, description="Reembolso"):
+        """Reembolsar fondos a la billetera"""
+        if amount <= 0:
+            raise ValueError("El monto debe ser mayor a cero")
+        self.balance += Decimal(str(amount))
+        self.save()
+        # Crear transacción
+        WalletTransaction.objects.create(
+            wallet=self,
+            transaction_type="refund",
+            amount=amount,
+            description=description,
+            balance_after=self.balance,
+        )
+        return self.balance
+
+
+class WalletTransaction(models.Model):
+    """Transacciones de la billetera del usuario"""
+
+    TRANSACTION_TYPE_CHOICES = [
+        ("deposit", "Depósito"),
+        ("payment", "Pago"),
+        ("refund", "Reembolso"),
+        ("withdrawal", "Retiro"),
+    ]
+
+    wallet = models.ForeignKey(
+        UserWallet,
+        on_delete=models.CASCADE,
+        related_name="transactions",
+        verbose_name="Billetera",
+    )
+    transaction_type = models.CharField(
+        max_length=20,
+        choices=TRANSACTION_TYPE_CHOICES,
+        verbose_name="Tipo de Transacción",
+    )
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Monto",
+    )
+    description = models.CharField(
+        max_length=500,
+        blank=True,
+        verbose_name="Descripción",
+        help_text="Descripción de la transacción",
+    )
+    balance_after = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Balance Después",
+        help_text="Balance de la billetera después de esta transacción",
+    )
+    reference_id = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name="ID de Referencia",
+        help_text="ID de referencia externa (pago, evento, etc.)",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Transacción")
+
+    class Meta:
+        verbose_name = "Transacción de Billetera"
+        verbose_name_plural = "Transacciones de Billetera"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.get_transaction_type_display()} - ${self.amount} - {self.wallet.user.get_full_name()}"
