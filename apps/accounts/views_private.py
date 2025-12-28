@@ -311,7 +311,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
             CustomPasswordChangeForm,
             NotificationPreferencesForm,
             UserProfileForm,
-            UserUpdateForm,
+            UserProfileUpdateForm,
         )
 
         context = super().get_context_data(**kwargs)

@@ -1939,6 +1939,61 @@ class BillingAddressForm(forms.ModelForm):
             "postal_code": _("Postal Code"),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Campos de ubicación con ModelChoiceField
+        self.fields["country"] = forms.ModelChoiceField(
+            queryset=Country.objects.filter(is_active=True).order_by("name"),
+            required=False,
+            empty_label=_("Select a country"),
+            widget=forms.Select(attrs={"class": "form-select", "id": "id_billing_country"}),
+        )
+
+        self.fields["state"] = forms.ModelChoiceField(
+            queryset=State.objects.none(),
+            required=False,
+            empty_label=_("Select a state"),
+            widget=forms.Select(attrs={"class": "form-select", "id": "id_billing_state"}),
+        )
+
+        self.fields["city"] = forms.ModelChoiceField(
+            queryset=City.objects.none(),
+            required=False,
+            empty_label=_("Select a city"),
+            widget=forms.Select(attrs={"class": "form-select", "id": "id_billing_city"}),
+        )
+
+        # Si hay una instancia (edición), cargar estados y ciudades
+        if self.instance and self.instance.pk:
+            if self.instance.country:
+                self.fields["state"].queryset = State.objects.filter(
+                    country=self.instance.country, is_active=True
+                ).order_by("name")
+            if self.instance.state:
+                self.fields["city"].queryset = City.objects.filter(
+                    state=self.instance.state, is_active=True
+                ).order_by("name")
+
+        # Si hay datos en POST, cargar dinámicamente
+        if "country" in self.data:
+            try:
+                country_id = int(self.data.get("country"))
+                self.fields["state"].queryset = State.objects.filter(
+                    country_id=country_id, is_active=True
+                ).order_by("name")
+            except (ValueError, TypeError):
+                pass
+
+        if "state" in self.data:
+            try:
+                state_id = int(self.data.get("state"))
+                self.fields["city"].queryset = City.objects.filter(
+                    state_id=state_id, is_active=True
+                ).order_by("name")
+            except (ValueError, TypeError):
+                pass
+
 
 class CustomPasswordChangeForm(PasswordChangeForm):
     """Formulario personalizado para cambio de contraseña"""
@@ -1983,26 +2038,6 @@ class NotificationPreferencesForm(forms.Form):
         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
         label=_("Marketing Notifications"),
     )
-
-    def clean(self):
-        cleaned_data = super().clean()
-        banner_type = cleaned_data.get("banner_type")
-        image = cleaned_data.get("image")
-
-        # Si es tipo imagen, la imagen es requerida
-        if banner_type == "image" and not image and not self.instance.pk:
-            raise forms.ValidationError(
-                {"image": 'La imagen es requerida para banners de tipo "Imagen".'}
-            )
-
-        # Si es tipo imagen y no hay imagen en la instancia existente, requerir imagen
-        if banner_type == "image" and not image:
-            if self.instance and not self.instance.image:
-                raise forms.ValidationError(
-                    {"image": 'La imagen es requerida para banners de tipo "Imagen".'}
-                )
-
-        return cleaned_data
 
 
 class SiteSettingsForm(forms.ModelForm):
@@ -2339,95 +2374,3 @@ class SponsorForm(forms.ModelForm):
             "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "order": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
         }
-
-
-class BillingAddressForm(forms.ModelForm):
-    """Formulario para dirección de facturación"""
-
-    class Meta:
-        model = UserProfile
-        fields = [
-            "address",
-            "address_line_2",
-            "city",
-            "state",
-            "country",
-            "postal_code",
-        ]
-        widgets = {
-            "address": forms.Textarea(
-                attrs={
-                    "class": "form-control",
-                    "rows": 3,
-                    "placeholder": _("Enter street address"),
-                }
-            ),
-            "address_line_2": forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": _("Apartment, suite, etc. (optional)"),
-                }
-            ),
-            "city": forms.Select(attrs={"class": "form-select"}),
-            "state": forms.Select(attrs={"class": "form-select"}),
-            "country": forms.Select(attrs={"class": "form-select"}),
-            "postal_code": forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": _("Enter postal code"),
-                }
-            ),
-        }
-        labels = {
-            "address": _("Street Address"),
-            "address_line_2": _("Address Line 2"),
-            "city": _("City"),
-            "state": _("State/Province"),
-            "country": _("Country"),
-            "postal_code": _("Postal Code"),
-        }
-
-
-class CustomPasswordChangeForm(PasswordChangeForm):
-    """Formulario personalizado para cambio de contraseña"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["old_password"].widget.attrs.update(
-            {"class": "form-control", "placeholder": _("Enter current password")}
-        )
-        self.fields["new_password1"].widget.attrs.update(
-            {"class": "form-control", "placeholder": _("Enter new password")}
-        )
-        self.fields["new_password2"].widget.attrs.update(
-            {"class": "form-control", "placeholder": _("Confirm new password")}
-        )
-
-
-class NotificationPreferencesForm(forms.Form):
-    """Formulario para preferencias de notificaciones"""
-
-    email_notifications = forms.BooleanField(
-        required=False,
-        initial=True,
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        label=_("Email Notifications"),
-    )
-    event_notifications = forms.BooleanField(
-        required=False,
-        initial=True,
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        label=_("Event Notifications"),
-    )
-    reservation_notifications = forms.BooleanField(
-        required=False,
-        initial=True,
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        label=_("Reservation Notifications"),
-    )
-    marketing_notifications = forms.BooleanField(
-        required=False,
-        initial=False,
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        label=_("Marketing Notifications"),
-    )
