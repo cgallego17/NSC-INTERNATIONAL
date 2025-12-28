@@ -1,8 +1,7 @@
 import re
 
 from django import forms
-from django.conf import settings
-from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm, UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
@@ -480,7 +479,6 @@ class UserProfileForm(forms.ModelForm):
             "birth_date",
             "profile_picture",
             "bio",
-            "preferred_language",
         ]
         widgets = {
             "phone": forms.TextInput(attrs={"class": "form-control"}),
@@ -507,25 +505,10 @@ class UserProfileForm(forms.ModelForm):
                     "rows": 4,
                 }
             ),
-            "preferred_language": forms.Select(
-                attrs={"class": "form-select", "id": "id_preferred_language"}
-            ),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # Configurar el campo de idioma preferido
-        self.fields["preferred_language"] = forms.ChoiceField(
-            choices=settings.LANGUAGES,
-            required=False,
-            initial="en",
-            widget=forms.Select(
-                attrs={"class": "form-select", "id": "id_preferred_language"}
-            ),
-            label=_("Preferred Language"),
-            help_text=_("Default language for the platform"),
-        )
 
         # Campos de ubicación con ModelChoiceField
         self.fields["country"] = forms.ModelChoiceField(
@@ -669,7 +652,7 @@ class UserCreateForm(UserCreationForm):
 
 
 class UserUpdateForm(forms.ModelForm):
-    """Formulario para actualizar información básica del usuario (admin)"""
+    """Formulario para actualizar información básica del usuario"""
 
     user_type = forms.ChoiceField(
         choices=UserProfile.USER_TYPE_CHOICES,
@@ -711,23 +694,6 @@ class UserUpdateForm(forms.ModelForm):
             user.profile.user_type = self.cleaned_data.get("user_type", "player")
             user.profile.save()
         return user
-
-
-class UserProfileUpdateForm(forms.ModelForm):
-    """Formulario simplificado para actualizar información básica del usuario en el perfil"""
-
-    class Meta:
-        model = User
-        fields = [
-            "first_name",
-            "last_name",
-            "email",
-        ]
-        widgets = {
-            "first_name": forms.TextInput(attrs={"class": "form-control"}),
-            "last_name": forms.TextInput(attrs={"class": "form-control"}),
-            "email": forms.EmailInput(attrs={"class": "form-control"}),
-        }
 
 
 class TeamForm(forms.ModelForm):
@@ -1091,7 +1057,7 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
     birth_date = forms.DateField(
         required=True,
         widget=forms.DateInput(
-            attrs={"class": "form-control", "type": "date"}, format="%Y-%m-%d"
+            attrs={"class": "form-control", "type": "date", "data-format": "yyyy-MM-dd"}
         ),
         help_text=_("Player's date of birth"),
     )
@@ -1433,44 +1399,6 @@ class PlayerUpdateForm(forms.ModelForm):
         help_text="Sube una nueva foto de perfil",
     )
 
-    # Campos del User y UserProfile para editar información personal
-    first_name = forms.CharField(
-        max_length=30,
-        required=True,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-    )
-    last_name = forms.CharField(
-        max_length=30,
-        required=True,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-    )
-    last_name2 = forms.CharField(
-        max_length=30,
-        required=False,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-    )
-    phone = forms.CharField(
-        max_length=20,
-        required=False,
-        widget=forms.TextInput(attrs={"class": "form-control"}),
-    )
-    email = forms.EmailField(
-        required=False,
-        widget=forms.EmailInput(attrs={"class": "form-control"}),
-    )
-    birth_date = forms.DateField(
-        required=False,
-        widget=forms.DateInput(
-            attrs={
-                "class": "form-control",
-                "type": "date",
-                "data-format": "yyyy-MM-dd",
-                "readonly": True,
-            }
-        ),
-        help_text=_("Player's date of birth (cannot be modified)"),
-    )
-
     class Meta:
         model = Player
         fields = [
@@ -1612,8 +1540,6 @@ class PlayerUpdateForm(forms.ModelForm):
             self.fields["age_verification_notes"].widget = forms.HiddenInput()
             self.fields["age_verification_status"].required = False
             self.fields["age_verification_notes"].required = False
-            # birth_date no es requerido en edición (ya existe)
-            self.fields["birth_date"].required = False
 
         # Cargar la foto de perfil actual si existe
         if self.instance and hasattr(self.instance, "user"):
@@ -1622,86 +1548,6 @@ class PlayerUpdateForm(forms.ModelForm):
                     self.fields["profile_picture"].initial = (
                         self.instance.user.profile.profile_picture
                     )
-                # Inicializar campos del User y UserProfile
-                if self.instance.user:
-                    self.fields["first_name"].initial = self.instance.user.first_name
-                    self.fields["last_name"].initial = self.instance.user.last_name
-                    # Separar last_name en last_name y last_name2 si es necesario
-                    # (asumiendo que last_name puede contener ambos apellidos)
-                    last_name_parts = self.instance.user.last_name.split(" ", 1)
-                    if len(last_name_parts) > 1:
-                        self.fields["last_name"].initial = last_name_parts[0]
-                        self.fields["last_name2"].initial = last_name_parts[1]
-                    # Inicializar email (solo para managers/admins, no para padres)
-                    if not (is_parent and not is_staff):
-                        # Para managers/admins, mostrar y inicializar email
-                        self.fields["email"].initial = self.instance.user.email
-                        self.fields["email"].required = True
-                    else:
-                        # Para padres, eliminar el campo email completamente (no debe aparecer)
-                        # No lo eliminamos, solo lo ocultamos como hidden para que no cause errores
-                        self.fields["email"].widget = forms.HiddenInput()
-                        self.fields["email"].required = False
-                        # Establecer un valor inicial para evitar errores de validación
-                        self.fields["email"].initial = self.instance.user.email
-                    # Inicializar phone y birth_date desde el profile
-                    if hasattr(self.instance.user, "profile"):
-                        self.fields["phone"].initial = (
-                            self.instance.user.profile.phone or ""
-                        )
-                        if self.instance.user.profile.birth_date:
-                            # El valor inicial será un objeto date, Django lo formateará correctamente
-                            # pero el JavaScript se encargará de convertir si es necesario
-                            self.fields["birth_date"].initial = (
-                                self.instance.user.profile.birth_date
-                            )
-                            # Hacer el campo readonly para que no se pueda modificar
-                            self.fields["birth_date"].widget.attrs["readonly"] = True
-                            self.fields["birth_date"].widget.attrs[
-                                "style"
-                            ] = "background-color: #e9ecef;"
-
-    def clean_email(self):
-        """Validar que el email sea único (excepto para el usuario actual)"""
-        email = self.cleaned_data.get("email")
-        if not email:
-            return email
-
-        # Verificar si el email ya está en uso por otro usuario
-        if self.instance and hasattr(self.instance, "user"):
-            from django.contrib.auth import get_user_model
-
-            User = get_user_model()
-            existing_user = (
-                User.objects.filter(email=email)
-                .exclude(pk=self.instance.user.pk)
-                .first()
-            )
-            if existing_user:
-                raise forms.ValidationError(
-                    _("This email is already registered. Please use another email.")
-                )
-        else:
-            # Si no hay instancia, verificar si el email ya existe
-            from django.contrib.auth import get_user_model
-
-            User = get_user_model()
-            if User.objects.filter(email=email).exists():
-                raise forms.ValidationError(
-                    _("This email is already registered. Please use another email.")
-                )
-
-        return email
-
-    def clean_birth_date(self):
-        """Validar que la fecha de nacimiento no se pueda modificar"""
-        birth_date = self.cleaned_data.get("birth_date")
-        # Si hay una instancia, mantener la fecha original
-        if self.instance and hasattr(self.instance, "user"):
-            if hasattr(self.instance.user, "profile"):
-                if self.instance.user.profile.birth_date:
-                    return self.instance.user.profile.birth_date
-        return birth_date
 
     def clean_division(self):
         """Validar que la división asignada sea válida según las reglas de elegibilidad"""
@@ -1753,44 +1599,6 @@ class PlayerUpdateForm(forms.ModelForm):
                         player.team = self.instance.team
                     player.jersey_number = self.instance.jersey_number
                     player.is_active = self.instance.is_active
-
-        # Actualizar información del User y UserProfile
-        if self.instance and hasattr(self.instance, "user"):
-            user = self.instance.user
-            # Actualizar campos del User
-            if "first_name" in self.cleaned_data:
-                user.first_name = self.cleaned_data["first_name"]
-            if "last_name" in self.cleaned_data and "last_name2" in self.cleaned_data:
-                # Combinar last_name y last_name2 en el campo last_name del User
-                last_name = self.cleaned_data["last_name"]
-                last_name2 = self.cleaned_data.get("last_name2", "").strip()
-                if last_name2:
-                    user.last_name = f"{last_name} {last_name2}"
-                else:
-                    user.last_name = last_name
-            elif "last_name" in self.cleaned_data:
-                user.last_name = self.cleaned_data["last_name"]
-            # Actualizar email solo si está en cleaned_data (no para padres)
-            if "email" in self.cleaned_data and self.cleaned_data["email"]:
-                user.email = self.cleaned_data["email"]
-
-            # Actualizar campos del UserProfile
-            if hasattr(user, "profile"):
-                if "phone" in self.cleaned_data:
-                    user.profile.phone = self.cleaned_data["phone"] or ""
-                # birth_date no se actualiza (es readonly)
-                # Guardar la foto de perfil si se subió una nueva
-                if (
-                    "profile_picture" in self.cleaned_data
-                    and self.cleaned_data["profile_picture"]
-                ):
-                    user.profile.profile_picture = self.cleaned_data["profile_picture"]
-
-                if commit:
-                    user.profile.save()
-
-            if commit:
-                user.save()
 
         if commit:
             player.save()
@@ -1892,152 +1700,25 @@ class HomeBannerForm(forms.ModelForm):
             "order": forms.NumberInput(attrs={"class": "form-control", "min": 0}),
         }
 
+    def clean(self):
+        cleaned_data = super().clean()
+        banner_type = cleaned_data.get("banner_type")
+        image = cleaned_data.get("image")
 
-class BillingAddressForm(forms.ModelForm):
-    """Formulario para dirección de facturación"""
+        # Si es tipo imagen, la imagen es requerida
+        if banner_type == "image" and not image and not self.instance.pk:
+            raise forms.ValidationError(
+                {"image": 'La imagen es requerida para banners de tipo "Imagen".'}
+            )
 
-    class Meta:
-        model = UserProfile
-        fields = [
-            "address",
-            "address_line_2",
-            "city",
-            "state",
-            "country",
-            "postal_code",
-        ]
-        widgets = {
-            "address": forms.Textarea(
-                attrs={
-                    "class": "form-control",
-                    "rows": 3,
-                    "placeholder": _("Enter street address"),
-                }
-            ),
-            "address_line_2": forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": _("Apartment, suite, etc. (optional)"),
-                }
-            ),
-            "city": forms.Select(attrs={"class": "form-select"}),
-            "state": forms.Select(attrs={"class": "form-select"}),
-            "country": forms.Select(attrs={"class": "form-select"}),
-            "postal_code": forms.TextInput(
-                attrs={
-                    "class": "form-control",
-                    "placeholder": _("Enter postal code"),
-                }
-            ),
-        }
-        labels = {
-            "address": _("Street Address"),
-            "address_line_2": _("Address Line 2"),
-            "city": _("City"),
-            "state": _("State/Province"),
-            "country": _("Country"),
-            "postal_code": _("Postal Code"),
-        }
+        # Si es tipo imagen y no hay imagen en la instancia existente, requerir imagen
+        if banner_type == "image" and not image:
+            if self.instance and not self.instance.image:
+                raise forms.ValidationError(
+                    {"image": 'La imagen es requerida para banners de tipo "Imagen".'}
+                )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        # Campos de ubicación con ModelChoiceField
-        self.fields["country"] = forms.ModelChoiceField(
-            queryset=Country.objects.filter(is_active=True).order_by("name"),
-            required=False,
-            empty_label=_("Select a country"),
-            widget=forms.Select(attrs={"class": "form-select", "id": "id_billing_country"}),
-        )
-
-        self.fields["state"] = forms.ModelChoiceField(
-            queryset=State.objects.none(),
-            required=False,
-            empty_label=_("Select a state"),
-            widget=forms.Select(attrs={"class": "form-select", "id": "id_billing_state"}),
-        )
-
-        self.fields["city"] = forms.ModelChoiceField(
-            queryset=City.objects.none(),
-            required=False,
-            empty_label=_("Select a city"),
-            widget=forms.Select(attrs={"class": "form-select", "id": "id_billing_city"}),
-        )
-
-        # Si hay una instancia (edición), cargar estados y ciudades
-        if self.instance and self.instance.pk:
-            if self.instance.country:
-                self.fields["state"].queryset = State.objects.filter(
-                    country=self.instance.country, is_active=True
-                ).order_by("name")
-            if self.instance.state:
-                self.fields["city"].queryset = City.objects.filter(
-                    state=self.instance.state, is_active=True
-                ).order_by("name")
-
-        # Si hay datos en POST, cargar dinámicamente
-        if "country" in self.data:
-            try:
-                country_id = int(self.data.get("country"))
-                self.fields["state"].queryset = State.objects.filter(
-                    country_id=country_id, is_active=True
-                ).order_by("name")
-            except (ValueError, TypeError):
-                pass
-
-        if "state" in self.data:
-            try:
-                state_id = int(self.data.get("state"))
-                self.fields["city"].queryset = City.objects.filter(
-                    state_id=state_id, is_active=True
-                ).order_by("name")
-            except (ValueError, TypeError):
-                pass
-
-
-class CustomPasswordChangeForm(PasswordChangeForm):
-    """Formulario personalizado para cambio de contraseña"""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["old_password"].widget.attrs.update(
-            {"class": "form-control", "placeholder": _("Enter current password")}
-        )
-        self.fields["new_password1"].widget.attrs.update(
-            {"class": "form-control", "placeholder": _("Enter new password")}
-        )
-        self.fields["new_password2"].widget.attrs.update(
-            {"class": "form-control", "placeholder": _("Confirm new password")}
-        )
-
-
-class NotificationPreferencesForm(forms.Form):
-    """Formulario para preferencias de notificaciones"""
-
-    email_notifications = forms.BooleanField(
-        required=False,
-        initial=True,
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        label=_("Email Notifications"),
-    )
-    event_notifications = forms.BooleanField(
-        required=False,
-        initial=True,
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        label=_("Event Notifications"),
-    )
-    reservation_notifications = forms.BooleanField(
-        required=False,
-        initial=True,
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        label=_("Reservation Notifications"),
-    )
-    marketing_notifications = forms.BooleanField(
-        required=False,
-        initial=False,
-        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        label=_("Marketing Notifications"),
-    )
+        return cleaned_data
 
 
 class SiteSettingsForm(forms.ModelForm):

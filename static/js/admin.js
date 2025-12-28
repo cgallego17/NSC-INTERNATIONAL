@@ -963,6 +963,701 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeSidebarEnhancements();
 });
 
+// ==============================
+// Hotel Reservation Modal Helpers
+// ==============================
+// NOTE: This is intentionally global + DOM-driven so it works even when tab HTML
+// is injected dynamically and inline <script> blocks don't execute.
+window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
+    const MAX_ADDITIONAL = 10;
+    const stateByPk = new Map(); // pk -> { roomId: string, roomLabel: string }
+
+    function q(id) {
+        return document.getElementById(id);
+    }
+
+    function getPk(fromEl) {
+        if (!fromEl) return null;
+        const pk = fromEl.getAttribute('data-hotel-pk') || fromEl.getAttribute('data-hotel-id');
+        return pk ? String(pk) : null;
+    }
+
+    function getSelectedPlayers() {
+        return Array.from(document.querySelectorAll('.child-checkbox:checked'));
+    }
+
+    function getAdultsCount(pk) {
+        const el = q(`adults-total-count${pk}`);
+        return el ? Number(el.value || 1) : 1;
+    }
+
+    function getAdditionalChildrenCount(pk) {
+        const el = q(`additional-children-count${pk}`);
+        return el ? Number(el.value || 0) : 0;
+    }
+
+    function totalAdults(pk) {
+        // Total adults is selected by the user (min 1)
+        return Math.max(1, getAdultsCount(pk));
+    }
+
+    function totalPeople(pk) {
+        return totalAdults(pk) + getSelectedPlayers().length + getAdditionalChildrenCount(pk);
+    }
+
+    function escapeHtml(str) {
+        return String(str || '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#039;');
+    }
+
+    function setCounter(pk, which, value) {
+        const id = which === 'adults' ? `adults-total-count${pk}` : `additional-children-count${pk}`;
+        const el = q(id);
+        if (!el) return;
+        const min = which === 'adults' ? 1 : 0;
+        const v = Math.max(min, Math.min(MAX_ADDITIONAL, Number(value) || 0));
+        el.value = String(v);
+    }
+
+    function renderSelectedPlayers(pk) {
+        const section = q(`selected-children-section${pk}`);
+        const countEl = q(`children-count${pk}`);
+        const listEl = q(`children-list${pk}`);
+
+        if (!section || !listEl) return;
+
+        const selected = getSelectedPlayers();
+        if (countEl) countEl.textContent = String(selected.length);
+
+        if (selected.length === 0) {
+            section.style.display = 'none';
+            listEl.innerHTML = '';
+            return;
+        }
+
+        section.style.display = 'block';
+        listEl.innerHTML = '';
+
+        selected.forEach(cb => {
+            const childItem = cb.closest('.child-item');
+            if (!childItem) return;
+
+            // name
+            const nameDiv =
+                childItem.querySelector('div[style*=\"font-weight: 700\"][style*=\"color: var(--mlb-blue)\"]') ||
+                childItem.querySelector('div[style*=\"font-weight: 700\"]');
+            const name = nameDiv ? nameDiv.textContent.trim() : 'Player';
+
+            // photo
+            const photoDiv = childItem.querySelector('div[style*=\"border-radius: 50%\"]');
+            let avatarHtml = `<div style=\"width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); display:flex; align-items:center; justify-content:center; color:white; font-weight:800;\"><i class=\"fas fa-user\"></i></div>`;
+            const img = photoDiv ? photoDiv.querySelector('img') : null;
+            if (img && img.src) {
+                avatarHtml = `<div style=\"width: 44px; height: 44px; border-radius: 50%; overflow:hidden; border: 2px solid var(--mlb-red);\"><img src=\"${img.src}\" alt=\"${name}\" style=\"width:100%; height:100%; object-fit:cover;\"></div>`;
+            }
+
+            const birth = cb.getAttribute('data-birth-date') || '';
+            const card = document.createElement('div');
+            card.style.cssText = 'display:flex; align-items:center; gap:10px; background:white; padding:10px 12px; border-radius:10px; border:1px solid #e9ecef; flex:1 1 260px;';
+            card.innerHTML = `
+                ${avatarHtml}
+                <div style="min-width:0;">
+                    <div style="font-weight:800; color: var(--mlb-blue); line-height:1.1;">${name}</div>
+                    ${birth ? `<div style="font-size:0.75rem; color:#6c757d; margin-top:2px;">DOB: ${birth}</div>` : ``}
+                </div>
+            `;
+            listEl.appendChild(card);
+        });
+    }
+
+    function additionalAdultFormHtml(index) {
+        return `
+            <div class="adult-form-item" data-adult-index="${index}"
+                 style="background: white; border: 2px solid #e9ecef; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+                    <div style="font-weight:800; color: var(--mlb-blue);">Adult ${index}</div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">Full Name <span style="color: var(--mlb-red);">*</span></label>
+                        <input type="text" class="form-control adult-name-input" name="adult_name_${index}" data-index="${index}" required style="border:2px solid #e9ecef; border-radius:8px; padding:10px;">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">Email <span style="color: var(--mlb-red);">*</span></label>
+                        <input type="email" class="form-control adult-email-input" name="adult_email_${index}" data-index="${index}" required style="border:2px solid #e9ecef; border-radius:8px; padding:10px;">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">Phone <span style="color: var(--mlb-red);">*</span></label>
+                        <input type="tel" class="form-control adult-phone-input" name="adult_phone_${index}" data-index="${index}" required style="border:2px solid #e9ecef; border-radius:8px; padding:10px;">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">Date of Birth <span style="color: var(--mlb-red);">*</span></label>
+                        <input type="date" class="form-control adult-birthdate-input" name="adult_birthdate_${index}" data-index="${index}" required style="border:2px solid #e9ecef; border-radius:8px; padding:10px;">
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderAdditionalAdults(pk) {
+        const container = q(`additional-adults-forms-container${pk}`);
+        if (!container) return;
+        const count = getAdditionalAdultsCount(pk);
+        container.innerHTML = '';
+        for (let i = 0; i < count; i++) {
+            const index = 2 + i;
+            const wrap = document.createElement('div');
+            wrap.innerHTML = additionalAdultFormHtml(index);
+            container.appendChild(wrap.firstElementChild);
+        }
+    }
+
+    function additionalChildFormHtml(index) {
+        return `
+            <div class="additional-child-form-item" data-child-index="${index}"
+                 style="background: white; border: 2px solid #e9ecef; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
+                <div style="font-weight:800; color: var(--mlb-blue); margin-bottom:12px;">Child ${index}</div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">Full Name <span style="color: var(--mlb-red);">*</span></label>
+                        <input type="text" class="form-control child-name-input" name="additional_child_name_${index}" data-index="${index}" required style="border:2px solid #e9ecef; border-radius:8px; padding:10px;">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">Date of Birth <span style="color: var(--mlb-red);">*</span></label>
+                        <input type="date" class="form-control child-birthdate-input" name="additional_child_birthdate_${index}" data-index="${index}" required style="border:2px solid #e9ecef; border-radius:8px; padding:10px;">
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderAdditionalChildren(pk) {
+        const container = q(`additional-children-forms-container${pk}`);
+        if (!container) return;
+        const count = getAdditionalChildrenCount(pk);
+        container.innerHTML = '';
+        for (let i = 0; i < count; i++) {
+            const index = 1 + i;
+            const wrap = document.createElement('div');
+            wrap.innerHTML = additionalChildFormHtml(index);
+            container.appendChild(wrap.firstElementChild);
+        }
+    }
+
+    function updateSummary(pk) {
+        const adults = totalAdults(pk);
+        const addChildren = getAdditionalChildrenCount(pk);
+        const players = getSelectedPlayers().length;
+        const total = adults + addChildren + players;
+
+        const adultsCountEl = q(`adults-count${pk}`);
+        if (adultsCountEl) adultsCountEl.textContent = String(adults);
+
+        const totalPeopleEl = q(`total-people-count${pk}`);
+        if (totalPeopleEl) totalPeopleEl.textContent = String(total);
+
+        const hiddenAdults = q(`number_of_adults${pk}`);
+        if (hiddenAdults) hiddenAdults.value = String(adults);
+
+        const playersBreakdown = q(`players-breakdown${pk}`);
+        const playersCountBreakdown = q(`players-count-breakdown${pk}`);
+        if (playersBreakdown) playersBreakdown.style.display = players > 0 ? 'block' : 'none';
+        if (playersCountBreakdown) playersCountBreakdown.textContent = String(players);
+
+        const addChildrenBreakdown = q(`additional-children-breakdown${pk}`);
+        const addChildrenCountBreakdown = q(`additional-children-count-breakdown${pk}`);
+        if (addChildrenBreakdown) addChildrenBreakdown.style.display = addChildren > 0 ? 'block' : 'none';
+        if (addChildrenCountBreakdown) addChildrenCountBreakdown.textContent = String(addChildren);
+
+        const noChildrenWarn = q(`no-children-warning${pk}`);
+        const hasPlayerOrChild = players > 0 || addChildren > 0;
+        if (noChildrenWarn) noChildrenWarn.style.display = (!hasPlayerOrChild) ? 'block' : 'none';
+
+        const showRoomsBtn = q(`show-rooms-btn${pk}`);
+        if (showRoomsBtn) {
+            const enabled = adults >= 1 && hasPlayerOrChild;
+            showRoomsBtn.disabled = !enabled;
+            showRoomsBtn.style.opacity = enabled ? '1' : '0.5';
+            showRoomsBtn.style.cursor = enabled ? 'pointer' : 'not-allowed';
+        }
+    }
+
+    function initModal(pk) {
+        // Ensure counters exist
+        if (!q(`adults-total-count${pk}`)) return;
+        if (!q(`additional-children-count${pk}`)) return;
+
+        renderSelectedPlayers(pk);
+        updateSummary(pk);
+    }
+
+    function showRooms(btnEl) {
+        const pk = getPk(btnEl);
+        if (!pk) return;
+        const adults = totalAdults(pk);
+        const addChildren = getAdditionalChildrenCount(pk);
+        const players = getSelectedPlayers().length;
+        const total = adults + addChildren + players;
+
+        if (adults < 1) return alert('At least one adult is required');
+        if (players === 0 && addChildren === 0) return alert('You must select at least one player or add at least one child');
+
+        // Close reservation modal first
+        const reservationModalEl = q(`hotelReservationModal${pk}`);
+        if (reservationModalEl && window.bootstrap?.Modal) {
+            const inst = bootstrap.Modal.getInstance(reservationModalEl);
+            if (inst) inst.hide();
+        }
+
+        // Open hotel details modal
+        const hotelModalEl = q(`hotelModal${pk}`);
+        if (hotelModalEl && window.bootstrap?.Modal) {
+            const modal = new bootstrap.Modal(hotelModalEl);
+            modal.show();
+
+            // Filter room listings (capacity)
+            hotelModalEl.addEventListener('shown.bs.modal', function filterRooms() {
+                const roomListings = hotelModalEl.querySelectorAll('.room-listing');
+                // Clear old recommendation
+                roomListings.forEach(r => {
+                    r.classList.remove('nsc-room-recommended');
+                    const oldBadge = r.querySelector('.nsc-recommended-badge');
+                    if (oldBadge) oldBadge.remove();
+                });
+
+                const candidates = [];
+                roomListings.forEach(roomListing => {
+                    const capAttr = roomListing.getAttribute('data-room-capacity');
+                    const cap = parseInt(capAttr || '0', 10);
+                    const ok = cap >= total;
+                    roomListing.style.display = ok ? '' : 'none';
+
+                    if (ok) {
+                        const priceAttr = roomListing.getAttribute('data-room-price');
+                        const price = parseFloat(String(priceAttr || '0')) || 0;
+                        candidates.push({ el: roomListing, cap: cap || 0, price });
+                    }
+                });
+
+                if (candidates.length) {
+                    // Best fit: smallest capacity waste; tie-break by lowest price
+                    candidates.sort((a, b) => {
+                        const wasteA = Math.max(0, a.cap - total);
+                        const wasteB = Math.max(0, b.cap - total);
+                        if (wasteA !== wasteB) return wasteA - wasteB;
+                        if (a.price !== b.price) return a.price - b.price;
+                        return 0;
+                    });
+
+                    const best = candidates[0].el;
+                    best.classList.add('nsc-room-recommended');
+
+                    const content = best.querySelector('.room-content') || best;
+                    const badge = document.createElement('div');
+                    badge.className = 'nsc-recommended-badge';
+                    badge.textContent = `Recommended for ${total} guests`;
+                    content.insertBefore(badge, content.firstChild);
+
+                    // Scroll into view for the user
+                    try {
+                        best.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } catch (_) {
+                        best.scrollIntoView();
+                    }
+                }
+            }, { once: true });
+        }
+    }
+
+    function renderGuestDetails(pk) {
+        const selected = getSelectedPlayers();
+
+        // Selected players chips
+        const selectedWrap = q(`guest-selected-players-wrap${pk}`);
+        const selectedEl = q(`guest-selected-players${pk}`);
+        if (selectedWrap && selectedEl) {
+            if (selected.length === 0) {
+                selectedWrap.style.display = 'none';
+                selectedEl.innerHTML = '';
+            } else {
+                selectedWrap.style.display = 'block';
+                selectedEl.innerHTML = '';
+                selected.forEach(cb => {
+                    const childItem = cb.closest('.child-item');
+                    const nameDiv =
+                        childItem?.querySelector('div[style*="font-weight: 700"][style*="color: var(--mlb-blue)"]') ||
+                        childItem?.querySelector('div[style*="font-weight: 700"]');
+                    const name = nameDiv ? nameDiv.textContent.trim() : 'Player';
+                    const birth = cb.getAttribute('data-birth-date') || '';
+                    const chip = document.createElement('div');
+                    chip.style.cssText = 'background:#ffffff; border:1px solid #e9ecef; border-radius:999px; padding:8px 12px; font-weight:800; color: var(--mlb-blue); font-size:0.85rem;';
+                    chip.textContent = birth ? `${name} (${birth})` : name;
+                    selectedEl.appendChild(chip);
+                });
+            }
+        }
+
+        // Additional adults fields
+        const addAdults = Math.max(0, totalAdults(pk) - 1);
+        const adultsWrap = q(`guest-additional-adults-wrap${pk}`);
+        const adultsEl = q(`guest-additional-adults${pk}`);
+        if (adultsWrap && adultsEl) {
+            if (addAdults <= 0) {
+                adultsWrap.style.display = 'none';
+                adultsEl.innerHTML = '';
+            } else {
+                adultsWrap.style.display = 'block';
+                adultsEl.innerHTML = '';
+                for (let i = 1; i <= addAdults; i++) {
+                    const idx = i + 1; // primary is 1
+                    const block = document.createElement('div');
+                    block.className = 'nsc-guest-adult';
+                    block.setAttribute('data-index', String(idx));
+                    block.style.cssText = 'background:#ffffff; border:2px solid #e9ecef; border-radius:12px; padding:14px; margin-bottom:12px;';
+                    block.innerHTML = `
+                        <div style="font-weight:900; color: var(--mlb-blue); margin-bottom:10px;">Adult ${idx}</div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">Full Name *</label>
+                                <input type="text" class="form-control nsc-adult-name" required style="border-radius:10px; border:2px solid #e9ecef; padding:10px;">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">Date of Birth *</label>
+                                <input type="date" class="form-control nsc-adult-dob" required style="border-radius:10px; border:2px solid #e9ecef; padding:10px;">
+                            </div>
+                        </div>
+                    `;
+                    adultsEl.appendChild(block);
+                }
+            }
+        }
+
+        // Additional children fields
+        const addChildren = getAdditionalChildrenCount(pk);
+        const childrenWrap = q(`guest-additional-children-wrap${pk}`);
+        const childrenEl = q(`guest-additional-children${pk}`);
+        if (childrenWrap && childrenEl) {
+            if (addChildren <= 0) {
+                childrenWrap.style.display = 'none';
+                childrenEl.innerHTML = '';
+            } else {
+                childrenWrap.style.display = 'block';
+                childrenEl.innerHTML = '';
+                for (let i = 1; i <= addChildren; i++) {
+                    const block = document.createElement('div');
+                    block.className = 'nsc-guest-child';
+                    block.setAttribute('data-index', String(i));
+                    block.style.cssText = 'background:#ffffff; border:2px solid #e9ecef; border-radius:12px; padding:14px; margin-bottom:12px;';
+                    block.innerHTML = `
+                        <div style="font-weight:900; color: var(--mlb-blue); margin-bottom:10px;">Child ${i}</div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">Full Name *</label>
+                                <input type="text" class="form-control nsc-child-name" required style="border-radius:10px; border:2px solid #e9ecef; padding:10px;">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">Date of Birth *</label>
+                                <input type="date" class="form-control nsc-child-dob" required style="border-radius:10px; border:2px solid #e9ecef; padding:10px;">
+                            </div>
+                        </div>
+                    `;
+                    childrenEl.appendChild(block);
+                }
+            }
+        }
+
+        // Fill number_of_guests
+        const guestsEl = q(`guest-number-of-guests${pk}`);
+        if (guestsEl) guestsEl.value = String(totalPeople(pk));
+    }
+
+    function selectRoom(btnEl) {
+        const pk = getPk(btnEl);
+        if (!pk) return;
+
+        const roomId = btnEl.getAttribute('data-room-id');
+        if (!roomId) return;
+
+        const total = totalPeople(pk);
+        const capacity = parseInt(btnEl.getAttribute('data-room-capacity') || '0', 10);
+        if (capacity && total > capacity) {
+            alert(`This room fits ${capacity} guests, but you selected ${total}. Please adjust guests or choose another room.`);
+            return;
+        }
+
+        const roomListing = btnEl.closest('.room-listing');
+        const roomName = roomListing?.querySelector('.room-name')?.textContent?.trim() || 'Room';
+        const roomFeatures = roomListing?.querySelector('.room-features')?.textContent?.trim() || '';
+        const roomLabel = `${roomName}${roomFeatures ? ` • ${roomFeatures}` : ''}`;
+
+        stateByPk.set(String(pk), { roomId: String(roomId), roomLabel });
+
+        // Close hotel modal
+        const hotelModalEl = q(`hotelModal${pk}`);
+        if (hotelModalEl && window.bootstrap?.Modal) {
+            const inst = bootstrap.Modal.getInstance(hotelModalEl);
+            if (inst) inst.hide();
+        }
+
+        // Populate guest modal
+        const roomInput = q(`guest-room${pk}`);
+        if (roomInput) roomInput.value = String(roomId);
+
+        const labelEl = q(`selected-room-label${pk}`);
+        if (labelEl) labelEl.textContent = roomLabel;
+
+        renderGuestDetails(pk);
+
+        const guestModalEl = q(`hotelGuestDetailsModal${pk}`);
+        if (guestModalEl && window.bootstrap?.Modal) {
+            const guestModal = new bootstrap.Modal(guestModalEl);
+            guestModal.show();
+        }
+    }
+
+    async function openRoomDetail(fromEl) {
+        const pk = getPk(fromEl);
+        if (!pk) return;
+        const roomId = fromEl.getAttribute('data-room-id');
+        if (!roomId) return;
+
+        const modalEl = q(`roomDetailModal${pk}`);
+        if (!modalEl) return;
+
+        const urlTemplate = modalEl.getAttribute('data-room-detail-url-template');
+        if (!urlTemplate) return;
+        const url = urlTemplate.replace('999999', String(roomId));
+
+        // Reset UI
+        const titleEl = q(`room-detail-title${pk}`);
+        const subtitleEl = q(`room-detail-subtitle${pk}`);
+        const descEl = q(`room-detail-description${pk}`);
+        const capEl = q(`room-detail-capacity${pk}`);
+        const priceEl = q(`room-detail-price${pk}`);
+        const galleryEl = q(`room-detail-gallery${pk}`);
+        const amenitiesEl = q(`room-detail-amenities${pk}`);
+        const servicesEl = q(`room-detail-services${pk}`);
+
+        if (titleEl) titleEl.textContent = 'Room';
+        if (subtitleEl) subtitleEl.textContent = '';
+        if (descEl) descEl.textContent = '';
+        if (capEl) capEl.textContent = '-';
+        if (priceEl) priceEl.textContent = '-';
+        if (amenitiesEl) amenitiesEl.innerHTML = '';
+        if (servicesEl) servicesEl.innerHTML = '';
+        if (galleryEl) galleryEl.innerHTML = `<div style="padding: 18px; color: #6c757d;">Loading...</div>`;
+
+        // Open modal immediately (loading state)
+        if (window.bootstrap?.Modal) {
+            const inst = bootstrap.Modal.getInstance(modalEl);
+            (inst || new bootstrap.Modal(modalEl)).show();
+        }
+
+        try {
+            const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+            const data = await res.json();
+
+            if (titleEl) titleEl.textContent = `${data.room_type || 'Room'}${data.room_number ? ` • ${data.room_number}` : ''}`;
+            if (subtitleEl) subtitleEl.textContent = data.hotel?.name ? data.hotel.name : '';
+            if (descEl) descEl.textContent = data.description || '';
+            if (capEl) capEl.textContent = String(data.capacity ?? '-');
+            if (priceEl) priceEl.textContent = String(data.price_per_night ?? '-');
+
+            // Gallery
+            if (galleryEl) {
+                const images = Array.isArray(data.images) ? data.images : [];
+                if (!images.length) {
+                    galleryEl.innerHTML = `<div style="padding: 18px; color: #6c757d;">No images available.</div>`;
+                } else if (images.length === 1) {
+                    const img = images[0];
+                    galleryEl.innerHTML = `
+                        <img src="${img.url}" alt="${escapeHtml(img.alt || '')}" style="width:100%; height:420px; object-fit:cover; display:block;">
+                    `;
+                } else {
+                    const carouselId = `roomGalleryCarousel${pk}`;
+                    const indicators = images.map((_, idx) =>
+                        `<button type="button" data-bs-target="#${carouselId}" data-bs-slide-to="${idx}" ${idx === 0 ? 'class="active" aria-current="true"' : ''} aria-label="Slide ${idx + 1}"></button>`
+                    ).join('');
+                    const slides = images.map((img, idx) => `
+                        <div class="carousel-item ${idx === 0 ? 'active' : ''}">
+                            <img src="${img.url}" alt="${escapeHtml(img.alt || '')}" style="width:100%; height:420px; object-fit:cover;">
+                        </div>
+                    `).join('');
+                    galleryEl.innerHTML = `
+                        <div id="${carouselId}" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-indicators">${indicators}</div>
+                            <div class="carousel-inner">${slides}</div>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#${carouselId}" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Previous</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#${carouselId}" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Next</span>
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+
+            // Amenities
+            if (amenitiesEl) {
+                const amenities = Array.isArray(data.amenities) ? data.amenities : [];
+                if (!amenities.length) {
+                    amenitiesEl.innerHTML = `<div style="color:#6c757d;">No amenities listed.</div>`;
+                } else {
+                    amenitiesEl.innerHTML = amenities.slice(0, 18).map(a => `
+                        <span class="nsc-pill" title="${escapeHtml(a.description || '')}">
+                            <i class="fas ${escapeHtml(a.icon || 'fa-check-circle')}" style="color: var(--mlb-red);"></i>
+                            ${escapeHtml(a.name || '')}
+                        </span>
+                    `).join('');
+                }
+            }
+
+            // Services
+            if (servicesEl) {
+                const services = Array.isArray(data.services) ? data.services : [];
+                if (!services.length) {
+                    servicesEl.innerHTML = `<div style="color:#6c757d;">No services listed.</div>`;
+                } else {
+                    servicesEl.innerHTML = services.slice(0, 10).map(s => `
+                        <div style="border:2px solid #e9ecef; border-radius: 12px; padding: 12px; background:#fff;">
+                            <div style="font-weight:900; color: var(--mlb-blue);">${escapeHtml(s.name || '')}</div>
+                            <div style="font-size:0.85rem; color:#6c757d; margin-top: 2px;">
+                                ${escapeHtml(s.type || '')}
+                                ${s.price ? ` • $${escapeHtml(s.price)}` : ``}
+                                ${s.is_per_night ? ` • /night` : ``}
+                                ${s.is_per_person ? ` • /person` : ``}
+                            </div>
+                            ${s.description ? `<div style="margin-top:6px; color:#333;">${escapeHtml(s.description)}</div>` : ``}
+                        </div>
+                    `).join('');
+                }
+            }
+        } catch (err) {
+            if (galleryEl) {
+                galleryEl.innerHTML = `<div style="padding: 18px; color: #b30029; font-weight: 800;">Failed to load room details.</div>`;
+            }
+        }
+    }
+
+    // Stepper actions (adults/children)
+    document.addEventListener('click', (e) => {
+        const btn = e.target?.closest?.('[data-nsc-action]');
+        if (!btn) return;
+        const pk = getPk(btn);
+        if (!pk) return;
+        const action = btn.getAttribute('data-nsc-action');
+        if (!action) return;
+
+        e.preventDefault();
+
+        if (action === 'adults-inc' || action === 'adults-dec') {
+            const current = getAdultsCount(pk);
+            const next = action === 'adults-inc' ? current + 1 : current - 1;
+            setCounter(pk, 'adults', next);
+            updateSummary(pk);
+        }
+
+        if (action === 'children-inc' || action === 'children-dec') {
+            const current = getAdditionalChildrenCount(pk);
+            const next = action === 'children-inc' ? current + 1 : current - 1;
+            setCounter(pk, 'children', next);
+            updateSummary(pk);
+        }
+    });
+
+    // Keep players list + totals synced
+    document.addEventListener('change', (e) => {
+        if (!e.target?.classList?.contains('child-checkbox')) return;
+        // update any open reservation modal(s)
+        document.querySelectorAll('[id^=\"hotelReservationModal\"]').forEach(modalEl => {
+            const pk = modalEl.getAttribute('data-hotel-pk') || modalEl.id.replace('hotelReservationModal', '');
+            if (pk) initModal(String(pk));
+        });
+    });
+
+    // Bootstrap modal hook
+    document.addEventListener('shown.bs.modal', (e) => {
+        const modalEl = e.target;
+        if (!modalEl || !modalEl.id || !modalEl.id.startsWith('hotelReservationModal')) return;
+        const pk = modalEl.getAttribute('data-hotel-pk') || modalEl.id.replace('hotelReservationModal', '');
+        if (pk) initModal(String(pk));
+    });
+
+    // Guest details form: build notes from extra guests + selected players
+    document.addEventListener('submit', (e) => {
+        const form = e.target;
+        if (!(form instanceof HTMLFormElement)) return;
+        if (!form.id || !form.id.startsWith('guest-details-form')) return;
+
+        const pk = form.id.replace('guest-details-form', '');
+        if (!pk) return;
+
+        const notesHidden = q(`guest-notes${pk}`);
+        const notesHuman = q(`guest-notes-human${pk}`)?.value?.trim() || '';
+
+        const selected = getSelectedPlayers().map(cb => {
+            const childItem = cb.closest('.child-item');
+            const nameDiv =
+                childItem?.querySelector('div[style*="font-weight: 700"][style*="color: var(--mlb-blue)"]') ||
+                childItem?.querySelector('div[style*="font-weight: 700"]');
+            const name = nameDiv ? nameDiv.textContent.trim() : 'Player';
+            const birth = cb.getAttribute('data-birth-date') || '';
+            return birth ? `${name} (${birth})` : name;
+        });
+
+        const addAdults = Array.from(form.querySelectorAll('.nsc-guest-adult')).map(el => {
+            const name = el.querySelector('.nsc-adult-name')?.value?.trim() || '';
+            const dob = el.querySelector('.nsc-adult-dob')?.value?.trim() || '';
+            return name ? (dob ? `${name} (${dob})` : name) : '';
+        }).filter(Boolean);
+
+        const addChildren = Array.from(form.querySelectorAll('.nsc-guest-child')).map(el => {
+            const name = el.querySelector('.nsc-child-name')?.value?.trim() || '';
+            const dob = el.querySelector('.nsc-child-dob')?.value?.trim() || '';
+            return name ? (dob ? `${name} (${dob})` : name) : '';
+        }).filter(Boolean);
+
+        const parts = [];
+        if (notesHuman) parts.push(notesHuman);
+        if (selected.length) parts.push(`Selected players/children: ${selected.join(', ')}`);
+        if (addAdults.length) parts.push(`Additional adults: ${addAdults.join(', ')}`);
+        if (addChildren.length) parts.push(`Additional children: ${addChildren.join(', ')}`);
+
+        if (notesHidden) notesHidden.value = parts.join(' | ').slice(0, 1900);
+
+        // Ensure number_of_guests is correct at submit time
+        const guestsEl = q(`guest-number-of-guests${pk}`);
+        if (guestsEl) guestsEl.value = String(totalPeople(pk));
+    });
+
+    // Backwards compatibility (old buttons may still exist somewhere)
+    function addAdult(btnEl) {
+        const pk = getPk(btnEl);
+        if (!pk) return;
+        const current = getAdultsCount(pk);
+        setCounter(pk, 'adults', current + 1);
+        updateSummary(pk);
+    }
+
+    function addChild(btnEl) {
+        const pk = getPk(btnEl);
+        if (!pk) return;
+        const current = getAdditionalChildrenCount(pk);
+        setCounter(pk, 'children', current + 1);
+        updateSummary(pk);
+    }
+
+    return { initModal, showRooms, selectRoom, openRoomDetail, updateSummary, addAdult, addChild };
+})();
+
 // ===== TOPBAR BUTTON FUNCTIONS =====
 
 // Mobile Menu Toggle

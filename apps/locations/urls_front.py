@@ -53,6 +53,11 @@ urlpatterns = [
         views_front.calculate_reservation_total,
         name="calculate_reservation_total",
     ),
+    path(
+        "ajax/rooms/<int:room_id>/detail/",
+        views_front.get_room_detail,
+        name="get_room_detail",
+    ),
     # Cart URLs
     path("hotels/cart/", cart_views.HotelCartView.as_view(), name="hotel_cart"),
     path("hotels/cart/add/", cart_views.AddToCartView.as_view(), name="add_to_cart"),

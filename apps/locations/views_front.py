@@ -358,6 +358,76 @@ def get_hotel_rooms(request, hotel_id):
         return JsonResponse({"error": "Hotel not found"}, status=404)
 
 
+def get_room_detail(request, room_id):
+    """API para obtener detalle de una habitación (galería, detalles, amenidades del hotel)."""
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Authentication required"}, status=401)
+
+    room = get_object_or_404(
+        HotelRoom,
+        id=room_id,
+        is_available=True,
+        hotel__is_active=True,
+    )
+
+    images = []
+    for img in room.images.all().order_by("id"):
+        try:
+            url = img.image.url
+        except Exception:
+            url = ""
+        if url:
+            images.append(
+                {
+                    "url": url,
+                    "title": img.title or "",
+                    "alt": img.alt_text or img.title or room.get_room_type_display(),
+                }
+            )
+
+    amenities = []
+    # Amenidades son a nivel hotel, pero se muestran en la habitación por UX
+    for amenity in room.hotel.amenities.filter(is_active=True).order_by("name"):
+        amenities.append(
+            {
+                "name": amenity.name,
+                "category": amenity.get_category_display(),
+                "icon": amenity.get_icon_class(),
+                "description": amenity.description or "",
+            }
+        )
+
+    services = []
+    for service in room.hotel.services.filter(is_active=True).order_by("service_name"):
+        services.append(
+            {
+                "name": service.service_name,
+                "type": service.get_service_type_display(),
+                "price": str(service.price),
+                "description": service.description or "",
+                "is_per_person": service.is_per_person,
+                "is_per_night": service.is_per_night,
+            }
+        )
+
+    payload = {
+        "id": room.id,
+        "hotel": {
+            "id": room.hotel.id,
+            "name": room.hotel.hotel_name,
+        },
+        "room_number": room.room_number,
+        "room_type": room.get_room_type_display(),
+        "capacity": room.capacity,
+        "price_per_night": str(room.price_per_night),
+        "description": room.description or "",
+        "images": images,
+        "amenities": amenities,
+        "services": services,
+    }
+    return JsonResponse(payload)
+
+
 # Vista AJAX para obtener servicios de un hotel
 def get_hotel_services(request, hotel_id):
     """API para obtener servicios disponibles de un hotel"""

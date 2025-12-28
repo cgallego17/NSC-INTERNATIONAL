@@ -1172,17 +1172,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <!-- Banner Hero Grande -->
                 <div class="hero-banner">
                     {% if event.hotel.images.exists %}
-                        {% with images=event.hotel.images.all %}
-                            {% for image in images %}
-                                {% if image.is_featured %}
-                                    <img src="{{ image.image.url }}" alt="{{ image.title|default:event.hotel.hotel_name }}">
-                                {% endif %}
-                            {% endfor %}
-                            {% comment %} Si no hay ninguna imagen destacada, mostrar la primera {% endcomment %}
-                            {% if not images.0.is_featured %}
-                                <img src="{{ images.0.image.url }}" alt="{{ event.hotel.hotel_name }}">
-                            {% endif %}
-                        {% endwith %}
+                        <img src="{{ event.hotel.images.first.image.url }}" alt="{{ event.hotel.hotel_name }}">
                     {% elif event.hotel.photo %}
                         <img src="{{ event.hotel.photo.url }}" alt="{{ event.hotel.hotel_name }}">
                     {% else %}
@@ -1304,7 +1294,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="rooms-section">
                         <h2 class="rooms-title">{% trans "Rooms & Suites" %}</h2>
                         {% for room in available_rooms %}
-                            <div class="room-listing">
+                            <div class="room-listing"
+                                 data-room-id="{{ room.id }}"
+                                 data-room-capacity="{{ room.capacity|default:0 }}"
+                                 data-room-price="{{ room.price_per_night|default:0 }}">
                                 <div class="room-image">
                                     {% if event.hotel.photo %}
                                         <img src="{{ event.hotel.photo.url }}" alt="{{ room.get_room_type_display }}">
@@ -1331,7 +1324,24 @@ document.addEventListener('DOMContentLoaded', function() {
                                         <span class="price-amount">${{ room.price_per_night|floatformat:0 }}</span>
                                         <span class="price-per">/{% trans "night" %}</span>
                                     </div>
-                                    <a href="#" class="room-detail-link">{% trans "See Detail" %} →</a>
+                                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+                                        <a href="#"
+                                           class="room-detail-link"
+                                           data-hotel-pk="{{ event.hotel.pk }}"
+                                           data-room-id="{{ room.id }}"
+                                           onclick="if (window.NSC_HotelReservation && typeof window.NSC_HotelReservation.openRoomDetail === 'function') { window.NSC_HotelReservation.openRoomDetail(this); } return false;">
+                                            {% trans "See Detail" %} →
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-sm btn-primary"
+                                                data-hotel-pk="{{ event.hotel.pk }}"
+                                                data-room-id="{{ room.id }}"
+                                                data-room-capacity="{{ room.capacity|default:0 }}"
+                                                style="border-radius: 999px; font-weight: 800; padding: 8px 14px;"
+                                                onclick="if (window.NSC_HotelReservation && typeof window.NSC_HotelReservation.selectRoom === 'function') { window.NSC_HotelReservation.selectRoom(this); }">
+                                            <i class="fas fa-check me-1"></i>{% trans "Select this room" %}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         {% endfor %}
@@ -1498,19 +1508,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <!-- Modal para Reserva de Hotel -->
 {% if event.hotel %}
-    <div class="modal fade" id="hotelReservationModal{{ event.hotel.pk }}" tabindex="-1" aria-labelledby="hotelReservationModalLabel{{ event.hotel.pk }}" aria-hidden="true">
+    <div class="modal fade" id="hotelReservationModal{{ event.hotel.pk }}" data-hotel-pk="{{ event.hotel.pk }}" tabindex="-1" aria-labelledby="hotelReservationModalLabel{{ event.hotel.pk }}" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
-                <div class="modal-header" style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; padding: 20px 25px; border: none;">
-                    <h5 class="modal-title" id="hotelReservationModalLabel{{ event.hotel.pk }}" style="font-weight: 800; font-size: 1.3rem;">
-                        <i class="fas fa-hotel me-2"></i>{% trans "Hotel Reservation" %}
-                    </h5>
+                <div class="modal-header" style="padding: 16px 20px;">
+                    <div>
+                        <div class="nsc-step">{% trans "Step 1 of 3" %} • {% trans "Guests" %}</div>
+                        <h5 class="modal-title mt-2" id="hotelReservationModalLabel{{ event.hotel.pk }}">
+                            <i class="fas fa-hotel me-2"></i>{% trans "Hotel Stay" %}
+                        </h5>
+                    </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form id="hotelReservationForm{{ event.hotel.pk }}" method="get" action="{% url 'locations:front_hotel_reservation_create' %}">
                     <div class="modal-body" style="padding: 0;">
                         <!-- Información del Hotel -->
-                        <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); padding: 20px 25px; border-bottom: 2px solid #e9ecef;">
+                        <div style="background: #ffffff; padding: 16px 20px; border-bottom: 1px solid #e9ecef;">
                             <div style="display: flex; align-items: center; gap: 15px;">
                                 {% if event.hotel.photo %}
                                     <div style="width: 80px; height: 80px; border-radius: 12px; overflow: hidden; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
@@ -1554,18 +1567,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
                             <!-- Niños/Jugadores Seleccionados -->
                             <div class="mb-4" id="selected-children-section{{ event.hotel.pk }}" style="display: none;">
-                                <div style="background: linear-gradient(135deg, #fff5f7 0%, #ffffff 100%); border: 2px solid var(--mlb-red); border-radius: 12px; padding: 20px;">
+                                <div class="nsc-card" style="padding: 16px;">
                                     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px;">
-                                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                            <i class="fas fa-child" style="color: white; font-size: 1.3rem;"></i>
+                                        <div style="width: 44px; height: 44px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i class="fas fa-child" style="color: var(--mlb-red); font-size: 1.1rem;"></i>
                                         </div>
                                         <div style="flex: 1;">
-                                            <div style="font-weight: 800; color: var(--mlb-blue); font-size: 1rem; margin-bottom: 4px;">
-                                                {% trans "Selected Children/Players" %}
-                                            </div>
-                                            <div style="font-size: 0.85rem; color: #6c757d;">
-                                                <span id="children-count{{ event.hotel.pk }}">0</span> {% trans "selected" %}
-                                            </div>
+                                            <div class="nsc-card-title">{% trans "Selected Players/Children" %}</div>
+                                            <div class="nsc-card-subtitle"><span id="children-count{{ event.hotel.pk }}">0</span> {% trans "selected" %}</div>
                                         </div>
                                     </div>
                                     <div id="children-list{{ event.hotel.pk }}" style="display: flex; flex-wrap: wrap; gap: 8px;">
@@ -1574,98 +1583,84 @@ document.addEventListener('DOMContentLoaded', function() {
                                 </div>
                             </div>
 
-                            <!-- Personas Adicionales -->
+                            <!-- Paso 2: Adultos (mínimo 1) -->
                             <div class="mb-4">
-                                <div style="background: linear-gradient(135deg, #e7f3ff 0%, #ffffff 100%); border: 2px solid var(--mlb-blue); border-radius: 12px; padding: 20px;">
+                                <div class="nsc-card" style="padding: 16px;">
                                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
                                         <div style="display: flex; align-items: center; gap: 12px;">
-                                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                                <i class="fas fa-user-plus" style="color: white; font-size: 1.3rem;"></i>
+                                            <div style="width: 44px; height: 44px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                <i class="fas fa-user" style="color: var(--mlb-blue); font-size: 1.05rem;"></i>
                                             </div>
                                             <div>
-                                                <div style="font-weight: 800; color: var(--mlb-blue); font-size: 1rem; margin-bottom: 4px;">
-                                                    {% trans "Additional Adults" %}
-                                                </div>
-                                                <div style="font-size: 0.85rem; color: #6c757d;">
-                                                    {% trans "Adults (18+) staying at the hotel" %}
-                                                </div>
+                                                <div class="nsc-card-title">{% trans "Adults" %}</div>
+                                                <div class="nsc-card-subtitle">{% trans "Total adults (18+). Minimum 1 adult." %}</div>
                                             </div>
                                         </div>
-                                        <button type="button"
-                                                class="btn btn-sm add-adult-button"
-                                                id="add-adult-btn{{ event.hotel.pk }}"
-                                                data-hotel-pk="{{ event.hotel.pk }}"
-                                                onclick="if(typeof window.addAdultForm{{ event.hotel.pk }} === 'function') { window.addAdultForm{{ event.hotel.pk }}(); } else { console.error('Function not found'); }"
-                                                style="background: var(--mlb-blue); color: white; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 600; font-size: 0.85rem;">
-                                            <i class="fas fa-plus me-1"></i>{% trans "Add Adult" %}
-                                        </button>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span style="font-size: 0.82rem; color: #6c757d; font-weight: 800;">{% trans "Total" %}</span>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary nsc-stepper-btn"
+                                                    data-hotel-pk="{{ event.hotel.pk }}" data-nsc-action="adults-dec"
+                                                    aria-label="{% trans 'Decrease adults' %}">-</button>
+                                            <input type="number" class="nsc-stepper-count" id="adults-total-count{{ event.hotel.pk }}" value="1" min="1" max="10" readonly>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary nsc-stepper-btn"
+                                                    data-hotel-pk="{{ event.hotel.pk }}" data-nsc-action="adults-inc"
+                                                    aria-label="{% trans 'Increase adults' %}">+</button>
+                                        </div>
                                     </div>
 
-                                    <!-- Contenedor de formularios de adultos -->
-                                    <div id="adults-forms-container{{ event.hotel.pk }}">
-                                        <!-- Se llenará dinámicamente con JavaScript -->
+                                    <div style="font-size: 0.82rem; color: #6c757d;">
+                                        {% trans "Tip:" %} {% trans "You'll add names and birthdays after selecting a room." %}
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Niños Adicionales (no jugadores) -->
-                            <div class="mb-4" id="additional-children-section{{ event.hotel.pk }}" style="display: none;">
-                                <div style="background: linear-gradient(135deg, #fff5f7 0%, #ffffff 100%); border: 2px solid var(--mlb-red); border-radius: 12px; padding: 20px;">
+                            <div class="mb-4" id="additional-children-section{{ event.hotel.pk }}">
+                                <div class="nsc-card" style="padding: 16px;">
                                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
                                         <div style="display: flex; align-items: center; gap: 12px;">
-                                            <div style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                                <i class="fas fa-baby" style="color: white; font-size: 1.3rem;"></i>
+                                            <div style="width: 44px; height: 44px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                <i class="fas fa-baby" style="color: var(--mlb-red); font-size: 1.05rem;"></i>
                                             </div>
                                             <div>
-                                                <div style="font-weight: 800; color: var(--mlb-blue); font-size: 1rem; margin-bottom: 4px;">
-                                                    {% trans "Additional Children" %}
-                                                </div>
-                                                <div style="font-size: 0.85rem; color: #6c757d;">
-                                                    {% trans "Children (under 18) not registered as players" %}
-                                                </div>
+                                                <div class="nsc-card-title">{% trans "Additional Children" %}</div>
+                                                <div class="nsc-card-subtitle">{% trans "Children (under 18) not registered as players" %}</div>
                                             </div>
                                         </div>
-                                        <button type="button"
-                                                class="btn btn-sm add-child-button"
-                                                id="add-child-btn{{ event.hotel.pk }}"
-                                                data-hotel-pk="{{ event.hotel.pk }}"
-                                                onclick="if(typeof window.addChildForm{{ event.hotel.pk }} === 'function') { window.addChildForm{{ event.hotel.pk }}(); } else { console.error('Function not found'); }"
-                                                style="background: var(--mlb-red); color: white; border: none; border-radius: 8px; padding: 8px 16px; font-weight: 600; font-size: 0.85rem;">
-                                            <i class="fas fa-plus me-1"></i>{% trans "Add Child" %}
-                                        </button>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span style="font-size: 0.82rem; color: #6c757d; font-weight: 800;">{% trans "Total" %}</span>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary nsc-stepper-btn"
+                                                    data-hotel-pk="{{ event.hotel.pk }}" data-nsc-action="children-dec"
+                                                    aria-label="{% trans 'Decrease children' %}">-</button>
+                                            <input type="number" class="nsc-stepper-count" id="additional-children-count{{ event.hotel.pk }}" value="0" min="0" max="10" readonly>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary nsc-stepper-btn"
+                                                    data-hotel-pk="{{ event.hotel.pk }}" data-nsc-action="children-inc"
+                                                    aria-label="{% trans 'Increase children' %}">+</button>
+                                        </div>
                                     </div>
 
-                                    <!-- Contenedor de formularios de niños adicionales -->
-                                    <div id="additional-children-forms-container{{ event.hotel.pk }}">
-                                        <!-- Se llenará dinámicamente con JavaScript -->
+                                    <div style="font-size: 0.82rem; color: #6c757d;">
+                                        {% trans "Tip:" %} {% trans "You'll add names and birthdays after selecting a room." %}
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Resumen Total -->
-                            <div class="mb-4" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 12px; padding: 20px; color: white;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <div style="display: flex; align-items: center; gap: 12px;">
-                                        <div style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
-                                            <i class="fas fa-users" style="font-size: 1.5rem;"></i>
-                                        </div>
-                                        <div>
-                                            <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 4px;">{% trans "Total People" %}</div>
-                                            <div style="font-weight: 800; font-size: 1.8rem;">
-                                                <span id="total-people-count{{ event.hotel.pk }}">1</span>
-                                            </div>
+                            <div class="mb-4 nsc-summary">
+                                <div style="display:flex; align-items:center; justify-content:space-between; gap: 12px; flex-wrap: wrap;">
+                                    <div>
+                                        <div style="font-size:0.82rem; color:#6c757d; font-weight:800;">{% trans "Total guests" %}</div>
+                                        <div style="font-weight: 900; font-size: 1.8rem; color: var(--mlb-blue); line-height: 1.1;">
+                                            <span id="total-people-count{{ event.hotel.pk }}">1</span>
                                         </div>
                                     </div>
-                                    <div style="text-align: right;">
-                                        <div style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 4px;">{% trans "Breakdown" %}</div>
-                                        <div style="font-size: 0.9rem; font-weight: 600;">
-                                            <div><span id="adults-count{{ event.hotel.pk }}">1</span> {% trans "adults" %}</div>
-                                            <div id="players-breakdown{{ event.hotel.pk }}" style="display: none;">
-                                                <span id="players-count-breakdown{{ event.hotel.pk }}">0</span> {% trans "players" %}
-                                            </div>
-                                            <div id="additional-children-breakdown{{ event.hotel.pk }}" style="display: none;">
-                                                <span id="additional-children-count-breakdown{{ event.hotel.pk }}">0</span> {% trans "additional children" %}
-                                            </div>
+                                    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+                                        <div class="nsc-pill"><span id="adults-count{{ event.hotel.pk }}">1</span> {% trans "adults" %}</div>
+                                        <div class="nsc-pill" id="players-breakdown{{ event.hotel.pk }}" style="display:none;">
+                                            <span id="players-count-breakdown{{ event.hotel.pk }}">0</span> {% trans "players" %}
+                                        </div>
+                                        <div class="nsc-pill" id="additional-children-breakdown{{ event.hotel.pk }}" style="display:none;">
+                                            <span id="additional-children-count-breakdown{{ event.hotel.pk }}">0</span> {% trans "additional children" %}
                                         </div>
                                     </div>
                                 </div>
@@ -1681,19 +1676,20 @@ document.addEventListener('DOMContentLoaded', function() {
                             {% endif %}
                         </div>
                     </div>
-                    <div class="modal-footer" style="border-top: 2px solid #e9ecef; padding: 20px 25px; background: #f8f9fa;">
+                    <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 16px 20px; background: #ffffff;">
                         <button type="button"
-                                class="btn btn-secondary cancel-modal-btn"
+                                class="btn btn-form-cancel cancel-modal-btn"
                                 data-bs-dismiss="modal"
-                                style="padding: 10px 20px; border-radius: 8px; font-weight: 600;">
-                            <i class="fas fa-times me-1"></i>{% trans "Cancel" %}
+                                style="padding: 12px 22px;">
+                            {% trans "Cancel" %}
                         </button>
                         <button type="button"
-                                class="btn"
+                                class="btn btn-form-submit"
                                 id="show-rooms-btn{{ event.hotel.pk }}"
-                                style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; font-weight: 700; padding: 10px 25px; border-radius: 8px; border: none;"
-                                onclick="showHotelRooms{{ event.hotel.pk }}()">
-                            <i class="fas fa-bed me-1"></i>{% trans "Show Available Rooms" %}
+                                data-hotel-pk="{{ event.hotel.pk }}"
+                                style="padding: 12px 22px;"
+                                onclick="if (window.NSC_HotelReservation && typeof window.NSC_HotelReservation.showRooms === 'function') { window.NSC_HotelReservation.showRooms(this); }">
+                            <i class="fas fa-bed me-1"></i>{% trans "Choose room" %}
                         </button>
                     </div>
                 </form>
@@ -1701,7 +1697,170 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 
-    <script>
+    <!-- Modal: Guest Details (after room selection) -->
+    <div class="modal fade" id="hotelGuestDetailsModal{{ event.hotel.pk }}" data-hotel-pk="{{ event.hotel.pk }}" tabindex="-1" aria-labelledby="hotelGuestDetailsModalLabel{{ event.hotel.pk }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+                <div class="modal-header" style="padding: 16px 20px;">
+                    <div>
+                        <div class="nsc-step">{% trans "Step 3 of 3" %} • {% trans "Details" %}</div>
+                        <h5 class="modal-title mt-2" id="hotelGuestDetailsModalLabel{{ event.hotel.pk }}">
+                            <i class="fas fa-id-card me-2"></i>{% trans "Guest details" %}
+                        </h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <form method="post" action="{% url 'locations:front_hotel_reservation_create' %}" id="guest-details-form{{ event.hotel.pk }}">
+                    {% csrf_token %}
+                    <input type="hidden" name="hotel" id="guest-hotel{{ event.hotel.pk }}" value="{{ event.hotel.pk }}">
+                    <input type="hidden" name="room" id="guest-room{{ event.hotel.pk }}" value="">
+                    <input type="hidden" name="number_of_guests" id="guest-number-of-guests{{ event.hotel.pk }}" value="">
+                    {% if event.start_date %}
+                        <input type="hidden" name="check_in" id="guest-check-in{{ event.hotel.pk }}" value="{{ event.start_date|date:'Y-m-d' }}">
+                    {% else %}
+                        <input type="hidden" name="check_in" id="guest-check-in{{ event.hotel.pk }}" value="">
+                    {% endif %}
+                    {% if event.end_date %}
+                        <input type="hidden" name="check_out" id="guest-check-out{{ event.hotel.pk }}" value="{{ event.end_date|date:'Y-m-d' }}">
+                    {% else %}
+                        <input type="hidden" name="check_out" id="guest-check-out{{ event.hotel.pk }}" value="">
+                    {% endif %}
+                    <input type="hidden" name="notes" id="guest-notes{{ event.hotel.pk }}" value="">
+
+                    <div class="modal-body" style="padding: 20px;">
+                        <div class="nsc-card" style="padding: 12px 14px; margin-bottom: 14px;">
+                            <div style="font-size: 0.82rem; color: #6c757d; font-weight: 800;">{% trans "Selected room" %}</div>
+                            <div style="font-weight: 900; color: var(--mlb-blue); margin-top: 2px;">
+                                <span id="selected-room-label{{ event.hotel.pk }}">—</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 style="font-weight: 900; color: var(--mlb-blue); margin-bottom: 12px;">
+                                <i class="fas fa-user me-2" style="color: var(--mlb-red);"></i>{% trans "Adult 1 (Main Contact)" %}
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Full Name" %} *</label>
+                                    <input type="text" class="form-control" name="guest_name" required
+                                           value=""
+                                           style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Email" %} *</label>
+                                    <input type="email" class="form-control" name="guest_email" required value=""
+                                           style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Phone" %} *</label>
+                                    <input type="tel" class="form-control" name="guest_phone" required value=""
+                                           style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Notes (optional)" %}</label>
+                                    <input type="text" class="form-control" id="guest-notes-human{{ event.hotel.pk }}" placeholder="{% trans 'Any special requests?' %}"
+                                           style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4" id="guest-selected-players-wrap{{ event.hotel.pk }}" style="display:none;">
+                            <h6 style="font-weight: 900; color: var(--mlb-blue); margin-bottom: 12px;">
+                                <i class="fas fa-child me-2" style="color: var(--mlb-red);"></i>{% trans "Selected Players/Children" %}
+                            </h6>
+                            <div id="guest-selected-players{{ event.hotel.pk }}" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+                        </div>
+
+                        <div class="mb-4" id="guest-additional-adults-wrap{{ event.hotel.pk }}" style="display:none;">
+                            <h6 style="font-weight: 900; color: var(--mlb-blue); margin-bottom: 12px;">
+                                <i class="fas fa-user-friends me-2" style="color: var(--mlb-red);"></i>{% trans "Additional Adults" %}
+                            </h6>
+                            <div id="guest-additional-adults{{ event.hotel.pk }}"></div>
+                        </div>
+
+                        <div class="mb-2" id="guest-additional-children-wrap{{ event.hotel.pk }}" style="display:none;">
+                            <h6 style="font-weight: 900; color: var(--mlb-blue); margin-bottom: 12px;">
+                                <i class="fas fa-baby me-2" style="color: var(--mlb-red);"></i>{% trans "Additional Children" %}
+                            </h6>
+                            <div id="guest-additional-children{{ event.hotel.pk }}"></div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 16px 20px; background: #ffffff;">
+                        <button type="button" class="btn btn-form-cancel" data-bs-dismiss="modal" style="padding: 12px 22px;">
+                            {% trans "Back" %}
+                        </button>
+                        <button type="submit" class="btn btn-form-submit" style="padding: 12px 22px;">
+                            {% trans "Create reservation" %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Room Details -->
+    <div class="modal fade" id="roomDetailModal{{ event.hotel.pk }}"
+         data-hotel-pk="{{ event.hotel.pk }}"
+         data-room-detail-url-template="{% url 'locations:get_room_detail' room_id=999999 %}"
+         tabindex="-1" aria-labelledby="roomDetailModalLabel{{ event.hotel.pk }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header" style="padding: 16px 20px;">
+                    <div>
+                        <div class="nsc-step">{% trans "Room details" %}</div>
+                        <h5 class="modal-title mt-2" id="roomDetailModalLabel{{ event.hotel.pk }}">
+                            <i class="fas fa-bed me-2"></i><span id="room-detail-title{{ event.hotel.pk }}">{% trans "Room" %}</span>
+                        </h5>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" style="padding: 18px 20px;">
+                    <div class="row g-4">
+                        <div class="col-lg-7">
+                            <div class="nsc-card" style="padding: 0; overflow: hidden;">
+                                <div id="room-detail-gallery{{ event.hotel.pk }}">
+                                    <div style="padding: 18px; color: #6c757d;">{% trans "Loading..." %}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="nsc-card" style="padding: 16px;">
+                                <div class="nsc-card-title">{% trans "Overview" %}</div>
+                                <div class="nsc-card-subtitle" id="room-detail-subtitle{{ event.hotel.pk }}"></div>
+                                <hr style="border-top: 2px solid #e9ecef; opacity: 1;">
+                                <div id="room-detail-description{{ event.hotel.pk }}" style="color:#333; line-height:1.7;"></div>
+                                <div class="mt-3 nsc-summary">
+                                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                        <div class="nsc-pill"><span id="room-detail-capacity{{ event.hotel.pk }}">-</span> {% trans "guests" %}</div>
+                                        <div class="nsc-pill">$<span id="room-detail-price{{ event.hotel.pk }}">-</span>/{% trans "night" %}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="nsc-card mt-3" style="padding: 16px;">
+                                <div class="nsc-card-title">{% trans "Amenities" %}</div>
+                                <div id="room-detail-amenities{{ event.hotel.pk }}" style="margin-top: 10px; display:flex; flex-wrap:wrap; gap:8px;"></div>
+                            </div>
+
+                            <div class="nsc-card mt-3" style="padding: 16px;">
+                                <div class="nsc-card-title">{% trans "Services" %}</div>
+                                <div id="room-detail-services{{ event.hotel.pk }}" style="margin-top: 10px; display:flex; flex-direction:column; gap:10px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 16px 20px; background: #ffffff;">
+                    <button type="button" class="btn btn-form-cancel" data-bs-dismiss="modal" style="padding: 12px 22px;">
+                        {% trans "Close" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% comment %}<script>
         // Definir funciones globales INMEDIATAMENTE (fuera de IIFE)
         window.addAdultForm{{ event.hotel.pk }} = function() {
             console.log('addAdultForm{{ event.hotel.pk }} called (global)');
@@ -2014,7 +2173,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                    max="${new Date().toISOString().split('T')[0]}"
                                    required
                                    style="border: 2px solid #e9ecef; border-radius: 8px; padding: 10px;"
-                                   onchange="updateChildAge${event.hotel.pk}(this, ${index})"
+                                   onchange="updateChildAge{{ event.hotel.pk }}(this, ${index})"
                                    onfocus="this.style.borderColor='var(--mlb-blue)';"
                                    onblur="this.style.borderColor='#e9ecef';">
                             <small class="text-muted" style="font-size: 0.75rem; display: block; margin-top: 4px;">
@@ -2603,6 +2762,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         })();
-    </script>
+    </script>{% endcomment %}
 {% endif %}
 
