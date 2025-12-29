@@ -600,14 +600,14 @@ class AdminDashboard {
     }
 
     // Utility methods
-    showToast(message, type = 'info', title = null, duration = 5000) {
+    showToast(message, type = 'info', title = null, duration = 5000, imageUrl = null) {
         // Modern toast notification implementation
         const toastContainer = document.getElementById('toastContainer') || this.createToastContainer();
 
         // Generate unique ID for this toast
         const toastId = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-        // Get icon based on type
+        // Get icon based on type (only if no image provided)
         const icons = {
             'success': 'fa-check-circle',
             'error': 'fa-exclamation-circle',
@@ -633,11 +633,18 @@ class AdminDashboard {
         toast.setAttribute('aria-live', 'assertive');
         toast.setAttribute('aria-atomic', 'true');
 
+        // Icon or image section
+        const iconOrImage = imageUrl
+            ? `<div class="toast-icon toast-image" style="width: 48px; height: 48px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: #f8f9fa;">
+                <img src="${imageUrl}" alt="Room image" style="width: 100%; height: 100%; object-fit: cover;">
+               </div>`
+            : `<div class="toast-icon">
+                <i class="fas ${icon}"></i>
+               </div>`;
+
         toast.innerHTML = `
             <div class="toast-content">
-                <div class="toast-icon">
-                    <i class="fas ${icon}"></i>
-                </div>
+                ${iconOrImage}
                 <div class="toast-body-wrapper">
                     ${title ? `<div class="toast-title">${title}</div>` : ''}
                     <div class="toast-message">${message}</div>
@@ -791,9 +798,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Global utility functions
 window.AdminUtils = {
-    showToast: (message, type = 'info') => {
+    showToast: (message, type = 'info', title = null, duration = 5000, imageUrl = null) => {
         if (window.adminDashboard) {
-            window.adminDashboard.showToast(message, type);
+            window.adminDashboard.showToast(message, type, title, duration, imageUrl);
         }
     },
 
@@ -1014,6 +1021,75 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             .replaceAll("'", '&#039;');
     }
 
+    // Helper function to show toast notifications
+    function showToast(message, type = 'warning', duration = 6000, imageUrl = null) {
+        if (window.AdminUtils && window.AdminUtils.showToast) {
+            // AdminUtils.showToast doesn't support imageUrl, so we'll call adminDashboard directly
+            if (window.adminDashboard && window.adminDashboard.showToast) {
+                window.adminDashboard.showToast(message, type, null, duration, imageUrl);
+            } else {
+                window.AdminUtils.showToast(message, type);
+            }
+        } else if (window.adminDashboard && window.adminDashboard.showToast) {
+            window.adminDashboard.showToast(message, type, null, duration, imageUrl);
+        } else {
+            // Fallback to alert if toast system is not available
+            alert(message);
+        }
+    }
+
+    // Helper function to setup focus management for modals
+    function setupModalFocusHandling(modalEl) {
+        if (!modalEl) return modalEl;
+
+        // Check if listeners are already added (use a data attribute as flag)
+        if (modalEl.dataset.focusHandlingSetup === 'true') {
+            return modalEl;
+        }
+
+        // Mark as setup
+        modalEl.dataset.focusHandlingSetup = 'true';
+
+        // Add event listeners to handle focus when modal is hidden
+        modalEl.addEventListener('hide.bs.modal', function(e) {
+            // Remove focus from any element inside the modal before hiding
+            const activeEl = document.activeElement;
+            if (activeEl && modalEl.contains(activeEl)) {
+                try {
+                    activeEl.blur();
+                } catch (err) {
+                    // Ignore errors if blur fails
+                }
+            }
+        }, { once: false });
+
+        modalEl.addEventListener('hidden.bs.modal', function(e) {
+            // Ensure focus is moved away after modal is hidden
+            const activeEl = document.activeElement;
+            if (activeEl && modalEl.contains(activeEl)) {
+                try {
+                    activeEl.blur();
+                } catch (err) {
+                    // Ignore errors
+                }
+            }
+            // Try to focus body or remove focus completely
+            try {
+                // Use requestAnimationFrame to ensure this happens after Bootstrap's cleanup
+                requestAnimationFrame(() => {
+                    const stillActive = document.activeElement;
+                    if (stillActive && modalEl.contains(stillActive)) {
+                        stillActive.blur();
+                    }
+                });
+            } catch (err) {
+                // Ignore errors
+            }
+        }, { once: false });
+
+        return modalEl;
+    }
+
     function setCounter(pk, which, value) {
         const id = which === 'adults' ? `adults-total-count${pk}` : `additional-children-count${pk}`;
         const el = q(id);
@@ -1021,6 +1097,19 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         const min = which === 'adults' ? 1 : 0;
         const v = Math.max(min, Math.min(MAX_ADDITIONAL, Number(value) || 0));
         el.value = String(v);
+    }
+
+    // Direct stepper API (used by inline onclicks in the template)
+    function stepper(pk, action) {
+        const p = String(pk || '');
+        if (!p) return;
+
+        if (action === 'adults-inc') setCounter(p, 'adults', getAdultsCount(p) + 1);
+        if (action === 'adults-dec') setCounter(p, 'adults', getAdultsCount(p) - 1);
+        if (action === 'children-inc') setCounter(p, 'children', getAdditionalChildrenCount(p) + 1);
+        if (action === 'children-dec') setCounter(p, 'children', getAdditionalChildrenCount(p) - 1);
+
+        updateSummary(p);
     }
 
     function renderSelectedPlayers(pk) {
@@ -1187,12 +1276,84 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
     }
 
     function initModal(pk) {
-        // Ensure counters exist
-        if (!q(`adults-total-count${pk}`)) return;
-        if (!q(`additional-children-count${pk}`)) return;
+        console.log('initModal called with pk:', pk);
 
-        renderSelectedPlayers(pk);
-        updateSummary(pk);
+        // First, try to find the modal (may need to wait for DOM)
+        let reservationModalEl = q(`hotelReservationModal${pk}`);
+
+        // If not found, try with document.querySelector as fallback
+        if (!reservationModalEl) {
+            reservationModalEl = document.getElementById(`hotelReservationModal${pk}`);
+        }
+
+        // If still not found, try searching in all modals
+        if (!reservationModalEl) {
+            console.log('Trying to find modal in DOM...');
+            reservationModalEl = document.querySelector(`[id="hotelReservationModal${pk}"]`);
+        }
+
+        if (!reservationModalEl) {
+            console.error('Modal element not found: hotelReservationModal' + pk);
+            console.log('Available modals:', Array.from(document.querySelectorAll('.modal')).map(m => m.id));
+            return;
+        }
+
+        console.log('Modal element found:', reservationModalEl.id);
+
+        if (!window.bootstrap?.Modal) {
+            console.error('Bootstrap Modal not available');
+            return;
+        }
+
+        try {
+            // Check if modal is already visible
+            const isVisible = reservationModalEl.classList.contains('show');
+
+            // Setup focus handling for this modal
+            setupModalFocusHandling(reservationModalEl);
+
+            let modalInstance = bootstrap.Modal.getInstance(reservationModalEl);
+
+            if (!modalInstance) {
+                console.log('Creating new modal instance...');
+                modalInstance = new bootstrap.Modal(reservationModalEl);
+            }
+
+            if (modalInstance && typeof modalInstance.show === 'function') {
+                if (isVisible) {
+                    // Modal is already open, just update content
+                    console.log('Modal already visible, updating content...');
+                    if (q(`adults-total-count${pk}`) && q(`additional-children-count${pk}`)) {
+                        renderSelectedPlayers(pk);
+                        updateSummary(pk);
+                        console.log('Content updated successfully');
+                    }
+                } else {
+                    // Modal is closed, open it and initialize
+                    console.log('Showing modal...');
+
+                    // Initialize elements AFTER modal is shown
+                    reservationModalEl.addEventListener('shown.bs.modal', () => {
+                        console.log('Modal shown, initializing elements...');
+
+                        // Now the elements should exist
+                        if (q(`adults-total-count${pk}`) && q(`additional-children-count${pk}`)) {
+                            renderSelectedPlayers(pk);
+                            updateSummary(pk);
+                            console.log('Elements initialized successfully');
+                        } else {
+                            console.warn('Elements still not found after modal shown');
+                        }
+                    }, { once: true });
+
+                    modalInstance.show();
+                }
+            } else {
+                console.error('Modal instance invalid or show method not available');
+            }
+        } catch (e) {
+            console.error('Error in initModal:', e);
+        }
     }
 
     function showRooms(btnEl) {
@@ -1203,80 +1364,189 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         const players = getSelectedPlayers().length;
         const total = adults + addChildren + players;
 
-        if (adults < 1) return alert('At least one adult is required');
-        if (players === 0 && addChildren === 0) return alert('You must select at least one player or add at least one child');
+        if (adults < 1) {
+            showToast('At least one adult is required', 'warning');
+            return;
+        }
+        if (players === 0 && addChildren === 0) {
+            showToast('You must select at least one player or add at least one child', 'warning');
+            return;
+        }
+
+        const reservationModalEl = q(`hotelReservationModal${pk}`);
+        const roomsModalEl = q(`hotelRoomsModal${pk}`);
+        if (!roomsModalEl) {
+            showToast('Rooms modal not found', 'error');
+            return;
+        }
+
+        const openRoomsModal = () => {
+            // Filter + recommend inside the rooms modal
+            filterAndRecommendRooms(roomsModalEl, total);
+
+            if (!window.bootstrap?.Modal) return;
+            // Setup focus handling for this modal
+            setupModalFocusHandling(roomsModalEl);
+
+            let inst = bootstrap.Modal.getInstance(roomsModalEl);
+            if (!inst) inst = new bootstrap.Modal(roomsModalEl);
+            inst.show();
+
+            // Focus something inside rooms modal to avoid aria-hidden/focus warnings
+            roomsModalEl.addEventListener('shown.bs.modal', () => {
+                const closeBtn = roomsModalEl.querySelector('button.btn-close');
+                if (closeBtn && typeof closeBtn.focus === 'function') closeBtn.focus();
+            }, { once: true });
+        };
 
         // Close reservation modal first
-        const reservationModalEl = q(`hotelReservationModal${pk}`);
-        if (reservationModalEl && window.bootstrap?.Modal) {
-            const inst = bootstrap.Modal.getInstance(reservationModalEl);
-            if (inst) inst.hide();
+        if (reservationModalEl && window.bootstrap?.Modal && reservationModalEl.classList.contains('show')) {
+            // Move focus out of the reservation modal before hiding it
+            try {
+                const active = document.activeElement;
+                if (active && reservationModalEl.contains(active) && typeof active.blur === 'function') {
+                    active.blur();
+                }
+                // Focus a safe element outside modals
+                const sink = document.createElement('div');
+                sink.tabIndex = -1;
+                sink.setAttribute('aria-hidden', 'true');
+                sink.style.cssText = 'position:fixed; width:1px; height:1px; left:-9999px; top:-9999px;';
+                document.body.appendChild(sink);
+                sink.focus();
+                document.body.removeChild(sink);
+            } catch (_) {}
+
+            reservationModalEl.addEventListener('hidden.bs.modal', () => {
+                openRoomsModal();
+            }, { once: true });
+
+            // Just get existing instance and hide it - don't try to create new one
+            const modalInstance = bootstrap.Modal.getInstance(reservationModalEl);
+            if (modalInstance && typeof modalInstance.hide === 'function') {
+                try {
+                    modalInstance.hide();
+                } catch (e) {
+                    console.warn('Error hiding modal:', e);
+                    // Fallback: manually hide modal
+                    reservationModalEl.classList.remove('show');
+                    reservationModalEl.setAttribute('aria-hidden', 'true');
+                    reservationModalEl.style.display = 'none';
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) backdrop.remove();
+                    document.body.classList.remove('modal-open');
+                    openRoomsModal();
+                }
+            } else {
+                // No instance found, manually hide
+                reservationModalEl.classList.remove('show');
+                reservationModalEl.setAttribute('aria-hidden', 'true');
+                reservationModalEl.style.display = 'none';
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) backdrop.remove();
+                document.body.classList.remove('modal-open');
+                openRoomsModal();
+            }
+            return;
         }
 
-        // Open hotel details modal
-        const hotelModalEl = q(`hotelModal${pk}`);
-        if (hotelModalEl && window.bootstrap?.Modal) {
-            const modal = new bootstrap.Modal(hotelModalEl);
-            modal.show();
+        openRoomsModal();
+    }
 
-            // Filter room listings (capacity)
-            hotelModalEl.addEventListener('shown.bs.modal', function filterRooms() {
-                const roomListings = hotelModalEl.querySelectorAll('.room-listing');
-                // Clear old recommendation
-                roomListings.forEach(r => {
-                    r.classList.remove('nsc-room-recommended');
-                    const oldBadge = r.querySelector('.nsc-recommended-badge');
-                    if (oldBadge) oldBadge.remove();
-                });
+    function filterAndRecommendRooms(containerEl, total) {
+        if (!containerEl) return;
 
-                const candidates = [];
-                roomListings.forEach(roomListing => {
-                    const capAttr = roomListing.getAttribute('data-room-capacity');
-                    const cap = parseInt(capAttr || '0', 10);
-                    const ok = cap >= total;
-                    roomListing.style.display = ok ? '' : 'none';
+        const pk = containerEl.getAttribute('data-hotel-pk') || '';
+        const noneMsg = containerEl.querySelector(`#rooms-none-msg${pk}`) || containerEl.querySelector('[data-nsc-rooms-none]');
+        if (noneMsg) noneMsg.style.display = 'none';
 
-                    if (ok) {
-                        const priceAttr = roomListing.getAttribute('data-room-price');
-                        const price = parseFloat(String(priceAttr || '0')) || 0;
-                        candidates.push({ el: roomListing, cap: cap || 0, price });
-                    }
-                });
+        const roomListings = Array.from(containerEl.querySelectorAll('.room-listing-inline'));
+        // Clear old recommendation
+        roomListings.forEach(r => {
+            r.classList.remove('nsc-room-recommended');
+            const oldBadge = r.querySelector('.nsc-recommended-badge');
+            if (oldBadge) oldBadge.remove();
+        });
 
-                if (candidates.length) {
-                    // Best fit: smallest capacity waste; tie-break by lowest price
-                    candidates.sort((a, b) => {
-                        const wasteA = Math.max(0, a.cap - total);
-                        const wasteB = Math.max(0, b.cap - total);
-                        if (wasteA !== wasteB) return wasteA - wasteB;
-                        if (a.price !== b.price) return a.price - b.price;
-                        return 0;
-                    });
+        const candidates = [];
+        const hiddenRooms = [];
 
-                    const best = candidates[0].el;
-                    best.classList.add('nsc-room-recommended');
+        roomListings.forEach(roomListing => {
+            const capAttr = roomListing.getAttribute('data-room-capacity');
+            const cap = parseInt(capAttr || '0', 10);
+            const ok = cap >= total;
 
-                    const content = best.querySelector('.room-content') || best;
-                    const badge = document.createElement('div');
-                    badge.className = 'nsc-recommended-badge';
-                    badge.textContent = `Recommended for ${total} guests`;
-                    content.insertBefore(badge, content.firstChild);
+            if (ok) {
+                const priceAttr = roomListing.getAttribute('data-room-price');
+                const price = parseFloat(String(priceAttr || '0')) || 0;
+                // Calculate recommendation score: lower is better
+                // Priority: 1) Exact match, 2) Smallest waste, 3) Lowest price
+                const waste = Math.max(0, cap - total);
+                const isExactMatch = cap === total ? 0 : 1; // 0 = exact match (best), 1 = not exact
+                const score = isExactMatch * 1000 + waste * 10 + price / 100; // Weight: exact match > waste > price
+                candidates.push({ el: roomListing, cap: cap || 0, price, waste, isExactMatch, score });
+            } else {
+                hiddenRooms.push(roomListing);
+            }
+        });
 
-                    // Scroll into view for the user
-                    try {
-                        best.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    } catch (_) {
-                        best.scrollIntoView();
+        if (!candidates.length) {
+            if (noneMsg) noneMsg.style.display = '';
+            // Hide all rooms
+            roomListings.forEach(r => r.style.display = 'none');
+            return;
+        }
+
+        // Sort by recommendation score (lower is better)
+        candidates.sort((a, b) => {
+            if (a.score !== b.score) return a.score - b.score;
+            // If scores are equal, prefer exact match
+            if (a.isExactMatch !== b.isExactMatch) return a.isExactMatch - b.isExactMatch;
+            // Then by price
+            if (a.price !== b.price) return a.price - b.price;
+            return 0;
+        });
+
+        // Get parent container to reorder
+        const parentContainer = roomListings[0]?.parentElement;
+        if (!parentContainer) return;
+
+        // Hide rooms that don't fit
+        hiddenRooms.forEach(room => {
+            room.style.display = 'none';
+        });
+
+        // Reorder and show recommended rooms
+        candidates.forEach((candidate, index) => {
+            const roomEl = candidate.el;
+            roomEl.style.display = '';
+
+            // Mark top 3 as recommended
+            if (index < 3) {
+                roomEl.classList.add('nsc-room-recommended');
+
+                // Add badge only to the first (most recommended)
+                if (index === 0) {
+                    const roomInfo = roomEl.querySelector('.room-info');
+                    if (roomInfo && !roomInfo.querySelector('.nsc-recommended-badge')) {
+                        const badge = document.createElement('div');
+                        badge.className = 'nsc-recommended-badge';
+                        badge.textContent = `⭐ Recommended for ${total} ${total === 1 ? 'guest' : 'guests'}`;
+                        badge.style.cssText = 'background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px; display: inline-block;';
+                        roomInfo.insertBefore(badge, roomInfo.firstChild);
                     }
                 }
-            }, { once: true });
-        }
+            }
+
+            // Move to correct position in DOM (append to maintain order)
+            parentContainer.appendChild(roomEl);
+        });
     }
 
     function renderGuestDetails(pk) {
         const selected = getSelectedPlayers();
 
-        // Selected players chips
+        // Selected players form fields
         const selectedWrap = q(`guest-selected-players-wrap${pk}`);
         const selectedEl = q(`guest-selected-players${pk}`);
         if (selectedWrap && selectedEl) {
@@ -1286,17 +1556,64 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             } else {
                 selectedWrap.style.display = 'block';
                 selectedEl.innerHTML = '';
-                selected.forEach(cb => {
+
+                // Get state to access player data
+                const state = stateByPk.get(pk);
+                const players = state?.guests?.filter(g => g.isPlayer) || [];
+
+                selected.forEach((cb, idx) => {
                     const childItem = cb.closest('.child-item');
                     const nameDiv =
                         childItem?.querySelector('div[style*="font-weight: 700"][style*="color: var(--mlb-blue)"]') ||
                         childItem?.querySelector('div[style*="font-weight: 700"]');
                     const name = nameDiv ? nameDiv.textContent.trim() : 'Player';
                     const birth = cb.getAttribute('data-birth-date') || '';
-                    const chip = document.createElement('div');
-                    chip.style.cssText = 'background:#ffffff; border:1px solid #e9ecef; border-radius:999px; padding:8px 12px; font-weight:800; color: var(--mlb-blue); font-size:0.85rem;';
-                    chip.textContent = birth ? `${name} (${birth})` : name;
-                    selectedEl.appendChild(chip);
+                    const email = childItem?.getAttribute('data-child-email') || '';
+
+                    // Try to get player data from state
+                    const playerData = players[idx] || {};
+                    const playerName = playerData.name || name;
+                    const playerBirthDate = playerData.birthDate || birth;
+                    const playerEmail = playerData.email || email;
+
+                    // Determine if player is adult or child based on age or type
+                    const playerAge = playerData.age;
+                    const playerType = playerData.type || (playerAge && playerAge >= 18 ? 'adult' : 'child');
+
+                    const block = document.createElement('div');
+                    block.className = 'nsc-guest-player';
+                    block.setAttribute('data-player-index', String(idx));
+                    block.style.cssText = 'background:#ffffff; border:2px solid #e9ecef; border-radius:12px; padding:14px; margin-bottom:12px;';
+
+                    block.innerHTML = `
+                        <div style="font-weight:900; color: var(--mlb-blue); margin-bottom:10px;">
+                            <i class="fas ${playerType === 'adult' ? 'fa-user' : 'fa-child'} me-2" style="color: var(--mlb-red);"></i>
+                            ${playerType === 'adult' ? 'Player (Adult)' : 'Player (Child)'} ${idx + 1}
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">Full Name *</label>
+                                <input type="text" class="form-control nsc-player-name" required
+                                       value="${escapeHtml(playerName)}"
+                                       style="border-radius:10px; border:2px solid #e9ecef; padding:10px;">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">Date of Birth *</label>
+                                <input type="date" class="form-control nsc-player-dob" required
+                                       value="${playerBirthDate || ''}"
+                                       style="border-radius:10px; border:2px solid #e9ecef; padding:10px;">
+                            </div>
+                            ${playerEmail ? `
+                            <div class="col-md-12">
+                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">Email</label>
+                                <input type="email" class="form-control nsc-player-email"
+                                       value="${escapeHtml(playerEmail)}"
+                                       style="border-radius:10px; border:2px solid #e9ecef; padding:10px;">
+                            </div>
+                            ` : ''}
+                        </div>
+                    `;
+                    selectedEl.appendChild(block);
                 });
             }
         }
@@ -1382,261 +1699,1037 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         const roomId = btnEl.getAttribute('data-room-id');
         if (!roomId) return;
 
-        const total = totalPeople(pk);
-        const capacity = parseInt(btnEl.getAttribute('data-room-capacity') || '0', 10);
-        if (capacity && total > capacity) {
-            alert(`This room fits ${capacity} guests, but you selected ${total}. Please adjust guests or choose another room.`);
-            return;
+        // Get current state or initialize
+        if (!stateByPk.has(pk)) {
+            stateByPk.set(pk, { rooms: [], guests: [], guestAssignments: {} }); // guestAssignments: { roomId: [guestIndex1, guestIndex2, ...] }
+        }
+        const state = stateByPk.get(pk);
+        if (!state.rooms) {
+            state.rooms = [];
+        }
+        if (!state.guestAssignments) {
+            state.guestAssignments = {};
         }
 
-        const roomListing = btnEl.closest('.room-listing');
+        // Find the actual room listing element
+        let roomListing = btnEl.closest('.room-listing-inline');
+        if (!roomListing) {
+            // If not found via closest, search in the rooms modal
+            const roomsModalEl = q(`hotelRoomsModal${pk}`);
+            roomListing = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`);
+        }
+
+        const capacity = parseInt(btnEl.getAttribute('data-room-capacity') || roomListing?.getAttribute('data-room-capacity') || '0', 10);
+
+        // Check if room is already selected
+        const roomIndex = state.rooms.findIndex(r => r.roomId === String(roomId));
+        const isCurrentlySelected = roomIndex !== -1;
+
+        // Calculate total capacity of all selected rooms
+        const totalGuests = state.guests ? state.guests.length : totalPeople(pk);
+        let totalCapacity = 0;
+        state.rooms.forEach(r => {
+            const roomEl = document.querySelector(`[data-room-id="${r.roomId}"]`);
+            if (roomEl) {
+                totalCapacity += parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10);
+            }
+        });
+
+        // Smart logic: Only suggest multiple rooms if single room can't accommodate
+        // If removing a room, check if remaining capacity is still sufficient
+        if (isCurrentlySelected) {
+            // Check if removing this room would leave enough capacity
+            const remainingCapacity = totalCapacity - capacity;
+            if (remainingCapacity >= totalGuests && state.rooms.length > 1) {
+                // Can remove this room, remaining rooms have enough capacity
+            } else if (remainingCapacity < totalGuests) {
+                // Can't remove, would exceed capacity
+                showToast(`Cannot remove this room. Remaining capacity (${remainingCapacity}) would be insufficient for ${totalGuests} guests.`, 'warning', 4000);
+                return;
+            }
+        } else {
+            // Adding a new room - check if it's actually needed
+            // Only warn if total capacity would still be insufficient, but allow selection
+            const newTotalCapacity = totalCapacity + capacity;
+            if (totalGuests > newTotalCapacity) {
+                // Still not enough capacity even with this room
+                const roomDetailUrl = btnEl.getAttribute('data-room-detail-url') || roomListing?.getAttribute('data-room-detail-url');
+                let firstImageUrl = null;
+
+                // Try to get image from already loaded room details
+                const detailGallery = q(`rooms-detail-gallery${pk}`);
+                if (detailGallery) {
+                    const mainImg = detailGallery.querySelector('.nsc-room-detail-gallery-main img');
+                    if (mainImg && mainImg.src) {
+                        firstImageUrl = mainImg.src;
+                    }
+                }
+
+                // Show toast
+                if (firstImageUrl) {
+                    showToast(`Adding this room would give you ${newTotalCapacity} total capacity, but you have ${totalGuests} guests. Please add another room or change to a room with higher capacity.`, 'warning', 6000, firstImageUrl);
+                } else if (roomDetailUrl) {
+                    fetch(roomDetailUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                        .then(res => res.ok ? res.json() : null)
+                        .then(data => {
+                            const imgUrl = (data && data.images && data.images.length > 0)
+                                ? (data.images[0].image_url || data.images[0].url)
+                                : null;
+                            showToast(`Adding this room would give you ${newTotalCapacity} total capacity, but you have ${totalGuests} guests. Please add another room or change to a room with higher capacity.`, 'warning', 6000, imgUrl);
+                        })
+                        .catch(() => {
+                            showToast(`Adding this room would give you ${newTotalCapacity} total capacity, but you have ${totalGuests} guests. Please add another room or change to a room with higher capacity.`, 'warning');
+                        });
+                } else {
+                    showToast(`Adding this room would give you ${newTotalCapacity} total capacity, but you have ${totalGuests} guests. Please select more rooms or adjust guests.`, 'warning');
+                }
+                // Don't return - allow selection but show warning
+            }
+        }
+
+        // Old single-room validation (removed - now we allow multiple rooms)
+        const oldCapacityCheck = false;
+        if (oldCapacityCheck && capacity && totalGuests > capacity) {
+            // Get first room image for toast
+            const roomDetailUrl = btnEl.getAttribute('data-room-detail-url') || roomListing?.getAttribute('data-room-detail-url');
+            let firstImageUrl = null;
+
+            // Try to get image from already loaded room details
+            const detailGallery = q(`rooms-detail-gallery${pk}`);
+            if (detailGallery) {
+                const mainImg = detailGallery.querySelector('.nsc-room-detail-gallery-main img');
+                if (mainImg && mainImg.src) {
+                    firstImageUrl = mainImg.src;
+                }
+            }
+
+            // Show toast immediately with image if available, or fetch it
+            if (firstImageUrl) {
+                showToast(`This room fits ${capacity} guests, but you have ${total} guests. Please adjust guests or choose another room.`, 'warning', 6000, firstImageUrl);
+            } else if (roomDetailUrl) {
+                // Fetch image quickly and show toast
+                fetch(roomDetailUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(res => res.ok ? res.json() : null)
+                    .then(data => {
+                        const imgUrl = (data && data.images && data.images.length > 0)
+                            ? (data.images[0].image_url || data.images[0].url)
+                            : null;
+                        showToast(`This room fits ${capacity} guests, but you have ${total} guests. Please adjust guests or choose another room.`, 'warning', 6000, imgUrl);
+                    })
+                    .catch(() => {
+                        // Show toast without image if fetch fails
+                        showToast(`This room fits ${capacity} guests, but you have ${total} guests. Please adjust guests or choose another room.`, 'warning');
+                    });
+            } else {
+                // No image available, show toast without image
+                showToast(`This room fits ${capacity} guests, but you have ${total} guests. Please adjust guests or choose another room.`, 'warning');
+            }
+            return;
+        }
         const roomName = roomListing?.querySelector('.room-name')?.textContent?.trim() || 'Room';
         const roomFeatures = roomListing?.querySelector('.room-features')?.textContent?.trim() || '';
         const roomLabel = `${roomName}${roomFeatures ? ` • ${roomFeatures}` : ''}`;
 
-        stateByPk.set(String(pk), { roomId: String(roomId), roomLabel });
+        // Toggle room selection (add or remove from array)
+        if (isCurrentlySelected) {
+            // Check if removing this room would leave enough capacity
+            const remainingCapacity = totalCapacity - capacity;
+            if (remainingCapacity < totalGuests && state.rooms.length > 1) {
+                showToast(`Cannot remove this room. Remaining capacity (${remainingCapacity}) would be insufficient for ${totalGuests} guests.`, 'warning', 4000);
+                return;
+            }
 
-        // Close hotel modal
-        const hotelModalEl = q(`hotelModal${pk}`);
-        if (hotelModalEl && window.bootstrap?.Modal) {
-            const inst = bootstrap.Modal.getInstance(hotelModalEl);
-            if (inst) inst.hide();
+            // Remove room from selection
+            state.rooms.splice(roomIndex, 1);
+            // Remove guest assignments for this room
+            delete state.guestAssignments[String(roomId)];
+            if (roomListing) {
+                roomListing.removeAttribute('data-selected');
+            } else {
+                const roomsModalEl = q(`hotelRoomsModal${pk}`);
+                const foundRoom = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`);
+                if (foundRoom) {
+                    foundRoom.removeAttribute('data-selected');
+                }
+            }
+            showToast(`Room "${roomLabel}" removed from selection`, 'info', 3000);
+        } else {
+            // Smart check: Only add if actually needed or user explicitly wants multiple rooms
+            // If a single room can already accommodate all guests, warn but allow
+            if (state.rooms.length > 0 && totalGuests <= totalCapacity) {
+                const confirmAdd = confirm(`You already have enough capacity with ${state.rooms.length} room${state.rooms.length > 1 ? 's' : ''} (${totalCapacity} guests). Do you want to add another room anyway?`);
+                if (!confirmAdd) {
+                    return;
+                }
+            }
+
+            // Add room to selection
+            state.rooms.push({
+                roomId: String(roomId),
+                roomLabel: roomLabel,
+                capacity: capacity
+            });
+            // Initialize empty guest assignments for this room
+            state.guestAssignments[String(roomId)] = [];
+
+            if (roomListing) {
+                roomListing.setAttribute('data-selected', 'true');
+            } else {
+                const roomsModalEl = q(`hotelRoomsModal${pk}`);
+                const foundRoom = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`);
+                if (foundRoom) {
+                    foundRoom.setAttribute('data-selected', 'true');
+                }
+            }
+            showToast(`Room "${roomLabel}" added to selection (${state.rooms.length} room${state.rooms.length > 1 ? 's' : ''} selected)`, 'success', 3000);
         }
 
-        // Populate guest modal
-        const roomInput = q(`guest-room${pk}`);
-        if (roomInput) roomInput.value = String(roomId);
+        // Auto-distribute guests if not manually assigned yet
+        autoDistributeGuests(pk);
 
-        const labelEl = q(`selected-room-label${pk}`);
-        if (labelEl) labelEl.textContent = roomLabel;
+        // Ensure room element has rules before calculating price
+        // If rules are missing, try to get them from the detail modal data
+        if (roomListing && !roomListing.getAttribute('data-room-rules')) {
+            const roomDetailUrl = roomListing.getAttribute('data-room-detail-url');
+            if (roomDetailUrl) {
+                // Fetch room details to get rules if not already loaded
+                fetch(roomDetailUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(res => res.ok ? res.json() : null)
+                    .then(roomData => {
+                        if (roomData) {
+                            if (roomData.rules && Array.isArray(roomData.rules)) {
+                                roomListing.setAttribute('data-room-rules', JSON.stringify(roomData.rules));
+                                console.log('selectRoom: Loaded and stored rules from API:', roomData.rules);
+                            }
+                            if (roomData.price_includes_guests) {
+                                roomListing.setAttribute('data-room-includes-guests', String(roomData.price_includes_guests));
+                            }
+                            if (roomData.additional_guest_price !== undefined) {
+                                roomListing.setAttribute('data-room-additional-guest-price', String(roomData.additional_guest_price));
+                            }
+                            if (roomData.capacity !== undefined) {
+                                roomListing.setAttribute('data-room-capacity', String(roomData.capacity));
+                            }
+                            // Update price calculation after loading rules
+                            updateRoomsPriceCalculation(pk);
+                        }
+                    })
+                    .catch(err => console.warn('selectRoom: Error fetching room details for rules:', err));
+            }
+        }
 
-        renderGuestDetails(pk);
+        // Update price calculation
+        updateRoomsPriceCalculation(pk);
+        validateRoomSelection(pk);
 
-        const guestModalEl = q(`hotelGuestDetailsModal${pk}`);
-        if (guestModalEl && window.bootstrap?.Modal) {
-            const guestModal = new bootstrap.Modal(guestModalEl);
-            guestModal.show();
+        // Show success message
+        const statusEl = q(`rooms-selection-status${pk}`);
+        if (statusEl) {
+            statusEl.style.display = 'block';
+            statusEl.style.background = '#d4edda';
+            statusEl.style.border = '1px solid #c3e6cb';
+            statusEl.style.color = '#155724';
+            statusEl.innerHTML = `<i class="fas fa-check-circle me-1"></i><strong>Room selected!</strong> Ready to continue.`;
+        }
+    }
+
+    function backToGuests(pk) {
+        const p = String(pk || '');
+        if (!p) return;
+        const roomsModalEl = q(`hotelRoomsModal${p}`);
+        const reservationModalEl = q(`hotelReservationModal${p}`);
+        if (!roomsModalEl || !reservationModalEl || !window.bootstrap?.Modal) return;
+
+        const openReservation = () => {
+            // Setup focus handling for this modal
+            setupModalFocusHandling(reservationModalEl);
+
+            let inst = bootstrap.Modal.getInstance(reservationModalEl);
+            if (!inst) inst = new bootstrap.Modal(reservationModalEl);
+            inst.show();
+        };
+
+        if (roomsModalEl.classList.contains('show')) {
+            roomsModalEl.addEventListener('hidden.bs.modal', () => openReservation(), { once: true });
+            const inst = bootstrap.Modal.getInstance(roomsModalEl);
+            if (inst) inst.hide();
+            else openReservation();
+        } else {
+            openReservation();
+        }
+    }
+
+    function backToRooms(pk) {
+        const p = String(pk || '');
+        if (!p) return;
+        const guestModalEl = q(`hotelGuestDetailsModal${p}`);
+        const roomsModalEl = q(`hotelRoomsModal${p}`);
+        if (!guestModalEl || !roomsModalEl || !window.bootstrap?.Modal) return;
+
+        const openRooms = () => {
+            // Setup focus handling for this modal
+            const actualRoomsModal = setupModalFocusHandling(roomsModalEl) || roomsModalEl;
+            let inst = bootstrap.Modal.getInstance(actualRoomsModal);
+            if (!inst) inst = new bootstrap.Modal(actualRoomsModal);
+            inst.show();
+        };
+
+        if (guestModalEl.classList.contains('show')) {
+            guestModalEl.addEventListener('hidden.bs.modal', () => openRooms(), { once: true });
+            const inst = bootstrap.Modal.getInstance(guestModalEl);
+            if (inst) inst.hide();
+            else openRooms();
+        } else {
+            openRooms();
         }
     }
 
     async function openRoomDetail(fromEl) {
-        const pk = getPk(fromEl);
-        if (!pk) return;
-        const roomId = fromEl.getAttribute('data-room-id');
-        if (!roomId) return;
-
-        const modalEl = q(`roomDetailModal${pk}`);
-        if (!modalEl) return;
-
-        const urlTemplate = modalEl.getAttribute('data-room-detail-url-template');
-        if (!urlTemplate) return;
-        const url = urlTemplate.replace('999999', String(roomId));
-
-        // Reset UI
-        const titleEl = q(`room-detail-title${pk}`);
-        const subtitleEl = q(`room-detail-subtitle${pk}`);
-        const descEl = q(`room-detail-description${pk}`);
-        const capEl = q(`room-detail-capacity${pk}`);
-        const priceEl = q(`room-detail-price${pk}`);
-        const galleryEl = q(`room-detail-gallery${pk}`);
-        const amenitiesEl = q(`room-detail-amenities${pk}`);
-        const servicesEl = q(`room-detail-services${pk}`);
-
-        if (titleEl) titleEl.textContent = 'Room';
-        if (subtitleEl) subtitleEl.textContent = '';
-        if (descEl) descEl.textContent = '';
-        if (capEl) capEl.textContent = '-';
-        if (priceEl) priceEl.textContent = '-';
-        if (amenitiesEl) amenitiesEl.innerHTML = '';
-        if (servicesEl) servicesEl.innerHTML = '';
-        if (galleryEl) galleryEl.innerHTML = `<div style="padding: 18px; color: #6c757d;">Loading...</div>`;
-
-        // Open modal immediately (loading state)
-        if (window.bootstrap?.Modal) {
-            const inst = bootstrap.Modal.getInstance(modalEl);
-            (inst || new bootstrap.Modal(modalEl)).show();
+        if (!fromEl) {
+            console.warn('openRoomDetail: fromEl is null');
+            return;
+        }
+        // Support both button clicks and room card clicks
+        const roomEl = fromEl.classList?.contains('room-listing-inline') ? fromEl : fromEl.closest('.room-listing-inline');
+        if (!roomEl) {
+            console.warn('openRoomDetail: room element not found');
+            return;
+        }
+        const url = roomEl.getAttribute('data-room-detail-url') || fromEl.getAttribute('data-room-detail-url') || fromEl.getAttribute('data-room-detail');
+        if (!url) {
+            console.warn('openRoomDetail: No URL found', roomEl);
+            return;
         }
 
+        // Get room ID and hotel PK
+        const roomId = roomEl.getAttribute('data-room-id');
+        const pk = getPk(roomEl) || getPk(fromEl) || roomEl.closest?.('.modal[data-hotel-pk]')?.getAttribute?.('data-hotel-pk');
+        console.log('openRoomDetail: pk =', pk, 'roomId =', roomId, 'url =', url);
+
+        if (!pk || !roomId) {
+            console.warn('openRoomDetail: Missing pk or roomId');
+            return;
+        }
+
+        // Open the room detail modal
+        const modalEl = q(`roomDetailModal${pk}`);
+        if (!modalEl) {
+            console.warn('openRoomDetail: Modal not found', `roomDetailModal${pk}`);
+            return;
+        }
+
+        // Get modal elements
+        const titleEl = q(`room-detail-modal-title${pk}`);
+        const subtitleEl = q(`room-detail-modal-subtitle${pk}`);
+        const descEl = q(`room-detail-modal-description${pk}`);
+        const capEl = q(`room-detail-modal-capacity${pk}`);
+        const priceEl = q(`room-detail-modal-price${pk}`);
+        const includesGuestsEl = q(`room-detail-modal-includes-guests${pk}`);
+        const additionalPriceEl = q(`room-detail-modal-additional-price${pk}`);
+        const breakfastEl = q(`room-detail-modal-breakfast${pk}`);
+        const roomNumberEl = q(`room-detail-modal-room-number${pk}`);
+        const galleryEl = q(`room-detail-modal-gallery${pk}`);
+        const amenitiesEl = q(`room-detail-modal-amenities${pk}`);
+        const rulesEl = q(`room-detail-modal-rules${pk}`);
+        const rulesContainerEl = q(`room-detail-modal-rules-container${pk}`);
+        const rulesValidationEl = q(`room-detail-modal-rules-validation${pk}`);
+        const selectBtn = q(`room-detail-modal-select-btn${pk}`);
+
+        // Reset UI
+        if (titleEl) titleEl.textContent = 'Loading...';
+        if (subtitleEl) subtitleEl.textContent = '';
+        if (descEl) descEl.innerHTML = '';
+        if (capEl) capEl.textContent = '-';
+        if (priceEl) priceEl.textContent = '-';
+        if (includesGuestsEl) includesGuestsEl.textContent = '-';
+        if (additionalPriceEl) additionalPriceEl.textContent = '-';
+        if (breakfastEl) breakfastEl.textContent = '-';
+        if (roomNumberEl) roomNumberEl.textContent = '-';
+        if (amenitiesEl) amenitiesEl.innerHTML = '';
+        if (rulesEl) rulesEl.innerHTML = '';
+        if (rulesValidationEl) rulesValidationEl.innerHTML = '';
+        if (rulesContainerEl) rulesContainerEl.style.display = 'none';
+        if (galleryEl) galleryEl.innerHTML = `<div style="padding: 18px; color: #6c757d; text-align: center;">Loading...</div>`;
+
+        // Store room ID and PK on select button for later use
+        if (selectBtn) {
+            selectBtn.setAttribute('data-room-id', roomId);
+            selectBtn.setAttribute('data-hotel-pk', pk);
+            selectBtn.setAttribute('data-room-capacity', roomEl.getAttribute('data-room-capacity') || '0');
+        }
+
+        // Open modal
+        if (!window.bootstrap?.Modal) {
+            console.error('Bootstrap Modal not available');
+            return;
+        }
+        // Setup focus handling for this modal
+        setupModalFocusHandling(modalEl);
+
+        let modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (!modalInstance) {
+            modalInstance = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true, focus: true });
+        }
+
+        // Add blur effect to existing backdrop ONLY when Room Detail modal opens
+        const applyBlur = function() {
+            // Wait a bit for Bootstrap to create the new backdrop
+            setTimeout(() => {
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                if (backdrops.length > 1) {
+                    // Apply blur to the first backdrop (the one from the parent modal - Available Rooms)
+                    const firstBackdrop = backdrops[0];
+                    firstBackdrop.style.backdropFilter = 'blur(8px)';
+                    firstBackdrop.style.webkitBackdropFilter = 'blur(8px)';
+                    firstBackdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                    firstBackdrop.style.zIndex = '1055'; // Behind the Room Detail modal backdrop
+
+                    // Ensure the second backdrop (Room Detail) doesn't have blur and is above
+                    if (backdrops[1]) {
+                        backdrops[1].style.backdropFilter = '';
+                        backdrops[1].style.webkitBackdropFilter = '';
+                        backdrops[1].style.zIndex = '1059'; // Above the first backdrop
+                    }
+                }
+                // Ensure the modal itself has the highest z-index
+                if (modalEl) {
+                    modalEl.style.zIndex = '1060';
+                }
+            }, 100);
+        };
+
+        // Remove blur when Room Detail modal closes
+        const removeBlur = function() {
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            // Only restore the first backdrop (parent modal - Available Rooms)
+            if (backdrops.length > 0) {
+                const firstBackdrop = backdrops[0];
+                firstBackdrop.style.backdropFilter = '';
+                firstBackdrop.style.webkitBackdropFilter = '';
+                firstBackdrop.style.backgroundColor = '';
+                firstBackdrop.style.zIndex = '';
+            }
+        };
+
+        // Apply blur ONLY when Room Detail modal is shown
+        modalEl.addEventListener('shown.bs.modal', applyBlur, { once: true });
+
+        // Remove blur ONLY when Room Detail modal is hidden
+        modalEl.addEventListener('hidden.bs.modal', removeBlur, { once: true });
+
+        modalInstance.show();
+
         try {
+            console.log('openRoomDetail: Fetching room details from', url);
             const res = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
             if (!res.ok) throw new Error(`Request failed: ${res.status}`);
             const data = await res.json();
+            console.log('openRoomDetail: Data received', data);
+            console.log('openRoomDetail: Rules in data:', data.rules);
 
-            if (titleEl) titleEl.textContent = `${data.room_type || 'Room'}${data.room_number ? ` • ${data.room_number}` : ''}`;
-            if (subtitleEl) subtitleEl.textContent = data.hotel?.name ? data.hotel.name : '';
-            if (descEl) descEl.textContent = data.description || '';
-            if (capEl) capEl.textContent = String(data.capacity ?? '-');
-            if (priceEl) priceEl.textContent = String(data.price_per_night ?? '-');
+            // Store room data attributes on the room element FIRST, before updating UI
+            if (roomEl) {
+                if (data.price_includes_guests) {
+                    roomEl.setAttribute('data-room-includes-guests', String(data.price_includes_guests));
+                }
+                if (data.additional_guest_price !== undefined) {
+                    roomEl.setAttribute('data-room-additional-guest-price', String(data.additional_guest_price));
+                }
+                if (data.capacity !== undefined) {
+                    roomEl.setAttribute('data-room-capacity', String(data.capacity));
+                }
+                if (data.rules && Array.isArray(data.rules)) {
+                    console.log('openRoomDetail: Storing rules on roomEl:', data.rules);
+                    roomEl.setAttribute('data-room-rules', JSON.stringify(data.rules));
+                } else {
+                    console.warn('openRoomDetail: No rules in data or not an array:', data.rules);
+                }
+            } else {
+                console.warn('openRoomDetail: roomEl not found, cannot store room data');
+            }
 
-            // Gallery
+            // Update title and subtitle
+            if (titleEl) {
+                const roomName = data.name || data.room_type || 'Room';
+                const roomNumber = data.room_number ? ` • ${data.room_number}` : '';
+                titleEl.textContent = `${roomName}${roomNumber}`;
+            }
+            if (subtitleEl) {
+                subtitleEl.textContent = data.hotel?.name ? data.hotel.name : '';
+                subtitleEl.style.fontWeight = '400';
+            }
+
+            // Update description
+            if (descEl) {
+                if (data.description && data.description.trim()) {
+                    descEl.innerHTML = `<div style="white-space: pre-wrap; line-height: 1.6; font-weight: 400;">${escapeHtml(data.description)}</div>`;
+                } else {
+                    descEl.innerHTML = `<div style="color: #6c757d; font-style: italic; font-size: 0.85rem; font-weight: 400;">No description available.</div>`;
+                }
+            }
+
+            // Update capacity and price
+            if (capEl) capEl.textContent = `${data.capacity ?? '-'} ${data.capacity === 1 ? 'person' : 'people'}`;
+            if (priceEl) priceEl.textContent = `$${parseFloat(data.price_per_night || 0).toFixed(2)}`;
+
+            // Update additional information
+            const includesGuestsEl = q(`room-detail-modal-includes-guests${pk}`);
+            if (includesGuestsEl) {
+                const includes = data.price_includes_guests || 1;
+                includesGuestsEl.textContent = `${includes} ${includes === 1 ? 'guest' : 'guests'}`;
+            }
+
+            const additionalPriceEl = q(`room-detail-modal-additional-price${pk}`);
+            if (additionalPriceEl) {
+                const addPrice = parseFloat(data.additional_guest_price || 0);
+                additionalPriceEl.textContent = addPrice > 0 ? `$${addPrice.toFixed(2)}/night` : 'Included';
+            }
+
+            const breakfastEl = q(`room-detail-modal-breakfast${pk}`);
+            if (breakfastEl) {
+                breakfastEl.textContent = data.breakfast_included ? 'Included' : 'Not included';
+                breakfastEl.style.color = data.breakfast_included ? 'var(--mlb-blue)' : '#6c757d';
+            }
+
+            const roomNumberEl = q(`room-detail-modal-room-number${pk}`);
+            if (roomNumberEl) {
+                roomNumberEl.textContent = data.room_number || '-';
+            }
+
+            // Gallery (masonry layout)
             if (galleryEl) {
                 const images = Array.isArray(data.images) ? data.images : [];
                 if (!images.length) {
-                    galleryEl.innerHTML = `<div style="padding: 18px; color: #6c757d;">No images available.</div>`;
-                } else if (images.length === 1) {
-                    const img = images[0];
-                    galleryEl.innerHTML = `
-                        <img src="${img.url}" alt="${escapeHtml(img.alt || '')}" style="width:100%; height:420px; object-fit:cover; display:block;">
-                    `;
+                    galleryEl.innerHTML = `<div style="padding: 18px; color: #6c757d; text-align: center; font-size: 0.85rem;">No images available.</div>`;
                 } else {
-                    const carouselId = `roomGalleryCarousel${pk}`;
-                    const indicators = images.map((_, idx) =>
-                        `<button type="button" data-bs-target="#${carouselId}" data-bs-slide-to="${idx}" ${idx === 0 ? 'class="active" aria-current="true"' : ''} aria-label="Slide ${idx + 1}"></button>`
-                    ).join('');
-                    const slides = images.map((img, idx) => `
-                        <div class="carousel-item ${idx === 0 ? 'active' : ''}">
-                            <img src="${img.url}" alt="${escapeHtml(img.alt || '')}" style="width:100%; height:420px; object-fit:cover;">
-                        </div>
-                    `).join('');
-                    galleryEl.innerHTML = `
-                        <div id="${carouselId}" class="carousel slide" data-bs-ride="carousel">
-                            <div class="carousel-indicators">${indicators}</div>
-                            <div class="carousel-inner">${slides}</div>
-                            <button class="carousel-control-prev" type="button" data-bs-target="#${carouselId}" data-bs-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Previous</span>
-                            </button>
-                            <button class="carousel-control-next" type="button" data-bs-target="#${carouselId}" data-bs-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="visually-hidden">Next</span>
-                            </button>
-                        </div>
-                    `;
-                }
-            }
+                    // Store images globally for lightbox
+                    if (!window.roomImages) window.roomImages = {};
+                    window.roomImages[pk] = images;
 
-            // Amenities
-            if (amenitiesEl) {
-                const amenities = Array.isArray(data.amenities) ? data.amenities : [];
-                if (!amenities.length) {
-                    amenitiesEl.innerHTML = `<div style="color:#6c757d;">No amenities listed.</div>`;
-                } else {
-                    amenitiesEl.innerHTML = amenities.slice(0, 18).map(a => `
-                        <span class="nsc-pill" title="${escapeHtml(a.description || '')}">
-                            <i class="fas ${escapeHtml(a.icon || 'fa-check-circle')}" style="color: var(--mlb-red);"></i>
-                            ${escapeHtml(a.name || '')}
-                        </span>
-                    `).join('');
-                }
-            }
-
-            // Services
-            if (servicesEl) {
-                const services = Array.isArray(data.services) ? data.services : [];
-                if (!services.length) {
-                    servicesEl.innerHTML = `<div style="color:#6c757d;">No services listed.</div>`;
-                } else {
-                    servicesEl.innerHTML = services.slice(0, 10).map(s => `
-                        <div style="border:2px solid #e9ecef; border-radius: 12px; padding: 12px; background:#fff;">
-                            <div style="font-weight:900; color: var(--mlb-blue);">${escapeHtml(s.name || '')}</div>
-                            <div style="font-size:0.85rem; color:#6c757d; margin-top: 2px;">
-                                ${escapeHtml(s.type || '')}
-                                ${s.price ? ` • $${escapeHtml(s.price)}` : ``}
-                                ${s.is_per_night ? ` • /night` : ``}
-                                ${s.is_per_person ? ` • /person` : ``}
+                    // Create masonry gallery with better organization
+                    // Pre-calculate heights for better distribution
+                    const heights = [200, 180, 220, 190, 210, 200, 185, 215]; // Alternating heights for better balance
+                    const masonryItems = images.map((img, idx) => {
+                        const imgUrl = img.image_url || img.url;
+                        const imgAlt = escapeHtml(img.title || img.alt || `Room image ${idx + 1}`);
+                        // Use alternating heights for better visual balance
+                        const height = heights[idx % heights.length];
+                        const rowSpan = Math.ceil(height / 10);
+                        return `
+                            <div class="nsc-masonry-item" data-idx="${idx}" onclick="window.NSC_HotelReservation?.openLightbox?.('${pk}', ${idx});" style="grid-row-end: span ${rowSpan};">
+                                <img src="${imgUrl}" alt="${imgAlt}" loading="lazy" style="height: ${height}px; width: 100%; object-fit: cover;">
                             </div>
-                            ${s.description ? `<div style="margin-top:6px; color:#333;">${escapeHtml(s.description)}</div>` : ``}
-                        </div>
-                    `).join('');
+                        `;
+                    }).join('');
+
+                    galleryEl.innerHTML = `<div class="nsc-masonry-gallery">${masonryItems}</div>`;
+
+                    // After images load, adjust masonry layout
+                    setTimeout(() => {
+                        const masonryGallery = galleryEl.querySelector('.nsc-masonry-gallery');
+                        if (masonryGallery) {
+                            const items = masonryGallery.querySelectorAll('.nsc-masonry-item img');
+                            items.forEach((img, idx) => {
+                                img.onload = function() {
+                                    // Adjust height based on actual image aspect ratio
+                                    const naturalHeight = img.naturalHeight;
+                                    const naturalWidth = img.naturalWidth;
+                                    if (naturalWidth > 0) {
+                                        const aspectRatio = naturalHeight / naturalWidth;
+                                        const containerWidth = img.parentElement.offsetWidth || 180;
+                                        const calculatedHeight = containerWidth * aspectRatio;
+                                        const clampedHeight = Math.max(150, Math.min(280, calculatedHeight));
+                                        img.style.height = `${clampedHeight}px`;
+                                        const rowSpan = Math.ceil(clampedHeight / 10);
+                                        img.parentElement.style.gridRowEnd = `span ${rowSpan}`;
+                                    }
+                                };
+                                // Trigger if already loaded
+                                if (img.complete) img.onload();
+                            });
+                        }
+                    }, 100);
                 }
             }
-        } catch (err) {
-            if (galleryEl) {
-                galleryEl.innerHTML = `<div style="padding: 18px; color: #b30029; font-weight: 800;">Failed to load room details.</div>`;
+
+            // Reglas de Ocupación
+            if (rulesEl && rulesContainerEl) {
+                const rules = Array.isArray(data.rules) ? data.rules : [];
+                if (rules.length > 0) {
+                    rulesContainerEl.style.display = 'block';
+                    rulesEl.innerHTML = rules.map(rule => {
+                        const desc = rule.description ||
+                            `Adults: ${rule.min_adults}-${rule.max_adults} • Children: ${rule.min_children}-${rule.max_children}`;
+                        return `
+                            <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 0.85rem;">
+                                <div style="font-weight: 600; color: var(--mlb-blue); margin-bottom: 4px;">
+                                    <i class="fas fa-check-circle me-1" style="color: var(--mlb-red);"></i>${escapeHtml(desc)}
+                                </div>
+                                <div style="color: #6c757d; font-size: 0.8rem; font-weight: 400;">
+                                    Adults: ${rule.min_adults}-${rule.max_adults} • Children: ${rule.min_children}-${rule.max_children}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    // Validación de reglas con los huéspedes seleccionados
+                    if (rulesValidationEl) {
+                        const state = stateByPk.get(pk);
+                        const adults = state?.guests?.filter(g => g.type === 'adult').length || 0;
+                        const children = state?.guests?.filter(g => g.type === 'child').length || 0;
+
+                        const validRules = rules.filter(rule => {
+                            if (rule.hasOwnProperty('is_active') && !rule.is_active) return false;
+                            const minAdults = parseInt(rule.min_adults) || 0;
+                            const maxAdults = parseInt(rule.max_adults) || 999;
+                            const minChildren = parseInt(rule.min_children) || 0;
+                            const maxChildren = parseInt(rule.max_children) || 999;
+                            return adults >= minAdults && adults <= maxAdults &&
+                                   children >= minChildren && children <= maxChildren;
+                        });
+
+                        if (validRules.length > 0) {
+                            rulesValidationEl.innerHTML = `
+                                <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 10px; color: #155724; font-size: 0.85rem;">
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    <strong>Valid:</strong> Your selection (${adults} adults, ${children} children) matches the occupancy rules.
+                                </div>
+                            `;
+                        } else {
+                            rulesValidationEl.innerHTML = `
+                                <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 10px; color: #856404; font-size: 0.85rem;">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    <strong>Warning:</strong> Your selection (${adults} adults, ${children} children) does not match any occupancy rule.
+                                </div>
+                            `;
+                        }
+                    }
+                } else {
+                    rulesContainerEl.style.display = 'none';
+                }
             }
+
+            // Amenities (horizontal layout)
+            if (amenitiesEl) {
+                const a = Array.isArray(data.amenities) ? data.amenities : [];
+                if (a.length > 0) {
+                    amenitiesEl.innerHTML = a.map(am => `
+                        <div class="nsc-pill" style="font-size: 0.8rem; padding: 6px 12px; background: white; border: 1px solid #e9ecef; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;">
+                            <i class="${escapeHtml(am.icon_class || 'fas fa-check')}" style="color: var(--mlb-red); font-size: 0.75rem;"></i>
+                            <span style="font-weight: 500;">${escapeHtml(am.name || '')}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    amenitiesEl.innerHTML = `<div style="color:#6c757d; font-size: 0.85rem; font-style: italic;">No amenities listed.</div>`;
+                }
+            }
+
+            // Set up select button
+            if (selectBtn) {
+                selectBtn.onclick = function() {
+                    // Find the actual room listing element in the Available Rooms modal
+                    const roomsModalEl = q(`hotelRoomsModal${pk}`);
+                    const actualRoomEl = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`);
+
+                    if (actualRoomEl) {
+                        // Ensure all room data attributes are set on the actual room element
+                        if (data.price_includes_guests) {
+                            actualRoomEl.setAttribute('data-room-includes-guests', String(data.price_includes_guests));
+                        }
+                        if (data.additional_guest_price !== undefined) {
+                            actualRoomEl.setAttribute('data-room-additional-guest-price', String(data.additional_guest_price));
+                        }
+                        if (data.capacity !== undefined) {
+                            actualRoomEl.setAttribute('data-room-capacity', String(data.capacity));
+                        }
+                        if (data.rules && Array.isArray(data.rules)) {
+                            console.log('selectRoom from modal: Storing rules on actualRoomEl:', data.rules);
+                            actualRoomEl.setAttribute('data-room-rules', JSON.stringify(data.rules));
+                        } else {
+                            console.warn('selectRoom from modal: No rules in data or not an array:', data.rules);
+                        }
+
+                        // Ensure price is also set if not already present
+                        if (!actualRoomEl.getAttribute('data-room-price') && data.price_per_night) {
+                            actualRoomEl.setAttribute('data-room-price', String(data.price_per_night));
+                        }
+
+                        // Create a button element to pass to selectRoom
+                        const btn = document.createElement('button');
+                        btn.setAttribute('data-room-id', roomId);
+                        btn.setAttribute('data-hotel-pk', pk);
+                        btn.setAttribute('data-room-capacity', actualRoomEl.getAttribute('data-room-capacity') || '0');
+                        btn.setAttribute('data-room-price', actualRoomEl.getAttribute('data-room-price') || '0');
+                        btn.closest = function(selector) {
+                            return actualRoomEl.closest(selector) || actualRoomEl;
+                        };
+
+                        // Remove focus from button before closing modal
+                        if (document.activeElement && document.activeElement.blur) {
+                            document.activeElement.blur();
+                        }
+
+                        // Close detail modal first
+                        modalInstance.hide();
+
+                        // Wait a bit for modal to close, then select room
+                        setTimeout(() => {
+                            selectRoom(btn);
+                            // Force update price calculation after selection
+                            setTimeout(() => {
+                                updateRoomsPriceCalculation(pk);
+                            }, 50);
+                        }, 100);
+                    } else {
+                        // Fallback: create button with data from modal and store in state
+                        const btn = document.createElement('button');
+                        btn.setAttribute('data-room-id', roomId);
+                        btn.setAttribute('data-hotel-pk', pk);
+                        btn.setAttribute('data-room-capacity', String(data.capacity || '0'));
+                        btn.setAttribute('data-room-price', String(data.price_per_night || '0'));
+
+                        // Store room data in a temporary element for price calculation
+                        if (!stateByPk.has(pk)) {
+                            stateByPk.set(pk, { rooms: [], guests: [] });
+                        }
+                        const state = stateByPk.get(pk);
+                        if (!state.rooms) {
+                            state.rooms = [];
+                        }
+                        // Check if room is already in selection
+                        const existingIndex = state.rooms.findIndex(r => r.roomId === String(roomId));
+                        if (existingIndex === -1) {
+                            state.rooms.push({
+                                roomId: String(roomId),
+                                roomLabel: data.name || data.room_type || 'Room',
+                                capacity: data.capacity || 0
+                            });
+                        }
+
+                        // Create a temporary room element with all data for price calculation
+                        const tempRoomEl = document.createElement('div');
+                        tempRoomEl.setAttribute('data-room-id', roomId);
+                        tempRoomEl.setAttribute('data-room-price', String(data.price_per_night || '0'));
+                        tempRoomEl.setAttribute('data-room-includes-guests', String(data.price_includes_guests || 1));
+                        tempRoomEl.setAttribute('data-room-additional-guest-price', String(data.additional_guest_price || 0));
+                        tempRoomEl.setAttribute('data-room-capacity', String(data.capacity || '0'));
+                        if (data.rules && Array.isArray(data.rules)) {
+                            tempRoomEl.setAttribute('data-room-rules', JSON.stringify(data.rules));
+                        }
+                        tempRoomEl.style.display = 'none';
+                        document.body.appendChild(tempRoomEl);
+
+                        // Close detail modal
+                        // Remove focus from button before closing modal
+                        if (document.activeElement && document.activeElement.blur) {
+                            document.activeElement.blur();
+                        }
+
+                        modalInstance.hide();
+
+                        // Wait a bit, then select room and update price
+                        setTimeout(() => {
+                            selectRoom(btn);
+                            // Update price calculation after selection
+                            updateRoomsPriceCalculation(pk);
+                            // Remove temp element after a delay
+                            setTimeout(() => {
+                                if (tempRoomEl.parentNode) {
+                                    tempRoomEl.parentNode.removeChild(tempRoomEl);
+                                }
+                            }, 1000);
+                        }, 100);
+                    }
+                };
+            }
+
+            console.log('openRoomDetail: Successfully rendered room details in modal');
+        } catch (err) {
+            console.error('openRoomDetail: Error loading room details', err);
+            if (galleryEl) {
+                galleryEl.innerHTML = `<div style="padding: 18px; color: #b30029; font-weight: 800; text-align: center;">Failed to load room details. Please try again.</div>`;
+            }
+            if (titleEl) titleEl.textContent = 'Error loading room';
+            if (descEl) descEl.innerHTML = `<div style="color: #b30029; font-size: 0.85rem;">Error: ${escapeHtml(err.message || 'Unknown error')}</div>`;
         }
     }
 
-    // Stepper actions (adults/children)
-    document.addEventListener('click', (e) => {
-        const btn = e.target?.closest?.('[data-nsc-action]');
-        if (!btn) return;
-        const pk = getPk(btn);
-        if (!pk) return;
-        const action = btn.getAttribute('data-nsc-action');
-        if (!action) return;
-
-        e.preventDefault();
-
-        if (action === 'adults-inc' || action === 'adults-dec') {
-            const current = getAdultsCount(pk);
-            const next = action === 'adults-inc' ? current + 1 : current - 1;
-            setCounter(pk, 'adults', next);
-            updateSummary(pk);
-        }
-
-        if (action === 'children-inc' || action === 'children-dec') {
-            const current = getAdditionalChildrenCount(pk);
-            const next = action === 'children-inc' ? current + 1 : current - 1;
-            setCounter(pk, 'children', next);
-            updateSummary(pk);
-        }
-    });
+    // NOTE: Stepper buttons are handled via inline onclicks calling stepper(pk, action)
 
     // Keep players list + totals synced
     document.addEventListener('change', (e) => {
         if (!e.target?.classList?.contains('child-checkbox')) return;
-        // update any open reservation modal(s)
-        document.querySelectorAll('[id^=\"hotelReservationModal\"]').forEach(modalEl => {
-            const pk = modalEl.getAttribute('data-hotel-pk') || modalEl.id.replace('hotelReservationModal', '');
-            if (pk) initModal(String(pk));
+        // update any open reservation modal(s) - only if already visible
+        document.querySelectorAll('.modal.show[id^=\"hotelReservationModal\"][data-hotel-pk]').forEach(modalEl => {
+            const pk = modalEl.getAttribute('data-hotel-pk');
+            if (pk) {
+                // Only update content, don't open the modal
+                renderSelectedPlayers(pk);
+                updateSummary(pk);
+            }
         });
     });
 
     // Bootstrap modal hook
     document.addEventListener('shown.bs.modal', (e) => {
         const modalEl = e.target;
-        if (!modalEl || !modalEl.id || !modalEl.id.startsWith('hotelReservationModal')) return;
-        const pk = modalEl.getAttribute('data-hotel-pk') || modalEl.id.replace('hotelReservationModal', '');
+        if (!modalEl || !modalEl.classList?.contains('modal') || !modalEl.id || !modalEl.id.startsWith('hotelReservationModal')) return;
+        const pk = modalEl.getAttribute('data-hotel-pk');
         if (pk) initModal(String(pk));
     });
 
-    // Guest details form: build notes from extra guests + selected players
+    // Guest details form: add to checkout card instead of creating reservation
     document.addEventListener('submit', (e) => {
         const form = e.target;
         if (!(form instanceof HTMLFormElement)) return;
         if (!form.id || !form.id.startsWith('guest-details-form')) return;
 
+        // Prevent default form submission
+        e.preventDefault();
+
         const pk = form.id.replace('guest-details-form', '');
         if (!pk) return;
 
-        const notesHidden = q(`guest-notes${pk}`);
-        const notesHuman = q(`guest-notes-human${pk}`)?.value?.trim() || '';
+        const state = stateByPk.get(pk);
+        if (!state || !state.rooms || state.rooms.length === 0) {
+            showToast('No rooms selected', 'error');
+            return;
+        }
 
-        const selected = getSelectedPlayers().map(cb => {
-            const childItem = cb.closest('.child-item');
-            const nameDiv =
-                childItem?.querySelector('div[style*="font-weight: 700"][style*="color: var(--mlb-blue)"]') ||
-                childItem?.querySelector('div[style*="font-weight: 700"]');
-            const name = nameDiv ? nameDiv.textContent.trim() : 'Player';
-            const birth = cb.getAttribute('data-birth-date') || '';
-            return birth ? `${name} (${birth})` : name;
+        // Get all guest data
+        const mainContactName = form.querySelector('input[name="guest_name"]')?.value?.trim() || '';
+        const mainContactEmail = form.querySelector('input[name="guest_email"]')?.value?.trim() || '';
+        const mainContactPhone = form.querySelector('input[name="guest_phone"]')?.value?.trim() || '';
+
+        // Get selected players data from form fields
+        const players = [];
+        const playerBlocks = form.querySelectorAll('.nsc-guest-player');
+        playerBlocks.forEach(block => {
+            const nameInput = block.querySelector('.nsc-player-name');
+            const dobInput = block.querySelector('.nsc-player-dob');
+            const emailInput = block.querySelector('.nsc-player-email');
+
+            if (nameInput && nameInput.value.trim()) {
+                players.push({
+                    name: nameInput.value.trim(),
+                    dob: dobInput ? dobInput.value : '',
+                    email: emailInput ? emailInput.value.trim() : '',
+                    type: 'player'
+                });
+            }
         });
 
-        const addAdults = Array.from(form.querySelectorAll('.nsc-guest-adult')).map(el => {
+        // Get additional adults
+        const additionalAdults = [];
+        form.querySelectorAll('.nsc-guest-adult').forEach(el => {
             const name = el.querySelector('.nsc-adult-name')?.value?.trim() || '';
             const dob = el.querySelector('.nsc-adult-dob')?.value?.trim() || '';
-            return name ? (dob ? `${name} (${dob})` : name) : '';
-        }).filter(Boolean);
+            if (name) {
+                additionalAdults.push({ name, dob, type: 'adult' });
+            }
+        });
 
-        const addChildren = Array.from(form.querySelectorAll('.nsc-guest-child')).map(el => {
+        // Get additional children
+        const additionalChildren = [];
+        form.querySelectorAll('.nsc-guest-child').forEach(el => {
             const name = el.querySelector('.nsc-child-name')?.value?.trim() || '';
             const dob = el.querySelector('.nsc-child-dob')?.value?.trim() || '';
-            return name ? (dob ? `${name} (${dob})` : name) : '';
-        }).filter(Boolean);
+            if (name) {
+                additionalChildren.push({ name, dob, type: 'child' });
+            }
+        });
 
-        const parts = [];
-        if (notesHuman) parts.push(notesHuman);
-        if (selected.length) parts.push(`Selected players/children: ${selected.join(', ')}`);
-        if (addAdults.length) parts.push(`Additional adults: ${addAdults.join(', ')}`);
-        if (addChildren.length) parts.push(`Additional children: ${addChildren.join(', ')}`);
+        // Calculate total price from state
+        const roomsModalEl = q(`hotelRoomsModal${pk}`);
+        let totalPrice = 0;
+        const roomDetails = [];
 
-        if (notesHidden) notesHidden.value = parts.join(' | ').slice(0, 1900);
+        state.rooms.forEach(room => {
+            const roomEl = roomsModalEl?.querySelector(`[data-room-id="${room.roomId}"]`) ||
+                          document.querySelector(`[data-room-id="${room.roomId}"]`);
+            if (roomEl) {
+                const roomPrice = parseFloat(roomEl.getAttribute('data-room-price') || '0');
+                const roomIncludesGuests = parseInt(roomEl.getAttribute('data-room-includes-guests') || '1');
+                const additionalGuestPrice = parseFloat(roomEl.getAttribute('data-room-additional-guest-price') || '0');
+                const roomCapacity = parseInt(roomEl.getAttribute('data-room-capacity') || '0');
 
-        // Ensure number_of_guests is correct at submit time
-        const guestsEl = q(`guest-number-of-guests${pk}`);
-        if (guestsEl) guestsEl.value = String(totalPeople(pk));
+                // Get assigned guests for this room
+                const assignedGuestIndices = state.guestAssignments[room.roomId] || [];
+                const guestsForThisRoom = assignedGuestIndices.length;
+                const actualGuestsForRoom = Math.min(guestsForThisRoom, roomCapacity);
+                const additionalGuestsForRoom = Math.max(0, actualGuestsForRoom - roomIncludesGuests);
+                const additionalCostForRoom = additionalGuestsForRoom > 0 ? additionalGuestPrice * additionalGuestsForRoom : 0;
+                const roomTotal = roomPrice + additionalCostForRoom;
+
+                totalPrice += roomTotal;
+
+                roomDetails.push({
+                    roomId: room.roomId,
+                    roomLabel: room.roomLabel,
+                    price: roomTotal,
+                    guests: actualGuestsForRoom,
+                    capacity: roomCapacity
+                });
+            }
+        });
+
+        // Add hotel reservation to checkout card
+        addHotelReservationToCheckout(pk, {
+            hotelPk: pk,
+            rooms: roomDetails,
+            mainContact: {
+                name: mainContactName,
+                email: mainContactEmail,
+                phone: mainContactPhone
+            },
+            players: players,
+            additionalAdults: additionalAdults,
+            additionalChildren: additionalChildren,
+            totalPrice: totalPrice,
+            checkIn: form.querySelector('input[name="check_in"]')?.value || '',
+            checkOut: form.querySelector('input[name="check_out"]')?.value || ''
+        });
+
+        // Close modal
+        const guestModalEl = q(`hotelGuestDetailsModal${pk}`);
+        if (guestModalEl && window.bootstrap?.Modal) {
+            const modalInstance = bootstrap.Modal.getInstance(guestModalEl);
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+        }
+
+        showToast('Hotel reservation added to checkout', 'success');
     });
+
+    // Add hotel reservation to checkout card
+    function addHotelReservationToCheckout(pk, reservationData) {
+        const checkoutCard = document.querySelector('.checkout-card');
+        if (!checkoutCard) {
+            console.error('Checkout card not found');
+            return;
+        }
+
+        // Create hotel reservation section
+        const hotelSection = document.createElement('div');
+        hotelSection.className = 'hotel-reservation-item mb-3';
+        hotelSection.setAttribute('data-hotel-pk', pk);
+        hotelSection.style.cssText = 'border-top: 2px solid #e9ecef; padding-top: 15px; margin-top: 15px;';
+
+        let html = `
+            <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 15px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                    <h6 style="font-weight: 800; color: var(--mlb-blue); font-size: 0.95rem; margin: 0;">
+                        <i class="fas fa-hotel me-2" style="color: var(--mlb-red);"></i>Hotel Stay
+                    </h6>
+                    <button type="button" class="btn-remove-hotel" onclick="this.closest('.hotel-reservation-item').remove(); updateCheckoutTotal();"
+                            style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+        `;
+
+        // Add room details
+        reservationData.rooms.forEach((room, idx) => {
+            html += `
+                <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 8px; border-left: 3px solid var(--mlb-blue);">
+                    <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.85rem; margin-bottom: 4px;">
+                        ${escapeHtml(room.roomLabel)} (${room.guests}/${room.capacity} guests)
+                    </div>
+                    <div style="font-size: 0.8rem; color: #6c757d;">
+                        Check-in: ${reservationData.checkIn || 'N/A'} • Check-out: ${reservationData.checkOut || 'N/A'}
+                    </div>
+                    <div style="font-weight: 700; color: var(--mlb-red); font-size: 0.9rem; margin-top: 4px;">
+                        $${room.price.toFixed(2)}/night
+                    </div>
+                </div>
+            `;
+        });
+
+        // Add guests summary
+        const totalGuests = reservationData.players.length + reservationData.additionalAdults.length + reservationData.additionalChildren.length + 1; // +1 for main contact
+        html += `
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e9ecef;">
+                <div style="font-size: 0.8rem; color: #6c757d; margin-bottom: 4px;">
+                    <strong>Main Contact:</strong> ${escapeHtml(reservationData.mainContact.name)}${reservationData.mainContact.email ? ` (${escapeHtml(reservationData.mainContact.email)})` : ''}
+                </div>
+                <div style="font-size: 0.8rem; color: #6c757d;">
+                    <strong>Total Guests:</strong> ${totalGuests} (${reservationData.players.length} player${reservationData.players.length !== 1 ? 's' : ''}, ${reservationData.additionalAdults.length} additional adult${reservationData.additionalAdults.length !== 1 ? 's' : ''}, ${reservationData.additionalChildren.length} additional child${reservationData.additionalChildren.length !== 1 ? 'ren' : ''})
+                </div>
+            </div>
+        `;
+
+        // Add total price
+        html += `
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 2px solid var(--mlb-red); display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-weight: 800; color: var(--mlb-blue); font-size: 1rem;">Total:</span>
+                <span class="hotel-reservation-total" style="font-weight: 800; color: var(--mlb-red); font-size: 1.2rem;">
+                    $${reservationData.totalPrice.toFixed(2)}/night
+                </span>
+            </div>
+        `;
+
+        html += `</div>`;
+
+        hotelSection.innerHTML = html;
+
+        // Insert before the register button or at the end of the checkout card
+        const registerBtn = checkoutCard.querySelector('#register-btn');
+        if (registerBtn && registerBtn.parentElement) {
+            registerBtn.parentElement.insertBefore(hotelSection, registerBtn);
+        } else {
+            checkoutCard.appendChild(hotelSection);
+        }
+
+        // Update checkout total
+        updateCheckoutTotal();
+    }
+
+    // Update checkout total including hotel reservations
+    function updateCheckoutTotal() {
+        const checkoutCard = document.querySelector('.checkout-card');
+        if (!checkoutCard) return;
+
+        // Calculate event registration total
+        let eventTotal = 0;
+        const selectedCheckboxes = document.querySelectorAll('.child-checkbox:checked');
+        selectedCheckboxes.forEach(cb => {
+            const priceEl = cb.closest('.child-item')?.querySelector('.child-price');
+            if (priceEl) {
+                const priceText = priceEl.textContent.trim().replace('$', '').replace(',', '');
+                const price = parseFloat(priceText) || 0;
+                eventTotal += price;
+            }
+        });
+
+        // Calculate hotel reservations total
+        let hotelTotal = 0;
+        const hotelReservations = checkoutCard.querySelectorAll('.hotel-reservation-item');
+        hotelReservations.forEach(item => {
+            const totalEl = item.querySelector('.hotel-reservation-total');
+            if (totalEl) {
+                const priceText = totalEl.textContent.trim().replace('$', '').replace('/night', '').replace(',', '');
+                const price = parseFloat(priceText) || 0;
+                hotelTotal += price;
+            }
+        });
+
+        const grandTotal = eventTotal + hotelTotal;
+
+        // Update or create total display
+        let totalDisplay = checkoutCard.querySelector('.checkout-grand-total');
+        if (!totalDisplay) {
+            totalDisplay = document.createElement('div');
+            totalDisplay.className = 'checkout-grand-total';
+            totalDisplay.style.cssText = 'margin-top: 15px; padding-top: 15px; border-top: 3px solid var(--mlb-red); display: flex; justify-content: space-between; align-items: center;';
+            checkoutCard.appendChild(totalDisplay);
+        }
+
+        totalDisplay.innerHTML = `
+            <span style="font-weight: 800; color: var(--mlb-blue); font-size: 1.1rem;">Grand Total:</span>
+            <span style="font-weight: 800; color: var(--mlb-red); font-size: 1.4rem;">$${grandTotal.toFixed(2)}</span>
+        `;
+    }
 
     // Backwards compatibility (old buttons may still exist somewhere)
     function addAdult(btnEl) {
@@ -1655,7 +2748,1605 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         updateSummary(pk);
     }
 
-    return { initModal, showRooms, selectRoom, openRoomDetail, updateSummary, addAdult, addChild };
+    // New function: Open rooms modal directly (skip Step 1)
+    function showRoomsDirect(pk, userData = null) {
+        if (!pk) return;
+        const roomsModalEl = q(`hotelRoomsModal${pk}`);
+        if (!roomsModalEl) {
+            showToast('Rooms modal not found', 'error');
+            return;
+        }
+
+        // Get default guests: selected player + registrant (current user)
+        const selectedPlayers = getSelectedPlayers();
+
+        // Get registrant data - priority: parameter > window.currentUserName > data attribute > fallback
+        let registrantName = null;
+        let registrantEmail = null;
+        let registrantBirthDate = null;
+
+        if (userData && typeof userData === 'object') {
+            registrantName = userData.name || null;
+            registrantEmail = userData.email || null;
+            registrantBirthDate = userData.birthDate || null;
+        } else if (typeof userData === 'string') {
+            // Backward compatibility: if string is passed, treat as name
+            registrantName = userData;
+        }
+
+        if (!registrantName) {
+            registrantName = window.currentUserName;
+        }
+        if (!registrantName) {
+            // Try to get from data attribute on the main content
+            const mainContent = document.querySelector('[data-user-name]');
+            if (mainContent) {
+                registrantName = mainContent.getAttribute('data-user-name');
+            }
+        }
+        // If still no name, use a fallback
+        if (!registrantName || registrantName.trim() === '') {
+            registrantName = 'You';
+        }
+
+        // Calculate age if birth date is available
+        let registrantAge = null;
+        if (registrantBirthDate) {
+            const birthDate = new Date(registrantBirthDate);
+            if (!isNaN(birthDate.getTime())) {
+                registrantAge = Math.floor((new Date() - birthDate) / (365.25 * 24 * 60 * 60 * 1000));
+            }
+        }
+
+        // Determine type based on age
+        const registrantType = registrantAge !== null && registrantAge < 18 ? 'child' : 'adult';
+
+        // Debug log
+        console.log('[showRoomsDirect] Registrant data:', {
+            name: registrantName,
+            email: registrantEmail,
+            birthDate: registrantBirthDate,
+            age: registrantAge,
+            type: registrantType
+        });
+
+        const registrant = {
+            name: registrantName.trim(),
+            email: registrantEmail ? registrantEmail.trim() : null,
+            birthDate: registrantBirthDate ? registrantBirthDate.trim() : null,
+            age: registrantAge,
+            type: registrantType,
+            isRegistrant: true
+        };
+
+        // Store guests state
+        if (!stateByPk.has(pk)) {
+            stateByPk.set(pk, { roomId: null, roomLabel: null, guests: [] });
+        }
+        const state = stateByPk.get(pk);
+
+        // Initialize default guests
+        state.guests = [];
+        if (registrant.name) {
+            state.guests.push({
+                type: registrant.type || 'adult',
+                name: registrant.name,
+                email: registrant.email || null,
+                birthDate: registrant.birthDate || null,
+                age: registrant.age || null,
+                isRegistrant: true
+            });
+        }
+        selectedPlayers.forEach(cb => {
+            const childItem = cb.closest('.child-item');
+            if (!childItem) return;
+
+            // Get name from data attribute or DOM
+            let name = childItem.getAttribute('data-child-name');
+            if (!name) {
+                const nameDiv = childItem.querySelector('div[style*="font-weight: 700"]');
+                name = nameDiv ? nameDiv.textContent.trim() : 'Player';
+            }
+
+            // Get email from data attribute
+            const email = childItem.getAttribute('data-child-email') || null;
+
+            // Get birth date from data attribute
+            const birthDate = childItem.getAttribute('data-birth-date') || null;
+
+            // Calculate age if birth date is available
+            let age = null;
+            if (birthDate) {
+                const birthDateObj = new Date(birthDate);
+                if (!isNaN(birthDateObj.getTime())) {
+                    age = Math.floor((new Date() - birthDateObj) / (365.25 * 24 * 60 * 60 * 1000));
+                }
+            }
+
+            state.guests.push({
+                type: 'child',
+                name: name,
+                email: email,
+                birthDate: birthDate,
+                age: age,
+                isPlayer: true
+            });
+        });
+
+        // Update UI
+        updateRoomsGuestsList(pk);
+        updateRoomsPriceCalculation(pk);
+        validateRoomSelection(pk);
+
+        // Filter and recommend rooms based on current guests
+        const total = state.guests ? state.guests.length : 1;
+        filterAndRecommendRooms(roomsModalEl, total);
+
+        // Open modal
+        if (!window.bootstrap?.Modal) return;
+        // Setup focus handling for this modal
+        setupModalFocusHandling(roomsModalEl);
+
+        let inst = bootstrap.Modal.getInstance(roomsModalEl);
+        if (!inst) inst = new bootstrap.Modal(roomsModalEl);
+        inst.show();
+
+        // Update header
+        const headerEl = q(`rooms-default-guests${pk}`);
+        if (headerEl) {
+            const totalGuests = state.guests.length;
+            headerEl.textContent = `${totalGuests} ${totalGuests === 1 ? 'guest' : 'guests'} (${state.guests.filter(g => g.type === 'adult').length} adults, ${state.guests.filter(g => g.type === 'child').length} children)`;
+        }
+    }
+
+    // Update guests list in rooms modal
+    function updateRoomsGuestsList(pk) {
+        const listEl = q(`rooms-guests-list${pk}`);
+        if (!listEl) return;
+        const state = stateByPk.get(pk);
+        if (!state || !state.guests) return;
+
+        const html = state.guests.map((guest, idx) => {
+            const icon = guest.type === 'adult' ? 'fa-user' : 'fa-child';
+            const badge = guest.isRegistrant ? '<span style="background: var(--mlb-blue); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 6px;">Registrant</span>' :
+                          guest.isPlayer ? '<span style="background: var(--mlb-red); color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-left: 6px;">Player</span>' : '';
+
+            // Build guest info display
+            let guestInfo = escapeHtml(guest.name);
+            if (guest.email) {
+                guestInfo += ` <span style="color: #6c757d; font-size: 0.75rem;">(${escapeHtml(guest.email)})</span>`;
+            }
+            if (guest.birthDate) {
+                const age = guest.age !== undefined ? guest.age : (() => {
+                    const birthDate = new Date(guest.birthDate);
+                    return Math.floor((new Date() - birthDate) / (365.25 * 24 * 60 * 60 * 1000));
+                })();
+                guestInfo += ` <span style="color: #6c757d; font-size: 0.75rem;">• Age: ${age}</span>`;
+            }
+
+            // Build additional info lines
+            let additionalInfo = '';
+            if (guest.birthDate) {
+                const birthDate = new Date(guest.birthDate);
+                const formattedDate = birthDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+                const year = birthDate.getFullYear();
+                additionalInfo += `
+                    <div style="font-size: 0.75rem; color: #6c757d; margin-left: 20px; margin-top: 2px;">
+                        <i class="fas fa-calendar me-1"></i>DOB: ${formattedDate} (Year: ${year})
+                    </div>
+                `;
+            }
+            if (guest.email && !guestInfo.includes(guest.email)) {
+                additionalInfo += `
+                    <div style="font-size: 0.75rem; color: #6c757d; margin-left: 20px; margin-top: 2px;">
+                        <i class="fas fa-envelope me-1"></i>${escapeHtml(guest.email)}
+                    </div>
+                `;
+            }
+
+            return `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+                            <i class="fas ${icon}" style="color: var(--mlb-blue); font-size: 0.8rem;"></i>
+                            <span style="font-size: 0.85rem; font-weight: 600;">${guestInfo}</span>
+                            ${badge}
+                        </div>
+                        ${additionalInfo}
+                    </div>
+                    ${!guest.isRegistrant && !guest.isPlayer ? `
+                        <button type="button" onclick="window.NSC_HotelReservation?.removeGuest?.('${pk}', ${idx});" style="background: transparent; border: none; color: #dc3545; padding: 4px 8px; cursor: pointer; border-radius: 4px; transition: all 0.2s;" onmouseover="this.style.background='#fee';" onmouseout="this.style.background='transparent';">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        }).join('');
+        listEl.innerHTML = html || '<div style="color: #6c757d; font-size: 0.85rem;">No guests added yet.</div>';
+    }
+
+    // Update price calculation
+    function updateRoomsPriceCalculation(pk) {
+        const calcEl = q(`rooms-price-calculation${pk}`);
+        if (!calcEl) return;
+        const state = stateByPk.get(pk);
+        if (!state || !state.guests || !state.rooms || state.rooms.length === 0) {
+            calcEl.innerHTML = '<div style="color: #6c757d; font-size: 0.85rem; font-style: italic;">Select at least one room to see price calculation</div>';
+            return;
+        }
+
+        const totalGuests = state.guests.length;
+        const roomsModalEl = q(`hotelRoomsModal${pk}`);
+        let totalPrice = 0;
+        let totalCapacity = 0;
+        let allRules = [];
+        let roomBreakdown = [];
+
+        // Calculate price and capacity for all selected rooms
+        state.rooms.forEach((room, idx) => {
+            // Get room element
+            let roomEl = roomsModalEl?.querySelector(`[data-room-id="${room.roomId}"]`);
+            if (!roomEl) {
+                roomEl = document.querySelector(`[data-room-id="${room.roomId}"]`);
+            }
+            if (!roomEl) {
+                roomEl = document.body.querySelector(`[data-room-id="${room.roomId}"]`);
+            }
+            if (!roomEl) {
+                console.warn('updateRoomsPriceCalculation: Room element not found for roomId:', room.roomId);
+                return;
+            }
+
+            const roomPrice = parseFloat(roomEl.getAttribute('data-room-price') || '0');
+            const roomIncludesGuests = parseInt(roomEl.getAttribute('data-room-includes-guests') || '1');
+            const additionalGuestPrice = parseFloat(roomEl.getAttribute('data-room-additional-guest-price') || '0');
+            const roomCapacity = parseInt(roomEl.getAttribute('data-room-capacity') || '0');
+            totalCapacity += roomCapacity;
+
+            // Get assigned guests for this room (or use auto-distribution)
+            const assignedGuestIndices = state.guestAssignments[room.roomId] || [];
+            const guestsForThisRoom = assignedGuestIndices.length;
+
+            // Validate assignment doesn't exceed capacity
+            const actualGuestsForRoom = Math.min(guestsForThisRoom, roomCapacity);
+            const additionalGuestsForRoom = Math.max(0, actualGuestsForRoom - roomIncludesGuests);
+            const additionalCostForRoom = additionalGuestsForRoom > 0 ? additionalGuestPrice * additionalGuestsForRoom : 0;
+            const roomTotal = roomPrice + additionalCostForRoom;
+            totalPrice += roomTotal;
+
+            // Collect rules
+            const rulesJson = roomEl.getAttribute('data-room-rules');
+            if (rulesJson) {
+                try {
+                    const rules = JSON.parse(rulesJson);
+                    allRules = allRules.concat(rules);
+                } catch (e) {
+                    console.warn('Error parsing rules for room:', room.roomId, e);
+                }
+            }
+
+            roomBreakdown.push({
+                roomId: room.roomId,
+                roomLabel: room.roomLabel,
+                roomPrice: roomPrice,
+                roomIncludesGuests: roomIncludesGuests,
+                additionalGuestsForRoom: additionalGuestsForRoom,
+                additionalCostForRoom: additionalCostForRoom,
+                roomTotal: roomTotal,
+                roomCapacity: roomCapacity,
+                assignedGuests: assignedGuestIndices,
+                actualGuestsCount: actualGuestsForRoom
+            });
+        });
+
+        let html = `<div style="font-weight: 600; color: var(--mlb-blue); margin-bottom: 8px; font-size: 0.9rem;">Price Breakdown (${state.rooms.length} room${state.rooms.length > 1 ? 's' : ''}):</div>`;
+
+        // Show breakdown for each room with guest assignment
+        roomBreakdown.forEach((room, idx) => {
+            html += `<div style="margin-bottom: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px; border-left: 3px solid var(--mlb-blue);">`;
+            html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">`;
+            html += `<div style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem;">Room ${idx + 1}: ${escapeHtml(room.roomLabel)}</div>`;
+            html += `<div style="display: flex; gap: 6px;">`;
+            html += `<button type="button" onclick="window.NSC_HotelReservation?.showGuestAssignment?.('${pk}', '${room.roomId}');" style="background: var(--mlb-blue); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='var(--mlb-red)';" onmouseout="this.style.background='var(--mlb-blue)';">Assign Guests</button>`;
+            html += `<button type="button" onclick="window.NSC_HotelReservation?.removeRoom?.('${pk}', '${room.roomId}');" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#c82333';" onmouseout="this.style.background='#dc3545';" title="Remove room from selection"><i class="fas fa-times"></i></button>`;
+            html += `</div>`;
+            html += `</div>`;
+
+            // Show assigned guests
+            if (room.assignedGuests && room.assignedGuests.length > 0) {
+                const assignedGuestNames = room.assignedGuests.map(gi => {
+                    const guest = state.guests[gi];
+                    return guest ? escapeHtml(guest.name) : '';
+                }).filter(n => n).join(', ');
+                html += `<div style="font-size: 0.75rem; color: #6c757d; margin-bottom: 4px; font-style: italic;">Assigned: ${assignedGuestNames || 'None'}</div>`;
+            } else {
+                html += `<div style="font-size: 0.75rem; color: #ffc107; margin-bottom: 4px; font-style: italic;">⚠ No guests assigned to this room</div>`;
+            }
+
+            html += `<div style="font-size: 0.8rem; color: #333; margin-bottom: 2px;">Base price (${room.roomIncludesGuests} ${room.roomIncludesGuests === 1 ? 'guest' : 'guests'}): <strong>$${room.roomPrice.toFixed(2)}</strong>/night</div>`;
+            if (room.additionalGuestsForRoom > 0) {
+                html += `<div style="font-size: 0.8rem; color: #333; margin-bottom: 2px;">Additional guests (${room.actualGuestsCount - room.roomIncludesGuests}): <strong style="color: var(--mlb-red);">+$${room.additionalCostForRoom.toFixed(2)}</strong>/night</div>`;
+            }
+            html += `<div style="font-size: 0.85rem; color: var(--mlb-blue); margin-top: 4px; font-weight: 600;">Room Total: $${room.roomTotal.toFixed(2)}/night (${room.actualGuestsCount}/${room.roomCapacity} capacity)</div>`;
+            html += `</div>`;
+        });
+
+        html += `<div style="font-weight: 700; color: var(--mlb-red); margin-top: 12px; padding-top: 12px; border-top: 2px solid #e9ecef; font-size: 1.1rem;">Total (All Rooms): $${totalPrice.toFixed(2)}/night</div>`;
+
+        // Capacity validation
+        const adults = state.guests.filter(g => g.type === 'adult').length;
+        const children = state.guests.filter(g => g.type === 'child').length;
+        const total = adults + children;
+        let capacityValid = total <= totalCapacity;
+
+        html += `<div style="margin-top: 12px; padding: 8px; border-radius: 6px; ${!capacityValid ? 'background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24;' : 'background: #d4edda; border: 1px solid #c3e6cb; color: #155724;'} font-size: 0.85rem;">`;
+        html += `<i class="fas ${!capacityValid ? 'fa-exclamation-circle' : 'fa-check-circle'} me-1"></i>`;
+        html += `<strong>Capacity:</strong> ${total} guest${total !== 1 ? 's' : ''} (${adults} adult${adults !== 1 ? 's' : ''}, ${children} child${children !== 1 ? 'ren' : ''}) / ${totalCapacity} total capacity (${state.rooms.length} room${state.rooms.length > 1 ? 's' : ''})`;
+        if (!capacityValid) {
+            html += ` <span style="color: #721c24; font-weight: 700; display: block; margin-top: 6px;">⚠ Exceeds capacity by ${total - totalCapacity} guest${total - totalCapacity !== 1 ? 's' : ''}</span>`;
+            html += `<div style="margin-top: 8px; padding: 8px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; color: #856404; font-size: 0.8rem;">`;
+            html += `<i class="fas fa-info-circle me-1"></i><strong>Action required:</strong> Please add another room or change to a room with higher capacity to accommodate all ${total} guest${total !== 1 ? 's' : ''}.</div>`;
+        }
+        html += `</div>`;
+
+        // Add occupancy rules validation
+        if (allRules.length > 0) {
+            try {
+                const rules = allRules;
+
+                // Find matching rules - check if adults and children are within the rule's range
+                console.log('Validating rules:', {
+                    totalRules: rules.length,
+                    adults: adults,
+                    children: children,
+                    rules: rules
+                });
+
+                const validRules = rules.filter(rule => {
+                    // Skip inactive rules (if is_active field exists and is false)
+                    if (rule.hasOwnProperty('is_active') && !rule.is_active) {
+                        console.log('Skipping inactive rule:', rule);
+                        return false;
+                    }
+                    // Check if adults and children are within the rule's range
+                    // Ensure values are numbers for comparison
+                    const minAdults = parseInt(rule.min_adults) || 0;
+                    const maxAdults = parseInt(rule.max_adults) || 999;
+                    const minChildren = parseInt(rule.min_children) || 0;
+                    const maxChildren = parseInt(rule.max_children) || 999;
+                    const adultsMatch = adults >= minAdults && adults <= maxAdults;
+                    const childrenMatch = children >= minChildren && children <= maxChildren;
+                    const isValid = adultsMatch && childrenMatch;
+
+                    console.log('Rule validation:', {
+                        ruleId: rule.id,
+                        ruleDescription: rule.description,
+                        adults: adults,
+                        children: children,
+                        minAdults: minAdults,
+                        maxAdults: maxAdults,
+                        minChildren: minChildren,
+                        maxChildren: maxChildren,
+                        adultsMatch: adultsMatch,
+                        childrenMatch: childrenMatch,
+                        valid: isValid
+                    });
+
+                    return isValid;
+                });
+
+                console.log('Valid rules found:', validRules.length, validRules);
+
+                html += `<div style="margin-top: 12px; padding-top: 12px; border-top: 2px solid #e9ecef;">`;
+                html += `<div style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem; margin-bottom: 6px;"><i class="fas fa-users-cog me-1"></i>Occupancy Rules:</div>`;
+
+                // Only show validation if there are rules defined
+                if (rules.length === 0) {
+                    // No rules defined for this room - show info message
+                    html += `<div style="font-size: 0.8rem; color: #6c757d; font-style: italic; padding: 8px; background: #f8f9fa; border-radius: 6px; margin-bottom: 6px;">No occupancy rules defined for this room. Any combination of guests is allowed.</div>`;
+                }
+
+                // Check capacity
+                if (!capacityValid) {
+                    html += `<div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 6px; padding: 8px; color: #721c24; font-size: 0.8rem; margin-bottom: 6px;">`;
+                    html += `<i class="fas fa-exclamation-circle me-1"></i><strong>Error:</strong> Total guests (${total}) exceeds total room capacity (${totalCapacity}).`;
+                    html += `<div style="margin-top: 6px; padding: 6px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; color: #856404; font-size: 0.75rem;">`;
+                    html += `<i class="fas fa-info-circle me-1"></i><strong>Solution:</strong> Please add another room or change to a room with higher capacity to accommodate all ${total} guest${total !== 1 ? 's' : ''}.</div>`;
+                    html += `</div>`;
+
+                    // Show available rules when capacity is exceeded
+                    if (rules.length > 0) {
+                        html += `<div style="font-size: 0.75rem; color: #6c757d; margin-top: 6px; font-weight: 600;">Available rules:</div>`;
+                        rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active).forEach((rule, idx) => {
+                            const desc = rule.description || `Adults: ${rule.min_adults}-${rule.max_adults} • Children: ${rule.min_children}-${rule.max_children}`;
+                            html += `<div style="font-size: 0.75rem; color: #6c757d; margin-top: 4px; padding-left: 12px;">`;
+                            html += `<i class="fas fa-circle me-1" style="font-size: 0.65rem;"></i>${escapeHtml(desc)}`;
+                            // Show example combinations
+                            if (rule.min_adults > 0 && rule.min_children > 0) {
+                                html += ` <span style="color: #999; font-size: 0.7rem;">(e.g., ${rule.min_adults} adult${rule.min_adults > 1 ? 's' : ''} + ${rule.min_children} child${rule.min_children > 1 ? 'ren' : ''})</span>`;
+                            } else if (rule.min_adults > 0) {
+                                html += ` <span style="color: #999; font-size: 0.7rem;">(e.g., ${rule.min_adults} adult${rule.min_adults > 1 ? 's' : ''})</span>`;
+                            } else if (rule.min_children > 0) {
+                                html += ` <span style="color: #999; font-size: 0.7rem;">(e.g., ${rule.min_children} child${rule.min_children > 1 ? 'ren' : ''})</span>`;
+                            }
+                            html += `</div>`;
+                        });
+                    }
+                } else if (validRules.length > 0) {
+                    // Show which specific rules match - DON'T show available rules when valid
+                    html += `<div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; padding: 8px; color: #155724; font-size: 0.8rem; margin-bottom: 6px;">`;
+                    html += `<i class="fas fa-check-circle me-1"></i><strong>Valid:</strong> Your selection (${adults} adults, ${children} children) matches ${validRules.length} rule(s).`;
+                    if (validRules.length === 1) {
+                        const rule = validRules[0];
+                        const desc = rule.description || `Adults: ${rule.min_adults}-${rule.max_adults} • Children: ${rule.min_children}-${rule.max_children}`;
+                        html += `<div style="margin-top: 4px; font-size: 0.75rem;">Matching rule: ${escapeHtml(desc)}</div>`;
+                    }
+                    html += `</div>`;
+                } else {
+                    // Show warning and available rules when no rules match
+                    html += `<div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 8px; color: #856404; font-size: 0.8rem; margin-bottom: 6px;">`;
+                    html += `<i class="fas fa-exclamation-triangle me-1"></i><strong>Warning:</strong> Your selection (${adults} adults, ${children} children) does not match any occupancy rule.`;
+                    html += `</div>`;
+
+                    // Show available rules only when rules don't match
+                    if (rules.length > 0) {
+                        html += `<div style="font-size: 0.75rem; color: #6c757d; margin-top: 6px; font-weight: 600;">Available rules:</div>`;
+                        rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active).forEach((rule, idx) => {
+                            const desc = rule.description || `Adults: ${rule.min_adults}-${rule.max_adults} • Children: ${rule.min_children}-${rule.max_children}`;
+                            html += `<div style="font-size: 0.75rem; color: #6c757d; margin-top: 4px; padding-left: 12px;">`;
+                            html += `<i class="fas fa-circle me-1" style="font-size: 0.65rem;"></i>${escapeHtml(desc)}`;
+                            // Show example combinations
+                            if (rule.min_adults > 0 && rule.min_children > 0) {
+                                html += ` <span style="color: #999; font-size: 0.7rem;">(e.g., ${rule.min_adults} adult${rule.min_adults > 1 ? 's' : ''} + ${rule.min_children} child${rule.min_children > 1 ? 'ren' : ''})</span>`;
+                            } else if (rule.min_adults > 0) {
+                                html += ` <span style="color: #999; font-size: 0.7rem;">(e.g., ${rule.min_adults} adult${rule.min_adults > 1 ? 's' : ''})</span>`;
+                            } else if (rule.min_children > 0) {
+                                html += ` <span style="color: #999; font-size: 0.7rem;">(e.g., ${rule.min_children} child${rule.min_children > 1 ? 'ren' : ''})</span>`;
+                            }
+                            html += `</div>`;
+                        });
+                    }
+                }
+
+                html += `</div>`;
+            } catch (e) {
+                console.error('Error parsing room rules:', e);
+            }
+        }
+
+        calcEl.innerHTML = html;
+    }
+
+    // Add additional guest - Opens modal
+    function addAdditionalGuest(pk) {
+        const modalEl = q(`addGuestModal${pk}`);
+        if (!modalEl) {
+            showToast('Guest form modal not found', 'error');
+            return;
+        }
+
+        // Reset form
+        const form = document.getElementById(`addGuestForm${pk}`);
+        if (form) {
+            form.reset();
+            // Set default to adult
+            const adultRadio = document.getElementById(`guestTypeAdult${pk}`);
+            if (adultRadio) adultRadio.checked = true;
+        }
+
+        // Open modal
+        if (!window.bootstrap?.Modal) {
+            showToast('Bootstrap Modal not available', 'error');
+            return;
+        }
+
+        // Setup focus handling for this modal
+        setupModalFocusHandling(modalEl);
+
+        // Setup focus handling for this modal
+        setupModalFocusHandling(modalEl);
+
+        let modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (!modalInstance) {
+            modalInstance = new bootstrap.Modal(modalEl, {
+                backdrop: 'static',
+                keyboard: false
+            });
+        }
+
+        // Add blur effect to existing backdrop ONLY when Add Guest modal opens
+        const applyBlur = function() {
+            // Wait a bit for Bootstrap to create the new backdrop
+            setTimeout(() => {
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                if (backdrops.length > 1) {
+                    // Apply blur to the first backdrop (the one from the parent modal - Available Rooms)
+                    const firstBackdrop = backdrops[0];
+                    firstBackdrop.style.backdropFilter = 'blur(8px)';
+                    firstBackdrop.style.webkitBackdropFilter = 'blur(8px)';
+                    firstBackdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                    firstBackdrop.style.zIndex = '1049'; // Keep it behind the Add Guest modal backdrop
+
+                    // Ensure the second backdrop (Add Guest) doesn't have blur
+                    if (backdrops[1]) {
+                        backdrops[1].style.backdropFilter = '';
+                        backdrops[1].style.webkitBackdropFilter = '';
+                        backdrops[1].style.zIndex = '1059'; // Above the first backdrop
+                    }
+                }
+            }, 100);
+        };
+
+        // Remove blur when Add Guest modal closes
+        const removeBlur = function() {
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            // Only restore the first backdrop (parent modal - Available Rooms)
+            if (backdrops.length > 0) {
+                const firstBackdrop = backdrops[0];
+                firstBackdrop.style.backdropFilter = '';
+                firstBackdrop.style.webkitBackdropFilter = '';
+                firstBackdrop.style.backgroundColor = '';
+                firstBackdrop.style.zIndex = '';
+            }
+        };
+
+        // Apply blur ONLY when Add Guest modal is shown
+        modalEl.addEventListener('shown.bs.modal', applyBlur, { once: true });
+
+        // Remove blur ONLY when Add Guest modal is hidden
+        modalEl.addEventListener('hidden.bs.modal', removeBlur, { once: true });
+
+        modalInstance.show();
+    }
+
+    // Save guest from modal form
+    function saveGuest(pk) {
+        const form = document.getElementById(`addGuestForm${pk}`);
+        if (!form) {
+            showToast('Guest form not found', 'error');
+            return;
+        }
+
+        // Validate form
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        const firstName = document.getElementById(`guestFirstName${pk}`)?.value?.trim();
+        const lastName = document.getElementById(`guestLastName${pk}`)?.value?.trim();
+        const email = document.getElementById(`guestEmail${pk}`)?.value?.trim();
+        const birthDate = document.getElementById(`guestBirthDate${pk}`)?.value;
+        const typeRadio = document.querySelector(`input[name="guestType${pk}"]:checked`);
+        const type = typeRadio?.value || 'adult';
+
+        if (!firstName || !lastName || !email || !birthDate) {
+            showToast('Please fill all required fields', 'warning');
+            return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showToast('Please enter a valid email address', 'warning');
+            return;
+        }
+
+        // Validate birth date (must be in the past)
+        const birthDateObj = new Date(birthDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (birthDateObj >= today) {
+            showToast('Date of birth must be in the past', 'warning');
+            return;
+        }
+
+        // Calculate age to verify type
+        const age = Math.floor((today - birthDateObj) / (365.25 * 24 * 60 * 60 * 1000));
+        const actualType = age >= 18 ? 'adult' : 'child';
+
+        // Auto-correct type if it doesn't match age (but allow override)
+        if (type !== actualType) {
+            // The type should already be corrected by the date input listener, but double-check
+            const correctRadio = document.querySelector(`input[name="guestType${pk}"][value="${actualType}"]`);
+            if (correctRadio) {
+                correctRadio.checked = true;
+                type = actualType; // Update the type variable
+            }
+        }
+
+        // Validate age is reasonable (not negative, not too old)
+        if (age < 0) {
+            showToast('Invalid date of birth', 'error');
+            return;
+        }
+        if (age > 120) {
+            showToast('Please verify the date of birth', 'warning');
+        }
+
+        const state = stateByPk.get(pk);
+        if (!state) {
+            showToast('Reservation state not found', 'error');
+            return;
+        }
+
+        // Add guest to state
+        const fullName = `${firstName} ${lastName}`;
+        state.guests.push({
+            type: type,
+            name: fullName,
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            birthDate: birthDate,
+            age: age
+        });
+
+        console.log('[DEBUG] saveGuest: Guest added to state. Total guests now:', state.guests.length);
+        console.log('[DEBUG] saveGuest: State guests:', state.guests);
+
+        // Close modal
+        const modalEl = q(`addGuestModal${pk}`);
+        if (modalEl) {
+            // Remove focus from active element before closing modal
+            if (document.activeElement && document.activeElement.blur) {
+                document.activeElement.blur();
+            }
+
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) {
+                // Use setTimeout to ensure focus is removed before hiding
+                setTimeout(() => {
+                    modalInstance.hide();
+                }, 50);
+            }
+        }
+
+        // Update UI - First update the list
+        updateRoomsGuestsList(pk);
+
+        // Re-filter and recommend rooms based on new total guests
+        const roomsModalEl = q(`hotelRoomsModal${pk}`);
+        if (roomsModalEl) {
+            const state = stateByPk.get(pk);
+            if (state && state.guests) {
+                const total = state.guests.length;
+                console.log('[DEBUG] saveGuest: Re-filtering rooms for total guests:', total);
+                filterAndRecommendRooms(roomsModalEl, total);
+
+                // Check if there's a better recommended room than currently selected
+                const recommendedRooms = Array.from(roomsModalEl.querySelectorAll('.room-listing-inline.nsc-room-recommended'));
+                if (recommendedRooms.length > 0) {
+                    const mostRecommended = recommendedRooms[0]; // First one is the most recommended
+                    const recommendedRoomId = mostRecommended.getAttribute('data-room-id');
+
+                    // Check if user has selected rooms
+                    if (state.rooms && state.rooms.length > 0) {
+                        // Check if the most recommended room is already selected
+                        const isRecommendedSelected = state.rooms.some(r => String(r.roomId) === String(recommendedRoomId));
+
+                        if (!isRecommendedSelected) {
+                            // Get room name for the notification
+                            const roomNameEl = mostRecommended.querySelector('.room-name');
+                            const roomName = roomNameEl ? roomNameEl.textContent.trim() : 'a room';
+                            const roomPrice = parseFloat(mostRecommended.getAttribute('data-room-price') || '0');
+                            const roomCapacity = parseInt(mostRecommended.getAttribute('data-room-capacity') || '0');
+
+                            // Show notification about better room
+                            setTimeout(() => {
+                                showToast(
+                                    `⭐ Better room available: "${roomName}" ($${roomPrice.toFixed(2)}/night, ${roomCapacity} guests) is now recommended for ${total} ${total === 1 ? 'guest' : 'guests'}`,
+                                    'info',
+                                    5000
+                                );
+                            }, 500);
+                        }
+                    } else {
+                        // No rooms selected yet - show notification about recommended room
+                        const roomNameEl = mostRecommended.querySelector('.room-name');
+                        const roomName = roomNameEl ? roomNameEl.textContent.trim() : 'a room';
+                        const roomPrice = parseFloat(mostRecommended.getAttribute('data-room-price') || '0');
+                        const roomCapacity = parseInt(mostRecommended.getAttribute('data-room-capacity') || '0');
+
+                        setTimeout(() => {
+                            showToast(
+                                `⭐ Recommended room: "${roomName}" ($${roomPrice.toFixed(2)}/night, ${roomCapacity} guests) is perfect for ${total} ${total === 1 ? 'guest' : 'guests'}`,
+                                'info',
+                                5000
+                            );
+                        }, 500);
+                    }
+                }
+            }
+        }
+
+        // Auto-distribute guests if rooms are selected
+        if (state.rooms && state.rooms.length > 0) {
+            console.log('[DEBUG] saveGuest: Auto-distributing guests to selected rooms');
+            autoDistributeGuests(pk);
+        }
+
+        // Update price calculation - Force update even if no rooms selected to show current guest count
+        console.log('[DEBUG] saveGuest: Updating price calculation. State:', state);
+        console.log('[DEBUG] saveGuest: Selected rooms:', state.rooms);
+        console.log('[DEBUG] saveGuest: Total guests:', state.guests.length);
+        console.log('[DEBUG] saveGuest: Guest assignments:', state.guestAssignments);
+
+        // Use requestAnimationFrame to ensure DOM is updated, then update price calculation
+        requestAnimationFrame(() => {
+            // Small delay to ensure state is fully updated
+            setTimeout(() => {
+                updateRoomsPriceCalculation(pk);
+                validateRoomSelection(pk);
+            }, 50);
+        });
+
+        showToast(`Guest ${fullName} added successfully`, 'success');
+    }
+
+    // Remove guest
+    function removeGuest(pk, index) {
+        const state = stateByPk.get(pk);
+        if (!state || !state.guests) return;
+        const guest = state.guests[index];
+        if (guest && (guest.isRegistrant || guest.isPlayer)) {
+            showToast('Cannot remove registrant or selected player', 'warning');
+            return;
+        }
+        state.guests.splice(index, 1);
+        updateRoomsGuestsList(pk);
+        updateRoomsPriceCalculation(pk);
+        validateRoomSelection(pk);
+    }
+
+    // Validate room selection against rules
+    function validateRoomSelection(pk) {
+        const state = stateByPk.get(pk);
+        if (!state || !state.guests) return;
+
+        const adults = state.guests.filter(g => g.type === 'adult').length;
+        const children = state.guests.filter(g => g.type === 'child').length;
+        const total = adults + children;
+
+        // Update selection status
+        const statusEl = q(`rooms-selection-status${pk}`);
+        const footerMsgEl = q(`rooms-footer-message${pk}`);
+        const continueBtn = q(`rooms-continue-btn${pk}`);
+
+        if (state.rooms && state.rooms.length > 0) {
+            // Calculate total capacity
+            const roomsModalEl = q(`hotelRoomsModal${pk}`);
+            let totalCapacity = 0;
+            const allRules = [];
+
+            state.rooms.forEach(room => {
+                const roomEl = roomsModalEl?.querySelector(`[data-room-id="${room.roomId}"]`) ||
+                              document.querySelector(`[data-room-id="${room.roomId}"]`);
+                if (roomEl) {
+                    totalCapacity += parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10);
+
+                    // Collect rules from this room
+                    const rulesJson = roomEl.getAttribute('data-room-rules');
+                    if (rulesJson) {
+                        try {
+                            const rules = JSON.parse(rulesJson);
+                            allRules.push(...rules);
+                        } catch (e) {
+                            console.warn('Error parsing rules for room:', room.roomId, e);
+                        }
+                    }
+                }
+            });
+
+            // Validate capacity
+            const capacityValid = total <= totalCapacity;
+
+            // Validate occupancy rules
+            let rulesValid = true;
+            if (allRules.length > 0) {
+                const activeRules = allRules.filter(r => !r.hasOwnProperty('is_active') || r.is_active);
+                if (activeRules.length > 0) {
+                    const validRules = activeRules.filter(rule => {
+                        const minAdults = parseInt(rule.min_adults) || 0;
+                        const maxAdults = parseInt(rule.max_adults) || 999;
+                        const minChildren = parseInt(rule.min_children) || 0;
+                        const maxChildren = parseInt(rule.max_children) || 999;
+                        return adults >= minAdults && adults <= maxAdults &&
+                               children >= minChildren && children <= maxChildren;
+                    });
+                    rulesValid = validRules.length > 0;
+                }
+            }
+
+            // Determine if we can continue
+            const canContinue = total >= 1 && adults >= 1 && capacityValid && rulesValid;
+
+            if (statusEl) {
+                statusEl.style.display = 'block';
+                if (canContinue) {
+                    statusEl.style.background = '#d4edda';
+                    statusEl.style.border = '1px solid #c3e6cb';
+                    statusEl.style.color = '#155724';
+                    statusEl.innerHTML = `<i class="fas fa-check-circle me-1"></i><strong>${state.rooms.length} room${state.rooms.length > 1 ? 's' : ''} selected!</strong> Ready to continue.`;
+                } else {
+                    statusEl.style.background = '#fff3cd';
+                    statusEl.style.border = '1px solid #ffc107';
+                    statusEl.style.color = '#856404';
+                    const errors = [];
+                    if (total < 1 || adults < 1) {
+                        errors.push('You must have at least one adult guest');
+                    }
+                    if (!capacityValid) {
+                        errors.push(`${total} guest${total !== 1 ? 's' : ''} exceed${total === 1 ? 's' : ''} ${totalCapacity} capacity by ${total - totalCapacity}`);
+                    }
+                    if (!rulesValid && allRules.length > 0) {
+                        errors.push('Occupancy rules not met');
+                    }
+                    statusEl.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i><strong>Warning:</strong> ${errors.join('. ')}. Please add another room or change to a room with higher capacity.`;
+                }
+            }
+
+            if (footerMsgEl) {
+                if (canContinue) {
+                    footerMsgEl.innerHTML = `<i class="fas fa-check-circle me-1" style="color: #28a745;"></i>${state.rooms.length} room${state.rooms.length > 1 ? 's' : ''} selected. Click 'Continue' to proceed`;
+                    footerMsgEl.style.color = '#28a745';
+                } else {
+                    const errors = [];
+                    if (total < 1 || adults < 1) {
+                        errors.push('At least one adult required');
+                    }
+                    if (!capacityValid) {
+                        errors.push('Capacity exceeded');
+                    }
+                    if (!rulesValid && allRules.length > 0) {
+                        errors.push('Occupancy rules not met');
+                    }
+                    footerMsgEl.innerHTML = `<i class="fas fa-exclamation-triangle me-1" style="color: #ffc107;"></i>Cannot continue: ${errors.join('. ')}. Please add another room or change to a room with higher capacity.`;
+                    footerMsgEl.style.color = '#856404';
+                }
+            }
+
+            if (continueBtn) {
+                continueBtn.disabled = !canContinue;
+                if (canContinue) {
+                    continueBtn.style.opacity = '1';
+                    continueBtn.style.cursor = 'pointer';
+                    continueBtn.removeAttribute('title');
+                } else {
+                    continueBtn.style.opacity = '0.5';
+                    continueBtn.style.cursor = 'not-allowed';
+                    const errors = [];
+                    if (total < 1 || adults < 1) {
+                        errors.push('You must have at least one adult guest');
+                    }
+                    if (!capacityValid) {
+                        errors.push(`Capacity exceeded: ${total} guests vs ${totalCapacity} capacity`);
+                    }
+                    if (!rulesValid && allRules.length > 0) {
+                        errors.push('Occupancy rules not met');
+                    }
+                    continueBtn.setAttribute('title', `Cannot continue: ${errors.join('. ')}. Please fix these errors.`);
+                }
+            }
+        } else {
+            if (statusEl) {
+                statusEl.style.display = 'block';
+                statusEl.style.background = '#fff3cd';
+                statusEl.style.border = '1px solid #ffc107';
+                statusEl.style.color = '#856404';
+                statusEl.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i>Please select a room from the list below`;
+            }
+            if (footerMsgEl) {
+                footerMsgEl.innerHTML = `<i class="fas fa-info-circle me-1"></i>Please select a room to continue`;
+                footerMsgEl.style.color = '#6c757d';
+            }
+            if (continueBtn) {
+                continueBtn.disabled = true;
+                continueBtn.style.opacity = '0.5';
+                continueBtn.style.cursor = 'not-allowed';
+                continueBtn.setAttribute('title', 'Please select at least one room to continue');
+            }
+        }
+    }
+
+    // Continue to guest details
+    function continueToGuestDetails(pk) {
+        const state = stateByPk.get(pk);
+        if (!state || !state.rooms || state.rooms.length === 0) {
+            showToast('Please select at least one room first', 'warning');
+            return;
+        }
+
+        const adults = state.guests ? state.guests.filter(g => g.type === 'adult').length : 0;
+        const children = state.guests ? state.guests.filter(g => g.type === 'child').length : 0;
+        const total = adults + children;
+
+        if (total < 1 || adults < 1) {
+            showToast('You must have at least one adult guest', 'warning');
+            return;
+        }
+
+        const guestModalEl = q(`hotelGuestDetailsModal${pk}`);
+        if (!guestModalEl) {
+            showToast('Guest details modal not found', 'error');
+            return;
+        }
+
+        const roomsModalEl = q(`hotelRoomsModal${pk}`);
+
+        // Populate guest modal
+        const roomInput = q(`guest-room${pk}`);
+        // For multiple rooms, we might need to handle this differently in the form
+        // For now, store the first room ID for backward compatibility
+        if (roomInput && state.rooms.length > 0) {
+            roomInput.value = String(state.rooms[0].roomId);
+        }
+
+        const labelEl = q(`selected-room-label${pk}`);
+        if (labelEl) {
+            if (state.rooms.length === 1) {
+                labelEl.textContent = state.rooms[0].roomLabel;
+            } else if (state.rooms.length > 1) {
+                labelEl.textContent = `${state.rooms.length} rooms selected`;
+            }
+        }
+
+        renderGuestDetails(pk);
+
+        // Pre-fill Main Contact (registrant) data
+        const mainContactNameInput = guestModalEl.querySelector('input[name="guest_name"]');
+        const mainContactEmailInput = guestModalEl.querySelector('input[name="guest_email"]');
+        const mainContactPhoneInput = guestModalEl.querySelector('input[name="guest_phone"]');
+
+        if (state.guests && state.guests.length > 0) {
+            // Find registrant (first adult or guest with isRegistrant flag)
+            const registrant = state.guests.find(g => g.isRegistrant) ||
+                              state.guests.find(g => g.type === 'adult') ||
+                              state.guests[0];
+
+            if (registrant) {
+                if (mainContactNameInput && registrant.name) {
+                    mainContactNameInput.value = registrant.name;
+                }
+                if (mainContactEmailInput && registrant.email) {
+                    mainContactEmailInput.value = registrant.email;
+                }
+                // Phone might not be in state, but we can try to get it from user profile if available
+                // For now, leave phone empty as it's not stored in state
+            }
+        }
+
+        // Pre-fill player data in additional children/adults sections
+        if (state.guests && state.guests.length > 0) {
+            const players = state.guests.filter(g => g.isPlayer);
+
+            if (players.length > 0) {
+                // Separate players by type
+                const playerAdults = players.filter(p => p.type === 'adult');
+                const playerChildren = players.filter(p => p.type === 'child');
+
+                // Pre-fill adult players (excluding main contact)
+                const adultBlocks = guestModalEl.querySelectorAll('.nsc-guest-adult');
+                playerAdults.forEach((player, idx) => {
+                    if (idx < adultBlocks.length && player.name) {
+                        const block = adultBlocks[idx];
+                        const nameInput = block.querySelector('.nsc-adult-name');
+                        const dobInput = block.querySelector('.nsc-adult-dob');
+
+                        if (nameInput) {
+                            nameInput.value = player.name;
+                        }
+                        if (dobInput && player.birthDate) {
+                            dobInput.value = player.birthDate;
+                        }
+                    }
+                });
+
+                // Pre-fill child players
+                const childBlocks = guestModalEl.querySelectorAll('.nsc-guest-child');
+                playerChildren.forEach((player, idx) => {
+                    if (idx < childBlocks.length && player.name) {
+                        const block = childBlocks[idx];
+                        const nameInput = block.querySelector('.nsc-child-name');
+                        const dobInput = block.querySelector('.nsc-child-dob');
+
+                        if (nameInput) {
+                            nameInput.value = player.name;
+                        }
+                        if (dobInput && player.birthDate) {
+                            dobInput.value = player.birthDate;
+                        }
+                    }
+                });
+            }
+        }
+
+        const openGuestDetails = () => {
+            if (!window.bootstrap?.Modal) return;
+            // Setup focus handling for this modal
+            setupModalFocusHandling(guestModalEl);
+
+            let modalInstance = bootstrap.Modal.getInstance(guestModalEl);
+            if (!modalInstance) modalInstance = new bootstrap.Modal(guestModalEl);
+            modalInstance.show();
+        };
+
+        // Close rooms modal first (avoid backdrop conflicts), then open guest modal
+        if (roomsModalEl && window.bootstrap?.Modal && roomsModalEl.classList.contains('show')) {
+            roomsModalEl.addEventListener('hidden.bs.modal', () => openGuestDetails(), { once: true });
+            const inst = bootstrap.Modal.getInstance(roomsModalEl);
+            if (inst) {
+                inst.hide();
+            } else {
+                roomsModalEl.classList.remove('show');
+                roomsModalEl.setAttribute('aria-hidden', 'true');
+                roomsModalEl.style.display = 'none';
+                const backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) backdrop.remove();
+                document.body.classList.remove('modal-open');
+                openGuestDetails();
+            }
+        } else {
+            openGuestDetails();
+        }
+    }
+
+    // Lightbox functions
+    function openLightbox(pk, index) {
+        if (!window.roomImages || !window.roomImages[pk]) return;
+        const images = window.roomImages[pk];
+        if (!images || images.length === 0) return;
+
+        const lightbox = q(`roomImageLightbox${pk}`);
+        const lightboxImg = q(`lightbox-image${pk}`);
+        const lightboxCounter = q(`lightbox-counter${pk}`);
+
+        if (!lightbox || !lightboxImg) return;
+
+        // Store current index
+        if (!window.lightboxState) window.lightboxState = {};
+        window.lightboxState[pk] = { currentIndex: index, images: images };
+
+        // Show image
+        const img = images[index];
+        if (img) {
+            lightboxImg.src = img.image_url || img.url;
+            lightboxImg.alt = img.title || img.alt || `Room image ${index + 1}`;
+            if (lightboxCounter) {
+                lightboxCounter.textContent = `${index + 1} / ${images.length}`;
+            }
+        }
+
+        // Show lightbox
+        lightbox.classList.add('show');
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+
+    function closeLightbox(pk) {
+        const lightbox = q(`roomImageLightbox${pk}`);
+        if (lightbox) {
+            lightbox.classList.remove('show');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+    }
+
+    function prevLightboxImage(pk) {
+        if (!window.lightboxState || !window.lightboxState[pk]) return;
+        const state = window.lightboxState[pk];
+        const newIndex = state.currentIndex > 0 ? state.currentIndex - 1 : state.images.length - 1;
+        openLightbox(pk, newIndex);
+    }
+
+    function nextLightboxImage(pk) {
+        if (!window.lightboxState || !window.lightboxState[pk]) return;
+        const state = window.lightboxState[pk];
+        const newIndex = state.currentIndex < state.images.length - 1 ? state.currentIndex + 1 : 0;
+        openLightbox(pk, newIndex);
+    }
+
+    // Close lightbox on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.nsc-lightbox.show').forEach(lightbox => {
+                const pk = lightbox.id.replace('roomImageLightbox', '');
+                closeLightbox(pk);
+            });
+        } else if (e.key === 'ArrowLeft') {
+            document.querySelectorAll('.nsc-lightbox.show').forEach(lightbox => {
+                const pk = lightbox.id.replace('roomImageLightbox', '');
+                prevLightboxImage(pk);
+            });
+        } else if (e.key === 'ArrowRight') {
+            document.querySelectorAll('.nsc-lightbox.show').forEach(lightbox => {
+                const pk = lightbox.id.replace('roomImageLightbox', '');
+                nextLightboxImage(pk);
+            });
+        }
+    });
+
+    // Sort rooms function
+    function sortRooms(pk, sortBy) {
+        const roomsModalEl = q(`hotelRoomsModal${pk}`);
+        if (!roomsModalEl) return;
+
+        const containerEl = roomsModalEl.querySelector('[style*="max-height: 70vh"]');
+        if (!containerEl) return;
+
+        const roomListings = Array.from(containerEl.querySelectorAll('.room-listing-inline'));
+        if (roomListings.length === 0) return;
+
+        // Get current total guests for recommendation calculation
+        const state = stateByPk.get(pk);
+        const total = state?.guests?.length || 1;
+
+        // Calculate sort values for each room
+        const roomsWithData = roomListings.map(roomEl => {
+            const cap = parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10);
+            const price = parseFloat(roomEl.getAttribute('data-room-price') || '0');
+            const waste = Math.max(0, cap - total);
+            const isExactMatch = cap === total ? 0 : 1;
+            const recommendationScore = isExactMatch * 1000 + waste * 10 + price / 100;
+
+            return {
+                el: roomEl,
+                cap,
+                price,
+                waste,
+                isExactMatch,
+                recommendationScore
+            };
+        });
+
+        // Sort based on selected option
+        let sortedRooms;
+        switch (sortBy) {
+            case 'recommended':
+                sortedRooms = roomsWithData.sort((a, b) => {
+                    if (a.recommendationScore !== b.recommendationScore) {
+                        return a.recommendationScore - b.recommendationScore;
+                    }
+                    if (a.isExactMatch !== b.isExactMatch) return a.isExactMatch - b.isExactMatch;
+                    if (a.price !== b.price) return a.price - b.price;
+                    return 0;
+                });
+                break;
+            case 'price-low-high':
+                sortedRooms = roomsWithData.sort((a, b) => a.price - b.price);
+                break;
+            case 'price-high-low':
+                sortedRooms = roomsWithData.sort((a, b) => b.price - a.price);
+                break;
+            case 'capacity-low-high':
+                sortedRooms = roomsWithData.sort((a, b) => a.cap - b.cap);
+                break;
+            case 'capacity-high-low':
+                sortedRooms = roomsWithData.sort((a, b) => b.cap - a.cap);
+                break;
+            default:
+                sortedRooms = roomsWithData;
+        }
+
+        // Clear old recommendation badges
+        roomListings.forEach(r => {
+            r.classList.remove('nsc-room-recommended');
+            const oldBadge = r.querySelector('.nsc-recommended-badge');
+            if (oldBadge) oldBadge.remove();
+        });
+
+        // Reorder rooms in DOM
+        const parentContainer = roomListings[0]?.parentElement;
+        if (parentContainer) {
+            sortedRooms.forEach((roomData, index) => {
+                const roomEl = roomData.el;
+
+                // Add recommendation badge for top 3 if sorting by recommended
+                if (sortBy === 'recommended' && index < 3) {
+                    roomEl.classList.add('nsc-room-recommended');
+                    if (index === 0) {
+                        const roomInfo = roomEl.querySelector('.room-info');
+                        if (roomInfo && !roomInfo.querySelector('.nsc-recommended-badge')) {
+                            const badge = document.createElement('div');
+                            badge.className = 'nsc-recommended-badge';
+                            badge.textContent = `⭐ Recommended for ${total} ${total === 1 ? 'guest' : 'guests'}`;
+                            badge.style.cssText = 'background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px; display: inline-block;';
+                            roomInfo.insertBefore(badge, roomInfo.firstChild);
+                        }
+                    }
+                }
+
+                parentContainer.appendChild(roomEl);
+            });
+        }
+    }
+
+    // Auto-distribute guests across selected rooms
+    function autoDistributeGuests(pk) {
+        const state = stateByPk.get(pk);
+        if (!state || !state.guests || !state.rooms || state.rooms.length === 0) return;
+
+        // Check if any room has manual assignments
+        const hasManualAssignments = Object.values(state.guestAssignments || {}).some(arr => arr.length > 0);
+
+        // If there are manual assignments, check if all guests are assigned
+        if (hasManualAssignments) {
+            const totalAssigned = Object.values(state.guestAssignments || {}).reduce((sum, arr) => sum + arr.length, 0);
+            const totalGuests = state.guests.length;
+
+            // If all guests are already assigned, don't redistribute
+            if (totalAssigned >= totalGuests) {
+                return;
+            }
+
+            // If there are unassigned guests, assign them to rooms with available capacity
+            // Find unassigned guest indices
+            const assignedIndices = new Set();
+            Object.values(state.guestAssignments || {}).forEach(arr => {
+                arr.forEach(idx => assignedIndices.add(idx));
+            });
+
+            const unassignedIndices = [];
+            for (let i = 0; i < state.guests.length; i++) {
+                if (!assignedIndices.has(i)) {
+                    unassignedIndices.push(i);
+                }
+            }
+
+            // Assign unassigned guests to rooms with available capacity
+            const roomsModalEl = q(`hotelRoomsModal${pk}`);
+            for (const guestIdx of unassignedIndices) {
+                for (const room of state.rooms) {
+                    const roomEl = roomsModalEl?.querySelector(`[data-room-id="${room.roomId}"]`) ||
+                                  document.querySelector(`[data-room-id="${room.roomId}"]`);
+                    const capacity = roomEl ? parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10) : room.capacity;
+                    const currentAssigned = state.guestAssignments[room.roomId]?.length || 0;
+
+                    if (currentAssigned < capacity) {
+                        if (!state.guestAssignments[room.roomId]) {
+                            state.guestAssignments[room.roomId] = [];
+                        }
+                        state.guestAssignments[room.roomId].push(guestIdx);
+                        break; // Guest assigned, move to next
+                    }
+                }
+            }
+
+            return; // Done assigning unassigned guests
+        }
+
+        // Clear all assignments
+        state.guestAssignments = {};
+        state.rooms.forEach(room => {
+            state.guestAssignments[room.roomId] = [];
+        });
+
+        // Get room capacities
+        const roomsModalEl = q(`hotelRoomsModal${pk}`);
+        const roomsWithCapacity = state.rooms.map(room => {
+            const roomEl = roomsModalEl?.querySelector(`[data-room-id="${room.roomId}"]`) ||
+                          document.querySelector(`[data-room-id="${room.roomId}"]`);
+            const capacity = roomEl ? parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10) : room.capacity;
+            return { ...room, capacity };
+        });
+
+        // Distribute guests optimally
+        let guestIndex = 0;
+        for (let i = 0; i < roomsWithCapacity.length && guestIndex < state.guests.length; i++) {
+            const room = roomsWithCapacity[i];
+            const remainingCapacity = room.capacity - (state.guestAssignments[room.roomId]?.length || 0);
+            const guestsToAssign = Math.min(remainingCapacity, state.guests.length - guestIndex);
+
+            for (let j = 0; j < guestsToAssign; j++) {
+                if (!state.guestAssignments[room.roomId]) {
+                    state.guestAssignments[room.roomId] = [];
+                }
+                state.guestAssignments[room.roomId].push(guestIndex);
+                guestIndex++;
+            }
+        }
+
+        // Update price calculation
+        updateRoomsPriceCalculation(pk);
+    }
+
+    // Show guest assignment modal
+    function showGuestAssignment(pk, roomId) {
+        const state = stateByPk.get(pk);
+        if (!state || !state.guests || !state.rooms) return;
+
+        const room = state.rooms.find(r => r.roomId === roomId);
+        if (!room) return;
+
+        // Get room capacity and rules
+        const roomsModalEl = q(`hotelRoomsModal${pk}`);
+        const roomEl = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`) ||
+                      document.querySelector(`[data-room-id="${roomId}"]`);
+        const capacity = roomEl ? parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10) : room.capacity;
+
+        // Get room rules
+        let rules = [];
+        const rulesJson = roomEl?.getAttribute('data-room-rules');
+        if (rulesJson) {
+            try {
+                rules = JSON.parse(rulesJson);
+            } catch (e) {
+                console.warn('Error parsing rules:', e);
+            }
+        }
+
+        // Get currently assigned guests for this room
+        const assignedIndices = state.guestAssignments[roomId] || [];
+
+        // Calculate current assignment stats
+        const assignedGuests = assignedIndices.map(idx => state.guests[idx]).filter(g => g);
+        const assignedAdults = assignedGuests.filter(g => g.type === 'adult').length;
+        const assignedChildren = assignedGuests.filter(g => g.type === 'child').length;
+        const assignedTotal = assignedAdults + assignedChildren;
+
+        // Validate against rules
+        let rulesValidation = null;
+        if (rules.length > 0) {
+            const activeRules = rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active);
+            const validRules = activeRules.filter(rule => {
+                const minAdults = parseInt(rule.min_adults) || 0;
+                const maxAdults = parseInt(rule.max_adults) || 999;
+                const minChildren = parseInt(rule.min_children) || 0;
+                const maxChildren = parseInt(rule.max_children) || 999;
+                return assignedAdults >= minAdults && assignedAdults <= maxAdults &&
+                       assignedChildren >= minChildren && assignedChildren <= maxChildren;
+            });
+
+            rulesValidation = {
+                valid: validRules.length > 0,
+                validRules: validRules,
+                allRules: activeRules,
+                assignedAdults: assignedAdults,
+                assignedChildren: assignedChildren
+            };
+        }
+
+        // Create modal content
+        let html = `<div style="padding: 20px;">`;
+        html += `<h5 style="margin-bottom: 16px; color: var(--mlb-blue);">Assign Guests to ${escapeHtml(room.roomLabel)}</h5>`;
+        html += `<p style="font-size: 0.85rem; color: #6c757d; margin-bottom: 8px;">Capacity: ${capacity} guests</p>`;
+        html += `<p style="font-size: 0.85rem; color: #6c757d; margin-bottom: 16px;">Currently assigned: ${assignedTotal} (${assignedAdults} adult${assignedAdults !== 1 ? 's' : ''}, ${assignedChildren} child${assignedChildren !== 1 ? 'ren' : ''})</p>`;
+
+        // Show rules validation
+        if (rulesValidation) {
+            if (rulesValidation.valid) {
+                html += `<div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; padding: 10px; margin-bottom: 16px; color: #155724; font-size: 0.85rem;">`;
+                html += `<i class="fas fa-check-circle me-1"></i><strong>Valid:</strong> Current assignment matches ${rulesValidation.validRules.length} rule(s).`;
+                if (rulesValidation.validRules.length === 1) {
+                    const rule = rulesValidation.validRules[0];
+                    const desc = rule.description || `Adults: ${rule.min_adults}-${rule.max_adults} • Children: ${rule.min_children}-${rule.max_children}`;
+                    html += `<div style="margin-top: 4px; font-size: 0.8rem;">Matching rule: ${escapeHtml(desc)}</div>`;
+                }
+                html += `</div>`;
+            } else {
+                html += `<div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 10px; margin-bottom: 16px; color: #856404; font-size: 0.85rem;">`;
+                html += `<i class="fas fa-exclamation-triangle me-1"></i><strong>Warning:</strong> Current assignment (${assignedAdults} adults, ${assignedChildren} children) does not match any occupancy rule.`;
+                html += `<div style="margin-top: 8px; font-size: 0.8rem; font-weight: 600;">Available rules:</div>`;
+                rulesValidation.allRules.forEach((rule, idx) => {
+                    const desc = rule.description || `Adults: ${rule.min_adults}-${rule.max_adults} • Children: ${rule.min_children}-${rule.max_children}`;
+                    html += `<div style="font-size: 0.75rem; color: #6c757d; margin-top: 4px; padding-left: 12px;">`;
+                    html += `<i class="fas fa-circle me-1" style="font-size: 0.65rem;"></i>${escapeHtml(desc)}`;
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            }
+        } else if (rules.length === 0) {
+            html += `<div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 10px; margin-bottom: 16px; color: #6c757d; font-size: 0.85rem; font-style: italic;">No occupancy rules defined for this room. Any combination of guests is allowed.</div>`;
+        }
+
+        html += `<div style="max-height: 400px; overflow-y: auto;">`;
+
+        state.guests.forEach((guest, idx) => {
+            const isAssigned = assignedIndices.includes(idx);
+            const isAssignedToOtherRoom = Object.entries(state.guestAssignments || {}).some(([rid, indices]) =>
+                rid !== roomId && indices.includes(idx)
+            );
+
+            html += `<div style="display: flex; align-items: center; justify-content: space-between; padding: 10px; margin-bottom: 8px; border: 1px solid #e9ecef; border-radius: 6px; background: ${isAssigned ? '#d4edda' : isAssignedToOtherRoom ? '#fff3cd' : '#fff'};">`;
+            html += `<div style="flex: 1;">`;
+            html += `<div style="font-weight: 600; color: #333;">${escapeHtml(guest.name)}</div>`;
+            html += `<div style="font-size: 0.75rem; color: #6c757d;">${guest.type === 'adult' ? 'Adult' : 'Child'}${guest.age ? ` • Age: ${guest.age}` : ''}</div>`;
+            if (isAssignedToOtherRoom) {
+                html += `<div style="font-size: 0.7rem; color: #856404; margin-top: 4px;">⚠ Already assigned to another room</div>`;
+            }
+            html += `</div>`;
+            html += `<input type="checkbox" ${isAssigned ? 'checked' : ''} ${isAssignedToOtherRoom ? 'disabled' : ''} onchange="window.NSC_HotelReservation?.toggleGuestAssignment?.('${pk}', '${roomId}', ${idx}, this.checked, ${capacity});" style="width: 20px; height: 20px; cursor: pointer;">`;
+            html += `</div>`;
+        });
+
+        html += `</div>`;
+        html += `<div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center;">`;
+        html += `<button type="button" onclick="if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); window.NSC_HotelReservation?.autoDistributeGuests?.('${pk}'); setTimeout(() => { const modal = bootstrap.Modal.getInstance(document.getElementById('guestAssignmentModal${pk}')); if (modal) modal.hide(); }, 50);" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Auto-Distribute</button>`;
+        html += `<button type="button" onclick="if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); setTimeout(() => { const modal = bootstrap.Modal.getInstance(document.getElementById('guestAssignmentModal${pk}')); if (modal) modal.hide(); window.NSC_HotelReservation?.updateRoomsPriceCalculation?.('${pk}'); }, 50);" style="background: var(--mlb-blue); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Done</button>`;
+        html += `</div>`;
+        html += `</div>`;
+
+        // Create or update modal
+        let modalEl = q(`guestAssignmentModal${pk}`);
+        if (!modalEl) {
+            modalEl = document.createElement('div');
+            modalEl.id = `guestAssignmentModal${pk}`;
+            modalEl.className = 'modal fade';
+            modalEl.setAttribute('tabindex', '-1');
+            modalEl.innerHTML = `
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-body" id="guestAssignmentModalBody${pk}"></div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modalEl);
+        }
+
+        const bodyEl = q(`guestAssignmentModalBody${pk}`);
+        if (bodyEl) {
+            bodyEl.innerHTML = html;
+        }
+
+        // Show modal
+        if (window.bootstrap?.Modal) {
+            // Setup focus handling for this modal
+            setupModalFocusHandling(modalEl);
+
+            const modalInstance = new bootstrap.Modal(modalEl);
+            modalInstance.show();
+        }
+    }
+
+    // Remove room from selection
+    function removeRoom(pk, roomId) {
+        const state = stateByPk.get(pk);
+        if (!state || !state.rooms) return;
+
+        const roomIndex = state.rooms.findIndex(r => r.roomId === String(roomId));
+        if (roomIndex === -1) return;
+
+        const room = state.rooms[roomIndex];
+        const totalGuests = state.guests ? state.guests.length : 0;
+
+        // Calculate remaining capacity
+        let remainingCapacity = 0;
+        state.rooms.forEach((r, idx) => {
+            if (idx !== roomIndex) {
+                const roomsModalEl = q(`hotelRoomsModal${pk}`);
+                const roomEl = roomsModalEl?.querySelector(`[data-room-id="${r.roomId}"]`) ||
+                              document.querySelector(`[data-room-id="${r.roomId}"]`);
+                if (roomEl) {
+                    remainingCapacity += parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10);
+                } else {
+                    remainingCapacity += r.capacity || 0;
+                }
+            }
+        });
+
+        // Check if removing would leave insufficient capacity
+        if (remainingCapacity < totalGuests && state.rooms.length > 1) {
+            const confirmRemove = confirm(`Removing this room would leave ${remainingCapacity} capacity for ${totalGuests} guests. Do you want to continue?`);
+            if (!confirmRemove) {
+                return;
+            }
+        }
+
+        // Remove room from selection
+        state.rooms.splice(roomIndex, 1);
+        // Remove guest assignments for this room
+        if (state.guestAssignments) {
+            delete state.guestAssignments[String(roomId)];
+        }
+
+        // Update UI - remove selected attribute
+        const roomsModalEl = q(`hotelRoomsModal${pk}`);
+        const roomEl = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`) ||
+                      document.querySelector(`[data-room-id="${roomId}"]`);
+        if (roomEl) {
+            roomEl.removeAttribute('data-selected');
+        }
+
+        // Auto-redistribute guests if needed
+        autoDistributeGuests(pk);
+
+        // Update price calculation and validation
+        updateRoomsPriceCalculation(pk);
+        validateRoomSelection(pk);
+
+        showToast(`Room "${room.roomLabel}" removed from selection`, 'info', 3000);
+    }
+
+    // Toggle guest assignment to a room
+    function toggleGuestAssignment(pk, roomId, guestIndex, assign, capacity) {
+        const state = stateByPk.get(pk);
+        if (!state || !state.guestAssignments) return;
+
+        if (!state.guestAssignments[roomId]) {
+            state.guestAssignments[roomId] = [];
+        }
+
+        // Remove from other rooms first
+        Object.keys(state.guestAssignments).forEach(rid => {
+            if (rid !== roomId) {
+                state.guestAssignments[rid] = state.guestAssignments[rid].filter(gi => gi !== guestIndex);
+            }
+        });
+
+        if (assign) {
+            // Check capacity
+            const currentCount = state.guestAssignments[roomId].length;
+            if (currentCount >= capacity) {
+                showToast(`Room capacity (${capacity}) reached. Cannot assign more guests.`, 'warning');
+                return false;
+            }
+
+            // Add to this room temporarily to check rules
+            const tempAssignments = [...state.guestAssignments[roomId]];
+            if (!tempAssignments.includes(guestIndex)) {
+                tempAssignments.push(guestIndex);
+            }
+
+            // Get room rules
+            const roomsModalEl = q(`hotelRoomsModal${pk}`);
+            const roomEl = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`) ||
+                          document.querySelector(`[data-room-id="${roomId}"]`);
+            const rulesJson = roomEl?.getAttribute('data-room-rules');
+
+            if (rulesJson) {
+                try {
+                    const rules = JSON.parse(rulesJson);
+                    const activeRules = rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active);
+
+                    if (activeRules.length > 0) {
+                        // Calculate what the assignment would be
+                        const tempAssignedGuests = tempAssignments.map(idx => state.guests[idx]).filter(g => g);
+                        const tempAdults = tempAssignedGuests.filter(g => g.type === 'adult').length;
+                        const tempChildren = tempAssignedGuests.filter(g => g.type === 'child').length;
+
+                        // Check if this assignment would match any rule
+                        const wouldMatchRule = activeRules.some(rule => {
+                            const minAdults = parseInt(rule.min_adults) || 0;
+                            const maxAdults = parseInt(rule.max_adults) || 999;
+                            const minChildren = parseInt(rule.min_children) || 0;
+                            const maxChildren = parseInt(rule.max_children) || 999;
+                            return tempAdults >= minAdults && tempAdults <= maxAdults &&
+                                   tempChildren >= minChildren && tempChildren <= maxChildren;
+                        });
+
+                        if (!wouldMatchRule) {
+                            const confirmAssign = confirm(`This assignment (${tempAdults} adults, ${tempChildren} children) does not match any occupancy rule. Do you want to continue anyway?`);
+                            if (!confirmAssign) {
+                                return false;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Error validating rules:', e);
+                }
+            }
+
+            // Add to this room
+            if (!state.guestAssignments[roomId].includes(guestIndex)) {
+                state.guestAssignments[roomId].push(guestIndex);
+            }
+        } else {
+            // Remove from this room
+            state.guestAssignments[roomId] = state.guestAssignments[roomId].filter(gi => gi !== guestIndex);
+        }
+
+        // Remove focus from checkbox before refreshing modal to avoid aria-hidden issues
+        if (document.activeElement && document.activeElement.blur) {
+            document.activeElement.blur();
+        }
+
+        // Use setTimeout to ensure focus is removed before modal refresh
+        setTimeout(() => {
+            showGuestAssignment(pk, roomId);
+        }, 50);
+
+        return true;
+    }
+
+    return { initModal, showRooms, showRoomsDirect, selectRoom, openRoomDetail, updateSummary, addAdult, addChild, stepper, backToGuests, backToRooms, addAdditionalGuest, saveGuest, removeGuest, continueToGuestDetails, openLightbox, closeLightbox, prevLightboxImage, nextLightboxImage, sortRooms, autoDistributeGuests, showGuestAssignment, toggleGuestAssignment, updateRoomsPriceCalculation, removeRoom };
 })();
 
 // ===== TOPBAR BUTTON FUNCTIONS =====

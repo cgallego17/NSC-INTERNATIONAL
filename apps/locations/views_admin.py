@@ -4,7 +4,11 @@ Vistas administrativas de ubicaciones - Solo staff/superuser, CRUD completo
 
 from django.contrib import messages
 from django.db.models import Q, Max
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
+from django.views.decorators.http import require_http_methods
+from django.utils.decorators import method_decorator
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -22,6 +26,7 @@ from .models import (
     HotelReservation,
     HotelRoom,
     HotelRoomImage,
+    HotelRoomRule,
     HotelService,
     Rule,
     Season,
@@ -30,6 +35,8 @@ from .models import (
 )
 from .forms import HotelForm
 from apps.core.mixins import StaffRequiredMixin
+from apps.media.models import MediaFile
+from pathlib import Path
 
 
 # ===== COUNTRY VIEWS (Admin) =====
@@ -1059,7 +1066,7 @@ class AdminHotelRoomListView(StaffRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        queryset = HotelRoom.objects.select_related("hotel").all()
+        queryset = HotelRoom.objects.select_related("hotel").prefetch_related("images__media_file", "images").all()
 
         # Filtro por hotel
         hotel = self.request.GET.get("hotel")
@@ -1078,6 +1085,7 @@ class AdminHotelRoomListView(StaffRequiredMixin, ListView):
         if search:
             queryset = queryset.filter(
                 Q(room_number__icontains=search)
+                | Q(name__icontains=search)
                 | Q(hotel__hotel_name__icontains=search)
             )
 
@@ -1098,35 +1106,83 @@ class AdminHotelRoomCreateView(StaffRequiredMixin, CreateView):
     fields = [
         "hotel",
         "room_number",
+        "name",
         "room_type",
         "capacity",
         "price_per_night",
+        "price_includes_guests",
+        "additional_guest_price",
+        "breakfast_included",
         "description",
         "is_available",
     ]
     success_url = reverse_lazy("locations:admin_hotel_room_list")
 
     def form_valid(self, form):
+        # Debug: Log todos los campos recibidos
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"[CREATE] POST data keys: {list(self.request.POST.keys())}")
+        logger.info(f"[CREATE] Form cleaned_data: {form.cleaned_data}")
+        logger.info(f"[CREATE] additional_guest_price en POST: {self.request.POST.get('additional_guest_price', 'NO ENCONTRADO')}")
+        logger.info(f"[CREATE] price_per_night en POST: {self.request.POST.get('price_per_night', 'NO ENCONTRADO')}")
+
+        # Asegurar que los checkboxes se procesen correctamente
+        # Los checkboxes no se envían si no están marcados, así que debemos manejarlos explícitamente
+        if 'breakfast_included' not in self.request.POST:
+            form.instance.breakfast_included = False
+        if 'is_available' not in self.request.POST:
+            form.instance.is_available = False
+
+        # Asegurar que additional_guest_price tenga un valor por defecto si está vacío
+        additional_price = self.request.POST.get('additional_guest_price', '').strip()
+        if not additional_price or additional_price == '':
+            form.instance.additional_guest_price = 0.00
+        else:
+            try:
+                form.instance.additional_guest_price = float(additional_price)
+            except (ValueError, TypeError):
+                form.instance.additional_guest_price = 0.00
+
         response = super().form_valid(form)
         room = self.object
 
-        # Procesar imágenes múltiples
-        images = self.request.FILES.getlist('room_images')
-        if images:
-            for index, image_file in enumerate(images):
-                if image_file:
-                    title = self.request.POST.get(f'room_image_title_{index}', '').strip() or None
-                    alt_text = self.request.POST.get(f'room_image_alt_{index}', '').strip() or None
-                    is_featured = self.request.POST.get(f'room_image_featured_{index}') == 'on'
+        # Debug: Verificar que el objeto se guardó correctamente
+        logger.info(f"[CREATE] Room guardado - ID: {room.id}, Hotel: {room.hotel_id}, Número: {room.room_number}, Nombre: {room.name}, Tipo: {room.room_type}, Capacidad: {room.capacity}, Precio: {room.price_per_night}, Incluye: {room.price_includes_guests}, Adicional: {room.additional_guest_price}, Desayuno: {room.breakfast_included}, Disponible: {room.is_available}")
 
-                    HotelRoomImage.objects.create(
-                        room=room,
-                        image=image_file,
-                        title=title,
-                        alt_text=alt_text,
-                        is_featured=is_featured,
-                        order=index
-                    )
+        added_images = 0
+
+        # 1) Selección desde biblioteca multimedia (IDs)
+        media_ids_raw = self.request.POST.getlist("room_media_ids")
+        logger.info(f"[CREATE] Media IDs raw recibidos: {media_ids_raw}")
+        media_ids = [i for i in media_ids_raw if str(i).isdigit()]
+        logger.info(f"[CREATE] Media IDs procesados: {media_ids}")
+
+        for idx, media_id in enumerate(media_ids):
+            try:
+                mf = MediaFile.objects.filter(id=int(media_id), status="active", file_type="image").first()
+                if not mf:
+                    logger.warning(f"[CREATE] MediaFile con ID {media_id} no encontrado o no es imagen activa")
+                    continue
+                if room.images.filter(media_file_id=mf.id).exists():
+                    logger.info(f"[CREATE] Imagen con MediaFile ID {media_id} ya existe para esta habitación, omitiendo")
+                    continue
+                HotelRoomImage.objects.create(
+                    room=room,
+                    media_file=mf,
+                    title=mf.title or None,
+                    alt_text=getattr(mf, "alt_text", "") or "",
+                    is_featured=False,
+                    order=idx,
+                )
+                added_images += 1
+                logger.info(f"[CREATE] Imagen agregada exitosamente: MediaFile ID {media_id}")
+            except Exception as e:
+                logger.error(f"[CREATE] Error al agregar imagen con ID {media_id}: {e}")
+                continue
+
+        # Debug: Log para verificar imágenes
+        logger.info(f"[CREATE] Total imágenes agregadas: {added_images}")
 
         # Procesar amenidades de habitación
         amenity_count = 0
@@ -1143,32 +1199,95 @@ class AdminHotelRoomCreateView(StaffRequiredMixin, CreateView):
         }
 
         selected_amenities = []
-        for key in self.request.POST.keys():
-            if key.startswith('room_amenity_'):
-                icon_value = key.replace('room_amenity_', '')
-                if icon_value in amenity_mapping:
-                    selected_amenities.append(icon_value)
+        # Buscar checkboxes marcados - los checkboxes solo se envían si están marcados
+        amenity_keys = [k for k in self.request.POST.keys() if k.startswith('room_amenity_')]
+        logger.info(f"[CREATE] Keys POST que empiezan con 'room_amenity_': {amenity_keys}")
 
+        for key in amenity_keys:
+            icon_value = key.replace('room_amenity_', '')
+            # Verificar que el checkbox esté marcado (si está en POST, está marcado)
+            if icon_value in amenity_mapping:
+                selected_amenities.append(icon_value)
+                logger.info(f"[CREATE] Amenidad seleccionada: {icon_value}")
+
+        # Debug: Log para verificar amenidades
+        logger.info(f"[CREATE] Total amenidades seleccionadas: {len(selected_amenities)} - {selected_amenities}")
+
+        # Asociar amenidades a la habitación
+        room_amenities_to_add = []
         for icon_value in selected_amenities:
             if icon_value in amenity_mapping:
-                # Verificar si ya existe en el hotel
-                existing = room.hotel.amenities.filter(icon=icon_value).first()
-                if not existing:
-                    HotelAmenity.objects.create(
-                        hotel=room.hotel,
-                        name=amenity_mapping[icon_value]['name'],
-                        category=amenity_mapping[icon_value]['category'],
-                        icon=icon_value,
-                        is_available=True,
-                        order=room.hotel.amenities.count()
-                    )
+                # Buscar o crear la amenidad en el hotel
+                amenity, created = HotelAmenity.objects.get_or_create(
+                    hotel=room.hotel,
+                    icon=icon_value,
+                    defaults={
+                        'name': amenity_mapping[icon_value]['name'],
+                        'category': amenity_mapping[icon_value]['category'],
+                        'is_available': True,
+                        'order': room.hotel.amenities.count()
+                    }
+                )
+                if created:
                     amenity_count += 1
+                # Agregar a la lista para asociar a la habitación
+                room_amenities_to_add.append(amenity)
+
+        # Asociar las amenidades a la habitación (siempre, incluso si está vacío para limpiar)
+        room.amenities.set(room_amenities_to_add)
+        logger.info(f"[CREATE] Amenidades asociadas a la habitación: {[a.icon for a in room_amenities_to_add]}")
+
+        # Procesar reglas de habitación
+        rules_count = 0
+        rule_index = 0
+        while True:
+            min_adults_key = f"rule_min_adults_{rule_index}"
+            if min_adults_key not in self.request.POST:
+                break
+
+            try:
+                min_adults = int(self.request.POST.get(min_adults_key, 0))
+                max_adults = int(self.request.POST.get(f"rule_max_adults_{rule_index}", 0))
+                min_children = int(self.request.POST.get(f"rule_min_children_{rule_index}", 0))
+                max_children = int(self.request.POST.get(f"rule_max_children_{rule_index}", 0))
+                description = self.request.POST.get(f"rule_description_{rule_index}", "").strip()
+                is_active = self.request.POST.get(f"rule_is_active_{rule_index}") == "on"
+
+                # Debug: Log para verificar qué se está recibiendo
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"[CREATE] Procesando regla {rule_index}: min_adults={min_adults}, max_adults={max_adults}, min_children={min_children}, max_children={max_children}")
+
+                if min_adults > 0 and max_adults > 0:
+                    HotelRoomRule.objects.create(
+                        room=room,
+                        min_adults=min_adults,
+                        max_adults=max_adults,
+                        min_children=min_children,
+                        max_children=max_children,
+                        description=description or None,
+                        is_active=is_active,
+                        order=rule_index,
+                    )
+                    rules_count += 1
+                    logger.info(f"[CREATE] Regla {rule_index} creada exitosamente")
+                else:
+                    logger.warning(f"[CREATE] Regla {rule_index} omitida: min_adults={min_adults}, max_adults={max_adults} (debe ser > 0)")
+            except (ValueError, TypeError) as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"[CREATE] Error procesando regla {rule_index}: {e}")
+                pass
+
+            rule_index += 1
 
         messages.success(self.request, f"Habitación '{room.room_number}' creada exitosamente.")
-        if images:
-            messages.info(self.request, f"Se agregaron {len(images)} imagen(es) a la galería de la habitación.")
+        if added_images:
+            messages.info(self.request, f"Se agregaron {added_images} imagen(es) a la galería de la habitación.")
         if amenity_count > 0:
             messages.info(self.request, f"Se agregaron {amenity_count} amenidad(es) al hotel.")
+        if rules_count > 0:
+            messages.info(self.request, f"Se agregaron {rules_count} regla(s) de ocupación a la habitación.")
         return response
 
 
@@ -1180,39 +1299,105 @@ class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
     fields = [
         "hotel",
         "room_number",
+        "name",
         "room_type",
         "capacity",
         "price_per_night",
+        "price_includes_guests",
+        "additional_guest_price",
+        "breakfast_included",
         "description",
         "is_available",
     ]
     success_url = reverse_lazy("locations:admin_hotel_room_list")
 
     def form_valid(self, form):
+        # Debug: Log todos los campos recibidos
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.info(f"[UPDATE] POST data keys: {list(self.request.POST.keys())}")
+        logger.info(f"[UPDATE] Form cleaned_data: {form.cleaned_data}")
+        logger.info(f"[UPDATE] additional_guest_price en POST: {self.request.POST.get('additional_guest_price', 'NO ENCONTRADO')}")
+        logger.info(f"[UPDATE] price_per_night en POST: {self.request.POST.get('price_per_night', 'NO ENCONTRADO')}")
+
+        # Asegurar que los checkboxes se procesen correctamente
+        # Los checkboxes no se envían si no están marcados, así que debemos manejarlos explícitamente
+        if 'breakfast_included' not in self.request.POST:
+            form.instance.breakfast_included = False
+        if 'is_available' not in self.request.POST:
+            form.instance.is_available = False
+
+        # Asegurar que additional_guest_price tenga un valor por defecto si está vacío
+        additional_price = self.request.POST.get('additional_guest_price', '').strip()
+        if not additional_price or additional_price == '':
+            form.instance.additional_guest_price = 0.00
+        else:
+            try:
+                form.instance.additional_guest_price = float(additional_price)
+            except (ValueError, TypeError):
+                form.instance.additional_guest_price = 0.00
+
         response = super().form_valid(form)
         room = self.object
 
-        # Procesar imágenes múltiples
-        images = self.request.FILES.getlist('room_images')
-        if images:
-            last_order = room.images.aggregate(
-                max_order=Max('order')
-            )['max_order'] or 0
+        # Debug: Verificar que el objeto se guardó correctamente
+        logger.info(f"[UPDATE] Room guardado - ID: {room.id}, Hotel: {room.hotel_id}, Número: {room.room_number}, Nombre: {room.name}, Tipo: {room.room_type}, Capacidad: {room.capacity}, Precio: {room.price_per_night}, Incluye: {room.price_includes_guests}, Adicional: {room.additional_guest_price}, Desayuno: {room.breakfast_included}, Disponible: {room.is_available}")
 
-            for index, image_file in enumerate(images):
-                if image_file:
-                    title = self.request.POST.get(f'room_image_title_{index}', '').strip() or None
-                    alt_text = self.request.POST.get(f'room_image_alt_{index}', '').strip() or None
-                    is_featured = self.request.POST.get(f'room_image_featured_{index}') == 'on'
+        added_images = 0
+        last_order = room.images.aggregate(max_order=Max("order"))["max_order"] or 0
 
-                    HotelRoomImage.objects.create(
-                        room=room,
-                        image=image_file,
-                        title=title,
-                        alt_text=alt_text,
-                        is_featured=is_featured,
-                        order=last_order + index + 1
-                    )
+        # 1) Selección desde biblioteca multimedia (IDs)
+        media_ids_raw = self.request.POST.getlist("room_media_ids")
+        logger.info(f"[UPDATE] Media IDs raw recibidos: {media_ids_raw}")
+        media_ids = [i for i in media_ids_raw if str(i).isdigit()]
+        logger.info(f"[UPDATE] Media IDs procesados: {media_ids}")
+
+        for idx, media_id in enumerate(media_ids):
+            try:
+                mf = MediaFile.objects.filter(id=int(media_id), status="active", file_type="image").first()
+                if not mf:
+                    logger.warning(f"[UPDATE] MediaFile con ID {media_id} no encontrado o no es imagen activa")
+                    continue
+                if room.images.filter(media_file_id=mf.id).exists():
+                    logger.info(f"[UPDATE] Imagen con MediaFile ID {media_id} ya existe para esta habitación, omitiendo")
+                    continue
+                HotelRoomImage.objects.create(
+                    room=room,
+                    media_file=mf,
+                    title=mf.title or None,
+                    alt_text=getattr(mf, "alt_text", "") or "",
+                    is_featured=False,
+                    order=last_order + idx + 1,
+                )
+                added_images += 1
+                logger.info(f"[UPDATE] Imagen agregada exitosamente: MediaFile ID {media_id}")
+            except Exception as e:
+                logger.error(f"[UPDATE] Error al agregar imagen con ID {media_id}: {e}")
+                continue
+
+        # 2) Fallback: archivos subidos (se guardan como MediaFile en MULTIMEDIA)
+        uploads = self.request.FILES.getlist("room_images")
+        for f in uploads:
+            if not f:
+                continue
+            title = Path(getattr(f, "name", "image")).stem or "Room image"
+            mf = MediaFile(
+                title=title,
+                file_type="image",
+                status="active",
+                uploaded_by=self.request.user,
+                original_file=f,
+            )
+            mf.save()
+            HotelRoomImage.objects.create(
+                room=room,
+                media_file=mf,
+                title=mf.title or None,
+                alt_text=getattr(mf, "alt_text", "") or "",
+                is_featured=False,
+                order=(room.images.aggregate(max_order=Max("order"))["max_order"] or 0) + 1,
+            )
+            added_images += 1
 
         # Procesar amenidades de habitación
         amenity_count = 0
@@ -1229,39 +1414,158 @@ class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
         }
 
         selected_amenities = []
-        for key in self.request.POST.keys():
-            if key.startswith('room_amenity_'):
-                icon_value = key.replace('room_amenity_', '')
-                if icon_value in amenity_mapping:
-                    selected_amenities.append(icon_value)
+        # Buscar checkboxes marcados - los checkboxes solo se envían si están marcados
+        amenity_keys = [k for k in self.request.POST.keys() if k.startswith('room_amenity_')]
+        logger.info(f"[UPDATE] Keys POST que empiezan con 'room_amenity_': {amenity_keys}")
 
-        # Eliminar amenidades de habitación que no están seleccionadas
-        existing_room_amenities = room.hotel.amenities.filter(
-            category__in=['room', 'bathroom']
-        )
-        for existing in existing_room_amenities:
-            if existing.icon not in selected_amenities:
-                existing.delete()
+        for key in amenity_keys:
+            icon_value = key.replace('room_amenity_', '')
+            # Verificar que el checkbox esté marcado (si está en POST, está marcado)
+            if icon_value in amenity_mapping:
+                selected_amenities.append(icon_value)
+                logger.info(f"[UPDATE] Amenidad seleccionada: {icon_value}")
 
+        logger.info(f"[UPDATE] Total amenidades seleccionadas: {len(selected_amenities)} - {selected_amenities}")
+
+        # Asociar amenidades a la habitación
+        room_amenities_to_add = []
         for icon_value in selected_amenities:
             if icon_value in amenity_mapping:
-                existing = room.hotel.amenities.filter(icon=icon_value).first()
-                if not existing:
-                    HotelAmenity.objects.create(
-                        hotel=room.hotel,
-                        name=amenity_mapping[icon_value]['name'],
-                        category=amenity_mapping[icon_value]['category'],
-                        icon=icon_value,
-                        is_available=True,
-                        order=room.hotel.amenities.count()
-                    )
+                # Buscar o crear la amenidad en el hotel
+                amenity, created = HotelAmenity.objects.get_or_create(
+                    hotel=room.hotel,
+                    icon=icon_value,
+                    defaults={
+                        'name': amenity_mapping[icon_value]['name'],
+                        'category': amenity_mapping[icon_value]['category'],
+                        'is_available': True,
+                        'order': room.hotel.amenities.count()
+                    }
+                )
+                if created:
                     amenity_count += 1
+                # Agregar a la lista para asociar a la habitación
+                room_amenities_to_add.append(amenity)
+
+        # Asociar las amenidades a la habitación (siempre, incluso si está vacío para limpiar)
+        room.amenities.set(room_amenities_to_add)
+        logger.info(f"[UPDATE] Amenidades asociadas a la habitación: {[a.icon for a in room_amenities_to_add]}")
+
+        # Procesar reglas de habitación
+        # Primero, obtener todas las reglas existentes y las que vienen en el POST
+        existing_rule_ids = set(room.rules.values_list('id', flat=True))
+        submitted_rule_ids = set()
+        delete_rule_ids = [
+            int(rule_id) for rule_id in self.request.POST.getlist("delete_rule_ids")
+            if str(rule_id).isdigit()
+        ]
+
+        # Eliminar reglas marcadas explícitamente para eliminar
+        for rule_id in delete_rule_ids:
+            try:
+                rule = HotelRoomRule.objects.get(id=rule_id, room=room)
+                rule.delete()
+                existing_rule_ids.discard(rule_id)
+            except HotelRoomRule.DoesNotExist:
+                pass
+
+        # Actualizar reglas existentes y crear nuevas
+        rules_updated = 0
+        rules_created = 0
+        rule_index = 0
+
+        while True:
+            rule_id_key = f"rule_id_{rule_index}"
+            min_adults_key = f"rule_min_adults_{rule_index}"
+
+            if min_adults_key not in self.request.POST:
+                break
+
+            try:
+                rule_id_str = self.request.POST.get(rule_id_key, "").strip()
+                min_adults = int(self.request.POST.get(min_adults_key, 0))
+                max_adults = int(self.request.POST.get(f"rule_max_adults_{rule_index}", 0))
+                min_children = int(self.request.POST.get(f"rule_min_children_{rule_index}", 0))
+                max_children = int(self.request.POST.get(f"rule_max_children_{rule_index}", 0))
+                description = self.request.POST.get(f"rule_description_{rule_index}", "").strip()
+                is_active = self.request.POST.get(f"rule_is_active_{rule_index}") == "on"
+
+                # Debug: Log para verificar qué se está recibiendo
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.info(f"Procesando regla {rule_index}: rule_id={rule_id_str}, min_adults={min_adults}, max_adults={max_adults}, min_children={min_children}, max_children={max_children}")
+
+                if min_adults > 0 and max_adults > 0:
+                    if rule_id_str and rule_id_str.isdigit():
+                        # Actualizar regla existente
+                        rule_id = int(rule_id_str)
+                        try:
+                            rule = HotelRoomRule.objects.get(id=rule_id, room=room)
+                            rule.min_adults = min_adults
+                            rule.max_adults = max_adults
+                            rule.min_children = min_children
+                            rule.max_children = max_children
+                            rule.description = description or None
+                            rule.is_active = is_active
+                            rule.order = rule_index
+                            rule.save()
+                            submitted_rule_ids.add(rule_id)
+                            rules_updated += 1
+                        except HotelRoomRule.DoesNotExist:
+                            # Si la regla no existe, crear una nueva
+                            HotelRoomRule.objects.create(
+                                room=room,
+                                min_adults=min_adults,
+                                max_adults=max_adults,
+                                min_children=min_children,
+                                max_children=max_children,
+                                description=description or None,
+                                is_active=is_active,
+                                order=rule_index,
+                            )
+                            rules_created += 1
+                    else:
+                        # Crear nueva regla (rule_id está vacío o no es un número)
+                        HotelRoomRule.objects.create(
+                            room=room,
+                            min_adults=min_adults,
+                            max_adults=max_adults,
+                            min_children=min_children,
+                            max_children=max_children,
+                            description=description or None,
+                            is_active=is_active,
+                            order=rule_index,
+                        )
+                        rules_created += 1
+            except (ValueError, TypeError) as e:
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Error procesando regla {rule_index}: {e}")
+                pass
+
+            rule_index += 1
+
+        # Eliminar reglas existentes que no están en el POST (fueron eliminadas del formulario)
+        rules_to_delete = existing_rule_ids - submitted_rule_ids - set(delete_rule_ids)
+        for rule_id in rules_to_delete:
+            try:
+                rule = HotelRoomRule.objects.get(id=rule_id, room=room)
+                rule.delete()
+            except HotelRoomRule.DoesNotExist:
+                pass
 
         messages.success(self.request, f"Habitación '{room.room_number}' actualizada exitosamente.")
-        if images:
-            messages.info(self.request, f"Se agregaron {len(images)} nueva(s) imagen(es) a la galería de la habitación.")
+        if added_images:
+            messages.info(self.request, f"Se agregaron {added_images} nueva(s) imagen(es) a la galería de la habitación.")
         if amenity_count > 0:
             messages.info(self.request, f"Se agregaron {amenity_count} nueva(s) amenidad(es) al hotel.")
+        if rules_updated > 0 or rules_created > 0 or delete_rule_ids or rules_to_delete:
+            total_rules = rules_updated + rules_created
+            deleted_rules = len(delete_rule_ids) + len(rules_to_delete)
+            if total_rules > 0:
+                messages.info(self.request, f"Se {'actualizaron' if rules_updated > 0 else 'crearon'} {total_rules} regla(s) de ocupación.")
+            if deleted_rules > 0:
+                messages.info(self.request, f"Se eliminaron {deleted_rules} regla(s) de ocupación.")
         return response
 
 
@@ -1275,6 +1579,50 @@ class AdminHotelRoomDeleteView(StaffRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Habitación eliminada exitosamente.")
         return super().delete(request, *args, **kwargs)
+
+
+@require_http_methods(["POST"])
+def admin_hotel_room_image_delete_ajax(request, pk):
+    """Eliminar imagen de habitación vía AJAX - Solo elimina la relación, NO el MediaFile"""
+
+    # Verificar que el usuario sea staff
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return JsonResponse({
+            "success": False,
+            "message": "No autorizado. Debes ser staff para realizar esta acción.",
+        }, status=403)
+
+    try:
+        # Obtener la imagen (sin usar get_object_or_404 para evitar HTML)
+        try:
+            image = HotelRoomImage.objects.get(pk=pk)
+        except HotelRoomImage.DoesNotExist:
+            return JsonResponse({
+                "success": False,
+                "message": "La imagen no existe o ya fue eliminada.",
+            }, status=404)
+
+        image_id = image.id
+        room_id = image.room.id
+
+        # Eliminar solo el HotelRoomImage (la relación)
+        # El MediaFile se preserva en la biblioteca multimedia
+        image.delete()
+
+        return JsonResponse({
+            "success": True,
+            "message": "Imagen eliminada de la habitación exitosamente.",
+            "image_id": image_id,
+            "room_id": room_id,
+        })
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error al eliminar imagen de habitación: {e}", exc_info=True)
+        return JsonResponse({
+            "success": False,
+            "message": f"Error al eliminar la imagen: {str(e)}",
+        }, status=500)
 
 
 # ===== HOTEL SERVICE VIEWS (Admin) =====

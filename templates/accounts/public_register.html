@@ -1,11 +1,13 @@
 {% load static %}
 {% load i18n %}
+{% load translation_tags %}
+{% get_current_language as CURRENT_LANGUAGE %}
 <!DOCTYPE html>
-<html lang="{% get_current_language %}">
+<html lang="{% if CURRENT_LANGUAGE %}{{ CURRENT_LANGUAGE|slice:":2" }}{% else %}en{% endif %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro - NCS International</title>
+    <title>{% trans "Registration" %} - NCS International</title>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -51,6 +53,194 @@
 
         .top-bar a:hover {
             color: white;
+        }
+
+        /* Language Selector with Flags Dropdown */
+        .language-selector-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-right: 0;
+        }
+
+        .language-selector-btn {
+            background: transparent;
+            border: 1px solid #555;
+            color: #ccc;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 80px;
+            justify-content: space-between;
+        }
+
+        .language-selector-btn:hover {
+            border-color: var(--mlb-gold);
+            background: rgba(255, 215, 0, 0.1);
+            color: white;
+        }
+
+        .language-selector-btn .flag-icon {
+            width: 20px;
+            height: 15px;
+            display: inline-block;
+            background-size: cover;
+            background-position: center;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .flag-icon.flag-us {
+            background-image: url('https://flagcdn.com/w20/us.png');
+        }
+
+        .flag-icon.flag-es {
+            background-image: url('https://flagcdn.com/w20/es.png');
+        }
+
+        .language-selector-btn .arrow-icon {
+            font-size: 0.7rem;
+            transition: transform 0.3s;
+        }
+
+        .language-selector-btn.active {
+            border-color: var(--mlb-gold);
+            background: rgba(255, 215, 0, 0.15);
+        }
+
+        .language-selector-btn.active .arrow-icon {
+            transform: rotate(180deg);
+        }
+
+        .language-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 5px;
+            background: var(--mlb-dark);
+            border: 1px solid #555;
+            border-radius: 4px;
+            min-width: 150px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .language-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .language-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            color: #ccc;
+            text-decoration: none;
+            transition: all 0.2s;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: inherit;
+        }
+
+        .language-option:last-child {
+            border-bottom: none;
+        }
+
+        .language-option:hover {
+            background: rgba(255, 215, 0, 0.15);
+            color: white;
+        }
+
+        .language-option.active {
+            background: rgba(255, 215, 0, 0.2);
+            color: var(--mlb-gold);
+        }
+
+        .language-option .flag-icon {
+            width: 24px;
+            height: 18px;
+            display: inline-block;
+            background-size: cover;
+            background-position: center;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .language-option .language-name {
+            flex: 1;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .language-selector-btn {
+                min-width: 70px;
+                padding: 4px 8px;
+                font-size: 0.8rem;
+            }
+
+            .language-selector-btn .language-text {
+                display: none;
+            }
+
+            .language-dropdown {
+                min-width: 130px;
+            }
+        }
+
+        /* Navbar MLB Style */
+        .navbar-mlb {
+            background: var(--mlb-blue) !important;
+            padding: 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .navbar-mlb .navbar-brand {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white !important;
+            padding: 15px 20px;
+            background: var(--mlb-red);
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-logo {
+            height: 40px;
+            width: auto;
+            max-width: 180px;
+            object-fit: contain;
+        }
+
+        .navbar-mlb .nav-link {
+            color: white !important;
+            font-weight: 600;
+            padding: 20px 15px !important;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            transition: background 0.3s;
+        }
+
+        .navbar-mlb .nav-link:hover {
+            background: var(--mlb-light-blue);
+        }
+
+        .navbar-mlb .nav-link.active {
+            background: var(--mlb-red);
         }
 
         /* Navbar MLB Style */
@@ -614,13 +804,60 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <span><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</span>
-                    <span class="ms-4"><i class="fas fa-envelope me-2"></i>info@nscinternational.com</span>
+                    {% if site_settings.contact_phone %}
+                        <span><i class="fas fa-phone me-2"></i>{{ site_settings.contact_phone }}</span>
+                    {% endif %}
+                    {% if site_settings.contact_email %}
+                        <span class="{% if site_settings.contact_phone %}ms-4{% endif %}"><i class="fas fa-envelope me-2"></i>{{ site_settings.contact_email }}</span>
+                    {% endif %}
                 </div>
                 <div class="col-md-6 text-end">
-                    <a href="{% url 'accounts:login' %}">Iniciar Sesión</a>
+                    <!-- Language Selector with Flags Dropdown -->
+                    {% get_current_language as CURRENT_LANGUAGE %}
+                    {% if not CURRENT_LANGUAGE or CURRENT_LANGUAGE == '' %}{% get_language_info for 'en' as lang_info %}{% endif %}
+                    <div class="language-selector-wrapper">
+                        <button type="button" class="language-selector-btn" id="languageSelectorBtn" onclick="toggleLanguageDropdown()">
+                            <span class="flag-icon {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}flag-es{% else %}flag-us{% endif %}"></span>
+                            <span class="language-text">
+                                {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}
+                                    ES
+                                {% else %}
+                                    EN
+                                {% endif %}
+                            </span>
+                            <i class="fas fa-chevron-down arrow-icon"></i>
+                        </button>
+                        <div class="language-dropdown" id="languageDropdown">
+                            <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-en">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/' }}">
+                                <input type="hidden" name="language" value="en">
+                                <button type="submit" class="language-option {% if CURRENT_LANGUAGE != 'es' and CURRENT_LANGUAGE|slice:":2" != 'es' %}active{% endif %}" style="background: none; border: none; width: 100%; text-align: left; padding: 10px; cursor: pointer;">
+                                    <span class="flag-icon flag-us"></span>
+                                    <span class="language-name">English</span>
+                                </button>
+                            </form>
+                            <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-es">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/' }}">
+                                <input type="hidden" name="language" value="es">
+                                <button type="submit" class="language-option {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}active{% endif %}" style="background: none; border: none; width: 100%; text-align: left; padding: 10px; cursor: pointer;">
+                                    <span class="flag-icon flag-es"></span>
+                                    <span class="language-name">Español</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                     <span class="mx-2">|</span>
-                    <a href="/">Volver al Inicio</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'accounts:panel' %}"><i class="fas fa-user me-1"></i>{% trans "My Account" %}</a>
+                        <span class="mx-2">|</span>
+                        <a href="{% url 'accounts:logout' %}">{% trans "Log Out" %}</a>
+                    {% else %}
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">{% trans "Log In" %}</a>
+                        <span class="mx-2">|</span>
+                        <a href="/accounts/register/">{% trans "Sign Up" %}</a>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -630,7 +867,7 @@
     <nav class="navbar navbar-expand-lg navbar-mlb">
         <div class="container-fluid px-0">
             <a class="navbar-brand" href="/">
-                <i class="fas fa-baseball-ball me-2"></i>NCS
+                <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" class="navbar-logo">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: white;">
                 <span style="color: white;"><i class="fas fa-bars"></i></span>
@@ -638,14 +875,28 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/">Inicio</a>
+                        <a class="nav-link" href="/">{% trans "Home" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="/accounts/register/">Registro</a>
+                        <a class="nav-link" href="{% url 'events:public_list' %}">{% trans "Events" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:login' %}">Iniciar Sesión</a>
+                        <a class="nav-link" href="#equipos">{% trans "Teams" %}</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:public_player_list' %}">{% trans "Players" %}</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:panel' %}">{% trans "My Account" %}</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/accounts/register/">
+                                <span class="badge-mlb">{% trans "Sign Up" %}</span>
+                            </a>
+                        </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -658,8 +909,8 @@
                 <div class="col-lg-10 col-xl-9">
                     <div class="register-card">
                         <div class="register-header">
-                            <h2><i class="fas fa-user-plus me-2"></i>Registro de Usuario</h2>
-                            <p>Regístrate como padre/acudiente o manager de equipo para gestionar jugadores y equipos</p>
+                            <h2><i class="fas fa-user-plus me-2"></i>{% trans "User Registration" %}</h2>
+                            <p>{% trans "Register as parent/guardian or team manager to manage players and teams" %}</p>
                         </div>
 
                         <div class="register-body">
@@ -674,11 +925,10 @@
 
                                 <!-- Tipo de Usuario -->
                                 <div class="form-section">
-                                    <div class="form-section-title">Tipo de Registro</div>
+                                    <div class="form-section-title">{% trans "Registration Type" %}</div>
                                     <div class="alert alert-info" id="parentInfoAlert" style="background: #e3f2fd; border-left: 4px solid var(--mlb-blue); padding: 15px; margin-bottom: 20px; display: none;">
                                         <i class="fas fa-info-circle me-2"></i>
-                                        <strong>Importante:</strong> Este formulario es para registrar tu información como padre/acudiente.
-                                        Después de completar el registro, podrás registrar a tu(s) hijo(s) o acudido(s) como jugadores desde tu dashboard.
+                                        <strong>{% trans "Important:" %}</strong> {% trans "This form is to register your information as a parent/guardian. After completing registration, you will be able to register your child(ren) or ward(s) as players from your dashboard." %}
                                     </div>
                                     <div class="user-type-selector">
                                         <div class="user-type-option">
@@ -687,8 +937,8 @@
                                                 <span class="user-type-icon">
                                                     <i class="fas fa-users"></i>
                                                 </span>
-                                                <span class="user-type-title">Padre/Acudiente</span>
-                                                <span class="user-type-desc">Soy padre o acudiente de un jugador</span>
+                                                <span class="user-type-title">{% trans "Parent/Guardian" %}</span>
+                                                <span class="user-type-desc">{% trans "I am a parent or guardian of a player" %}</span>
                                             </label>
                                         </div>
                                         <div class="user-type-option">
@@ -697,8 +947,8 @@
                                                 <span class="user-type-icon">
                                                     <i class="fas fa-user-tie"></i>
                                                 </span>
-                                                <span class="user-type-title">Manager de Equipo</span>
-                                                <span class="user-type-desc">Gestiono equipos de béisbol</span>
+                                                <span class="user-type-title">{% trans "Team Manager" %}</span>
+                                                <span class="user-type-desc">{% trans "I manage baseball teams" %}</span>
                                             </label>
                                         </div>
                                     </div>
@@ -709,7 +959,7 @@
 
                                 <!-- Información de Cuenta -->
                                 <div class="form-section">
-                                    <div class="form-section-title">Información de Cuenta</div>
+                                    <div class="form-section-title">{% trans "Account Information" %}</div>
                                     <div class="mb-3">
                                         <div class="field-wrapper">
                                             <label for="{{ form.email.id_for_label }}" class="form-label">
@@ -728,7 +978,7 @@
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label for="{{ form.password1.id_for_label }}" class="form-label">
-                                                <i class="fas fa-lock me-1"></i>Contraseña *
+                                                <i class="fas fa-lock me-1"></i>{% trans "Password" %} *
                                             </label>
                                             {{ form.password1 }}
                                             {% if form.password1.errors %}
@@ -741,41 +991,41 @@
                                                     <div class="password-strength-fill" id="passwordStrengthFill"></div>
                                                 </div>
                                                 <div class="password-strength-text" id="passwordStrengthText">
-                                                    <i class="fas fa-info-circle me-1"></i>Ingresa una contraseña
+                                                    <i class="fas fa-info-circle me-1"></i>{% trans "Enter a password" %}
                                                 </div>
                                             </div>
 
                                             <!-- Password Requirements -->
                                             <div class="password-requirements">
                                                 <div class="password-requirements-title">
-                                                    <i class="fas fa-shield-alt me-1"></i>Requisitos de Seguridad:
+                                                    <i class="fas fa-shield-alt me-1"></i>{% trans "Security Requirements:" %}
                                                 </div>
                                                 <div class="password-requirement" id="reqLength">
                                                     <i class="fas fa-circle"></i>
-                                                    <span>Al menos 8 caracteres</span>
+                                                    <span>{% trans "At least 8 characters" %}</span>
                                                 </div>
                                                 <div class="password-requirement" id="reqUpper">
                                                     <i class="fas fa-circle"></i>
-                                                    <span>Al menos una letra mayúscula</span>
+                                                    <span>{% trans "At least one uppercase letter" %}</span>
                                                 </div>
                                                 <div class="password-requirement" id="reqLower">
                                                     <i class="fas fa-circle"></i>
-                                                    <span>Al menos una letra minúscula</span>
+                                                    <span>{% trans "At least one lowercase letter" %}</span>
                                                 </div>
                                                 <div class="password-requirement" id="reqNumber">
                                                     <i class="fas fa-circle"></i>
-                                                    <span>Al menos un número</span>
+                                                    <span>{% trans "At least one number" %}</span>
                                                 </div>
                                                 <div class="password-requirement" id="reqSpecial">
                                                     <i class="fas fa-circle"></i>
-                                                    <span>Al menos un carácter especial (!@#$%^&*)</span>
+                                                    <span>{% trans "At least one special character (!@#$%^&*)" %}</span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <div class="field-wrapper">
                                                 <label for="{{ form.password2.id_for_label }}" class="form-label">
-                                                    <i class="fas fa-lock me-1"></i>Confirmar Contraseña <span class="required-field">*</span>
+                                                    <i class="fas fa-lock me-1"></i>{% trans "Confirm Password" %} <span class="required-field">*</span>
                                                 </label>
                                                 {{ form.password2 }}
                                                 <i class="field-validation-icon fas fa-check-circle valid" id="password2Icon"></i>
@@ -791,15 +1041,15 @@
 
                                 <!-- Información Personal -->
                                 <div class="form-section">
-                                    <div class="form-section-title">Información Personal del Padre/Acudiente</div>
+                                    <div class="form-section-title">{% trans "Personal Information of Parent/Guardian" %}</div>
                                     <p class="help-text mb-3" style="font-size: 0.9rem; color: #666;">
-                                        <i class="fas fa-info-circle me-1"></i>Completa tu información personal. Esta es tu información como padre/acudiente.
+                                        <i class="fas fa-info-circle me-1"></i>{% trans "Complete your personal information. This is your information as a parent/guardian." %}
                                     </p>
                                     <div class="row">
                                         <div class="col-md-4 mb-3">
                                             <div class="field-wrapper">
                                                 <label for="{{ form.first_name.id_for_label }}" class="form-label">
-                                                    <i class="fas fa-user me-1"></i>Tu Nombre <span class="required-field">*</span>
+                                                    <i class="fas fa-user me-1"></i>{% trans "Your First Name" %} <span class="required-field">*</span>
                                                 </label>
                                                 {{ form.first_name }}
                                                 <i class="field-validation-icon fas fa-check-circle valid" id="firstNameIcon"></i>
@@ -813,7 +1063,7 @@
                                         <div class="col-md-4 mb-3">
                                             <div class="field-wrapper">
                                                 <label for="{{ form.last_name.id_for_label }}" class="form-label">
-                                                    <i class="fas fa-user me-1"></i>Tu Primer Apellido <span class="required-field">*</span>
+                                                    <i class="fas fa-user me-1"></i>{% trans "Your First Last Name" %} <span class="required-field">*</span>
                                                 </label>
                                                 {{ form.last_name }}
                                                 <i class="field-validation-icon fas fa-check-circle valid" id="lastNameIcon"></i>
@@ -827,7 +1077,7 @@
                                         <div class="col-md-4 mb-3">
                                             <div class="field-wrapper">
                                                 <label for="{{ form.last_name2.id_for_label }}" class="form-label">
-                                                    <i class="fas fa-user me-1"></i>Tu Segundo Apellido <span class="optional-field">(Opcional)</span>
+                                                    <i class="fas fa-user me-1"></i>{% trans "Your Second Last Name" %} <span class="optional-field">({% trans "Optional" %})</span>
                                                 </label>
                                                 {{ form.last_name2 }}
                                                 <i class="field-validation-icon fas fa-check-circle valid" id="lastName2Icon"></i>
@@ -843,7 +1093,7 @@
                                         <div class="col-md-4 mb-3">
                                             <div class="field-wrapper">
                                                 <label for="{{ form.birth_date.id_for_label }}" class="form-label">
-                                                    <i class="fas fa-calendar me-1"></i>Tu Fecha de Nacimiento <span class="optional-field">(Opcional)</span>
+                                                    <i class="fas fa-calendar me-1"></i>{% trans "Your Date of Birth" %} <span class="optional-field">({% trans "Optional" %})</span>
                                                 </label>
                                                 {{ form.birth_date }}
                                                 <i class="field-validation-icon fas fa-check-circle valid" id="birthDateIcon"></i>
@@ -857,14 +1107,14 @@
                                         <div class="col-md-4 mb-3">
                                             <div class="field-wrapper">
                                                 <label for="{{ form.phone.id_for_label }}" class="form-label">
-                                                    <i class="fas fa-phone me-1"></i>Tu Teléfono <span class="required-field">*</span>
+                                                    <i class="fas fa-phone me-1"></i>{% trans "Your Phone" %} <span class="required-field">*</span>
                                                 </label>
                                                 <div class="input-group">
                                                     <span class="input-group-text" style="background: #f8f9fa; border-right: none; border: 2px solid #e9ecef; border-right: none;">
                                                         <i class="fas fa-globe me-1"></i>
                                                     </span>
                                                     <select name="phone_prefix" id="id_phone_prefix" class="form-select" required>
-                                                        <option value="">Selecciona</option>
+                                                        <option value="">{% trans "Select" %}</option>
                                                         <option value="+1" data-display="+1" {% if form.phone_prefix.value == '+1' %}selected{% endif %}>+1 (USA/Canadá)</option>
                                                         <option value="+52" data-display="+52" {% if form.phone_prefix.value == '+52' %}selected{% endif %}>+52 (México)</option>
                                                         <option value="+57" data-display="+57" {% if form.phone_prefix.value == '+57' %}selected{% endif %}>+57 (Colombia)</option>
@@ -909,7 +1159,7 @@
                                         <div class="col-md-4 mb-3">
                                             <div class="field-wrapper">
                                                 <label for="{{ form.phone_secondary.id_for_label }}" class="form-label">
-                                                    <i class="fas fa-phone-alt me-1"></i>Teléfono Secundario <span class="optional-field">(Opcional)</span>
+                                                    <i class="fas fa-phone-alt me-1"></i>{% trans "Secondary Phone" %} <span class="optional-field">({% trans "Optional" %})</span>
                                                 </label>
                                                 {{ form.phone_secondary }}
                                                 <i class="field-validation-icon fas fa-check-circle valid" id="phoneSecondaryIcon"></i>
@@ -929,8 +1179,8 @@
                                         </label>
                                         <div class="photo-upload-area" onclick="document.getElementById('id_profile_picture').click()">
                                             <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--mlb-blue);"></i>
-                                            <p class="mb-0">Haz clic para subir tu foto</p>
-                                            <small class="text-muted">JPG, PNG o GIF (máx. 5MB)</small>
+                                            <p class="mb-0">{% trans "Click to upload your photo" %}</p>
+                                            <small class="text-muted">{% trans "JPG, PNG or GIF (max. 5MB)" %}</small>
                                         </div>
                                         {{ form.profile_picture }}
                                         <img id="photoPreview" class="photo-preview" alt="Vista previa">
@@ -943,14 +1193,14 @@
 
                                 <!-- Ubicación -->
                                 <div class="form-section">
-                                    <div class="form-section-title">Tu Ubicación</div>
+                                    <div class="form-section-title">{% trans "Your Location" %}</div>
                                     <p class="help-text mb-3" style="font-size: 0.9rem; color: #666;">
-                                        <i class="fas fa-info-circle me-1"></i>Ubicación del padre/acudiente
+                                        <i class="fas fa-info-circle me-1"></i>{% trans "Location of the parent/guardian" %}
                                     </p>
                                     <div class="row">
                                         <div class="col-md-4 mb-3">
                                             <label for="{{ form.country.id_for_label }}" class="form-label">
-                                                <i class="fas fa-globe me-1"></i>País
+                                                <i class="fas fa-globe me-1"></i>{% trans "Country" %}
                                             </label>
                                             {{ form.country }}
                                             {% if form.country.errors %}
@@ -959,7 +1209,7 @@
                                         </div>
                                         <div class="col-md-4 mb-3">
                                             <label for="{{ form.state.id_for_label }}" class="form-label">
-                                                <i class="fas fa-map-marked-alt me-1"></i>Estado
+                                                <i class="fas fa-map-marked-alt me-1"></i>{% trans "State" %}
                                             </label>
                                             {{ form.state }}
                                             {% if form.state.errors %}
@@ -968,7 +1218,7 @@
                                         </div>
                                         <div class="col-md-4 mb-3">
                                             <label for="{{ form.city.id_for_label }}" class="form-label">
-                                                <i class="fas fa-city me-1"></i>Ciudad
+                                                <i class="fas fa-city me-1"></i>{% trans "City" %}
                                             </label>
                                             {{ form.city }}
                                             {% if form.city.errors %}
@@ -980,7 +1230,7 @@
                                     <div class="row">
                                         <div class="col-md-8 mb-3">
                                             <label for="{{ form.address.id_for_label }}" class="form-label">
-                                                <i class="fas fa-map-marker-alt me-1"></i>Dirección
+                                                <i class="fas fa-map-marker-alt me-1"></i>{% trans "Address" %}
                                             </label>
                                             {{ form.address }}
                                             {% if form.address.errors %}
@@ -990,7 +1240,7 @@
                                         <div class="col-md-4 mb-3">
                                             <div class="field-wrapper">
                                                 <label for="{{ form.postal_code.id_for_label }}" class="form-label">
-                                                    <i class="fas fa-mail-bulk me-1"></i>Código Postal <span class="optional-field">(Opcional)</span>
+                                                    <i class="fas fa-mail-bulk me-1"></i>{% trans "Postal Code" %} <span class="optional-field">({% trans "Optional" %})</span>
                                                 </label>
                                                 {{ form.postal_code }}
                                                 <i class="field-validation-icon fas fa-check-circle valid" id="postalCodeIcon"></i>
@@ -1006,7 +1256,7 @@
                                     <div class="row">
                                         <div class="col-md-12 mb-3">
                                             <label for="{{ form.address_line_2.id_for_label }}" class="form-label">
-                                                <i class="fas fa-building me-1"></i>Dirección Línea 2 (Apartamento, Suite, etc.)
+                                                <i class="fas fa-building me-1"></i>{% trans "Address Line 2 (Apartment, Suite, etc.)" %}
                                             </label>
                                             {{ form.address_line_2 }}
                                             {% if form.address_line_2.errors %}
@@ -1018,15 +1268,15 @@
 
                                 <!-- Información Adicional -->
                                 <div class="form-section">
-                                    <div class="form-section-title">Información Adicional del Padre/Acudiente</div>
+                                    <div class="form-section-title">{% trans "Additional Information of Parent/Guardian" %}</div>
                                     <p class="help-text mb-3" style="font-size: 0.9rem; color: #666;">
-                                        <i class="fas fa-info-circle me-1"></i>Información adicional sobre ti como padre/acudiente
+                                        <i class="fas fa-info-circle me-1"></i>{% trans "Additional information about you as a parent/guardian" %}
                                     </p>
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <div class="field-wrapper">
                                                 <label for="{{ form.website.id_for_label }}" class="form-label">
-                                                    <i class="fas fa-globe me-1"></i>Sitio Web <span class="optional-field">(Opcional)</span>
+                                                    <i class="fas fa-globe me-1"></i>{% trans "Website" %} <span class="optional-field">({% trans "Optional" %})</span>
                                                 </label>
                                                 {{ form.website }}
                                                 <i class="field-validation-icon fas fa-check-circle valid" id="websiteIcon"></i>
@@ -1039,39 +1289,39 @@
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label for="{{ form.social_media.id_for_label }}" class="form-label">
-                                                <i class="fas fa-share-alt me-1"></i>Redes Sociales
+                                                <i class="fas fa-share-alt me-1"></i>{% trans "Social Media" %}
                                             </label>
                                             {{ form.social_media }}
                                             {% if form.social_media.errors %}
                                                 <div class="error-message">{{ form.social_media.errors }}</div>
                                             {% endif %}
-                                            <div class="help-text">Ej: @usuario_instagram, @usuario_twitter</div>
+                                            <div class="help-text">{% trans "E.g.: @instagram_user, @twitter_user" %}</div>
                                         </div>
                                     </div>
 
                                     <div class="mb-3">
                                         <label for="{{ form.bio.id_for_label }}" class="form-label">
-                                            <i class="fas fa-user-edit me-1"></i>Biografía / Sobre Ti
+                                            <i class="fas fa-user-edit me-1"></i>{% trans "Biography / About You" %}
                                         </label>
                                         {{ form.bio }}
                                         {% if form.bio.errors %}
                                             <div class="error-message">{{ form.bio.errors }}</div>
                                         {% endif %}
-                                        <div class="help-text">Información sobre ti como padre/acudiente (opcional)</div>
+                                        <div class="help-text">{% trans "Information about you as a parent/guardian (optional)" %}</div>
                                     </div>
                                 </div>
 
                                 <div class="alert alert-success" style="background: #d4edda; border-left: 4px solid #28a745; padding: 15px; margin-bottom: 20px;">
                                     <i class="fas fa-check-circle me-2"></i>
-                                    <strong>Después del registro:</strong> Una vez completado tu registro como padre/acudiente, podrás acceder a tu dashboard y registrar a tu(s) hijo(s) o acudido(s) como jugadores.
+                                    <strong>{% trans "After registration:" %}</strong> {% trans "Once you complete your registration as a parent/guardian, you will be able to access your dashboard and register your child(ren) or ward(s) as players." %}
                                 </div>
 
                                 <button type="submit" class="btn btn-mlb" id="submitBtn">
-                                    <i class="fas fa-user-plus me-2"></i>Crear Cuenta
+                                    <i class="fas fa-user-plus me-2"></i>{% trans "Create Account" %}
                                 </button>
 
                                 <div class="login-link">
-                                    <p class="mb-0">¿Ya tienes cuenta? <a href="{% url 'accounts:login' %}">Inicia sesión aquí</a></p>
+                                    <p class="mb-0">{% trans "Already have an account?" %} <a href="{% url 'accounts:login' %}">{% trans "Log in here" %}</a></p>
                                 </div>
                             </form>
                         </div>
@@ -1119,6 +1369,42 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // Traducciones para JavaScript
+        const translations = {
+            selectState: "{% trans 'Select a state' %}",
+            selectCity: "{% trans 'Select a city' %}",
+            errorLoadingStates: "{% trans 'Error loading states' %}",
+            enterPassword: "{% trans 'Enter a password' %}",
+            weak: "{% trans 'Weak' %}",
+            medium: "{% trans 'Medium' %}",
+            strong: "{% trans 'Strong' %}",
+            emailRequired: "{% trans 'Email is required' %}",
+            emailInvalid: "{% trans 'Please enter a valid email (e.g.: user@domain.com)' %}",
+            emailValid: "{% trans '✓ Valid email' %}",
+            confirmPassword: "{% trans 'Please confirm your password' %}",
+            passwordsDontMatch: "{% trans 'Passwords do not match' %}",
+            passwordsMatch: "{% trans '✓ Passwords match' %}",
+            firstNameRequired: "{% trans 'First name is required' %}",
+            firstNameInvalid: "{% trans 'First name can only contain letters and spaces (2-30 characters)' %}",
+            firstNameValid: "{% trans '✓ Valid first name' %}",
+            lastNameRequired: "{% trans 'First last name is required' %}",
+            lastNameInvalid: "{% trans 'Last name can only contain letters and spaces (2-30 characters)' %}",
+            lastNameValid: "{% trans '✓ Valid last name' %}",
+            lastName2Invalid: "{% trans 'Second last name can only contain letters and spaces (2-30 characters)' %}",
+            valid: "{% trans '✓ Valid' %}",
+            birthDateFuture: "{% trans 'Date of birth cannot be in the future' %}",
+            birthDateUnder18: "{% trans 'You must be 18 years or older to register' %}",
+            birthDateInvalid: "{% trans 'Please verify your date of birth' %}",
+            birthDateValid: "{% trans '✓ Valid date' %}",
+            phoneRequired: "{% trans 'Phone number is required' %}",
+            phonePrefixRequired: "{% trans 'Please select the country prefix' %}",
+            phoneValid: "{% trans '✓ Valid phone' %}",
+            urlInvalid: "{% trans 'Please enter a valid URL (e.g.: https://www.example.com)' %}",
+            urlValid: "{% trans '✓ Valid URL' %}",
+            postalCodeValid: "{% trans '✓ Valid postal code' %}",
+            phoneInvalidDigits: "{% trans 'Phone number must contain between 7 and 15 digits' %}",
+            phoneMinDigits: "{% trans 'Number must have at least 7 digits' %}"
+        };
         // Preview de foto
         document.getElementById('id_profile_picture').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -1143,7 +1429,7 @@
 
                 // Limpiar estados y ciudades
                 if (stateSelect) {
-                    stateSelect.innerHTML = '<option value="">Selecciona un estado</option>';
+                    stateSelect.innerHTML = '<option value="">' + translations.selectState + '</option>';
                     stateSelect.disabled = !countryId;
                 }
                 if (citySelect) {
@@ -1173,7 +1459,7 @@
                         .catch(error => {
                             console.error('Error cargando estados:', error);
                             if (stateSelect) {
-                                stateSelect.innerHTML = '<option value="">Error al cargar estados</option>';
+                                stateSelect.innerHTML = '<option value="">' + translations.errorLoadingStates + '</option>';
                             }
                         });
                 }
@@ -1286,7 +1572,7 @@
                 return {
                     strength: 0,
                     level: 'none',
-                    text: 'Ingresa una contraseña',
+                    text: translations.enterPassword,
                     checks: {
                         length: false,
                         upper: false,
@@ -1314,17 +1600,17 @@
             if (checks.special) strength++;
 
             let level = 'weak';
-            let text = 'Débil';
+            let text = translations.weak;
 
             if (strength <= 2) {
                 level = 'weak';
-                text = 'Débil';
+                text = translations.weak;
             } else if (strength <= 3) {
                 level = 'medium';
-                text = 'Media';
+                text = translations.medium;
             } else if (strength >= 4) {
                 level = 'strong';
-                text = 'Fuerte';
+                text = translations.strong;
             }
 
             return {
@@ -1351,7 +1637,7 @@
                 strengthText.classList.add(result.level);
                 strengthText.innerHTML = `<i class="fas fa-${result.level === 'strong' ? 'check-circle' : result.level === 'medium' ? 'exclamation-circle' : 'times-circle'} me-1"></i>Contraseña ${result.text}`;
             } else {
-                strengthText.innerHTML = '<i class="fas fa-info-circle me-1"></i>Ingresa una contraseña';
+                strengthText.innerHTML = '<i class="fas fa-info-circle me-1"></i>' + translations.enterPassword;
             }
 
             // Actualizar requisitos
@@ -1411,7 +1697,7 @@
                 }
                 if (errorIcon) errorIcon.classList.remove('show');
                 if (messageDiv) {
-                    messageDiv.textContent = message || '✓ Campo válido';
+                    messageDiv.textContent = message || translations.valid;
                     messageDiv.className = 'field-validation-message show valid';
                 }
             } else {
@@ -1421,7 +1707,7 @@
                     errorIcon.classList.add('show');
                 }
                 if (messageDiv) {
-                    messageDiv.textContent = message || '✗ Campo inválido';
+                    messageDiv.textContent = message || '✗ ' + "{% trans 'Invalid field' %}";
                     messageDiv.className = 'field-validation-message show invalid';
                 }
             }
@@ -1434,11 +1720,11 @@
                 const email = this.value.trim();
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (email === '') {
-                    showValidation('id_email', false, 'El email es requerido', 'emailIcon', 'emailErrorIcon', 'emailMessage');
+                    showValidation('id_email', false, translations.emailRequired, 'emailIcon', 'emailErrorIcon', 'emailMessage');
                 } else if (!emailRegex.test(email)) {
-                    showValidation('id_email', false, 'Por favor, ingresa un email válido (ej: usuario@dominio.com)', 'emailIcon', 'emailErrorIcon', 'emailMessage');
+                    showValidation('id_email', false, translations.emailInvalid, 'emailIcon', 'emailErrorIcon', 'emailMessage');
                 } else {
-                    showValidation('id_email', true, '✓ Email válido', 'emailIcon', 'emailErrorIcon', 'emailMessage');
+                    showValidation('id_email', true, translations.emailValid, 'emailIcon', 'emailErrorIcon', 'emailMessage');
                 }
             });
             emailField.addEventListener('input', function() {
@@ -1456,11 +1742,11 @@
                 const password2 = password2Field.value;
 
                 if (password2 === '') {
-                    showValidation('id_password2', false, 'Por favor, confirma tu contraseña', 'password2Icon', 'password2ErrorIcon', 'password2Message');
+                    showValidation('id_password2', false, translations.confirmPassword, 'password2Icon', 'password2ErrorIcon', 'password2Message');
                 } else if (password !== password2) {
-                    showValidation('id_password2', false, 'Las contraseñas no coinciden', 'password2Icon', 'password2ErrorIcon', 'password2Message');
+                    showValidation('id_password2', false, translations.passwordsDontMatch, 'password2Icon', 'password2ErrorIcon', 'password2Message');
                 } else {
-                    showValidation('id_password2', true, '✓ Las contraseñas coinciden', 'password2Icon', 'password2ErrorIcon', 'password2Message');
+                    showValidation('id_password2', true, translations.passwordsMatch, 'password2Icon', 'password2ErrorIcon', 'password2Message');
                 }
             }
 
@@ -1476,11 +1762,11 @@
                 const name = this.value.trim();
                 const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{2,30}$/;
                 if (name === '') {
-                    showValidation('id_first_name', false, 'El nombre es requerido', 'firstNameIcon', 'firstNameErrorIcon', 'firstNameMessage');
+                    showValidation('id_first_name', false, translations.firstNameRequired, 'firstNameIcon', 'firstNameErrorIcon', 'firstNameMessage');
                 } else if (!nameRegex.test(name)) {
-                    showValidation('id_first_name', false, 'El nombre solo puede contener letras y espacios (2-30 caracteres)', 'firstNameIcon', 'firstNameErrorIcon', 'firstNameMessage');
+                    showValidation('id_first_name', false, translations.firstNameInvalid, 'firstNameIcon', 'firstNameErrorIcon', 'firstNameMessage');
                 } else {
-                    showValidation('id_first_name', true, '✓ Nombre válido', 'firstNameIcon', 'firstNameErrorIcon', 'firstNameMessage');
+                    showValidation('id_first_name', true, translations.firstNameValid, 'firstNameIcon', 'firstNameErrorIcon', 'firstNameMessage');
                 }
             });
         }
@@ -1492,11 +1778,11 @@
                 const name = this.value.trim();
                 const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{2,30}$/;
                 if (name === '') {
-                    showValidation('id_last_name', false, 'El primer apellido es requerido', 'lastNameIcon', 'lastNameErrorIcon', 'lastNameMessage');
+                    showValidation('id_last_name', false, translations.lastNameRequired, 'lastNameIcon', 'lastNameErrorIcon', 'lastNameMessage');
                 } else if (!nameRegex.test(name)) {
-                    showValidation('id_last_name', false, 'El apellido solo puede contener letras y espacios (2-30 caracteres)', 'lastNameIcon', 'lastNameErrorIcon', 'lastNameMessage');
+                    showValidation('id_last_name', false, translations.lastNameInvalid, 'lastNameIcon', 'lastNameErrorIcon', 'lastNameMessage');
                 } else {
-                    showValidation('id_last_name', true, '✓ Apellido válido', 'lastNameIcon', 'lastNameErrorIcon', 'lastNameMessage');
+                    showValidation('id_last_name', true, translations.lastNameValid, 'lastNameIcon', 'lastNameErrorIcon', 'lastNameMessage');
                 }
             });
         }
@@ -1513,9 +1799,9 @@
                 }
                 const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]{2,30}$/;
                 if (!nameRegex.test(name)) {
-                    showValidation('id_last_name2', false, 'El segundo apellido solo puede contener letras y espacios (2-30 caracteres)', 'lastName2Icon', null, 'lastName2Message');
+                    showValidation('id_last_name2', false, translations.lastName2Invalid, 'lastName2Icon', null, 'lastName2Message');
                 } else {
-                    showValidation('id_last_name2', true, '✓ Válido', 'lastName2Icon', null, 'lastName2Message');
+                    showValidation('id_last_name2', true, translations.valid, 'lastName2Icon', null, 'lastName2Message');
                 }
             });
         }
@@ -1542,13 +1828,14 @@
                 }
 
                 if (birthDate > today) {
-                    showValidation('id_birth_date', false, 'La fecha de nacimiento no puede ser futura', 'birthDateIcon', 'birthDateErrorIcon', 'birthDateMessage');
+                    showValidation('id_birth_date', false, translations.birthDateFuture, 'birthDateIcon', 'birthDateErrorIcon', 'birthDateMessage');
                 } else if (actualAge < 18) {
-                    showValidation('id_birth_date', false, 'Debes ser mayor de 18 años para registrarte', 'birthDateIcon', 'birthDateErrorIcon', 'birthDateMessage');
+                    showValidation('id_birth_date', false, translations.birthDateUnder18, 'birthDateIcon', 'birthDateErrorIcon', 'birthDateMessage');
                 } else if (actualAge > 120) {
-                    showValidation('id_birth_date', false, 'Por favor, verifica tu fecha de nacimiento', 'birthDateIcon', 'birthDateErrorIcon', 'birthDateMessage');
+                    showValidation('id_birth_date', false, translations.birthDateInvalid, 'birthDateIcon', 'birthDateErrorIcon', 'birthDateMessage');
                 } else {
-                    showValidation('id_birth_date', true, `✓ Fecha válida (${actualAge} años)`, 'birthDateIcon', 'birthDateErrorIcon', 'birthDateMessage');
+                    const yearText = actualAge === 1 ? "{% trans 'year' %}" : "{% trans 'years' %}";
+                    showValidation('id_birth_date', true, translations.birthDateValid + ' (' + actualAge + ' ' + yearText + ')', 'birthDateIcon', 'birthDateErrorIcon', 'birthDateMessage');
                 }
             });
         }
@@ -1576,7 +1863,7 @@
                 }
 
                 if (isRequired && prefix === '') {
-                    showValidation(phoneField.id, false, 'Por favor, selecciona el prefijo del país', iconId, errorIconId, messageId);
+                    showValidation(phoneField.id, false, translations.phonePrefixRequired, iconId, errorIconId, messageId);
                     if (prefixField) {
                         prefixField.classList.add('is-invalid');
                         prefixField.classList.remove('is-valid');
@@ -1589,17 +1876,17 @@
                 const digitsOnly = phone.replace(/\D/g, '');
 
                 if (!phoneRegex.test(phone)) {
-                    showValidation(phoneField.id, false, 'El número de teléfono debe contener entre 7 y 15 dígitos', iconId, errorIconId, messageId);
+                    showValidation(phoneField.id, false, translations.phoneInvalidDigits, iconId, errorIconId, messageId);
                     if (prefixField) {
                         prefixField.classList.add('is-invalid');
                     }
                 } else if (digitsOnly.length < 7) {
-                    showValidation(phoneField.id, false, 'El número debe tener al menos 7 dígitos', iconId, errorIconId, messageId);
+                    showValidation(phoneField.id, false, translations.phoneMinDigits, iconId, errorIconId, messageId);
                     if (prefixField) {
                         prefixField.classList.add('is-invalid');
                     }
                 } else {
-                    showValidation(phoneField.id, true, '✓ Teléfono válido', iconId, errorIconId, messageId);
+                    showValidation(phoneField.id, true, translations.phoneValid, iconId, errorIconId, messageId);
                     if (prefixField) {
                         prefixField.classList.add('is-valid');
                         prefixField.classList.remove('is-invalid');
@@ -1688,9 +1975,9 @@
                 }
                 const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
                 if (!urlRegex.test(url)) {
-                    showValidation('id_website', false, 'Por favor, ingresa una URL válida (ej: https://www.ejemplo.com)', 'websiteIcon', 'websiteErrorIcon', 'websiteMessage');
+                    showValidation('id_website', false, translations.urlInvalid, 'websiteIcon', 'websiteErrorIcon', 'websiteMessage');
                 } else {
-                    showValidation('id_website', true, '✓ URL válida', 'websiteIcon', 'websiteErrorIcon', 'websiteMessage');
+                    showValidation('id_website', true, translations.urlValid, 'websiteIcon', 'websiteErrorIcon', 'websiteMessage');
                 }
             });
         }
@@ -1707,7 +1994,7 @@
                 if (!postalRegex.test(code)) {
                     showValidation('id_postal_code', false, 'El código postal debe tener entre 3 y 10 caracteres (letras, números, espacios o guiones)', 'postalCodeIcon', 'postalCodeErrorIcon', 'postalCodeMessage');
                 } else {
-                    showValidation('id_postal_code', true, '✓ Código postal válido', 'postalCodeIcon', 'postalCodeErrorIcon', 'postalCodeMessage');
+                    showValidation('id_postal_code', true, translations.postalCodeValid, 'postalCodeIcon', 'postalCodeErrorIcon', 'postalCodeMessage');
                 }
             });
         }
@@ -1738,6 +2025,30 @@
             });
         }
     </script>
+
+    <script>
+        // Language selector dropdown toggle
+        function toggleLanguageDropdown() {
+            const dropdown = document.getElementById('languageDropdown');
+            const btn = document.getElementById('languageSelectorBtn');
+            if (dropdown && btn) {
+                dropdown.classList.toggle('show');
+                btn.classList.toggle('active');
+            }
+        }
+
+        // Close language dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('languageDropdown');
+            const btn = document.getElementById('languageSelectorBtn');
+            if (dropdown && btn && !dropdown.contains(event.target) && !btn.contains(event.target)) {
+                dropdown.classList.remove('show');
+                btn.classList.remove('active');
+            }
+        });
+    </script>
 </body>
 </html>
+
+
 

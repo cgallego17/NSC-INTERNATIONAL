@@ -694,6 +694,12 @@ button.quick-action-btn.active span,
     border: none !important;
 }
 
+[id^="hotelRoomsModal"] .modal-header {
+    background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%) !important;
+    color: white !important;
+    border: none !important;
+}
+
 [id^="roomDetailModal"] .modal-header {
     background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%) !important;
     color: white !important;
@@ -711,10 +717,15 @@ button.quick-action-btn.active span,
 }
 
 [id^="hotelReservationModal"] .modal-title,
-[id^="hotelGuestDetailsModal"] .modal-title {
+[id^="hotelGuestDetailsModal"] .modal-title,
+[id^="hotelRoomsModal"] .modal-title {
     color: white !important;
     font-weight: 900 !important;
     letter-spacing: 0.2px !important;
+}
+
+[id^="hotelRoomsModal"] .nsc-step {
+    color: rgba(255, 255, 255, 0.92) !important;
 }
 
 [id^="hotelReservationModal"] .btn-close,

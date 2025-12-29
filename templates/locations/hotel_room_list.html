@@ -10,7 +10,7 @@
         padding: 2rem 2rem 2rem 3rem;
         min-height: 100vh;
     }
-    
+
     @media (max-width: 992px) {
         .events-list-container {
             padding: 2rem 1.5rem;
@@ -41,7 +41,7 @@
             <form method="get" class="row g-3">
                 <div class="col-md-4">
                     <label for="search" class="form-label">Buscar</label>
-                    <input type="text" class="form-control" id="search" name="search" 
+                    <input type="text" class="form-control" id="search" name="search"
                            value="{{ request.GET.search }}" placeholder="Número, hotel...">
                 </div>
                 <div class="col-md-3">
@@ -49,7 +49,7 @@
                     <select class="form-select" id="hotel" name="hotel">
                         <option value="">Todos los Hoteles</option>
                         {% for hotel in hotels %}
-                            <option value="{{ hotel.id }}" 
+                            <option value="{{ hotel.id }}"
                                     {% if request.GET.hotel == hotel.id|stringformat:"s" %}selected{% endif %}>
                                 {{ hotel.hotel_name }}
                             </option>
@@ -89,6 +89,7 @@
                     <table class="table table-hover">
                         <thead>
                             <tr>
+                                <th style="width: 80px;">Imagen</th>
                                 <th>Habitación</th>
                                 <th>Hotel</th>
                                 <th>Tipo</th>
@@ -102,7 +103,28 @@
                             {% for room in rooms %}
                                 <tr>
                                     <td>
-                                        <strong>#{{ room.room_number }}</strong>
+                                        {% with first_image=room.images.first %}
+                                            {% if first_image %}
+                                                <img src="{{ first_image.image_url }}"
+                                                     alt="{{ room.name|default:room.room_number }}"
+                                                     class="rounded"
+                                                     style="width: 60px; height: 60px; object-fit: cover; border: 1px solid #dee2e6;">
+                                            {% else %}
+                                                <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                                                     style="width: 60px; height: 60px; border: 1px solid #dee2e6;">
+                                                    <i class="fas fa-bed text-muted"></i>
+                                                </div>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        {% if room.name %}
+                                            <strong>{{ room.name }}</strong>
+                                            <br>
+                                            <small class="text-muted">#{{ room.room_number }}</small>
+                                        {% else %}
+                                            <strong>#{{ room.room_number }}</strong>
+                                        {% endif %}
                                         {% if room.description %}
                                             <br>
                                             <small class="text-muted">{{ room.description|truncatewords:8 }}</small>
@@ -111,10 +133,10 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             {% if room.hotel.photo %}
-                                                <img src="{{ room.hotel.photo.url }}" alt="{{ room.hotel.hotel_name }}" 
+                                                <img src="{{ room.hotel.photo.url }}" alt="{{ room.hotel.hotel_name }}"
                                                      class="rounded me-2" style="width: 30px; height: 30px; object-fit: cover;">
                                             {% else %}
-                                                <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" 
+                                                <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center"
                                                      style="width: 30px; height: 30px;">
                                                     <i class="fas fa-hotel text-muted" style="font-size: 0.8rem;"></i>
                                                 </div>
@@ -140,11 +162,11 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="{% url 'locations:admin_hotel_room_update' room.pk %}" 
+                                            <a href="{% url 'locations:admin_hotel_room_update' room.pk %}"
                                                class="btn btn-sm btn-outline-warning" title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <a href="{% url 'locations:admin_hotel_room_delete' room.pk %}" 
+                                            <a href="{% url 'locations:admin_hotel_room_delete' room.pk %}"
                                                class="btn btn-sm btn-outline-danger" title="Eliminar">
                                                 <i class="fas fa-trash"></i>
                                             </a>

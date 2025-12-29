@@ -584,3 +584,4 @@ class HotelServiceDeleteView(StaffRequiredMixin, DeleteView):
         return context
 
 
+

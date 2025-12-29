@@ -247,6 +247,11 @@ urlpatterns = [
         views_admin.AdminHotelRoomDeleteView.as_view(),
         name="admin_hotel_room_delete",
     ),
+    path(
+        "admin/hotel-rooms/images/<int:pk>/delete/",
+        views_admin.admin_hotel_room_image_delete_ajax,
+        name="admin_hotel_room_image_delete",
+    ),
     # Hotel Service URLs (admin)
     path(
         "admin/hotel-services/",

@@ -143,3 +143,4 @@ pip install pyclamd
 - Considera usar un límite de tamaño antes de escanear
 - En producción, considera procesar el escaneo de forma asíncrona
 
+

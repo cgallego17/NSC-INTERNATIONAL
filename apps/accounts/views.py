@@ -219,6 +219,14 @@ class PublicRegistrationView(CreateView):
     template_name = "accounts/public_register.html"
     success_url = reverse_lazy("accounts:profile")
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Asegurar que el idioma esté activado
+        from django.utils import translation
+        language = translation.get_language() or 'en'
+        translation.activate(language)
+        return context
+
     def form_valid(self, form):
         response = super().form_valid(form)
         # Autenticar al usuario después del registro

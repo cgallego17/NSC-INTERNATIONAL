@@ -518,6 +518,12 @@ class HotelRoom(models.Model):
         verbose_name="Número de Habitación",
         help_text="Número o identificador de la habitación",
     )
+    name = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="Nombre de la Habitación",
+        help_text="Nombre descriptivo de la habitación (ej: Suite Presidencial, Habitación con Vista al Mar)",
+    )
     room_type = models.CharField(
         max_length=20,
         choices=ROOM_TYPE_CHOICES,
@@ -525,14 +531,40 @@ class HotelRoom(models.Model):
         verbose_name="Tipo de Habitación",
     )
     capacity = models.PositiveIntegerField(
-        verbose_name="Capacidad",
-        help_text="Número máximo de personas que puede alojar",
+        verbose_name="Capacidad Total",
+        help_text="Número máximo de personas que puede alojar (incluyendo adultos y niños)",
     )
+    # Campos de capacidad individuales removidos - ahora se usan las reglas de ocupación (HotelRoomRule)
+    # min_adults, max_adults, max_children se mantienen en el modelo para compatibilidad pero no se usan en el formulario
     price_per_night = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         verbose_name="Precio por Noche",
         help_text="Precio de la habitación por noche",
+    )
+    price_includes_guests = models.PositiveIntegerField(
+        default=1,
+        verbose_name="Personas Incluidas en el Precio",
+        help_text="Número de personas incluidas en el precio por noche (si hay personas adicionales, puede haber un cargo extra)",
+    )
+    additional_guest_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        verbose_name="Precio por Persona Adicional",
+        help_text="Precio adicional por noche por cada persona que exceda el número de personas incluidas en el precio base",
+    )
+    breakfast_included = models.BooleanField(
+        default=False,
+        verbose_name="Desayuno Incluido",
+        help_text="Indica si el desayuno está incluido en el precio de la habitación",
+    )
+    amenities = models.ManyToManyField(
+        'HotelAmenity',
+        related_name='rooms',
+        blank=True,
+        verbose_name="Amenidades",
+        help_text="Amenidades específicas de esta habitación",
     )
     description = models.TextField(
         blank=True,
@@ -573,6 +605,87 @@ class HotelRoom(models.Model):
         ).exists()
 
 
+class HotelRoomRule(models.Model):
+    """Reglas de ocupación para habitaciones - Define combinaciones válidas de adultos y niños"""
+
+    room = models.ForeignKey(
+        HotelRoom,
+        on_delete=models.CASCADE,
+        related_name="rules",
+        verbose_name="Habitación",
+    )
+    min_adults = models.PositiveIntegerField(
+        verbose_name="Adultos Mínimos",
+        help_text="Número mínimo de adultos requeridos en esta regla",
+    )
+    max_adults = models.PositiveIntegerField(
+        verbose_name="Adultos Máximos",
+        help_text="Número máximo de adultos permitidos en esta regla",
+    )
+    min_children = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Niños Mínimos",
+        help_text="Número mínimo de niños requeridos en esta regla",
+    )
+    max_children = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Niños Máximos",
+        help_text="Número máximo de niños permitidos en esta regla",
+    )
+    description = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="Descripción",
+        help_text="Descripción opcional de esta regla (ej: 'Mínimo 1 niño y máximo 3 adultos')",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Activa",
+        help_text="Indica si esta regla está activa",
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Orden",
+        help_text="Orden de visualización",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Fecha de Creación"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, verbose_name="Fecha de Actualización"
+    )
+
+    class Meta:
+        verbose_name = "Regla de Habitación"
+        verbose_name_plural = "Reglas de Habitación"
+        ordering = ["room", "order", "min_adults", "min_children"]
+
+    def __str__(self):
+        desc = f"Ad: {self.min_adults}-{self.max_adults}, Niños: {self.min_children}-{self.max_children}"
+        if self.description:
+            return f"{self.description} ({desc})"
+        return desc
+
+    def clean(self):
+        """Validar que los valores sean consistentes"""
+        from django.core.exceptions import ValidationError
+
+        if self.min_adults > self.max_adults:
+            raise ValidationError("Los adultos mínimos no pueden ser mayores que los adultos máximos.")
+        if self.min_children > self.max_children:
+            raise ValidationError("Los niños mínimos no pueden ser mayores que los niños máximos.")
+        if self.min_adults + self.min_children > self.room.capacity:
+            raise ValidationError(
+                f"La suma de adultos mínimos ({self.min_adults}) y niños mínimos ({self.min_children}) "
+                f"no puede exceder la capacidad total de la habitación ({self.room.capacity})."
+            )
+        if self.max_adults + self.max_children > self.room.capacity:
+            raise ValidationError(
+                f"La suma de adultos máximos ({self.max_adults}) y niños máximos ({self.max_children}) "
+                f"no puede exceder la capacidad total de la habitación ({self.room.capacity})."
+            )
+
+
 class HotelRoomImage(models.Model):
     """Galería de imágenes de habitaciones"""
 
@@ -582,8 +695,19 @@ class HotelRoomImage(models.Model):
         related_name="images",
         verbose_name="Habitación",
     )
+    media_file = models.ForeignKey(
+        "media.MediaFile",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="hotel_room_images",
+        verbose_name="Archivo Multimedia",
+        help_text="Archivo seleccionado desde la biblioteca multimedia",
+    )
     image = models.ImageField(
         upload_to="hotels/rooms/gallery/",
+        blank=True,
+        null=True,
         verbose_name="Imagen",
         help_text="Imagen para la galería de la habitación",
     )
@@ -623,6 +747,33 @@ class HotelRoomImage(models.Model):
 
     def __str__(self):
         return f"{self.room} - Imagen {self.id}"
+
+    @property
+    def image_url(self):
+        """URL de imagen unificada (MediaFile si existe, fallback a ImageField)."""
+        try:
+            if self.media_file_id:
+                return self.media_file.get_file_url()
+        except Exception:
+            pass
+        try:
+            if self.image and hasattr(self.image, "url"):
+                return self.image.url
+        except Exception:
+            pass
+        return ""
+
+    @property
+    def image_alt(self):
+        """Alt text unificado."""
+        if self.alt_text:
+            return self.alt_text
+        try:
+            if self.media_file_id and getattr(self.media_file, "alt_text", None):
+                return self.media_file.alt_text
+        except Exception:
+            pass
+        return self.title or "Room image"
 
 
 class HotelService(models.Model):

@@ -1477,7 +1477,7 @@ body {
 
 /* Page Content */
 .page-content {
-    padding: 2rem;
+    padding: 2rem 2rem 2rem 3rem !important;
 }
 
 .page-header {
@@ -2554,9 +2554,28 @@ span.badge {
 
 
 .page-content {
-    padding: 24px;
+    padding: 24px 24px 24px 40px;
     min-height: calc(100vh - 100px);
     background: transparent;
+}
+
+/* Asegurar separación del sidebar */
+.main-content .page-content {
+    padding-left: 40px !important;
+}
+
+.main-content.sidebar-mini .page-content {
+    padding-left: 40px !important;
+}
+
+@media (max-width: 768px) {
+    .page-content {
+        padding: 16px;
+    }
+
+    .main-content .page-content {
+        padding-left: 16px !important;
+    }
 }
 
 /* Corporate Cards */
@@ -3707,6 +3726,22 @@ span.badge {
     color: white;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     animation: iconPulse 2s ease-in-out infinite;
+}
+
+.toast-icon.toast-image {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f8f9fa;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    animation: none;
+}
+
+.toast-icon.toast-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 @keyframes iconPulse {

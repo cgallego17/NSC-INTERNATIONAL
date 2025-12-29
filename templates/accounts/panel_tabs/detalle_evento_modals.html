@@ -1,0 +1,1432 @@
+{% load i18n %}
+{% load static %}
+
+<!-- Estilos para modales de hotel -->
+<style>
+    /* Asegurar que el modal de agregar huésped tenga z-index más alto */
+    #addGuestModal{{ event.hotel.pk }} {
+        z-index: 1060;
+    }
+
+    #addGuestModal{{ event.hotel.pk }}.show {
+        z-index: 1060;
+    }
+
+    /* El blur se aplica dinámicamente solo cuando Add Guest modal está abierta */
+    /* No aplicar estilos CSS estáticos, solo usar JavaScript */
+
+    /* Asegurar que la modal de detalles de habitación tenga z-index más alto */
+    #roomDetailModal{{ event.hotel.pk }} {
+        z-index: 1060;
+    }
+
+    #roomDetailModal{{ event.hotel.pk }}.show {
+        z-index: 1060;
+    }
+
+    /* Masonry Gallery Styles */
+    #room-detail-modal-gallery{{ event.hotel.pk }} {
+        width: 100%;
+        min-height: 400px;
+    }
+
+    .nsc-masonry-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        grid-auto-rows: 10px;
+        gap: 12px;
+        width: 100%;
+        padding: 0;
+        align-items: start;
+    }
+
+    @media (max-width: 1200px) {
+        .nsc-masonry-gallery {
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+        }
+    }
+
+    .nsc-masonry-item {
+        cursor: pointer;
+        border-radius: 10px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        position: relative;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nsc-masonry-item:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        z-index: 10;
+    }
+
+    .nsc-masonry-item img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+        border-radius: 10px;
+    }
+
+    /* Ajustar el nsc-card que contiene la galería */
+    #roomDetailModal{{ event.hotel.pk }} .nsc-card {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #roomDetailModal{{ event.hotel.pk }} .nsc-card > div:last-child {
+        flex: 1;
+        overflow: hidden;
+    }
+
+    /* Lightbox Styles */
+    .nsc-lightbox {
+        display: none;
+        position: fixed;
+        z-index: 1070;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.95);
+        backdrop-filter: blur(10px);
+    }
+
+    .nsc-lightbox.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nsc-lightbox-content {
+        position: relative;
+        max-width: 90%;
+        max-height: 90%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nsc-lightbox-content img {
+        max-width: 100%;
+        max-height: 90vh;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+    .nsc-lightbox-close {
+        position: absolute;
+        top: 20px;
+        right: 30px;
+        color: white;
+        font-size: 40px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 1071;
+        background: rgba(0,0,0,0.5);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .nsc-lightbox-close:hover {
+        background: rgba(0,0,0,0.8);
+        transform: scale(1.1);
+    }
+
+    .nsc-lightbox-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        color: white;
+        font-size: 30px;
+        cursor: pointer;
+        background: rgba(0,0,0,0.5);
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        z-index: 1071;
+    }
+
+    .nsc-lightbox-nav:hover {
+        background: rgba(0,0,0,0.8);
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    .nsc-lightbox-prev {
+        left: 20px;
+    }
+
+    .nsc-lightbox-next {
+        right: 20px;
+    }
+
+    .nsc-lightbox-counter {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        background: rgba(0,0,0,0.5);
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 14px;
+        z-index: 1071;
+    }
+
+    /* Estilos para sección de habitaciones expandible */
+    .rooms-section-inline {
+        display: none;
+        margin-top: 20px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+    }
+
+    .rooms-section-inline.show {
+        display: block;
+    }
+
+    .room-listing-inline {
+        display: flex;
+        align-items: stretch;
+        gap: 0;
+        padding: 0;
+        background: white;
+        border-radius: 12px;
+        margin-bottom: 0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .room-listing-inline:hover {
+        border-color: var(--mlb-blue);
+        box-shadow: 0 4px 16px rgba(13, 44, 84, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .room-listing-inline.nsc-room-recommended {
+        border-color: var(--mlb-blue);
+        background: linear-gradient(135deg, rgba(13, 44, 84, 0.05) 0%, rgba(13, 44, 84, 0.02) 100%);
+        box-shadow: 0 4px 16px rgba(13, 44, 84, 0.2);
+    }
+
+    .room-listing-inline.nsc-room-recommended:hover {
+        box-shadow: 0 6px 20px rgba(13, 44, 84, 0.25);
+        transform: translateY(-3px);
+    }
+
+    .room-listing-inline .room-image-container {
+        width: 120px;
+        min-width: 120px;
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .room-listing-inline .room-image-container img,
+    .room-listing-inline .room-image-container > div {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .room-listing-inline .room-info {
+        flex: 1;
+        min-width: 0;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .room-listing-inline .room-header {
+        margin-bottom: 8px;
+    }
+
+    .room-listing-inline .room-name {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--mlb-blue);
+        margin: 0 0 4px 0;
+        line-height: 1.3;
+    }
+
+    .room-listing-inline .room-type {
+        font-size: 0.85rem;
+        color: #6c757d;
+        font-weight: 400;
+        margin: 0;
+    }
+
+    .room-listing-inline .room-features {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        font-weight: 400;
+    }
+
+    .room-listing-inline .room-features span {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .room-listing-inline .room-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: auto;
+        padding-top: 10px;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .room-listing-inline .room-price {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--mlb-red);
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .room-listing-inline .room-price small {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: #6c757d;
+    }
+
+    .room-listing-inline .room-price-includes {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-weight: 400;
+        margin: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .room-listing-inline .room-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    @media (max-width: 768px) {
+        .room-listing-inline {
+            flex-direction: column;
+        }
+
+        .room-listing-inline .room-image-container {
+            width: 100%;
+            height: 180px;
+        }
+
+        .room-listing-inline .room-footer {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+        }
+
+        .room-listing-inline .room-actions {
+            width: 100%;
+            justify-content: stretch;
+        }
+
+        .room-listing-inline .room-actions button {
+            flex: 1;
+        }
+    }
+
+    .nsc-recommended-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        background: var(--mlb-red);
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border-radius: 20px;
+        margin-bottom: 8px;
+    }
+
+    /* Rooms modal: details panel */
+    .nsc-room-detail-panel {
+        position: sticky;
+        top: 0;
+    }
+
+    .nsc-room-detail-gallery-main {
+        width: 100%;
+        height: 280px;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        margin-bottom: 10px;
+    }
+
+    .nsc-room-detail-gallery-main img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .nsc-room-detail-thumbs {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        overflow-x: auto;
+        padding-bottom: 6px;
+    }
+
+    .nsc-room-detail-thumb {
+        width: 74px;
+        height: 54px;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 2px solid transparent;
+        flex: 0 0 auto;
+        cursor: pointer;
+    }
+
+    .nsc-room-detail-thumb.active {
+        border-color: var(--mlb-red);
+    }
+
+    .nsc-room-detail-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    /* Selected room indicator */
+    .room-listing-inline[data-selected="true"] {
+        border-color: var(--mlb-blue) !important;
+        border-width: 3px !important;
+        background: linear-gradient(135deg, rgba(13, 44, 84, 0.08) 0%, rgba(13, 44, 84, 0.03) 100%) !important;
+        box-shadow: 0 6px 20px rgba(13, 44, 84, 0.3) !important;
+        position: relative;
+    }
+
+    .room-listing-inline[data-selected="true"]::before {
+        content: '';
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 32px;
+        height: 32px;
+        background: var(--mlb-blue);
+        border-radius: 50%;
+        z-index: 10;
+        box-shadow: 0 2px 8px rgba(13, 44, 84, 0.4);
+    }
+
+    .room-listing-inline[data-selected="true"]::after {
+        content: '✓';
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1rem;
+        font-weight: 700;
+        z-index: 11;
+    }
+
+    .room-listing-inline[data-selected="true"] .room-name {
+        color: var(--mlb-blue) !important;
+    }
+
+    .room-listing-inline[data-selected="true"] .room-select-btn {
+        background: var(--mlb-red) !important;
+        border-color: var(--mlb-red) !important;
+        color: white !important;
+        box-shadow: 0 2px 8px rgba(213, 0, 50, 0.3) !important;
+    }
+
+    .room-listing-inline[data-selected="true"] .room-select-btn:hover {
+        background: #b8002a !important;
+        transform: scale(1.05);
+    }
+</style>
+
+<!-- Modal para Reserva de Hotel -->
+<div class="modal fade" id="hotelReservationModal{{ event.hotel.pk }}" data-hotel-pk="{{ event.hotel.pk }}" tabindex="-1" aria-labelledby="hotelReservationModalLabel{{ event.hotel.pk }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="padding: 16px 20px;">
+                <div>
+                    <div class="nsc-step">{% trans "Step 1 of 3" %} • {% trans "Guests" %}</div>
+                    <h5 class="modal-title mt-2" id="hotelReservationModalLabel{{ event.hotel.pk }}">
+                        <i class="fas fa-hotel me-2"></i>{% trans "Hotel Stay" %}
+                    </h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="hotelReservationForm{{ event.hotel.pk }}" method="get" action="{% url 'locations:front_hotel_reservation_create' %}">
+                <div class="modal-body" style="padding: 0;">
+                    <!-- Información del Hotel -->
+                    <div style="background: #ffffff; padding: 12px 16px; border-bottom: 1px solid #e9ecef;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            {% if event.hotel.photo %}
+                                <div style="width: 60px; height: 60px; border-radius: 10px; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                    <img src="{{ event.hotel.photo.url }}" alt="{{ event.hotel.hotel_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                            {% elif event.hotel.images.exists %}
+                                {% with first_image=event.hotel.images.first %}
+                                    <div style="width: 60px; height: 60px; border-radius: 10px; overflow: hidden; flex-shrink: 0; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                        <img src="{{ first_image.image.url }}" alt="{{ event.hotel.hotel_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    </div>
+                                {% endwith %}
+                            {% endif %}
+                            <div style="flex: 1;">
+                                <h6 style="font-weight: 700; color: var(--mlb-blue); font-size: 1rem; margin: 0 0 4px 0;">
+                                    {{ event.hotel.hotel_name }}
+                                </h6>
+                                {% if event.hotel.address %}
+                                    <div style="font-size: 0.8rem; color: #6c757d; margin-bottom: 3px;">
+                                        <i class="fas fa-map-marker-alt me-1" style="color: var(--mlb-red); font-size: 0.75rem;"></i>{{ event.hotel.address|truncatewords:10 }}
+                                    </div>
+                                {% endif %}
+                                {% if event.start_date and event.end_date %}
+                                    <div style="font-size: 0.8rem; color: #6c757d;">
+                                        <i class="fas fa-calendar-alt me-1" style="color: var(--mlb-red); font-size: 0.75rem;"></i>
+                                        <strong>{% trans "Check-in" %}:</strong> {{ event.start_date|date:"M d, Y" }}
+                                        <span class="mx-1">•</span>
+                                        <strong>{% trans "Check-out" %}:</strong> {{ event.end_date|date:"M d, Y" }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contenido del Formulario -->
+                    <div style="padding: 18px 20px;">
+                        <!-- Mensaje de advertencia si no hay jugadores/hijos -->
+                        <div class="alert alert-warning mb-3" id="no-children-warning{{ event.hotel.pk }}" style="display: none; border-radius: 8px; padding: 12px 15px;">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>{% trans "Required" %}:</strong> {% trans "You must select at least one player or add at least one child to continue." %}
+                        </div>
+
+                        <!-- Niños/Jugadores Seleccionados -->
+                        <div class="mb-3" id="selected-children-section{{ event.hotel.pk }}" style="display: none;">
+                            <div class="nsc-card" style="padding: 12px;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                    <div style="width: 36px; height: 36px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-child" style="color: var(--mlb-red); font-size: 0.95rem;"></i>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <div class="nsc-card-title" style="font-size: 0.9rem;">{% trans "Selected Players/Children" %}</div>
+                                        <div class="nsc-card-subtitle" style="font-size: 0.8rem;"><span id="children-count{{ event.hotel.pk }}">0</span> {% trans "selected" %}</div>
+                                    </div>
+                                </div>
+                                <div id="children-list{{ event.hotel.pk }}" style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                    <!-- Se llenará con JavaScript -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Paso 2: Adultos (mínimo 1) -->
+                        <div class="mb-3">
+                            <div class="nsc-card" style="padding: 12px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 36px; height: 36px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i class="fas fa-user" style="color: var(--mlb-blue); font-size: 0.95rem;"></i>
+                                        </div>
+                                        <div>
+                                            <div class="nsc-card-title" style="font-size: 0.9rem;">{% trans "Adults" %}</div>
+                                            <div class="nsc-card-subtitle" style="font-size: 0.8rem;">{% trans "Total adults (18+). Minimum 1 adult." %}</div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span style="font-size: 0.75rem; color: #6c757d; font-weight: 700;">{% trans "Total" %}</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary nsc-stepper-btn"
+                                                data-hotel-pk="{{ event.hotel.pk }}"
+                                                onclick="window.NSC_HotelReservation?.stepper?.('{{ event.hotel.pk }}', 'adults-dec');"
+                                                aria-label="{% trans 'Decrease adults' %}" style="padding: 4px 8px; font-size: 0.85rem;">-</button>
+                                        <input type="number" class="nsc-stepper-count" id="adults-total-count{{ event.hotel.pk }}" value="1" min="1" max="10" readonly style="width: 45px; padding: 4px; font-size: 0.9rem;">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary nsc-stepper-btn"
+                                                data-hotel-pk="{{ event.hotel.pk }}"
+                                                onclick="window.NSC_HotelReservation?.stepper?.('{{ event.hotel.pk }}', 'adults-inc');"
+                                                aria-label="{% trans 'Increase adults' %}" style="padding: 4px 8px; font-size: 0.85rem;">+</button>
+                                    </div>
+                                </div>
+
+                                <div style="font-size: 0.75rem; color: #6c757d; margin-top: 8px;">
+                                    {% trans "Tip:" %} {% trans "You'll add names and birthdays after selecting a room." %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Niños Adicionales (no jugadores) -->
+                        <div class="mb-3" id="additional-children-section{{ event.hotel.pk }}">
+                            <div class="nsc-card" style="padding: 12px;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 36px; height: 36px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i class="fas fa-baby" style="color: var(--mlb-red); font-size: 0.95rem;"></i>
+                                        </div>
+                                        <div>
+                                            <div class="nsc-card-title" style="font-size: 0.9rem;">{% trans "Additional Children" %}</div>
+                                            <div class="nsc-card-subtitle" style="font-size: 0.8rem;">{% trans "Children (under 18) not registered as players" %}</div>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span style="font-size: 0.75rem; color: #6c757d; font-weight: 700;">{% trans "Total" %}</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary nsc-stepper-btn"
+                                                data-hotel-pk="{{ event.hotel.pk }}"
+                                                onclick="window.NSC_HotelReservation?.stepper?.('{{ event.hotel.pk }}', 'children-dec');"
+                                                aria-label="{% trans 'Decrease children' %}" style="padding: 4px 8px; font-size: 0.85rem;">-</button>
+                                        <input type="number" class="nsc-stepper-count" id="additional-children-count{{ event.hotel.pk }}" value="0" min="0" max="10" readonly style="width: 45px; padding: 4px; font-size: 0.9rem;">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary nsc-stepper-btn"
+                                                data-hotel-pk="{{ event.hotel.pk }}"
+                                                onclick="window.NSC_HotelReservation?.stepper?.('{{ event.hotel.pk }}', 'children-inc');"
+                                                aria-label="{% trans 'Increase children' %}" style="padding: 4px 8px; font-size: 0.85rem;">+</button>
+                                    </div>
+                                </div>
+
+                                <div style="font-size: 0.75rem; color: #6c757d; margin-top: 8px;">
+                                    {% trans "Tip:" %} {% trans "You'll add names and birthdays after selecting a room." %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resumen Total -->
+                        <div class="mb-3 nsc-summary">
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap: 10px; flex-wrap: wrap;">
+                                <div>
+                                    <div style="font-size:0.75rem; color:#6c757d; font-weight:700;">{% trans "Total guests" %}</div>
+                                    <div style="font-weight: 800; font-size: 1.5rem; color: var(--mlb-blue); line-height: 1.1;">
+                                        <span id="total-people-count{{ event.hotel.pk }}">1</span>
+                                    </div>
+                                </div>
+                                <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end;">
+                                    <div class="nsc-pill" style="font-size: 0.8rem; padding: 4px 10px;"><span id="adults-count{{ event.hotel.pk }}">1</span> {% trans "adults" %}</div>
+                                    <div class="nsc-pill" id="players-breakdown{{ event.hotel.pk }}" style="display:none; font-size: 0.8rem; padding: 4px 10px;">
+                                        <span id="players-count-breakdown{{ event.hotel.pk }}">0</span> {% trans "players" %}
+                                    </div>
+                                    <div class="nsc-pill" id="additional-children-breakdown{{ event.hotel.pk }}" style="display:none; font-size: 0.8rem; padding: 4px 10px;">
+                                        <span id="additional-children-count-breakdown{{ event.hotel.pk }}">0</span> {% trans "additional children" %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="hotel" value="{{ event.hotel.pk }}">
+                        <input type="hidden" id="number_of_adults{{ event.hotel.pk }}" name="number_of_adults" value="1">
+                        {% if event.start_date %}
+                            <input type="hidden" name="check_in" value="{{ event.start_date|date:'Y-m-d' }}">
+                        {% endif %}
+                        {% if event.end_date %}
+                            <input type="hidden" name="check_out" value="{{ event.end_date|date:'Y-m-d' }}">
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 16px 20px; background: #ffffff;">
+                    <button type="button"
+                            class="btn btn-form-cancel cancel-modal-btn"
+                            data-bs-dismiss="modal"
+                            style="padding: 12px 22px;">
+                        {% trans "Cancel" %}
+                    </button>
+                    <button type="button"
+                            class="btn btn-form-submit"
+                            id="show-rooms-btn{{ event.hotel.pk }}"
+                            data-hotel-pk="{{ event.hotel.pk }}"
+                            style="padding: 12px 22px;"
+                            onclick="if (window.NSC_HotelReservation && typeof window.NSC_HotelReservation.showRooms === 'function') { window.NSC_HotelReservation.showRooms(this); }">
+                        <i class="fas fa-bed me-1"></i>{% trans "Choose room" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Available Rooms (after guest selection) -->
+<div class="modal fade" id="hotelRoomsModal{{ event.hotel.pk }}" data-hotel-pk="{{ event.hotel.pk }}" tabindex="-1" aria-labelledby="hotelRoomsModalLabel{{ event.hotel.pk }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="padding: 16px 20px;">
+                <div>
+                    <h5 class="modal-title mt-2" id="hotelRoomsModalLabel{{ event.hotel.pk }}">
+                        <i class="fas fa-bed me-2"></i>{% trans "Available rooms" %}
+                    </h5>
+                    <div id="rooms-default-guests{{ event.hotel.pk }}" style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.9); margin-top: 6px;"></div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body" style="padding: 14px 18px;">
+                <!-- Instructions Banner -->
+                <div class="alert alert-info mb-3" style="border-radius: 10px; padding: 12px 16px; background: linear-gradient(135deg, rgba(13, 44, 84, 0.1) 0%, rgba(13, 44, 84, 0.05) 100%); border: 1px solid rgba(13, 44, 84, 0.2);">
+                    <div style="display: flex; align-items: start; gap: 10px;">
+                        <i class="fas fa-info-circle" style="color: var(--mlb-blue); font-size: 1.1rem; margin-top: 2px;"></i>
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; color: var(--mlb-blue); font-size: 0.9rem; margin-bottom: 4px;">{% trans "How to proceed:" %}</div>
+                            <ol style="margin: 0; padding-left: 20px; font-size: 0.85rem; color: #333; line-height: 1.6;">
+                                <li>{% trans "Review your guests below (you can add more)" %}</li>
+                                <li>{% trans "Click on a room to see details" %}</li>
+                                <li>{% trans "Click 'Select' to choose a room" %}</li>
+                                <li>{% trans "Click 'Continue' when ready" %}</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sección de huéspedes y precio en una sola card dividida -->
+                <div class="nsc-card" style="padding: 14px; margin-bottom: 14px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 2px solid #e9ecef; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                    <!-- Header con botón Add Guest -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                        <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.95rem;">
+                            <i class="fas fa-users me-1"></i>{% trans "Your Guests" %}
+                        </div>
+                        <button type="button"
+                                class="btn btn-sm"
+                                onclick="window.NSC_HotelReservation?.addAdditionalGuest?.('{{ event.hotel.pk }}');"
+                                style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; border: none; border-radius: 8px; padding: 6px 14px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 2px 4px rgba(13, 44, 84, 0.2);">
+                            <i class="fas fa-plus me-1"></i>{% trans "Add Guest" %}
+                        </button>
+                    </div>
+
+                    <!-- Contenedor dividido en dos columnas -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <!-- Columna izquierda: Lista de huéspedes -->
+                        <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e9ecef;">
+                            <div style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem; margin-bottom: 8px;">
+                                <i class="fas fa-list me-1"></i>{% trans "Guests List" %}
+                            </div>
+                            <div id="rooms-guests-list{{ event.hotel.pk }}" style="font-size: 0.85rem; color: #333; font-weight: 400; min-height: 40px; max-height: 300px; overflow-y: auto;"></div>
+                        </div>
+
+                        <!-- Columna derecha: Cálculo de precio -->
+                        <div style="background: white; padding: 12px; border-radius: 8px; border: 1px solid #e9ecef;">
+                            <div style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem; margin-bottom: 8px;">
+                                <i class="fas fa-calculator me-1"></i>{% trans "Price Calculation" %}
+                            </div>
+                            <div id="rooms-price-calculation{{ event.hotel.pk }}" style="font-size: 0.85rem;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Status banner (debajo de las dos columnas) -->
+                    <div id="rooms-selection-status{{ event.hotel.pk }}" style="margin-top: 12px; padding: 10px; border-radius: 8px; font-size: 0.85rem; text-align: center; display: none;"></div>
+                </div>
+
+                <!-- Rooms Section Header -->
+                <div style="margin-bottom: 12px;">
+                    <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.95rem; margin-bottom: 4px;">
+                        <i class="fas fa-bed me-1"></i>{% trans "Select a Room" %}
+                    </div>
+                    <div style="font-size: 0.8rem; color: #6c757d; font-weight: 400;">
+                        {% trans "Click on a room to see details, then click 'Select' to choose it" %}
+                    </div>
+                </div>
+
+                <div id="rooms-none-msg{{ event.hotel.pk }}" data-nsc-rooms-none class="alert alert-warning" style="display:none; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 0.85rem;">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {% trans "No rooms available for the selected number of guests. Please adjust guests or try another option." %}
+                </div>
+
+                <!-- Sort Selector -->
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 10px 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-sort" style="color: var(--mlb-blue); font-size: 0.9rem;"></i>
+                        <span style="font-weight: 600; color: #333; font-size: 0.85rem;">{% trans "Sort by:" %}</span>
+                    </div>
+                    <select id="room-sort-selector{{ event.hotel.pk }}"
+                            onchange="window.NSC_HotelReservation?.sortRooms?.('{{ event.hotel.pk }}', this.value);"
+                            style="padding: 6px 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 0.85rem; background: white; color: #333; cursor: pointer; min-width: 200px; font-weight: 500;">
+                        <option value="recommended">{% trans "Recommended" %}</option>
+                        <option value="price-low-high">{% trans "Price: Low to High" %}</option>
+                        <option value="price-high-low">{% trans "Price: High to Low" %}</option>
+                        <option value="capacity-low-high">{% trans "Capacity: Low to High" %}</option>
+                        <option value="capacity-high-low">{% trans "Capacity: High to Low" %}</option>
+                    </select>
+                </div>
+
+                <div style="max-height: 70vh; overflow:auto; padding-right: 4px;">
+                            {% if available_rooms %}
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    {% for room in available_rooms %}
+                                        <div class="room-listing-inline"
+                                             data-hotel-pk="{{ event.hotel.pk }}"
+                                             data-room-id="{{ room.id }}"
+                                             data-room-detail-url="{% url 'locations:get_room_detail' room_id=room.id %}"
+                                             data-room-capacity="{{ room.capacity|default:0 }}"
+                                             data-room-price="{{ room.price_per_night|default:0 }}"
+                                             data-room-includes-guests="{{ room.price_includes_guests|default:1 }}"
+                                             data-room-additional-guest-price="{{ room.additional_guest_price|default:0 }}">
+                                            <!-- Room Image -->
+                                            <div class="room-image-container">
+                                                {% if room.images.exists %}
+                                                    {% with first_image=room.images.first %}
+                                                        {% if first_image.media_file %}
+                                                            <img src="{{ first_image.media_file.get_file_url }}" alt="{{ first_image.alt_text|default:room.name|default:room.get_room_type_display }}">
+                                                        {% elif first_image.image %}
+                                                            <img src="{{ first_image.image.url }}" alt="{{ first_image.alt_text|default:room.name|default:room.get_room_type_display }}">
+                                                        {% else %}
+                                                            <div style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); display: flex; align-items: center; justify-content: center;">
+                                                                <i class="fas fa-bed" style="color: white; font-size: 1.5rem;"></i>
+                                                            </div>
+                                                        {% endif %}
+                                                    {% endwith %}
+                                                {% else %}
+                                                    <div style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); display: flex; align-items: center; justify-content: center;">
+                                                        <i class="fas fa-bed" style="color: white; font-size: 1.5rem;"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+
+                                            <!-- Room Info -->
+                                            <div class="room-info">
+                                                <div class="room-header">
+                                                    {% if room.name %}
+                                                        <div class="room-name">{{ room.name }}</div>
+                                                        <div class="room-type">{{ room.get_room_type_display }}</div>
+                                                    {% else %}
+                                                        <div class="room-name">{{ room.get_room_type_display }}</div>
+                                                    {% endif %}
+                                                </div>
+
+                                                <div class="room-features">
+                                                    {% if room.room_number %}
+                                                        <span>
+                                                            <i class="fas fa-hashtag" style="font-size: 0.7rem;"></i>
+                                                            <span>{% trans "Room" %} {{ room.room_number }}</span>
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if room.capacity %}
+                                                        <span>
+                                                            <i class="fas fa-users" style="font-size: 0.7rem;"></i>
+                                                            <span>{% trans "Max" %} {{ room.capacity }} {% trans "people" %}</span>
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if room.breakfast_included %}
+                                                        <span style="color: #28a745;">
+                                                            <i class="fas fa-coffee" style="font-size: 0.7rem;"></i>
+                                                            <span>{% trans "Breakfast included" %}</span>
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+
+                                                {% if room.amenities.all %}
+                                                    <div class="room-amenities" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px;">
+                                                        {% for amenity in room.amenities.all %}
+                                                            {% if amenity.is_available %}
+                                                                <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: #e7f3ff; border: 1px solid #0d2c54; border-radius: 6px;" title="{{ amenity.name }}">
+                                                                    <i class="fas {{ amenity.get_icon_class }}" style="font-size: 0.9rem; color: #0d2c54 !important;"></i>
+                                                                </span>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+
+                                                <div class="room-footer">
+                                                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                                        <div style="display: flex; align-items: baseline; gap: 6px;">
+                                                            <div class="room-price" style="margin: 0;">
+                                                                ${{ room.price_per_night|floatformat:2 }}
+                                                            </div>
+                                                            <div style="font-size: 0.75rem; color: #6c757d; font-weight: 500;">
+                                                                {% trans "per night" %}
+                                                            </div>
+                                                        </div>
+                                                        {% if room.price_includes_guests %}
+                                                            <div class="room-price-includes" style="margin: 0; font-size: 0.8rem; color: #6c757d; font-weight: 400; display: flex; align-items: center; gap: 4px;">
+                                                                <i class="fas fa-users" style="font-size: 0.7rem;"></i>
+                                                                <span>
+                                                                    {% if room.price_includes_guests == 1 %}
+                                                                        {% trans "Includes 1 guest" %}
+                                                                    {% else %}
+                                                                        <strong style="color: var(--mlb-blue);">{% trans "Includes" %} {{ room.price_includes_guests }} {% trans "guests" %}</strong>
+                                                                    {% endif %}
+                                                                </span>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    <div class="room-actions">
+                                                        <button type="button"
+                                                                class="btn btn-sm"
+                                                                data-room-detail-url="{% url 'locations:get_room_detail' room_id=room.id %}"
+                                                                onclick="event.preventDefault(); event.stopPropagation(); window.NSC_HotelReservation?.openRoomDetail?.(this);"
+                                                                style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; border: none; border-radius: 8px; padding: 10px 18px; font-weight: 700; font-size: 0.9rem; white-space: nowrap; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(13, 44, 84, 0.25); display: flex; align-items: center; gap: 6px;">
+                                                            <i class="fas fa-eye" style="font-size: 0.85rem;"></i>
+                                                            <span>{% trans "View Details" %}</span>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Room Details Expandable Section -->
+                                        <div class="room-details-expanded"
+                                             id="room-details-{{ room.id }}-{{ event.hotel.pk }}"
+                                             data-room-id="{{ room.id }}"
+                                             style="display: none; margin-top: 0; margin-bottom: 10px; padding: 20px; background: #f8f9fa; border-radius: 12px; border: 2px solid #e9ecef;">
+                                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                                <!-- Left: Gallery -->
+                                                <div>
+                                                    <div class="nsc-card" style="padding: 12px; margin-bottom: 12px;">
+                                                        <div class="nsc-card-title" style="font-size: 0.9rem; margin-bottom: 10px;">
+                                                            <i class="fas fa-images me-1" style="color: var(--mlb-blue);"></i>{% trans "Photo Gallery" %}
+                                                        </div>
+                                                        <div id="rooms-detail-gallery-{{ room.id }}-{{ event.hotel.pk }}">
+                                                            <div style="padding: 12px; color: #6c757d; font-size: 0.85rem; text-align: center;">{% trans "Loading..." %}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Right: Details -->
+                                                <div>
+                                                    <div class="nsc-card" style="padding: 12px; margin-bottom: 12px;">
+                                                        <div class="nsc-card-title" style="font-size: 0.9rem; margin-bottom: 10px;">
+                                                            <i class="fas fa-info-circle me-1" style="color: var(--mlb-blue);"></i>{% trans "Room Information" %}
+                                                        </div>
+                                                        <div id="rooms-detail-title-{{ room.id }}-{{ event.hotel.pk }}" style="font-weight: 700; color: var(--mlb-blue); font-size: 1rem; margin-bottom: 8px;"></div>
+                                                        <div id="rooms-detail-subtitle-{{ room.id }}-{{ event.hotel.pk }}" style="font-size: 0.85rem; color: #6c757d; margin-bottom: 12px; font-weight: 400;"></div>
+                                                        <div id="rooms-detail-description-{{ room.id }}-{{ event.hotel.pk }}" style="font-size: 0.9rem; color: #333; line-height: 1.6; margin-bottom: 12px; font-weight: 400;"></div>
+                                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+                                                            <div>
+                                                                <div style="font-size: 0.75rem; color: #6c757d; font-weight: 600; margin-bottom: 4px;">{% trans "Capacity" %}</div>
+                                                                <div id="rooms-detail-capacity-{{ room.id }}-{{ event.hotel.pk }}" style="font-size: 0.9rem; font-weight: 700; color: var(--mlb-blue);">-</div>
+                                                            </div>
+                                                            <div>
+                                                                <div style="font-size: 0.75rem; color: #6c757d; font-weight: 600; margin-bottom: 4px;">{% trans "Price per night" %}</div>
+                                                                <div id="rooms-detail-price-{{ room.id }}-{{ event.hotel.pk }}" style="font-size: 0.9rem; font-weight: 700; color: var(--mlb-red);">-</div>
+                                                            </div>
+                                                        </div>
+                                                        <div id="rooms-detail-amenities-{{ room.id }}-{{ event.hotel.pk }}" style="margin-bottom: 12px;"></div>
+                                                        <div id="rooms-detail-rules-container-{{ room.id }}-{{ event.hotel.pk }}" style="display: none;">
+                                                            <div style="font-size: 0.85rem; font-weight: 600; color: var(--mlb-blue); margin-bottom: 8px;">
+                                                                <i class="fas fa-users-cog me-1"></i>{% trans "Occupancy Rules" %}
+                                                            </div>
+                                                            <div id="rooms-detail-rules-{{ room.id }}-{{ event.hotel.pk }}" style="margin-bottom: 10px;"></div>
+                                                            <div id="rooms-detail-rules-validation-{{ room.id }}-{{ event.hotel.pk }}"></div>
+                                                        </div>
+                                                        <div style="margin-top: 16px; padding-top: 16px; border-top: 2px solid #e9ecef;">
+                                                            <button type="button"
+                                                                    class="btn btn-primary room-select-btn"
+                                                                    data-hotel-pk="{{ event.hotel.pk }}"
+                                                                    data-room-id="{{ room.id }}"
+                                                                    data-room-capacity="{{ room.capacity|default:0 }}"
+                                                                    onclick="event.preventDefault(); event.stopPropagation(); if (window.NSC_HotelReservation && typeof window.NSC_HotelReservation.selectRoom === 'function') { window.NSC_HotelReservation.selectRoom(this); }"
+                                                                    style="width: 100%; border-radius: 8px; font-weight: 700; padding: 12px 20px; font-size: 1rem; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border: none; box-shadow: 0 4px 12px rgba(13, 44, 84, 0.3); color: white; transition: all 0.2s ease;">
+                                                                <i class="fas fa-check me-2"></i>{% trans "Select this room" %}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p style="color: #6c757d; text-align: center; padding: 20px; font-size: 0.9rem;">{% trans "No rooms available at this time." %}</p>
+                            {% endif %}
+                        </div>
+            </div>
+
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 16px 20px; background: #ffffff;">
+                <button type="button"
+                        class="btn btn-form-cancel"
+                        data-bs-dismiss="modal"
+                        style="padding: 12px 22px;">
+                    {% trans "Cancel" %}
+                </button>
+                <button type="button"
+                        class="btn btn-form-submit"
+                        id="rooms-continue-btn{{ event.hotel.pk }}"
+                        onclick="window.NSC_HotelReservation?.continueToGuestDetails?.('{{ event.hotel.pk }}');"
+                        style="padding: 12px 22px;"
+                        disabled>
+                    {% trans "Continue" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Room Details -->
+<div class="modal fade" id="roomDetailModal{{ event.hotel.pk }}" data-hotel-pk="{{ event.hotel.pk }}" tabindex="-1" aria-labelledby="roomDetailModalLabel{{ event.hotel.pk }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; padding: 16px 20px;">
+                <h5 class="modal-title" id="roomDetailModalLabel{{ event.hotel.pk }}">
+                    <i class="fas fa-bed me-2"></i>{% trans "Room Details" %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 20px; max-height: 80vh; overflow-y: auto;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
+                    <!-- Left: Gallery -->
+                    <div style="display: flex; flex-direction: column; height: 100%;">
+                        <div class="nsc-card" style="padding: 12px; margin-bottom: 12px; flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                            <div class="nsc-card-title" style="font-size: 0.9rem; margin-bottom: 10px; flex-shrink: 0;">
+                                <i class="fas fa-images me-1" style="color: var(--mlb-blue);"></i>{% trans "Photo Gallery" %}
+                            </div>
+                            <div id="room-detail-modal-gallery{{ event.hotel.pk }}" style="flex: 1; overflow-y: auto; min-height: 0;">
+                                <div style="padding: 12px; color: #6c757d; font-size: 0.85rem; text-align: center;">{% trans "Loading..." %}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Details -->
+                    <div>
+                        <div class="nsc-card" style="padding: 12px; margin-bottom: 12px;">
+                            <div class="nsc-card-title" style="font-size: 0.9rem; margin-bottom: 10px;">
+                                <i class="fas fa-info-circle me-1" style="color: var(--mlb-blue);"></i>{% trans "Room Information" %}
+                            </div>
+                            <div id="room-detail-modal-title{{ event.hotel.pk }}" style="font-weight: 700; color: var(--mlb-blue); font-size: 1.1rem; margin-bottom: 6px;"></div>
+                            <div id="room-detail-modal-subtitle{{ event.hotel.pk }}" style="font-size: 0.85rem; color: #6c757d; margin-bottom: 12px; font-weight: 400;"></div>
+
+                            <!-- Room Details Grid -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                <div>
+                                    <div style="font-size: 0.75rem; color: #6c757d; font-weight: 600; margin-bottom: 4px;">
+                                        <i class="fas fa-users" style="font-size: 0.7rem;"></i> {% trans "Maximum Capacity" %}
+                                    </div>
+                                    <div id="room-detail-modal-capacity{{ event.hotel.pk }}" style="font-size: 0.95rem; font-weight: 700; color: var(--mlb-blue);">-</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: #6c757d; font-weight: 600; margin-bottom: 4px;">
+                                        <i class="fas fa-dollar-sign" style="font-size: 0.7rem;"></i> {% trans "Price per night" %}
+                                    </div>
+                                    <div id="room-detail-modal-price{{ event.hotel.pk }}" style="font-size: 0.95rem; font-weight: 700; color: var(--mlb-red);">-</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: #6c757d; font-weight: 600; margin-bottom: 4px;">
+                                        <i class="fas fa-user-plus" style="font-size: 0.7rem;"></i> {% trans "Guests included" %}
+                                    </div>
+                                    <div id="room-detail-modal-includes-guests{{ event.hotel.pk }}" style="font-size: 0.95rem; font-weight: 600; color: var(--mlb-blue);">-</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: #6c757d; font-weight: 600; margin-bottom: 4px;">
+                                        <i class="fas fa-coins" style="font-size: 0.7rem;"></i> {% trans "Additional guest price" %}
+                                    </div>
+                                    <div id="room-detail-modal-additional-price{{ event.hotel.pk }}" style="font-size: 0.95rem; font-weight: 600; color: var(--mlb-red);">-</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: #6c757d; font-weight: 600; margin-bottom: 4px;">
+                                        <i class="fas fa-utensils" style="font-size: 0.7rem;"></i> {% trans "Breakfast" %}
+                                    </div>
+                                    <div id="room-detail-modal-breakfast{{ event.hotel.pk }}" style="font-size: 0.95rem; font-weight: 600; color: var(--mlb-blue);">-</div>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: #6c757d; font-weight: 600; margin-bottom: 4px;">
+                                        <i class="fas fa-hashtag" style="font-size: 0.7rem;"></i> {% trans "Room Number" %}
+                                    </div>
+                                    <div id="room-detail-modal-room-number{{ event.hotel.pk }}" style="font-size: 0.95rem; font-weight: 600; color: var(--mlb-blue);">-</div>
+                                </div>
+                            </div>
+
+                            <div id="room-detail-modal-description{{ event.hotel.pk }}" style="font-size: 0.9rem; color: #333; line-height: 1.6; margin-bottom: 12px; font-weight: 400; padding: 12px; background: #f8f9fa; border-radius: 8px;"></div>
+
+                            <!-- Amenities Section -->
+                            <div style="margin-bottom: 12px;">
+                                <div style="font-size: 0.85rem; font-weight: 600; color: var(--mlb-blue); margin-bottom: 8px;">
+                                    <i class="fas fa-star me-1"></i>{% trans "Amenities" %}
+                                </div>
+                                <div id="room-detail-modal-amenities{{ event.hotel.pk }}" style="display: flex; flex-wrap: wrap; gap: 8px;"></div>
+                            </div>
+                            <div id="room-detail-modal-rules-container{{ event.hotel.pk }}" style="display: none;">
+                                <div style="font-size: 0.85rem; font-weight: 600; color: var(--mlb-blue); margin-bottom: 8px;">
+                                    <i class="fas fa-users-cog me-1"></i>{% trans "Occupancy Rules" %}
+                                </div>
+                                <div id="room-detail-modal-rules{{ event.hotel.pk }}" style="margin-bottom: 10px;"></div>
+                                <div id="room-detail-modal-rules-validation{{ event.hotel.pk }}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 16px 20px; background: #ffffff;">
+                <button type="button"
+                        class="btn btn-form-cancel"
+                        data-bs-dismiss="modal"
+                        style="padding: 12px 22px;">
+                    {% trans "Close" %}
+                </button>
+                <button type="button"
+                        class="btn btn-form-submit"
+                        id="room-detail-modal-select-btn{{ event.hotel.pk }}"
+                        style="padding: 12px 22px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border: none; color: white; font-weight: 700;">
+                    <i class="fas fa-check me-2"></i>{% trans "Select this room" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lightbox for Room Images -->
+<div class="nsc-lightbox" id="roomImageLightbox{{ event.hotel.pk }}">
+    <div class="nsc-lightbox-close" onclick="window.NSC_HotelReservation?.closeLightbox?.('{{ event.hotel.pk }}');">&times;</div>
+    <div class="nsc-lightbox-nav nsc-lightbox-prev" onclick="window.NSC_HotelReservation?.prevLightboxImage?.('{{ event.hotel.pk }}');">
+        <i class="fas fa-chevron-left"></i>
+    </div>
+    <div class="nsc-lightbox-nav nsc-lightbox-next" onclick="window.NSC_HotelReservation?.nextLightboxImage?.('{{ event.hotel.pk }}');">
+        <i class="fas fa-chevron-right"></i>
+    </div>
+    <div class="nsc-lightbox-content">
+        <img id="lightbox-image{{ event.hotel.pk }}" src="" alt="">
+    </div>
+    <div class="nsc-lightbox-counter">
+        <span id="lightbox-counter{{ event.hotel.pk }}">1 / 1</span>
+    </div>
+</div>
+
+<!-- Modal: Guest Details (after room selection) -->
+<div class="modal fade" id="hotelGuestDetailsModal{{ event.hotel.pk }}" data-hotel-pk="{{ event.hotel.pk }}" tabindex="-1" aria-labelledby="hotelGuestDetailsModalLabel{{ event.hotel.pk }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="padding: 16px 20px;">
+                <div>
+                    <div class="nsc-step">{% trans "Step 3 of 3" %} • {% trans "Details" %}</div>
+                    <h5 class="modal-title mt-2" id="hotelGuestDetailsModalLabel{{ event.hotel.pk }}">
+                        <i class="fas fa-id-card me-2"></i>{% trans "Guest details" %}
+                    </h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form method="post" action="{% url 'locations:front_hotel_reservation_create' %}" id="guest-details-form{{ event.hotel.pk }}">
+                {% csrf_token %}
+                <input type="hidden" name="hotel" id="guest-hotel{{ event.hotel.pk }}" value="{{ event.hotel.pk }}">
+                <input type="hidden" name="room" id="guest-room{{ event.hotel.pk }}" value="">
+                <input type="hidden" name="number_of_guests" id="guest-number-of-guests{{ event.hotel.pk }}" value="">
+                {% if event.start_date %}
+                    <input type="hidden" name="check_in" id="guest-check-in{{ event.hotel.pk }}" value="{{ event.start_date|date:'Y-m-d' }}">
+                {% else %}
+                    <input type="hidden" name="check_in" id="guest-check-in{{ event.hotel.pk }}" value="">
+                {% endif %}
+                {% if event.end_date %}
+                    <input type="hidden" name="check_out" id="guest-check-out{{ event.hotel.pk }}" value="{{ event.end_date|date:'Y-m-d' }}">
+                {% else %}
+                    <input type="hidden" name="check_out" id="guest-check-out{{ event.hotel.pk }}" value="">
+                {% endif %}
+                <input type="hidden" name="notes" id="guest-notes{{ event.hotel.pk }}" value="">
+
+                <div class="modal-body" style="padding: 20px;">
+                    <div class="nsc-card" style="padding: 12px 14px; margin-bottom: 14px;">
+                        <div style="font-size: 0.82rem; color: #6c757d; font-weight: 800;">{% trans "Selected room" %}</div>
+                        <div style="font-weight: 900; color: var(--mlb-blue); margin-top: 2px;">
+                            <span id="selected-room-label{{ event.hotel.pk }}">—</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 style="font-weight: 900; color: var(--mlb-blue); margin-bottom: 12px;">
+                            <i class="fas fa-user me-2" style="color: var(--mlb-red);"></i>{% trans "Adult 1 (Main Contact)" %}
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Full Name" %} *</label>
+                                <input type="text" class="form-control" name="guest_name" required
+                                       value=""
+                                       style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Email" %} *</label>
+                                <input type="email" class="form-control" name="guest_email" required value=""
+                                       style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Phone" %} *</label>
+                                <input type="tel" class="form-control" name="guest_phone" required value=""
+                                       style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Notes (optional)" %}</label>
+                                <input type="text" class="form-control" id="guest-notes-human{{ event.hotel.pk }}" placeholder="{% trans 'Any special requests?' %}"
+                                       style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4" id="guest-selected-players-wrap{{ event.hotel.pk }}" style="display:none;">
+                        <h6 style="font-weight: 900; color: var(--mlb-blue); margin-bottom: 12px;">
+                            <i class="fas fa-child me-2" style="color: var(--mlb-red);"></i>{% trans "Selected Players/Children" %}
+                        </h6>
+                        <div id="guest-selected-players{{ event.hotel.pk }}"></div>
+                    </div>
+
+                    <div class="mb-4" id="guest-additional-adults-wrap{{ event.hotel.pk }}" style="display:none;">
+                        <h6 style="font-weight: 900; color: var(--mlb-blue); margin-bottom: 12px;">
+                            <i class="fas fa-user-friends me-2" style="color: var(--mlb-red);"></i>{% trans "Additional Adults" %}
+                        </h6>
+                        <div id="guest-additional-adults{{ event.hotel.pk }}"></div>
+                    </div>
+
+                    <div class="mb-2" id="guest-additional-children-wrap{{ event.hotel.pk }}" style="display:none;">
+                        <h6 style="font-weight: 900; color: var(--mlb-blue); margin-bottom: 12px;">
+                            <i class="fas fa-baby me-2" style="color: var(--mlb-red);"></i>{% trans "Additional Children" %}
+                        </h6>
+                        <div id="guest-additional-children{{ event.hotel.pk }}"></div>
+                    </div>
+                </div>
+
+                <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 16px 20px; background: #ffffff;">
+                    <button type="button"
+                            class="btn btn-form-cancel"
+                            onclick="window.NSC_HotelReservation?.backToRooms?.('{{ event.hotel.pk }}');"
+                            style="padding: 12px 22px;">
+                        {% trans "Back" %}
+                    </button>
+                    <button type="submit" class="btn btn-form-submit" style="padding: 12px 22px;">
+                        {% trans "Create reservation" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Room Details (single instance) -->
+<div class="modal fade" id="roomDetailModal"
+     tabindex="-1" aria-labelledby="roomDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <div class="modal-header" style="padding: 16px 20px;">
+                <div>
+                    <div class="nsc-step">{% trans "Step 2 of 3" %} • {% trans "Room details" %}</div>
+                    <h5 class="modal-title mt-2" id="roomDetailModalLabel">
+                        <i class="fas fa-bed me-2"></i><span id="room-detail-title">{% trans "Room" %}</span>
+                    </h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 18px 20px;">
+                <div class="row g-4">
+                    <div class="col-lg-7">
+                        <div class="nsc-card" style="padding: 0; overflow: hidden;">
+                            <div id="room-detail-gallery">
+                                <div style="padding: 18px; color: #6c757d;">{% trans "Loading..." %}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="nsc-card" style="padding: 16px;">
+                            <div class="nsc-card-title">{% trans "Overview" %}</div>
+                            <div class="nsc-card-subtitle" id="room-detail-subtitle"></div>
+                            <hr style="border-top: 2px solid #e9ecef; opacity: 1;">
+                            <div id="room-detail-description" style="color:#333; line-height:1.7;"></div>
+                            <div class="mt-3 nsc-summary">
+                                <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                                    <div class="nsc-pill"><span id="room-detail-capacity">-</span> {% trans "guests" %}</div>
+                                    <div class="nsc-pill">$<span id="room-detail-price">-</span>/{% trans "night" %}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="nsc-card mt-3" style="padding: 16px;">
+                            <div class="nsc-card-title">{% trans "Amenities" %}</div>
+                            <div id="room-detail-amenities" style="margin-top: 10px; display:flex; flex-wrap:wrap; gap:8px;"></div>
+                        </div>
+
+                        <div class="nsc-card mt-3" style="padding: 16px;">
+                            <div class="nsc-card-title">{% trans "Services" %}</div>
+                            <div id="room-detail-services" style="margin-top: 10px; display:flex; flex-direction:column; gap:10px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 16px 20px; background: #ffffff;">
+                    <button type="button" class="btn btn-form-cancel" data-bs-dismiss="modal" style="padding: 12px 22px;">
+                        {% trans "Back" %}
+                    </button>
+                    <button type="button" class="btn btn-form-submit" data-bs-dismiss="modal" style="padding: 12px 22px;">
+                        {% trans "Close" %}
+                    </button>
+                </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Guest Form -->
+<div class="modal fade" id="addGuestModal{{ event.hotel.pk }}" data-hotel-pk="{{ event.hotel.pk }}" tabindex="-1" aria-labelledby="addGuestModalLabel{{ event.hotel.pk }}" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered" style="z-index: 1061;">
+        <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+            <div class="modal-header" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; padding: 16px 20px;">
+                <h5 class="modal-title" id="addGuestModalLabel{{ event.hotel.pk }}">
+                    <i class="fas fa-user-plus me-2"></i>{% trans "Add Guest" %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <form id="addGuestForm{{ event.hotel.pk }}" onsubmit="event.preventDefault(); window.NSC_HotelReservation?.saveGuest?.('{{ event.hotel.pk }}'); return false;">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="guestFirstName{{ event.hotel.pk }}" class="form-label">
+                                <i class="fas fa-user me-1"></i>{% trans "First Name" %} <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="guestFirstName{{ event.hotel.pk }}"
+                                   name="first_name"
+                                   required
+                                   placeholder="{% trans 'Enter first name' %}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="guestLastName{{ event.hotel.pk }}" class="form-label">
+                                <i class="fas fa-user me-1"></i>{% trans "Last Name" %} <span class="text-danger">*</span>
+                            </label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="guestLastName{{ event.hotel.pk }}"
+                                   name="last_name"
+                                   required
+                                   placeholder="{% trans 'Enter last name' %}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="guestEmail{{ event.hotel.pk }}" class="form-label">
+                                <i class="fas fa-envelope me-1"></i>{% trans "Email" %} <span class="text-danger">*</span>
+                            </label>
+                            <input type="email"
+                                   class="form-control"
+                                   id="guestEmail{{ event.hotel.pk }}"
+                                   name="email"
+                                   required
+                                   placeholder="{% trans 'Enter email address' %}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="guestBirthDate{{ event.hotel.pk }}" class="form-label">
+                                <i class="fas fa-calendar me-1"></i>{% trans "Date of Birth" %} <span class="text-danger">*</span>
+                            </label>
+                            <input type="date"
+                                   class="form-control"
+                                   id="guestBirthDate{{ event.hotel.pk }}"
+                                   name="birth_date"
+                                   required>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">
+                                <i class="fas fa-users me-1"></i>{% trans "Guest Type" %} <span class="text-danger">*</span>
+                            </label>
+                            <div class="d-flex gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input"
+                                           type="radio"
+                                           name="guestType{{ event.hotel.pk }}"
+                                           id="guestTypeAdult{{ event.hotel.pk }}"
+                                           value="adult"
+                                           checked>
+                                    <label class="form-check-label" for="guestTypeAdult{{ event.hotel.pk }}">
+                                        <i class="fas fa-user me-1"></i>{% trans "Adult" %} (18+)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input"
+                                           type="radio"
+                                           name="guestType{{ event.hotel.pk }}"
+                                           id="guestTypeChild{{ event.hotel.pk }}"
+                                           value="child">
+                                    <label class="form-check-label" for="guestTypeChild{{ event.hotel.pk }}">
+                                        <i class="fas fa-child me-1"></i>{% trans "Child" %} (&lt;18)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 16px 20px; background: #ffffff;">
+                <button type="button" class="btn btn-form-cancel" data-bs-dismiss="modal" style="padding: 10px 20px;">
+                    {% trans "Cancel" %}
+                </button>
+                <button type="button"
+                        class="btn btn-form-submit"
+                        onclick="window.NSC_HotelReservation?.saveGuest?.('{{ event.hotel.pk }}');"
+                        style="padding: 10px 20px;">
+                    <i class="fas fa-save me-2"></i>{% trans "Add Guest" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Set max date for birth date input (today) and auto-detect adult/child
+document.addEventListener('DOMContentLoaded', function() {
+    const birthDateInput = document.getElementById('guestBirthDate{{ event.hotel.pk }}');
+    const adultRadio = document.getElementById('guestTypeAdult{{ event.hotel.pk }}');
+    const childRadio = document.getElementById('guestTypeChild{{ event.hotel.pk }}');
+
+    if (birthDateInput) {
+        const today = new Date();
+        const maxDate = today.toISOString().split('T')[0];
+        birthDateInput.setAttribute('max', maxDate);
+
+        // Auto-detect adult/child based on birth date
+        birthDateInput.addEventListener('change', function() {
+            const birthDate = new Date(this.value);
+            if (isNaN(birthDate.getTime())) return;
+
+            const today = new Date();
+            const age = Math.floor((today - birthDate) / (365.25 * 24 * 60 * 60 * 1000));
+
+            // Update radio buttons based on age
+            if (age >= 18) {
+                if (adultRadio) {
+                    adultRadio.checked = true;
+                    childRadio.checked = false;
+                }
+            } else {
+                if (childRadio) {
+                    childRadio.checked = true;
+                    adultRadio.checked = false;
+                }
+            }
+
+            // Show feedback message
+            let feedbackEl = document.getElementById('guestAgeFeedback{{ event.hotel.pk }}');
+            if (!feedbackEl) {
+                feedbackEl = document.createElement('div');
+                feedbackEl.id = 'guestAgeFeedback{{ event.hotel.pk }}';
+                feedbackEl.style.marginTop = '8px';
+                feedbackEl.style.fontSize = '0.85rem';
+                birthDateInput.parentElement.appendChild(feedbackEl);
+            }
+
+            if (age >= 18) {
+                feedbackEl.innerHTML = `<i class="fas fa-check-circle me-1" style="color: #28a745;"></i><span style="color: #28a745;">Guest is ${age} years old - Set as <strong>Adult</strong></span>`;
+            } else {
+                feedbackEl.innerHTML = `<i class="fas fa-check-circle me-1" style="color: #ffc107;"></i><span style="color: #856404;">Guest is ${age} years old - Set as <strong>Child</strong></span>`;
+            }
+        });
+    }
+});
+</script>
+

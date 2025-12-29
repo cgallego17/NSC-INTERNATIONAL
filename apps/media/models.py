@@ -20,6 +20,9 @@ def get_multimedia_storage():
 
     multimedia_root = getattr(settings, "MULTIMEDIA_ROOT", None)
     if multimedia_root:
+        # IMPORTANT: normalize Path objects to str to avoid per-machine migration churn
+        # (Django will serialize the storage.location into migrations)
+        multimedia_root = str(multimedia_root)
         return FileSystemStorage(
             location=multimedia_root, base_url=settings.MULTIMEDIA_URL
         )

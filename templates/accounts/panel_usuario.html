@@ -1607,6 +1607,12 @@
             }
         });
     </script>
+
+    <!-- Modales de Hotel (fuera del tab content para que siempre estén en DOM) -->
+    {% if event.hotel %}
+        {% include 'accounts/panel_tabs/detalle_evento_modals.html' %}
+    {% endif %}
+
 </body>
 </html>
 

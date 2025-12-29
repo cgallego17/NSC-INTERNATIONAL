@@ -372,41 +372,89 @@ def get_room_detail(request, room_id):
 
     images = []
     for img in room.images.all().order_by("id"):
+        url = ""
+        # Prefer MediaFile if present
         try:
-            url = img.image.url
+            if img.media_file_id:
+                url = img.media_file.get_file_url()
         except Exception:
             url = ""
+        # Fallback to ImageField
+        if not url:
+            try:
+                url = img.image.url
+            except Exception:
+                url = ""
+
         if url:
             images.append(
                 {
+                    # Keep both keys for backward-compat with older JS
                     "url": url,
-                    "title": img.title or "",
-                    "alt": img.alt_text or img.title or room.get_room_type_display(),
+                    "image_url": request.build_absolute_uri(url),
+                    "title": img.title or getattr(getattr(img, "media_file", None), "title", "") or "",
+                    "alt": img.alt_text or getattr(getattr(img, "media_file", None), "alt_text", "") or img.title or room.get_room_type_display(),
                 }
             )
 
     amenities = []
-    # Amenidades son a nivel hotel, pero se muestran en la habitación por UX
-    for amenity in room.hotel.amenities.filter(is_active=True).order_by("name"):
-        amenities.append(
-            {
-                "name": amenity.name,
-                "category": amenity.get_category_display(),
-                "icon": amenity.get_icon_class(),
-                "description": amenity.description or "",
-            }
-        )
+    # Obtener amenidades específicas de la habitación
+    # Si la habitación no tiene amenidades asignadas, usar las del hotel con categoría 'room' o 'bathroom' como fallback
+    room_amenities = room.amenities.filter(is_available=True).order_by("name")
+    if room_amenities.exists():
+        # Usar amenidades específicas de la habitación
+        for amenity in room_amenities:
+            amenities.append(
+                {
+                    "name": amenity.name,
+                    "category": amenity.get_category_display(),
+                    # Keep both keys; frontend currently uses icon_class
+                    "icon": amenity.get_icon_class(),
+                    "icon_class": f"fas {amenity.get_icon_class()}",
+                    "description": amenity.description or "",
+                }
+            )
+    else:
+        # Fallback: usar amenidades del hotel con categoría 'room' o 'bathroom'
+        for amenity in room.hotel.amenities.filter(is_available=True, category__in=['room', 'bathroom']).order_by("name"):
+            amenities.append(
+                {
+                    "name": amenity.name,
+                    "category": amenity.get_category_display(),
+                    # Keep both keys; frontend currently uses icon_class
+                    "icon": amenity.get_icon_class(),
+                    "icon_class": f"fas {amenity.get_icon_class()}",
+                    "description": amenity.description or "",
+                }
+            )
 
     services = []
     for service in room.hotel.services.filter(is_active=True).order_by("service_name"):
         services.append(
             {
+                # Keep both keys for compatibility across UIs
                 "name": service.service_name,
+                "service_name": service.service_name,
                 "type": service.get_service_type_display(),
                 "price": str(service.price),
                 "description": service.description or "",
                 "is_per_person": service.is_per_person,
                 "is_per_night": service.is_per_night,
+            }
+        )
+
+    # Reglas de ocupación
+    rules = []
+    for rule in room.rules.filter(is_active=True).order_by("order", "min_adults", "min_children"):
+        rules.append(
+            {
+                "id": rule.id,
+                "min_adults": rule.min_adults,
+                "max_adults": rule.max_adults,
+                "min_children": rule.min_children,
+                "max_children": rule.max_children,
+                "description": rule.description or "",
+                "is_active": rule.is_active,
             }
         )
 
@@ -416,14 +464,19 @@ def get_room_detail(request, room_id):
             "id": room.hotel.id,
             "name": room.hotel.hotel_name,
         },
+        "name": room.name or "",
         "room_number": room.room_number,
         "room_type": room.get_room_type_display(),
         "capacity": room.capacity,
         "price_per_night": str(room.price_per_night),
+        "price_includes_guests": room.price_includes_guests or 1,
+        "additional_guest_price": str(room.additional_guest_price or 0),
+        "breakfast_included": room.breakfast_included,
         "description": room.description or "",
         "images": images,
         "amenities": amenities,
         "services": services,
+        "rules": rules,
     }
     return JsonResponse(payload)
 

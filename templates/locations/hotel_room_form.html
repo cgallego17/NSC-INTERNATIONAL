@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load l10n %}
 
 {% block title %}
     {% if object %}Editar Habitación{% else %}Crear Habitación{% endif %} - NCS International
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid hotel-room-form-container">
     <div class="row">
         <div class="col-12">
             <div class="card site-form-card">
@@ -21,14 +22,14 @@
                                 {% if object %}Modifica la información de la habitación{% else %}Completa la información para crear una nueva habitación{% endif %}
                             </p>
                         </div>
-                        <a href="{% url 'locations:admin_hotel_room_list' %}" class="btn btn-outline-secondary">
+                        <a href="{% url 'locations:admin_hotel_room_list' %}" class="btn btn-outline-light">
                             <i class="fas fa-arrow-left me-2"></i>Volver a Habitaciones
                         </a>
                     </div>
                 </div>
 
                 <div class="card-body">
-                    <form method="post" class="needs-validation" novalidate>
+                    <form method="post" class="needs-validation" novalidate enctype="multipart/form-data">
                         {% csrf_token %}
 
                         {% if form.non_field_errors %}
@@ -38,11 +39,14 @@
                             </div>
                         {% endif %}
 
-                        <!-- INFORMACIÓN BÁSICA -->
+                        <!-- SECCIÓN 1: INFORMACIÓN BÁSICA -->
                         <div class="form-section">
-                            <h5 class="section-title">
-                                <i class="fas fa-info-circle me-2"></i>Información Básica
-                            </h5>
+                            <div class="form-section-header mb-4">
+                                <h5 class="form-section-title">
+                                    <i class="fas fa-info-circle me-2"></i>1. Información Básica
+                                </h5>
+                                <p class="text-muted small mb-0">Datos principales de identificación de la habitación</p>
+                            </div>
 
                             <div class="row">
                                 <div class="col-md-6">
@@ -54,7 +58,7 @@
                                             <option value="">Selecciona Hotel</option>
                                             {% for choice in form.hotel.field.queryset %}
                                                 <option value="{{ choice.id }}"
-                                                        {% if form.hotel.value == choice.id %}selected{% endif %}>
+                                                        {% if object and object.hotel.id == choice.id %}selected{% elif form.hotel.value == choice.id or form.hotel.value|stringformat:"s" == choice.id|stringformat:"s" %}selected{% endif %}>
                                                     {{ choice.hotel_name }}
                                                 </option>
                                             {% endfor %}
@@ -73,7 +77,7 @@
                                                id="room_number"
                                                name="room_number"
                                                class="form-control"
-                                               value="{{ form.room_number.value|default:'' }}"
+                                               value="{% if object %}{{ object.room_number }}{% else %}{{ form.room_number.value|default:'' }}{% endif %}"
                                                placeholder="Ej: 101, 205, Suite A"
                                                required>
                                         {% if form.room_number.errors %}
@@ -84,7 +88,27 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-12">
+                                    <div class="form-group mb-3">
+                                        <label for="name" class="form-label">
+                                            <i class="fas fa-tag me-1"></i>Nombre de la Habitación <span class="text-muted small">(Opcional)</span>
+                                        </label>
+                                        <input type="text"
+                                               id="name"
+                                               name="name"
+                                               class="form-control"
+                                               value="{% if object %}{{ object.name }}{% else %}{{ form.name.value|default:'' }}{% endif %}"
+                                               placeholder="Ej: Suite Presidencial, Habitación con Vista al Mar">
+                                        {% if form.name.errors %}
+                                            <div class="text-danger">{{ form.name.errors.0 }}</div>
+                                        {% endif %}
+                                        <small class="text-muted">Nombre descriptivo de la habitación para facilitar su identificación</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
                                     <div class="form-group mb-3">
                                         <label for="room_type" class="form-label">
                                             <i class="fas fa-list me-1"></i>Tipo de Habitación <span class="text-danger">*</span>
@@ -93,7 +117,7 @@
                                             {% for value, label in form.room_type.field.choices %}
                                                 {% if value %}
                                                     <option value="{{ value }}"
-                                                            {% if form.room_type.value == value %}selected{% endif %}>
+                                                            {% if object and object.room_type == value %}selected{% elif form.room_type.value == value %}selected{% endif %}>
                                                         {{ label }}
                                                     </option>
                                                 {% endif %}
@@ -104,22 +128,36 @@
                                         {% endif %}
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- SECCIÓN 2: CAPACIDAD Y PRECIO -->
+                        <div class="form-section">
+                            <div class="form-section-header mb-4">
+                                <h5 class="form-section-title">
+                                    <i class="fas fa-users-cog me-2"></i>2. Capacidad y Precio
+                                </h5>
+                                <p class="text-muted small mb-0">Define la capacidad máxima y el precio por noche de la habitación</p>
+                            </div>
+
+                            <div class="row">
                                 <div class="col-md-4">
                                     <div class="form-group mb-3">
                                         <label for="capacity" class="form-label">
-                                            <i class="fas fa-users me-1"></i>Capacidad <span class="text-danger">*</span>
+                                            <i class="fas fa-users me-1"></i>Capacidad Total <span class="text-danger">*</span>
                                         </label>
                                         <input type="number"
                                                id="capacity"
                                                name="capacity"
                                                class="form-control"
-                                               value="{{ form.capacity.value|default:'' }}"
+                                               value="{% if object %}{{ object.capacity }}{% else %}{{ form.capacity.value|default:'' }}{% endif %}"
                                                min="1"
-                                               placeholder="Número de personas"
+                                               placeholder="Total de personas"
                                                required>
                                         {% if form.capacity.errors %}
                                             <div class="text-danger">{{ form.capacity.errors.0 }}</div>
                                         {% endif %}
+                                        <small class="text-muted">Número máximo total de personas (adultos + niños). Define las combinaciones específicas en las reglas de ocupación.</small>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -127,28 +165,217 @@
                                         <label for="price_per_night" class="form-label">
                                             <i class="fas fa-dollar-sign me-1"></i>Precio por Noche <span class="text-danger">*</span>
                                         </label>
-                                        <input type="number"
-                                               id="price_per_night"
-                                               name="price_per_night"
-                                               class="form-control"
-                                               value="{{ form.price_per_night.value|default:'' }}"
-                                               step="0.01"
-                                               min="0"
-                                               placeholder="0.00"
-                                               required>
+                                        {% if object.price_per_night %}
+                                            {% localize off %}
+                                                <input type="number"
+                                                       id="price_per_night"
+                                                       name="price_per_night"
+                                                       class="form-control"
+                                                       value="{{ object.price_per_night }}"
+                                                       step="0.01"
+                                                       min="0"
+                                                       placeholder="0.00"
+                                                       required>
+                                            {% endlocalize %}
+                                        {% else %}
+                                            <input type="number"
+                                                   id="price_per_night"
+                                                   name="price_per_night"
+                                                   class="form-control"
+                                                   value="{% if form.price_per_night.value %}{{ form.price_per_night.value }}{% endif %}"
+                                                   step="0.01"
+                                                   min="0"
+                                                   placeholder="0.00"
+                                                   required>
+                                        {% endif %}
                                         {% if form.price_per_night.errors %}
                                             <div class="text-danger">{{ form.price_per_night.errors.0 }}</div>
                                         {% endif %}
+                                        <small class="text-muted">Precio base por noche de la habitación.</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group mb-3">
+                                        <label for="price_includes_guests" class="form-label">
+                                            <i class="fas fa-user-check me-1"></i>Personas Incluidas en el Precio <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="number"
+                                               id="price_includes_guests"
+                                               name="price_includes_guests"
+                                               class="form-control"
+                                               value="{% if object %}{{ object.price_includes_guests|default:1 }}{% else %}{{ form.price_includes_guests.value|default:1 }}{% endif %}"
+                                               min="1"
+                                               placeholder="1"
+                                               required>
+                                        {% if form.price_includes_guests.errors %}
+                                            <div class="text-danger">{{ form.price_includes_guests.errors.0 }}</div>
+                                        {% endif %}
+                                        <small class="text-muted">Número de personas incluidas en el precio por noche.</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group mb-3">
+                                        <label for="additional_guest_price" class="form-label">
+                                            <i class="fas fa-user-plus me-1"></i>Precio por Persona Adicional
+                                        </label>
+                                        {% load l10n %}
+                                        {% if object and object.additional_guest_price %}
+                                            {% localize off %}
+                                                <input type="number"
+                                                       id="additional_guest_price"
+                                                       name="additional_guest_price"
+                                                       class="form-control"
+                                                       value="{{ object.additional_guest_price }}"
+                                                       step="0.01"
+                                                       min="0"
+                                                       placeholder="0.00">
+                                            {% endlocalize %}
+                                        {% else %}
+                                            {% localize off %}
+                                                <input type="number"
+                                                       id="additional_guest_price"
+                                                       name="additional_guest_price"
+                                                       class="form-control"
+                                                       value="{% if form.additional_guest_price.value %}{{ form.additional_guest_price.value }}{% else %}0{% endif %}"
+                                                       step="0.01"
+                                                       min="0"
+                                                       placeholder="0.00">
+                                            {% endlocalize %}
+                                        {% endif %}
+                                        {% if form.additional_guest_price.errors %}
+                                            <div class="text-danger">{{ form.additional_guest_price.errors.0 }}</div>
+                                        {% endif %}
+                                        <small class="text-muted">Precio adicional por noche por cada persona que exceda el número de personas incluidas.</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group mb-3">
+                                        <label for="breakfast_included" class="form-label">
+                                            <i class="fas fa-coffee me-1"></i>Desayuno Incluido
+                                        </label>
+                                        <div class="form-check form-switch">
+                                            <input type="checkbox"
+                                                   id="breakfast_included"
+                                                   name="breakfast_included"
+                                                   class="form-check-input"
+                                                   {% if object and object.breakfast_included %}checked{% elif form.breakfast_included.value %}checked{% endif %}
+                                                   style="width: 3rem; height: 1.5rem; cursor: pointer;">
+                                            <label class="form-check-label" for="breakfast_included" style="cursor: pointer; margin-left: 10px;">
+                                                {% if object and object.breakfast_included %}Sí, el desayuno está incluido{% else %}No, el desayuno no está incluido{% endif %}
+                                            </label>
+                                        </div>
+                                        <small class="text-muted">Indica si el desayuno está incluido en el precio de la habitación.</small>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- INFORMACIÓN ADICIONAL -->
+                        <!-- SECCIÓN 3: REGLAS DE OCUPACIÓN -->
                         <div class="form-section">
-                            <h5 class="section-title">
-                                <i class="fas fa-plus-circle me-2"></i>Información Adicional
-                            </h5>
+                            <div class="form-section-header mb-4">
+                                <h5 class="form-section-title">
+                                    <i class="fas fa-clipboard-list me-2"></i>3. Reglas de Ocupación
+                                </h5>
+                                <p class="text-muted small mb-0">Define las combinaciones válidas de adultos y niños para esta habitación</p>
+                            </div>
+
+                            <div class="alert alert-info mb-4">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Ejemplo:</strong> Si la capacidad total es 4, puedes crear reglas como:
+                                <ul class="mb-0 mt-2">
+                                    <li>Mínimo 1 niño y máximo 3 adultos</li>
+                                    <li>Mínimo 1 adulto y máximo 3 niños</li>
+                                    <li>Otras combinaciones válidas según tu necesidad</li>
+                                </ul>
+                            </div>
+
+                                <!-- Contenedor de reglas -->
+                                <div id="room-rules-container">
+                                    {% if object and object.rules.all %}
+                                        {% for rule in object.rules.all %}
+                                            <div class="card mb-3 rule-item" data-rule-id="{{ rule.id }}">
+                                                <div class="card-body">
+                                                    <div class="row g-3">
+                                                        <input type="hidden" name="rule_id_{{ forloop.counter0 }}" value="{{ rule.id }}">
+                                                        <div class="col-md-2">
+                                                            <label class="form-label small">Adultos Mín</label>
+                                                            <input type="number"
+                                                                   name="rule_min_adults_{{ forloop.counter0 }}"
+                                                                   class="form-control form-control-sm"
+                                                                   value="{{ rule.min_adults }}"
+                                                                   min="1"
+                                                                   required>
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <label class="form-label small">Adultos Máx</label>
+                                                            <input type="number"
+                                                                   name="rule_max_adults_{{ forloop.counter0 }}"
+                                                                   class="form-control form-control-sm"
+                                                                   value="{{ rule.max_adults }}"
+                                                                   min="1"
+                                                                   required>
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <label class="form-label small">Niños Mín</label>
+                                                            <input type="number"
+                                                                   name="rule_min_children_{{ forloop.counter0 }}"
+                                                                   class="form-control form-control-sm"
+                                                                   value="{{ rule.min_children }}"
+                                                                   min="0"
+                                                                   required>
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <label class="form-label small">Niños Máx</label>
+                                                            <input type="number"
+                                                                   name="rule_max_children_{{ forloop.counter0 }}"
+                                                                   class="form-control form-control-sm"
+                                                                   value="{{ rule.max_children }}"
+                                                                   min="0"
+                                                                   required>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <label class="form-label small">Descripción (opcional)</label>
+                                                            <input type="text"
+                                                                   name="rule_description_{{ forloop.counter0 }}"
+                                                                   class="form-control form-control-sm"
+                                                                   value="{{ rule.description|default:'' }}"
+                                                                   placeholder="Ej: Mín 1 niño, máx 3 adultos">
+                                                        </div>
+                                                        <div class="col-md-1">
+                                                            <label class="form-label small">Activa</label>
+                                                            <div class="form-check form-switch">
+                                                                <input type="checkbox"
+                                                                       name="rule_is_active_{{ forloop.counter0 }}"
+                                                                       class="form-check-input"
+                                                                       {% if rule.is_active %}checked{% endif %}>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="mt-2">
+                                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRoomRule(this);">
+                                                            <i class="fas fa-trash me-1"></i>Eliminar
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+
+                                <button type="button" class="btn btn-outline-primary" onclick="addRoomRule();">
+                                    <i class="fas fa-plus me-2"></i>Agregar Regla
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- SECCIÓN 4: DESCRIPCIÓN Y DISPONIBILIDAD -->
+                        <div class="form-section">
+                            <div class="form-section-header mb-4">
+                                <h5 class="form-section-title">
+                                    <i class="fas fa-align-left me-2"></i>4. Descripción y Disponibilidad
+                                </h5>
+                                <p class="text-muted small mb-0">Información adicional sobre la habitación y su estado</p>
+                            </div>
 
                             <div class="row">
                                 <div class="col-md-12">
@@ -160,7 +387,7 @@
                                                   name="description"
                                                   class="form-control"
                                                   rows="4"
-                                                  placeholder="Descripción de la habitación (amenidades, vista, etc.)">{{ form.description.value|default:'' }}</textarea>
+                                                  placeholder="Descripción de la habitación (amenidades, vista, etc.)">{% if object %}{{ object.description|default:'' }}{% else %}{{ form.description.value|default:'' }}{% endif %}</textarea>
                                         {% if form.description.errors %}
                                             <div class="text-danger">{{ form.description.errors.0 }}</div>
                                         {% endif %}
@@ -176,7 +403,7 @@
                                                    id="is_available"
                                                    name="is_available"
                                                    class="form-check-input"
-                                                   {% if form.is_available.value %}checked{% endif %}>
+                                                   {% if object and object.is_available %}checked{% elif form.is_available.value %}checked{% endif %}>
                                             <label class="form-check-label" for="is_available">
                                                 Habitación disponible para reservas
                                             </label>
@@ -189,11 +416,14 @@
                             </div>
                         </div>
 
-                        <!-- GALERÍA DE IMÁGENES -->
+                        <!-- SECCIÓN 5: GALERÍA DE IMÁGENES -->
                         <div class="form-section">
-                            <h5 class="section-title">
-                                <i class="fas fa-images me-2"></i>Galería de Imágenes
-                            </h5>
+                            <div class="form-section-header mb-4">
+                                <h5 class="form-section-title">
+                                    <i class="fas fa-images me-2"></i>5. Galería de Imágenes
+                                </h5>
+                                <p class="text-muted small mb-0">Agrega imágenes de la habitación desde tu biblioteca multimedia</p>
+                            </div>
 
                             <!-- Imágenes Existentes (solo en edición) -->
                             {% if object and object.images.all %}
@@ -203,11 +433,11 @@
                                     </label>
                                     <div class="row g-3" id="existing-room-images-container">
                                         {% for image in object.images.all %}
-                                            <div class="col-md-3 col-sm-4 col-6" data-image-id="{{ image.pk }}">
+                                            <div class="col-md-3 col-sm-4 col-6" data-image-id="{{ image.pk }}" {% if image.media_file_id %}data-media-file-id="{{ image.media_file_id }}"{% endif %}>
                                                 <div class="card h-100 shadow-sm position-relative">
                                                     <div class="position-relative" style="height: 150px; overflow: hidden;">
-                                                        <img src="{{ image.image.url }}"
-                                                             alt="{{ image.title|default:image.alt_text|default:'Imagen de la habitación' }}"
+                                                        <img src="{{ image.image_url }}"
+                                                             alt="{{ image.image_alt|default:'Imagen de la habitación' }}"
                                                              class="card-img-top h-100 w-100"
                                                              style="object-fit: cover;">
                                                         {% if image.is_featured %}
@@ -220,22 +450,19 @@
                                                         <small class="text-muted d-block" style="font-size: 0.75rem;">
                                                             {% if image.title %}
                                                                 {{ image.title|truncatewords:5 }}
+                                                            {% elif image.media_file %}
+                                                                {{ image.media_file.title|truncatewords:5 }}
                                                             {% else %}
                                                                 Imagen #{{ forloop.counter }}
                                                             {% endif %}
                                                         </small>
                                                         <div class="d-flex gap-1 mt-2">
-                                                            <a href="{% url 'locations:admin_hotel_room_image_update' room_pk=object.pk pk=image.pk %}"
-                                                               class="btn btn-sm btn-outline-primary flex-fill"
-                                                               title="Editar">
-                                                                <i class="fas fa-edit"></i>
-                                                            </a>
-                                                            <a href="{% url 'locations:admin_hotel_room_image_delete' room_pk=object.pk pk=image.pk %}"
-                                                               class="btn btn-sm btn-outline-danger"
-                                                               title="Eliminar"
-                                                               onclick="return confirm('¿Estás seguro de eliminar esta imagen?');">
-                                                                <i class="fas fa-trash"></i>
-                                                            </a>
+                                                            <button type="button"
+                                                                    class="btn btn-sm btn-outline-danger flex-fill"
+                                                                    onclick="deleteRoomImage({{ image.pk }}, this);"
+                                                                    title="Eliminar de la habitación">
+                                                                <i class="fas fa-trash me-1"></i>Eliminar
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -248,46 +475,41 @@
                             <!-- Agregar Nuevas Imágenes -->
                             <div class="mb-3">
                                 <label for="room_images" class="form-label">
-                                    <i class="fas fa-upload me-1"></i>Agregar Nuevas Imágenes <span class="text-muted small">(Opcional)</span>
+                                    <i class="fas fa-upload me-1"></i>Agregar Nuevas Imágenes (Multimedia) <span class="text-muted small">(Opcional)</span>
                                 </label>
-                                <div class="file-upload-area"
-                                     id="roomImageUploadArea"
-                                     style="border: 2px dashed #dee2e6; border-radius: 12px; padding: 40px; text-align: center; background: #f8f9fa; cursor: pointer; transition: all 0.3s ease;"
-                                     onmouseover="this.style.borderColor='var(--mlb-blue)'; this.style.background='#f0f4ff';"
-                                     onmouseout="this.style.borderColor='#dee2e6'; this.style.background='#f8f9fa';">
-                                    <input type="file"
-                                           id="room_images"
-                                           name="room_images"
-                                           class="d-none"
-                                           accept="image/*"
-                                           multiple
-                                           onchange="handleRoomImageUpload(this);">
-                                    <div onclick="document.getElementById('room_images').click();">
-                                        <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: #6c757d;"></i>
-                                        <p class="mb-2">
-                                            <strong>Haz clic para seleccionar imágenes</strong>
-                                        </p>
-                                        <p class="text-muted small mb-0">
-                                            Puedes seleccionar múltiples imágenes a la vez (JPG, PNG, GIF)
-                                        </p>
-                                    </div>
+
+                                <div class="d-flex gap-2 flex-wrap mb-2">
+                                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#mediaSelectorModalRoom">
+                                        <i class="fas fa-folder-open me-2"></i>Elegir / Subir en Multimedia
+                                    </button>
+                                    <a href="{% url 'media:list' %}" class="btn btn-outline-secondary" target="_blank" rel="noopener">
+                                        <i class="fas fa-external-link-alt me-2"></i>Abrir biblioteca
+                                    </a>
                                 </div>
 
-                                <!-- Preview de imágenes seleccionadas -->
-                                <div id="roomImagePreviewContainer" class="mt-3" style="display: none;">
-                                    <label class="form-label">
-                                        <i class="fas fa-eye me-1"></i>Vista Previa de Imágenes Seleccionadas
-                                    </label>
-                                    <div class="row g-3" id="roomImagePreviewGrid"></div>
+                                <small class="text-muted d-block mb-3">
+                                    Las imágenes seleccionadas aquí se guardan en <strong>Multimedia</strong> (como en “Crear Evento”).
+                                </small>
+
+                                <!-- Inputs ocultos: IDs de Media seleccionados -->
+                                <div id="room-media-ids"></div>
+
+                                <!-- Preview de imágenes multimedia seleccionadas (oculto) -->
+                                <div class="mt-3" id="roomMediaPreviewContainer" style="display:none !important;">
+                                    <div class="row g-3" id="roomMediaPreviewGrid"></div>
                                 </div>
+
                             </div>
                         </div>
 
-                        <!-- AMENIDADES DE LA HABITACIÓN -->
+                        <!-- SECCIÓN 6: AMENIDADES -->
                         <div class="form-section">
-                            <h5 class="section-title">
-                                <i class="fas fa-star me-2"></i>Amenidades de la Habitación
-                            </h5>
+                            <div class="form-section-header mb-4">
+                                <h5 class="form-section-title">
+                                    <i class="fas fa-star me-2"></i>6. Amenidades de la Habitación
+                                </h5>
+                                <p class="text-muted small mb-0">Selecciona las amenidades específicas de esta habitación</p>
+                            </div>
 
                             <div class="mb-3">
                                 <label class="form-label">
@@ -321,33 +543,184 @@
     </div>
 </div>
 
+<!-- Modal: Selector Multimedia (Imágenes) -->
+<div class="modal fade" id="mediaSelectorModalRoom" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #0d2c54 0%, #132448 100%); color: white;">
+                <div>
+                    <div style="font-weight:800; font-size:0.82rem; opacity:0.9;">Multimedia • Imágenes</div>
+                    <h5 class="modal-title mb-0"><i class="fas fa-folder-open me-2"></i>Seleccionar imágenes</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background:#f8f9fa;">
+                <div class="d-flex gap-2 align-items-center mb-3 flex-wrap">
+                    <div class="input-group" style="max-width: 520px;">
+                        <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        <input type="text" class="form-control" id="roomMediaSearch" placeholder="Buscar en multimedia...">
+                        <button class="btn btn-outline-secondary" type="button" id="roomMediaSearchClear" style="display:none;"><i class="fas fa-times"></i></button>
+                    </div>
+                    <div class="ms-auto d-flex gap-2">
+                        <input type="file" id="roomMediaUploadInput" accept="image/*" multiple style="display:none;">
+                        <button type="button" class="btn btn-primary" id="roomMediaUploadBtn">
+                            <i class="fas fa-upload me-2"></i>Subir
+                        </button>
+                    </div>
+                </div>
+
+                <div id="roomMediaUploadProgress" style="display:none; margin-bottom: 12px;"></div>
+                <div id="roomMediaGrid" class="row g-3"></div>
+                <div id="roomMediaEmpty" class="text-center text-muted" style="display:none; padding: 36px 12px;">
+                    <i class="fas fa-folder-open fa-2x mb-2"></i>
+                    <div style="font-weight:800;">No se encontraron imágenes</div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background:#fff;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="roomMediaConfirmBtn">
+                    <i class="fas fa-check me-2"></i>Agregar seleccionadas
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
+.hotel-room-form-container {
+    padding: 1rem 1rem 1rem 2rem;
+    margin-left: 0;
+}
+
+@media (max-width: 768px) {
+    .hotel-room-form-container {
+        padding: 0.75rem 0.5rem;
+    }
+}
+
 .site-form-card {
     border: none;
     box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
     border-radius: 0.35rem;
 }
 
+.site-form-card .card-body {
+    padding: 1.25rem;
+}
+
 .site-form-card .card-header {
     background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
-    color: white;
+    color: white !important;
     border-radius: 0.35rem 0.35rem 0 0;
     border: none;
-    padding: 1.5rem;
+    padding: 1rem 1.25rem;
+}
+
+.site-form-card .card-header h4 {
+    color: white !important;
+}
+
+.site-form-card .card-header p {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.site-form-card .card-header .text-muted {
+    color: rgba(255, 255, 255, 0.85) !important;
 }
 
 [data-theme="dark"] .site-form-card .card-header {
     background: linear-gradient(180deg, #0f1419 0%, #1a1a1a 100%);
+    color: white !important;
+}
+
+[data-theme="dark"] .site-form-card .card-header h4 {
+    color: white !important;
+}
+
+[data-theme="dark"] .site-form-card .card-header p {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+[data-theme="dark"] .site-form-card .card-header .text-muted {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.site-form-card .card-header .btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    color: white !important;
+}
+
+.site-form-card .card-header .btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    border-color: white !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .site-form-card .card-header .btn-outline-light {
+    border-color: rgba(255, 255, 255, 0.5) !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .site-form-card .card-header .btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    border-color: white !important;
+    color: white !important;
 }
 
 .form-section {
-    border-left: 4px solid #e3e6f0;
-    padding-left: 1rem;
-    margin-bottom: 2rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.form-section:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #dee2e6;
 }
 
 [data-theme="dark"] .form-section {
-    border-left-color: #4a5568;
+    background: #1a1d23;
+    border-color: #2d3238;
+}
+
+[data-theme="dark"] .form-section:hover {
+    border-color: #3d4248;
+}
+
+.form-section-header {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+[data-theme="dark"] .form-section-header {
+    border-bottom-color: #2d3238;
+}
+
+.form-section-title {
+    color: var(--mlb-blue, #0d2c54);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-section-title i {
+    color: var(--mlb-red, #dc3545);
+    font-size: 1.1rem;
+}
+
+[data-theme="dark"] .form-section-title {
+    color: #e2e8f0;
+}
+
+[data-theme="dark"] .form-section-title i {
+    color: #f56565;
 }
 
 .section-title {
@@ -398,141 +771,314 @@
 </style>
 
 <script>
-// Manejo de múltiples imágenes de habitación
-let roomImageFileMap = new Map();
+// Selector Multimedia para imágenes de habitación (usa /media/list-ajax/ y /media/upload/)
+document.addEventListener('DOMContentLoaded', () => {
+    const modalEl = document.getElementById('mediaSelectorModalRoom');
+    if (!modalEl) return;
 
-function handleRoomImageUpload(input) {
-    const files = input.files;
-    const previewContainer = document.getElementById('roomImagePreviewContainer');
-    const previewGrid = document.getElementById('roomImagePreviewGrid');
+    const gridEl = document.getElementById('roomMediaGrid');
+    const emptyEl = document.getElementById('roomMediaEmpty');
+    const searchEl = document.getElementById('roomMediaSearch');
+    const clearBtn = document.getElementById('roomMediaSearchClear');
+    const uploadBtn = document.getElementById('roomMediaUploadBtn');
+    const uploadInput = document.getElementById('roomMediaUploadInput');
+    const progressEl = document.getElementById('roomMediaUploadProgress');
+    const confirmBtn = document.getElementById('roomMediaConfirmBtn');
 
-    if (files.length === 0) {
-        previewContainer.style.display = 'none';
-        previewGrid.innerHTML = '';
-        return;
+    const idsWrap = document.getElementById('room-media-ids');
+    const previewWrap = document.getElementById('roomMediaPreviewContainer');
+    const previewGrid = document.getElementById('roomMediaPreviewGrid');
+
+    // Hacer selected accesible globalmente para el submit handler
+    window.roomMediaSelected = new Map(); // id -> {id,title,thumbnail,url}
+    const selected = window.roomMediaSelected;
+
+    function getCookie(name) {
+        const v = document.cookie.split(';').map(s => s.trim()).find(s => s.startsWith(name + '='));
+        return v ? decodeURIComponent(v.split('=').slice(1).join('=')) : '';
     }
 
-    previewContainer.style.display = 'block';
-    previewGrid.innerHTML = '';
-    roomImageFileMap.clear();
+    // Hacer renderSelectedPreview accesible globalmente
+    window.renderRoomMediaPreview = function() {
+        if (!previewGrid || !previewWrap || !idsWrap) {
+            console.warn('[DEBUG] renderSelectedPreview: Elementos no encontrados', { previewGrid, previewWrap, idsWrap });
+            return;
+        }
+        idsWrap.innerHTML = '';
+        previewGrid.innerHTML = '';
 
-    Array.from(files).forEach((file, index) => {
-        if (!file.type.startsWith('image/')) {
-            alert(`El archivo "${file.name}" no es una imagen válida.`);
+        const items = Array.from(selected.values());
+        console.log('[DEBUG] renderSelectedPreview: Items en selected Map:', items.map(i => ({ id: i.id, title: i.title })));
+
+        // Siempre mantener el preview oculto, solo crear los inputs ocultos
+        previewWrap.style.display = 'none';
+
+        if (!items.length) {
             return;
         }
 
-        const maxSize = 5 * 1024 * 1024;
-        if (file.size > maxSize) {
-            alert(`La imagen "${file.name}" es demasiado grande. Máximo 5MB.`);
+        items.forEach(item => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'room_media_ids';
+            input.value = String(item.id);
+            // Verificar que idsWrap esté dentro del formulario antes de agregar
+            const form = document.querySelector('form.needs-validation');
+            if (form && form.contains(idsWrap)) {
+                idsWrap.appendChild(input);
+                console.log('[DEBUG] renderSelectedPreview: Input creado para media_id:', item.id, 'dentro del formulario');
+            } else {
+                console.error('[DEBUG] renderSelectedPreview: ERROR - idsWrap NO está dentro del formulario!');
+                // Intentar agregar directamente al formulario como último recurso
+                if (form) {
+                    form.appendChild(input);
+                    console.log('[DEBUG] renderSelectedPreview: Input agregado directamente al formulario:', item.id);
+                }
+            }
+        });
+
+        previewGrid.querySelectorAll('[data-remove-id]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const id = btn.getAttribute('data-remove-id');
+                selected.delete(String(id));
+                window.renderRoomMediaPreview();
+            });
+        });
+    };
+
+    // Alias local para uso interno
+    const renderSelectedPreview = window.renderRoomMediaPreview;
+
+    async function loadMedia(search = '') {
+        if (!gridEl || !emptyEl) return;
+        gridEl.innerHTML = '';
+        emptyEl.style.display = 'none';
+
+        const qs = new URLSearchParams({ type: 'image', search: search || '', limit: '60' });
+        const res = await fetch(`/media/list-ajax/?${qs.toString()}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const data = await res.json();
+        const results = (data && data.results) ? data.results : [];
+
+        if (!results.length) {
+            emptyEl.style.display = '';
             return;
         }
 
-        const fileId = `file_${Date.now()}_${index}`;
-        roomImageFileMap.set(fileId, file);
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
+        results.forEach(item => {
+            const id = String(item.id);
+            const isSel = selected.has(id);
             const col = document.createElement('div');
             col.className = 'col-md-3 col-sm-4 col-6';
-            col.setAttribute('data-file-id', fileId);
-            col.setAttribute('data-file-index', index);
-
             col.innerHTML = `
-                <div class="card h-100 shadow-sm">
-                    <div style="height: 150px; overflow: hidden; position: relative;">
-                        <img src="${e.target.result}"
-                             alt="Preview ${index + 1}"
-                             class="card-img-top h-100 w-100"
-                             style="object-fit: cover;">
-                        <button type="button"
-                                class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1"
-                                onclick="removeRoomImagePreview('${fileId}');"
-                                title="Eliminar">
-                            <i class="fas fa-times"></i>
-                        </button>
+                <div class="card h-100 shadow-sm ${isSel ? 'border border-3 border-danger' : ''}" data-media-id="${id}" style="cursor:pointer;">
+                    <div style="height:150px; overflow:hidden; position:relative;">
+                        <img src="${item.thumbnail || item.url}" alt="${item.title || 'Imagen'}" style="width:100%; height:100%; object-fit:cover;">
+                        ${isSel ? '<span class="badge bg-danger position-absolute top-0 start-0 m-2">Seleccionada</span>' : ''}
                     </div>
                     <div class="card-body p-2">
-                        <input type="text"
-                               name="room_image_title_${index}"
-                               class="form-control form-control-sm mb-2"
-                               placeholder="Título (opcional)">
-                        <input type="text"
-                               name="room_image_alt_${index}"
-                               class="form-control form-control-sm mb-2"
-                               placeholder="Texto alternativo (opcional)">
-                        <div class="form-check">
-                            <input type="checkbox"
-                                   name="room_image_featured_${index}"
-                                   id="room_image_featured_${fileId}"
-                                   class="form-check-input">
-                            <label class="form-check-label small" for="room_image_featured_${fileId}">
-                                Destacada
-                            </label>
-                        </div>
+                        <div style="font-weight:800; font-size:0.8rem; color:#0d2c54; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.title || ('ID ' + id)}</div>
+                        <div class="text-muted" style="font-size:0.72rem;">${item.created_at || ''}</div>
                     </div>
                 </div>
             `;
-
-            previewGrid.appendChild(col);
-        };
-
-        reader.readAsDataURL(file);
-    });
-}
-
-function removeRoomImagePreview(fileId) {
-    roomImageFileMap.delete(fileId);
-    const col = document.querySelector(`[data-file-id="${fileId}"]`);
-    if (col) {
-        col.remove();
-    }
-
-    const input = document.getElementById('room_images');
-    const dt = new DataTransfer();
-    roomImageFileMap.forEach((file) => {
-        dt.items.add(file);
-    });
-    input.files = dt.files;
-
-    if (input.files.length > 0) {
-        handleRoomImageUpload(input);
-    } else {
-        document.getElementById('roomImagePreviewContainer').style.display = 'none';
-    }
-}
-
-// Drag and drop para imágenes de habitación
-const roomUploadArea = document.getElementById('roomImageUploadArea');
-if (roomUploadArea) {
-    roomUploadArea.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        this.style.borderColor = 'var(--mlb-blue)';
-        this.style.background = '#e7f3ff';
-    });
-
-    roomUploadArea.addEventListener('dragleave', function(e) {
-        e.preventDefault();
-        this.style.borderColor = '#dee2e6';
-        this.style.background = '#f8f9fa';
-    });
-
-    roomUploadArea.addEventListener('drop', function(e) {
-        e.preventDefault();
-        this.style.borderColor = '#dee2e6';
-        this.style.background = '#f8f9fa';
-
-        const files = e.dataTransfer.files;
-        const input = document.getElementById('room_images');
-        const dt = new DataTransfer();
-        Array.from(input.files).forEach(file => dt.items.add(file));
-        Array.from(files).forEach(file => {
-            if (file.type.startsWith('image/')) {
-                dt.items.add(file);
-            }
+            col.querySelector('[data-media-id]').addEventListener('click', () => {
+                if (selected.has(id)) selected.delete(id);
+                else selected.set(id, { id, title: item.title, thumbnail: item.thumbnail, url: item.url });
+                loadMedia(searchEl ? searchEl.value : '');
+            });
+            gridEl.appendChild(col);
         });
-        input.files = dt.files;
-        handleRoomImageUpload(input);
+    }
+
+    async function uploadFiles(files) {
+        if (!files || !files.length) return;
+        const csrftoken = getCookie('csrftoken');
+        progressEl.style.display = '';
+        progressEl.innerHTML = `
+            <div class="progress">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" id="roomMediaUploadBar" style="width:0%">0%</div>
+            </div>
+            <div class="small text-muted mt-2" id="roomMediaUploadStatus">Subiendo...</div>
+        `;
+        const bar = document.getElementById('roomMediaUploadBar');
+        const status = document.getElementById('roomMediaUploadStatus');
+
+        let done = 0;
+        for (const file of files) {
+            const fd = new FormData();
+            fd.append('title', file.name);
+            fd.append('file_type', 'image');
+            fd.append('original_file', file);
+            const res = await fetch('/media/upload/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' },
+                body: fd
+            });
+            const data = await res.json();
+            done++;
+            const pct = Math.round((done / files.length) * 100);
+            if (bar) { bar.style.width = pct + '%'; bar.textContent = pct + '%'; }
+            if (status) status.textContent = data && data.success ? `Subido: ${data.title || file.name}` : `Error: ${file.name}`;
+            if (data && data.success && data.id) {
+                selected.set(String(data.id), { id: String(data.id), title: data.title, thumbnail: data.thumbnail || data.url, url: data.url || '' });
+            }
+        }
+
+        setTimeout(() => { progressEl.style.display = 'none'; }, 800);
+        await loadMedia(searchEl ? searchEl.value : '');
+    }
+
+    modalEl.addEventListener('shown.bs.modal', () => loadMedia(searchEl ? searchEl.value : ''));
+
+    if (searchEl) {
+        let t = null;
+        searchEl.addEventListener('input', () => {
+            clearBtn.style.display = searchEl.value ? '' : 'none';
+            clearTimeout(t);
+            t = setTimeout(() => loadMedia(searchEl.value), 250);
+        });
+    }
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            if (searchEl) searchEl.value = '';
+            clearBtn.style.display = 'none';
+            loadMedia('');
+        });
+    }
+    if (uploadBtn && uploadInput) {
+        uploadBtn.addEventListener('click', () => uploadInput.click());
+        uploadInput.addEventListener('change', async (e) => {
+            await uploadFiles(Array.from(e.target.files || []));
+            uploadInput.value = '';
+        });
+    }
+
+    confirmBtn.addEventListener('click', () => {
+        // Remover foco antes de cerrar el modal
+        if (document.activeElement) {
+            try {
+                document.activeElement.blur();
+            } catch (e) {
+                // Ignorar errores
+            }
+        }
+        // Asegurar que renderSelectedPreview se ejecute antes de cerrar el modal
+        window.renderRoomMediaPreview();
+        console.log('[DEBUG] Imágenes seleccionadas después de renderSelectedPreview:', Array.from(window.roomMediaSelected.values()).map(i => i.id));
+        const inst = window.bootstrap?.Modal?.getInstance(modalEl);
+        if (inst) {
+            // Usar setTimeout para asegurar que el blur se complete antes de cerrar
+            setTimeout(() => {
+                inst.hide();
+            }, 50);
+        }
+    });
+
+    // Setup focus handling para el modal
+    if (modalEl) {
+        // Manejo básico de foco
+        modalEl.addEventListener('hide.bs.modal', function(e) {
+            const activeEl = document.activeElement;
+            if (activeEl && modalEl.contains(activeEl)) {
+                try {
+                    activeEl.blur();
+                } catch (err) {
+                    // Ignorar errores
+                }
+            }
+        }, { once: false });
+
+        modalEl.addEventListener('hidden.bs.modal', function(e) {
+            const activeEl = document.activeElement;
+            if (activeEl && modalEl.contains(activeEl)) {
+                try {
+                    activeEl.blur();
+                } catch (err) {
+                    // Ignorar errores
+                }
+            }
+            // Intentar remover foco después de que el modal se oculte completamente
+            requestAnimationFrame(() => {
+                const stillActive = document.activeElement;
+                if (stillActive && modalEl.contains(stillActive)) {
+                    try {
+                        stillActive.blur();
+                    } catch (err) {
+                        // Ignorar errores
+                    }
+                }
+            });
+        }, { once: false });
+    }
+});
+
+// Eliminar imagen existente de la habitación (solo la relación, NO el MediaFile)
+function deleteRoomImage(imageId, buttonEl) {
+    if (!confirm('¿Estás seguro de eliminar esta imagen de la habitación?\n\nNota: La imagen se mantendrá en la biblioteca multimedia.')) {
+        return;
+    }
+
+    // Deshabilitar el botón mientras se procesa
+    const originalText = buttonEl.innerHTML;
+    buttonEl.disabled = true;
+    buttonEl.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Eliminando...';
+
+    // Obtener CSRF token
+    function getCookie(name) {
+        const v = document.cookie.split(';').map(s => s.trim()).find(s => s.startsWith(name + '='));
+        return v ? decodeURIComponent(v.split('=').slice(1).join('=')) : '';
+    }
+    const csrftoken = getCookie('csrftoken') || document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+    // Hacer petición AJAX
+    fetch(`/locations/admin/hotel-rooms/images/${imageId}/delete/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(async response => {
+        // Verificar si la respuesta es JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            // Si no es JSON, leer como texto para ver qué error hay
+            const text = await response.text();
+            console.error('Respuesta no JSON:', text.substring(0, 200));
+            throw new Error(`Error del servidor (${response.status}): La respuesta no es JSON. Ver consola para más detalles.`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // Eliminar el elemento del DOM
+            const imageCard = buttonEl.closest('[data-image-id]');
+            if (imageCard) {
+                imageCard.style.transition = 'opacity 0.3s';
+                imageCard.style.opacity = '0';
+                setTimeout(() => {
+                    imageCard.remove();
+                    // Si no quedan imágenes, ocultar la sección
+                    const container = document.getElementById('existing-room-images-container');
+                    if (container && container.children.length === 0) {
+                        container.closest('.mb-4').style.display = 'none';
+                    }
+                }, 300);
+            }
+            // Mostrar mensaje de éxito (opcional)
+            if (window.showToast) {
+                showToast('success', data.message || 'Imagen eliminada exitosamente.');
+            }
+        } else {
+            throw new Error(data.message || 'Error al eliminar la imagen');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al eliminar la imagen: ' + error.message);
+        buttonEl.disabled = false;
+        buttonEl.innerHTML = originalText;
     });
 }
 
@@ -553,10 +1099,8 @@ const roomAmenities = [
 // Obtener amenidades existentes del hotel (solo room y bathroom)
 const existingRoomAmenities = [
     {% if object %}
-        {% for amenity in object.hotel.amenities.all %}
-            {% if amenity.category == 'room' or amenity.category == 'bathroom' %}
-                '{{ amenity.icon }}'{% if not forloop.last %},{% endif %}
-            {% endif %}
+        {% for amenity in object.amenities.all %}
+            '{{ amenity.icon }}'{% if not forloop.last %},{% endif %}
         {% endfor %}
     {% endif %}
 ];
@@ -564,9 +1108,19 @@ const existingRoomAmenities = [
 // Renderizar checkboxes de amenidades de habitación
 function renderRoomAmenityCheckboxes() {
     const container = document.getElementById('room-amenities-checkbox-container');
-    if (!container) return;
+    if (!container) {
+        console.warn('[DEBUG] renderRoomAmenityCheckboxes: Container no encontrado');
+        return;
+    }
+
+    // Verificar que el container esté dentro del formulario
+    const form = document.querySelector('form.needs-validation');
+    if (form && !form.contains(container)) {
+        console.error('[DEBUG] renderRoomAmenityCheckboxes: Container NO está dentro del formulario!');
+    }
 
     container.innerHTML = '';
+    console.log('[DEBUG] renderRoomAmenityCheckboxes: Renderizando', roomAmenities.length, 'amenidades');
 
     roomAmenities.forEach(amenity => {
         const isChecked = existingRoomAmenities.includes(amenity.value);
@@ -596,6 +1150,7 @@ function renderRoomAmenityCheckboxes() {
             </div>
         `;
         container.appendChild(col);
+        console.log(`[DEBUG] renderRoomAmenityCheckboxes: Checkbox creado para ${amenity.value}, checked: ${isChecked}`);
 
         const card = document.getElementById(cardId);
         const checkbox = document.getElementById(checkboxId);
@@ -632,7 +1187,372 @@ function renderRoomAmenityCheckboxes() {
 // Inicializar checkboxes al cargar la página
 document.addEventListener('DOMContentLoaded', function() {
     renderRoomAmenityCheckboxes();
+
+    // Inicializar contador de reglas basado en las reglas existentes
+    const container = document.getElementById('room-rules-container');
+    if (container) {
+        const existingRules = container.querySelectorAll('.rule-item');
+        roomRuleCounter = existingRules.length;
+        console.log(`[INIT] Reglas existentes encontradas: ${roomRuleCounter}`);
+    }
+
+    // NO actualizar índices al cargar - las reglas existentes ya tienen los índices correctos
+    // Solo actualizar si se agregan o eliminan reglas
+
+    // Normalizar valores numéricos que puedan tener coma como separador decimal
+    const additionalPriceInput = document.getElementById('additional_guest_price');
+    if (additionalPriceInput && additionalPriceInput.value) {
+        // Reemplazar coma por punto para input type="number"
+        let normalizedValue = additionalPriceInput.value.replace(',', '.');
+        // Remover ceros innecesarios al final y formatear correctamente
+        const numValue = parseFloat(normalizedValue);
+        if (!isNaN(numValue)) {
+            // Si es un número entero, mostrar sin decimales; si no, mostrar máximo 2 decimales
+            if (numValue % 1 === 0) {
+                normalizedValue = numValue.toString();
+            } else {
+                normalizedValue = numValue.toFixed(2);
+            }
+        }
+        if (normalizedValue !== additionalPriceInput.value) {
+            additionalPriceInput.value = normalizedValue;
+        }
+    }
+
+    // Cargar imágenes existentes en el selected Map cuando se está editando
+    // Esto debe ejecutarse después de que el modal haya inicializado window.roomMediaSelected
+    {% if object %}
+        // Usar setTimeout para asegurar que el código del modal se haya ejecutado primero
+        setTimeout(() => {
+            console.log('[INIT] Modo edición detectado, cargando imágenes existentes...');
+            const existingImages = document.querySelectorAll('[data-image-id]');
+            console.log('[INIT] Imágenes existentes encontradas:', existingImages.length);
+
+            // Asegurar que window.roomMediaSelected existe
+            if (!window.roomMediaSelected) {
+                window.roomMediaSelected = new Map();
+                console.log('[INIT] window.roomMediaSelected creado');
+            }
+
+            existingImages.forEach(imgEl => {
+                const imageId = imgEl.getAttribute('data-image-id');
+                const imgTag = imgEl.querySelector('img');
+                const imgUrl = imgTag ? imgTag.src : '';
+                const titleEl = imgEl.querySelector('small.text-muted');
+                const title = titleEl ? titleEl.textContent.trim() : `Imagen ${imageId}`;
+
+                // Buscar el media_file_id de la imagen existente
+                const mediaFileId = imgEl.getAttribute('data-media-file-id');
+                console.log(`[INIT] Procesando imagen existente - Image ID: ${imageId}, MediaFile ID: ${mediaFileId}`);
+
+                if (mediaFileId) {
+                    window.roomMediaSelected.set(String(mediaFileId), {
+                        id: String(mediaFileId),
+                        title: title,
+                        thumbnail: imgUrl,
+                        url: imgUrl
+                    });
+                    console.log(`[INIT] Imagen existente cargada en window.roomMediaSelected: MediaFile ID ${mediaFileId}, Title: ${title}`);
+                } else {
+                    console.warn(`[INIT] Imagen existente sin data-media-file-id: Image ID ${imageId}`);
+                }
+            });
+
+            // Renderizar el preview con las imágenes existentes
+            if (typeof window.renderRoomMediaPreview === 'function') {
+                console.log('[INIT] Ejecutando renderRoomMediaPreview para imágenes existentes...');
+                window.renderRoomMediaPreview();
+                console.log('[INIT] Total items en window.roomMediaSelected después de cargar existentes:', window.roomMediaSelected.size);
+            } else {
+                console.warn('[INIT] renderRoomMediaPreview no está disponible aún, reintentando en 500ms...');
+                setTimeout(() => {
+                    if (typeof window.renderRoomMediaPreview === 'function') {
+                        window.renderRoomMediaPreview();
+                        console.log('[INIT] renderRoomMediaPreview ejecutado después del retraso');
+                    }
+                }, 500);
+            }
+        }, 100);
+    {% endif %}
 });
+
+// Manejo de reglas de habitación
+let roomRuleCounter = 0;
+
+function updateRoomRuleIndices() {
+    const container = document.getElementById('room-rules-container');
+    if (!container) return;
+
+    const rules = container.querySelectorAll('.rule-item');
+    rules.forEach((rule, index) => {
+        // Actualizar todos los inputs dentro de esta regla
+        rule.querySelectorAll('input, select').forEach(input => {
+            const name = input.name;
+            if (name) {
+                // Buscar cualquier campo que empiece con rule_ y tenga un número al final
+                const match = name.match(/^rule_(\w+)_(\d+)$/);
+                if (match) {
+                    // Actualizar el nombre con el nuevo índice
+                    const newName = `rule_${match[1]}_${index}`;
+                    input.name = newName;
+                    // Debug: console.log para verificar cambios
+                    if (name !== newName) {
+                        console.log(`Actualizado: ${name} -> ${newName}`);
+                    }
+                }
+            }
+        });
+    });
+    // Actualizar el contador para que la próxima regla nueva tenga el índice correcto
+    roomRuleCounter = rules.length;
+    console.log(`Índices actualizados. Total de reglas: ${rules.length}, Contador: ${roomRuleCounter}`);
+}
+
+function addRoomRule() {
+    const container = document.getElementById('room-rules-container');
+    if (!container) return;
+
+    const index = roomRuleCounter;
+    const ruleHtml = `
+        <div class="card mb-3 rule-item" data-rule-id="">
+            <div class="card-body">
+                <div class="row g-3">
+                    <input type="hidden" name="rule_id_${index}" value="">
+                    <div class="col-md-2">
+                        <label class="form-label small">Adultos Mín</label>
+                        <input type="number"
+                               name="rule_min_adults_${index}"
+                               class="form-control form-control-sm"
+                               value="1"
+                               min="1"
+                               required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Adultos Máx</label>
+                        <input type="number"
+                               name="rule_max_adults_${index}"
+                               class="form-control form-control-sm"
+                               value="2"
+                               min="1"
+                               required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Niños Mín</label>
+                        <input type="number"
+                               name="rule_min_children_${index}"
+                               class="form-control form-control-sm"
+                               value="0"
+                               min="0"
+                               required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label small">Niños Máx</label>
+                        <input type="number"
+                               name="rule_max_children_${index}"
+                               class="form-control form-control-sm"
+                               value="0"
+                               min="0"
+                               required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small">Descripción (opcional)</label>
+                        <input type="text"
+                               name="rule_description_${index}"
+                               class="form-control form-control-sm"
+                               value=""
+                               placeholder="Ej: Mín 1 niño, máx 3 adultos">
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label small">Activa</label>
+                        <div class="form-check form-switch">
+                            <input type="checkbox"
+                                   name="rule_is_active_${index}"
+                                   class="form-check-input"
+                                   checked>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRoomRule(this);">
+                        <i class="fas fa-trash me-1"></i>Eliminar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', ruleHtml);
+    // Incrementar contador después de agregar
+    roomRuleCounter++;
+    // Actualizar índices para asegurar que todas las reglas tengan índices consecutivos
+    updateRoomRuleIndices();
+    console.log(`[ADD] Nueva regla agregada con índice: ${index}, Contador actualizado: ${roomRuleCounter}`);
+}
+
+function removeRoomRule(button) {
+    const ruleItem = button.closest('.rule-item');
+    if (!ruleItem) return;
+
+    const ruleId = ruleItem.dataset.ruleId;
+    if (ruleId) {
+        // Si es una regla existente, agregar input hidden para eliminación
+        const form = document.querySelector('form.needs-validation');
+        if (form) {
+            // Verificar si ya existe un input para esta regla
+            let deleteInput = form.querySelector(`input[name="delete_rule_ids"][value="${ruleId}"]`);
+            if (!deleteInput) {
+                deleteInput = document.createElement('input');
+                deleteInput.type = 'hidden';
+                deleteInput.name = 'delete_rule_ids';
+                deleteInput.value = ruleId;
+                form.appendChild(deleteInput);
+            }
+        }
+    }
+
+    ruleItem.remove();
+    // Actualizar índices después de eliminar
+    updateRoomRuleIndices();
+    // Actualizar contador
+    const container = document.getElementById('room-rules-container');
+    if (container) {
+        roomRuleCounter = container.querySelectorAll('.rule-item').length;
+    }
+}
+
+// Asegurar que los datos se envíen correctamente al submit
+// Nota: La variable 'selected' está definida dentro del scope del selector multimedia
+// Por lo tanto, el código de renderSelectedPreview() ya maneja correctamente los inputs
+// Solo agregamos un listener para debug y verificación
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form.needs-validation');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Asegurar que renderSelectedPreview se ejecute antes de enviar
+            const idsWrap = document.getElementById('room-media-ids');
+
+            // Primero, intentar usar la función global renderRoomMediaPreview si existe
+            if (typeof window.renderRoomMediaPreview === 'function') {
+                console.log('[DEBUG] Form submit - Ejecutando renderRoomMediaPreview...');
+                window.renderRoomMediaPreview();
+            }
+
+            // También intentar leer desde el preview como respaldo
+            const previewGrid = document.getElementById('roomMediaPreviewGrid');
+            if (previewGrid) {
+                const previewItems = previewGrid.querySelectorAll('[data-remove-id]');
+                const mediaIdsFromPreview = Array.from(previewItems).map(btn => btn.getAttribute('data-remove-id'));
+                console.log('[DEBUG] Form submit - Media IDs desde preview:', mediaIdsFromPreview);
+
+                // Si hay IDs en el preview pero no en los inputs, recrearlos
+                if (mediaIdsFromPreview.length > 0 && idsWrap) {
+                    const existingInputs = idsWrap.querySelectorAll('input[name="room_media_ids"]');
+                    const existingIds = Array.from(existingInputs).map(input => input.value);
+
+                    if (existingIds.length !== mediaIdsFromPreview.length ||
+                        !mediaIdsFromPreview.every(id => existingIds.includes(id))) {
+                        console.log('[DEBUG] Form submit - Recreando inputs desde preview...');
+                        idsWrap.innerHTML = '';
+                        mediaIdsFromPreview.forEach(mediaId => {
+                            const input = document.createElement('input');
+                            input.type = 'hidden';
+                            input.name = 'room_media_ids';
+                            input.value = String(mediaId);
+                            idsWrap.appendChild(input);
+                            console.log('[DEBUG] Form submit - Input recreado para media_id:', mediaId);
+                        });
+                    }
+                }
+            }
+
+            // Verificar que los IDs de multimedia estén en el formulario
+            if (idsWrap) {
+                const mediaInputs = idsWrap.querySelectorAll('input[name="room_media_ids"]');
+                const mediaIds = Array.from(mediaInputs).map(input => input.value);
+                console.log('[DEBUG] Form submit - Media IDs finales a enviar:', mediaIds);
+                console.log('[DEBUG] Form submit - Total inputs encontrados:', mediaInputs.length);
+
+                // Verificar que los inputs estén dentro del formulario
+                const formInputs = form.querySelectorAll('input[name="room_media_ids"]');
+                console.log('[DEBUG] Form submit - Inputs dentro del formulario:', formInputs.length);
+
+                if (formInputs.length === 0 && mediaIds.length > 0) {
+                    console.error('[DEBUG] Form submit - ERROR: Hay IDs seleccionados pero NO hay inputs en el formulario!');
+                    // Último intento: mover los inputs al formulario si no están dentro
+                    mediaInputs.forEach(input => {
+                        if (!form.contains(input)) {
+                            form.appendChild(input);
+                            console.log('[DEBUG] Form submit - Input movido al formulario:', input.value);
+                        }
+                    });
+                }
+            } else {
+                console.error('[DEBUG] Form submit - idsWrap NO encontrado!');
+            }
+
+            // Verificar checkboxes de amenidades
+            const amenityCheckboxes = document.querySelectorAll('input[name^="room_amenity_"]');
+            console.log('[DEBUG] Form submit - Total checkboxes de amenidades encontrados:', amenityCheckboxes.length);
+
+            const checkedAmenities = Array.from(amenityCheckboxes)
+                .filter(cb => cb.checked)
+                .map(cb => {
+                    const name = cb.name;
+                    const iconValue = name.replace('room_amenity_', '');
+                    console.log(`[DEBUG] Form submit - Amenidad marcada: ${iconValue} (name: ${name})`);
+                    return iconValue;
+                });
+            console.log('[DEBUG] Form submit - Amenidades seleccionadas (checked):', checkedAmenities);
+
+            // Verificar que los checkboxes estén dentro del formulario
+            const formAmenityCheckboxes = form.querySelectorAll('input[name^="room_amenity_"]');
+            console.log('[DEBUG] Form submit - Checkboxes dentro del formulario:', formAmenityCheckboxes.length);
+
+            // Verificar que los checkboxes marcados estén dentro del formulario
+            const checkedInForm = Array.from(formAmenityCheckboxes).filter(cb => cb.checked);
+            console.log('[DEBUG] Form submit - Checkboxes marcados dentro del formulario:', checkedInForm.length);
+
+            // Si hay checkboxes marcados fuera del formulario, moverlos
+            if (checkedAmenities.length > 0 && checkedInForm.length < checkedAmenities.length) {
+                console.warn('[DEBUG] Form submit - Algunos checkboxes marcados NO están en el formulario, intentando moverlos...');
+                amenityCheckboxes.forEach(cb => {
+                    if (cb.checked && !form.contains(cb)) {
+                        console.log(`[DEBUG] Form submit - Moviendo checkbox al formulario: ${cb.name}`);
+                        form.appendChild(cb);
+                    }
+                });
+            }
+
+            // Verificar que todos los campos básicos estén presentes
+            const basicFields = ['hotel', 'room_number', 'name', 'room_type', 'capacity', 'price_per_night', 'price_includes_guests', 'additional_guest_price', 'description'];
+            basicFields.forEach(fieldName => {
+                const field = form.querySelector(`[name="${fieldName}"]`);
+                if (field) {
+                    console.log(`[DEBUG] Campo ${fieldName}:`, field.value);
+                } else {
+                    console.warn(`[DEBUG] Campo ${fieldName} NO encontrado en el formulario`);
+                }
+            });
+
+            // Verificar checkboxes
+            const breakfastCheckbox = form.querySelector('[name="breakfast_included"]');
+            const availableCheckbox = form.querySelector('[name="is_available"]');
+            console.log('[DEBUG] breakfast_included:', breakfastCheckbox ? breakfastCheckbox.checked : 'NO ENCONTRADO');
+            console.log('[DEBUG] is_available:', availableCheckbox ? availableCheckbox.checked : 'NO ENCONTRADO');
+
+            // Verificar reglas
+            const rules = form.querySelectorAll('.rule-item');
+            console.log(`[DEBUG] Total de reglas en el formulario: ${rules.length}`);
+            rules.forEach((rule, index) => {
+                const ruleId = rule.querySelector('input[name^="rule_id_"]');
+                const minAdults = rule.querySelector('input[name^="rule_min_adults_"]');
+                const maxAdults = rule.querySelector('input[name^="rule_max_adults_"]');
+                console.log(`[DEBUG] Regla ${index}: ID=${ruleId ? ruleId.value : 'NUEVA'}, MinAdults=${minAdults ? minAdults.value : 'N/A'}, MaxAdults=${maxAdults ? maxAdults.value : 'N/A'}`);
+            });
+        });
+    }
+});
+
 </script>
 {% endblock %}
 
