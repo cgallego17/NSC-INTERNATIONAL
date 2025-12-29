@@ -23,9 +23,8 @@ def set_language(request):
             request.session.modified = True
             # Activar el idioma inmediatamente
             translation.activate(language)
-            print(f"✅ Idioma activado: {language}")  # Debug
 
-    # Llamar a la vista original de Django (que también establecerá el idioma)
+    # Llamar a la vista original de Django (que también establecerá el idioma y redirigirá a la misma URL)
     response = django_set_language(request)
 
     # Asegurar que el idioma se mantenga en la respuesta
@@ -33,6 +32,7 @@ def set_language(request):
         language_key = getattr(translation, "LANGUAGE_SESSION_KEY", "_language")
         current_lang = request.session.get(language_key, settings.LANGUAGE_CODE)
         translation.activate(current_lang)
-        response.setdefault('Content-Language', current_lang)
+        if hasattr(response, 'setdefault'):
+            response.setdefault('Content-Language', current_lang)
 
     return response

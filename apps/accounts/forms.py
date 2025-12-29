@@ -84,32 +84,36 @@ class PublicRegistrationForm(UserCreationForm):
     """Formulario de registro público completo"""
 
     USER_TYPE_CHOICES = [
-        ("parent", "Padre/Acudiente"),
-        ("team_manager", "Manager de Equipo"),
+        ("parent", _("Parent/Guardian")),
+        ("team_manager", _("Team Manager")),
     ]
 
     # Información básica de usuario
     email = forms.EmailField(
+        label=_("Email"),
         required=True,
         widget=forms.EmailInput(
-            attrs={"class": "form-control", "placeholder": "Email"}
+            attrs={"class": "form-control", "placeholder": _("Email")}
         ),
     )
     first_name = forms.CharField(
+        label=_("First Name"),
         max_length=30,
         required=True,
         widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Nombre"}
+            attrs={"class": "form-control", "placeholder": _("First Name")}
         ),
     )
     last_name = forms.CharField(
+        label=_("First Last Name"),
         max_length=30,
         required=True,
         widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Primer Apellido"}
+            attrs={"class": "form-control", "placeholder": _("First Last Name")}
         ),
     )
     last_name2 = forms.CharField(
+        label=_("Second Last Name"),
         max_length=30,
         required=False,
         widget=forms.TextInput(
@@ -120,45 +124,49 @@ class PublicRegistrationForm(UserCreationForm):
         ),
     )
     user_type = forms.ChoiceField(
-        choices=USER_TYPE_CHOICES, widget=forms.RadioSelect(), label="Tipo de Registro"
+        choices=USER_TYPE_CHOICES,
+        widget=forms.RadioSelect(),
+        label=_("Registration Type")
     )
 
     # Información de contacto
     phone_prefix = forms.ChoiceField(
+        label=_("Country Code"),
         required=True,
         choices=[
-            ("", "Selecciona"),
-            ("+1", "+1 (USA/Canadá)"),
-            ("+52", "+52 (México)"),
+            ("", _("Select")),
+            ("+1", "+1 (USA/Canada)"),
+            ("+52", "+52 (Mexico)"),
             ("+57", "+57 (Colombia)"),
-            ("+51", "+51 (Perú)"),
+            ("+51", "+51 (Peru)"),
             ("+56", "+56 (Chile)"),
             ("+54", "+54 (Argentina)"),
-            ("+55", "+55 (Brasil)"),
+            ("+55", "+55 (Brazil)"),
             ("+58", "+58 (Venezuela)"),
             ("+593", "+593 (Ecuador)"),
             ("+506", "+506 (Costa Rica)"),
-            ("+507", "+507 (Panamá)"),
+            ("+507", "+507 (Panama)"),
             ("+502", "+502 (Guatemala)"),
             ("+504", "+504 (Honduras)"),
             ("+505", "+505 (Nicaragua)"),
             ("+503", "+503 (El Salvador)"),
-            ("+34", "+34 (España)"),
-            ("+44", "+44 (Reino Unido)"),
-            ("+33", "+33 (Francia)"),
-            ("+49", "+49 (Alemania)"),
-            ("+39", "+39 (Italia)"),
-            ("+81", "+81 (Japón)"),
+            ("+34", "+34 (Spain)"),
+            ("+44", "+44 (United Kingdom)"),
+            ("+33", "+33 (France)"),
+            ("+49", "+49 (Germany)"),
+            ("+39", "+39 (Italy)"),
+            ("+81", "+81 (Japan)"),
             ("+86", "+86 (China)"),
-            ("+82", "+82 (Corea del Sur)"),
+            ("+82", "+82 (South Korea)"),
             ("+61", "+61 (Australia)"),
-            ("+64", "+64 (Nueva Zelanda)"),
-            ("+27", "+27 (Sudáfrica)"),
+            ("+64", "+64 (New Zealand)"),
+            ("+27", "+27 (South Africa)"),
             ("+91", "+91 (India)"),
         ],
         widget=forms.Select(attrs={"class": "form-select", "id": "id_phone_prefix"}),
     )
     phone = forms.CharField(
+        label=_("Phone Number"),
         max_length=20,
         required=True,
         widget=forms.TextInput(
@@ -170,6 +178,7 @@ class PublicRegistrationForm(UserCreationForm):
         ),
     )
     phone_secondary = forms.CharField(
+        label=_("Secondary Phone"),
         max_length=20,
         required=False,
         widget=forms.TextInput(
@@ -180,38 +189,44 @@ class PublicRegistrationForm(UserCreationForm):
         ),
     )
     birth_date = forms.DateField(
+        label=_("Date of Birth"),
         required=False,
-        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date", "placeholder": _("Date of Birth")}),
     )
 
     # Foto de perfil
     profile_picture = forms.ImageField(
+        label=_("Profile Picture"),
         required=False,
         widget=forms.FileInput(attrs={"class": "form-control", "accept": "image/*"}),
     )
 
     # Ubicación
     country = forms.ModelChoiceField(
+        label=_("Country"),
         queryset=Country.objects.filter(is_active=True).order_by("name"),
         required=False,
         empty_label=_("Select a country"),
         widget=forms.Select(attrs={"class": "form-select", "id": "id_country"}),
     )
     state = forms.ModelChoiceField(
+        label=_("State"),
         queryset=State.objects.none(),
         required=False,
-        empty_label="Selecciona un estado",
+        empty_label=_("Select a state"),
         widget=forms.Select(attrs={"class": "form-select", "id": "id_state"}),
     )
     city = forms.ModelChoiceField(
+        label=_("City"),
         queryset=City.objects.none(),
         required=False,
-        empty_label="Selecciona una ciudad",
+        empty_label=_("Select a city"),
         widget=forms.Select(attrs={"class": "form-select", "id": "id_city"}),
     )
 
     # Dirección
     address = forms.CharField(
+        label=_("Address"),
         required=False,
         widget=forms.Textarea(
             attrs={
@@ -222,25 +237,28 @@ class PublicRegistrationForm(UserCreationForm):
         ),
     )
     address_line_2 = forms.CharField(
+        label=_("Address Line 2"),
         max_length=200,
         required=False,
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Apartamento, suite, etc. (opcional)",
+                "placeholder": _("Apartment, suite, etc. (optional)"),
             }
         ),
     )
     postal_code = forms.CharField(
+        label=_("Postal Code"),
         max_length=10,
         required=False,
         widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Código Postal"}
+            attrs={"class": "form-control", "placeholder": _("Postal Code")}
         ),
     )
 
     # Información adicional
     bio = forms.CharField(
+        label=_("Biography / About You"),
         required=False,
         widget=forms.Textarea(
             attrs={
@@ -251,18 +269,20 @@ class PublicRegistrationForm(UserCreationForm):
         ),
     )
     website = forms.URLField(
+        label=_("Website"),
         required=False,
         widget=forms.URLInput(
-            attrs={"class": "form-control", "placeholder": "https://tu-sitio-web.com"}
+            attrs={"class": "form-control", "placeholder": _("https://your-website.com")}
         ),
     )
     social_media = forms.CharField(
+        label=_("Social Media"),
         max_length=200,
         required=False,
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "@usuario_instagram, @usuario_twitter",
+                "placeholder": _("@instagram_user, @twitter_user"),
             }
         ),
     )
@@ -272,10 +292,10 @@ class PublicRegistrationForm(UserCreationForm):
         fields = ["email", "first_name", "last_name", "password1", "password2"]
         widgets = {
             "password1": forms.PasswordInput(
-                attrs={"class": "form-control", "placeholder": "Contraseña"}
+                attrs={"class": "form-control", "placeholder": _("Password")}
             ),
             "password2": forms.PasswordInput(
-                attrs={"class": "form-control", "placeholder": "Confirmar contraseña"}
+                attrs={"class": "form-control", "placeholder": _("Confirm Password")}
             ),
         }
 
@@ -285,11 +305,13 @@ class PublicRegistrationForm(UserCreationForm):
         if "username" in self.fields:
             del self.fields["username"]
 
+        self.fields["password1"].label = _("Password")
+        self.fields["password2"].label = _("Confirm Password")
         self.fields["password1"].widget.attrs.update(
-            {"class": "form-control", "placeholder": "Contraseña"}
+            {"class": "form-control", "placeholder": _("Password")}
         )
         self.fields["password2"].widget.attrs.update(
-            {"class": "form-control", "placeholder": "Confirmar contraseña"}
+            {"class": "form-control", "placeholder": _("Confirm Password")}
         )
 
         # Si hay un país seleccionado, cargar estados

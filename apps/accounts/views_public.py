@@ -395,20 +395,20 @@ class PublicRegistrationView(CreateView):
         username = self.object.username
         messages.success(
             self.request,
-            f"¡Registro exitoso! Bienvenido. Tu nombre de usuario es: {username}",
+            _("Registration successful! Welcome. Your username is: %(username)s") % {"username": username},
         )
 
         # Si es manager, redirigir a crear equipo
         user_type = form.cleaned_data.get("user_type")
         if user_type == "team_manager":
             messages.info(
-                self.request, "Ahora puedes crear tu primer equipo para comenzar."
+                self.request, _("Now you can create your first team to get started.")
             )
             return redirect("accounts:team_create")
         elif user_type == "parent":
             messages.info(
                 self.request,
-                "Ahora puedes registrar a tu(s) jugador(es) desde el panel.",
+                _("Now you can register your child(ren) or ward(s) from the dashboard."),
             )
             return redirect("accounts:panel")
 

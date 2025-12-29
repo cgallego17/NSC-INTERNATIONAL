@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NSC International 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-28 23:20-0500\n"
+"POT-Creation-Date: 2025-12-28 23:53-0500\n"
 "PO-Revision-Date: 2025-01-01 00:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: English\n"
@@ -15,7 +15,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: .\apps\accounts\forms.py:28
+#: .\apps\accounts\forms.py:28 .\apps\accounts\forms.py:93
+#: .\apps\accounts\forms.py:96
 #: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1162
 #: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1315
 #: .\templates\accounts\panel_tabs\perfil.html:49
@@ -23,6 +24,7 @@ msgstr ""
 #: .\templates\accounts\player_edit.html:71
 #: .\templates\accounts\profile_sections\profile_info.html:52
 #: .\templates\accounts\public_home.html:3223
+#: .\templates\accounts\public_register.html:966
 #: .\templates\events\public_detail.html:2117
 #: .\templates\events\public_list.html:1420
 msgid "Email"
@@ -40,8 +42,11 @@ msgstr ""
 msgid "Please enter a valid email address."
 msgstr ""
 
-#: .\apps\accounts\forms.py:43 .\templates\accounts\public_home.html:3240
+#: .\apps\accounts\forms.py:43 .\apps\accounts\forms.py:295
+#: .\apps\accounts\forms.py:308 .\apps\accounts\forms.py:311
+#: .\templates\accounts\public_home.html:3240
 #: .\templates\accounts\public_register.html:981
+#: .\templates\accounts\public_register.html:1409
 #: .\templates\events\public_detail.html:2134
 #: .\templates\events\public_list.html:1437
 msgid "Password"
@@ -69,108 +74,256 @@ msgstr ""
 msgid "Please enter a correct email and password."
 msgstr "Enter your password"
 
-#: .\apps\accounts\forms.py:118
+#: .\apps\accounts\forms.py:87 .\templates\accounts\public_register.html:940
+msgid "Parent/Guardian"
+msgstr "Parent/Guardian"
+
+#: .\apps\accounts\forms.py:88 .\templates\accounts\public_register.html:950
+#, fuzzy
+#| msgid "Team Name"
+msgid "Team Manager"
+msgstr "Team Manager"
+
+#: .\apps\accounts\forms.py:100 .\apps\accounts\forms.py:104
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1293
+#: .\templates\accounts\panel_tabs\perfil.html:29
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:77
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:28
+#: .\templates\accounts\player_edit.html:39
+#: .\templates\accounts\player_edit_hijo.html:39
+#: .\templates\accounts\profile_sections\profile_info.html:32
+msgid "First Name"
+msgstr "First Name"
+
+#: .\apps\accounts\forms.py:108 .\apps\accounts\forms.py:112
+#, fuzzy
+#| msgid "First Name"
+msgid "First Last Name"
+msgstr "First Name"
+
+#: .\apps\accounts\forms.py:116
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:95
+#: .\templates\accounts\panel_tabs\registrar_jugador.html:46
+#: .\templates\accounts\player_edit.html:57
+#: .\templates\accounts\player_edit_hijo.html:57
+msgid "Second Last Name"
+msgstr "Second Last Name"
+
+#: .\apps\accounts\forms.py:122
 #, fuzzy
 #| msgid "Season description (optional)"
 msgid "Second last name (optional)"
 msgstr "Season description (optional)"
 
-#: .\apps\accounts\forms.py:167
+#: .\apps\accounts\forms.py:129 .\templates\accounts\public_register.html:928
+#, fuzzy
+#| msgid "Register Player"
+msgid "Registration Type"
+msgstr "Registration Type"
+
+#: .\apps\accounts\forms.py:134
+#, fuzzy
+#| msgid "Country"
+msgid "Country Code"
+msgstr "Country"
+
+#: .\apps\accounts\forms.py:137 .\templates\accounts\public_register.html:1117
+#, fuzzy
+#| msgid "Select a city"
+msgid "Select"
+msgstr "Select a city"
+
+#: .\apps\accounts\forms.py:169
+#, fuzzy
+#| msgid "Room number, hotel..."
+msgid "Phone Number"
+msgstr "Room number, hotel..."
+
+#: .\apps\accounts\forms.py:175
 msgid "Phone number"
 msgstr ""
 
-#: .\apps\accounts\forms.py:178
+#: .\apps\accounts\forms.py:181 .\templates\accounts\public_register.html:1162
+#, fuzzy
+#| msgid "Secondary address"
+msgid "Secondary Phone"
+msgstr "Secondary address"
+
+#: .\apps\accounts\forms.py:187
 #, fuzzy
 #| msgid "Season description (optional)"
 msgid "Secondary phone (optional)"
 msgstr "Season description (optional)"
 
-#: .\apps\accounts\forms.py:197 .\apps\accounts\forms.py:517
-#: .\apps\accounts\forms.py:739
+#: .\apps\accounts\forms.py:192
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1326
+msgid "Date of Birth"
+msgstr ""
+
+#: .\apps\accounts\forms.py:199 .\templates\accounts\panel_tabs\perfil.html:87
+#: .\templates\accounts\profile_sections\profile_info.html:90
+msgid "Profile Picture"
+msgstr "Profile Picture"
+
+#: .\apps\accounts\forms.py:206
+#: .\templates\accounts\panel_tabs\crear_equipo.html:74
+#: .\templates\accounts\public_register.html:1203
+msgid "Country"
+msgstr "Country"
+
+#: .\apps\accounts\forms.py:209 .\apps\accounts\forms.py:539
+#: .\apps\accounts\forms.py:761
 #, fuzzy
 #| msgid "Select a country first"
 msgid "Select a country"
 msgstr "Select a country first"
 
+#: .\apps\accounts\forms.py:213
+#: .\templates\accounts\panel_tabs\crear_equipo.html:83
+#: .\templates\accounts\public_register.html:1212
+msgid "State"
+msgstr "State"
+
+#: .\apps\accounts\forms.py:216 .\apps\accounts\forms.py:546
+#: .\apps\accounts\forms.py:770 .\templates\accounts\public_register.html:1374
+msgid "Select a state"
+msgstr "Select a state"
+
 #: .\apps\accounts\forms.py:220
+#: .\templates\accounts\panel_tabs\crear_equipo.html:92
+#: .\templates\accounts\public_register.html:1221
+msgid "City"
+msgstr "City"
+
+#: .\apps\accounts\forms.py:223 .\apps\accounts\forms.py:553
+#: .\apps\accounts\forms.py:777 .\templates\accounts\public_register.html:1375
+msgid "Select a city"
+msgstr "Select a city"
+
+#: .\apps\accounts\forms.py:229 .\templates\accounts\public_register.html:1233
+#: .\templates\events\public_detail.html:1862
+#, fuzzy
+#| msgid "Full hotel address"
+msgid "Address"
+msgstr "Full hotel address"
+
+#: .\apps\accounts\forms.py:235
 #, fuzzy
 #| msgid "Full hotel address"
 msgid "Full address"
 msgstr "Full hotel address"
 
-#: .\apps\accounts\forms.py:249
+#: .\apps\accounts\forms.py:240
+#, fuzzy
+#| msgid "Full hotel address"
+msgid "Address Line 2"
+msgstr "Full hotel address"
+
+#: .\apps\accounts\forms.py:246
+#, fuzzy
+#| msgid "Season description (optional)"
+msgid "Apartment, suite, etc. (optional)"
+msgstr "Season description (optional)"
+
+#: .\apps\accounts\forms.py:251 .\apps\accounts\forms.py:255
+#: .\templates\accounts\public_register.html:1243
+msgid "Postal Code"
+msgstr ""
+
+#: .\apps\accounts\forms.py:261 .\templates\accounts\public_register.html:1304
+msgid "Biography / About You"
+msgstr ""
+
+#: .\apps\accounts\forms.py:267
 msgid "Tell us about yourself..."
 msgstr ""
 
-#: .\apps\accounts\forms.py:387 .\apps\accounts\forms.py:944
-#: .\apps\accounts\forms.py:1276 .\templates\accounts\user_dashboard.html:2262
+#: .\apps\accounts\forms.py:272
+#: .\templates\accounts\panel_tabs\crear_equipo.html:130
+#: .\templates\accounts\public_register.html:1279
+msgid "Website"
+msgstr "Website"
+
+#: .\apps\accounts\forms.py:275
+#, fuzzy
+#| msgid "https://example.com"
+msgid "https://your-website.com"
+msgstr "https://example.com"
+
+#: .\apps\accounts\forms.py:279 .\templates\accounts\public_register.html:1292
+msgid "Social Media"
+msgstr ""
+
+#: .\apps\accounts\forms.py:285
+msgid "@instagram_user, @twitter_user"
+msgstr ""
+
+#: .\apps\accounts\forms.py:298 .\apps\accounts\forms.py:309
+#: .\apps\accounts\forms.py:314 .\templates\accounts\public_register.html:1028
+#, fuzzy
+#| msgid "Password"
+msgid "Confirm Password"
+msgstr "Password"
+
+#: .\apps\accounts\forms.py:409 .\apps\accounts\forms.py:966
+#: .\apps\accounts\forms.py:1298 .\templates\accounts\user_dashboard.html:2262
 msgid "This email is already registered. Please use another email."
 msgstr ""
 
-#: .\apps\accounts\forms.py:395 .\apps\accounts\forms.py:952
-#: .\apps\accounts\forms.py:1284
+#: .\apps\accounts\forms.py:417 .\apps\accounts\forms.py:974
+#: .\apps\accounts\forms.py:1306
 #, fuzzy
 #| msgid "First name"
 msgid "First name is required."
 msgstr "First name"
 
-#: .\apps\accounts\forms.py:402 .\apps\accounts\forms.py:959
-#: .\apps\accounts\forms.py:1291
+#: .\apps\accounts\forms.py:424 .\apps\accounts\forms.py:981
+#: .\apps\accounts\forms.py:1313
 msgid "Last name is required."
 msgstr ""
 
-#: .\apps\accounts\forms.py:524 .\apps\accounts\forms.py:748
-#: .\templates\accounts\public_register.html:1374
-msgid "Select a state"
-msgstr "Select a state"
-
-#: .\apps\accounts\forms.py:531 .\apps\accounts\forms.py:755
-#: .\templates\accounts\public_register.html:1375
-msgid "Select a city"
-msgstr "Select a city"
-
-#: .\apps\accounts\forms.py:809
+#: .\apps\accounts\forms.py:831
 msgid "The player will be able to change their password later"
 msgstr ""
 
-#: .\apps\accounts\forms.py:1062
+#: .\apps\accounts\forms.py:1084
 msgid "Player's date of birth"
 msgstr ""
 
-#: .\apps\accounts\forms.py:1066
+#: .\apps\accounts\forms.py:1088
 msgid "Father"
 msgstr ""
 
-#: .\apps\accounts\forms.py:1067
+#: .\apps\accounts\forms.py:1089
 msgid "Mother"
 msgstr ""
 
-#: .\apps\accounts\forms.py:1068
+#: .\apps\accounts\forms.py:1090
 msgid "Guardian"
 msgstr ""
 
-#: .\apps\accounts\forms.py:1069
+#: .\apps\accounts\forms.py:1091
 msgid "Other"
 msgstr ""
 
-#: .\apps\accounts\forms.py:1072
+#: .\apps\accounts\forms.py:1094
 #, fuzzy
 #| msgid "Register Player"
 msgid "Relationship to the player"
 msgstr "Register Player"
 
-#: .\apps\accounts\forms.py:1079
+#: .\apps\accounts\forms.py:1101
 #: .\templates\accounts\panel_tabs\registrar_hijo.html:50
 #, fuzzy
 #| msgid "Contact"
 msgid "Primary Contact"
 msgstr "Contact"
 
-#: .\apps\accounts\forms.py:1080
+#: .\apps\accounts\forms.py:1102
 msgid "Check if you are the primary contact for the player"
 msgstr ""
 
-#: .\apps\accounts\forms.py:1634
+#: .\apps\accounts\forms.py:1656
 #, fuzzy
 #| msgid "Season description (optional)"
 msgid "Banner title (optional)"
@@ -195,6 +348,19 @@ msgstr ""
 #| msgid "Welcome!"
 msgid "Welcome, %(name)s!"
 msgstr "Welcome!"
+
+#: .\apps\accounts\views_public.py:398
+#, python-format
+msgid "Registration successful! Welcome. Your username is: %(username)s"
+msgstr ""
+
+#: .\apps\accounts\views_public.py:405
+msgid "Now you can create your first team to get started."
+msgstr ""
+
+#: .\apps\accounts\views_public.py:411
+msgid "Now you can register your child(ren) or ward(s) from the dashboard."
+msgstr ""
 
 #: .\apps\events\views_public.py:78
 msgid "Upcoming"
@@ -847,6 +1013,7 @@ msgid "JPG, PNG or GIF (max. 5MB)"
 msgstr "JPG, PNG or GIF (max. 5MB)"
 
 #: .\templates\accounts\panel_tabs\crear_equipo.html:58
+#: .\templates\accounts\public_register.html:1186
 msgid "Preview"
 msgstr "Preview"
 
@@ -857,21 +1024,6 @@ msgstr "Preview"
 #: .\templates\events\public_detail.html:1852
 msgid "Location"
 msgstr "Location"
-
-#: .\templates\accounts\panel_tabs\crear_equipo.html:74
-#: .\templates\accounts\public_register.html:1203
-msgid "Country"
-msgstr "Country"
-
-#: .\templates\accounts\panel_tabs\crear_equipo.html:83
-#: .\templates\accounts\public_register.html:1212
-msgid "State"
-msgstr "State"
-
-#: .\templates\accounts\panel_tabs\crear_equipo.html:92
-#: .\templates\accounts\public_register.html:1221
-msgid "City"
-msgstr "City"
 
 #: .\templates\accounts\panel_tabs\crear_equipo.html:105
 msgid "Contact Information"
@@ -884,11 +1036,6 @@ msgstr "Contact Email"
 #: .\templates\accounts\panel_tabs\crear_equipo.html:119
 msgid "Contact Phone"
 msgstr "Contact Phone"
-
-#: .\templates\accounts\panel_tabs\crear_equipo.html:130
-#: .\templates\accounts\public_register.html:1279
-msgid "Website"
-msgstr "Website"
 
 #: .\templates\accounts\panel_tabs\crear_equipo.html:143
 #: .\templates\accounts\panel_tabs\detalle_evento_modals.html:663
@@ -1467,16 +1614,6 @@ msgstr "Right"
 msgid "Services"
 msgstr ""
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1293
-#: .\templates\accounts\panel_tabs\perfil.html:29
-#: .\templates\accounts\panel_tabs\registrar_hijo.html:77
-#: .\templates\accounts\panel_tabs\registrar_jugador.html:28
-#: .\templates\accounts\player_edit.html:39
-#: .\templates\accounts\player_edit_hijo.html:39
-#: .\templates\accounts\profile_sections\profile_info.html:32
-msgid "First Name"
-msgstr "First Name"
-
 #: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1300
 #, fuzzy
 #| msgid "First Name"
@@ -1502,10 +1639,6 @@ msgstr ""
 #| msgid "Primary address"
 msgid "Enter email address"
 msgstr "Primary address"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1326
-msgid "Date of Birth"
-msgstr ""
 
 #: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1336
 #, fuzzy
@@ -1692,11 +1825,6 @@ msgstr "Profile Information"
 #: .\templates\accounts\profile_sections\profile_info.html:79
 msgid "Birth Date"
 msgstr "Birth Date"
-
-#: .\templates\accounts\panel_tabs\perfil.html:87
-#: .\templates\accounts\profile_sections\profile_info.html:90
-msgid "Profile Picture"
-msgstr "Profile Picture"
 
 #: .\templates\accounts\panel_tabs\perfil.html:98
 #: .\templates\accounts\profile_sections\profile_info.html:101
@@ -1965,13 +2093,6 @@ msgstr "Your legal relationship with the player"
 #: .\templates\accounts\player_edit_hijo.html:34
 msgid "Personal Information"
 msgstr "Personal Information"
-
-#: .\templates\accounts\panel_tabs\registrar_hijo.html:95
-#: .\templates\accounts\panel_tabs\registrar_jugador.html:46
-#: .\templates\accounts\player_edit.html:57
-#: .\templates\accounts\player_edit_hijo.html:57
-msgid "Second Last Name"
-msgstr "Second Last Name"
 
 #: .\templates\accounts\panel_tabs\registrar_hijo.html:96
 #: .\templates\accounts\panel_tabs\registrar_hijo.html:109
@@ -2425,6 +2546,7 @@ msgstr "Log Out"
 #: .\templates\accounts\public_home.html:3199
 #: .\templates\accounts\public_home.html:3263
 #: .\templates\accounts\public_register.html:857
+#: .\templates\accounts\public_register.html:1351
 #: .\templates\events\public_detail.html:1517
 #: .\templates\events\public_detail.html:2046
 #: .\templates\events\public_detail.html:2093
@@ -2444,6 +2566,7 @@ msgstr "Log In"
 #: .\templates\accounts\public_home.html:3156
 #: .\templates\accounts\public_register.html:859
 #: .\templates\accounts\public_register.html:896
+#: .\templates\accounts\public_register.html:1350
 #: .\templates\events\public_detail.html:1519
 #: .\templates\events\public_detail.html:1556
 #: .\templates\events\public_detail.html:2050
@@ -2457,7 +2580,8 @@ msgstr "Sign Up"
 #: .\templates\accounts\panel_usuario.html:415
 #: .\templates\accounts\public_home.html:2434
 #: .\templates\accounts\public_home.html:3134
-#: .\templates\accounts\public_register.html:878 .\templates\base_mlb.html:220
+#: .\templates\accounts\public_register.html:878
+#: .\templates\accounts\public_register.html:1349 .\templates\base_mlb.html:220
 #: .\templates\events\public_detail.html:1538
 #: .\templates\events\public_detail.html:1575
 #: .\templates\events\public_detail.html:2028
@@ -2594,7 +2718,7 @@ msgstr ""
 
 #: .\templates\accounts\player_edit.html:226
 #: .\templates\accounts\player_edit_hijo.html:182
-#: .\templates\accounts\public_register.html:1837
+#: .\templates\accounts\public_register.html:1840
 msgid "years"
 msgstr ""
 
@@ -2986,18 +3110,21 @@ msgstr ""
 "teams through our national and international tournaments and showcases."
 
 #: .\templates\accounts\public_home.html:3130
+#: .\templates\accounts\public_register.html:1348
 #: .\templates\events\public_detail.html:2024
 #: .\templates\events\public_list.html:1327
 msgid "Quick Links"
 msgstr "Quick Links"
 
 #: .\templates\accounts\public_home.html:3162
+#: .\templates\accounts\public_register.html:1354
 #: .\templates\events\public_detail.html:2056
 #: .\templates\events\public_list.html:1359
 msgid "Contact"
 msgstr "Contact"
 
 #: .\templates\accounts\public_home.html:3186
+#: .\templates\accounts\public_register.html:1363
 #: .\templates\events\public_detail.html:2080
 #: .\templates\events\public_list.html:1383
 msgid "All rights reserved."
@@ -3060,13 +3187,8 @@ msgstr "User Registration"
 
 #: .\templates\accounts\public_register.html:913
 msgid "Register as parent/guardian or team manager to manage players and teams"
-msgstr "Register as parent/guardian or team manager to manage players and teams"
-
-#: .\templates\accounts\public_register.html:928
-#, fuzzy
-#| msgid "Register Player"
-msgid "Registration Type"
-msgstr "Registration Type"
+msgstr ""
+"Register as parent/guardian or team manager to manage players and teams"
 
 #: .\templates\accounts\public_register.html:931
 msgid "Important:"
@@ -3079,19 +3201,9 @@ msgid ""
 "ward(s) as players from your dashboard."
 msgstr ""
 
-#: .\templates\accounts\public_register.html:940
-msgid "Parent/Guardian"
-msgstr "Parent/Guardian"
-
 #: .\templates\accounts\public_register.html:941
 msgid "I am a parent or guardian of a player"
 msgstr "I am a parent or guardian of a player"
-
-#: .\templates\accounts\public_register.html:950
-#, fuzzy
-#| msgid "Team Name"
-msgid "Team Manager"
-msgstr "Team Manager"
 
 #: .\templates\accounts\public_register.html:951
 msgid "I manage baseball teams"
@@ -3135,12 +3247,6 @@ msgstr ""
 msgid "At least one special character (!@#$%%^&*)"
 msgstr ""
 
-#: .\templates\accounts\public_register.html:1028
-#, fuzzy
-#| msgid "Password"
-msgid "Confirm Password"
-msgstr "Password"
-
 #: .\templates\accounts\public_register.html:1044
 #, fuzzy
 #| msgid "Personal Information"
@@ -3181,23 +3287,136 @@ msgstr ""
 msgid "Your Phone"
 msgstr "Contact Phone"
 
-#: .\templates\accounts\public_register.html:1117
-#, fuzzy
-#| msgid "Select a city"
-msgid "Select"
-msgstr "Select a city"
+#: .\templates\accounts\public_register.html:1118
+msgid "USA/Canada"
+msgstr ""
 
-#: .\templates\accounts\public_register.html:1162
+#: .\templates\accounts\public_register.html:1119
+#: .\templates\accounts\public_register.html:1358
+msgid "Mexico"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1120
+msgid "Colombia"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1121
+msgid "Peru"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1122
 #, fuzzy
-#| msgid "Secondary address"
-msgid "Secondary Phone"
-msgstr "Secondary address"
+#| msgid "Register Child"
+msgid "Chile"
+msgstr "Register Child"
+
+#: .\templates\accounts\public_register.html:1123
+msgid "Argentina"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1124
+msgid "Brazil"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1125
+msgid "Venezuela"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1126
+msgid "Ecuador"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1127
+msgid "Costa Rica"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1128
+msgid "Panama"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1129
+msgid "Guatemala"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1130
+msgid "Honduras"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1131
+msgid "Nicaragua"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1132
+msgid "El Salvador"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1133
+msgid "Spain"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1134
+msgid "United Kingdom"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1135
+#, fuzzy
+#| msgid "Cancel"
+msgid "France"
+msgstr "Cancel"
+
+#: .\templates\accounts\public_register.html:1136
+msgid "Germany"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1137
+msgid "Italy"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1138
+msgid "Japan"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1139
+msgid "China"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1140
+msgid "South Korea"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1141
+msgid "Australia"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1142
+msgid "New Zealand"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1143
+msgid "South Africa"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1144
+msgid "India"
+msgstr ""
+
+#: .\templates\accounts\public_register.html:1178
+#, fuzzy
+#| msgid "Profile Picture"
+msgid "Your Profile Photo"
+msgstr "Profile Picture"
 
 #: .\templates\accounts\public_register.html:1182
 #, fuzzy
 #| msgid "Click to upload logo"
 msgid "Click to upload your photo"
 msgstr "Click to upload logo"
+
+#: .\templates\accounts\public_register.html:1190
+#, fuzzy
+#| msgid "Parent/Guardian"
+msgid "Photo of the parent/guardian"
+msgstr "Parent/Guardian"
 
 #: .\templates\accounts\public_register.html:1196
 #, fuzzy
@@ -3207,17 +3426,6 @@ msgstr "Location"
 
 #: .\templates\accounts\public_register.html:1198
 msgid "Location of the parent/guardian"
-msgstr ""
-
-#: .\templates\accounts\public_register.html:1233
-#: .\templates\events\public_detail.html:1862
-#, fuzzy
-#| msgid "Full hotel address"
-msgid "Address"
-msgstr "Full hotel address"
-
-#: .\templates\accounts\public_register.html:1243
-msgid "Postal Code"
 msgstr ""
 
 #: .\templates\accounts\public_register.html:1259
@@ -3234,16 +3442,8 @@ msgstr ""
 msgid "Additional information about you as a parent/guardian"
 msgstr "Enter any additional information about this site"
 
-#: .\templates\accounts\public_register.html:1292
-msgid "Social Media"
-msgstr ""
-
 #: .\templates\accounts\public_register.html:1298
 msgid "E.g.: @instagram_user, @twitter_user"
-msgstr ""
-
-#: .\templates\accounts\public_register.html:1304
-msgid "Biography / About You"
 msgstr ""
 
 #: .\templates\accounts\public_register.html:1310
@@ -3277,6 +3477,21 @@ msgstr "Don't have an account?"
 #| msgid "Sign up here"
 msgid "Log in here"
 msgstr "Sign up here"
+
+#: .\templates\accounts\public_register.html:1343
+#, fuzzy
+#| msgid ""
+#| "The professional platform to manage tournaments, teams and baseball "
+#| "players. Complete sports management system."
+msgid ""
+"The professional platform to manage tournaments, teams and baseball players."
+msgstr ""
+"The professional platform to manage tournaments, teams and baseball players. "
+"Complete sports management system."
+
+#: .\templates\accounts\public_register.html:1344
+msgid "Complete sports management system."
+msgstr ""
 
 #: .\templates\accounts\public_register.html:1376
 msgid "Error loading states"
@@ -3412,19 +3627,31 @@ msgstr ""
 msgid "Number must have at least 7 digits"
 msgstr ""
 
-#: .\templates\accounts\public_register.html:1710
+#: .\templates\accounts\public_register.html:1407
+#, fuzzy
+#| msgid "Parent/Guardian"
+msgid "Register as Parent/Guardian"
+msgstr "Parent/Guardian"
+
+#: .\templates\accounts\public_register.html:1408
+#, fuzzy
+#| msgid "Team Name"
+msgid "Register as Team Manager"
+msgstr "Team Manager"
+
+#: .\templates\accounts\public_register.html:1713
 msgid "Invalid field"
 msgstr ""
 
-#: .\templates\accounts\public_register.html:1837
+#: .\templates\accounts\public_register.html:1840
 msgid "year"
 msgstr ""
 
-#: .\templates\accounts\public_register.html:2013
+#: .\templates\accounts\public_register.html:2016
 msgid "Please select a valid image (JPG, PNG or GIF)"
 msgstr ""
 
-#: .\templates\accounts\public_register.html:2019
+#: .\templates\accounts\public_register.html:2022
 #, fuzzy
 #| msgid "The file is too large. Maximum size is 10MB."
 msgid "The image is too large. Maximum size is 5MB"
@@ -3737,13 +3964,6 @@ msgstr ""
 #~ msgid "Go to Panel"
 #~ msgstr "Go to Panel"
 
-#~ msgid ""
-#~ "The professional platform to manage tournaments, teams and baseball "
-#~ "players. Complete sports management system."
-#~ msgstr ""
-#~ "The professional platform to manage tournaments, teams and baseball "
-#~ "players. Complete sports management system."
-
 #~ msgid "Edit Schedule Settings"
 #~ msgstr "Edit Schedule Settings"
 
@@ -3998,9 +4218,6 @@ msgstr ""
 
 #~ msgid "e.g.: DODG, YS"
 #~ msgstr "e.g.: DODG, YS"
-
-#~ msgid "https://example.com"
-#~ msgstr "https://example.com"
 
 #~ msgid "e.g.: 90012, 77002"
 #~ msgstr "e.g.: 90012, 77002"

@@ -19,7 +19,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from django.views.generic import RedirectView
 
 from apps.accounts.views_public import PublicHomeView
 from apps.core.views import set_language
@@ -45,6 +44,6 @@ if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     # Serve multimedia files
-    multimedia_root = getattr(settings, 'MULTIMEDIA_ROOT', None)
+    multimedia_root = getattr(settings, "MULTIMEDIA_ROOT", None)
     if multimedia_root:
         urlpatterns += static(settings.MULTIMEDIA_URL, document_root=multimedia_root)

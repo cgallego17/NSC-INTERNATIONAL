@@ -856,7 +856,7 @@
                     {% else %}
                         <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">{% trans "Log In" %}</a>
                         <span class="mx-2">|</span>
-                        <a href="/accounts/register/">{% trans "Sign Up" %}</a>
+                        <a href="{% url 'accounts:register' %}">{% trans "Sign Up" %}</a>
                     {% endif %}
                 </div>
             </div>
@@ -892,7 +892,7 @@
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link active" href="/accounts/register/">
+                            <a class="nav-link active" href="{% url 'accounts:register' %}">
                                 <span class="badge-mlb">{% trans "Sign Up" %}</span>
                             </a>
                         </li>
@@ -963,7 +963,7 @@
                                     <div class="mb-3">
                                         <div class="field-wrapper">
                                             <label for="{{ form.email.id_for_label }}" class="form-label">
-                                                <i class="fas fa-envelope me-1"></i>Email <span class="required-field">*</span>
+                                                <i class="fas fa-envelope me-1"></i>{% trans "Email" %} <span class="required-field">*</span>
                                             </label>
                                             {{ form.email }}
                                             <i class="field-validation-icon fas fa-check-circle valid" id="emailIcon"></i>
@@ -1115,33 +1115,33 @@
                                                     </span>
                                                     <select name="phone_prefix" id="id_phone_prefix" class="form-select" required>
                                                         <option value="">{% trans "Select" %}</option>
-                                                        <option value="+1" data-display="+1" {% if form.phone_prefix.value == '+1' %}selected{% endif %}>+1 (USA/Canadá)</option>
-                                                        <option value="+52" data-display="+52" {% if form.phone_prefix.value == '+52' %}selected{% endif %}>+52 (México)</option>
-                                                        <option value="+57" data-display="+57" {% if form.phone_prefix.value == '+57' %}selected{% endif %}>+57 (Colombia)</option>
-                                                        <option value="+51" data-display="+51" {% if form.phone_prefix.value == '+51' %}selected{% endif %}>+51 (Perú)</option>
-                                                        <option value="+56" data-display="+56" {% if form.phone_prefix.value == '+56' %}selected{% endif %}>+56 (Chile)</option>
-                                                        <option value="+54" data-display="+54" {% if form.phone_prefix.value == '+54' %}selected{% endif %}>+54 (Argentina)</option>
-                                                        <option value="+55" data-display="+55" {% if form.phone_prefix.value == '+55' %}selected{% endif %}>+55 (Brasil)</option>
-                                                        <option value="+58" data-display="+58" {% if form.phone_prefix.value == '+58' %}selected{% endif %}>+58 (Venezuela)</option>
-                                                        <option value="+593" data-display="+593" {% if form.phone_prefix.value == '+593' %}selected{% endif %}>+593 (Ecuador)</option>
-                                                        <option value="+506" data-display="+506" {% if form.phone_prefix.value == '+506' %}selected{% endif %}>+506 (Costa Rica)</option>
-                                                        <option value="+507" data-display="+507" {% if form.phone_prefix.value == '+507' %}selected{% endif %}>+507 (Panamá)</option>
-                                                        <option value="+502" data-display="+502" {% if form.phone_prefix.value == '+502' %}selected{% endif %}>+502 (Guatemala)</option>
-                                                        <option value="+504" data-display="+504" {% if form.phone_prefix.value == '+504' %}selected{% endif %}>+504 (Honduras)</option>
-                                                        <option value="+505" data-display="+505" {% if form.phone_prefix.value == '+505' %}selected{% endif %}>+505 (Nicaragua)</option>
-                                                        <option value="+503" data-display="+503" {% if form.phone_prefix.value == '+503' %}selected{% endif %}>+503 (El Salvador)</option>
-                                                        <option value="+34" data-display="+34" {% if form.phone_prefix.value == '+34' %}selected{% endif %}>+34 (España)</option>
-                                                        <option value="+44" data-display="+44" {% if form.phone_prefix.value == '+44' %}selected{% endif %}>+44 (Reino Unido)</option>
-                                                        <option value="+33" data-display="+33" {% if form.phone_prefix.value == '+33' %}selected{% endif %}>+33 (Francia)</option>
-                                                        <option value="+49" data-display="+49" {% if form.phone_prefix.value == '+49' %}selected{% endif %}>+49 (Alemania)</option>
-                                                        <option value="+39" data-display="+39" {% if form.phone_prefix.value == '+39' %}selected{% endif %}>+39 (Italia)</option>
-                                                        <option value="+81" data-display="+81" {% if form.phone_prefix.value == '+81' %}selected{% endif %}>+81 (Japón)</option>
-                                                        <option value="+86" data-display="+86" {% if form.phone_prefix.value == '+86' %}selected{% endif %}>+86 (China)</option>
-                                                        <option value="+82" data-display="+82" {% if form.phone_prefix.value == '+82' %}selected{% endif %}>+82 (Corea del Sur)</option>
-                                                        <option value="+61" data-display="+61" {% if form.phone_prefix.value == '+61' %}selected{% endif %}>+61 (Australia)</option>
-                                                        <option value="+64" data-display="+64" {% if form.phone_prefix.value == '+64' %}selected{% endif %}>+64 (Nueva Zelanda)</option>
-                                                        <option value="+27" data-display="+27" {% if form.phone_prefix.value == '+27' %}selected{% endif %}>+27 (Sudáfrica)</option>
-                                                        <option value="+91" data-display="+91" {% if form.phone_prefix.value == '+91' %}selected{% endif %}>+91 (India)</option>
+                                                        <option value="+1" data-display="+1" {% if form.phone_prefix.value == '+1' %}selected{% endif %}>+1 ({% trans "USA/Canada" %})</option>
+                                                        <option value="+52" data-display="+52" {% if form.phone_prefix.value == '+52' %}selected{% endif %}>+52 ({% trans "Mexico" %})</option>
+                                                        <option value="+57" data-display="+57" {% if form.phone_prefix.value == '+57' %}selected{% endif %}>+57 ({% trans "Colombia" %})</option>
+                                                        <option value="+51" data-display="+51" {% if form.phone_prefix.value == '+51' %}selected{% endif %}>+51 ({% trans "Peru" %})</option>
+                                                        <option value="+56" data-display="+56" {% if form.phone_prefix.value == '+56' %}selected{% endif %}>+56 ({% trans "Chile" %})</option>
+                                                        <option value="+54" data-display="+54" {% if form.phone_prefix.value == '+54' %}selected{% endif %}>+54 ({% trans "Argentina" %})</option>
+                                                        <option value="+55" data-display="+55" {% if form.phone_prefix.value == '+55' %}selected{% endif %}>+55 ({% trans "Brazil" %})</option>
+                                                        <option value="+58" data-display="+58" {% if form.phone_prefix.value == '+58' %}selected{% endif %}>+58 ({% trans "Venezuela" %})</option>
+                                                        <option value="+593" data-display="+593" {% if form.phone_prefix.value == '+593' %}selected{% endif %}>+593 ({% trans "Ecuador" %})</option>
+                                                        <option value="+506" data-display="+506" {% if form.phone_prefix.value == '+506' %}selected{% endif %}>+506 ({% trans "Costa Rica" %})</option>
+                                                        <option value="+507" data-display="+507" {% if form.phone_prefix.value == '+507' %}selected{% endif %}>+507 ({% trans "Panama" %})</option>
+                                                        <option value="+502" data-display="+502" {% if form.phone_prefix.value == '+502' %}selected{% endif %}>+502 ({% trans "Guatemala" %})</option>
+                                                        <option value="+504" data-display="+504" {% if form.phone_prefix.value == '+504' %}selected{% endif %}>+504 ({% trans "Honduras" %})</option>
+                                                        <option value="+505" data-display="+505" {% if form.phone_prefix.value == '+505' %}selected{% endif %}>+505 ({% trans "Nicaragua" %})</option>
+                                                        <option value="+503" data-display="+503" {% if form.phone_prefix.value == '+503' %}selected{% endif %}>+503 ({% trans "El Salvador" %})</option>
+                                                        <option value="+34" data-display="+34" {% if form.phone_prefix.value == '+34' %}selected{% endif %}>+34 ({% trans "Spain" %})</option>
+                                                        <option value="+44" data-display="+44" {% if form.phone_prefix.value == '+44' %}selected{% endif %}>+44 ({% trans "United Kingdom" %})</option>
+                                                        <option value="+33" data-display="+33" {% if form.phone_prefix.value == '+33' %}selected{% endif %}>+33 ({% trans "France" %})</option>
+                                                        <option value="+49" data-display="+49" {% if form.phone_prefix.value == '+49' %}selected{% endif %}>+49 ({% trans "Germany" %})</option>
+                                                        <option value="+39" data-display="+39" {% if form.phone_prefix.value == '+39' %}selected{% endif %}>+39 ({% trans "Italy" %})</option>
+                                                        <option value="+81" data-display="+81" {% if form.phone_prefix.value == '+81' %}selected{% endif %}>+81 ({% trans "Japan" %})</option>
+                                                        <option value="+86" data-display="+86" {% if form.phone_prefix.value == '+86' %}selected{% endif %}>+86 ({% trans "China" %})</option>
+                                                        <option value="+82" data-display="+82" {% if form.phone_prefix.value == '+82' %}selected{% endif %}>+82 ({% trans "South Korea" %})</option>
+                                                        <option value="+61" data-display="+61" {% if form.phone_prefix.value == '+61' %}selected{% endif %}>+61 ({% trans "Australia" %})</option>
+                                                        <option value="+64" data-display="+64" {% if form.phone_prefix.value == '+64' %}selected{% endif %}>+64 ({% trans "New Zealand" %})</option>
+                                                        <option value="+27" data-display="+27" {% if form.phone_prefix.value == '+27' %}selected{% endif %}>+27 ({% trans "South Africa" %})</option>
+                                                        <option value="+91" data-display="+91" {% if form.phone_prefix.value == '+91' %}selected{% endif %}>+91 ({% trans "India" %})</option>
                                                     </select>
                                                     {{ form.phone }}
                                                 </div>
@@ -1175,7 +1175,7 @@
                                     <!-- Foto de Perfil -->
                                     <div class="mb-3">
                                         <label for="{{ form.profile_picture.id_for_label }}" class="form-label">
-                                            <i class="fas fa-camera me-1"></i>Tu Foto de Perfil
+                                            <i class="fas fa-camera me-1"></i>{% trans "Your Profile Photo" %}
                                         </label>
                                         <div class="photo-upload-area" onclick="document.getElementById('id_profile_picture').click()">
                                             <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--mlb-blue);"></i>
@@ -1183,11 +1183,11 @@
                                             <small class="text-muted">{% trans "JPG, PNG or GIF (max. 5MB)" %}</small>
                                         </div>
                                         {{ form.profile_picture }}
-                                        <img id="photoPreview" class="photo-preview" alt="Vista previa">
+                                        <img id="photoPreview" class="photo-preview" alt="{% trans 'Preview' %}">
                                         {% if form.profile_picture.errors %}
                                             <div class="error-message">{{ form.profile_picture.errors }}</div>
                                         {% endif %}
-                                        <div class="help-text">Foto del padre/acudiente</div>
+                                        <div class="help-text">{% trans "Photo of the parent/guardian" %}</div>
                                     </div>
                                 </div>
 
@@ -1340,27 +1340,27 @@
                         <i class="fas fa-baseball-ball me-2"></i>NCS International
                     </h5>
                     <p style="line-height: 1.8;">
-                        La plataforma profesional para gestionar torneos, equipos y jugadores de béisbol.
-                        Sistema completo de gestión deportiva.
+                        {% trans "The professional platform to manage tournaments, teams and baseball players." %}
+                        {% trans "Complete sports management system." %}
                     </p>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <h5>Enlaces Rápidos</h5>
-                    <a href="/">Inicio</a>
-                    <a href="/accounts/register/">Registrarse</a>
-                    <a href="{% url 'accounts:login' %}">Iniciar Sesión</a>
+                    <h5>{% trans "Quick Links" %}</h5>
+                    <a href="{% url 'home' %}">{% trans "Home" %}</a>
+                    <a href="{% url 'accounts:register' %}">{% trans "Sign Up" %}</a>
+                    <a href="{% url 'accounts:login' %}">{% trans "Log In" %}</a>
                 </div>
                 <div class="col-md-4 mb-4">
-                    <h5>Contacto</h5>
+                    <h5>{% trans "Contact" %}</h5>
                     <p style="line-height: 1.8;">
                         <i class="fas fa-envelope me-2"></i>info@nscinternational.com<br>
                         <i class="fas fa-phone me-2"></i>+1 (555) 123-4567<br>
-                        <i class="fas fa-map-marker-alt me-2"></i>México
+                        <i class="fas fa-map-marker-alt me-2"></i>{% trans "Mexico" %}
                     </p>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p class="mb-0">&copy; 2025 NCS International. Todos los derechos reservados.</p>
+                <p class="mb-0">&copy; 2025 NCS International. {% trans "All rights reserved." %}</p>
             </div>
         </div>
     </footer>
@@ -1403,7 +1403,10 @@
             urlValid: "{% trans '✓ Valid URL' %}",
             postalCodeValid: "{% trans '✓ Valid postal code' %}",
             phoneInvalidDigits: "{% trans 'Phone number must contain between 7 and 15 digits' %}",
-            phoneMinDigits: "{% trans 'Number must have at least 7 digits' %}"
+            phoneMinDigits: "{% trans 'Number must have at least 7 digits' %}",
+            registerAsParent: "{% trans 'Register as Parent/Guardian' %}",
+            registerAsManager: "{% trans 'Register as Team Manager' %}",
+            password: "{% trans 'Password' %}"
         };
         // Preview de foto
         document.getElementById('id_profile_picture').addEventListener('change', function(e) {
@@ -1433,7 +1436,7 @@
                     stateSelect.disabled = !countryId;
                 }
                 if (citySelect) {
-                    citySelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
+                    citySelect.innerHTML = '<option value="">' + translations.selectCity + '</option>';
                     citySelect.disabled = true;
                 }
 
@@ -1501,7 +1504,7 @@
                         .catch(error => {
                             console.error('Error cargando ciudades:', error);
                             if (citySelect) {
-                                citySelect.innerHTML = '<option value="">Error al cargar ciudades</option>';
+                                citySelect.innerHTML = '<option value="">' + translations.errorLoadingStates + '</option>';
                             }
                         });
                 }
@@ -1517,7 +1520,7 @@
         userTypeInputs.forEach(input => {
             input.addEventListener('change', function() {
                 if (this.value === 'parent') {
-                    submitBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>Registrarme como Padre/Acudiente';
+                    submitBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>' + translations.registerAsParent;
                     if (parentInfoAlert) {
                         parentInfoAlert.style.display = 'block';
                     }
@@ -1525,7 +1528,7 @@
                         successAlert.style.display = 'block';
                     }
                 } else if (this.value === 'team_manager') {
-                    submitBtn.innerHTML = '<i class="fas fa-user-tie me-2"></i>Registrarme como Manager';
+                    submitBtn.innerHTML = '<i class="fas fa-user-tie me-2"></i>' + translations.registerAsManager;
                     if (parentInfoAlert) {
                         parentInfoAlert.style.display = 'none';
                     }
@@ -1539,7 +1542,7 @@
         // Establecer estado inicial
         const checkedType = document.querySelector('input[name="user_type"]:checked');
         if (checkedType && checkedType.value === 'parent') {
-            submitBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>Registrarme como Padre/Acudiente';
+            submitBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>' + translations.registerAsParent;
             if (parentInfoAlert) {
                 parentInfoAlert.style.display = 'block';
             }
@@ -1635,7 +1638,7 @@
             strengthText.className = 'password-strength-text';
             if (result.level !== 'none') {
                 strengthText.classList.add(result.level);
-                strengthText.innerHTML = `<i class="fas fa-${result.level === 'strong' ? 'check-circle' : result.level === 'medium' ? 'exclamation-circle' : 'times-circle'} me-1"></i>Contraseña ${result.text}`;
+                strengthText.innerHTML = `<i class="fas fa-${result.level === 'strong' ? 'check-circle' : result.level === 'medium' ? 'exclamation-circle' : 'times-circle'} me-1"></i>${translations.password} ${result.text}`;
             } else {
                 strengthText.innerHTML = '<i class="fas fa-info-circle me-1"></i>' + translations.enterPassword;
             }
@@ -1850,7 +1853,7 @@
 
                 if (phone === '') {
                     if (isRequired) {
-                        showValidation(phoneField.id, false, 'El número de teléfono es requerido', iconId, errorIconId, messageId);
+                        showValidation(phoneField.id, false, translations.phoneRequired, iconId, errorIconId, messageId);
                         if (prefixField && prefixField.value === '') {
                             prefixField.classList.add('is-invalid');
                         }
