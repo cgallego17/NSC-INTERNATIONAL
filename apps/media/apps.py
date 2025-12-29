@@ -7,3 +7,7 @@ class MediaConfig(AppConfig):
     verbose_name = "Multimedia"
 
 
+
+
+
+

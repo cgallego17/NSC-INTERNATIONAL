@@ -586,3 +586,7 @@ class HotelServiceDeleteView(StaffRequiredMixin, DeleteView):
 
 
 
+
+
+
+
