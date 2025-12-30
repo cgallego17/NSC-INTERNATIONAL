@@ -35,6 +35,12 @@ urlpatterns = [
     path('events/<int:pk>/', views_private.PanelEventDetailView.as_view(), name='panel_event_detail'),
     path('events/<int:pk>/register/', views_private.register_children_to_event, name='register_children_to_event'),
 
+    # Stripe checkout (evento)
+    path('events/<int:pk>/stripe/create-checkout-session/', views_private.create_stripe_event_checkout_session, name='create_stripe_event_checkout_session'),
+    path('events/<int:pk>/stripe/success/', views_private.stripe_event_checkout_success, name='stripe_event_checkout_success'),
+    path('events/<int:pk>/stripe/cancel/', views_private.stripe_event_checkout_cancel, name='stripe_event_checkout_cancel'),
+    path('stripe/webhook/', views_private.stripe_webhook, name='stripe_webhook'),
+
     # Wallet
     path('wallet/add-funds/', views_private.wallet_add_funds, name='wallet_add_funds'),
 ]

@@ -494,7 +494,7 @@
                             <button type="button" class="btn" id="pay-now-btn" disabled
                                     style="flex: 1; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; border: none; border-radius: 10px; padding: 12px; font-weight: 800; transition: all 0.2s; opacity: 0.5; cursor: not-allowed; text-align: left;">
                                 <div style="display:flex; align-items:center; justify-content: space-between; gap: 10px;">
-                                    <span><i class="fas fa-bolt me-2"></i>{% trans "Pay now" %} <span style="opacity:0.9;">- 5% OFF</span></span>
+                                    <span id="pay-now-title"><i class="fas fa-bolt me-2"></i>{% trans "Pay now" %} <span id="pay-now-discount-badge" style="opacity:0.9;">- 5% OFF</span></span>
                                     <span id="pay-now-total" style="font-weight: 900; color: white;">$0.00</span>
                                 </div>
                                 <div id="pay-now-subtext" style="margin-top: 4px; font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.9); line-height: 1.25;"></div>
@@ -998,7 +998,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Total del checkout (incluye No-Show Fee si aplica)
         const checkoutTotal = playersTotal + hotelTotal + noShowFee;
         window.__checkoutTotal = checkoutTotal;
-        window.__checkoutTotalPayNow = checkoutTotal * 0.95; // 5% discount
+        // Pay now -5% OFF only applies if a hotel stay is added
+        const hasHotelForDiscount = (hotelTotal > 0) && !!window.checkoutItems.hotel;
+        window.__checkoutTotalPayNow = hasHotelForDiscount ? (checkoutTotal * 0.95) : checkoutTotal;
+
+        // Update Pay now button label (hide/show "- 5% OFF")
+        const payNowDiscountBadge = document.getElementById('pay-now-discount-badge');
+        if (payNowDiscountBadge) {
+            payNowDiscountBadge.style.display = hasHotelForDiscount ? 'inline' : 'none';
+        }
 
         const checkoutTotalEl = document.getElementById('checkout-total-amount');
         if (checkoutTotalEl) {
@@ -1018,7 +1026,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (payNowSubtextEl) {
             const savings = (window.__checkoutTotal || 0) - (window.__checkoutTotalPayNow || 0);
             if ((window.__checkoutTotal || 0) > 0) {
-                payNowSubtextEl.textContent = '{% trans "You pay today and save" %} $' + formatPrice(savings);
+                if (hasHotelForDiscount) {
+                    payNowSubtextEl.textContent = '{% trans "You pay today and save" %} $' + formatPrice(savings);
+                } else {
+                    payNowSubtextEl.textContent = '{% trans "5% OFF applies when you add a hotel stay." %}';
+                }
             } else {
                 payNowSubtextEl.textContent = '';
             }
@@ -1207,15 +1219,66 @@ document.addEventListener('DOMContentLoaded', function() {
     const paymentModeInput = document.getElementById('payment-mode');
     const discountPercentInput = document.getElementById('discount-percent');
 
-    function submitRegistration(mode) {
+    async function startStripeCheckout(mode) {
         if (!registrationForm) return;
+
+        // Set hidden fields (kept for backend parity / logging)
         if (paymentModeInput) paymentModeInput.value = mode;
-        if (discountPercentInput) discountPercentInput.value = (mode === 'now') ? '5' : '0';
-        registrationForm.submit();
+        // Pay now discount only if hotel is present
+        const discountAllowed = (mode === 'now') && !!window.checkoutItems.hotel;
+        if (discountPercentInput) discountPercentInput.value = discountAllowed ? '5' : '0';
+
+        // Compute current no-show fee like the UI
+        const playersCount = document.querySelectorAll('.child-checkbox:checked').length;
+        const applyNoShowFee = (playersCount > 0) && !window.checkoutItems.hotel;
+        const noShowFee = applyNoShowFee ? 500 : 0;
+        const noShowFeeInput = document.getElementById('no-show-fee-input');
+        if (noShowFeeInput) noShowFeeInput.value = String(noShowFee);
+
+        const csrf = registrationForm.querySelector('input[name="csrfmiddlewaretoken"]');
+        const csrfToken = csrf ? csrf.value : '';
+
+        // UI lock
+        [payPlanBtn, payNowBtn].forEach((btn) => {
+            if (!btn) return;
+            btn.disabled = true;
+            btn.style.opacity = '0.7';
+            btn.style.cursor = 'wait';
+        });
+
+        try {
+            const formData = new FormData(registrationForm);
+            const resp = await fetch('{% url "accounts:create_stripe_event_checkout_session" event.pk %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                },
+                body: formData
+            });
+
+            const data = await resp.json();
+            if (!resp.ok || !data || !data.success) {
+                const msg = (data && (data.error || data.message)) ? (data.error || data.message) : 'No se pudo iniciar el pago.';
+                alert(msg);
+                return;
+            }
+
+            if (data.checkout_url) {
+                window.location.href = data.checkout_url;
+            } else {
+                alert('Stripe no devolvió un link de checkout.');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error iniciando el pago. Intenta nuevamente.');
+        } finally {
+            // Re-enable based on current state
+            updateCheckoutSummary();
+        }
     }
 
-    if (payPlanBtn) payPlanBtn.addEventListener('click', () => submitRegistration('plan'));
-    if (payNowBtn) payNowBtn.addEventListener('click', () => submitRegistration('now'));
+    if (payPlanBtn) payPlanBtn.addEventListener('click', () => startStripeCheckout('plan'));
+    if (payNowBtn) payNowBtn.addEventListener('click', () => startStripeCheckout('now'));
 
     // Función global para actualizar el hotel en el checkout (llamada desde el modal)
     window.updateCheckoutHotel = function(hotelData) {

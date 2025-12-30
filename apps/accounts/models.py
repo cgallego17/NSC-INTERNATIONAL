@@ -1228,8 +1228,12 @@ class UserWallet(models.Model):
         verbose_name="Balance",
         help_text="Balance actual de la billetera",
     )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Creación")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Fecha de Actualización")
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Fecha de Creación"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, verbose_name="Fecha de Actualización"
+    )
 
     class Meta:
         verbose_name = "Billetera de Usuario"
@@ -1334,7 +1338,9 @@ class WalletTransaction(models.Model):
         verbose_name="ID de Referencia",
         help_text="ID de referencia externa (pago, evento, etc.)",
     )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha de Transacción")
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Fecha de Transacción"
+    )
 
     class Meta:
         verbose_name = "Transacción de Billetera"
@@ -1343,3 +1349,67 @@ class WalletTransaction(models.Model):
 
     def __str__(self):
         return f"{self.get_transaction_type_display()} - ${self.amount} - {self.wallet.user.get_full_name()}"
+
+
+class StripeEventCheckout(models.Model):
+    """Checkout de Stripe para pagar registro de evento + hotel/no-show desde el panel."""
+
+    STATUS_CHOICES = [
+        ("created", "Created"),
+        ("paid", "Paid"),
+        ("cancelled", "Cancelled"),
+        ("expired", "Expired"),
+    ]
+
+    PAYMENT_MODE_CHOICES = [
+        ("plan", "Plan"),
+        ("now", "Pay now"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="stripe_event_checkouts",
+    )
+    event = models.ForeignKey(
+        "events.Event",
+        on_delete=models.CASCADE,
+        related_name="stripe_checkouts",
+    )
+
+    stripe_session_id = models.CharField(max_length=255, unique=True)
+    stripe_subscription_id = models.CharField(max_length=255, blank=True, default="")
+    stripe_subscription_schedule_id = models.CharField(
+        max_length=255, blank=True, default=""
+    )
+    currency = models.CharField(max_length=10, default="usd")
+
+    payment_mode = models.CharField(
+        max_length=10, choices=PAYMENT_MODE_CHOICES, default="plan"
+    )
+    discount_percent = models.PositiveSmallIntegerField(default=0)
+
+    # Payload snapshot (server-calculated)
+    player_ids = models.JSONField(default=list, blank=True)
+    hotel_cart_snapshot = models.JSONField(default=dict, blank=True)
+    breakdown = models.JSONField(default=dict, blank=True)
+
+    amount_total = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00")
+    )
+    plan_months = models.PositiveIntegerField(default=1)
+    plan_monthly_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=Decimal("0.00")
+    )
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="created")
+    paid_at = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"StripeEventCheckout #{self.pk} - {self.event_id} - {self.user_id} - {self.status}"

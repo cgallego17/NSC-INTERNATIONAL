@@ -9,12 +9,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Q
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib import messages
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone, translation
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.views.generic import (
     CreateView,
@@ -23,6 +24,9 @@ from django.views.generic import (
     TemplateView,
     UpdateView,
 )
+from django.db import transaction
+from decimal import Decimal, ROUND_HALF_UP
+import json
 
 from apps.core.mixins import ManagerRequiredMixin
 
@@ -34,7 +38,7 @@ from .forms import (
     UserProfileForm,
     UserUpdateForm,
 )
-from .models import DashboardContent, Player, PlayerParent, Team, UserProfile
+from .models import DashboardContent, Player, PlayerParent, Team, UserProfile, StripeEventCheckout
 
 
 class UserDashboardView(LoginRequiredMixin, TemplateView):
@@ -1008,6 +1012,583 @@ def register_children_to_event(request, pk):
     except Exception as e:
         messages.error(request, f"An error occurred: {str(e)}")
         return redirect("accounts:panel")
+
+
+def _money_to_cents(amount: Decimal) -> int:
+    if amount is None:
+        amount = Decimal("0.00")
+    if not isinstance(amount, Decimal):
+        amount = Decimal(str(amount))
+    quantized = amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return int((quantized * 100).to_integral_value(rounding=ROUND_HALF_UP))
+
+
+def _decimal(value, default="0.00") -> Decimal:
+    try:
+        if value is None:
+            return Decimal(default)
+        return Decimal(str(value))
+    except Exception:
+        return Decimal(default)
+
+
+def _compute_hotel_amount_from_cart(cart: dict) -> dict:
+    """
+    Compute hotel totals from session cart using server-side room/service data.
+    Taxes (IVA 16% + ISH 5%) are applied to room base (incl. extra guests), mirroring the UI.
+    """
+    from apps.locations.models import HotelRoom, HotelService
+    from datetime import datetime
+
+    room_base = Decimal("0.00")
+    services_total = Decimal("0.00")
+
+    for _, item_data in (cart or {}).items():
+        if item_data.get("type") != "room":
+            continue
+
+        try:
+            room = HotelRoom.objects.get(id=item_data.get("room_id"))
+        except HotelRoom.DoesNotExist:
+            continue
+
+        try:
+            check_in = datetime.strptime(item_data.get("check_in"), "%Y-%m-%d").date()
+            check_out = datetime.strptime(item_data.get("check_out"), "%Y-%m-%d").date()
+        except Exception:
+            continue
+
+        nights = (check_out - check_in).days
+        if nights <= 0:
+            continue
+
+        guests = int(item_data.get("guests", 1) or 1)
+        includes = int(room.price_includes_guests or 1)
+        extra_guests = max(0, guests - includes)
+
+        per_night_total = room.price_per_night + (room.additional_guest_price or Decimal("0.00")) * extra_guests
+        item_room_base = per_night_total * nights
+        room_base += item_room_base
+
+        for service_data in item_data.get("services", []) or []:
+            try:
+                service = HotelService.objects.get(
+                    id=service_data.get("service_id"),
+                    hotel=room.hotel,
+                    is_active=True,
+                )
+            except HotelService.DoesNotExist:
+                continue
+
+            quantity = int(service_data.get("quantity", 1) or 1)
+            price = service.price * quantity
+            if service.is_per_person:
+                price = price * guests
+            if service.is_per_night:
+                price = price * nights
+            services_total += price
+
+    iva = room_base * Decimal("0.16")
+    ish = room_base * Decimal("0.05")
+    total = room_base + iva + ish + services_total
+
+    return {
+        "room_base": room_base,
+        "services_total": services_total,
+        "iva": iva,
+        "ish": ish,
+        "total": total,
+    }
+
+
+def _plan_months_until_deadline(payment_deadline):
+    """
+    Matches the frontend: inclusive months from current month through deadline month.
+    If no deadline or invalid, returns 1.
+    """
+    try:
+        if not payment_deadline:
+            return 1
+        now = timezone.localdate()
+        months = (payment_deadline.year - now.year) * 12 + (payment_deadline.month - now.month) + 1
+        if not months or months < 1:
+            months = 1
+        return int(months)
+    except Exception:
+        return 1
+
+
+@login_required
+@require_POST
+def create_stripe_event_checkout_session(request, pk):
+    if not settings.STRIPE_SECRET_KEY:
+        return JsonResponse(
+            {"success": False, "error": "Stripe no está configurado (STRIPE_SECRET_KEY)."},
+            status=500,
+        )
+
+    try:
+        import stripe  # type: ignore
+    except Exception:
+        return JsonResponse({"success": False, "error": "Stripe SDK no está instalado."}, status=500)
+
+    from apps.events.models import Event
+
+    event = get_object_or_404(Event, pk=pk)
+    user = request.user
+
+    if not (hasattr(user, "profile") and user.profile.is_parent):
+        return JsonResponse({"success": False, "error": "Solo padres pueden pagar registros."}, status=403)
+
+    player_ids = request.POST.getlist("players")
+    if not player_ids:
+        return JsonResponse({"success": False, "error": "Selecciona al menos 1 jugador."}, status=400)
+
+    player_parents = PlayerParent.objects.filter(
+        parent=user, player_id__in=player_ids
+    ).select_related("player", "player__user")
+    valid_players = [pp.player for pp in player_parents if getattr(pp.player, "is_active", True)]
+    if len(valid_players) != len(player_ids):
+        return JsonResponse(
+            {"success": False, "error": "Hay jugadores inválidos o que no pertenecen al usuario."},
+            status=400,
+        )
+
+    payment_mode = request.POST.get("payment_mode", "plan")
+    if payment_mode not in ("plan", "now"):
+        payment_mode = "plan"
+    # Pay now discount only applies if a hotel stay is included
+    discount_percent = 5 if (payment_mode == "now" and hotel_total > 0) else 0
+    discount_multiplier = Decimal("1.00") - (Decimal(str(discount_percent)) / Decimal("100"))
+
+    entry_fee = _decimal(getattr(event, "default_entry_fee", None), default="0.00")
+    players_count = int(len(valid_players))
+    players_total = (entry_fee * Decimal(str(players_count))).quantize(Decimal("0.01"))
+
+    cart = request.session.get("hotel_cart", {}) or {}
+    hotel_breakdown = _compute_hotel_amount_from_cart(cart) if cart else {
+        "room_base": Decimal("0.00"),
+        "services_total": Decimal("0.00"),
+        "iva": Decimal("0.00"),
+        "ish": Decimal("0.00"),
+        "total": Decimal("0.00"),
+    }
+    hotel_total = hotel_breakdown["total"]
+
+    no_show_fee = Decimal("500.00") if (players_count > 0 and not cart) else Decimal("0.00")
+
+    subtotal = (players_total + hotel_total + no_show_fee).quantize(Decimal("0.01"))
+    total = (subtotal * discount_multiplier).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+    currency = (getattr(settings, "STRIPE_CURRENCY", "usd") or "usd").lower()
+
+    def scale(amount: Decimal) -> Decimal:
+        return (amount * discount_multiplier).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+    # Build Stripe line items differently for pay-now vs plan:
+    # - now: one-time payment line items
+    # - plan: recurring monthly subscription line item (card saved + auto charges)
+    line_items = []
+    plan_months = _plan_months_until_deadline(getattr(event, "payment_deadline", None))
+    plan_monthly_amount = Decimal("0.00")
+
+    if payment_mode == "plan":
+        # Plan doesn't apply discount. Monthly amount is approximate = subtotal / months.
+        plan_monthly_amount = (subtotal / Decimal(str(plan_months))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        if plan_monthly_amount <= 0:
+            return JsonResponse({"success": False, "error": "No hay nada para cobrar."}, status=400)
+
+        line_items = [
+            {
+                "price_data": {
+                    "currency": currency,
+                    "product_data": {
+                        "name": f"Monthly payment plan ({plan_months} month{'s' if plan_months != 1 else ''}) - {event.title}",
+                        "description": (
+                            f"First charge today, then {max(0, plan_months - 1)} monthly charge(s). "
+                            f"Ends automatically."
+                        ),
+                    },
+                    "unit_amount": _money_to_cents(plan_monthly_amount),
+                    "recurring": {"interval": "month"},
+                },
+                "quantity": 1,
+            }
+        ]
+    else:
+        if players_total > 0 and players_count > 0:
+            line_items.append(
+                {
+                    "price_data": {
+                        "currency": currency,
+                        "product_data": {"name": f"Event registration - {event.title}"},
+                        "unit_amount": _money_to_cents(scale(entry_fee)),
+                    },
+                    "quantity": players_count,
+                }
+            )
+
+        if hotel_total > 0:
+            hotel_name = ""
+            try:
+                hotel_name = event.hotel.hotel_name if event.hotel else ""
+            except Exception:
+                hotel_name = ""
+            line_items.append(
+                {
+                    "price_data": {
+                        "currency": currency,
+                        "product_data": {"name": f"Hotel stay{(' - ' + hotel_name) if hotel_name else ''}"},
+                        "unit_amount": _money_to_cents(scale(hotel_total)),
+                    },
+                    "quantity": 1,
+                }
+            )
+
+        if no_show_fee > 0:
+            line_items.append(
+                {
+                    "price_data": {
+                        "currency": currency,
+                        "product_data": {"name": "No-Show Fee"},
+                        "unit_amount": _money_to_cents(scale(no_show_fee)),
+                    },
+                    "quantity": 1,
+                }
+            )
+
+        if not line_items:
+            return JsonResponse({"success": False, "error": "No hay nada para cobrar."}, status=400)
+
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    stripe_account = event.stripe_payment_profile if getattr(event, "stripe_payment_profile", None) else None
+
+    success_url = request.build_absolute_uri(
+        reverse("accounts:stripe_event_checkout_success", kwargs={"pk": event.pk})
+    ) + "?session_id={CHECKOUT_SESSION_ID}"
+    cancel_url = request.build_absolute_uri(
+        reverse("accounts:stripe_event_checkout_cancel", kwargs={"pk": event.pk})
+    )
+
+    session_params = {
+        "mode": "subscription" if payment_mode == "plan" else "payment",
+        "line_items": line_items,
+        "success_url": success_url,
+        "cancel_url": cancel_url,
+        "customer_email": user.email or None,
+        "metadata": {
+            "event_id": str(event.pk),
+            "user_id": str(user.pk),
+            "payment_mode": payment_mode,
+            "discount_percent": str(discount_percent),
+            "player_ids": ",".join([str(p.pk) for p in valid_players]),
+            "plan_months": str(plan_months),
+        },
+        "stripe_account": stripe_account,
+    }
+    # For payment plans, only allow card payments (Stripe "card" includes credit/debit cards).
+    if payment_mode == "plan":
+        session_params["payment_method_types"] = ["card"]
+    session = stripe.checkout.Session.create(**session_params)
+
+    StripeEventCheckout.objects.create(
+        user=user,
+        event=event,
+        stripe_session_id=session.id,
+        currency=currency,
+        payment_mode=payment_mode,
+        discount_percent=discount_percent,
+        player_ids=[int(p.pk) for p in valid_players],
+        hotel_cart_snapshot=cart,
+        breakdown={
+            "players_total": str(players_total),
+            "hotel_room_base": str(hotel_breakdown["room_base"]),
+            "hotel_services_total": str(hotel_breakdown["services_total"]),
+            "hotel_iva": str(hotel_breakdown["iva"]),
+            "hotel_ish": str(hotel_breakdown["ish"]),
+            "hotel_total": str(hotel_total),
+            "no_show_fee": str(no_show_fee),
+            "subtotal": str(subtotal),
+            "discount_percent": discount_percent,
+            "total": str(total),
+        },
+        amount_total=total,
+        plan_months=plan_months,
+        plan_monthly_amount=plan_monthly_amount,
+        status="created",
+    )
+
+    return JsonResponse({"success": True, "checkout_url": session.url, "session_id": session.id})
+
+
+def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
+    """Idempotent finalize: confirm event attendance + create hotel reservations."""
+    from apps.events.models import EventAttendance
+    from apps.locations.models import (
+        HotelReservation,
+        HotelReservationService,
+        HotelRoom,
+        HotelService,
+    )
+    from datetime import datetime
+
+    with transaction.atomic():
+        checkout.refresh_from_db()
+        if checkout.status == "paid":
+            return
+
+        user = checkout.user
+        event = checkout.event
+
+        # Confirm event attendance
+        player_ids = checkout.player_ids or []
+        player_parents = PlayerParent.objects.filter(
+            parent=user, player_id__in=player_ids
+        ).select_related("player", "player__user")
+
+        for pp in player_parents:
+            player_user = pp.player.user
+            attendance, _ = EventAttendance.objects.get_or_create(
+                event=event, user=player_user, defaults={"status": "confirmed"}
+            )
+            if attendance.status != "confirmed":
+                attendance.status = "confirmed"
+            attendance.notes = (attendance.notes or "") + f"\nPaid via Stripe session {checkout.stripe_session_id}"
+            attendance.save()
+
+        # Create hotel reservations from snapshot
+        cart = checkout.hotel_cart_snapshot or {}
+        for _, item_data in cart.items():
+            if item_data.get("type") != "room":
+                continue
+
+            try:
+                room = HotelRoom.objects.get(id=item_data.get("room_id"))
+                check_in = datetime.strptime(item_data.get("check_in"), "%Y-%m-%d").date()
+                check_out = datetime.strptime(item_data.get("check_out"), "%Y-%m-%d").date()
+            except Exception:
+                continue
+
+            overlapping = room.reservations.filter(
+                check_in__lt=check_out,
+                check_out__gt=check_in,
+                status__in=["pending", "confirmed", "checked_in"],
+            ).exists()
+            if overlapping:
+                continue
+
+            reservation = HotelReservation.objects.create(
+                hotel=room.hotel,
+                room=room,
+                user=user,
+                guest_name=user.get_full_name() or user.username,
+                guest_email=user.email,
+                guest_phone=getattr(getattr(user, "profile", None), "phone", "") or "",
+                number_of_guests=int(item_data.get("guests", 1) or 1),
+                check_in=check_in,
+                check_out=check_out,
+                status="confirmed",
+                notes=f"Reserva pagada vía Stripe session {checkout.stripe_session_id}",
+            )
+
+            for service_data in item_data.get("services", []) or []:
+                try:
+                    service = HotelService.objects.get(
+                        id=service_data.get("service_id"),
+                        hotel=room.hotel,
+                        is_active=True,
+                    )
+                    HotelReservationService.objects.create(
+                        reservation=reservation,
+                        service=service,
+                        quantity=int(service_data.get("quantity", 1) or 1),
+                    )
+                except HotelService.DoesNotExist:
+                    pass
+
+            reservation.total_amount = reservation.calculate_total()
+            reservation.save()
+
+        checkout.status = "paid"
+        checkout.paid_at = timezone.now()
+        checkout.save(update_fields=["status", "paid_at", "updated_at"])
+
+
+def _ensure_plan_subscription_schedule(event, subscription_id: str, months: int):
+    """
+    Ensure a SubscriptionSchedule exists so the plan charges exactly N months then stops.
+    Uses the current subscription's price and creates a schedule with iterations=months.
+    """
+    if not subscription_id or not months or months < 1:
+        return ""
+
+    # The first charge happens today when the subscription is created via Checkout.
+    # A schedule created from an existing subscription takes over for future billing periods,
+    # so we only need to schedule the remaining (months - 1) charges.
+    remaining_months = max(0, int(months) - 1)
+    if remaining_months <= 0:
+        return ""
+
+    if not settings.STRIPE_SECRET_KEY:
+        return ""
+
+    try:
+        import stripe  # type: ignore
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+    except Exception:
+        return ""
+
+    stripe_account = event.stripe_payment_profile if getattr(event, "stripe_payment_profile", None) else None
+
+    try:
+        sub = stripe.Subscription.retrieve(subscription_id, stripe_account=stripe_account)
+        items = (sub.get("items", {}) or {}).get("data", []) or []
+        if not items:
+            return ""
+        price_id = (items[0].get("price") or {}).get("id")
+        if not price_id:
+            return ""
+
+        schedule = stripe.SubscriptionSchedule.create(
+            from_subscription=subscription_id,
+            end_behavior="cancel",
+            phases=[
+                {
+                    "items": [{"price": price_id, "quantity": 1}],
+                    "iterations": int(remaining_months),
+                }
+            ],
+            stripe_account=stripe_account,
+        )
+        return schedule.get("id", "") or ""
+    except Exception:
+        return ""
+
+
+@login_required
+def stripe_event_checkout_success(request, pk):
+    session_id = request.GET.get("session_id")
+    if not session_id:
+        messages.error(request, "Stripe no devolvió session_id.")
+        return redirect("accounts:panel_event_detail", pk=pk)
+
+    if not settings.STRIPE_SECRET_KEY:
+        messages.error(request, "Stripe no está configurado.")
+        return redirect("accounts:panel_event_detail", pk=pk)
+
+    try:
+        import stripe  # type: ignore
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+    except Exception:
+        messages.error(request, "Stripe SDK no está instalado.")
+        return redirect("accounts:panel_event_detail", pk=pk)
+
+    from apps.events.models import Event
+
+    event = get_object_or_404(Event, pk=pk)
+    stripe_account = event.stripe_payment_profile if getattr(event, "stripe_payment_profile", None) else None
+
+    try:
+        session = stripe.checkout.Session.retrieve(session_id, stripe_account=stripe_account)
+    except Exception as e:
+        messages.error(request, f"No se pudo verificar el pago: {str(e)}")
+        return redirect("accounts:panel_event_detail", pk=pk)
+
+    if getattr(session, "payment_status", "") != "paid":
+        messages.warning(request, "El pago aún no está confirmado.")
+        return redirect("accounts:panel_event_detail", pk=pk)
+
+    try:
+        checkout = StripeEventCheckout.objects.get(stripe_session_id=session_id)
+    except StripeEventCheckout.DoesNotExist:
+        messages.error(request, "No se encontró el checkout en el sistema.")
+        return redirect("accounts:panel_event_detail", pk=pk)
+
+    # Store subscription id (plan payments)
+    subscription_id = getattr(session, "subscription", "") or ""
+    if subscription_id and not checkout.stripe_subscription_id:
+        checkout.stripe_subscription_id = str(subscription_id)
+
+    # If it's a plan, create schedule to stop after N months
+    if checkout.payment_mode == "plan" and subscription_id:
+        schedule_id = _ensure_plan_subscription_schedule(checkout.event, str(subscription_id), int(checkout.plan_months or 1))
+        if schedule_id and not checkout.stripe_subscription_schedule_id:
+            checkout.stripe_subscription_schedule_id = schedule_id
+
+    checkout.save(update_fields=["stripe_subscription_id", "stripe_subscription_schedule_id", "updated_at"])
+
+    _finalize_stripe_event_checkout(checkout)
+
+    # Clear live session cart (UX)
+    request.session["hotel_cart"] = {}
+    request.session.modified = True
+
+    messages.success(request, "Pago completado. Registro confirmado.")
+    return redirect("accounts:panel_event_detail", pk=pk)
+
+
+@login_required
+def stripe_event_checkout_cancel(request, pk):
+    messages.info(request, "Pago cancelado.")
+    return redirect("accounts:panel_event_detail", pk=pk)
+
+
+@csrf_exempt
+def stripe_webhook(request):
+    if not settings.STRIPE_SECRET_KEY:
+        return HttpResponse(status=500)
+
+    try:
+        import stripe  # type: ignore
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+    except Exception:
+        return HttpResponse(status=500)
+
+    if not settings.STRIPE_WEBHOOK_SECRET:
+        # If webhook secret is not configured, acknowledge but avoid processing.
+        return HttpResponse(status=200)
+
+    payload = request.body
+    sig_header = request.META.get("HTTP_STRIPE_SIGNATURE", "")
+
+    try:
+        evt = stripe.Webhook.construct_event(
+            payload=payload,
+            sig_header=sig_header,
+            secret=settings.STRIPE_WEBHOOK_SECRET,
+        )
+    except Exception:
+        return HttpResponse(status=400)
+
+    event_type = evt.get("type")
+    obj = (evt.get("data", {}) or {}).get("object", {}) or {}
+
+    if event_type == "checkout.session.completed":
+        session_id = obj.get("id")
+        if session_id:
+            try:
+                checkout = StripeEventCheckout.objects.get(stripe_session_id=session_id)
+                # Persist subscription + schedule for plan
+                subscription_id = obj.get("subscription") or ""
+                if subscription_id and not checkout.stripe_subscription_id:
+                    checkout.stripe_subscription_id = str(subscription_id)
+                if checkout.payment_mode == "plan" and subscription_id and not checkout.stripe_subscription_schedule_id:
+                    schedule_id = _ensure_plan_subscription_schedule(checkout.event, str(subscription_id), int(checkout.plan_months or 1))
+                    if schedule_id:
+                        checkout.stripe_subscription_schedule_id = schedule_id
+                checkout.save(update_fields=["stripe_subscription_id", "stripe_subscription_schedule_id", "updated_at"])
+                _finalize_stripe_event_checkout(checkout)
+            except StripeEventCheckout.DoesNotExist:
+                pass
+
+    if event_type == "checkout.session.expired":
+        session_id = obj.get("id")
+        if session_id:
+            StripeEventCheckout.objects.filter(
+                stripe_session_id=session_id, status="created"
+            ).update(status="expired")
+
+    return HttpResponse(status=200)
 
 
 @login_required
