@@ -278,20 +278,24 @@
         <div class="col-lg-5">
             <div class="checkout-card" style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); position: sticky; top: 20px;">
                 <h4 style="color: var(--mlb-blue); font-weight: 800; margin-bottom: 18px; border-bottom: 3px solid var(--mlb-red); padding-bottom: 12px; font-size: 1.2rem;">
-                    <i class="fas fa-shopping-cart me-2" style="color: var(--mlb-red);"></i>{% trans "Registration" %}
+                    <i class="fas fa-shopping-cart me-2" style="color: var(--mlb-red);"></i>{% trans "Checkout" %}
                 </h4>
 
-                <!-- Lista de Hijos/Jugadores -->
+                <!-- Paso 1: Seleccionar Jugadores -->
                 {% if children %}
-                    <form method="post" action="{% url 'accounts:register_children_to_event' event.pk %}" id="eventRegistrationForm">
-                        {% csrf_token %}
-                        <div class="children-list mb-3">
-                            <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 12px; font-size: 0.95rem;">
-                                <i class="fas fa-users me-2" style="color: var(--mlb-red);"></i>{% trans "Select Children/Players" %}
+                    <div class="checkout-step mb-4" id="step-players">
+                        <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 12px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                            <span style="background: var(--mlb-red); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">1</span>
+                            <i class="fas fa-users me-1" style="color: var(--mlb-red);"></i>{% trans "Select Players" %}
                             </h5>
-
+                        <div class="children-list">
                             {% for child in children %}
-                                <div class="child-item mb-2" style="border: 2px solid #e9ecef; border-radius: 8px; padding: 10px; transition: all 0.3s;" data-child-id="{{ child.pk }}" data-birth-date="{% if child.user.profile.birth_date %}{{ child.user.profile.birth_date|date:'Y-m-d' }}{% endif %}" data-child-email="{% if child.user.email %}{{ child.user.email|escapejs }}{% endif %}" data-child-name="{% if child.user.get_full_name %}{{ child.user.get_full_name|escapejs }}{% else %}{{ child.user.username|escapejs }}{% endif %}">
+                                <div class="child-item mb-2" style="border: 2px solid #e9ecef; border-radius: 8px; padding: 10px; transition: all 0.3s; cursor: pointer;"
+                                     data-child-id="{{ child.pk }}"
+                                     data-child-price="{{ event.default_entry_fee|default:'0.00' }}"
+                                     data-birth-date="{% if child.user.profile.birth_date %}{{ child.user.profile.birth_date|date:'Y-m-d' }}{% endif %}"
+                                     data-child-email="{% if child.user.email %}{{ child.user.email|escapejs }}{% endif %}"
+                                     data-child-name="{% if child.user.get_full_name %}{{ child.user.get_full_name|escapejs }}{% else %}{{ child.user.username|escapejs }}{% endif %}">
                                     <div class="form-check" style="display: flex; align-items: center; gap: 10px;">
                                         <input class="form-check-input child-checkbox" type="checkbox" name="players" value="{{ child.pk }}" id="child_{{ child.pk }}"
                                                style="width: 18px; height: 18px; cursor: pointer; margin: 0; flex-shrink: 0;">
@@ -334,107 +338,176 @@
                                 </div>
                             {% endfor %}
                         </div>
+                    </div>
+                {% endif %}
 
-                        <!-- Opción de Estadía en Hotel -->
+                <!-- Paso 2: Add Hotel Stay -->
                         {% if event.hotel %}
-                            <div class="mb-3" style="border-top: 2px solid #e9ecef; padding-top: 15px;">
-                                <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 2px solid #e9ecef; border-radius: 12px; overflow: hidden; transition: all 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.05);"
-                                     onmouseover="this.style.borderColor='var(--mlb-red)'; this.style.boxShadow='0 4px 16px rgba(213, 0, 50, 0.2)'; this.style.transform='translateY(-2px)';"
-                                     onmouseout="this.style.borderColor='#e9ecef'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.05)'; this.style.transform='translateY(0)';">
-                                    <div style="display: flex; align-items: stretch; gap: 0;">
-                                        <!-- Imagen del Hotel -->
-                                        <div style="width: 100px; flex-shrink: 0; position: relative; overflow: hidden;">
-                                            {% if event.hotel.photo %}
-                                                <img src="{{ event.hotel.photo.url }}" alt="{{ event.hotel.hotel_name }}" style="width: 100%; height: 100%; object-fit: cover;">
-                                            {% elif event.hotel.images.exists %}
-                                                {% with first_image=event.hotel.images.first %}
-                                                    <img src="{{ first_image.image.url }}" alt="{{ event.hotel.hotel_name }}" style="width: 100%; height: 100%; object-fit: cover;">
-                                                {% endwith %}
-                                            {% else %}
-                                                <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); display: flex; align-items: center; justify-content: center;">
-                                                    <i class="fas fa-hotel" style="color: white; font-size: 2rem;"></i>
+                    <div class="checkout-step mb-4" id="step-hotel">
+                        <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 12px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                            <span style="background: var(--mlb-red); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">2</span>
+                            <i class="fas fa-hotel me-1" style="color: var(--mlb-red);"></i>{% trans "Add Hotel Stay" %}
+                        </h5>
+
+                        <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 12px;">
+                            <div style="font-size: 0.8rem; color: #6c757d; font-weight: 600; line-height: 1.25; margin-bottom: 10px;">
+                                {% trans "If you don't add a hotel stay, a No-Show Fee will apply." %}
                                                 </div>
-                                            {% endif %}
-                                            <div style="position: absolute; top: 8px; left: 8px; background: rgba(213, 0, 50, 0.9); color: white; padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                                                <i class="fas fa-hotel me-1"></i>{% trans "Hotel" %}
+
+                            <button type="button"
+                                    class="btn btn-sm w-100"
+                                    data-hotel-pk="{{ event.hotel.pk }}"
+                                    onclick="openHotelRoomSelector()"
+                                    style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; padding: 10px; border-radius: 10px; font-weight: 800; font-size: 0.9rem; border: none; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"
+                                    onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 10px 24px rgba(213, 0, 50, 0.25)';"
+                                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                                <i class="fas fa-hotel"></i>
+                                <span>{% trans "Add Hotel Stay" %}</span>
+                            </button>
                                             </div>
                                         </div>
+                {% endif %}
 
-                                        <!-- Contenido -->
-                                        <div style="flex: 1; padding: 15px; display: flex; flex-direction: column; justify-content: space-between;">
-                                            <div>
-                                                <div style="display: flex; align-items: start; justify-content: space-between; margin-bottom: 8px;">
+                <!-- Botón para agregar hotel (oculto, se muestra en Order Summary cuando se añade) -->
+                        {% if event.hotel %}
+                    <div class="hotel-stay-section" id="hotel-stay-section{{ event.hotel.pk }}" data-hotel-pk="{{ event.hotel.pk }}" style="display: none;">
+                        <!-- Esta sección está oculta, el hotel solo aparece en Order Summary cuando se añade -->
+                                                            </div>
+                                                        {% endif %}
+
+                <!-- Resumen del Checkout -->
+                <div class="checkout-summary" style="border-top: 3px solid var(--mlb-red); padding-top: 20px; margin-top: 20px;">
+                    <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 15px; font-size: 1rem;">
+                        <i class="fas fa-receipt me-2" style="color: var(--mlb-red);"></i>{% trans "Order Summary" %}
+                    </h5>
+
+                    <!-- Items del Checkout -->
+                    <div id="checkout-items-list" style="margin-bottom: 15px; min-height: 50px;">
+                        <div id="checkout-players-summary" style="display: none; margin-bottom: 15px;">
+                            <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 15px; border-left: 4px solid var(--mlb-blue);">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
                                                     <div style="flex: 1;">
-                                                        <h6 style="font-weight: 800; color: var(--mlb-blue); font-size: 1rem; margin: 0 0 4px 0;">
-                                                            {{ event.hotel.hotel_name }}
-                                                        </h6>
-                                                        {% if event.hotel.address %}
-                                                            <div style="font-size: 0.75rem; color: #6c757d; margin-bottom: 6px;">
-                                                                <i class="fas fa-map-marker-alt me-1" style="color: var(--mlb-red); font-size: 0.7rem;"></i>{{ event.hotel.address|truncatewords:8 }}
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                            <i class="fas fa-users" style="color: var(--mlb-blue); font-size: 1rem;"></i>
+                                            <span style="font-weight: 700; color: var(--mlb-blue); font-size: 1rem;">
+                                                <span id="checkout-players-count">0</span> {% trans "Player(s)" %}
+                                            </span>
                                                             </div>
-                                                        {% endif %}
-                                                        {% if event.start_date and event.end_date %}
                                                             <div style="font-size: 0.75rem; color: #6c757d;">
-                                                                <i class="fas fa-calendar-alt me-1" style="color: var(--mlb-red); font-size: 0.7rem;"></i>
-                                                                {{ event.start_date|date:"M d" }} - {{ event.end_date|date:"M d, Y" }}
+                                            {% trans "Event registration" %}
                                                             </div>
-                                                        {% endif %}
+                                    </div>
+                                    <div style="text-align: right; flex-shrink: 0; margin-left: 15px;">
+                                        <div style="font-weight: 800; color: var(--mlb-blue); font-size: 1.2rem;" id="checkout-players-total">$0.00</div>
+                                    </div>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <!-- Botón -->
-                                            <div style="margin-top: 12px;">
-                                                <button type="button"
-                                                        class="btn btn-sm w-100"
-                                                        data-hotel-pk="{{ event.hotel.pk }}"
-                                                        onclick="if (window.NSC_HotelReservation) {
-                                                            const userData = {
-                                                                name: '{% if user.get_full_name %}{{ user.get_full_name|escapejs }}{% else %}{{ user.username|escapejs }}{% endif %}',
-                                                                email: '{{ user.email|escapejs }}',
-                                                                birthDate: '{% if user.profile.birth_date %}{{ user.profile.birth_date|date:"Y-m-d"|escapejs }}{% endif %}'
-                                                            };
-                                                            window.NSC_HotelReservation.showRoomsDirect('{{ event.hotel.pk }}', userData);
-                                                        } else {
-                                                            console.error('NSC_HotelReservation not found');
-                                                        }"
-                                                        style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; padding: 10px; border-radius: 8px; font-weight: 700; font-size: 0.85rem; border: none; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;"
-                                                        onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 4px 12px rgba(213, 0, 50, 0.4)';"
-                                                        onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none';">
-                                                    <i class="fas fa-plus"></i>
-                                                    <span>{% trans "Add Hotel Stay" %}</span>
-                                                </button>
+                        <div id="checkout-hotel-summary" style="display: none;">
+                            <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 12px; border-left: 4px solid var(--mlb-red);">
+                                <div style="display: flex; justify-content: space-between; align-items: start; gap: 12px;">
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                            <i class="fas fa-hotel" style="color: var(--mlb-red); font-size: 0.9rem;"></i>
+                                            <span style="font-weight: 700; color: var(--mlb-blue); font-size: 0.95rem;" id="checkout-hotel-name">{% trans "Hotel Stay" %}</span>
                                             </div>
+                                        <div id="checkout-hotel-room-info" style="font-size: 0.8rem; color: #6c757d; font-weight: 600; display: inline;">
+                                            <!-- Se llenará con información de la habitación -->
                                         </div>
+                                        <div id="checkout-hotel-details" style="font-size: 0.75rem; color: #6c757d; line-height: 1.4; display: inline;">
+                                            <!-- Se llenará con fechas, huéspedes, noches -->
                                     </div>
                                 </div>
+                                    <div style="text-align: right; flex-shrink: 0;">
+                                        <div style="font-weight: 800; color: var(--mlb-red); font-size: 1.1rem; margin-bottom: 2px;" id="checkout-hotel-total">$0.00</div>
+                                        <div style="font-size: 0.7rem; color: #6c757d;" id="checkout-hotel-nights">0 {% trans "nights" %}</div>
+                                        <div style="font-size: 0.65rem; color: #9ca3af; margin-top: 1px;" id="checkout-hotel-price-per-night"></div>
                             </div>
-                        {% endif %}
-
-                        <!-- Resumen de Precios -->
-                        <div class="price-summary mb-3" style="border-top: 2px solid #e9ecef; padding-top: 15px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <span style="color: #6c757d; font-size: 0.85rem;">{% trans "Selected" %}:</span>
-                                <span id="selected-count" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem;">0</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <span style="color: #6c757d; font-size: 0.85rem;">{% trans "Price per player" %}:</span>
-                                <span style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem;">${{ event.default_entry_fee|default:"0.00" }}</span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 2px solid var(--mlb-red); padding-top: 12px; margin-top: 12px;">
-                                <span style="font-weight: 800; color: var(--mlb-blue); font-size: 1.1rem;">{% trans "Total" %}:</span>
-                                <span id="total-price" style="font-weight: 800; color: var(--mlb-red); font-size: 1.3rem;">$0.00</span>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Botón de Registro -->
-                        <button type="submit" class="btn w-100" id="register-btn" disabled
-                                style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; padding: 12px; border-radius: 10px; font-weight: 700; text-transform: uppercase; font-size: 0.9rem; letter-spacing: 0.5px; border: none; transition: all 0.3s; opacity: 0.5; cursor: not-allowed;">
-                            <i class="fas fa-check-circle me-2"></i>{% trans "Register Selected" %}
+                        <div id="checkout-no-show-summary" style="display: none; margin-bottom: 15px;">
+                            <div style="background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%); border: 2px solid #ffedd5; border-radius: 12px; padding: 12px; border-left: 4px solid #f97316;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                                    <div style="flex: 1; min-width: 0;">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                            <i class="fas fa-exclamation-triangle" style="color: #f97316; font-size: 1rem;"></i>
+                                            <span style="font-weight: 800; color: var(--mlb-blue); font-size: 0.95rem;">
+                                                {% trans "No-Show Fee" %}
+                                            </span>
+                            </div>
+                                        <div style="font-size: 0.78rem; color: #6c757d; font-weight: 600; line-height: 1.25;">
+                                            {% trans "Applies when you don't add a hotel stay to this checkout." %}
+                            </div>
+                                    </div>
+                                    <div style="text-align: right; flex-shrink: 0;">
+                                        <div id="checkout-no-show-fee" style="font-weight: 900; color: #f97316; font-size: 1.1rem;">$0.00</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="checkout-empty-message" style="text-align: center; padding: 20px; color: #6c757d; font-size: 0.85rem;">
+                            <i class="fas fa-shopping-cart" style="font-size: 1.5rem; margin-bottom: 8px; opacity: 0.3;"></i>
+                            <div style="margin-bottom: 15px;">{% trans "Select players to see your order summary" %}</div>
+                                            </div>
+                                        </div>
+
+                    <!-- Total -->
+                    <div style="border-top: 2px solid var(--mlb-red); padding-top: 15px; margin-top: 15px;">
+                        <!-- Desglose de impuestos del hotel (si aplica) -->
+                        <div id="checkout-taxes-breakdown" style="display: none; margin-bottom: 12px; padding: 10px; background: #f8f9fa; border-radius: 8px; font-size: 0.8rem;">
+                            <div style="font-weight: 700; color: var(--mlb-blue); margin-bottom: 6px; font-size: 0.85rem;">{% trans "Hotel Taxes" %}:</div>
+                            <div id="checkout-taxes-details" style="color: #6c757d;">
+                                <!-- Se llenará con el desglose de impuestos -->
+                                    </div>
+                                </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-weight: 800; color: var(--mlb-blue); font-size: 1.1rem;">{% trans "Total" %}:</span>
+                            <span id="checkout-total-amount" style="font-weight: 800; color: var(--mlb-red); font-size: 1.4rem;">$0.00</span>
+                            </div>
+                        </div>
+
+                    <!-- Botón de Finalizar -->
+                    <form method="post" action="{% url 'accounts:register_children_to_event' event.pk %}" id="eventRegistrationForm" style="margin-top: 20px;">
+                        {% csrf_token %}
+                        <div id="selected-players-inputs"></div>
+                        <input type="hidden" name="payment_mode" id="payment-mode" value="plan">
+                        <input type="hidden" name="discount_percent" id="discount-percent" value="0">
+                        <input type="hidden" name="no_show_fee" id="no-show-fee-input" value="0">
+                        <div class="d-flex flex-column flex-sm-row gap-2">
+                            <button type="button" class="btn" id="pay-plan-btn" disabled
+                                    style="flex: 1; background: #e9ecef; color: var(--mlb-blue); border: 2px solid #e9ecef; border-radius: 10px; padding: 12px; font-weight: 800; transition: all 0.2s; opacity: 0.5; cursor: not-allowed; text-align: left;">
+                                <div style="display:flex; align-items:center; justify-content: space-between; gap: 10px;">
+                                    <span><i class="fas fa-calendar-alt me-2"></i>{% trans "Pay in plan" %}</span>
+                                    <span id="plan-monthly-amount" style="font-weight: 900; color: var(--mlb-blue);">$0.00</span>
+                            </div>
+                                <div id="plan-subtext" style="margin-top: 4px; font-size: 0.8rem; font-weight: 700; color: #6c757d; line-height: 1.25;"></div>
+                                <div style="margin-top: 2px; font-size: 0.74rem; font-weight: 600; color: #6c757d; line-height: 1.25;">
+                                    {% trans "Good if you prefer to spread the total over time." %}
+                        </div>
                         </button>
+
+                            <button type="button" class="btn" id="pay-now-btn" disabled
+                                    style="flex: 1; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; border: none; border-radius: 10px; padding: 12px; font-weight: 800; transition: all 0.2s; opacity: 0.5; cursor: not-allowed; text-align: left;">
+                                <div style="display:flex; align-items:center; justify-content: space-between; gap: 10px;">
+                                    <span><i class="fas fa-bolt me-2"></i>{% trans "Pay now" %} <span style="opacity:0.9;">- 5% OFF</span></span>
+                                    <span id="pay-now-total" style="font-weight: 900; color: white;">$0.00</span>
+                                </div>
+                                <div id="pay-now-subtext" style="margin-top: 4px; font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.9); line-height: 1.25;"></div>
+                                <div style="margin-top: 2px; font-size: 0.74rem; font-weight: 600; color: rgba(255,255,255,0.85); line-height: 1.25;">
+                                    {% trans "Best value if you can pay today." %}
+                                </div>
+                        </button>
+                        </div>
                     </form>
-                {% else %}
-                    <div class="alert alert-info" style="background: #e7f3ff; border: 2px solid var(--mlb-blue); border-radius: 12px; padding: 20px; text-align: center;">
+                </div>
+
+                {% if not children %}
+                    <div class="alert alert-info" style="background: #e7f3ff; border: 2px solid var(--mlb-blue); border-radius: 12px; padding: 20px; text-align: center; margin-top: 20px;">
                         <i class="fas fa-info-circle fa-2x mb-3" style="color: var(--mlb-blue);"></i>
                         <p style="color: var(--mlb-blue); font-weight: 600; margin-bottom: 0;">
                             {% trans "You don't have any children/players registered. Please register a child/player first." %}
@@ -446,6 +519,7 @@
                 {% endif %}
             </div>
         </div>
+
     </div>
 {% else %}
     <div class="alert alert-warning" style="background: white; border-radius: 16px; padding: 40px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
@@ -475,6 +549,25 @@
 #register-btn:not(:disabled):hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(213, 0, 50, 0.4);
+}
+
+/* Hover/focus para botones de pago */
+#pay-plan-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    border-color: var(--mlb-blue);
+    box-shadow: 0 10px 24px rgba(13, 44, 84, 0.18);
+}
+
+#pay-now-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(213, 0, 50, 0.25);
+    filter: brightness(1.02);
+}
+
+#pay-plan-btn:focus-visible,
+#pay-now-btn:focus-visible {
+    outline: 3px solid rgba(13, 44, 84, 0.25);
+    outline-offset: 2px;
 }
 
 /* Estilos para el HTML de la descripción del evento */
@@ -619,36 +712,572 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const checkboxes = document.querySelectorAll('.child-checkbox');
-    const selectedCount = document.getElementById('selected-count');
-    const totalPrice = document.getElementById('total-price');
-    const registerBtn = document.getElementById('register-btn');
     const pricePerPlayer = parseFloat('{{ event.default_entry_fee|default:"0" }}') || 0;
+    const registrationForm = document.getElementById('eventRegistrationForm');
 
-    function updateTotal() {
-        const selected = document.querySelectorAll('.child-checkbox:checked').length;
-        const total = selected * pricePerPlayer;
+    // Almacenar items del checkout
+    window.checkoutItems = {
+        players: [],
+        hotel: null
+    };
 
-        selectedCount.textContent = selected;
-        totalPrice.textContent = '$' + total.toFixed(2);
+    // Función para formatear números con separadores de miles (puntos)
+    function formatPrice(amount) {
+        const num = parseFloat(amount);
+        if (isNaN(num)) return '0.00';
+        // Separar parte entera y decimal
+        const parts = num.toFixed(2).split('.');
+        // Agregar puntos de miles a la parte entera
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        // Unir con punto decimal
+        return parts.join('.');
+    }
 
-        if (selected > 0) {
-            registerBtn.disabled = false;
-            registerBtn.style.opacity = '1';
-            registerBtn.style.cursor = 'pointer';
-        } else {
-            registerBtn.disabled = true;
-            registerBtn.style.opacity = '0.5';
-            registerBtn.style.cursor = 'not-allowed';
+    const paymentDeadlineStr = '{% if event.payment_deadline %}{{ event.payment_deadline|date:"Y-m-d" }}{% endif %}';
+    function formatDateShort(dateObj) {
+        try {
+            return dateObj.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+        } catch (e) {
+            return '';
         }
     }
 
+    // Shared handler: open hotel room selector from checkout buttons
+    window.openHotelRoomSelector = function openHotelRoomSelector() {
+        if (!window.NSC_HotelReservation) {
+            console.error('NSC_HotelReservation not found');
+            return;
+        }
+        const userData = {
+            name: '{% if user.get_full_name %}{{ user.get_full_name|escapejs }}{% else %}{{ user.username|escapejs }}{% endif %}',
+            email: '{{ user.email|escapejs }}',
+            birthDate: '{% if user.profile.birth_date %}{{ user.profile.birth_date|date:"Y-m-d"|escapejs }}{% endif %}'
+        };
+        window.NSC_HotelReservation.showRoomsDirect('{{ event.hotel.pk }}', userData);
+    };
+
+    // Función para actualizar el resumen del checkout
+    function updateCheckoutSummary() {
+        const playersCount = document.querySelectorAll('.child-checkbox:checked').length;
+        const playersTotal = playersCount * pricePerPlayer;
+
+        // Formatear precios individuales en la lista de jugadores (checkout)
+        document.querySelectorAll('.child-item').forEach((item) => {
+            const priceEl = item.querySelector('.child-price');
+            if (!priceEl) return;
+            const raw = item.getAttribute('data-child-price');
+            if (raw !== null && raw !== undefined && raw !== '') {
+                priceEl.textContent = '$' + formatPrice(raw);
+            }
+        });
+
+        // Actualizar resumen de jugadores
+        const playersSummary = document.getElementById('checkout-players-summary');
+        const playersCountSpan = document.getElementById('checkout-players-count');
+        const playersTotalSpan = document.getElementById('checkout-players-total');
+        const emptyMessage = document.getElementById('checkout-empty-message');
+
+        if (playersCount > 0) {
+            playersSummary.style.display = 'block';
+            playersCountSpan.textContent = playersCount;
+            playersTotalSpan.textContent = '$' + formatPrice(playersTotal);
+        } else {
+            playersSummary.style.display = 'none';
+        }
+
+        // Actualizar resumen de hotel con información detallada e impuestos
+        const hotelSummary = document.getElementById('checkout-hotel-summary');
+
+        // Calcular total del hotel con impuestos
+        let hotelBasePrice = 0;
+        let hotelIVA = 0;
+        let hotelISH = 0;
+        let hotelTotal = 0;
+
+        if (window.checkoutItems.hotel && hotelSummary) {
+            const hotel = window.checkoutItems.hotel;
+
+            // Si ya viene el total con impuestos incluidos, calcular el desglose
+            if (hotel.total) {
+                hotelTotal = parseFloat(hotel.total);
+                // Si viene el precio base, usarlo; si no, calcularlo desde el total
+                if (hotel.base_price) {
+                    hotelBasePrice = parseFloat(hotel.base_price);
+                } else {
+                    // Calcular precio base desde el total (total / 1.21 para IVA 16% + ISH 5%)
+                    // Total = Base * (1 + 0.16 + 0.05) = Base * 1.21
+                    hotelBasePrice = hotelTotal / 1.21;
+                }
+                hotelIVA = hotelBasePrice * 0.16;
+                hotelISH = hotelBasePrice * 0.05;
+            } else if (hotel.base_price) {
+                // Si viene el precio base, calcular impuestos
+                hotelBasePrice = parseFloat(hotel.base_price);
+                hotelIVA = hotelBasePrice * 0.16;
+                hotelISH = hotelBasePrice * 0.05;
+                hotelTotal = hotelBasePrice + hotelIVA + hotelISH;
+            }
+
+            hotelSummary.style.display = 'block';
+
+            // Nombre del hotel
+            const hotelNameEl = document.getElementById('checkout-hotel-name');
+            if (hotelNameEl) {
+                hotelNameEl.textContent = hotel.hotel_name || '{% trans "Hotel Stay" %}';
+            }
+
+            // Información de la habitación y detalles en formato horizontal completo
+            const roomInfoEl = document.getElementById('checkout-hotel-room-info');
+            const hotelDetailsEl = document.getElementById('checkout-hotel-details');
+
+            if (roomInfoEl && hotelDetailsEl) {
+                let allInfoHTML = '';
+
+                // Agregar nombre de habitación
+                if (hotel.room_name) {
+                    allInfoHTML += '<i class="fas fa-bed" style="color: var(--mlb-red); font-size: 0.75rem; margin-right: 4px;"></i>' + hotel.room_name;
+                }
+
+                // Agregar separador si hay habitación y fechas
+                if (hotel.room_name && hotel.check_in && hotel.check_out) {
+                    allInfoHTML += ' <span style="color: #d1d5db; margin: 0 8px;">•</span> ';
+                }
+
+                // Agregar fechas
+                if (hotel.check_in && hotel.check_out) {
+                    // Formatear fechas para mejor legibilidad
+                    const formatDate = (dateStr) => {
+                        try {
+                            const date = new Date(dateStr);
+                            return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+                        } catch (e) {
+                            return dateStr;
+                        }
+                    };
+                    allInfoHTML += '<span style="display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-calendar-alt" style="color: var(--mlb-red); font-size: 0.7rem;"></i><span style="font-weight: 500;">' + formatDate(hotel.check_in) + ' - ' + formatDate(hotel.check_out) + '</span></span>';
+                }
+
+                // Agregar separador si hay fechas y huéspedes
+                if ((hotel.room_name || (hotel.check_in && hotel.check_out)) && hotel.guests) {
+                    allInfoHTML += ' <span style="color: #d1d5db; margin: 0 8px;">•</span> ';
+                }
+
+                // Agregar número de huéspedes
+                if (hotel.guests) {
+                    allInfoHTML += '<span style="display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-users" style="color: var(--mlb-red); font-size: 0.7rem;"></i><span style="font-weight: 500;">' + hotel.guests + ' {% trans "guest(s)" %}</span></span>';
+                }
+
+                // Mostrar todo en una sola línea
+                roomInfoEl.innerHTML = allInfoHTML;
+
+                // Especificar el cobro por persona adicional (si aplica)
+                const includesGuests = parseInt(hotel.includes_guests || 1);
+                const additionalGuestPrice = parseFloat(hotel.additional_guest_price || 0);
+                const guestsCount = parseInt(hotel.guests || 0);
+                const nightsCount = parseInt(hotel.nights || 0);
+                const extraGuests = Math.max(0, guestsCount - includesGuests);
+                const extraGuestTotal = (extraGuests * additionalGuestPrice) * nightsCount;
+
+                if (extraGuests > 0 && additionalGuestPrice > 0 && nightsCount > 0) {
+                    hotelDetailsEl.innerHTML =
+                        '<div style="margin-top: 6px; font-size: 0.78rem; color: #6c757d; font-weight: 600; line-height: 1.25;">' +
+                        '<i class="fas fa-user-plus" style="color: var(--mlb-red); margin-right: 6px;"></i>' +
+                        '{% trans "Additional guest(s)" %}: <span style="font-weight: 800; color: var(--mlb-blue);">' + extraGuests + '</span>' +
+                        ' × <span style="font-weight: 800; color: var(--mlb-blue);">$' + formatPrice(additionalGuestPrice) + '</span>/{% trans "night" %}' +
+                        ' × <span style="font-weight: 800; color: var(--mlb-blue);">' + nightsCount + '</span> = ' +
+                        '<span style="font-weight: 900; color: var(--mlb-red);">$' + formatPrice(extraGuestTotal) + '</span>' +
+                        '</div>';
+                } else if (includesGuests > 0) {
+                    hotelDetailsEl.innerHTML =
+                        '<div style="margin-top: 6px; font-size: 0.78rem; color: #6c757d; font-weight: 600; line-height: 1.25;">' +
+                        '<i class="fas fa-info-circle" style="color: #9ca3af; margin-right: 6px;"></i>' +
+                        '{% trans "Includes" %} <span style="font-weight: 800; color: var(--mlb-blue);">' + includesGuests + '</span> {% trans "guest(s)" %}' +
+                        '</div>';
+                } else {
+                    hotelDetailsEl.innerHTML = '';
+                }
+            } else {
+                // Fallback al método anterior si los elementos no existen
+                if (roomInfoEl) {
+                    if (hotel.room_name) {
+                        roomInfoEl.innerHTML = '<i class="fas fa-bed" style="color: var(--mlb-red); font-size: 0.75rem; margin-right: 4px;"></i>' + hotel.room_name;
+                    } else {
+                        roomInfoEl.innerHTML = '';
+                    }
+                }
+
+                if (hotelDetailsEl) {
+                    let detailsHTML = '<div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">';
+
+                    if (hotel.check_in && hotel.check_out) {
+                        const formatDate = (dateStr) => {
+                            try {
+                                const date = new Date(dateStr);
+                                return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+                            } catch (e) {
+                                return dateStr;
+                            }
+                        };
+                        detailsHTML += '<span style="display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-calendar-alt" style="color: var(--mlb-red); font-size: 0.7rem;"></i><span style="font-weight: 500;">' + formatDate(hotel.check_in) + ' - ' + formatDate(hotel.check_out) + '</span></span>';
+                    }
+
+                    if (hotel.guests) {
+                        detailsHTML += '<span style="display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-users" style="color: var(--mlb-red); font-size: 0.7rem;"></i><span style="font-weight: 500;">' + hotel.guests + ' {% trans "guest(s)" %}</span></span>';
+                    }
+
+                    detailsHTML += '</div>';
+                    hotelDetailsEl.innerHTML = detailsHTML;
+                }
+            }
+
+            // Total, noches y precio por noche
+            const hotelTotalEl = document.getElementById('checkout-hotel-total');
+            if (hotelTotalEl) {
+                hotelTotalEl.textContent = '$' + formatPrice(hotelTotal);
+            }
+            const nightsEl = document.getElementById('checkout-hotel-nights');
+            if (nightsEl) {
+                if (hotel.nights) {
+                    nightsEl.textContent = hotel.nights + ' {% trans "night(s)" %}';
+                } else {
+                    nightsEl.textContent = '';
+                }
+            }
+            // Mostrar precio por noche
+            const pricePerNightEl = document.getElementById('checkout-hotel-price-per-night');
+            if (pricePerNightEl && hotel.nights && hotelBasePrice > 0) {
+                const pricePerNight = hotelBasePrice / hotel.nights;
+                pricePerNightEl.textContent = '$' + formatPrice(pricePerNight) + '/{% trans "night" %}';
+            } else if (pricePerNightEl) {
+                pricePerNightEl.textContent = '';
+            }
+        } else if (hotelSummary) {
+            hotelSummary.style.display = 'none';
+        }
+
+        // Mostrar/ocultar mensaje vacío
+        if (emptyMessage) {
+            if (playersCount === 0 && !window.checkoutItems.hotel) {
+                emptyMessage.style.display = 'block';
+            } else if (playersCount > 0 && !window.checkoutItems.hotel) {
+                // Si hay jugadores pero no hotel, el Paso 2 maneja "Add Hotel Stay"
+                emptyMessage.style.display = 'none';
+            } else {
+                emptyMessage.style.display = 'none';
+            }
+        }
+
+        // No-Show Fee: solo aplica si hay jugadores seleccionados y NO se añadió hotel
+        const NO_SHOW_FEE = 500;
+        const applyNoShowFee = (playersCount > 0) && !window.checkoutItems.hotel;
+        const noShowFee = applyNoShowFee ? NO_SHOW_FEE : 0;
+
+        // Mostrar/ocultar paso 2 (hotel) según si ya se añadió hotel
+        const stepHotel = document.getElementById('step-hotel');
+        if (stepHotel) {
+            stepHotel.style.display = window.checkoutItems.hotel ? 'none' : 'block';
+        }
+
+        const noShowSummary = document.getElementById('checkout-no-show-summary');
+        const noShowFeeEl = document.getElementById('checkout-no-show-fee');
+        if (noShowSummary && noShowFeeEl) {
+            if (applyNoShowFee) {
+                noShowSummary.style.display = 'block';
+                noShowFeeEl.textContent = '$' + formatPrice(noShowFee);
+            } else {
+                noShowSummary.style.display = 'none';
+                noShowFeeEl.textContent = '$0.00';
+            }
+        }
+
+        const noShowFeeInput = document.getElementById('no-show-fee-input');
+        if (noShowFeeInput) {
+            noShowFeeInput.value = String(noShowFee);
+        }
+
+        // Total del checkout (incluye No-Show Fee si aplica)
+        const checkoutTotal = playersTotal + hotelTotal + noShowFee;
+        window.__checkoutTotal = checkoutTotal;
+        window.__checkoutTotalPayNow = checkoutTotal * 0.95; // 5% discount
+
+        const checkoutTotalEl = document.getElementById('checkout-total-amount');
+        if (checkoutTotalEl) {
+            checkoutTotalEl.textContent = '$' + formatPrice(checkoutTotal);
+        }
+
+        // Actualizar textos de botones de pago (plan / pay now)
+        const planMonthlyEl = document.getElementById('plan-monthly-amount');
+        const planSubtextEl = document.getElementById('plan-subtext');
+        const payNowTotalEl = document.getElementById('pay-now-total');
+        const payNowSubtextEl = document.getElementById('pay-now-subtext');
+
+        // Pay now info
+        if (payNowTotalEl) {
+            payNowTotalEl.textContent = '$' + formatPrice(window.__checkoutTotalPayNow || 0);
+        }
+        if (payNowSubtextEl) {
+            const savings = (window.__checkoutTotal || 0) - (window.__checkoutTotalPayNow || 0);
+            if ((window.__checkoutTotal || 0) > 0) {
+                payNowSubtextEl.textContent = '{% trans "You pay today and save" %} $' + formatPrice(savings);
+            } else {
+                payNowSubtextEl.textContent = '';
+            }
+        }
+
+        // Plan info (months until payment_deadline)
+        if (paymentDeadlineStr) {
+            const now = new Date();
+            const deadline = new Date(paymentDeadlineStr + 'T00:00:00');
+            // Inclusive months: current month..deadline month
+            let months = (deadline.getFullYear() - now.getFullYear()) * 12 + (deadline.getMonth() - now.getMonth()) + 1;
+            if (!isFinite(months) || months < 1) months = 1;
+
+            const monthly = (window.__checkoutTotal || 0) / months;
+            if (planMonthlyEl) {
+                planMonthlyEl.textContent = '$' + formatPrice(monthly) + '/mo';
+            }
+            if (planSubtextEl) {
+                planSubtextEl.textContent =
+                    months + ' {% trans "monthly payments (approx.) until" %} ' + formatDateShort(deadline);
+            }
+        } else {
+            if (planMonthlyEl) planMonthlyEl.textContent = '';
+            if (planSubtextEl) planSubtextEl.textContent = '';
+        }
+
+        // Mostrar/ocultar impuestos del hotel (independiente del breakdown)
+        const taxesBreakdown = document.getElementById('checkout-taxes-breakdown');
+        const taxesDetails = document.getElementById('checkout-taxes-details');
+
+        if (hotelTotal > 0 && window.checkoutItems.hotel && taxesBreakdown && taxesDetails) {
+            const hotel = window.checkoutItems.hotel;
+            let hotelBasePrice = 0;
+            let hotelIVA = 0;
+            let hotelISH = 0;
+
+            // Calcular impuestos
+            if (hotel.base_price) {
+                hotelBasePrice = parseFloat(hotel.base_price);
+                hotelIVA = hotelBasePrice * 0.16;
+                hotelISH = hotelBasePrice * 0.05;
+            } else {
+                // Calcular desde el total
+                hotelBasePrice = hotelTotal / 1.21;
+                hotelIVA = hotelBasePrice * 0.16;
+                hotelISH = hotelBasePrice * 0.05;
+            }
+
+            // Mostrar impuestos
+            taxesBreakdown.style.display = 'block';
+            let taxesHTML = '<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>{% trans "Base" %}:</span><span style="font-weight: 600;">$' + formatPrice(hotelBasePrice) + '</span></div>';
+            taxesHTML += '<div style="display: flex; justify-content: space-between; margin-bottom: 4px;"><span>IVA (16%):</span><span style="font-weight: 600;">$' + formatPrice(hotelIVA) + '</span></div>';
+            taxesHTML += '<div style="display: flex; justify-content: space-between;"><span>ISH (5%):</span><span style="font-weight: 600;">$' + formatPrice(hotelISH) + '</span></div>';
+            taxesDetails.innerHTML = taxesHTML;
+        } else if (taxesBreakdown) {
+            // Ocultar impuestos si no hay hotel
+            taxesBreakdown.style.display = 'none';
+        }
+
+        // Actualizar desglose del total
+        const breakdownDiv = document.getElementById('checkout-breakdown');
+        const breakdownPlayers = document.getElementById('checkout-breakdown-players');
+        const breakdownHotel = document.getElementById('checkout-breakdown-hotel');
+        const breakdownPlayersText = document.getElementById('breakdown-players-text');
+        const breakdownHotelText = document.getElementById('breakdown-hotel-text');
+
+        if (breakdownDiv) {
+            if (playersCount > 0 || hotelTotal > 0) {
+                breakdownDiv.style.display = 'block';
+
+                // Desglose de jugadores
+                if (breakdownPlayers && breakdownPlayersText) {
+                    if (playersCount > 0) {
+                        breakdownPlayers.style.display = 'block';
+                        breakdownPlayersText.textContent = playersCount + ' × $' + formatPrice(pricePerPlayer) + ' = $' + formatPrice(playersTotal);
+                    } else {
+                        breakdownPlayers.style.display = 'none';
+                    }
+                }
+
+                // Desglose de hotel con impuestos
+                if (breakdownHotel && breakdownHotelText && hotelTotal > 0 && window.checkoutItems.hotel) {
+                    breakdownHotel.style.display = 'block';
+                    const hotel = window.checkoutItems.hotel;
+                    const nights = hotel.nights || 1;
+
+                    // Calcular desglose con impuestos
+                    let hotelBasePrice = 0;
+                    let hotelIVA = 0;
+                    let hotelISH = 0;
+
+                    if (hotel.base_price) {
+                        hotelBasePrice = parseFloat(hotel.base_price);
+                        hotelIVA = hotelBasePrice * 0.16;
+                        hotelISH = hotelBasePrice * 0.05;
+                    } else {
+                        // Calcular desde el total
+                        hotelBasePrice = hotelTotal / 1.21;
+                        hotelIVA = hotelBasePrice * 0.16;
+                        hotelISH = hotelBasePrice * 0.05;
+                    }
+
+                    const basePricePerNight = hotelBasePrice / nights;
+                    let breakdownHTML = nights + ' {% trans "night(s)" %} × $' + formatPrice(basePricePerNight) + ' = $' + formatPrice(hotelBasePrice);
+                    breakdownHTML += '<br><strong style="color: var(--mlb-red);">Total Hotel (con impuestos): $' + formatPrice(hotelTotal) + '</strong>';
+                    breakdownHotelText.innerHTML = breakdownHTML;
+
+                } else if (breakdownHotel) {
+                    breakdownHotel.style.display = 'none';
+                }
+
+                // Desglose No-Show Fee (si no hay hotel)
+                const noShowFeeRowId = 'checkout-breakdown-no-show';
+                let noShowRow = document.getElementById(noShowFeeRowId);
+                if (!noShowRow && breakdownDiv) {
+                    noShowRow = document.createElement('div');
+                    noShowRow.id = noShowFeeRowId;
+                    noShowRow.style.cssText = 'display:none; margin-top: 6px; color: #6c757d;';
+                    breakdownDiv.appendChild(noShowRow);
+                }
+                if (noShowRow) {
+                    const applyNoShowFee = (playersCount > 0) && !window.checkoutItems.hotel;
+                    const noShowFee = applyNoShowFee ? 500 : 0;
+                    if (applyNoShowFee) {
+                        noShowRow.style.display = 'block';
+                        noShowRow.innerHTML =
+                            '<div style="display:flex; justify-content: space-between; align-items:center;">' +
+                                '<span style="font-weight:600;">{% trans "No-Show Fee" %}</span>' +
+                                '<span style="font-weight:800; color:#f97316;">$' + formatPrice(noShowFee) + '</span>' +
+                            '</div>';
+                    } else {
+                        noShowRow.style.display = 'none';
+                        noShowRow.innerHTML = '';
+                    }
+                }
+            } else {
+                breakdownDiv.style.display = 'none';
+            }
+        }
+
+        // Habilitar/deshabilitar botones de pago
+        const payPlanBtn = document.getElementById('pay-plan-btn');
+        const payNowBtn = document.getElementById('pay-now-btn');
+        if (payPlanBtn && payNowBtn) {
+            if (playersCount > 0) {
+                [payPlanBtn, payNowBtn].forEach((btn) => {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    btn.style.cursor = 'pointer';
+                });
+            } else {
+                [payPlanBtn, payNowBtn].forEach((btn) => {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'not-allowed';
+                });
+            }
+        }
+
+        // Actualizar inputs hidden con jugadores seleccionados (múltiples inputs con name="players")
+        const selectedPlayers = Array.from(document.querySelectorAll('.child-checkbox:checked')).map(cb => cb.value);
+        const playersInputsContainer = document.getElementById('selected-players-inputs');
+        playersInputsContainer.innerHTML = ''; // Limpiar inputs anteriores
+        selectedPlayers.forEach(playerId => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'players';
+            input.value = playerId;
+            playersInputsContainer.appendChild(input);
+        });
+    }
+
+    // Event listeners para checkboxes de jugadores
     checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updateTotal);
+        checkbox.addEventListener('change', function() {
+            updateCheckoutSummary();
+        });
     });
 
     // Actualizar al cargar la página
-    updateTotal();
+    updateCheckoutSummary();
+
+    // Botones de pago (directos en el checkout)
+    const payPlanBtn = document.getElementById('pay-plan-btn');
+    const payNowBtn = document.getElementById('pay-now-btn');
+    const paymentModeInput = document.getElementById('payment-mode');
+    const discountPercentInput = document.getElementById('discount-percent');
+
+    function submitRegistration(mode) {
+        if (!registrationForm) return;
+        if (paymentModeInput) paymentModeInput.value = mode;
+        if (discountPercentInput) discountPercentInput.value = (mode === 'now') ? '5' : '0';
+        registrationForm.submit();
+    }
+
+    if (payPlanBtn) payPlanBtn.addEventListener('click', () => submitRegistration('plan'));
+    if (payNowBtn) payNowBtn.addEventListener('click', () => submitRegistration('now'));
+
+    // Función global para actualizar el hotel en el checkout (llamada desde el modal)
+    window.updateCheckoutHotel = function(hotelData) {
+        window.checkoutItems.hotel = hotelData;
+        updateCheckoutSummary();
+    };
+
+    // Eliminar artefactos legacy que algunos scripts viejos pueden inyectar en el checkout
+    function removeLegacyCheckoutArtifacts() {
+        // Elemento viejo del flujo de hotel
+        document.querySelectorAll('.hotel-reservation-item').forEach((item) => item.remove());
+        document.querySelectorAll('.checkout-grand-total').forEach((item) => item.remove());
+    }
+
+    // Ejecutar al cargar y periódicamente para asegurar que se eliminen
+    removeLegacyCheckoutArtifacts();
+    setInterval(removeLegacyCheckoutArtifacts, 1000);
+
+    // También eliminar cuando se actualiza el checkout
+    const originalUpdateCheckoutSummary = updateCheckoutSummary;
+    updateCheckoutSummary = function() {
+        originalUpdateCheckoutSummary();
+        removeLegacyCheckoutArtifacts();
+    };
 });
+
+// Mostrar sección "Add Hotel Stay" - NO ocultar basándose solo en localStorage
+// Solo se ocultará cuando realmente se añada exitosamente al checkout
+(function() {
+    const hotelPk = '{{ event.hotel.pk }}';
+    if (hotelPk) {
+        // LIMPIAR localStorage incorrecto - el valor está guardado incorrectamente
+        localStorage.removeItem('hotel_stay_added_' + hotelPk);
+        console.log('localStorage limpiado para hotel:', hotelPk);
+
+        // Asegurar que la sección esté visible
+        const ensureHotelSectionVisible = function() {
+            const hotelSection = document.getElementById('hotel-stay-section' + hotelPk);
+
+            if (hotelSection) {
+                console.log('Asegurando que la sección de hotel esté visible');
+                hotelSection.style.setProperty('display', 'block', 'important');
+                hotelSection.style.setProperty('visibility', 'visible', 'important');
+                hotelSection.style.setProperty('opacity', '1', 'important');
+            } else {
+                console.warn('No se encontró la sección hotel-stay-section' + hotelPk);
+            }
+        };
+
+        // Ejecutar después de que el DOM esté completamente cargado
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(ensureHotelSectionVisible, 100);
+            });
+        } else {
+            setTimeout(ensureHotelSectionVisible, 100);
+        }
+
+        // También ejecutar después de un delay adicional
+        setTimeout(ensureHotelSectionVisible, 500);
+    }
+})();
 </script>
 
 <!-- Modales de hotel se cargan desde detalle_evento_modals.html al final de panel_usuario.html -->

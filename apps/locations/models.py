@@ -1151,9 +1151,12 @@ class HotelReservation(models.Model):
         else:
             nights = 0
 
-        # Precio base de la habitación
+        # Precio base de la habitación (incluye costo por persona adicional)
         if self.room:
-            room_total = self.room.price_per_night * nights
+            includes = int(self.room.price_includes_guests or 1)
+            extra_guests = max(0, int(self.number_of_guests or 0) - includes)
+            per_night_total = self.room.price_per_night + (self.room.additional_guest_price or Decimal("0.00")) * extra_guests
+            room_total = per_night_total * nights
         else:
             room_total = Decimal("0.00")
 

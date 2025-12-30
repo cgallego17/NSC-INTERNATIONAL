@@ -36,7 +36,10 @@ class HotelCartView(LoginRequiredMixin, TemplateView):
                     nights = int(item_data.get("nights", 1))
                     guests = int(item_data.get("guests", 1))
 
-                    room_total = room.price_per_night * nights
+                    includes = int(room.price_includes_guests or 1)
+                    extra_guests = max(0, guests - includes)
+                    per_night_total = room.price_per_night + (room.additional_guest_price or Decimal("0.00")) * extra_guests
+                    room_total = per_night_total * nights
                     services_total = Decimal("0.00")
                     services_list = []
 
@@ -226,7 +229,10 @@ def get_cart_json(request):
                 nights = int(item_data.get("nights", 1))
                 guests = int(item_data.get("guests", 1))
 
-                room_total = room.price_per_night * nights
+                includes = int(room.price_includes_guests or 1)
+                extra_guests = max(0, guests - includes)
+                per_night_total = room.price_per_night + (room.additional_guest_price or Decimal("0.00")) * extra_guests
+                room_total = per_night_total * nights
                 services_total = Decimal("0.00")
 
                 # Calcular servicios

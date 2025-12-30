@@ -20,7 +20,7 @@
 
     <form method="post" id="reservationForm" class="needs-validation" novalidate>
         {% csrf_token %}
-        
+
         <div class="row">
             <!-- Formulario Principal -->
             <div class="col-lg-8">
@@ -36,7 +36,7 @@
                                 <select id="hotel" name="hotel" class="form-select" required>
                                     <option value="">Selecciona un Hotel</option>
                                     {% for hotel in hotels %}
-                                        <option value="{{ hotel.id }}" 
+                                        <option value="{{ hotel.id }}"
                                                 {% if selected_hotel and selected_hotel.id == hotel.id %}selected{% endif %}>
                                             {{ hotel.hotel_name }}
                                         </option>
@@ -51,10 +51,10 @@
                                 <select id="room" name="room" class="form-select" required>
                                     <option value="">Primero selecciona un hotel</option>
                                     {% for room in rooms %}
-                                        <option value="{{ room.id }}" 
+                                        <option value="{{ room.id }}"
                                                 data-price="{{ room.price_per_night }}"
                                                 {% if form.room.value == room.id %}selected{% endif %}>
-                                            Habitación #{{ room.room_number }} - {{ room.get_room_type_display }} 
+                                            Habitación #{{ room.room_number }} - {{ room.get_room_type_display }}
                                             ({{ room.capacity }} personas) - ${{ room.price_per_night }}/noche
                                         </option>
                                     {% endfor %}
@@ -76,7 +76,7 @@
                         <div class="row">
                             <div class="col-md-4 mb-3">
                                 <label for="check_in" class="form-label">Check-in <span class="text-danger">*</span></label>
-                                <input type="date" id="check_in" name="check_in" class="form-control" 
+                                <input type="date" id="check_in" name="check_in" class="form-control"
                                        value="{{ form.check_in.value|default:'' }}" required>
                                 {% if form.check_in.errors %}
                                     <div class="text-danger">{{ form.check_in.errors.0 }}</div>
@@ -84,7 +84,7 @@
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label for="check_out" class="form-label">Check-out <span class="text-danger">*</span></label>
-                                <input type="date" id="check_out" name="check_out" class="form-control" 
+                                <input type="date" id="check_out" name="check_out" class="form-control"
                                        value="{{ form.check_out.value|default:'' }}" required>
                                 {% if form.check_out.errors %}
                                     <div class="text-danger">{{ form.check_out.errors.0 }}</div>
@@ -92,7 +92,7 @@
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label for="number_of_guests" class="form-label">Número de Huéspedes <span class="text-danger">*</span></label>
-                                <input type="number" id="number_of_guests" name="number_of_guests" class="form-control" 
+                                <input type="number" id="number_of_guests" name="number_of_guests" class="form-control"
                                        value="{{ form.number_of_guests.value|default:'1' }}" min="1" required>
                                 {% if form.number_of_guests.errors %}
                                     <div class="text-danger">{{ form.number_of_guests.errors.0 }}</div>
@@ -111,7 +111,7 @@
                         <div class="row">
                             <div class="col-md-4 mb-3">
                                 <label for="guest_name" class="form-label">Nombre Completo <span class="text-danger">*</span></label>
-                                <input type="text" id="guest_name" name="guest_name" class="form-control" 
+                                <input type="text" id="guest_name" name="guest_name" class="form-control"
                                        value="{{ form.guest_name.value|default:user.get_full_name|default:user.username }}" required>
                                 {% if form.guest_name.errors %}
                                     <div class="text-danger">{{ form.guest_name.errors.0 }}</div>
@@ -119,7 +119,7 @@
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label for="guest_email" class="form-label">Email <span class="text-danger">*</span></label>
-                                <input type="email" id="guest_email" name="guest_email" class="form-control" 
+                                <input type="email" id="guest_email" name="guest_email" class="form-control"
                                        value="{{ form.guest_email.value|default:user.email }}" required>
                                 {% if form.guest_email.errors %}
                                     <div class="text-danger">{{ form.guest_email.errors.0 }}</div>
@@ -127,7 +127,7 @@
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label for="guest_phone" class="form-label">Teléfono <span class="text-danger">*</span></label>
-                                <input type="text" id="guest_phone" name="guest_phone" class="form-control" 
+                                <input type="text" id="guest_phone" name="guest_phone" class="form-control"
                                        value="{{ form.guest_phone.value|default:user.profile.phone|default:'' }}" required>
                                 {% if form.guest_phone.errors %}
                                     <div class="text-danger">{{ form.guest_phone.errors.0 }}</div>
@@ -148,8 +148,8 @@
                                 {% for service in services %}
                                     <div class="service-item mb-3 p-3 border rounded">
                                         <div class="form-check">
-                                            <input class="form-check-input service-checkbox" type="checkbox" 
-                                                   name="services" value="{{ service.id }}" 
+                                            <input class="form-check-input service-checkbox" type="checkbox"
+                                                   name="services" value="{{ service.id }}"
                                                    id="service_{{ service.id }}"
                                                    data-price="{{ service.price }}"
                                                    data-per-person="{% if service.is_per_person %}true{% else %}false{% endif %}"
@@ -178,7 +178,7 @@
                                         </div>
                                         <div class="service-quantity mt-2" style="display: none;">
                                             <label class="form-label">Cantidad:</label>
-                                            <input type="number" name="quantities" class="form-control form-control-sm quantity-input" 
+                                            <input type="number" name="quantities" class="form-control form-control-sm quantity-input"
                                                    value="1" min="1" data-service-id="{{ service.id }}">
                                         </div>
                                     </div>
@@ -196,7 +196,7 @@
                         <h5 class="mb-0"><i class="fas fa-sticky-note me-2"></i>Notas Adicionales</h5>
                     </div>
                     <div class="card-body">
-                        <textarea id="notes" name="notes" class="form-control" rows="4" 
+                        <textarea id="notes" name="notes" class="form-control" rows="4"
                                   placeholder="Notas adicionales sobre tu reserva...">{{ form.notes.value|default:'' }}</textarea>
                     </div>
                 </div>
@@ -238,7 +238,7 @@
                             <hr>
                             <div class="d-flex justify-content-between mb-3">
                                 <strong>TOTAL:</strong>
-                                <strong class="text-primary" id="grandTotal" style="font-size: 1.5rem;">$0.00</strong>
+                                <strong class="text-primary" id="totalAmount" style="font-size: 1.5rem;">$0.00</strong>
                             </div>
                             <button type="submit" class="btn btn-primary w-100 btn-lg">
                                 <i class="fas fa-credit-card me-2"></i>Continuar al Pago
@@ -260,10 +260,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const guestsInput = document.getElementById('number_of_guests');
     const serviceCheckboxes = document.querySelectorAll('.service-checkbox');
     const quantityInputs = document.querySelectorAll('.quantity-input');
-    
+
     let selectedRoom = null;
     let selectedServices = [];
-    
+
     // Cargar habitaciones cuando se selecciona un hotel
     hotelSelect.addEventListener('change', function() {
         const hotelId = this.value;
@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         updateTotal();
     });
-    
+
     // Actualizar total cuando cambia la habitación
     roomSelect.addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
@@ -291,12 +291,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         updateTotal();
     });
-    
+
     // Actualizar total cuando cambian las fechas
     checkInInput.addEventListener('change', updateTotal);
     checkOutInput.addEventListener('change', updateTotal);
     guestsInput.addEventListener('input', updateTotal);
-    
+
     // Manejar selección de servicios
     serviceCheckboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
@@ -311,12 +311,12 @@ document.addEventListener('DOMContentLoaded', function() {
             updateTotal();
         });
     });
-    
+
     // Actualizar total cuando cambia la cantidad de servicios
     quantityInputs.forEach(input => {
         input.addEventListener('input', updateTotal);
     });
-    
+
     // Cargar habitaciones desde AJAX
     function loadRooms(hotelId) {
         const checkIn = checkInInput.value;
@@ -325,7 +325,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (checkIn && checkOut) {
             url += `?check_in=${checkIn}&check_out=${checkOut}`;
         }
-        
+
         fetch(url)
             .then(response => response.json())
             .then(data => {
@@ -345,7 +345,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error cargando habitaciones:', error);
             });
     }
-    
+
     // Cargar servicios desde AJAX
     function loadServices(hotelId) {
         fetch(`/locations/ajax/hotels/${hotelId}/services/`)
@@ -359,8 +359,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         serviceDiv.className = 'service-item mb-3 p-3 border rounded';
                         serviceDiv.innerHTML = `
                             <div class="form-check">
-                                <input class="form-check-input service-checkbox" type="checkbox" 
-                                       name="services" value="${service.id}" 
+                                <input class="form-check-input service-checkbox" type="checkbox"
+                                       name="services" value="${service.id}"
                                        id="service_${service.id}"
                                        data-price="${service.price}"
                                        data-per-person="${service.is_per_person}"
@@ -383,16 +383,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             </div>
                             <div class="service-quantity mt-2" style="display: none;">
                                 <label class="form-label">Cantidad:</label>
-                                <input type="number" name="quantities" class="form-control form-control-sm quantity-input" 
+                                <input type="number" name="quantities" class="form-control form-control-sm quantity-input"
                                        value="1" min="1" data-service-id="${service.id}">
                             </div>
                         `;
                         container.appendChild(serviceDiv);
-                        
+
                         // Agregar event listeners
                         const checkbox = serviceDiv.querySelector('.service-checkbox');
                         const quantityInput = serviceDiv.querySelector('.quantity-input');
-                        
+
                         checkbox.addEventListener('change', function() {
                             const quantityDiv = this.closest('.service-item').querySelector('.service-quantity');
                             if (this.checked) {
@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             }
                             updateTotal();
                         });
-                        
+
                         quantityInput.addEventListener('input', updateTotal);
                     });
                 } else {
@@ -415,14 +415,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error cargando servicios:', error);
             });
     }
-    
+
     // Calcular y actualizar el total
     function updateTotal() {
         let roomTotal = 0;
         let servicesTotal = 0;
         let nights = 0;
         const guests = parseInt(guestsInput.value) || 1;
-        
+
         // Calcular noches
         if (checkInInput.value && checkOutInput.value) {
             const checkIn = new Date(checkInInput.value);
@@ -431,12 +431,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 nights = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
             }
         }
-        
+
         // Calcular total de habitación
         if (selectedRoom && nights > 0) {
             roomTotal = selectedRoom.price * nights;
         }
-        
+
         // Calcular total de servicios
         const checkedServices = document.querySelectorAll('.service-checkbox:checked');
         checkedServices.forEach(checkbox => {
@@ -446,7 +446,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const price = parseFloat(checkbox.dataset.price || 0);
             const isPerPerson = checkbox.dataset.perPerson === 'true';
             const isPerNight = checkbox.dataset.perNight === 'true';
-            
+
             let servicePrice = price * quantity;
             if (isPerPerson) {
                 servicePrice = servicePrice * guests;
@@ -454,19 +454,19 @@ document.addEventListener('DOMContentLoaded', function() {
             if (isPerNight && nights > 0) {
                 servicePrice = servicePrice * nights;
             }
-            
+
             servicesTotal += servicePrice;
         });
-        
+
         // Actualizar resumen
         document.getElementById('roomSummary').textContent = selectedRoom ? selectedRoom.text.split(' - ')[0] : 'Selecciona una habitación';
         document.getElementById('nightsSummary').textContent = nights > 0 ? `${nights} noche${nights !== 1 ? 's' : ''}` : '-';
         document.getElementById('guestsSummary').textContent = `${guests} persona${guests !== 1 ? 's' : ''}`;
         document.getElementById('roomTotal').textContent = `$${roomTotal.toFixed(2)}`;
         document.getElementById('servicesTotal').textContent = `$${servicesTotal.toFixed(2)}`;
-        document.getElementById('grandTotal').textContent = `$${(roomTotal + servicesTotal).toFixed(2)}`;
+        document.getElementById('totalAmount').textContent = `$${(roomTotal + servicesTotal).toFixed(2)}`;
     }
-    
+
     // Inicializar
     if (hotelSelect.value) {
         hotelSelect.dispatchEvent(new Event('change'));

@@ -24,54 +24,59 @@
         z-index: 1060;
     }
 
-    /* Masonry Gallery Styles */
+    /* Room Detail Gallery - Regular Grid (NOT Masonry) */
     #room-detail-modal-gallery{{ event.hotel.pk }} {
         width: 100%;
-        min-height: 400px;
     }
 
     .nsc-masonry-gallery {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        grid-auto-rows: 10px;
-        gap: 12px;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 10px;
         width: 100%;
         padding: 0;
+        justify-items: start;
         align-items: start;
+        /* Grid: items se ajustan al tamaño de las imágenes */
+    }
+
+    .nsc-masonry-item {
+        position: relative;
+        max-width: 100%;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        background: #f8f9fa;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        display: inline-block;
+        /* Item se ajusta al tamaño de la imagen, no más grande */
+    }
+
+    .nsc-masonry-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    .nsc-masonry-item img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        /* Imagen mantiene su tamaño natural, no se estira */
     }
 
     @media (max-width: 1200px) {
         .nsc-masonry-gallery {
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 8px;
         }
     }
 
-    .nsc-masonry-item {
-        cursor: pointer;
-        border-radius: 10px;
-        overflow: hidden;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-        position: relative;
-        background: #f8f9fa;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .nsc-masonry-item:hover {
-        transform: translateY(-4px) scale(1.02);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-        z-index: 10;
-    }
-
-    .nsc-masonry-item img {
-        width: 100%;
-        height: 100%;
-        display: block;
-        object-fit: cover;
-        border-radius: 10px;
+    @media (max-width: 768px) {
+        .nsc-masonry-gallery {
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 6px;
+        }
     }
 
     /* Ajustar el nsc-card que contiene la galería */
@@ -1122,7 +1127,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <form method="post" action="{% url 'locations:front_hotel_reservation_create' %}" id="guest-details-form{{ event.hotel.pk }}">
+            <form method="post" action="{% url 'locations:front_hotel_reservation_create' %}" id="guest-details-form{{ event.hotel.pk }}" data-hotel-pk="{{ event.hotel.pk }}">
                 {% csrf_token %}
                 <input type="hidden" name="hotel" id="guest-hotel{{ event.hotel.pk }}" value="{{ event.hotel.pk }}">
                 <input type="hidden" name="room" id="guest-room{{ event.hotel.pk }}" value="">
@@ -1155,17 +1160,17 @@
                             <div class="col-md-6">
                                 <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Full Name" %} *</label>
                                 <input type="text" class="form-control" name="guest_name" required
-                                       value=""
+                                       value="{% if user.get_full_name %}{{ user.get_full_name }}{% elif user.first_name or user.last_name %}{{ user.first_name }} {{ user.last_name }}{% else %}{{ user.username }}{% endif %}"
                                        style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Email" %} *</label>
-                                <input type="email" class="form-control" name="guest_email" required value=""
+                                <input type="email" class="form-control" name="guest_email" required value="{% if user.email %}{{ user.email }}{% endif %}"
                                        style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Phone" %} *</label>
-                                <input type="tel" class="form-control" name="guest_phone" required value=""
+                                <input type="tel" class="form-control" name="guest_phone" required value="{% if user.profile.phone %}{{ user.profile.phone }}{% endif %}"
                                        style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
                             </div>
                             <div class="col-md-6">
@@ -1205,8 +1210,8 @@
                             style="padding: 12px 22px;">
                         {% trans "Back" %}
                     </button>
-                    <button type="submit" class="btn btn-form-submit" style="padding: 12px 22px;">
-                        {% trans "Create reservation" %}
+                    <button type="submit" class="btn btn-form-submit" id="add-to-checkout-btn{{ event.hotel.pk }}" style="padding: 12px 22px;">
+                        <i class="fas fa-shopping-cart me-2"></i>{% trans "Add to checkout" %}
                     </button>
                 </div>
             </form>
@@ -1428,5 +1433,1144 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Script para poblar todos los guests en el modal de Guest Details
+(function() {
+    const hotelPk = '{{ event.hotel.pk }}';
+    const guestModal = document.getElementById('hotelGuestDetailsModal' + hotelPk);
+
+    function ensureGuestStore() {
+        if (!window.NSC_HotelReservation) return null;
+        if (!window.NSC_HotelReservation.__nscGuestStore) {
+            window.NSC_HotelReservation.__nscGuestStore = {};
+        }
+        if (!window.NSC_HotelReservation.__nscGuestStore[hotelPk]) {
+            window.NSC_HotelReservation.__nscGuestStore[hotelPk] = {
+                additionalAdults: [],
+                additionalChildren: []
+            };
+        }
+        return window.NSC_HotelReservation.__nscGuestStore[hotelPk];
+    }
+
+    function upsertGuest(list, guest) {
+        const key = `${(guest.type || '').toLowerCase()}|${(guest.email || '').toLowerCase()}|${guest.birthDate || ''}|${(guest.name || '').toLowerCase()}`;
+        const existingIdx = list.findIndex(g => {
+            const gKey = `${(g.type || '').toLowerCase()}|${(g.email || '').toLowerCase()}|${g.birthDate || ''}|${(g.name || '').toLowerCase()}`;
+            return gKey === key;
+        });
+        if (existingIdx === -1) list.push(guest);
+        else list[existingIdx] = { ...list[existingIdx], ...guest };
+    }
+
+    function tryWrapSaveGuest() {
+        const ns = window.NSC_HotelReservation;
+        if (!ns) return false;
+        ns.__nscWrappedSaveGuestByHotel = ns.__nscWrappedSaveGuestByHotel || {};
+        if (ns.__nscWrappedSaveGuestByHotel[hotelPk]) return true;
+
+        const originalSave = ns.saveGuest;
+        if (typeof originalSave !== 'function') return false;
+
+        ns.__nscWrappedSaveGuestByHotel[hotelPk] = true;
+        ns.saveGuest = function(hotelPkArg) {
+            // Capturar antes de que el original limpie/cierre el modal
+            try {
+                const store = ensureGuestStore();
+                const firstName = document.getElementById('guestFirstName' + hotelPk)?.value?.trim() || '';
+                const lastName = document.getElementById('guestLastName' + hotelPk)?.value?.trim() || '';
+                const email = document.getElementById('guestEmail' + hotelPk)?.value?.trim() || '';
+                const birthDate = document.getElementById('guestBirthDate' + hotelPk)?.value || '';
+                const type =
+                    (document.getElementById('guestTypeAdult' + hotelPk)?.checked ? 'adult' : null) ||
+                    (document.getElementById('guestTypeChild' + hotelPk)?.checked ? 'child' : null) ||
+                    'adult';
+
+                const name = `${firstName} ${lastName}`.trim();
+                if (store && name) {
+                    const guest = { type, name, email, birthDate };
+                    if (type === 'adult') upsertGuest(store.additionalAdults, guest);
+                    else upsertGuest(store.additionalChildren, guest);
+                }
+            } catch (e) {
+                console.warn('NSC guest capture (saveGuest) failed:', e);
+            }
+
+            return originalSave.call(this, hotelPkArg);
+        };
+
+        return true;
+    }
+
+    // Intentar envolver saveGuest aunque NSC_HotelReservation se cargue después
+    (function bootstrapWrap(attempt = 0) {
+        if (tryWrapSaveGuest()) return;
+        if (attempt >= 20) return; // ~5s
+        setTimeout(() => bootstrapWrap(attempt + 1), 250);
+    })();
+
+    // Función global para que pueda ser llamada desde NSC_HotelReservation
+    window.populateGuestFields{{ event.hotel.pk }} = function() {
+        populateGuestFields(hotelPk);
+    };
+
+    if (guestModal) {
+        // Ejecutar cuando el modal se muestra completamente
+        guestModal.addEventListener('shown.bs.modal', function() {
+            setTimeout(function() {
+                populateGuestFields(hotelPk);
+            }, 200);
+        });
+    }
+
+    // También interceptar la función continueToGuestDetails si existe
+    const originalContinue = window.NSC_HotelReservation?.continueToGuestDetails;
+    if (window.NSC_HotelReservation && originalContinue) {
+        window.NSC_HotelReservation.continueToGuestDetails = function(hotelPk) {
+            const result = originalContinue.call(this, hotelPk);
+            // Ejecutar después de que se abra el modal
+            setTimeout(function() {
+                if (window.populateGuestFields{{ event.hotel.pk }}) {
+                    window.populateGuestFields{{ event.hotel.pk }}();
+                }
+            }, 300);
+            return result;
+        };
+    }
+
+    function populateGuestFields(hotelPk) {
+        console.log('Starting to populate guest fields for hotel', hotelPk);
+
+        // Obtener jugadores/hijos seleccionados
+        const selectedPlayers = [];
+
+        // Buscar en todos los lugares posibles - checkboxes de children/players
+        // Buscar en todo el documento, no solo en modales visibles
+        const allCheckboxes = document.querySelectorAll('.child-checkbox:checked');
+        console.log('Found', allCheckboxes.length, 'checked child checkboxes');
+        allCheckboxes.forEach(function(checkbox) {
+            const childItem = checkbox.closest('.child-item');
+            if (childItem) {
+                const childId = childItem.getAttribute('data-child-id');
+                let childName = childItem.getAttribute('data-child-name') || '';
+                let childEmail = childItem.getAttribute('data-child-email') || '';
+                let childBirthDate = childItem.getAttribute('data-birth-date') || '';
+
+                // Si no hay datos en atributos, intentar obtener del texto
+                if (!childName) {
+                    const nameElement = childItem.querySelector('.room-name, .child-name, [class*="name"]');
+                    if (nameElement) {
+                        childName = nameElement.textContent.trim();
+                    }
+                }
+
+                if (childId || childName) {
+                    const existing = selectedPlayers.find(p => (p.id === childId) || (p.name === childName && childName));
+                    if (!existing) {
+                        selectedPlayers.push({
+                            id: childId || 'player_' + selectedPlayers.length,
+                            name: childName,
+                            email: childEmail,
+                            birthDate: childBirthDate
+                        });
+                        console.log('Added player:', childName, childId);
+                    }
+                }
+            }
+        });
+
+        // Fallback: players/children seleccionados pueden estar renderizados como "chips" en #children-list{hotelPk}
+        try {
+            const chipsWrap = document.getElementById('children-list' + hotelPk);
+            if (chipsWrap) {
+                const chips = chipsWrap.children ? Array.from(chipsWrap.children) : [];
+                chips.forEach((chip) => {
+                    const name = (chip.getAttribute?.('data-child-name') || chip.getAttribute?.('data-guest-name') || '').trim()
+                        || (chip.textContent || '').trim();
+                    if (!name) return;
+
+                    const email = (chip.getAttribute?.('data-child-email') || chip.getAttribute?.('data-guest-email') || '').trim();
+                    const birthMatch = (chip.getAttribute?.('data-birth-date') || chip.getAttribute?.('data-guest-birth-date') || (chip.textContent || '')).match(/\b\d{4}-\d{2}-\d{2}\b/);
+                    const birthDate = birthMatch ? birthMatch[0] : '';
+                    const id = (chip.getAttribute?.('data-child-id') || chip.getAttribute?.('data-guest-id') || '').trim() || ('chip_' + selectedPlayers.length);
+
+                    const existing = selectedPlayers.find(p => (p.id && p.id === id) || (p.name && p.name.toLowerCase() === name.toLowerCase()));
+                    if (!existing) {
+                        selectedPlayers.push({ id, name, email, birthDate });
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn('NSC player capture (#children-list) failed:', e);
+        }
+
+        // Nota: en Guest Details, la "fuente de verdad" debe ser Guests List (Rooms modal).
+        // No vamos a crear guests basados en steppers/contadores si no están en Guests List.
+
+        // Fuente principal: guests añadidos via "Add Guest" (saveGuest)
+        const store = window.NSC_HotelReservation?.__nscGuestStore?.[hotelPk] || null;
+        const mainName = document.querySelector(`#guest-details-form${hotelPk} input[name="guest_name"]`)?.value?.trim()?.toLowerCase() || '';
+        const mainEmail = document.querySelector(`#guest-details-form${hotelPk} input[name="guest_email"]`)?.value?.trim()?.toLowerCase() || '';
+
+        // Obtener adultos adicionales (todos los adultos excepto el main contact)
+        const additionalAdults = Array.isArray(store?.additionalAdults) ? [...store.additionalAdults] : [];
+
+        // Fallback: intentar leer guests desde la lista renderizada en Rooms modal (si existe)
+        try {
+            const roomsGuestsList = document.getElementById('rooms-guests-list' + hotelPk);
+            if (roomsGuestsList) {
+                const dataItems = roomsGuestsList.querySelectorAll('[data-guest-name], [data-guest-type]');
+                const childrenItems = roomsGuestsList.children ? Array.from(roomsGuestsList.children) : [];
+                const candidates = dataItems.length ? Array.from(dataItems) : (childrenItems.length ? childrenItems : [roomsGuestsList]);
+                candidates.forEach((el) => {
+                    const name = (el.getAttribute?.('data-guest-name') || '').trim() || (el.textContent || '').trim();
+                    if (!name) return;
+
+                    const emailAttr = (el.getAttribute?.('data-guest-email') || '').trim();
+                    const emailMatch = (emailAttr || (el.textContent || '')).match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+                    const email = (emailAttr || (emailMatch ? emailMatch[0] : '')).trim();
+
+                    const typeAttr = (el.getAttribute?.('data-guest-type') || '').toLowerCase().trim();
+                    const text = (el.textContent || '').toLowerCase();
+                    const type =
+                        typeAttr ||
+                        (text.includes('child') || text.includes('niñ') ? 'child' : 'adult');
+
+                    // Evitar duplicar el main contact si aparece en esta lista
+                    if (type === 'adult') {
+                        if (mainEmail && email && mainEmail === email.toLowerCase()) return;
+                        if (mainName && name.toLowerCase().includes(mainName)) return;
+                    }
+
+                    const birthMatch = (el.getAttribute?.('data-guest-birth-date') || (el.textContent || '')).match(/\b\d{4}-\d{2}-\d{2}\b/);
+                    const birthDate = birthMatch ? birthMatch[0] : '';
+
+                    const guest = { type, name, email, birthDate };
+                    if (type === 'adult') upsertGuest(additionalAdults, guest);
+                });
+
+                // Si la lista es texto plano (sin items ni data-*), parsear por líneas
+                const rawText = (roomsGuestsList.textContent || '').trim();
+                if (rawText) {
+                    const lines = rawText
+                        .split('\n')
+                        .map(l => l.replace(/\s+/g, ' ').trim())
+                        .filter(Boolean);
+
+                    lines.forEach((line) => {
+                        // Detectar email y fecha en la línea
+                        const emailMatch = line.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+                        const birthMatch = line.match(/\b\d{4}-\d{2}-\d{2}\b/);
+                        const email = emailMatch ? emailMatch[0] : '';
+                        const birthDate = birthMatch ? birthMatch[0] : '';
+
+                        const lower = line.toLowerCase();
+                        const type =
+                            (lower.includes('adult') || lower.includes('adulto')) ? 'adult' :
+                            (lower.includes('child') || lower.includes('niñ') || lower.includes('bebe') || lower.includes('baby')) ? 'child' :
+                            (lower.includes('player') || lower.includes('jugador')) ? 'child' :
+                            'adult';
+
+                        // Intentar extraer nombre quitando email/fecha y etiquetas
+                        let name = line;
+                        if (email) name = name.replace(email, '').trim();
+                        if (birthDate) name = name.replace(birthDate, '').trim();
+                        name = name.replace(/^(adult|adulto|child|niño|niña|player|jugador)\s*[:\-]?\s*/i, '').trim();
+                        name = name.replace(/\s*\(\s*.*?\s*\)\s*$/g, '').trim(); // quitar "(...)" al final
+
+                        if (!name) return;
+
+                        // Evitar duplicar main contact
+                        if (type === 'adult') {
+                            if (mainEmail && email && mainEmail === email.toLowerCase()) return;
+                            if (mainName && name.toLowerCase().includes(mainName)) return;
+                        }
+
+                        const guest = { type, name, email, birthDate };
+                        if (type === 'adult') upsertGuest(additionalAdults, guest);
+                    });
+                }
+            }
+        } catch (e) {
+            console.warn('NSC guest capture (rooms-guests-list) failed:', e);
+        }
+
+        // Buscar en todos los contenedores de adultos (incluso si están ocultos)
+        const allAdultsContainers = document.querySelectorAll('#adults-forms-container' + hotelPk);
+        console.log('Found', allAdultsContainers.length, 'adults containers');
+        allAdultsContainers.forEach(function(adultsContainer) {
+            if (adultsContainer) {
+                const adultItems = adultsContainer.querySelectorAll('.adult-form-item');
+                console.log('Found', adultItems.length, 'adult form items in container');
+                adultItems.forEach(function(item, index) {
+                    // Skip first adult (main contact) - se muestra en el formulario principal
+                    if (index > 0) {
+                        const nameInput = item.querySelector('input[name^="adult_name_"], input[name*="adult_name"], input[name*="name"]');
+                        const emailInput = item.querySelector('input[name^="adult_email_"], input[name*="adult_email"], input[name*="email"]');
+                        const phoneInput = item.querySelector('input[name^="adult_phone_"], input[name*="adult_phone"], input[name*="phone"]');
+                        const birthDateInput = item.querySelector('input[name^="adult_birth_date_"], input[name*="adult_birth_date"], input[name*="birth_date"], input[type="date"]');
+
+                        if (nameInput) {
+                            const name = nameInput.value.trim();
+                            if (name) {
+                                const existing = additionalAdults.find(a => a.name === name && a.email === (emailInput ? emailInput.value.trim() : ''));
+                                if (!existing) {
+                                    additionalAdults.push({
+                                        name: name,
+                                        email: emailInput ? emailInput.value.trim() : '',
+                                        phone: phoneInput ? phoneInput.value.trim() : '',
+                                        birthDate: birthDateInput ? birthDateInput.value : ''
+                                    });
+                                    console.log('Added additional adult:', name);
+                                }
+                            }
+                        } else {
+                            // Si no hay input, intentar obtener del texto del item
+                            const itemText = item.textContent.trim();
+                            if (itemText && itemText.length > 3) {
+                                console.log('Found adult item without input:', itemText);
+                            }
+                        }
+                    }
+                });
+            }
+        });
+
+        // No normalizar por stepper: solo mostrar adultos adicionales si están en Guests List.
+
+        // Obtener niños adicionales
+        const additionalChildren = Array.isArray(store?.additionalChildren) ? [...store.additionalChildren] : [];
+
+        // Fallback: también leer children añadidos desde la lista del Rooms modal
+        try {
+            const roomsGuestsList = document.getElementById('rooms-guests-list' + hotelPk);
+            if (roomsGuestsList) {
+                const dataItems = roomsGuestsList.querySelectorAll('[data-guest-name], [data-guest-type]');
+                const childrenItems = roomsGuestsList.children ? Array.from(roomsGuestsList.children) : [];
+                const candidates = dataItems.length ? Array.from(dataItems) : (childrenItems.length ? childrenItems : [roomsGuestsList]);
+                candidates.forEach((el) => {
+                    const name = (el.getAttribute?.('data-guest-name') || '').trim() || (el.textContent || '').trim();
+                    if (!name) return;
+
+                    const typeAttr = (el.getAttribute?.('data-guest-type') || '').toLowerCase().trim();
+                    const text = (el.textContent || '').toLowerCase();
+                    const type =
+                        typeAttr ||
+                        (text.includes('child') || text.includes('niñ') ? 'child' : 'adult');
+                    if (type !== 'child') return;
+
+                    const emailAttr = (el.getAttribute?.('data-guest-email') || '').trim();
+                    const emailMatch = (emailAttr || (el.textContent || '')).match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+                    const email = (emailAttr || (emailMatch ? emailMatch[0] : '')).trim();
+
+                    const birthMatch = (el.getAttribute?.('data-guest-birth-date') || (el.textContent || '')).match(/\b\d{4}-\d{2}-\d{2}\b/);
+                    const birthDate = birthMatch ? birthMatch[0] : '';
+
+                    const guest = { type: 'child', name, email, birthDate };
+                    upsertGuest(additionalChildren, guest);
+                });
+
+                // Si la lista es texto plano, parsear por líneas para children también
+                const rawText = (roomsGuestsList.textContent || '').trim();
+                if (rawText) {
+                    const lines = rawText
+                        .split('\n')
+                        .map(l => l.replace(/\s+/g, ' ').trim())
+                        .filter(Boolean);
+
+                    lines.forEach((line) => {
+                        const lower = line.toLowerCase();
+                        const looksChild =
+                            lower.includes('child') || lower.includes('niñ') || lower.includes('player') || lower.includes('jugador') || lower.includes('baby') || lower.includes('bebe');
+                        if (!looksChild) return;
+
+                        const emailMatch = line.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+                        const birthMatch = line.match(/\b\d{4}-\d{2}-\d{2}\b/);
+                        const email = emailMatch ? emailMatch[0] : '';
+                        const birthDate = birthMatch ? birthMatch[0] : '';
+
+                        let name = line;
+                        if (email) name = name.replace(email, '').trim();
+                        if (birthDate) name = name.replace(birthDate, '').trim();
+                        name = name.replace(/^(child|niño|niña|player|jugador|baby|bebe)\s*[:\-]?\s*/i, '').trim();
+                        name = name.replace(/\s*\(\s*.*?\s*\)\s*$/g, '').trim();
+                        if (!name) return;
+
+                        upsertGuest(additionalChildren, { type: 'child', name, email, birthDate });
+                    });
+                }
+            }
+        } catch (e) {
+            console.warn('NSC guest capture (rooms-guests-list children) failed:', e);
+        }
+
+        // Buscar en todos los contenedores de niños adicionales (incluso si están ocultos)
+        const allChildrenContainers = document.querySelectorAll('#additional-children-forms-container' + hotelPk);
+        console.log('Found', allChildrenContainers.length, 'additional children containers');
+        allChildrenContainers.forEach(function(childrenContainer) {
+            if (childrenContainer) {
+                const childItems = childrenContainer.querySelectorAll('.additional-child-form-item');
+                console.log('Found', childItems.length, 'additional child form items in container');
+                childItems.forEach(function(item) {
+                    const nameInput = item.querySelector('input[name^="additional_child_name_"], input[name*="additional_child_name"], input[name*="child_name"], input[name*="name"]');
+                    const emailInput = item.querySelector('input[name^="additional_child_email_"], input[name*="additional_child_email"], input[name*="child_email"], input[name*="email"]');
+                    const birthDateInput = item.querySelector('input[name^="additional_child_birth_date_"], input[name*="additional_child_birth_date"], input[name*="child_birth_date"], input[name*="birth_date"], input[type="date"]');
+
+                    if (nameInput) {
+                        const name = nameInput.value.trim();
+                        if (name) {
+                            const existing = additionalChildren.find(c => c.name === name);
+                            if (!existing) {
+                                additionalChildren.push({
+                                    name: name,
+                                    email: emailInput ? emailInput.value.trim() : '',
+                                    birthDate: birthDateInput ? birthDateInput.value : ''
+                                });
+                                console.log('Added additional child:', name);
+                            }
+                        }
+                    } else {
+                        // Si no hay input, intentar obtener del texto del item
+                        const itemText = item.textContent.trim();
+                        if (itemText && itemText.length > 3) {
+                            console.log('Found child item without input:', itemText);
+                        }
+                    }
+                });
+            }
+        });
+
+        // No normalizar por stepper: solo mostrar niños adicionales si están en Guests List.
+
+        // --- Enforce: ONLY guests that are in "Guests List" (Rooms modal) ---
+        // Guardamos referencia a players detectados (checkboxes/chips) para poder clasificar children como "players"
+        const detectedPlayersSnapshot = selectedPlayers.map(p => ({ ...p }));
+
+        function norm(s) {
+            return (s || '').toString().replace(/\s+/g, ' ').trim().toLowerCase();
+        }
+
+        function isMainContact(name, email) {
+            const n = norm(name);
+            const e = norm(email);
+            if (mainEmail && e && norm(mainEmail) === e) return true;
+            // Para evitar falsos positivos (mismo apellido), comparar nombre completo exacto
+            if (mainName && n && norm(mainName) && n === norm(mainName)) return true;
+            return false;
+        }
+
+        function parseGuestsList() {
+            const el = document.getElementById('rooms-guests-list' + hotelPk);
+            const entries = [];
+            if (!el) return entries;
+
+            function parseDateString(dateStr) {
+                // Convertir fechas en formato texto a YYYY-MM-DD
+                // Ejemplos: "Jan 31, 1992", "Nov 10, 2013", "02/01/1992", "1992-01-31"
+
+                if (!dateStr) return '';
+
+                // Si ya está en formato YYYY-MM-DD, retornarlo
+                if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+
+                // Formato "MM/DD/YYYY" o "DD/MM/YYYY"
+                const slashMatch = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+                if (slashMatch) {
+                    const [, m, d, y] = slashMatch;
+                    // Asumir MM/DD/YYYY (formato común en US)
+                    const month = m.padStart(2, '0');
+                    const day = d.padStart(2, '0');
+                    return `${y}-${month}-${day}`;
+                }
+
+                // Formato "Jan 31, 1992" o "Nov 10, 2013"
+                const monthNames = {
+                    'jan': '01', 'january': '01',
+                    'feb': '02', 'february': '02',
+                    'mar': '03', 'march': '03',
+                    'apr': '04', 'april': '04',
+                    'may': '05',
+                    'jun': '06', 'june': '06',
+                    'jul': '07', 'july': '07',
+                    'aug': '08', 'august': '08',
+                    'sep': '09', 'september': '09',
+                    'oct': '10', 'october': '10',
+                    'nov': '11', 'november': '11',
+                    'dec': '12', 'december': '12'
+                };
+
+                const textDateMatch = dateStr.match(/([a-z]+)\s+(\d{1,2}),?\s+(\d{4})/i);
+                if (textDateMatch) {
+                    const [, monthName, day, year] = textDateMatch;
+                    const month = monthNames[monthName.toLowerCase()];
+                    if (month) {
+                        const dayPadded = day.padStart(2, '0');
+                        return `${year}-${month}-${dayPadded}`;
+                    }
+                }
+
+                return '';
+            }
+
+            function parseGuestLine(line) {
+                // Extraer email (puede estar en paréntesis o suelto)
+                const emailInParens = line.match(/\(([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})\)/i);
+                const emailLoose = line.match(/\b([A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,})\b/i);
+                const email = (emailInParens ? emailInParens[1] : (emailLoose ? emailLoose[1] : '')).trim();
+
+                // Extraer fecha de nacimiento en varios formatos
+                let birthDate = '';
+
+                // Formato YYYY-MM-DD
+                const isoMatch = line.match(/\b(\d{4}-\d{2}-\d{2})\b/);
+                if (isoMatch) {
+                    birthDate = isoMatch[1];
+                } else {
+                    // Formato "DOB: Jan 31, 1992" o "DOB: Nov 10, 2013"
+                    const dobMatch = line.match(/DOB\s*:\s*([^•\n]+)/i);
+                    if (dobMatch) {
+                        birthDate = parseDateString(dobMatch[1].trim());
+                    } else {
+                        // Buscar fechas en formato texto directamente
+                        const textDateMatch = line.match(/([a-z]+\s+\d{1,2},?\s+\d{4})/i);
+                        if (textDateMatch) {
+                            birthDate = parseDateString(textDateMatch[1]);
+                        } else {
+                            // Formato MM/DD/YYYY
+                            const slashMatch = line.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+                            if (slashMatch) {
+                                birthDate = parseDateString(slashMatch[1]);
+                            }
+                        }
+                    }
+                }
+
+                // Limpiar el nombre: remover email, fecha, edad, DOB, y prefijos
+                let name = line;
+
+                // Remover email (tanto en paréntesis como suelto)
+                if (email) {
+                    name = name.replace(new RegExp(`\\(${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\)`, 'gi'), '').trim();
+                    name = name.replace(new RegExp(email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), '').trim();
+                }
+
+                // Remover fecha de nacimiento en formato YYYY-MM-DD
+                if (birthDate) {
+                    name = name.replace(birthDate, '').trim();
+                }
+
+                // Remover patrón "DOB: Jan 31, 1992" o "DOB: Nov 10, 2013"
+                name = name.replace(/DOB\s*:\s*[^•\n]+/gi, '').trim();
+
+                // Remover fechas en formato texto "Jan 31, 1992"
+                name = name.replace(/[a-z]+\s+\d{1,2},?\s+\d{4}/gi, '').trim();
+
+                // Remover fechas en formato MM/DD/YYYY
+                name = name.replace(/\d{1,2}\/\d{1,2}\/\d{4}/g, '').trim();
+
+                // Remover patrón "• Age: XX" o "Age: XX"
+                name = name.replace(/\s*[•·]\s*Age\s*:\s*\d+\s*/gi, '').trim();
+                name = name.replace(/\s*Age\s*:\s*\d+\s*/gi, '').trim();
+
+                // Remover palabras como "Player" del nombre
+                name = name.replace(/\b(player|jugador)\b/gi, '').trim();
+
+                // Remover prefijos de tipo
+                name = name.replace(/^(adult|adulto|child|niño|niña|baby|bebe|guest|hu[eé]sped)\s*[:\-]?\s*/i, '').trim();
+
+                // Remover paréntesis vacíos o con contenido residual
+                name = name.replace(/\s*\(\s*\)\s*/g, '').trim();
+                name = name.replace(/\s*\([^)]*\)\s*/g, '').trim();
+
+                // Limpiar espacios múltiples y caracteres residuales
+                name = name.replace(/\s+/g, ' ').trim();
+                name = name.replace(/^[•·\-\s]+|[•·\-\s]+$/g, '').trim();
+
+                return { name, email, birthDate };
+            }
+
+            // Prefer structured items if present
+            const dataItems = el.querySelectorAll('[data-guest-name], [data-guest-type]');
+            const childrenItems = el.children ? Array.from(el.children) : [];
+            const candidates = dataItems.length ? Array.from(dataItems) : (childrenItems.length ? childrenItems : []);
+
+            candidates.forEach((node) => {
+                // Priorizar atributos data-* si existen
+                const dataName = (node.getAttribute?.('data-guest-name') || '').trim();
+                const dataEmail = (node.getAttribute?.('data-guest-email') || '').trim();
+                const dataBirthDate = (node.getAttribute?.('data-guest-birth-date') || '').trim();
+
+                const rawText = (node.textContent || '').trim();
+                const rawName = dataName || rawText;
+
+                if (!rawName) return;
+
+                // Si tenemos atributos data-*, usarlos directamente
+                if (dataName) {
+                    const typeAttr = norm(node.getAttribute?.('data-guest-type'));
+                    const text = norm(rawText);
+                    const type = typeAttr || (text.includes('child') || text.includes('niñ') || text.includes('player') || text.includes('jugador') ? 'child' : 'adult');
+                    entries.push({
+                        type,
+                        name: dataName,
+                        email: dataEmail || '',
+                        birthDate: dataBirthDate || ''
+                    });
+                } else {
+                    // Si no hay atributos, parsear el texto
+                    const parsed = parseGuestLine(rawText);
+                    if (!parsed.name || parsed.name.length < 3) return;
+
+                    const typeAttr = norm(node.getAttribute?.('data-guest-type'));
+                    const text = norm(rawText);
+                    const type = typeAttr || (text.includes('child') || text.includes('niñ') || text.includes('player') || text.includes('jugador') ? 'child' : 'adult');
+
+                    entries.push({
+                        type,
+                        name: parsed.name,
+                        email: parsed.email || '',
+                        birthDate: parsed.birthDate || ''
+                    });
+                }
+            });
+
+            // IMPORTANT: if we already got candidates, do NOT parse raw text (avoids duplicates).
+            if (entries.length > 0) {
+                return entries;
+            }
+
+            // Fallback: parse text lines (MUY estricto para evitar capturar textos del UI)
+            const raw = (el.textContent || '').trim();
+            if (raw) {
+                raw.split('\n')
+                    .map(l => l.replace(/\s+/g, ' ').trim())
+                    .filter(Boolean)
+                    .forEach((line) => {
+                        const lower = norm(line);
+                        const hasMarker = /(adult|adulto|child|niñ|player|jugador|guest|hu[eé]sped)/i.test(lower);
+                        // Parsear la línea para extraer nombre, email y fecha
+                        const parsed = parseGuestLine(line);
+
+                        // Si no hay ninguna señal de "guest", ignorar la línea (evita headers/price/etc)
+                        if (!hasMarker && !parsed.email && !parsed.birthDate && !parsed.name) return;
+
+                        const type =
+                            (lower.includes('adult') || lower.includes('adulto')) ? 'adult' :
+                            (lower.includes('child') || lower.includes('niñ') || lower.includes('bebe') || lower.includes('baby')) ? 'child' :
+                            (lower.includes('player') || lower.includes('jugador')) ? 'child' :
+                            'adult';
+
+                        // Evitar capturar textos cortos o títulos
+                        if (!parsed.name || parsed.name.length < 3) return;
+                        if (/^(price|precio|calculation|rooms?|available|selected|total|guests? list)$/i.test(parsed.name)) return;
+
+                        // Avoid duplicates if we already have this name/email from structured parse
+                        const n = norm(parsed.name);
+                        const e = norm(parsed.email);
+                        const exists = entries.some(x => (e && norm(x.email) === e) || (!e && norm(x.name) === n));
+                        if (!exists) entries.push({ type, name: parsed.name, email: parsed.email, birthDate: parsed.birthDate });
+                    });
+            }
+
+            return entries;
+        }
+
+        const guestsList = parseGuestsList().filter(g => !isMainContact(g.name, g.email));
+        const enforceFromGuestsList = guestsList.length > 0;
+        if (enforceFromGuestsList) {
+            const playerNameSet = new Set(detectedPlayersSnapshot.map(p => norm(p.name)).filter(Boolean));
+
+            const listChildren = guestsList.filter(g => g.type === 'child' || playerNameSet.has(norm(g.name)));
+            const listAdults = guestsList.filter(g => !(g.type === 'child' || playerNameSet.has(norm(g.name))));
+
+            const playersFromList = listChildren.filter(g => playerNameSet.has(norm(g.name)));
+            const otherChildrenFromList = listChildren.filter(g => !playerNameSet.has(norm(g.name)));
+
+            // Función mejorada para enriquecer datos: prioriza datos de Guests List, solo completa con otras fuentes si faltan
+            function enrichGuestData(guestFromList, candidateSources) {
+                const result = { ...guestFromList };
+
+                // Buscar en todas las fuentes candidatas
+                for (const source of candidateSources) {
+                    if (!Array.isArray(source)) continue;
+
+                    const match = source.find(c => {
+                        const cName = norm(c.name || '');
+                        const gName = norm(result.name || '');
+                        const cEmail = norm(c.email || '');
+                        const gEmail = norm(result.email || '');
+
+                        // Match por nombre exacto o email
+                        return (cName && gName && cName === gName) ||
+                               (cEmail && gEmail && cEmail === gEmail && gEmail);
+                    });
+
+                    if (match) {
+                        // Solo completar campos que están vacíos en Guests List
+                        if (!result.email && match.email) result.email = match.email;
+                        if (!result.birthDate && match.birthDate) result.birthDate = match.birthDate;
+                        if (!result.phone && match.phone) result.phone = match.phone;
+                        if (!result.id && match.id) result.id = match.id;
+                    }
+                }
+
+                return result;
+            }
+
+            // Rebuild arrays strictly from Guests List, enriqueciendo con datos disponibles
+            selectedPlayers.length = 0;
+            playersFromList.forEach((g, idx) => {
+                const enriched = enrichGuestData(g, [
+                    detectedPlayersSnapshot,
+                    Array.isArray(store?.additionalChildren) ? store.additionalChildren : []
+                ]);
+                selectedPlayers.push({
+                    id: enriched.id || (detectedPlayersSnapshot.find(p => norm(p.name) === norm(enriched.name))?.id) || ('guest_list_player_' + idx),
+                    name: enriched.name || '',
+                    email: enriched.email || '',
+                    birthDate: enriched.birthDate || ''
+                });
+            });
+
+            additionalAdults.length = 0;
+            listAdults.forEach((g) => {
+                const enriched = enrichGuestData(g, [
+                    Array.isArray(store?.additionalAdults) ? store.additionalAdults : []
+                ]);
+                additionalAdults.push({
+                    name: enriched.name || '',
+                    email: enriched.email || '',
+                    phone: enriched.phone || '',
+                    birthDate: enriched.birthDate || ''
+                });
+            });
+
+            additionalChildren.length = 0;
+            otherChildrenFromList.forEach((g) => {
+                const enriched = enrichGuestData(g, [
+                    Array.isArray(store?.additionalChildren) ? store.additionalChildren : [],
+                    detectedPlayersSnapshot
+                ]);
+                additionalChildren.push({
+                    name: enriched.name || '',
+                    email: enriched.email || '',
+                    birthDate: enriched.birthDate || ''
+                });
+            });
+        }
+
+        // Si ya estamos forzando desde Guests List, NO agregar nada más de otras fuentes
+        if (!enforceFromGuestsList) {
+        // También buscar en el modal de hotel reservation (puede estar oculto)
+        const hotelReservationModal = document.getElementById('hotelReservationModal' + hotelPk);
+        if (hotelReservationModal) {
+            // Buscar checkboxes de children en el modal de hotel reservation
+            const reservationCheckboxes = hotelReservationModal.querySelectorAll('.child-checkbox:checked');
+            reservationCheckboxes.forEach(function(checkbox) {
+                const childItem = checkbox.closest('.child-item');
+                if (childItem) {
+                    const childId = childItem.getAttribute('data-child-id');
+                    const childName = childItem.getAttribute('data-child-name') || '';
+                    const childEmail = childItem.getAttribute('data-child-email') || '';
+                    const childBirthDate = childItem.getAttribute('data-birth-date') || '';
+
+                    if (childId) {
+                        const existing = selectedPlayers.find(p => p.id === childId);
+                        if (!existing) {
+                            selectedPlayers.push({
+                                id: childId,
+                                name: childName,
+                                email: childEmail,
+                                birthDate: childBirthDate
+                            });
+                            console.log('Added player from reservation modal:', childName);
+                        }
+                    }
+                }
+            });
+
+            // Buscar adultos adicionales en el modal de hotel reservation
+            const reservationAdultsContainer = hotelReservationModal.querySelector('#adults-forms-container' + hotelPk);
+            if (reservationAdultsContainer) {
+                const reservationAdultItems = reservationAdultsContainer.querySelectorAll('.adult-form-item');
+                reservationAdultItems.forEach(function(item, index) {
+                    if (index > 0) {
+                        const nameInput = item.querySelector('input[name^="adult_name_"]');
+                        const emailInput = item.querySelector('input[name^="adult_email_"]');
+                        const phoneInput = item.querySelector('input[name^="adult_phone_"]');
+                        const birthDateInput = item.querySelector('input[name^="adult_birth_date_"]');
+
+                        if (nameInput) {
+                            const name = nameInput.value.trim();
+                            if (name) {
+                                const existing = additionalAdults.find(a => a.name === name && a.email === (emailInput ? emailInput.value.trim() : ''));
+                                if (!existing) {
+                                    additionalAdults.push({
+                                        name: name,
+                                        email: emailInput ? emailInput.value.trim() : '',
+                                        phone: phoneInput ? phoneInput.value.trim() : '',
+                                        birthDate: birthDateInput ? birthDateInput.value : ''
+                                    });
+                                    console.log('Added additional adult from reservation modal:', name);
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Buscar niños adicionales en el modal de hotel reservation
+            const reservationChildrenContainer = hotelReservationModal.querySelector('#additional-children-forms-container' + hotelPk);
+            if (reservationChildrenContainer) {
+                const reservationChildItems = reservationChildrenContainer.querySelectorAll('.additional-child-form-item');
+                reservationChildItems.forEach(function(item) {
+                    const nameInput = item.querySelector('input[name^="additional_child_name_"]');
+                    const emailInput = item.querySelector('input[name^="additional_child_email_"]');
+                    const birthDateInput = item.querySelector('input[name^="additional_child_birth_date_"]');
+
+                    if (nameInput) {
+                        const name = nameInput.value.trim();
+                        if (name) {
+                            const existing = additionalChildren.find(c => c.name === name);
+                            if (!existing) {
+                                additionalChildren.push({
+                                    name: name,
+                                    email: emailInput ? emailInput.value.trim() : '',
+                                    birthDate: birthDateInput ? birthDateInput.value : ''
+                                });
+                                console.log('Added additional child from reservation modal:', name);
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        } // end !enforceFromGuestsList
+
+        console.log('Final guest counts for hotel', hotelPk, ':', {
+            selectedPlayers: selectedPlayers.length,
+            additionalAdults: additionalAdults.length,
+            additionalChildren: additionalChildren.length,
+            selectedPlayersData: selectedPlayers,
+            additionalAdultsData: additionalAdults,
+            additionalChildrenData: additionalChildren
+        });
+
+        // Poblar Selected Players/Children
+        const playersContainer = document.getElementById('guest-selected-players' + hotelPk);
+        const playersWrap = document.getElementById('guest-selected-players-wrap' + hotelPk);
+        if (playersContainer) {
+            if (selectedPlayers.length > 0) {
+                playersWrap.style.display = 'block';
+                playersContainer.innerHTML = '';
+
+                selectedPlayers.forEach(function(player, index) {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'mb-3';
+                playerDiv.style.padding = '15px';
+                playerDiv.style.background = '#f8f9fa';
+                playerDiv.style.borderRadius = '8px';
+                playerDiv.style.border = '1px solid #e9ecef';
+
+                playerDiv.innerHTML = `
+                    <h6 style="font-weight: 700; color: var(--mlb-blue); margin-bottom: 12px; font-size: 0.9rem;">
+                        ${index === 0 ? '{% trans "Player/Child" %}' : ''} ${index + 1}
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Full Name" %} *</label>
+                            <input type="text" class="form-control" name="player_name_${player.id}" required
+                                   value="${player.name || ''}"
+                                   style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Email" %}</label>
+                            <input type="email" class="form-control" name="player_email_${player.id}"
+                                   value="${player.email || ''}"
+                                   style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Date of Birth" %} *</label>
+                            <input type="date" class="form-control" name="player_birth_date_${player.id}" required
+                                   value="${player.birthDate || ''}"
+                                   style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                        </div>
+                    </div>
+                `;
+                    playersContainer.appendChild(playerDiv);
+                });
+            } else if (playersWrap) {
+                playersWrap.style.display = 'none';
+            }
+        }
+
+        // Poblar Additional Adults
+        const adultsContainer = document.getElementById('guest-additional-adults' + hotelPk);
+        const adultsWrap = document.getElementById('guest-additional-adults-wrap' + hotelPk);
+        if (adultsContainer) {
+            if (additionalAdults.length > 0) {
+                adultsWrap.style.display = 'block';
+                adultsContainer.innerHTML = '';
+
+                additionalAdults.forEach(function(adult, index) {
+                const adultDiv = document.createElement('div');
+                adultDiv.className = 'mb-3';
+                adultDiv.style.padding = '15px';
+                adultDiv.style.background = '#f8f9fa';
+                adultDiv.style.borderRadius = '8px';
+                adultDiv.style.border = '1px solid #e9ecef';
+
+                adultDiv.innerHTML = `
+                    <h6 style="font-weight: 700; color: var(--mlb-blue); margin-bottom: 12px; font-size: 0.9rem;">
+                        {% trans "Adult" %} ${index + 2}
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Full Name" %} *</label>
+                            <input type="text" class="form-control" name="additional_adult_name_${index + 1}" required
+                                   value="${adult.name || ''}"
+                                   style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Email" %} ({% trans "optional" %})</label>
+                            <input type="email" class="form-control" name="additional_adult_email_${index + 1}"
+                                   value="${adult.email || ''}"
+                                   style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Phone" %} ({% trans "optional" %})</label>
+                            <input type="tel" class="form-control" name="additional_adult_phone_${index + 1}"
+                                   value="${adult.phone || ''}"
+                                   style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Date of Birth" %} *</label>
+                            <input type="date" class="form-control" name="additional_adult_birth_date_${index + 1}" required
+                                   value="${adult.birthDate || ''}"
+                                   style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                        </div>
+                    </div>
+                `;
+                    adultsContainer.appendChild(adultDiv);
+                });
+            } else if (adultsWrap) {
+                adultsWrap.style.display = 'none';
+            }
+        }
+
+        // Poblar Additional Children
+        const childrenContainer = document.getElementById('guest-additional-children' + hotelPk);
+        const childrenWrap = document.getElementById('guest-additional-children-wrap' + hotelPk);
+        if (childrenContainer) {
+            if (additionalChildren.length > 0) {
+                childrenWrap.style.display = 'block';
+                childrenContainer.innerHTML = '';
+
+                additionalChildren.forEach(function(child, index) {
+                const childDiv = document.createElement('div');
+                childDiv.className = 'mb-3';
+                childDiv.style.padding = '15px';
+                childDiv.style.background = '#f8f9fa';
+                childDiv.style.borderRadius = '8px';
+                childDiv.style.border = '1px solid #e9ecef';
+
+                childDiv.innerHTML = `
+                    <h6 style="font-weight: 700; color: var(--mlb-blue); margin-bottom: 12px; font-size: 0.9rem;">
+                        {% trans "Child" %} ${index + 1}
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Full Name" %} *</label>
+                            <input type="text" class="form-control" name="additional_child_name_${index + 1}" required
+                                   value="${child.name || ''}"
+                                   style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Email" %}</label>
+                            <input type="email" class="form-control" name="additional_child_email_${index + 1}"
+                                   value="${child.email || ''}"
+                                   style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Date of Birth" %} *</label>
+                            <input type="date" class="form-control" name="additional_child_birth_date_${index + 1}" required
+                                   value="${child.birthDate || ''}"
+                                   style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
+                        </div>
+                    </div>
+                `;
+                    childrenContainer.appendChild(childDiv);
+                });
+            } else if (childrenWrap) {
+                childrenWrap.style.display = 'none';
+            }
+        }
+    }
+
+    // Interceptar el submit del formulario para agregar al checkout en lugar de crear reserva
+    const guestDetailsForm = document.getElementById('guest-details-form{{ event.hotel.pk }}');
+    if (guestDetailsForm) {
+        guestDetailsForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const hotelPk = this.dataset.hotelPk || '{{ event.hotel.pk }}';
+            const roomId = document.getElementById('guest-room' + hotelPk)?.value;
+            const checkIn = document.getElementById('guest-check-in' + hotelPk)?.value;
+            const checkOut = document.getElementById('guest-check-out' + hotelPk)?.value;
+
+            // Calcular número total de guests: 1 (main contact) + players + additional adults + additional children
+            const playersCount = document.querySelectorAll(`#guest-selected-players${hotelPk} .mb-3`).length;
+            const additionalAdultsCount = document.querySelectorAll(`#guest-additional-adults${hotelPk} .mb-3`).length;
+            const additionalChildrenCount = document.querySelectorAll(`#guest-additional-children${hotelPk} .mb-3`).length;
+            const numberOfGuests = 1 + playersCount + additionalAdultsCount + additionalChildrenCount;
+
+            if (!roomId || !checkIn || !checkOut) {
+                alert('{% trans "Please complete all required fields" %}');
+                return false;
+            }
+
+            // Validar formulario antes de enviar
+            if (!this.checkValidity()) {
+                this.reportValidity();
+                return false;
+            }
+
+            // Deshabilitar botón mientras se procesa
+            const submitBtn = document.getElementById('add-to-checkout-btn' + hotelPk);
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{% trans "Adding..." %}';
+
+            // Preparar datos para el carrito
+            const cartData = {
+                room_id: parseInt(roomId),
+                check_in: checkIn,
+                check_out: checkOut,
+                guests: parseInt(numberOfGuests) || 1,
+                services: [] // Por ahora sin servicios, se puede agregar después
+            };
+
+            // Obtener CSRF token
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+            // Hacer llamada AJAX para agregar al carrito
+            fetch('{% url "locations:add_to_cart" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify(cartData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                } else {
+                    // Éxito: cerrar modal
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('hotelGuestDetailsModal' + hotelPk));
+                    if (modal) {
+                        modal.hide();
+                    }
+
+                    // Obtener detalles de la habitación para mostrar en el resumen
+                    const roomDetailUrl = '{% url "locations:get_room_detail" room_id=999999 %}'.replace('999999', roomId);
+                    fetch(roomDetailUrl)
+                        .then(response => response.json())
+                        .then(roomData => {
+                            // Calcular total del hotel (incluye costo por persona adicional)
+                            const checkInDate = new Date(checkIn);
+                            const checkOutDate = new Date(checkOut);
+                            const nights = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+                            const roomPrice = parseFloat(roomData.price_per_night || 0);
+                            const guests = parseInt(numberOfGuests) || 1;
+                            const includesGuests = parseInt(roomData.price_includes_guests || 1);
+                            const additionalGuestPrice = parseFloat(roomData.additional_guest_price || 0);
+                            const extraGuests = Math.max(0, guests - includesGuests);
+                            const perNightTotal = roomPrice + (extraGuests * additionalGuestPrice);
+
+                            // Calcular precio base e impuestos
+                            const basePrice = perNightTotal * nights;
+                            const iva = basePrice * 0.16; // IVA 16%
+                            const ish = basePrice * 0.05; // ISH 5%
+                            const totalWithTaxes = basePrice + iva + ish;
+
+                            // Actualizar el checkout con la información completa del hotel
+                            if (typeof window.updateCheckoutHotel === 'function') {
+                                window.updateCheckoutHotel({
+                                    hotel_name: '{{ event.hotel.hotel_name|escapejs }}',
+                                    room_name: roomData.name || roomData.room_type || roomData.room_number || '{% trans "Hotel Room" %}',
+                                    room_number: roomData.room_number || '',
+                                    room_type: roomData.room_type || '',
+                                    check_in: checkIn,
+                                    check_out: checkOut,
+                                    nights: nights,
+                                    guests: guests,
+                                    includes_guests: includesGuests,
+                                    additional_guest_price: additionalGuestPrice,
+                                    extra_guests: extraGuests,
+                                    extra_guest_total: (extraGuests * additionalGuestPrice) * nights,
+                                    base_price: basePrice,
+                                    iva: iva,
+                                    ish: ish,
+                                    total: totalWithTaxes
+                                });
+                            }
+
+                            // El hotel ahora solo aparece en Order Summary, no hay sección que ocultar
+                        })
+                        .catch(error => {
+                            console.error('Error obteniendo detalles de habitación:', error);
+                            // Calcular total básico sin detalles de habitación
+                            const checkInDate = new Date(checkIn);
+                            const checkOutDate = new Date(checkOut);
+                            const nights = Math.ceil((checkOutDate - checkInDate) / (1000 * 60 * 60 * 24));
+
+                            // El hotel ahora solo aparece en Order Summary
+                            // Calcular precio base e impuestos (con valores estimados si no hay datos)
+                            const estimatedBasePrice = 0;
+                            const estimatedIVA = 0;
+                            const estimatedISH = 0;
+
+                            if (typeof window.updateCheckoutHotel === 'function') {
+                                window.updateCheckoutHotel({
+                                    hotel_name: '{{ event.hotel.hotel_name|escapejs }}',
+                                    room_name: '{% trans "Hotel Room" %}',
+                                    room_number: '',
+                                    room_type: '',
+                                    check_in: checkIn,
+                                    check_out: checkOut,
+                                    nights: nights,
+                                    guests: parseInt(numberOfGuests) || 1,
+                                    base_price: estimatedBasePrice,
+                                    iva: estimatedIVA,
+                                    ish: estimatedISH,
+                                    total: 0 // Se calculará desde el backend
+                                });
+                            }
+                        });
+
+                    // Mostrar mensaje de éxito
+                    // alert('{% trans "Added to checkout successfully!" %}');
+
+                    // Actualizar contador del carrito si existe
+                    if (typeof window.updateCartCount === 'function') {
+                        window.updateCartCount();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error adding to cart:', error);
+                alert('{% trans "An error occurred. Please try again." %}');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            });
+
+            return false;
+        });
+    }
+})();
 </script>
 

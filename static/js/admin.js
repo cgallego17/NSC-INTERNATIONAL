@@ -2714,21 +2714,12 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             }
         });
 
-        const grandTotal = eventTotal + hotelTotal;
-
-        // Update or create total display
-        let totalDisplay = checkoutCard.querySelector('.checkout-grand-total');
-        if (!totalDisplay) {
-            totalDisplay = document.createElement('div');
-            totalDisplay.className = 'checkout-grand-total';
-            totalDisplay.style.cssText = 'margin-top: 15px; padding-top: 15px; border-top: 3px solid var(--mlb-red); display: flex; justify-content: space-between; align-items: center;';
-            checkoutCard.appendChild(totalDisplay);
+        // No mostrar total general adicional en el checkout (requerimiento de UX).
+        // Si existe de ejecuciones anteriores, eliminarlo.
+        const totalDisplay = checkoutCard.querySelector('.checkout-grand-total');
+        if (totalDisplay) {
+            totalDisplay.remove();
         }
-
-        totalDisplay.innerHTML = `
-            <span style="font-weight: 800; color: var(--mlb-blue); font-size: 1.1rem;">Grand Total:</span>
-            <span style="font-weight: 800; color: var(--mlb-red); font-size: 1.4rem;">$${grandTotal.toFixed(2)}</span>
-        `;
     }
 
     // Backwards compatibility (old buttons may still exist somewhere)

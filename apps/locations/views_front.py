@@ -538,7 +538,10 @@ def calculate_reservation_total(request):
 
         # Obtener habitación
         room = HotelRoom.objects.get(id=room_id, is_available=True)
-        room_total = room.price_per_night * nights
+        includes = int(room.price_includes_guests or 1)
+        extra_guests = max(0, number_of_guests - includes)
+        per_night_total = room.price_per_night + (room.additional_guest_price or Decimal("0.00")) * extra_guests
+        room_total = per_night_total * nights
 
         # Calcular servicios
         services_total = Decimal("0.00")
