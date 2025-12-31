@@ -1157,9 +1157,6 @@ def create_stripe_event_checkout_session(request, pk):
     payment_mode = request.POST.get("payment_mode", "plan")
     if payment_mode not in ("plan", "now"):
         payment_mode = "plan"
-    # Pay now discount only applies if a hotel stay is included
-    discount_percent = 5 if (payment_mode == "now" and hotel_total > 0) else 0
-    discount_multiplier = Decimal("1.00") - (Decimal(str(discount_percent)) / Decimal("100"))
 
     entry_fee = _decimal(getattr(event, "default_entry_fee", None), default="0.00")
     players_count = int(len(valid_players))
@@ -1174,6 +1171,10 @@ def create_stripe_event_checkout_session(request, pk):
         "total": Decimal("0.00"),
     }
     hotel_total = hotel_breakdown["total"]
+
+    # Pay now discount only applies if a hotel stay is included
+    discount_percent = 5 if (payment_mode == "now" and hotel_total > 0) else 0
+    discount_multiplier = Decimal("1.00") - (Decimal(str(discount_percent)) / Decimal("100"))
 
     no_show_fee = Decimal("500.00") if (players_count > 0 and not cart) else Decimal("0.00")
 
@@ -1203,7 +1204,7 @@ def create_stripe_event_checkout_session(request, pk):
                 "price_data": {
                     "currency": currency,
                     "product_data": {
-                        "name": f"Monthly payment plan ({plan_months} month{'s' if plan_months != 1 else ''}) - {event.title}",
+                        "name": f"Payment plan ({plan_months} month{'s' if plan_months != 1 else ''}) - {event.title}",
                         "description": (
                             f"First charge today, then {max(0, plan_months - 1)} monthly charge(s). "
                             f"Ends automatically."
@@ -1250,7 +1251,7 @@ def create_stripe_event_checkout_session(request, pk):
                 {
                     "price_data": {
                         "currency": currency,
-                        "product_data": {"name": "No-Show Fee"},
+                        "product_data": {"name": "Hotel buy out fee"},
                         "unit_amount": _money_to_cents(scale(no_show_fee)),
                     },
                     "quantity": 1,

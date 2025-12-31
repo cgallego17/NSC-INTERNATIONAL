@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NSC International 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-29 00:11-0500\n"
+"POT-Creation-Date: 2025-12-30 18:14-0500\n"
 "PO-Revision-Date: 2025-01-01 00:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: Spanish\n"
@@ -17,8 +17,11 @@ msgstr ""
 
 #: .\apps\accounts\forms.py:28 .\apps\accounts\forms.py:93
 #: .\apps\accounts\forms.py:96
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1162
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1315
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1216
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1369
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2338
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2386
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2440
 #: .\templates\accounts\panel_tabs\perfil.html:49
 #: .\templates\accounts\panel_tabs\registrar_jugador.html:58
 #: .\templates\accounts\player_edit.html:71
@@ -89,7 +92,7 @@ msgid "Team Manager"
 msgstr "Manager de Equipo"
 
 #: .\apps\accounts\forms.py:100 .\apps\accounts\forms.py:104
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1293
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1347
 #: .\templates\accounts\panel_tabs\perfil.html:29
 #: .\templates\accounts\panel_tabs\registrar_hijo.html:77
 #: .\templates\accounts\panel_tabs\registrar_jugador.html:28
@@ -148,7 +151,10 @@ msgid "Secondary phone (optional)"
 msgstr "Teléfono secundario (opcional)"
 
 #: .\apps\accounts\forms.py:192 .\apps\accounts\forms.py:194
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1326
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1380
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2344
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2398
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2446
 #, fuzzy
 #| msgid "Player's date of birth"
 msgid "Date of Birth"
@@ -317,7 +323,7 @@ msgstr "Marcar si eres el contacto principal del jugador"
 msgid "Banner title (optional)"
 msgstr "Título del banner (opcional)"
 
-#: .\apps\accounts\views_private.py:415
+#: .\apps\accounts\views_private.py:419
 msgid "Profile updated successfully."
 msgstr ""
 
@@ -365,6 +371,45 @@ msgstr ""
 #: .\apps\events\views_public.py:81
 msgid "Today"
 msgstr ""
+
+#: .\apps\locations\cart_views.py:118
+msgid "Incomplete data"
+msgstr "Datos incompletos"
+
+#: .\apps\locations\cart_views.py:131
+msgid "Invalid date format. Use YYYY-MM-DD format."
+msgstr "Formato de fechas inválido. Use el formato YYYY-MM-DD."
+
+#: .\apps\locations\cart_views.py:139
+msgid "Check-in date cannot be in the past."
+msgstr "La fecha de check-in no puede ser en el pasado."
+
+#: .\apps\locations\cart_views.py:145
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2505
+msgid "Check-out date must be after check-in date."
+msgstr "La fecha de check-out debe ser posterior a la fecha de check-in."
+
+#: .\apps\locations\cart_views.py:152
+msgid "Invalid dates: there must be at least one night."
+msgstr "Fechas inválidas: debe haber al menos una noche."
+
+#: .\apps\locations\cart_views.py:174
+#, python-format
+msgid ""
+"Room not available for those dates. There is already a reservation from "
+"%(check_in)s to %(check_out)s (Status: %(status)s)."
+msgstr ""
+"Habitación no disponible en esas fechas. Ya existe una reserva del "
+"%(check_in)s al %(check_out)s (Estado: %(status)s)."
+
+#: .\apps\locations\cart_views.py:373
+#, python-format
+msgid ""
+"Room #%(room_number)s is no longer available (conflict with reservation from "
+"%(check_in)s to %(check_out)s, Status: %(status)s)."
+msgstr ""
+"Habitación #%(room_number)s ya no está disponible (conflicto con reserva del "
+"%(check_in)s al %(check_out)s, Estado: %(status)s)."
 
 #: .\apps\media\admin.py:18
 msgid "Información Básica"
@@ -845,7 +890,7 @@ msgstr "Sin equipo asignado"
 #: .\templates\accounts\team_detail.html:256
 #: .\templates\accounts\team_form.html:222
 #: .\templates\accounts\team_form.html:242
-#: .\templates\accounts\team_list.html:247 .\templates\base_mlb.html:222
+#: .\templates\accounts\team_list.html:247 .\templates\base_mlb.html:223
 #: .\templates\events\public_detail.html:1513
 #: .\templates\events\public_detail.html:1551
 #: .\templates\events\public_detail.html:2041
@@ -882,10 +927,8 @@ msgstr "Estado"
 #: .\templates\accounts\hotel_list.html:33
 #: .\templates\accounts\hotel_list.html:74
 #: .\templates\accounts\panel_tabs\plan_pagos.html:67
-#, fuzzy
-#| msgid "View Players"
 msgid "Active"
-msgstr "Ver Jugadores"
+msgstr "Activo"
 
 #: .\templates\accounts\hotel_list.html:34
 #: .\templates\accounts\hotel_list.html:78
@@ -931,8 +974,8 @@ msgid "Images"
 msgstr ""
 
 #: .\templates\accounts\hotel_list.html:120
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1061
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1255
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1115
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1309
 msgid "Amenities"
 msgstr ""
 
@@ -1028,9 +1071,9 @@ msgid "Contact Phone"
 msgstr "Teléfono de Contacto"
 
 #: .\templates\accounts\panel_tabs\crear_equipo.html:143
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:663
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:968
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1367
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:674
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1016
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1421
 #: .\templates\accounts\panel_tabs\perfil.html:114
 #: .\templates\accounts\panel_tabs\plan_pagos.html:301
 #: .\templates\accounts\panel_tabs\registrar_hijo.html:419
@@ -1046,27 +1089,21 @@ msgid "Create Team"
 msgstr "Crear Equipo"
 
 #: .\templates\accounts\panel_tabs\detalle_evento.html:6
-#, fuzzy
-#| msgid "Events"
 msgid "Event Details"
-msgstr "Eventos"
+msgstr "Detalles del Evento"
 
 #: .\templates\accounts\panel_tabs\detalle_evento.html:8
 msgid "Event information and registration"
-msgstr ""
+msgstr "Información del evento y registro"
 
 #: .\templates\accounts\panel_tabs\detalle_evento.html:50
-#, fuzzy
-#| msgid "User Information"
 msgid "Event Information"
-msgstr "Información de Usuario"
+msgstr "Información del Evento"
 
 #: .\templates\accounts\panel_tabs\detalle_evento.html:61
 #: .\templates\events\public_detail.html:1757
-#, fuzzy
-#| msgid "Birth Date"
 msgid "Start Date"
-msgstr "Fecha de Nacimiento"
+msgstr "Fecha de Inicio"
 
 #: .\templates\accounts\panel_tabs\detalle_evento.html:64
 #: .\templates\events\public_detail.html:1772
@@ -1087,20 +1124,16 @@ msgstr "Estado"
 
 #: .\templates\accounts\panel_tabs\detalle_evento.html:138
 msgid "Headquarters Hotel"
-msgstr ""
+msgstr "Hotel Sede"
 
 #: .\templates\accounts\panel_tabs\detalle_evento.html:162
 #: .\templates\events\public_detail.html:1872
-#, fuzzy
-#| msgid "Primary Contact"
 msgid "Primary Site"
-msgstr "Contacto Principal"
+msgstr "Sitio Primario"
 
 #: .\templates\accounts\panel_tabs\detalle_evento.html:178
-#, fuzzy
-#| msgid "Event"
 msgid "Event Video"
-msgstr "Evento"
+msgstr "Video del Evento"
 
 #: .\templates\accounts\panel_tabs\detalle_evento.html:238
 #, fuzzy
@@ -1126,49 +1159,113 @@ msgid "More Information"
 msgstr "Información Deportiva"
 
 #: .\templates\accounts\panel_tabs\detalle_evento.html:281
-#: .\templates\accounts\public_register.html:10
-#, fuzzy
-#| msgid "Register"
-msgid "Registration"
-msgstr "Inscribirse"
+#: .\templates\locations\front_hotel_reservation_checkout.html:4
+#: .\templates\locations\front_hotel_reservation_checkout.html:12
+msgid "Checkout"
+msgstr "Pago"
 
-#: .\templates\accounts\panel_tabs\detalle_evento.html:290
-#, fuzzy
-#| msgid "My Children/Players"
-msgid "Select Children/Players"
-msgstr "Mis Hijos/Jugadores"
+#: .\templates\accounts\panel_tabs\detalle_evento.html:289
+msgid "Select Players"
+msgstr "Seleccionar Jugadores"
 
-#: .\templates\accounts\panel_tabs\detalle_evento.html:359
-msgid "Hotel"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento.html:405
+#: .\templates\accounts\panel_tabs\detalle_evento.html:349
+#: .\templates\accounts\panel_tabs\detalle_evento.html:366
 msgid "Add Hotel Stay"
-msgstr ""
+msgstr "Agregar Estancia en Hotel"
 
-#: .\templates\accounts\panel_tabs\detalle_evento.html:417
-#, fuzzy
-#| msgid "Select a state"
-msgid "Selected"
-msgstr "Selecciona un estado"
-
-#: .\templates\accounts\panel_tabs\detalle_evento.html:421
-msgid "Price per player"
+#: .\templates\accounts\panel_tabs\detalle_evento.html:354
+msgid "If you don't add a hotel stay, a Hotel buy out fee will apply."
 msgstr ""
+"Si no agregas una estancia en hotel, se aplicará una tarifa de no compra de "
+"hotel."
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:383
+msgid "Order Summary"
+msgstr "Resumen del Pedido"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:395
+msgid "Player(s)"
+msgstr "Jugador(es)"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:399
+msgid "Event registration"
+msgstr "Registro del evento"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:415
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1012
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:504
+msgid "Hotel Stay"
+msgstr "Estancia en Hotel"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:420
+msgid "Change"
+msgstr "Cambiar"
 
 #: .\templates\accounts\panel_tabs\detalle_evento.html:425
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:575
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:608
+msgid "Remove"
+msgstr "Quitar"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:438
+msgid "nights"
+msgstr "noches"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:452
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1347
+msgid "Hotel buy out fee"
+msgstr "Tarifa de no compra de hotel"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:456
+msgid "Applies when you don't add a hotel stay to this checkout."
+msgstr "Se aplica cuando no agregas una estancia en hotel a este pago."
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:468
+msgid "Select players to see your order summary"
+msgstr "Selecciona jugadores para ver el resumen de tu pedido"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:476
+msgid "Hotel Taxes"
+msgstr "Impuestos del Hotel"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:483
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:586
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:619
 msgid "Total"
-msgstr ""
+msgstr "Total"
 
-#: .\templates\accounts\panel_tabs\detalle_evento.html:433
-#, fuzzy
-#| msgid "Register Child"
-msgid "Register Selected"
-msgstr "Registrar Hijo"
+#: .\templates\accounts\panel_tabs\detalle_evento.html:499
+msgid "Payment plan"
+msgstr "Plan de pago"
 
-#: .\templates\accounts\panel_tabs\detalle_evento.html:440
+#: .\templates\accounts\panel_tabs\detalle_evento.html:504
+msgid "Good if you prefer to spread the total over time."
+msgstr "Bueno si prefieres distribuir el total en el tiempo."
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:511
+msgid "Pay now"
+msgstr "Pagar ahora"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:511
+#, python-format
+msgid "- 5%% OFF"
+msgstr "- 5%% DESCUENTO"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:516
+msgid "Best value if you can pay today."
+msgstr "Mejor valor si puedes pagar hoy."
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:523
+msgid "Redirecting to Stripe checkout"
+msgstr "Redirigiendo al pago de Stripe"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:527
+msgid "Redirecting to Stripe..."
+msgstr "Redirigiendo a Stripe..."
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:528
+msgid "Please don't close this window."
+msgstr "Por favor, no cierres esta ventana."
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:537
 #, fuzzy
 #| msgid "You don't have any registered teams yet."
 msgid ""
@@ -1176,352 +1273,118 @@ msgid ""
 "player first."
 msgstr "Aún no tienes equipos registrados."
 
-#: .\templates\accounts\panel_tabs\detalle_evento.html:443
+#: .\templates\accounts\panel_tabs\detalle_evento.html:540
 #: .\templates\accounts\panel_tabs\registrar_hijo.html:4
 msgid "Register Child/Player"
 msgstr "Registrar Hijo/Jugador"
 
-#: .\templates\accounts\panel_tabs\detalle_evento.html:453
+#: .\templates\accounts\panel_tabs\detalle_evento.html:551
 msgid "Event not found"
-msgstr ""
+msgstr "Evento no encontrado"
 
-#: .\templates\accounts\panel_tabs\detalle_evento.html:454
+#: .\templates\accounts\panel_tabs\detalle_evento.html:552
 msgid "The event you are looking for does not exist or is not available."
-msgstr ""
+msgstr "El evento que buscas no existe o no está disponible."
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:491
+#: .\templates\accounts\panel_tabs\detalle_evento.html:918
+msgid "Please select at least 1 player before adding a hotel stay."
+msgstr ""
+"Por favor, selecciona al menos 1 jugador antes de agregar una estancia en "
+"hotel."
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:970
+msgid "Select player(s) first to continue."
+msgstr "Selecciona jugador(es) primero para continuar."
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1053
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1080
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1111
+#, fuzzy
+#| msgid "guests"
+msgid "guest(s)"
+msgstr "huéspedes"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1071
+#, fuzzy
+#| msgid "guests"
+msgid "Additional guest(s)"
+msgstr "huéspedes"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1072
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1136
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1303
+#: .\templates\accounts\panel_tabs\reservas.html:83
+#, fuzzy
+#| msgid "Right"
+msgid "night"
+msgstr "Derecho"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1080
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:887
+msgid "Includes"
+msgstr "Incluye"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1127
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1323
+msgid "night(s)"
+msgstr "noche(s)"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1216
+msgid "You pay today and save"
+msgstr "Pagas hoy y ahorras"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1218
+#, python-format
+msgid "5%% OFF applies when you add a hotel stay."
+msgstr "5%% DE DESCUENTO aplica cuando agregas una estancia en hotel."
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1239
+msgid "monthly payments (approx.) until"
+msgstr "pagos mensuales (aprox.) hasta"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1270
+msgid "Base"
+msgstr "Base"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1324
+msgid "Total Hotel (with taxes)"
+msgstr "Total Hotel (con impuestos)"
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1433
+msgid "Could not start payment: missing event information."
+msgstr "No se pudo iniciar el pago: falta información del evento."
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1476
+msgid "Could not start payment."
+msgstr "No se pudo iniciar el pago."
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1485
+msgid "Stripe did not return a checkout link."
+msgstr "Stripe no devolvió un enlace de pago."
+
+#: .\templates\accounts\panel_tabs\detalle_evento.html:1489
+msgid "Error starting payment. Please try again."
+msgstr "Error al iniciar el pago. Por favor, inténtalo de nuevo."
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:502
 msgid "Step 1 of 3"
-msgstr ""
+msgstr "Paso 1 de 3"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:491
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:502
 #: .\templates\accounts\panel_tabs\reservas.html:87
 #, fuzzy
 #| msgid "guests"
 msgid "Guests"
 msgstr "huéspedes"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:493
-msgid "Hotel Stay"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:526
-#: .\templates\accounts\panel_tabs\reservas.html:75
-msgid "Check-in"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:528
-#: .\templates\accounts\panel_tabs\reservas.html:79
-msgid "Check-out"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:540
-#, fuzzy
-#| msgid "Required:"
-msgid "Required"
-msgstr "Requerido:"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:540
-msgid ""
-"You must select at least one player or add at least one child to continue."
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:551
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1181
-#, fuzzy
-#| msgid "My Children/Players"
-msgid "Selected Players/Children"
-msgstr "Mis Hijos/Jugadores"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:552
-#, fuzzy
-#| msgid "Select a state"
-msgid "selected"
-msgstr "Selecciona un estado"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:570
-msgid "Adults"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:571
-msgid "Total adults (18+). Minimum 1 adult."
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:579
-msgid "Decrease adults"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:584
-msgid "Increase adults"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:589
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:622
-msgid "Tip:"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:589
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:622
-msgid "You'll add names and birthdays after selecting a room."
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:603
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1195
-#, fuzzy
-#| msgid "Edit Child"
-msgid "Additional Children"
-msgstr "Editar Hijo"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:604
-#, fuzzy
-#| msgid "List of registered players"
-msgid "Children (under 18) not registered as players"
-msgstr "Lista de jugadores registrados"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:612
-msgid "Decrease children"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:617
-msgid "Increase children"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:631
-#, fuzzy
-#| msgid "guests"
-msgid "Total guests"
-msgstr "huéspedes"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:637
-msgid "adults"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:639
-#, fuzzy
-#| msgid "player"
-#| msgid_plural "players"
-msgid "players"
-msgstr "jugador"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:642
-msgid "additional children"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:671
-msgid "Choose room"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:686
-#, fuzzy
-#| msgid "Available Rooms"
-msgid "Available rooms"
-msgstr "Habitaciones Disponibles"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:699
-msgid "How to proceed:"
-msgstr ""
-
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:507
 #: .\templates\accounts\panel_tabs\detalle_evento_modals.html:701
-msgid "Review your guests below (you can add more)"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:702
-msgid "Click on a room to see details"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:703
-msgid "Click 'Select' to choose a room"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:704
-msgid "Click 'Continue' when ready"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:715
-msgid "Your Guests"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:721
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1284
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1373
-msgid "Add Guest"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:730
-#, fuzzy
-#| msgid "Capacity"
-msgid "Guests List"
-msgstr "Capacidad"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:738
-msgid "Price Calculation"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:751
-#, fuzzy
-#| msgid "Select a city"
-msgid "Select a Room"
-msgstr "Selecciona una ciudad"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:754
-msgid "Click on a room to see details, then click 'Select' to choose it"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:760
-msgid ""
-"No rooms available for the selected number of guests. Please adjust guests "
-"or try another option."
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:767
-msgid "Sort by:"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:772
-msgid "Recommended"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:773
-msgid "Price: Low to High"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:774
-msgid "Price: High to Low"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:775
-msgid "Capacity: Low to High"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:776
-msgid "Capacity: High to Low"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:828
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1226
-#: .\templates\accounts\panel_tabs\reservas.html:71
-msgid "Room"
-msgstr "Habitación"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:834
-msgid "Max"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:834
-msgid "people"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:840
-msgid "Breakfast included"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:864
-msgid "per night"
-msgstr "por noche"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:872
-msgid "Includes 1 guest"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:874
-msgid "Includes"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:874
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1248
-msgid "guests"
-msgstr "huéspedes"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:888
-#: .\templates\accounts\panel_tabs\plan_pagos.html:90
-#: .\templates\accounts\panel_tabs\reservas.html:113
-#, fuzzy
-#| msgid "Location"
-msgid "View Details"
-msgstr "Ver Detalles"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:905
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:999
-msgid "Photo Gallery"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:908
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1002
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1236
-#: .\templates\accounts\panel_usuario.html:567
-#: .\templates\accounts\public_home.html:2603
-msgid "Loading..."
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:917
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1011
-#, fuzzy
-#| msgid "User Information"
-msgid "Room Information"
-msgstr "Información de Usuario"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:924
-#, fuzzy
-#| msgid "Capacity"
-msgid "Capacity"
-msgstr "Capacidad"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:928
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1026
-#, fuzzy
-#| msgid "per night"
-msgid "Price per night"
-msgstr "por noche"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:935
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1067
-msgid "Occupancy Rules"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:948
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1087
-msgid "Select this room"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:958
-msgid "No rooms available at this time."
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:976
-msgid "Continue"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:989
-#, fuzzy
-#| msgid "Location"
-msgid "Room Details"
-msgstr "Ubicación"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1020
-#, fuzzy
-#| msgid "Capacity"
-msgid "Maximum Capacity"
-msgstr "Capacidad"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1032
-msgid "Guests included"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1038
-msgid "Additional guest price"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1044
-msgid "Breakfast"
-msgstr ""
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1050
-#, fuzzy
-#| msgid "Room number, hotel..."
-msgid "Room Number"
-msgstr "Número, hotel..."
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1081
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1271
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1045
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1135
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1176
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1283
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1325
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1340
 #: .\templates\accounts\public_home.html:3200
 #: .\templates\accounts\public_home.html:3815
 #: .\templates\events\public_detail.html:2094
@@ -1529,39 +1392,390 @@ msgstr "Número, hotel..."
 msgid "Close"
 msgstr "Cerrar"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1117
-msgid "Step 3 of 3"
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:537
+#: .\templates\accounts\panel_tabs\reservas.html:75
+msgid "Check-in"
+msgstr "Check-in"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:539
+#: .\templates\accounts\panel_tabs\reservas.html:79
+msgid "Check-out"
+msgstr "Check-out"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:551
+#, fuzzy
+#| msgid "Required:"
+msgid "Required"
+msgstr "Requerido:"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:551
+msgid ""
+"You must select at least one player or add at least one child to continue."
 msgstr ""
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1117
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:562
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1235
+#, fuzzy
+#| msgid "My Children/Players"
+msgid "Selected Players/Children"
+msgstr "Mis Hijos/Jugadores"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:563
+msgid "selected"
+msgstr "seleccionado"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:581
+msgid "Adults"
+msgstr "Adultos"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:582
+msgid "Total adults (18+). Minimum 1 adult."
+msgstr "Total de adultos (18+). Mínimo 1 adulto."
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:590
+msgid "Decrease adults"
+msgstr "Disminuir adultos"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:595
+msgid "Increase adults"
+msgstr "Aumentar adultos"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:600
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:633
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1010
+msgid "Tip:"
+msgstr "Consejo:"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:600
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:633
+msgid "You'll add names and birthdays after selecting a room."
+msgstr ""
+"Agregarás nombres y fechas de nacimiento después de seleccionar una "
+"habitación."
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:614
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1249
+#, fuzzy
+#| msgid "Edit Child"
+msgid "Additional Children"
+msgstr "Editar Hijo"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:615
+#, fuzzy
+#| msgid "List of registered players"
+msgid "Children (under 18) not registered as players"
+msgstr "Lista de jugadores registrados"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:623
+msgid "Decrease children"
+msgstr "Disminuir niños"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:628
+msgid "Increase children"
+msgstr "Aumentar niños"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:642
+msgid "Total guests"
+msgstr "Total de huéspedes"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:648
+msgid "adults"
+msgstr "adultos"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:650
+msgid "players"
+msgstr "jugadores"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:653
+msgid "additional children"
+msgstr "niños adicionales"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:682
+msgid "Choose room"
+msgstr "Elegir habitación"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:697
+#, fuzzy
+#| msgid "Available Rooms"
+msgid "Available rooms"
+msgstr "Habitaciones disponibles"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:710
+msgid "How to proceed:"
+msgstr "Cómo proceder:"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:712
+msgid "Review your guests below (you can add more)"
+msgstr "Revisa tus huéspedes abajo (puedes agregar más)"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:713
+msgid "Click on a room to see details"
+msgstr "Haz clic en una habitación para ver detalles"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:714
+msgid "Click 'Select' to choose a room"
+msgstr "Haz clic en 'Seleccionar' para elegir una habitación"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:715
+msgid "Click 'Continue' when ready"
+msgstr "Haz clic en 'Continuar' cuando estés listo"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:726
+msgid "Your Guests"
+msgstr "Tus Huéspedes"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:732
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1338
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1427
+msgid "Add Guest"
+msgstr "Agregar Huésped"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:741
+msgid "Guests List"
+msgstr "Lista de Huéspedes"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:749
+msgid "Price Calculation"
+msgstr "Cálculo de Precio"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:762
+#, fuzzy
+#| msgid "Select a city"
+msgid "Select a Room"
+msgstr "Selecciona una habitación"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:765
+msgid "Click on a room to see details, then click 'Select' to choose it"
+msgstr ""
+"Haz clic en una habitación para ver detalles, luego haz clic en "
+"'Seleccionar' para elegirla"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:771
+msgid ""
+"No rooms available for the selected number of guests. Please adjust guests "
+"or try another option."
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:780
+msgid "Sort by:"
+msgstr "Ordenar por:"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:785
+msgid "Recommended"
+msgstr "Recomendado"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:786
+msgid "Price: Low to High"
+msgstr "Precio: Menor a Mayor"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:787
+msgid "Price: High to Low"
+msgstr "Precio: Mayor a Menor"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:788
+msgid "Capacity: Low to High"
+msgstr "Capacidad: Menor a Mayor"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:789
+msgid "Capacity: High to Low"
+msgstr "Capacidad: Mayor a Menor"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:841
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1280
+#: .\templates\accounts\panel_tabs\reservas.html:71
+msgid "Room"
+msgstr "Habitación"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:847
+msgid "Max"
+msgstr "Máx"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:847
+msgid "people"
+msgstr "personas"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:853
+msgid "Breakfast included"
+msgstr "Desayuno incluido"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:877
+msgid "per night"
+msgstr "por noche"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:885
+msgid "Includes 1 guest"
+msgstr "Incluye 1 huésped"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:887
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1302
+msgid "guests"
+msgstr "huéspedes"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:901
+#: .\templates\accounts\panel_tabs\plan_pagos.html:90
+#: .\templates\accounts\panel_tabs\reservas.html:113
+#, fuzzy
+#| msgid "Location"
+msgid "View Details"
+msgstr "Ver Detalles"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:918
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1053
+msgid "Photo Gallery"
+msgstr "Galería de Fotos"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:921
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1056
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1290
+#: .\templates\accounts\panel_usuario.html:570
+#: .\templates\accounts\public_home.html:2603
+msgid "Loading..."
+msgstr "Cargando..."
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:930
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1065
+#, fuzzy
+#| msgid "User Information"
+msgid "Room Information"
+msgstr "Información de Usuario"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:937
+#, fuzzy
+#| msgid "Capacity"
+msgid "Capacity"
+msgstr "Capacidad"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:941
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1080
+#, fuzzy
+#| msgid "per night"
+msgid "Price per night"
+msgstr "por noche"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:948
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1121
+msgid "Occupancy Rules"
+msgstr "Reglas de Ocupación"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:961
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1141
+msgid "Select this room"
+msgstr "Seleccionar esta habitación"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:971
+msgid "No rooms available at this time."
+msgstr "No hay habitaciones disponibles en este momento."
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:981
+msgid "Want to change the room?"
+msgstr "¿Quieres cambiar la habitación?"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:984
+msgid "You can go back to the room list and pick a different option."
+msgstr ""
+"Puedes volver a la lista de habitaciones y elegir una opción diferente."
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:994
+#, fuzzy
+#| msgid "Password"
+msgid "Change room"
+msgstr "Contraseña"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1001
+msgid "Add room"
+msgstr "Agregar habitación"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1010
+msgid ""
+"If you selected multiple rooms, make sure every room has at least 1 guest "
+"assigned."
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1022
+#, fuzzy
+#| msgid "guests"
+msgid "Auto-assign guests"
+msgstr "Auto-asignar huéspedes"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1030
+msgid "Continue"
+msgstr "Continuar"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1043
+#, fuzzy
+#| msgid "Location"
+msgid "Room Details"
+msgstr "Ubicación"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1074
+#, fuzzy
+#| msgid "Capacity"
+msgid "Maximum Capacity"
+msgstr "Capacidad"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1086
+msgid "Guests included"
+msgstr "Huéspedes incluidos"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1092
+msgid "Additional guest price"
+msgstr "Precio de huésped adicional"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1098
+msgid "Breakfast"
+msgstr "Desayuno"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1104
+#, fuzzy
+#| msgid "Room number, hotel..."
+msgid "Room Number"
+msgstr "Número, hotel..."
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1161
+msgid "1 / 1"
+msgstr "1 / 1"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1171
+msgid "Step 3 of 3"
+msgstr "Paso 3 de 3"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1171
 #, fuzzy
 #| msgid "Location"
 msgid "Details"
 msgstr "Ver Detalles"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1119
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1173
 #, fuzzy
 #| msgid "Events"
 msgid "Guest details"
 msgstr "Eventos"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1144
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1198
 #, fuzzy
 #| msgid "Select a state"
 msgid "Selected room"
 msgstr "Selecciona un estado"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1152
-msgid "Adult 1 (Main Contact)"
-msgstr ""
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1200
+msgid "—"
+msgstr "—"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1156
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1206
+msgid "Adult 1 (Main Contact)"
+msgstr "Adulto 1 (Contacto Principal)"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1210
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2332
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2380
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2434
 #, fuzzy
 #| msgid "Full hotel address"
 msgid "Full Name"
 msgstr "Dirección completa"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1167
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1221
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2392
 #: .\templates\accounts\panel_tabs\perfil.html:67
 #: .\templates\accounts\panel_tabs\registrar_hijo.html:108
 #: .\templates\accounts\player_edit.html:81
@@ -1570,65 +1784,56 @@ msgstr "Dirección completa"
 msgid "Phone"
 msgstr "Teléfono"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1172
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1226
 #, fuzzy
 #| msgid "Season description (optional)"
 msgid "Notes (optional)"
 msgstr "Título del banner (opcional)"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1173
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1227
 msgid "Any special requests?"
-msgstr ""
+msgstr "¿Alguna solicitud especial?"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1188
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1242
 msgid "Additional Adults"
-msgstr ""
+msgstr "Adultos Adicionales"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1206
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1268
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1260
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1322
 msgid "Back"
-msgstr ""
+msgstr "Atrás"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1209
-#, fuzzy
-#| msgid "Create Team"
-msgid "Create reservation"
-msgstr "Crear Equipo"
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1263
+msgid "Add to checkout"
+msgstr "Agregar al pago"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1224
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1278
 msgid "Step 2 of 3"
-msgstr ""
+msgstr "Paso 2 de 3"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1224
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1278
 #, fuzzy
 #| msgid "Location"
 msgid "Room details"
 msgstr "Ubicación"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1242
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1296
 #, fuzzy
 #| msgid "Preview"
 msgid "Overview"
 msgstr "Vista previa"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1249
-#: .\templates\accounts\panel_tabs\reservas.html:83
-#, fuzzy
-#| msgid "Right"
-msgid "night"
-msgstr "Derecho"
-
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1260
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1314
 msgid "Services"
 msgstr "Servicios"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1300
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1354
 #, fuzzy
 #| msgid "First Name"
 msgid "Enter first name"
 msgstr "Nombre"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1304
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1358
 #: .\templates\accounts\panel_tabs\perfil.html:38
 #: .\templates\accounts\panel_tabs\registrar_hijo.html:86
 #: .\templates\accounts\panel_tabs\registrar_jugador.html:37
@@ -1638,38 +1843,130 @@ msgstr "Nombre"
 msgid "Last Name"
 msgstr "Apellido"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1311
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1365
 msgid "Enter last name"
-msgstr ""
+msgstr "Ingresa el apellido"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1322
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1376
 #, fuzzy
 #| msgid "Please enter your email address."
 msgid "Enter email address"
 msgstr "Por favor, ingresa tu correo electrónico."
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1336
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1390
 #, fuzzy
 #| msgid "Event"
 msgid "Guest Type"
 msgstr "Evento"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1347
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1401
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2376
 msgid "Adult"
-msgstr ""
+msgstr "Adulto"
 
-#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1357
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1401
+msgid "(18+)"
+msgstr "(18+)"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1411
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2430
 #, fuzzy
 #| msgid "Edit Child"
 msgid "Child"
 msgstr "Editar Hijo"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:1411
+msgid "(<18)"
+msgstr "(<18)"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2328
+#, fuzzy
+#| msgid "My Children/Players"
+msgid "Player/Child"
+msgstr "Mis Hijos/Jugadores"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2386
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2392
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:96
+#: .\templates\accounts\panel_tabs\registrar_hijo.html:109
+#: .\templates\accounts\player_edit.html:58
+#: .\templates\accounts\player_edit.html:82
+#: .\templates\accounts\player_edit_hijo.html:58
+#: .\templates\accounts\player_edit_hijo.html:71
+msgid "optional"
+msgstr "opcional"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2487
+msgid "Please select a room"
+msgstr "Por favor, selecciona una habitación"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2492
+msgid "Event dates are not configured. Please contact support."
+msgstr ""
+"Las fechas del evento no están configuradas. Por favor, contacta al soporte."
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2501
+msgid "Invalid date format. Please contact support."
+msgstr "Formato de fecha inválido. Por favor, contacta al soporte."
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2519
+msgid "Adding..."
+msgstr "Agregando..."
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2598
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2634
+#, fuzzy
+#| msgid "Select a city"
+msgid "Hotel Room"
+msgstr "Selecciona una ciudad"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2650
+msgid "Added to checkout successfully!"
+msgstr "¡Agregado al pago exitosamente!"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2660
+msgid "An error occurred. Please try again."
+msgstr "Ocurrió un error. Por favor, inténtalo de nuevo."
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2715
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2719
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:3021
+msgid "Please add/select guests before selecting a room."
+msgstr ""
+"Por favor, agrega/selecciona huéspedes antes de seleccionar una habitación."
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2930
+#, fuzzy
+#| msgid "Select a country first"
+msgid "Please select a room to continue."
+msgstr "Por favor, selecciona el prefijo del país"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2932
+msgid "No guests assigned to this room"
+msgstr "No hay huéspedes asignados a esta habitación"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2932
+msgid ""
+"The room must have at least 1 guest and must comply with the occupancy rules "
+"for the room."
+msgstr ""
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2934
+msgid "Room rules not satisfied"
+msgstr "Reglas de la habitación no cumplidas"
+
+#: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2934
+msgid ""
+"Please adjust guests or choose another room so it complies with the "
+"occupancy rules."
+msgstr ""
 
 #: .\templates\accounts\panel_tabs\eventos.html:4
 #: .\templates\accounts\panel_usuario.html:330
 #: .\templates\accounts\panel_usuario.html:459
 #: .\templates\accounts\public_home.html:2437
 #: .\templates\accounts\public_home.html:3138
-#: .\templates\accounts\public_register.html:881 .\templates\base_mlb.html:223
+#: .\templates\accounts\public_register.html:881 .\templates\base_mlb.html:224
 #: .\templates\events\public_detail.html:1541
 #: .\templates\events\public_detail.html:1577
 #: .\templates\events\public_detail.html:2032
@@ -1859,154 +2156,138 @@ msgstr "Este es tu perfil público"
 #: .\templates\accounts\panel_tabs\plan_pagos.html:6
 #: .\templates\accounts\panel_usuario.html:477
 msgid "Plans & Payments"
-msgstr ""
+msgstr "Planes y Pagos"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:8
 msgid "Manage your payment plans and view payment history"
-msgstr ""
+msgstr "Gestiona tus planes de pago y visualiza el historial de pagos"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:18
 msgid "My Wallet"
-msgstr ""
+msgstr "Mi Billetera"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:21
 msgid "Available balance for payments"
-msgstr ""
+msgstr "Saldo disponible para pagos"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:26
-#, fuzzy
-#| msgid "Cancel"
 msgid "Balance"
-msgstr "Cancelar"
+msgstr "Saldo"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:32
 msgid "Add Funds"
-msgstr ""
+msgstr "Agregar Fondos"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:44
-#, fuzzy
-#| msgid "View Players"
 msgid "Active Payment Plans"
-msgstr "Ver Jugadores"
+msgstr "Planes de Pago Activos"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:53
 msgid "No active payment plans"
-msgstr ""
+msgstr "No hay planes de pago activos"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:54
 msgid ""
 "Payment plans will appear here when you register for events with payment "
 "plans"
 msgstr ""
+"Los planes de pago aparecerán aquí cuando te registres en eventos con planes "
+"de pago"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:65
 #: .\templates\accounts\panel_tabs\reservas.html:101
-#, fuzzy
-#| msgid "Create Team"
 msgid "Created"
-msgstr "Crear Equipo"
+msgstr "Creado"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:71
 #: .\templates\accounts\panel_tabs\reservas.html:95
-#, fuzzy
-#| msgid "Available Rooms"
 msgid "Total Amount"
-msgstr "Habitaciones Disponibles"
+msgstr "Monto Total"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:75
 msgid "Installments"
-msgstr ""
+msgstr "Cuotas"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:76
 msgid "payments"
-msgstr ""
+msgstr "pagos"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:79
 msgid "Amount per Installment"
-msgstr ""
+msgstr "Monto por Cuota"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:85
 msgid "paid"
-msgstr ""
+msgstr "pagado"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:93
 msgid "Pay Next Installment"
-msgstr ""
+msgstr "Pagar Próxima Cuota"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:107
 msgid "Wallet Transactions"
-msgstr ""
+msgstr "Transacciones de Billetera"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:116
 #: .\templates\accounts\panel_tabs\plan_pagos.html:179
 #: .\templates\events\public_detail.html:1591
 msgid "Date"
-msgstr ""
+msgstr "Fecha"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:117
 msgid "Type"
-msgstr ""
+msgstr "Tipo"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:119
 #: .\templates\accounts\panel_tabs\plan_pagos.html:181
 #: .\templates\accounts\panel_tabs\plan_pagos.html:255
 #: .\templates\accounts\panel_tabs\plan_pagos.html:284
-#, fuzzy
-#| msgid "My Account"
 msgid "Amount"
-msgstr "Mi Cuenta"
+msgstr "Monto"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:120
 msgid "Balance After"
-msgstr ""
+msgstr "Saldo Después"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:155
 msgid "No transactions yet"
-msgstr ""
+msgstr "Aún no hay transacciones"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:170
 msgid "Payment History"
-msgstr ""
+msgstr "Historial de Pagos"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:183
-#, fuzzy
-#| msgid "Quick Actions"
 msgid "Actions"
-msgstr "Acciones Rápidas"
+msgstr "Acciones"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:191
 msgid "No payment history available"
-msgstr ""
+msgstr "No hay historial de pagos disponible"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:205
 msgid "Paid"
-msgstr ""
+msgstr "Pagado"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:209
 msgid "Receipt"
-msgstr ""
+msgstr "Recibo"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:224
-#, fuzzy
-#| msgid "No Upcoming Events"
 msgid "Upcoming Payments"
-msgstr "No Hay Eventos Próximos"
+msgstr "Pagos Próximos"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:233
-#, fuzzy
-#| msgid "No Upcoming Events"
 msgid "No upcoming payments"
-msgstr "No Hay Eventos Próximos"
+msgstr "No hay pagos próximos"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:234
 msgid "Upcoming payment installments will appear here"
-msgstr ""
+msgstr "Las cuotas de pago próximas aparecerán aquí"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:245
-#, fuzzy
-#| msgid "Events"
 msgid "Due Date"
-msgstr "Eventos"
+msgstr "Fecha de Vencimiento"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:251
 #: .\templates\accounts\public_home.html:3690
@@ -2016,15 +2297,15 @@ msgstr "Evento"
 #: .\templates\accounts\panel_tabs\plan_pagos.html:260
 #: .\templates\accounts\panel_tabs\reservas.html:118
 msgid "Pay Now"
-msgstr ""
+msgstr "Pagar Ahora"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:275
 msgid "Add Funds to Wallet"
-msgstr ""
+msgstr "Agregar Fondos a la Billetera"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:287
 msgid "Minimum amount: $1.00"
-msgstr ""
+msgstr "Monto mínimo: $1.00"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:291
 #: .\templates\accounts\panel_tabs\registrar_jugador.html:52
@@ -2037,25 +2318,22 @@ msgid "Optional"
 msgstr "Opcional"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:293
-#, fuzzy
-#| msgid "Description"
 msgid "Deposit description"
-msgstr "Descripción"
+msgstr "Descripción del depósito"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:297
-#, fuzzy
-#| msgid "Note:"
 msgid "Note"
-msgstr "Nota:"
+msgstr "Nota"
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:297
 msgid ""
 "This will redirect you to the payment gateway to complete the transaction."
 msgstr ""
+"Esto te redirigirá a la pasarela de pago para completar la transacción."
 
 #: .\templates\accounts\panel_tabs\plan_pagos.html:303
 msgid "Proceed to Payment"
-msgstr ""
+msgstr "Proceder al Pago"
 
 #: .\templates\accounts\panel_tabs\registrar_hijo.html:6
 msgid ""
@@ -2099,15 +2377,6 @@ msgstr "Tu relación legal con el jugador"
 #: .\templates\accounts\player_edit_hijo.html:34
 msgid "Personal Information"
 msgstr "Información Personal"
-
-#: .\templates\accounts\panel_tabs\registrar_hijo.html:96
-#: .\templates\accounts\panel_tabs\registrar_hijo.html:109
-#: .\templates\accounts\player_edit.html:58
-#: .\templates\accounts\player_edit.html:82
-#: .\templates\accounts\player_edit_hijo.html:58
-#: .\templates\accounts\player_edit_hijo.html:71
-msgid "optional"
-msgstr "opcional"
 
 #: .\templates\accounts\panel_tabs\registrar_hijo.html:115
 #: .\templates\accounts\player_edit.html:88
@@ -2391,7 +2660,7 @@ msgid "Click to change file"
 msgstr "Haz clic para subir el logo"
 
 #: .\templates\accounts\panel_tabs\registrar_hijo.html:489
-#: .\templates\accounts\panel_usuario.html:577
+#: .\templates\accounts\panel_usuario.html:580
 #, fuzzy
 #| msgid "Please complete all required fields:"
 msgid "Please complete all required fields"
@@ -2454,16 +2723,16 @@ msgid "Clear"
 msgstr ""
 
 #: .\templates\accounts\panel_tabs\reservas.html:55
+#: .\templates\locations\front_hotel_reservation_checkout.html:4
+#: .\templates\locations\front_hotel_reservation_checkout.html:12
 #, fuzzy
 #| msgid "Register"
 msgid "Reservation"
 msgstr "Inscribirse"
 
 #: .\templates\accounts\panel_tabs\reservas.html:83
-#, fuzzy
-#| msgid "Right"
 msgid "Nights"
-msgstr "Derecho"
+msgstr "Noches"
 
 #: .\templates\accounts\panel_tabs\reservas.html:87
 msgid "person"
@@ -2529,7 +2798,7 @@ msgid "List of registered players"
 msgstr "Lista de jugadores registrados"
 
 #: .\templates\accounts\panel_tabs\ver_jugadores.html:74
-#: .\templates\accounts\panel_usuario.html:579
+#: .\templates\accounts\panel_usuario.html:582
 #: .\templates\accounts\player_edit.html:15
 msgid "Edit Player"
 msgstr "Editar Jugador"
@@ -2592,7 +2861,7 @@ msgstr "Registrarse"
 #: .\templates\accounts\public_home.html:2434
 #: .\templates\accounts\public_home.html:3134
 #: .\templates\accounts\public_register.html:878
-#: .\templates\accounts\public_register.html:1349 .\templates\base_mlb.html:220
+#: .\templates\accounts\public_register.html:1349 .\templates\base_mlb.html:221
 #: .\templates\events\public_detail.html:1538
 #: .\templates\events\public_detail.html:1575
 #: .\templates\events\public_detail.html:2028
@@ -2604,7 +2873,7 @@ msgstr "Inicio"
 #: .\templates\accounts\panel_usuario.html:333
 #: .\templates\accounts\public_home.html:2440
 #: .\templates\accounts\public_home.html:3142
-#: .\templates\accounts\public_register.html:884 .\templates\base_mlb.html:224
+#: .\templates\accounts\public_register.html:884 .\templates\base_mlb.html:225
 #: .\templates\events\public_detail.html:1544
 #: .\templates\events\public_detail.html:2036
 #: .\templates\events\public_list.html:1123
@@ -2637,64 +2906,60 @@ msgid "Public Profile"
 msgstr "Perfil Público"
 
 #: .\templates\accounts\panel_usuario.html:470
-#, fuzzy
-#| msgid "Register"
 msgid "Reservations"
-msgstr "Inscribirse"
+msgstr "Reservaciones"
 
 #: .\templates\accounts\panel_usuario.html:481
 #: .\templates\accounts\profile.html:11
-#, fuzzy
-#| msgid "My Profile"
 msgid "Profile"
-msgstr "Mi Perfil"
+msgstr "Perfil"
 
-#: .\templates\accounts\panel_usuario.html:568
+#: .\templates\accounts\panel_usuario.html:571
 msgid "Loading edit form..."
 msgstr ""
 
-#: .\templates\accounts\panel_usuario.html:569
+#: .\templates\accounts\panel_usuario.html:572
 msgid "Back to My Children/Players"
 msgstr "Volver a Mis Hijos/Jugadores"
 
-#: .\templates\accounts\panel_usuario.html:570
+#: .\templates\accounts\panel_usuario.html:573
 msgid "Back to View Players"
 msgstr "Volver a Ver Jugadores"
 
-#: .\templates\accounts\panel_usuario.html:571
+#: .\templates\accounts\panel_usuario.html:574
 msgid "Saving..."
 msgstr ""
 
-#: .\templates\accounts\panel_usuario.html:572
+#: .\templates\accounts\panel_usuario.html:575
 msgid "Error loading form"
 msgstr ""
 
-#: .\templates\accounts\panel_usuario.html:573
+#: .\templates\accounts\panel_usuario.html:576
 msgid "Error saving. Please try again."
 msgstr ""
 
-#: .\templates\accounts\panel_usuario.html:574
+#: .\templates\accounts\panel_usuario.html:577
 msgid "Could not extract edit form. Please reload the page and try again."
 msgstr ""
 
-#: .\templates\accounts\panel_usuario.html:575
+#: .\templates\accounts\panel_usuario.html:578
 msgid "Please try again."
 msgstr ""
 
-#: .\templates\accounts\panel_usuario.html:576
+#: .\templates\accounts\panel_usuario.html:579
 msgid "Player updated successfully"
 msgstr ""
 
-#: .\templates\accounts\panel_usuario.html:578
+#: .\templates\accounts\panel_usuario.html:581
 #: .\templates\accounts\player_edit_hijo.html:15
 msgid "Edit Child/Player"
 msgstr "Editar Hijo/Jugador"
 
-#: .\templates\accounts\panel_usuario.html:580
+#: .\templates\accounts\panel_usuario.html:583
 msgid "Modify your child information"
 msgstr "Modifica la información de tu hijo"
 
-#: .\templates\accounts\panel_usuario.html:581
+#: .\templates\accounts\panel_usuario.html:584
 #: .\templates\accounts\player_edit.html:17
 msgid "Modify player information"
 msgstr "Modifica la información del jugador"
@@ -3177,6 +3442,12 @@ msgstr ""
 #| msgid "No upcoming events."
 msgid "Check back soon for upcoming events"
 msgstr "No hay eventos próximos."
+
+#: .\templates\accounts\public_register.html:10
+#, fuzzy
+#| msgid "Register"
+msgid "Registration"
+msgstr "Inscribirse"
 
 #: .\templates\accounts\public_register.html:912
 msgid "User Registration"
@@ -3922,6 +4193,21 @@ msgstr ""
 #: .\templates\events\public_list.html:1264
 msgid "Events pagination"
 msgstr ""
+
+#, fuzzy
+#~| msgid "Select a state"
+#~ msgid "Selected"
+#~ msgstr "Selecciona un estado"
+
+#, fuzzy
+#~| msgid "Register Child"
+#~ msgid "Register Selected"
+#~ msgstr "Registrar Hijo"
+
+#, fuzzy
+#~| msgid "Create Team"
+#~ msgid "Create reservation"
+#~ msgstr "Crear Equipo"
 
 #~ msgid "Default language for the platform"
 #~ msgstr "Idioma predeterminado para la plataforma"

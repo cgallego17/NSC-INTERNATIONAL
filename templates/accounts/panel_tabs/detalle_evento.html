@@ -351,11 +351,12 @@
 
                         <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 12px;">
                             <div style="font-size: 0.8rem; color: #6c757d; font-weight: 600; line-height: 1.25; margin-bottom: 10px;">
-                                {% trans "If you don't add a hotel stay, a No-Show Fee will apply." %}
+                                {% trans "If you don't add a hotel stay, a Hotel buy out fee will apply." %}
                                                 </div>
 
                             <button type="button"
                                     class="btn btn-sm w-100"
+                                    id="add-hotel-stay-btn"
                                     data-hotel-pk="{{ event.hotel.pk }}"
                                     onclick="openHotelRoomSelector()"
                                     style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; padding: 10px; border-radius: 10px; font-weight: 800; font-size: 0.9rem; border: none; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px;"
@@ -364,6 +365,7 @@
                                 <i class="fas fa-hotel"></i>
                                 <span>{% trans "Add Hotel Stay" %}</span>
                             </button>
+                            <div id="add-hotel-stay-hint" style="margin-top: 8px; font-size: 0.78rem; color: #6c757d; font-weight: 700; line-height: 1.2;"></div>
                                             </div>
                                         </div>
                 {% endif %}
@@ -411,14 +413,26 @@
                                         <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
                                             <i class="fas fa-hotel" style="color: var(--mlb-red); font-size: 0.9rem;"></i>
                                             <span style="font-weight: 700; color: var(--mlb-blue); font-size: 0.95rem;" id="checkout-hotel-name">{% trans "Hotel Stay" %}</span>
+                                            <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+                                                <button type="button"
+                                                        onclick="openHotelRoomSelector()"
+                                                        style="background: transparent; border: none; padding: 0; color: var(--mlb-blue); font-weight: 800; font-size: 0.78rem; text-decoration: underline;">
+                                                    {% trans "Change" %}
+                                                </button>
+                                                <button type="button"
+                                                        onclick="window.removeCheckoutHotel && window.removeCheckoutHotel()"
+                                                        style="background: transparent; border: none; padding: 0; color: #b91c1c; font-weight: 900; font-size: 0.78rem; text-decoration: underline;">
+                                                    {% trans "Remove" %}
+                                                </button>
                                             </div>
+                                        </div>
                                         <div id="checkout-hotel-room-info" style="font-size: 0.8rem; color: #6c757d; font-weight: 600; display: inline;">
                                             <!-- Se llenará con información de la habitación -->
-                                        </div>
+                                    </div>
                                         <div id="checkout-hotel-details" style="font-size: 0.75rem; color: #6c757d; line-height: 1.4; display: inline;">
                                             <!-- Se llenará con fechas, huéspedes, noches -->
-                                    </div>
                                 </div>
+                            </div>
                                     <div style="text-align: right; flex-shrink: 0;">
                                         <div style="font-weight: 800; color: var(--mlb-red); font-size: 1.1rem; margin-bottom: 2px;" id="checkout-hotel-total">$0.00</div>
                                         <div style="font-size: 0.7rem; color: #6c757d;" id="checkout-hotel-nights">0 {% trans "nights" %}</div>
@@ -435,7 +449,7 @@
                                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                                             <i class="fas fa-exclamation-triangle" style="color: #f97316; font-size: 1rem;"></i>
                                             <span style="font-weight: 800; color: var(--mlb-blue); font-size: 0.95rem;">
-                                                {% trans "No-Show Fee" %}
+                                                {% trans "Hotel buy out fee" %}
                                             </span>
                             </div>
                                         <div style="font-size: 0.78rem; color: #6c757d; font-weight: 600; line-height: 1.25;">
@@ -482,7 +496,7 @@
                             <button type="button" class="btn" id="pay-plan-btn" disabled
                                     style="flex: 1; background: #e9ecef; color: var(--mlb-blue); border: 2px solid #e9ecef; border-radius: 10px; padding: 12px; font-weight: 800; transition: all 0.2s; opacity: 0.5; cursor: not-allowed; text-align: left;">
                                 <div style="display:flex; align-items:center; justify-content: space-between; gap: 10px;">
-                                    <span><i class="fas fa-calendar-alt me-2"></i>{% trans "Pay in plan" %}</span>
+                                    <span><i class="fas fa-calendar-alt me-2"></i>{% trans "Payment plan" %}</span>
                                     <span id="plan-monthly-amount" style="font-weight: 900; color: var(--mlb-blue);">$0.00</span>
                             </div>
                                 <div id="plan-subtext" style="margin-top: 4px; font-size: 0.8rem; font-weight: 700; color: #6c757d; line-height: 1.25;"></div>
@@ -494,7 +508,7 @@
                             <button type="button" class="btn" id="pay-now-btn" disabled
                                     style="flex: 1; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; border: none; border-radius: 10px; padding: 12px; font-weight: 800; transition: all 0.2s; opacity: 0.5; cursor: not-allowed; text-align: left;">
                                 <div style="display:flex; align-items:center; justify-content: space-between; gap: 10px;">
-                                    <span id="pay-now-title"><i class="fas fa-bolt me-2"></i>{% trans "Pay now" %} <span id="pay-now-discount-badge" style="opacity:0.9;">- 5% OFF</span></span>
+                                    <span id="pay-now-title"><i class="fas fa-bolt me-2"></i>{% trans "Pay now" %} <span id="pay-now-discount-badge" style="opacity:0.9;">{% trans "- 5% OFF" %}</span></span>
                                     <span id="pay-now-total" style="font-weight: 900; color: white;">$0.00</span>
                                 </div>
                                 <div id="pay-now-subtext" style="margin-top: 4px; font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.9); line-height: 1.25;"></div>
@@ -504,6 +518,16 @@
                         </button>
                         </div>
                     </form>
+
+                    <!-- Loader mientras se crea la sesión de Stripe / redirección -->
+                    <div id="stripe-checkout-loader" style="display:none;" role="status" aria-live="polite" aria-label="{% trans 'Redirecting to Stripe checkout' %}">
+                        <div class="stripe-checkout-loader__backdrop"></div>
+                        <div class="stripe-checkout-loader__card">
+                            <div class="stripe-checkout-loader__spinner" aria-hidden="true"></div>
+                            <div class="stripe-checkout-loader__title">{% trans "Redirecting to Stripe..." %}</div>
+                            <div class="stripe-checkout-loader__subtitle">{% trans "Please don't close this window." %}</div>
+                        </div>
+                    </div>
                 </div>
 
                 {% if not children %}
@@ -564,10 +588,74 @@
     filter: brightness(1.02);
 }
 
+#add-hotel-stay-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    filter: grayscale(0.1);
+}
+
 #pay-plan-btn:focus-visible,
 #pay-now-btn:focus-visible {
     outline: 3px solid rgba(13, 44, 84, 0.25);
     outline-offset: 2px;
+}
+
+/* Loader Stripe */
+#stripe-checkout-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: none; /* set to flex via JS */
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+#stripe-checkout-loader .stripe-checkout-loader__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.55);
+    backdrop-filter: blur(4px);
+}
+
+#stripe-checkout-loader .stripe-checkout-loader__card {
+    position: relative;
+    z-index: 1;
+    width: min(440px, 92vw);
+    background: white;
+    border-radius: 14px;
+    padding: 18px 16px;
+    box-shadow: 0 18px 60px rgba(0,0,0,0.28);
+    text-align: center;
+    border: 1px solid rgba(229, 231, 235, 0.9);
+}
+
+#stripe-checkout-loader .stripe-checkout-loader__spinner {
+    width: 40px;
+    height: 40px;
+    margin: 4px auto 10px;
+    border-radius: 999px;
+    border: 4px solid #e5e7eb;
+    border-top-color: var(--mlb-red);
+    animation: stripeLoaderSpin 0.9s linear infinite;
+}
+
+#stripe-checkout-loader .stripe-checkout-loader__title {
+    font-weight: 900;
+    color: var(--mlb-blue);
+    font-size: 1.05rem;
+    margin-bottom: 4px;
+}
+
+#stripe-checkout-loader .stripe-checkout-loader__subtitle {
+    font-weight: 600;
+    color: #6c757d;
+    font-size: 0.85rem;
+    line-height: 1.25;
+}
+
+@keyframes stripeLoaderSpin {
+    to { transform: rotate(360deg); }
 }
 
 /* Estilos para el HTML de la descripción del evento */
@@ -714,12 +802,93 @@ document.addEventListener('DOMContentLoaded', function() {
     const checkboxes = document.querySelectorAll('.child-checkbox');
     const pricePerPlayer = parseFloat('{{ event.default_entry_fee|default:"0" }}') || 0;
     const registrationForm = document.getElementById('eventRegistrationForm');
+    const eventId = '{{ event.pk }}';
+    const checkoutPlayersStorageKey = 'checkout_selected_players_' + eventId;
+    const checkoutHotelStorageKey = 'checkout_selected_hotel_' + eventId;
+    const hasHotelCart = {% if request.session.hotel_cart %}true{% else %}false{% endif %};
 
     // Almacenar items del checkout
     window.checkoutItems = {
         players: [],
         hotel: null
     };
+
+    // Persist / restore checkout selections when the user returns from Stripe (cancel/back)
+    function persistSelectedPlayers() {
+        try {
+            const selected = Array.from(document.querySelectorAll('.child-checkbox:checked')).map(cb => cb.value);
+            localStorage.setItem(checkoutPlayersStorageKey, JSON.stringify(selected));
+        } catch (e) {
+            console.warn('Could not persist selected players', e);
+        }
+    }
+
+    function restoreSelectedPlayers() {
+        try {
+            const raw = localStorage.getItem(checkoutPlayersStorageKey);
+            if (!raw) return;
+            const selected = JSON.parse(raw) || [];
+            if (!Array.isArray(selected)) return;
+            document.querySelectorAll('.child-checkbox').forEach((cb) => {
+                cb.checked = selected.includes(cb.value);
+            });
+        } catch (e) {
+            console.warn('Could not restore selected players', e);
+        }
+    }
+
+    function persistSelectedHotel(hotelData) {
+        try {
+            if (!hotelData) {
+                localStorage.removeItem(checkoutHotelStorageKey);
+                return;
+            }
+            localStorage.setItem(checkoutHotelStorageKey, JSON.stringify(hotelData));
+        } catch (e) {
+            console.warn('Could not persist selected hotel', e);
+        }
+    }
+
+    async function clearHotelCartInSession() {
+        try {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+            const resp = await fetch(hotelCartJsonUrl, { method: 'GET' });
+            const data = await resp.json();
+            const items = (data && data.items) ? data.items : [];
+            if (!Array.isArray(items) || items.length === 0) return;
+
+            await Promise.all(items.map((item) => {
+                if (!item || !item.id) return Promise.resolve();
+                return fetch(hotelCartRemoveUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: JSON.stringify({ item_id: item.id })
+                }).catch(() => null);
+            }));
+        } catch (e) {
+            console.warn('Could not clear hotel cart in session', e);
+        }
+    }
+
+    function restoreSelectedHotel() {
+        try {
+            // If session cart is empty, do not restore stale hotel info
+            if (!hasHotelCart) {
+                localStorage.removeItem(checkoutHotelStorageKey);
+                return;
+            }
+            const raw = localStorage.getItem(checkoutHotelStorageKey);
+            if (!raw) return;
+            const hotelData = JSON.parse(raw);
+            if (!hotelData || typeof hotelData !== 'object') return;
+            window.checkoutItems.hotel = hotelData;
+        } catch (e) {
+            console.warn('Could not restore selected hotel', e);
+        }
+    }
 
     // Función para formatear números con separadores de miles (puntos)
     function formatPrice(amount) {
@@ -744,6 +913,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Shared handler: open hotel room selector from checkout buttons
     window.openHotelRoomSelector = function openHotelRoomSelector() {
+        const selectedPlayersCount = document.querySelectorAll('.child-checkbox:checked').length;
+        if (selectedPlayersCount <= 0) {
+            alert('{% trans "Please select at least 1 player before adding a hotel stay." %}');
+            return;
+        }
         if (!window.NSC_HotelReservation) {
             console.error('NSC_HotelReservation not found');
             return;
@@ -760,6 +934,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateCheckoutSummary() {
         const playersCount = document.querySelectorAll('.child-checkbox:checked').length;
         const playersTotal = playersCount * pricePerPlayer;
+        const addHotelBtn = document.getElementById('add-hotel-stay-btn');
+        const addHotelHint = document.getElementById('add-hotel-stay-hint');
 
         // Formatear precios individuales en la lista de jugadores (checkout)
         document.querySelectorAll('.child-item').forEach((item) => {
@@ -783,6 +959,16 @@ document.addEventListener('DOMContentLoaded', function() {
             playersTotalSpan.textContent = '$' + formatPrice(playersTotal);
         } else {
             playersSummary.style.display = 'none';
+        }
+
+        // Step 2: require players before allowing hotel selection
+        if (addHotelBtn) {
+            addHotelBtn.disabled = playersCount <= 0;
+        }
+        if (addHotelHint) {
+            addHotelHint.textContent = (playersCount <= 0)
+                ? '{% trans "Select player(s) first to continue." %}'
+                : '';
         }
 
         // Actualizar resumen de hotel con información detallada e impuestos
@@ -967,7 +1153,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // No-Show Fee: solo aplica si hay jugadores seleccionados y NO se añadió hotel
+        // Hotel buy out fee: solo aplica si hay jugadores seleccionados y NO se añadió hotel
         const NO_SHOW_FEE = 500;
         const applyNoShowFee = (playersCount > 0) && !window.checkoutItems.hotel;
         const noShowFee = applyNoShowFee ? NO_SHOW_FEE : 0;
@@ -995,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', function() {
             noShowFeeInput.value = String(noShowFee);
         }
 
-        // Total del checkout (incluye No-Show Fee si aplica)
+        // Total del checkout (incluye Hotel buy out fee si aplica)
         const checkoutTotal = playersTotal + hotelTotal + noShowFee;
         window.__checkoutTotal = checkoutTotal;
         // Pay now -5% OFF only applies if a hotel stay is added
@@ -1135,14 +1321,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     const basePricePerNight = hotelBasePrice / nights;
                     let breakdownHTML = nights + ' {% trans "night(s)" %} × $' + formatPrice(basePricePerNight) + ' = $' + formatPrice(hotelBasePrice);
-                    breakdownHTML += '<br><strong style="color: var(--mlb-red);">Total Hotel (con impuestos): $' + formatPrice(hotelTotal) + '</strong>';
+                    breakdownHTML += '<br><strong style="color: var(--mlb-red);">' + '{% trans "Total Hotel (with taxes)" %}: $' + formatPrice(hotelTotal) + '</strong>';
                     breakdownHotelText.innerHTML = breakdownHTML;
 
                 } else if (breakdownHotel) {
                     breakdownHotel.style.display = 'none';
                 }
 
-                // Desglose No-Show Fee (si no hay hotel)
+                // Desglose Hotel buy out fee (si no hay hotel)
                 const noShowFeeRowId = 'checkout-breakdown-no-show';
                 let noShowRow = document.getElementById(noShowFeeRowId);
                 if (!noShowRow && breakdownDiv) {
@@ -1158,7 +1344,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         noShowRow.style.display = 'block';
                         noShowRow.innerHTML =
                             '<div style="display:flex; justify-content: space-between; align-items:center;">' +
-                                '<span style="font-weight:600;">{% trans "No-Show Fee" %}</span>' +
+                                '<span style="font-weight:600;">{% trans "Hotel buy out fee" %}</span>' +
                                 '<span style="font-weight:800; color:#f97316;">$' + formatPrice(noShowFee) + '</span>' +
                             '</div>';
                     } else {
@@ -1206,9 +1392,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listeners para checkboxes de jugadores
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
+            persistSelectedPlayers();
             updateCheckoutSummary();
         });
     });
+
+    // Restore selections before initial summary render
+    restoreSelectedPlayers();
+    restoreSelectedHotel();
 
     // Actualizar al cargar la página
     updateCheckoutSummary();
@@ -1218,9 +1409,33 @@ document.addEventListener('DOMContentLoaded', function() {
     const payNowBtn = document.getElementById('pay-now-btn');
     const paymentModeInput = document.getElementById('payment-mode');
     const discountPercentInput = document.getElementById('discount-percent');
+    const stripeCheckoutLoader = document.getElementById('stripe-checkout-loader');
+    const hotelCartJsonUrl = '{% url "locations:get_cart_json" %}';
+    const hotelCartRemoveUrl = '{% url "locations:remove_from_cart" %}';
+
+    // Stripe create-session URL (guarded for pages that render this template without an event, e.g. /accounts/panel/)
+    const stripeCreateSessionUrl = {% if event and event.pk %}'{% url "accounts:create_stripe_event_checkout_session" event.pk %}'{% else %}null{% endif %};
+
+    function showStripeCheckoutLoader() {
+        if (stripeCheckoutLoader) stripeCheckoutLoader.style.display = 'flex';
+        if (document && document.body) document.body.style.overflow = 'hidden';
+    }
+
+    function hideStripeCheckoutLoader() {
+        if (stripeCheckoutLoader) stripeCheckoutLoader.style.display = 'none';
+        if (document && document.body) document.body.style.overflow = '';
+    }
 
     async function startStripeCheckout(mode) {
         if (!registrationForm) return;
+        if (!stripeCreateSessionUrl) {
+            console.warn('Stripe checkout URL not available (missing event in template context).');
+            alert('{% trans "Could not start payment: missing event information." %}');
+            return;
+        }
+
+        let didRedirect = false;
+        showStripeCheckoutLoader();
 
         // Set hidden fields (kept for backend parity / logging)
         if (paymentModeInput) paymentModeInput.value = mode;
@@ -1248,7 +1463,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const formData = new FormData(registrationForm);
-            const resp = await fetch('{% url "accounts:create_stripe_event_checkout_session" event.pk %}', {
+            const resp = await fetch(stripeCreateSessionUrl, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': csrfToken,
@@ -1258,20 +1473,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const data = await resp.json();
             if (!resp.ok || !data || !data.success) {
-                const msg = (data && (data.error || data.message)) ? (data.error || data.message) : 'No se pudo iniciar el pago.';
+                const msg = (data && (data.error || data.message)) ? (data.error || data.message) : '{% trans "Could not start payment." %}';
                 alert(msg);
                 return;
             }
 
             if (data.checkout_url) {
+                didRedirect = true;
                 window.location.href = data.checkout_url;
             } else {
-                alert('Stripe no devolvió un link de checkout.');
+                alert('{% trans "Stripe did not return a checkout link." %}');
             }
         } catch (e) {
             console.error(e);
-            alert('Error iniciando el pago. Intenta nuevamente.');
+            alert('{% trans "Error starting payment. Please try again." %}');
         } finally {
+            if (!didRedirect) hideStripeCheckoutLoader();
             // Re-enable based on current state
             updateCheckoutSummary();
         }
@@ -1283,7 +1500,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Función global para actualizar el hotel en el checkout (llamada desde el modal)
     window.updateCheckoutHotel = function(hotelData) {
         window.checkoutItems.hotel = hotelData;
+        persistSelectedHotel(hotelData);
         updateCheckoutSummary();
+    };
+
+    // Función global para eliminar el hotel del checkout (UI + sesión + localStorage)
+    window.removeCheckoutHotel = async function() {
+        try {
+            await clearHotelCartInSession();
+        } finally {
+            window.checkoutItems.hotel = null;
+            persistSelectedHotel(null);
+            updateCheckoutSummary();
+            if (typeof window.updateCartCount === 'function') {
+                window.updateCartCount();
+            }
+        }
     };
 
     // Eliminar artefactos legacy que algunos scripts viejos pueden inyectar en el checkout
@@ -1373,7 +1605,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (window._createAdultForm{{ event.hotel.pk }}) {
                         window.addAdultForm{{ event.hotel.pk }}();
                     } else {
-                        alert('Por favor, espere un momento y vuelva a intentar.');
+                        alert('{% trans "Please wait a moment and try again." %}');
                     }
                 }, 100);
             }
@@ -1563,7 +1795,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         container = document.getElementById('adults-forms-container{{ event.hotel.pk }}');
                         if (!container) {
                             console.error('adultsFormsContainer not found');
-                            alert('Error: No se pudo encontrar el contenedor de formularios');
+                            alert('{% trans "Error: could not find the forms container." %}');
                             return;
                         }
                     }
@@ -1578,11 +1810,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         updatePeopleCount();
                     } else {
                         console.error('Failed to create or append adult form');
-                        alert('Error: No se pudo agregar el formulario de adulto');
+                        alert('{% trans "Error: could not add the adult form." %}');
                     }
                 } catch (error) {
                     console.error('Error in addAdultForm:', error);
-                    alert('Error al agregar adulto: ' + error.message);
+                    alert('{% trans "Error adding adult:" %} ' + error.message);
                 }
             };
 

@@ -485,6 +485,12 @@
         background: #b8002a !important;
         transform: scale(1.05);
     }
+
+    /* Helper: highlight rooms missing guest assignments */
+    .room-listing-inline[data-needs-guests="true"] {
+        border: 2px solid #f97316 !important;
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+    }
 </style>
 
 <!-- Modal para Reserva de Hotel -->
@@ -498,7 +504,7 @@
                         <i class="fas fa-hotel me-2"></i>{% trans "Hotel Stay" %}
                     </h5>
                 </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
             </div>
             <form id="hotelReservationForm{{ event.hotel.pk }}" method="get" action="{% url 'locations:front_hotel_reservation_create' %}">
                 <div class="modal-body" style="padding: 0;">
@@ -692,7 +698,7 @@
                     </h5>
                     <div id="rooms-default-guests{{ event.hotel.pk }}" style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.9); margin-top: 6px;"></div>
                 </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
             </div>
 
             <div class="modal-body" style="padding: 14px 18px;">
@@ -765,24 +771,26 @@
                     {% trans "No rooms available for the selected number of guests. Please adjust guests or try another option." %}
                 </div>
 
-                <!-- Sort Selector -->
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 10px 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-sort" style="color: var(--mlb-blue); font-size: 0.9rem;"></i>
-                        <span style="font-weight: 600; color: #333; font-size: 0.85rem;">{% trans "Sort by:" %}</span>
+                <!-- Rooms list zone (wrapper) -->
+                <div id="rooms-list-zone{{ event.hotel.pk }}" class="rooms-list-zone">
+                    <!-- Sort Selector -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 10px 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-sort" style="color: var(--mlb-blue); font-size: 0.9rem;"></i>
+                            <span style="font-weight: 600; color: #333; font-size: 0.85rem;">{% trans "Sort by:" %}</span>
+                        </div>
+                        <select id="room-sort-selector{{ event.hotel.pk }}"
+                                onchange="window.NSC_HotelReservation?.sortRooms?.('{{ event.hotel.pk }}', this.value);"
+                                style="padding: 6px 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 0.85rem; background: white; color: #333; cursor: pointer; min-width: 200px; font-weight: 500;">
+                            <option value="recommended">{% trans "Recommended" %}</option>
+                            <option value="price-low-high">{% trans "Price: Low to High" %}</option>
+                            <option value="price-high-low">{% trans "Price: High to Low" %}</option>
+                            <option value="capacity-low-high">{% trans "Capacity: Low to High" %}</option>
+                            <option value="capacity-high-low">{% trans "Capacity: High to Low" %}</option>
+                        </select>
                     </div>
-                    <select id="room-sort-selector{{ event.hotel.pk }}"
-                            onchange="window.NSC_HotelReservation?.sortRooms?.('{{ event.hotel.pk }}', this.value);"
-                            style="padding: 6px 12px; border: 1px solid #ced4da; border-radius: 6px; font-size: 0.85rem; background: white; color: #333; cursor: pointer; min-width: 200px; font-weight: 500;">
-                        <option value="recommended">{% trans "Recommended" %}</option>
-                        <option value="price-low-high">{% trans "Price: Low to High" %}</option>
-                        <option value="price-high-low">{% trans "Price: High to Low" %}</option>
-                        <option value="capacity-low-high">{% trans "Capacity: Low to High" %}</option>
-                        <option value="capacity-high-low">{% trans "Capacity: High to Low" %}</option>
-                    </select>
-                </div>
 
-                <div style="max-height: 70vh; overflow:auto; padding-right: 4px;">
+                    <div style="max-height: 70vh; overflow:auto; padding-right: 4px;">
                             {% if available_rooms %}
                                 <div style="display: flex; flex-direction: column; gap: 10px;">
                                     {% for room in available_rooms %}
@@ -948,7 +956,7 @@
                                                                     data-hotel-pk="{{ event.hotel.pk }}"
                                                                     data-room-id="{{ room.id }}"
                                                                     data-room-capacity="{{ room.capacity|default:0 }}"
-                                                                    onclick="event.preventDefault(); event.stopPropagation(); if (window.NSC_HotelReservation && typeof window.NSC_HotelReservation.selectRoom === 'function') { window.NSC_HotelReservation.selectRoom(this); }"
+                                                                    onclick="event.preventDefault(); event.stopPropagation(); if (typeof window.nscCollapseExpandedRoomDetails === 'function') { window.nscCollapseExpandedRoomDetails(); } if (typeof window.nscCollapseRoomsListZone === 'function') { window.nscCollapseRoomsListZone('{{ event.hotel.pk }}'); } if (window.NSC_HotelReservation && typeof window.NSC_HotelReservation.selectRoom === 'function') { window.NSC_HotelReservation.selectRoom(this); } if (typeof window.nscCollapseExpandedRoomDetails === 'function') { setTimeout(function(){ window.nscCollapseExpandedRoomDetails(); }, 50); } if (typeof window.nscCollapseRoomsListZone === 'function') { setTimeout(function(){ window.nscCollapseRoomsListZone('{{ event.hotel.pk }}'); }, 50); }"
                                                                     style="width: 100%; border-radius: 8px; font-weight: 700; padding: 12px 20px; font-size: 1rem; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border: none; box-shadow: 0 4px 12px rgba(13, 44, 84, 0.3); color: white; transition: all 0.2s ease;">
                                                                 <i class="fas fa-check me-2"></i>{% trans "Select this room" %}
                                                             </button>
@@ -963,14 +971,55 @@
                                 <p style="color: #6c757d; text-align: center; padding: 20px; font-size: 0.9rem;">{% trans "No rooms available at this time." %}</p>
                             {% endif %}
                         </div>
+                </div>
+
+                <!-- After selecting a room: allow user to re-open room list to change room -->
+                <div id="rooms-change-room-cta{{ event.hotel.pk }}" style="display:none; margin-top: 12px; padding: 12px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px;">
+                    <div style="display:flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <div style="min-width: 220px;">
+                            <div style="font-weight: 800; color: var(--mlb-blue); font-size: 0.92rem; margin-bottom: 2px;">
+                                {% trans "Want to change the room?" %}
+                            </div>
+                            <div style="font-size: 0.82rem; color: #6c757d; font-weight: 500; line-height: 1.25;">
+                                {% trans "You can go back to the room list and pick a different option." %}
+                            </div>
+                            <div id="rooms-selected-room-text{{ event.hotel.pk }}" style="margin-top: 6px; font-size: 0.82rem; color: #111827; font-weight: 800;"></div>
+                        </div>
+                        <div style="display:flex; gap:10px; flex-wrap: wrap; justify-content:flex-end;">
+                            <button type="button"
+                                    class="btn btn-sm"
+                                    id="rooms-change-room-btn{{ event.hotel.pk }}"
+                                    onclick="window.NSC_HotelReservation?.changeSelectedRoom?.('{{ event.hotel.pk }}');"
+                                    style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; border: none; border-radius: 10px; padding: 10px 14px; font-weight: 900; white-space: nowrap;">
+                                <i class="fas fa-exchange-alt me-2"></i>{% trans "Change room" %}
+                            </button>
+                            <button type="button"
+                                    class="btn btn-sm"
+                                    id="rooms-add-room-btn{{ event.hotel.pk }}"
+                                    onclick="if (typeof window.nscShowRoomsListZone === 'function') { window.nscShowRoomsListZone('{{ event.hotel.pk }}'); }"
+                                    style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; border: none; border-radius: 10px; padding: 10px 14px; font-weight: 900; white-space: nowrap;">
+                                <i class="fas fa-plus me-2"></i>{% trans "Add room" %}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 16px 20px; background: #ffffff;">
+                <div id="rooms-footer-message{{ event.hotel.pk }}" style="flex: 1; font-size: 0.85rem; color: #6c757d; font-weight: 600; margin-right: 12px;">
+                    {% trans "Tip:" %} {% trans "If you selected multiple rooms, make sure every room has at least 1 guest assigned." %}
+                </div>
                 <button type="button"
                         class="btn btn-form-cancel"
                         data-bs-dismiss="modal"
                         style="padding: 12px 22px;">
                     {% trans "Cancel" %}
+                </button>
+                <button type="button"
+                        class="btn btn-sm"
+                        onclick="window.NSC_HotelReservation?.autoDistributeGuests?.('{{ event.hotel.pk }}');"
+                        style="padding: 12px 14px; border-radius: 10px; font-weight: 900; background: #f8f9fa; border: 2px solid #e9ecef; color: var(--mlb-blue);">
+                    <i class="fas fa-magic me-2"></i>{% trans "Auto-assign guests" %}
                 </button>
                 <button type="button"
                         class="btn btn-form-submit"
@@ -993,7 +1042,7 @@
                 <h5 class="modal-title" id="roomDetailModalLabel{{ event.hotel.pk }}">
                     <i class="fas fa-bed me-2"></i>{% trans "Room Details" %}
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
             </div>
             <div class="modal-body" style="padding: 20px; max-height: 80vh; overflow-y: auto;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;">
@@ -1109,7 +1158,7 @@
         <img id="lightbox-image{{ event.hotel.pk }}" src="" alt="">
     </div>
     <div class="nsc-lightbox-counter">
-        <span id="lightbox-counter{{ event.hotel.pk }}">1 / 1</span>
+        <span id="lightbox-counter{{ event.hotel.pk }}">{% trans "1 / 1" %}</span>
     </div>
 </div>
 
@@ -1124,7 +1173,7 @@
                         <i class="fas fa-id-card me-2"></i>{% trans "Guest details" %}
                     </h5>
                 </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
             </div>
 
             <form method="post" action="{% url 'locations:front_hotel_reservation_create' %}" id="guest-details-form{{ event.hotel.pk }}" data-hotel-pk="{{ event.hotel.pk }}">
@@ -1148,7 +1197,7 @@
                     <div class="nsc-card" style="padding: 12px 14px; margin-bottom: 14px;">
                         <div style="font-size: 0.82rem; color: #6c757d; font-weight: 800;">{% trans "Selected room" %}</div>
                         <div style="font-weight: 900; color: var(--mlb-blue); margin-top: 2px;">
-                            <span id="selected-room-label{{ event.hotel.pk }}">—</span>
+                            <span id="selected-room-label{{ event.hotel.pk }}">{% trans "—" %}</span>
                         </div>
                     </div>
 
@@ -1231,7 +1280,7 @@
                         <i class="fas fa-bed me-2"></i><span id="room-detail-title">{% trans "Room" %}</span>
                     </h5>
                 </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
             </div>
             <div class="modal-body" style="padding: 18px 20px;">
                 <div class="row g-4">
@@ -1288,7 +1337,7 @@
                 <h5 class="modal-title" id="addGuestModalLabel{{ event.hotel.pk }}">
                     <i class="fas fa-user-plus me-2"></i>{% trans "Add Guest" %}
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
             </div>
             <div class="modal-body" style="padding: 20px;">
                 <form id="addGuestForm{{ event.hotel.pk }}" onsubmit="event.preventDefault(); window.NSC_HotelReservation?.saveGuest?.('{{ event.hotel.pk }}'); return false;">
@@ -1349,7 +1398,7 @@
                                            value="adult"
                                            checked>
                                     <label class="form-check-label" for="guestTypeAdult{{ event.hotel.pk }}">
-                                        <i class="fas fa-user me-1"></i>{% trans "Adult" %} (18+)
+                                        <i class="fas fa-user me-1"></i>{% trans "Adult" %} {% trans "(18+)" %}
                                     </label>
                                 </div>
                                 <div class="form-check">
@@ -1359,7 +1408,7 @@
                                            id="guestTypeChild{{ event.hotel.pk }}"
                                            value="child">
                                     <label class="form-check-label" for="guestTypeChild{{ event.hotel.pk }}">
-                                        <i class="fas fa-child me-1"></i>{% trans "Child" %} (&lt;18)
+                                        <i class="fas fa-child me-1"></i>{% trans "Child" %} {% trans "(<18)" %}
                                     </label>
                                 </div>
                             </div>
@@ -1426,9 +1475,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             if (age >= 18) {
-                feedbackEl.innerHTML = `<i class="fas fa-check-circle me-1" style="color: #28a745;"></i><span style="color: #28a745;">Guest is ${age} years old - Set as <strong>Adult</strong></span>`;
+                const adultMsg = interpolate(gettext('Guest is %(age)s years old - Set as <strong>Adult</strong>'), { age: age }, true);
+                feedbackEl.innerHTML = `<i class="fas fa-check-circle me-1" style="color: #28a745;"></i><span style="color: #28a745;">${adultMsg}</span>`;
             } else {
-                feedbackEl.innerHTML = `<i class="fas fa-check-circle me-1" style="color: #ffc107;"></i><span style="color: #856404;">Guest is ${age} years old - Set as <strong>Child</strong></span>`;
+                const childMsg = interpolate(gettext('Guest is %(age)s years old - Set as <strong>Child</strong>'), { age: age }, true);
+                feedbackEl.innerHTML = `<i class="fas fa-check-circle me-1" style="color: #ffc107;"></i><span style="color: #856404;">${childMsg}</span>`;
             }
         });
     }
@@ -2415,8 +2466,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const hotelPk = this.dataset.hotelPk || '{{ event.hotel.pk }}';
             const roomId = document.getElementById('guest-room' + hotelPk)?.value;
-            const checkIn = document.getElementById('guest-check-in' + hotelPk)?.value;
-            const checkOut = document.getElementById('guest-check-out' + hotelPk)?.value;
+            let checkIn = document.getElementById('guest-check-in' + hotelPk)?.value;
+            let checkOut = document.getElementById('guest-check-out' + hotelPk)?.value;
+
+            // Si las fechas no están en los campos ocultos, usar las fechas del evento
+            if (!checkIn && '{{ event.start_date|date:"Y-m-d" }}') {
+                checkIn = '{{ event.start_date|date:"Y-m-d" }}';
+            }
+            if (!checkOut && '{{ event.end_date|date:"Y-m-d" }}') {
+                checkOut = '{{ event.end_date|date:"Y-m-d" }}';
+            }
 
             // Calcular número total de guests: 1 (main contact) + players + additional adults + additional children
             const playersCount = document.querySelectorAll(`#guest-selected-players${hotelPk} .mb-3`).length;
@@ -2424,8 +2483,26 @@ document.addEventListener('DOMContentLoaded', function() {
             const additionalChildrenCount = document.querySelectorAll(`#guest-additional-children${hotelPk} .mb-3`).length;
             const numberOfGuests = 1 + playersCount + additionalAdultsCount + additionalChildrenCount;
 
-            if (!roomId || !checkIn || !checkOut) {
-                alert('{% trans "Please complete all required fields" %}');
+            if (!roomId) {
+                alert('{% trans "Please select a room" %}');
+                return false;
+            }
+
+            if (!checkIn || !checkOut) {
+                alert('{% trans "Event dates are not configured. Please contact support." %}');
+                console.error('Missing event dates:', { checkIn, checkOut, eventStart: '{{ event.start_date }}', eventEnd: '{{ event.end_date }}' });
+                return false;
+            }
+
+            // Validar que las fechas sean válidas
+            const checkInDate = new Date(checkIn);
+            const checkOutDate = new Date(checkOut);
+            if (isNaN(checkInDate.getTime()) || isNaN(checkOutDate.getTime())) {
+                alert('{% trans "Invalid date format. Please contact support." %}');
+                return false;
+            }
+            if (checkOutDate <= checkInDate) {
+                alert('{% trans "Check-out date must be after check-in date." %}');
                 return false;
             }
 
@@ -2453,15 +2530,32 @@ document.addEventListener('DOMContentLoaded', function() {
             // Obtener CSRF token
             const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
 
-            // Hacer llamada AJAX para agregar al carrito
-            fetch('{% url "locations:add_to_cart" %}', {
+            // Antes de agregar: limpiar items previos del carrito (para permitir "cambiar habitación" sin duplicar)
+            fetch('{% url "locations:get_cart_json" %}', { method: 'GET' })
+            .then(r => r.json())
+            .then(cartJson => {
+                const items = (cartJson && cartJson.items) ? cartJson.items : [];
+                if (!Array.isArray(items) || items.length === 0) return true;
+                return Promise.all(items.map((item) => {
+                    if (!item || !item.id) return Promise.resolve();
+                    return fetch('{% url "locations:remove_from_cart" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken
+                        },
+                        body: JSON.stringify({ item_id: item.id })
+                    }).catch(() => null);
+                }));
+            })
+            .then(() => fetch('{% url "locations:add_to_cart" %}', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRFToken': csrfToken
                 },
                 body: JSON.stringify(cartData)
-            })
+            }))
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
@@ -2570,6 +2664,440 @@ document.addEventListener('DOMContentLoaded', function() {
 
             return false;
         });
+    }
+})();
+
+// Auto-colapsar el "Room Details Expandable Section" cuando se selecciona una habitación
+(function() {
+    const hotelPk = '{{ event.hotel.pk }}';
+
+    function getGuestsCountFromRoomsList(pk) {
+        try {
+            const guestsList = document.getElementById('rooms-guests-list' + pk);
+            if (!guestsList) return null;
+
+            // Prefer explicit guest elements if present
+            const dataItems = guestsList.querySelectorAll('[data-guest-name], [data-guest-type], [data-guest-email]');
+            if (dataItems && dataItems.length) return dataItems.length;
+
+            // Otherwise count element children (cards/chips/etc.)
+            if (guestsList.children && guestsList.children.length) return guestsList.children.length;
+
+            // Fallback: parse text content (handles plain text rendering)
+            const txt = (guestsList.textContent || '').replace(/\s+/g, ' ').trim();
+            if (!txt) return 0;
+            // Ignore common "empty state" texts if present
+            if (/no\s+guests|sin\s+hu[eé]spedes|no\s+hay\s+hu[eé]spedes/i.test(txt)) return 0;
+            // If there's any non-empty text, treat as at least 1 guest (best-effort)
+            return 1;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function hasGuestsSelected() {
+        try {
+            const guestsCount = getGuestsCountFromRoomsList(hotelPk);
+            if (guestsCount === null) return true; // fail-open if we can't determine
+            return guestsCount > 0;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    // Global helper so inline handlers / other scripts can reuse the validation
+    window.nscValidateGuestsBeforeRoomSelect = function(hotelPkArg) {
+        try {
+            const pk = String(hotelPkArg);
+            const guestsCount = getGuestsCountFromRoomsList(pk);
+            const ok = guestsCount === null ? true : (guestsCount > 0);
+            if (!ok) {
+                alert('{% trans "Please add/select guests before selecting a room." %}');
+            }
+            return ok;
+        } catch (e) {
+            alert('{% trans "Please add/select guests before selecting a room." %}');
+            return false;
+        }
+    };
+
+    function collapseRoomsListZone() {
+        try {
+            const zone = document.getElementById('rooms-list-zone' + hotelPk);
+            if (zone) zone.style.display = 'none';
+            const cta = document.getElementById('rooms-change-room-cta' + hotelPk);
+            if (cta) cta.style.display = 'block';
+        } catch (e) {
+            console.warn('Could not collapse rooms list zone:', e);
+        }
+    }
+
+    function collapseExpandedRoomDetails() {
+        try {
+            document.querySelectorAll('.room-details-expanded').forEach((el) => {
+                if (el) {
+                    el.style.display = 'none';
+                }
+            });
+        } catch (e) {
+            console.warn('Could not collapse room details:', e);
+        }
+    }
+
+    // Expose a small global helper so inline onclick can always collapse reliably
+    window.nscCollapseExpandedRoomDetails = function() {
+        try {
+            document.querySelectorAll('.room-details-expanded').forEach((el) => {
+                if (el) {
+                    el.style.display = 'none';
+                }
+            });
+        } catch (e) {
+            console.warn('Could not collapse room details (global):', e);
+        }
+    };
+
+    // Expose helper to collapse the entire room list zone wrapper
+    window.nscCollapseRoomsListZone = function(hotelPkArg) {
+        try {
+            const zone = document.getElementById('rooms-list-zone' + String(hotelPkArg));
+            if (zone) zone.style.display = 'none';
+            const cta = document.getElementById('rooms-change-room-cta' + String(hotelPkArg));
+            if (cta) cta.style.display = 'block';
+        } catch (e) {
+            console.warn('Could not collapse rooms list zone (global):', e);
+        }
+    };
+
+    // Expose helper to show the room list zone again ("change room")
+    window.nscShowRoomsListZone = function(hotelPkArg) {
+        try {
+            const zone = document.getElementById('rooms-list-zone' + String(hotelPkArg));
+            if (zone) zone.style.display = 'block';
+            const cta = document.getElementById('rooms-change-room-cta' + String(hotelPkArg));
+            if (cta) cta.style.display = 'none';
+            // scroll into view for UX
+            if (zone && zone.scrollIntoView) {
+                zone.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        } catch (e) {
+            console.warn('Could not show rooms list zone (global):', e);
+        }
+    };
+
+    // --- Validación para "Continue" en el modal de habitaciones ---
+    // Reglas:
+    // - Debe haber al menos 1 guest
+    // - Debe existir una habitación seleccionada
+    // - Debe cumplir reglas/capacidad (best-effort)
+    (function setupRoomsContinueValidation() {
+        // NOTE:
+        // El flujo principal (`static/js/admin.js`) ya controla el estado de "Continue"
+        // vía `validateRoomSelection(pk)` con reglas/capacidad/huéspedes.
+        // Evitar doble validación aquí porque puede dejar el botón deshabilitado
+        // aunque el estado interno sea válido.
+        if (window.NSC_HotelReservation && typeof window.NSC_HotelReservation.continueToGuestDetails === 'function') {
+            return;
+        }
+
+        const roomsModal = document.getElementById('hotelRoomsModal' + hotelPk);
+        const continueBtn = document.getElementById('rooms-continue-btn' + hotelPk);
+        const statusEl = document.getElementById('rooms-selection-status' + hotelPk);
+        const roomsNoneMsg = document.getElementById('rooms-none-msg' + hotelPk);
+        let intervalId = null;
+
+        function roomsNoneMsgVisible() {
+            try {
+                if (!roomsNoneMsg) return false;
+                return window.getComputedStyle(roomsNoneMsg).display !== 'none';
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function getRoomsCount() {
+            try {
+                return document.querySelectorAll(`.room-listing-inline[data-hotel-pk="${hotelPk}"]`).length;
+            } catch (e) {
+                return 0;
+            }
+        }
+
+        function getSelectedRoomEl() {
+            try {
+                // Prefer the hidden input set by the main NSC flow (source of truth)
+                const roomInput = document.getElementById('guest-room' + hotelPk);
+                const selectedRoomId = roomInput ? String(roomInput.value || '').trim() : '';
+                if (selectedRoomId) {
+                    const byInput = document.querySelector(`.room-listing-inline[data-hotel-pk="${hotelPk}"][data-room-id="${selectedRoomId}"]`);
+                    if (byInput) return byInput;
+                }
+                // Fallback to our own marker
+                return document.querySelector(`.room-listing-inline[data-hotel-pk="${hotelPk}"][data-selected="true"]`);
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function getTotalGuests() {
+            // Prefer guests list count (source of truth), fallback to counter
+            const countFromList = getGuestsCountFromRoomsList(hotelPk);
+            if (typeof countFromList === 'number') return countFromList;
+            const totalEl = document.getElementById('total-people-count' + hotelPk);
+            const total = totalEl ? parseInt((totalEl.textContent || '').trim(), 10) : NaN;
+            return Number.isFinite(total) ? total : 0;
+        }
+
+        function guestsListHasContent() {
+            const count = getGuestsCountFromRoomsList(hotelPk);
+            return count === null ? true : (count > 0);
+        }
+
+        function validateForContinue() {
+            // If there are no rooms available (UI already shows an alert), do not show our banner.
+            if (roomsNoneMsgVisible() || getRoomsCount() === 0) return { ok: false, reason: 'no_rooms' };
+
+            const selectedRoom = getSelectedRoomEl();
+            if (!selectedRoom) return { ok: false, reason: 'no_room' };
+
+            const totalGuests = getTotalGuests();
+            if (totalGuests <= 0 || !guestsListHasContent()) return { ok: false, reason: 'no_guests' };
+
+            const capRaw = selectedRoom.dataset.roomCapacity || selectedRoom.getAttribute('data-room-capacity') || '';
+            const capacity = parseInt(String(capRaw), 10);
+            if (Number.isFinite(capacity) && capacity > 0 && totalGuests > capacity) {
+                return { ok: false, reason: 'rules' };
+            }
+
+            // Best-effort: if a rules validation block exists and indicates warning/error, block continue.
+            const roomId = selectedRoom.dataset.roomId || selectedRoom.getAttribute('data-room-id') || '';
+            if (roomId) {
+                const rulesValidation = document.getElementById(`rooms-detail-rules-validation-${roomId}-${hotelPk}`);
+                if (rulesValidation) {
+                    const msg = (rulesValidation.textContent || '').trim();
+                    if (msg && /⚠|warning|invalid|exceed|not\s+allowed|no\s+allowed|error/i.test(msg)) {
+                        return { ok: false, reason: 'rules' };
+                    }
+                }
+            }
+
+            const modalRulesValidation = document.getElementById('room-detail-modal-rules-validation' + hotelPk);
+            if (modalRulesValidation) {
+                const msg = (modalRulesValidation.textContent || '').trim();
+                if (msg && /⚠|warning|invalid|exceed|not\s+allowed|no\s+allowed|error/i.test(msg)) {
+                    return { ok: false, reason: 'rules' };
+                }
+            }
+
+            return { ok: true, reason: null };
+        }
+
+        function showStatus(html) {
+            if (!statusEl) return;
+            statusEl.style.display = 'block';
+            statusEl.style.background = '#fff7ed';
+            statusEl.style.border = '1px solid #fed7aa';
+            statusEl.style.color = '#9a3412';
+            statusEl.innerHTML = html;
+        }
+
+        function hideStatus() {
+            if (!statusEl) return;
+            statusEl.style.display = 'none';
+            statusEl.innerHTML = '';
+        }
+
+        function applyContinueState() {
+            if (!continueBtn) return;
+            const v = validateForContinue();
+            if (v.ok) {
+                hideStatus();
+                continueBtn.disabled = false;
+                continueBtn.style.opacity = '1';
+                continueBtn.style.cursor = 'pointer';
+            } else {
+                continueBtn.disabled = true;
+                continueBtn.style.opacity = '0.6';
+                continueBtn.style.cursor = 'not-allowed';
+
+                // Only show banners for the cases we care about:
+                // - guests missing for a selected room
+                // - room rules not satisfied
+                // Do NOT show anything if no rooms are available or before a room is selected.
+                if (v.reason === 'no_rooms') {
+                    hideStatus();
+                } else if (v.reason === 'no_room') {
+                    showStatus(`<i class="fas fa-exclamation-triangle me-2"></i>{% trans "Please select a room to continue." %}`);
+                } else if (v.reason === 'no_guests') {
+                    showStatus(`<i class="fas fa-exclamation-triangle me-2"></i><strong>⚠ {% trans "No guests assigned to this room" %}</strong><br>{% trans "The room must have at least 1 guest and must comply with the occupancy rules for the room." %}`);
+                } else {
+                    showStatus(`<i class="fas fa-exclamation-triangle me-2"></i><strong>⚠ {% trans "Room rules not satisfied" %}</strong><br>{% trans "Please adjust guests or choose another room so it complies with the occupancy rules." %}`);
+                }
+            }
+        }
+
+        // Block clicks even if some other script toggles disabled incorrectly
+        if (continueBtn) {
+            continueBtn.addEventListener('click', function(e) {
+                const v = validateForContinue();
+                if (!v.ok) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    e.stopPropagation();
+                    applyContinueState();
+                    return false;
+                }
+            }, true);
+        }
+
+        // Wrap continueToGuestDetails so programmatic calls can't bypass the validation
+        (function bootstrapWrapContinue(attempt = 0) {
+            const ns = window.NSC_HotelReservation;
+            if (ns && typeof ns.continueToGuestDetails === 'function') {
+                ns.__nscWrappedContinueByHotel = ns.__nscWrappedContinueByHotel || {};
+                if (!ns.__nscWrappedContinueByHotel[hotelPk]) {
+                    const originalContinue = ns.continueToGuestDetails;
+                    ns.__nscWrappedContinueByHotel[hotelPk] = true;
+                    ns.continueToGuestDetails = function(hotelPkArg) {
+                        if (String(hotelPkArg) !== String(hotelPk)) {
+                            return originalContinue.call(this, hotelPkArg);
+                        }
+                        const v = validateForContinue();
+                        if (!v.ok) {
+                            applyContinueState();
+                            return;
+                        }
+                        return originalContinue.call(this, hotelPkArg);
+                    };
+                }
+                return;
+            }
+            if (attempt >= 20) return; // ~5s
+            setTimeout(() => bootstrapWrapContinue(attempt + 1), 250);
+        })();
+
+        // Keep state in sync while the rooms modal is open
+        if (roomsModal) {
+            roomsModal.addEventListener('shown.bs.modal', function() {
+                applyContinueState();
+                intervalId = setInterval(applyContinueState, 400);
+            });
+            roomsModal.addEventListener('hidden.bs.modal', function() {
+                if (intervalId) clearInterval(intervalId);
+                intervalId = null;
+            });
+        }
+
+        // Also re-check on room selection clicks
+        document.addEventListener('click', function(e) {
+            try {
+                const target = e.target;
+                const btn = target && target.closest ? target.closest('.room-select-btn') : null;
+                if (!btn) return;
+                if (String(btn.dataset.hotelPk || '') !== String(hotelPk)) return;
+                setTimeout(applyContinueState, 0);
+            } catch (err) {
+                // ignore
+            }
+        }, true);
+    })();
+
+    function tryWrapSelectRoom() {
+        const ns = window.NSC_HotelReservation;
+        if (!ns) return false;
+        ns.__nscWrappedSelectRoomByHotel = ns.__nscWrappedSelectRoomByHotel || {};
+        if (ns.__nscWrappedSelectRoomByHotel[hotelPk]) return true;
+
+        const originalSelectRoom = ns.selectRoom;
+        if (typeof originalSelectRoom !== 'function') return false;
+
+        ns.__nscWrappedSelectRoomByHotel[hotelPk] = true;
+        ns.selectRoom = function(btn) {
+            // Block room selection if guests are not set
+            if (typeof window.nscValidateGuestsBeforeRoomSelect === 'function') {
+                const ok = window.nscValidateGuestsBeforeRoomSelect(hotelPk);
+                if (!ok) return;
+            } else if (!hasGuestsSelected()) {
+                alert('{% trans "Please add/select guests before selecting a room." %}');
+                return;
+            }
+            const result = originalSelectRoom.call(this, btn);
+
+            // Ensure selected room is marked in the DOM (some flows don't set data-selected)
+            try {
+                const roomId = btn && (btn.dataset?.roomId || btn.getAttribute?.('data-room-id')) ? String(btn.dataset.roomId || btn.getAttribute('data-room-id')).trim() : '';
+                if (roomId) {
+                    document.querySelectorAll(`.room-listing-inline[data-hotel-pk="${hotelPk}"]`).forEach((el) => {
+                        if (!el) return;
+                        if (String(el.getAttribute('data-room-id') || '').trim() === roomId) el.setAttribute('data-selected', 'true');
+                        else el.removeAttribute('data-selected');
+                    });
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            collapseExpandedRoomDetails();
+            collapseRoomsListZone();
+            return result;
+        };
+        return true;
+    }
+
+    // Intentar envolver selectRoom aunque NSC_HotelReservation se cargue después
+    (function bootstrapWrap(attempt = 0) {
+        if (tryWrapSelectRoom()) return;
+        if (attempt >= 20) return; // ~5s
+        setTimeout(() => bootstrapWrap(attempt + 1), 250);
+    })();
+
+    // Fallback: usar capture porque el botón hace stopPropagation()
+    document.addEventListener('click', function(e) {
+        try {
+            const target = e.target;
+            const btn = target && target.closest ? target.closest('.room-select-btn') : null;
+            if (!btn) return;
+            if (String(btn.dataset.hotelPk || '') !== String(hotelPk)) return;
+            // Mark selected in DOM (best-effort) so our validations can find it
+            const roomId = String(btn.dataset.roomId || '').trim();
+            if (roomId) {
+                document.querySelectorAll(`.room-listing-inline[data-hotel-pk="${hotelPk}"]`).forEach((el) => {
+                    if (!el) return;
+                    if (String(el.getAttribute('data-room-id') || '').trim() === roomId) el.setAttribute('data-selected', 'true');
+                    else el.removeAttribute('data-selected');
+                });
+            }
+            setTimeout(collapseExpandedRoomDetails, 0);
+            setTimeout(collapseRoomsListZone, 0);
+        } catch (err) {
+            // ignore
+        }
+    }, true);
+
+    // También colapsar si el usuario selecciona desde el modal de detalles
+    const detailModalSelectBtn = document.getElementById('room-detail-modal-select-btn' + hotelPk);
+    if (detailModalSelectBtn) {
+        // Validate guests before allowing selection from Room Details modal
+        detailModalSelectBtn.addEventListener('click', function(e) {
+            try {
+                if (typeof window.nscValidateGuestsBeforeRoomSelect === 'function') {
+                    const ok = window.nscValidateGuestsBeforeRoomSelect(hotelPk);
+                    if (!ok) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        e.stopPropagation();
+                        return false;
+                    }
+                }
+            } catch (err) {
+                // ignore
+            }
+        }, true);
+
+        detailModalSelectBtn.addEventListener('click', function() {
+            setTimeout(collapseExpandedRoomDetails, 0);
+            setTimeout(collapseRoomsListZone, 0);
+        }, true);
     }
 })();
 </script>

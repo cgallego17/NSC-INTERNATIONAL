@@ -7,12 +7,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.shortcuts import redirect
+from django.utils.translation import gettext as _
 from django.views import View
 from django.views.generic import TemplateView
 from decimal import Decimal
 import json
 
-from .models import Hotel, HotelRoom, HotelService
+from .models import Hotel, HotelRoom, HotelService, HotelReservation
 
 
 class HotelCartView(LoginRequiredMixin, TemplateView):
@@ -114,32 +115,71 @@ class AddToCartView(LoginRequiredMixin, View):
             services = data.get("services", [])
 
             if not room_id or not check_in or not check_out:
-                return JsonResponse({"error": "Datos incompletos"}, status=400)
+                return JsonResponse({"error": _("Incomplete data")}, status=400)
 
             # Verificar que la habitación existe
             room = HotelRoom.objects.get(id=room_id, is_available=True)
 
             # Calcular noches
-            from datetime import datetime
+            from datetime import datetime, date
 
-            check_in_date = datetime.strptime(check_in, "%Y-%m-%d").date()
-            check_out_date = datetime.strptime(check_out, "%Y-%m-%d").date()
+            try:
+                check_in_date = datetime.strptime(check_in, "%Y-%m-%d").date()
+                check_out_date = datetime.strptime(check_out, "%Y-%m-%d").date()
+            except ValueError:
+                return JsonResponse(
+                    {"error": _("Invalid date format. Use YYYY-MM-DD format.")},
+                    status=400
+                )
+
+            # Validar que las fechas sean válidas
+            today = date.today()
+            if check_in_date < today:
+                return JsonResponse(
+                    {"error": _("Check-in date cannot be in the past.")},
+                    status=400
+                )
+
+            if check_out_date <= check_in_date:
+                return JsonResponse(
+                    {"error": _("Check-out date must be after check-in date.")},
+                    status=400
+                )
+
             nights = (check_out_date - check_in_date).days
 
             if nights <= 0:
-                return JsonResponse({"error": "Fechas inválidas"}, status=400)
+                return JsonResponse({"error": _("Invalid dates: there must be at least one night.")}, status=400)
 
             # Verificar disponibilidad
-            overlapping = room.reservations.filter(
+            # Excluir reservas canceladas y reservas pending del mismo usuario (permite cambiar habitación)
+            # También excluir reservas checked_out (ya finalizadas)
+            overlapping_reservations = room.reservations.filter(
                 check_in__lt=check_out_date,
                 check_out__gt=check_in_date,
-                status__in=["pending", "confirmed", "checked_in"],
-            ).exists()
+            ).exclude(
+                status__in=["cancelled", "checked_out"]  # Excluir canceladas y finalizadas
+            ).exclude(
+                user=request.user,
+                status="pending"  # Permitir que el usuario cambie su propia reserva pending
+            )
 
-            if overlapping:
-                return JsonResponse(
-                    {"error": "Habitación no disponible en esas fechas"}, status=400
+            if overlapping_reservations.exists():
+                # Obtener detalles de la reserva conflictiva para un mensaje más informativo
+                conflicting = overlapping_reservations.first()
+                status_display = dict(HotelReservation.RESERVATION_STATUS_CHOICES).get(
+                    conflicting.status, conflicting.status
                 )
+                error_msg = _(
+                    "Room not available for those dates. "
+                    "There is already a reservation from %(check_in)s to %(check_out)s "
+                    "(Status: %(status)s)."
+                ) % {
+                    'check_in': conflicting.check_in.strftime('%d/%m/%Y'),
+                    'check_out': conflicting.check_out.strftime('%d/%m/%Y'),
+                    'status': status_display
+                }
+                return JsonResponse({"error": error_msg}, status=400)
 
             # Crear item del carrito
             cart = request.session.get("hotel_cart", {})
@@ -312,15 +352,32 @@ class CheckoutCartView(LoginRequiredMixin, View):
                     ).date()
 
                     # Verificar disponibilidad nuevamente
-                    overlapping = room.reservations.filter(
+                    # Excluir reservas canceladas y reservas pending del mismo usuario (permite cambiar habitación)
+                    # También excluir reservas checked_out (ya finalizadas)
+                    overlapping_reservations = room.reservations.filter(
                         check_in__lt=check_out,
                         check_out__gt=check_in,
-                        status__in=["pending", "confirmed", "checked_in"],
-                    ).exists()
+                    ).exclude(
+                        status__in=["cancelled", "checked_out"]  # Excluir canceladas y finalizadas
+                    ).exclude(
+                        user=request.user,
+                        status="pending"  # Permitir que el usuario cambie su propia reserva pending
+                    )
 
-                    if overlapping:
+                    if overlapping_reservations.exists():
+                        conflicting = overlapping_reservations.first()
+                        status_display = dict(HotelReservation.RESERVATION_STATUS_CHOICES).get(
+                            conflicting.status, conflicting.status
+                        )
                         errors.append(
-                            f"Habitación #{room.room_number} ya no está disponible."
+                            _("Room #%(room_number)s is no longer available "
+                              "(conflict with reservation from %(check_in)s to %(check_out)s, Status: %(status)s).")
+                            % {
+                                'room_number': room.room_number,
+                                'check_in': conflicting.check_in.strftime('%d/%m/%Y'),
+                                'check_out': conflicting.check_out.strftime('%d/%m/%Y'),
+                                'status': status_display
+                            }
                         )
                         continue
 

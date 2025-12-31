@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Checkout - Reserva #{{ reservation.id }}{% endblock %}
+{% block title %}{% trans "Checkout" %} - {% trans "Reservation" %} #{{ reservation.id }}{% endblock %}
 
 {% block content %}
 <div class="container-fluid">
@@ -9,7 +9,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h3 mb-0 text-gray-800">
-                <i class="fas fa-credit-card me-2"></i>Checkout - Reserva #{{ reservation.id }}
+                <i class="fas fa-credit-card me-2"></i>{% trans "Checkout" %} - {% trans "Reservation" %} #{{ reservation.id }}
             </h1>
             <p class="text-muted">Revisa tu reserva y procede al pago</p>
         </div>
@@ -42,7 +42,7 @@
                             {{ reservation.number_of_nights }} noche{{ reservation.number_of_nights|pluralize }}</p>
                         </div>
                     </div>
-                    
+
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <p><strong><i class="fas fa-user me-2"></i>Huésped:</strong><br>
@@ -152,12 +152,12 @@
                             </strong>
                         </div>
                     </div>
-                    
+
                     <div class="alert alert-info">
                         <i class="fas fa-info-circle me-2"></i>
                         <strong>Estado:</strong> {{ reservation.get_status_display }}
                     </div>
-                    
+
                     {% if reservation.status == 'pending' %}
                         <form method="post" action="{% url 'locations:front_hotel_reservation_checkout' reservation.pk %}">
                             {% csrf_token %}
@@ -174,7 +174,7 @@
                             Reserva confirmada exitosamente.
                         </div>
                     {% endif %}
-                    
+
                     <a href="{% url 'locations:front_hotel_reservation_detail' reservation.pk %}" class="btn btn-outline-primary w-100 mt-2">
                         <i class="fas fa-eye me-2"></i>Ver Detalle Completo
                     </a>

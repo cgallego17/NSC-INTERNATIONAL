@@ -979,6 +979,171 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
     const MAX_ADDITIONAL = 10;
     const stateByPk = new Map(); // pk -> { roomId: string, roomLabel: string }
 
+    // ---------------------------------------------
+    // Django JS i18n (djangojs.po via /jsi18n/)
+    // ---------------------------------------------
+    // We intentionally use gettext() so makemessages -d djangojs can extract strings.
+    // On pages where jsi18n isn't loaded, we fall back to identity.
+    const gettext = (typeof window !== 'undefined' && typeof window.gettext === 'function')
+        ? window.gettext
+        : (s) => s;
+
+    const I18N = {
+        labelSolution: gettext('Solution'),
+        assignGuests: gettext('Assign guests'),
+        removeRoom: gettext('Remove room from selection'),
+        autoDistribute: gettext('Auto-distribute'),
+        done: gettext('Done'),
+        assignGuestsToRoomTitle: gettext('Assign guests to {room}'),
+        selectedOne: gettext('Selected: {room}'),
+        selectedMany: gettext('Selected rooms: {count}'),
+        notEnoughRoomsAvailableMax: gettext('Not enough rooms available (max capacity {max})'),
+        needBiggerRoomForGuests: gettext('Need a bigger room for {guests} guests'),
+        noMoreRoomsAvailableToAdd: gettext('No more rooms available to add'),
+        needPlusCapacityAddRoom: gettext('Need +{diff} capacity (add room)'),
+        changeToBiggerRoom: gettext('Change to a bigger room'),
+        replaceARoom: gettext('Replace a room'),
+        roomsSelectedReady: gettext('{count} room(s) selected! Ready to continue.'),
+        noGuestsAssignedTo: gettext('No guests assigned to: {rooms}'),
+        occupancyPerRoomNotMet: gettext('Occupancy rules per room not met: {details}'),
+        guestsExceedCapacityBy: gettext('{guests} guest(s) exceed {cap} capacity by {diff}'),
+        notEnoughRoomsAvailableDetail: gettext('Not enough rooms available: max capacity is {max} but you have {guests} guests'),
+        actionAutoAssignGuests: gettext('Auto-assign guests'),
+        actionAssignNow: gettext('Assign now'),
+        actionAddRoomFor: gettext('Add room for {diff} guest(s)'),
+        infoRoomFitsChange: gettext('You have {guests} guests but this room fits {cap}. Change to a bigger room that fits everyone.'),
+        infoRoomFitsAdd: gettext('You have {guests} guests but this room fits {cap}. Add another room for the remaining guests.'),
+        roomRulesNotMetTitle: gettext('Occupancy rules are not being met for this room'),
+        roomRulesNotMetShort: gettext('Not meeting occupancy rules'),
+        roomRulesNotMetDetail: gettext('The current assignment ({adults} adults, {children} children) does not match any occupancy rule.'),
+        unknownError: gettext('Unknown error'),
+        recommendedForGuests: gettext('Recommended for {guests} guest(s)'),
+        recommendedAddCapacity: gettext('Recommended to add capacity'),
+        atLeastN: gettext('at least {n} {noun}'),
+        exactlyN: gettext('exactly {n} {noun}'),
+        betweenNAndM: gettext('between {min} and {max} {noun}'),
+        adultOne: gettext('adult'),
+        adultMany: gettext('adults'),
+        childOne: gettext('child'),
+        childMany: gettext('children'),
+        nowYouHave: gettext('Now you have: {adults} {adultWord} and {children} {childWord}.'),
+        requirementPrefix: gettext('Requirement:'),
+        requirementLine: gettext('{adultsReq} and {childrenReq}.'),
+        youNeedToAdd: gettext('You need to add {n} {noun}.'),
+        youHaveExtra: gettext('You have {n} extra {noun}.'),
+        roomFitsButYouHave: gettext('This room fits {cap} guests, but you have {guests} guests. Please adjust guests or choose another room.'),
+        roomCapacityReached: gettext('Room capacity ({cap}) reached. Cannot assign more guests.'),
+        footerRoomsSelectedContinue: gettext('{count} room(s) selected. Click Continue to proceed'),
+        atLeastOneAdultRequired: gettext('At least one adult required'),
+        guestsMustBeAssignedEveryRoom: gettext('Guests must be assigned to every selected room'),
+        perRoomRulesNotMetShort: gettext('Per-room occupancy rules not met'),
+        capacityExceededShort: gettext('Capacity exceeded'),
+        cannotContinuePrefix: gettext('Cannot continue'),
+        pleaseFixErrors: gettext('Please fix these errors'),
+        selectRoomFromList: gettext('Please select a room from the list below'),
+        selectRoomToContinue: gettext('Please select a room to continue'),
+        selectAtLeastOneRoomToContinue: gettext('Please select at least one room to continue'),
+        selectNewRoomReplace: gettext('Select a new room to replace the previous one'),
+        replaceRoomInstruction: gettext('To replace a room, deselect one and select another'),
+        pleaseSelectRoomFirst: gettext('Please select at least one room first'),
+        autoAssignTooManyRooms: gettext('You have {guests} guests but selected {rooms} rooms. Some rooms will remain without guests.'),
+        autoAssignStillEmpty: gettext('Auto-assign completed, but some rooms still have no guests. Please assign manually.'),
+        autoAssignSuccess: gettext('Guests auto-assigned across selected rooms.'),
+        priceBreakdownTitle: gettext('Price breakdown ({count} room(s)):'),
+        assignedLabel: gettext('Assigned: {names}'),
+        none: gettext('None'),
+        noGuestsAssignedThisRoom: gettext('No guests assigned to this room'),
+        rulesSatisfied: gettext('Occupancy rules satisfied'),
+        capacitySummary: gettext('Capacity: {total} guest(s) ({adults} adult(s), {children} child(ren)) / {totalCapacity} total capacity ({rooms} room(s))'),
+        capacityLine: gettext('Capacity: {cap} guests'),
+        currentlyAssignedLine: gettext('Currently assigned: {total} ({adults} adult(s), {children} child(ren))'),
+        rulesComplyTitle: gettext('Complies'),
+        assignmentCompliesNRules: gettext('Current assignment complies with {n} rule(s).'),
+        availableRulesLabel: gettext('Available rules:'),
+        attention: gettext('Attention'),
+        correct: gettext('Correct'),
+        youMustHaveAdult: gettext('You must have at least 1 adult'),
+        occupancyNotMet: gettext('Occupancy rules are not being met'),
+        occupancyNotMetFor: gettext('Occupancy rules are not being met for: {rooms}'),
+        cannotRemoveRoomCapacity: gettext('Cannot remove this room. Remaining capacity ({remaining}) would be insufficient for {guests} guests.'),
+        confirmReplaceWithBiggerRoom: gettext(
+            'You have {guests} guests. Instead of selecting multiple rooms, you can use a single bigger room:\n' +
+            '- {label} (capacity {cap})\n\n' +
+            'Do you want to replace your current selection with this room?'
+        ),
+        switchedToRoomOne: gettext('Switched to "{label}" to fit all guests in one room.'),
+        addRoomStillInsufficient: gettext('Adding this room would give you {cap} total capacity, but you have {guests} guests. Please add another room or change to a room with higher capacity.'),
+        addRoomStillInsufficientAlt: gettext('Adding this room would give you {cap} total capacity, but you have {guests} guests. Please select more rooms or adjust guests.'),
+        roomRemoved: gettext('Room "{label}" removed from selection'),
+        roomAdded: gettext('Room "{label}" added ({count} selected)'),
+        alreadyEnoughCapacityConfirm: gettext('You already have enough capacity with {count} room(s) ({cap} guests). Do you want to add another room anyway?'),
+        roomSelectedReady: gettext('Room selected! Ready to continue.'),
+        noAmenities: gettext('No amenities listed.'),
+        roomNoRules: gettext('No occupancy rules defined for this room. Any combination of guests is allowed.'),
+        errorGuestsExceedCapacity: gettext('Total guests ({total}) exceeds total room capacity ({cap}).'),
+        solutionAddOrChangeRoom: gettext('Please add another room or change to a room with higher capacity to accommodate all {total} guest(s).'),
+        availableRules: gettext('Available rules:'),
+        matchingRule: gettext('Matching rule:'),
+        selectionMatchesRules: gettext('Your selection ({adults} adults, {children} children) matches the occupancy rules.'),
+        selectionMatchesNRules: gettext('Your selection ({adults} adults, {children} children) matches {n} rule(s).'),
+        selectionDoesNotMatchRules: gettext('Your selection ({adults} adults, {children} children) does not match any occupancy rule.'),
+        noRoomAllowsZeroChildren: gettext('In this hotel, all rooms require at least 1 child. Your group includes 0 children.'),
+        noRoomAllowsChildren: gettext('In this hotel, no room allows children (max children = 0 for all rooms).'),
+        noRoomAllowsAdults: gettext('In this hotel, no room allows adults (max adults = 0 for all rooms).'),
+        tooManyChildrenForHotel: gettext('Too many children for the available rooms (max children allowed: {max}).'),
+        tooManyAdultsForHotel: gettext('Too many adults for the available rooms (max adults allowed: {max}).'),
+        noRoomsCompatibleGuestMix: gettext('No available rooms are compatible with your guest mix.')
+    };
+
+    function formatWithParams(str, params) {
+        let out = String(str || '');
+        const p = params || {};
+        Object.keys(p).forEach((k) => {
+            out = out.replaceAll(`{${k}}`, String(p[k]));
+        });
+        return out;
+    }
+
+    function t(key, params) {
+        const raw = I18N[key] || key;
+        return formatWithParams(raw, params);
+    }
+
+    // Helpers for bilingual rule messaging
+    function nounForCount(n, oneKey, manyKey) {
+        return (Number(n) === 1) ? t(oneKey) : t(manyKey);
+    }
+
+    function rangeText(min, max, nounOneKey, nounManyKey) {
+        const minN = parseInt(min) || 0;
+        const maxN = parseInt(max);
+        const isInf = Number.isFinite(maxN) && maxN >= 999;
+        if (isInf) {
+            return t('atLeastN', { n: minN, noun: nounForCount(minN, nounOneKey, nounManyKey) });
+        }
+        const maxVal = Number.isFinite(maxN) ? maxN : 0;
+        if (minN === maxVal) {
+            return t('exactlyN', { n: minN, noun: nounForCount(minN, nounOneKey, nounManyKey) });
+        }
+        return t('betweenNAndM', { min: minN, max: maxVal, noun: t(nounManyKey) });
+    }
+
+    function makeActionHint(assigned, min, max, nounOneKey, nounManyKey) {
+        const minN = parseInt(min) || 0;
+        const maxN = parseInt(max);
+        const isInf = Number.isFinite(maxN) && maxN >= 999;
+        const maxVal = isInf ? null : (Number.isFinite(maxN) ? maxN : 0);
+        if (assigned < minN) {
+            const missing = minN - assigned;
+            return t('youNeedToAdd', { n: missing, noun: nounForCount(missing, nounOneKey, nounManyKey) });
+        }
+        if (maxVal !== null && assigned > maxVal) {
+            const extra = assigned - maxVal;
+            return t('youHaveExtra', { n: extra, noun: nounForCount(extra, nounOneKey, nounManyKey) });
+        }
+        return null;
+    }
+
     function q(id) {
         return document.getElementById(id);
     }
@@ -1168,23 +1333,23 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             <div class="adult-form-item" data-adult-index="${index}"
                  style="background: white; border: 2px solid #e9ecef; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
                 <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-                    <div style="font-weight:800; color: var(--mlb-blue);">Adult ${index}</div>
+                    <div style="font-weight:800; color: var(--mlb-blue);">${gettext('Adult')} ${index}</div>
                 </div>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">Full Name <span style="color: var(--mlb-red);">*</span></label>
+                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">${gettext('Full Name')} <span style="color: var(--mlb-red);">*</span></label>
                         <input type="text" class="form-control adult-name-input" name="adult_name_${index}" data-index="${index}" required style="border:2px solid #e9ecef; border-radius:8px; padding:10px;">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">Email <span style="color: var(--mlb-red);">*</span></label>
+                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">${gettext('Email')} <span style="color: var(--mlb-red);">*</span></label>
                         <input type="email" class="form-control adult-email-input" name="adult_email_${index}" data-index="${index}" required style="border:2px solid #e9ecef; border-radius:8px; padding:10px;">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">Phone <span style="color: var(--mlb-red);">*</span></label>
+                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">${gettext('Phone')} <span style="color: var(--mlb-red);">*</span></label>
                         <input type="tel" class="form-control adult-phone-input" name="adult_phone_${index}" data-index="${index}" required style="border:2px solid #e9ecef; border-radius:8px; padding:10px;">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">Date of Birth <span style="color: var(--mlb-red);">*</span></label>
+                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">${gettext('Date of Birth')} <span style="color: var(--mlb-red);">*</span></label>
                         <input type="date" class="form-control adult-birthdate-input" name="adult_birthdate_${index}" data-index="${index}" required style="border:2px solid #e9ecef; border-radius:8px; padding:10px;">
                     </div>
                 </div>
@@ -1209,14 +1374,14 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         return `
             <div class="additional-child-form-item" data-child-index="${index}"
                  style="background: white; border: 2px solid #e9ecef; border-radius: 10px; padding: 15px; margin-bottom: 15px;">
-                <div style="font-weight:800; color: var(--mlb-blue); margin-bottom:12px;">Child ${index}</div>
+                <div style="font-weight:800; color: var(--mlb-blue); margin-bottom:12px;">${gettext('Child')} ${index}</div>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">Full Name <span style="color: var(--mlb-red);">*</span></label>
+                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">${gettext('Full Name')} <span style="color: var(--mlb-red);">*</span></label>
                         <input type="text" class="form-control child-name-input" name="additional_child_name_${index}" data-index="${index}" required style="border:2px solid #e9ecef; border-radius:8px; padding:10px;">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">Date of Birth <span style="color: var(--mlb-red);">*</span></label>
+                        <label class="form-label" style="font-weight:600; color:var(--mlb-blue); font-size:0.85rem;">${gettext('Date of Birth')} <span style="color: var(--mlb-red);">*</span></label>
                         <input type="date" class="form-control child-birthdate-input" name="additional_child_birthdate_${index}" data-index="${index}" required style="border:2px solid #e9ecef; border-radius:8px; padding:10px;">
                     </div>
                 </div>
@@ -1365,18 +1530,18 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         const total = adults + addChildren + players;
 
         if (adults < 1) {
-            showToast('At least one adult is required', 'warning');
+            showToast(gettext('At least one adult is required'), 'warning');
             return;
         }
         if (players === 0 && addChildren === 0) {
-            showToast('You must select at least one player or add at least one child', 'warning');
+            showToast(gettext('You must select at least one player or add at least one child'), 'warning');
             return;
         }
 
         const reservationModalEl = q(`hotelReservationModal${pk}`);
         const roomsModalEl = q(`hotelRoomsModal${pk}`);
         if (!roomsModalEl) {
-            showToast('Rooms modal not found', 'error');
+            showToast(gettext('Rooms modal not found'), 'error');
             return;
         }
 
@@ -1460,6 +1625,55 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         const noneMsg = containerEl.querySelector(`#rooms-none-msg${pk}`) || containerEl.querySelector('[data-nsc-rooms-none]');
         if (noneMsg) noneMsg.style.display = 'none';
 
+        // Try to use current guests breakdown (adults/children) to filter rooms by occupancy rules too
+        const state = stateByPk.get(String(pk));
+        const adults = state && state.guests ? state.guests.filter(g => g.type === 'adult').length : 0;
+        const children = state && state.guests ? state.guests.filter(g => g.type === 'child').length : 0;
+
+        // Rules helpers:
+        // - "single room mode": room must allow ALL guests (adults/children totals) in one room
+        // - "multi room mode": room must allow SOME feasible subset (best-effort) of guests (not necessarily all)
+        function rulesAllowAllGuestsForThisRoom(roomEl) {
+            try {
+                const rulesJson = roomEl.getAttribute('data-room-rules');
+                if (!rulesJson) return null; // unknown (not loaded yet)
+                const rules = JSON.parse(rulesJson) || [];
+                const activeRules = Array.isArray(rules) ? rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active) : [];
+                if (!activeRules.length) return true; // no rules -> allowed
+                return activeRules.some(rule => {
+                    const minAdults = parseInt(rule.min_adults) || 0;
+                    const maxAdults = parseInt(rule.max_adults) || 999;
+                    const minChildren = parseInt(rule.min_children) || 0;
+                    const maxChildren = parseInt(rule.max_children) || 999;
+                    return adults >= minAdults && adults <= maxAdults &&
+                           children >= minChildren && children <= maxChildren;
+                });
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function rulesAllowAnySubsetForThisRoom(roomEl) {
+            // Best-effort feasibility check for multi-room:
+            // if rules exist, we only need that there exists SOME rule whose minimums are <= available counts.
+            // (Later per-room validation will enforce exact assignments.)
+            try {
+                const rulesJson = roomEl.getAttribute('data-room-rules');
+                if (!rulesJson) return null; // unknown
+                const rules = JSON.parse(rulesJson) || [];
+                const activeRules = Array.isArray(rules) ? rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active) : [];
+                if (!activeRules.length) return true;
+                return activeRules.some(rule => {
+                    const minAdults = parseInt(rule.min_adults) || 0;
+                    const minChildren = parseInt(rule.min_children) || 0;
+                    // Need to be able to satisfy minimums with available pool
+                    return adults >= minAdults && children >= minChildren;
+                });
+            } catch (e) {
+                return null;
+            }
+        }
+
         const roomListings = Array.from(containerEl.querySelectorAll('.room-listing-inline'));
         // Clear old recommendation
         roomListings.forEach(r => {
@@ -1468,23 +1682,81 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             if (oldBadge) oldBadge.remove();
         });
 
+        // Decide mode:
+        // - If there exists at least one room that can fit ALL guests (capacity + rules when known), use single-room mode.
+        // - Otherwise, use multi-room mode (show rooms that can help increase capacity).
+        let singleRoomMode = false;
+        try {
+            singleRoomMode = roomListings.some((roomEl) => {
+                const cap = parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10) || 0;
+                if (cap < total) return false;
+                const rulesOk = rulesAllowAllGuestsForThisRoom(roomEl);
+                if (rulesOk === false) return false;
+                // If rules unknown, we don't block single-room mode; we can still recommend but will re-run after fetch.
+                return true;
+            });
+        } catch (e) {
+            singleRoomMode = false;
+        }
+
+        // Compute selected capacity + deficit (used for multi-room recommendations)
+        const selectedRoomIds = new Set((state?.rooms || []).map(r => String(r.roomId)));
+        let selectedCapacity = 0;
+        try {
+            selectedRoomIds.forEach((rid) => {
+                const el = containerEl.querySelector(`[data-room-id="${rid}"]`) || document.querySelector(`[data-room-id="${rid}"]`);
+                if (!el) return;
+                selectedCapacity += parseInt(el.getAttribute('data-room-capacity') || '0', 10) || 0;
+            });
+        } catch (e) {}
+        const deficit = Math.max(0, (parseInt(String(total), 10) || 0) - selectedCapacity);
+
         const candidates = [];
         const hiddenRooms = [];
+        const unknownRuleRooms = [];
 
         roomListings.forEach(roomListing => {
             const capAttr = roomListing.getAttribute('data-room-capacity');
             const cap = parseInt(capAttr || '0', 10);
-            const ok = cap >= total;
+            const capOk = Number.isFinite(cap) && cap > 0;
+            const ok = singleRoomMode ? (cap >= total) : capOk;
 
             if (ok) {
+                // Filter by rules when rules are loaded:
+                // - single mode: must allow all guests in one room
+                // - multi mode: must allow some subset (min requirements can be met)
+                const rulesOk = singleRoomMode
+                    ? rulesAllowAllGuestsForThisRoom(roomListing)
+                    : rulesAllowAnySubsetForThisRoom(roomListing);
+
+                if (rulesOk === false) {
+                    hiddenRooms.push(roomListing);
+                    return;
+                }
                 const priceAttr = roomListing.getAttribute('data-room-price');
                 const price = parseFloat(String(priceAttr || '0')) || 0;
                 // Calculate recommendation score: lower is better
-                // Priority: 1) Exact match, 2) Smallest waste, 3) Lowest price
-                const waste = Math.max(0, cap - total);
-                const isExactMatch = cap === total ? 0 : 1; // 0 = exact match (best), 1 = not exact
-                const score = isExactMatch * 1000 + waste * 10 + price / 100; // Weight: exact match > waste > price
-                candidates.push({ el: roomListing, cap: cap || 0, price, waste, isExactMatch, score });
+                const rulesPenalty = (rulesOk === null) ? 5000 : 0; // unknown rules -> less recommended
+                const selectedPenalty = selectedRoomIds.has(String(roomListing.getAttribute('data-room-id') || '')) ? 20000 : 0;
+                let score = rulesPenalty;
+                if (singleRoomMode) {
+                    // Priority: exact/smallest waste, then cheapest
+                    const waste = Math.max(0, cap - total);
+                    const isExactMatch = cap === total ? 0 : 1;
+                    score += selectedPenalty + isExactMatch * 1000 + waste * 10 + price / 100;
+                    candidates.push({ el: roomListing, cap: cap || 0, price, waste, isExactMatch, score });
+                } else {
+                    // Multi-room mode:
+                    // Prioritize covering the current deficit with minimal waste, then cheaper.
+                    // Rooms already selected get a big penalty (still visible, but not recommended).
+                    const needed = deficit > 0 ? deficit : total; // fallback if deficit is 0
+                    const shortageAfter = Math.max(0, needed - cap);
+                    const waste = Math.max(0, cap - needed);
+                    const isExactMatch = (cap === needed) ? 0 : 1;
+                    score += selectedPenalty + shortageAfter * 1000 + waste * 10 + price / 100;
+                    candidates.push({ el: roomListing, cap: cap || 0, price, waste, isExactMatch, score });
+                }
+                if (rulesOk === null) unknownRuleRooms.push(roomListing);
             } else {
                 hiddenRooms.push(roomListing);
             }
@@ -1531,7 +1803,9 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                     if (roomInfo && !roomInfo.querySelector('.nsc-recommended-badge')) {
                         const badge = document.createElement('div');
                         badge.className = 'nsc-recommended-badge';
-                        badge.textContent = `⭐ Recommended for ${total} ${total === 1 ? 'guest' : 'guests'}`;
+                        badge.textContent = singleRoomMode
+                            ? `⭐ ${t('recommendedForGuests', { guests: total })}`
+                            : `⭐ ${t('recommendedAddCapacity')}`;
                         badge.style.cssText = 'background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px; display: inline-block;';
                         roomInfo.insertBefore(badge, roomInfo.firstChild);
                     }
@@ -1541,6 +1815,35 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             // Move to correct position in DOM (append to maintain order)
             parentContainer.appendChild(roomEl);
         });
+
+        // If some rooms have unknown rules, attempt to load them in background so filtering improves after fetch.
+        // (Fail-open: don't block UI.)
+        try {
+            unknownRuleRooms.forEach((roomEl) => {
+                const url = roomEl.getAttribute('data-room-detail-url');
+                if (!url) return;
+                if (roomEl.getAttribute('data-room-rules')) return;
+                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(res => res.ok ? res.json() : null)
+                    .then(data => {
+                        if (!data) return;
+                        if (data.rules && Array.isArray(data.rules)) {
+                            roomEl.setAttribute('data-room-rules', JSON.stringify(data.rules));
+                        }
+                        // Re-run filtering once rules arrive
+                        setTimeout(() => {
+                            try {
+                                const state2 = stateByPk.get(String(pk));
+                                const total2 = state2 && state2.guests ? state2.guests.length : total;
+                                filterAndRecommendRooms(containerEl, total2);
+                            } catch (e) {}
+                        }, 0);
+                    })
+                    .catch(() => null);
+            });
+        } catch (e) {
+            // ignore
+        }
     }
 
     function renderGuestDetails(pk) {
@@ -1566,7 +1869,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                     const nameDiv =
                         childItem?.querySelector('div[style*="font-weight: 700"][style*="color: var(--mlb-blue)"]') ||
                         childItem?.querySelector('div[style*="font-weight: 700"]');
-                    const name = nameDiv ? nameDiv.textContent.trim() : 'Player';
+                    const name = nameDiv ? nameDiv.textContent.trim() : gettext('Player');
                     const birth = cb.getAttribute('data-birth-date') || '';
                     const email = childItem?.getAttribute('data-child-email') || '';
 
@@ -1588,24 +1891,24 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                     block.innerHTML = `
                         <div style="font-weight:900; color: var(--mlb-blue); margin-bottom:10px;">
                             <i class="fas ${playerType === 'adult' ? 'fa-user' : 'fa-child'} me-2" style="color: var(--mlb-red);"></i>
-                            ${playerType === 'adult' ? 'Player (Adult)' : 'Player (Child)'} ${idx + 1}
+                            ${playerType === 'adult' ? gettext('Player (Adult)') : gettext('Player (Child)')} ${idx + 1}
                         </div>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">Full Name *</label>
+                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">${gettext('Full Name')} *</label>
                                 <input type="text" class="form-control nsc-player-name" required
                                        value="${escapeHtml(playerName)}"
                                        style="border-radius:10px; border:2px solid #e9ecef; padding:10px;">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">Date of Birth *</label>
+                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">${gettext('Date of Birth')} *</label>
                                 <input type="date" class="form-control nsc-player-dob" required
                                        value="${playerBirthDate || ''}"
                                        style="border-radius:10px; border:2px solid #e9ecef; padding:10px;">
                             </div>
                             ${playerEmail ? `
                             <div class="col-md-12">
-                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">Email</label>
+                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">${gettext('Email')}</label>
                                 <input type="email" class="form-control nsc-player-email"
                                        value="${escapeHtml(playerEmail)}"
                                        style="border-radius:10px; border:2px solid #e9ecef; padding:10px;">
@@ -1636,14 +1939,14 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                     block.setAttribute('data-index', String(idx));
                     block.style.cssText = 'background:#ffffff; border:2px solid #e9ecef; border-radius:12px; padding:14px; margin-bottom:12px;';
                     block.innerHTML = `
-                        <div style="font-weight:900; color: var(--mlb-blue); margin-bottom:10px;">Adult ${idx}</div>
+                        <div style="font-weight:900; color: var(--mlb-blue); margin-bottom:10px;">${gettext('Adult')} ${idx}</div>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">Full Name *</label>
+                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">${gettext('Full Name')} *</label>
                                 <input type="text" class="form-control nsc-adult-name" required style="border-radius:10px; border:2px solid #e9ecef; padding:10px;">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">Date of Birth *</label>
+                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">${gettext('Date of Birth')} *</label>
                                 <input type="date" class="form-control nsc-adult-dob" required style="border-radius:10px; border:2px solid #e9ecef; padding:10px;">
                             </div>
                         </div>
@@ -1670,14 +1973,14 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                     block.setAttribute('data-index', String(i));
                     block.style.cssText = 'background:#ffffff; border:2px solid #e9ecef; border-radius:12px; padding:14px; margin-bottom:12px;';
                     block.innerHTML = `
-                        <div style="font-weight:900; color: var(--mlb-blue); margin-bottom:10px;">Child ${i}</div>
+                        <div style="font-weight:900; color: var(--mlb-blue); margin-bottom:10px;">${gettext('Child')} ${i}</div>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">Full Name *</label>
+                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">${gettext('Full Name')} *</label>
                                 <input type="text" class="form-control nsc-child-name" required style="border-radius:10px; border:2px solid #e9ecef; padding:10px;">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">Date of Birth *</label>
+                                <label class="form-label" style="font-weight:700; font-size:0.85rem;">${gettext('Date of Birth')} *</label>
                                 <input type="date" class="form-control nsc-child-dob" required style="border-radius:10px; border:2px solid #e9ecef; padding:10px;">
                             </div>
                         </div>
@@ -1744,10 +2047,108 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                 // Can remove this room, remaining rooms have enough capacity
             } else if (remainingCapacity < totalGuests) {
                 // Can't remove, would exceed capacity
-                showToast(`Cannot remove this room. Remaining capacity (${remainingCapacity}) would be insufficient for ${totalGuests} guests.`, 'warning', 4000);
+                showToast(t('cannotRemoveRoomCapacity', { remaining: remainingCapacity, guests: totalGuests }), 'warning', 4000);
                 return;
             }
         } else {
+            // If user is trying to add a second room because current capacity is insufficient,
+            // but there exists a SINGLE available room that can fit ALL guests,
+            // guide them to replace (1 bigger room) instead of adding multiple rooms.
+            try {
+                const currentCapacityInsufficient = state.rooms.length >= 1 && totalGuests > totalCapacity;
+                if (currentCapacityInsufficient) {
+                    const roomsModalEl = q(`hotelRoomsModal${pk}`);
+                    const listings = Array.from(roomsModalEl?.querySelectorAll('.room-listing-inline') || []);
+                    const candidates = listings
+                        .map((el) => {
+                            const cap = parseInt(el.getAttribute('data-room-capacity') || '0', 10) || 0;
+                            const rid = el.getAttribute('data-room-id') || '';
+                            const name = el.querySelector('.room-name')?.textContent?.trim() || gettext('Room');
+                            const feats = el.querySelector('.room-features')?.textContent?.trim() || '';
+                            const label = `${name}${feats ? ` • ${feats}` : ''}`;
+                            // Only consider rooms that also satisfy occupancy rules for ALL guests in one room (if rules exist)
+                            // IMPORTANT: if rules are not loaded yet, treat as UNKNOWN and don't recommend switching.
+                            // We'll re-evaluate once rules arrive via background fetch.
+                            let rulesOk = null;
+                            const rulesJson = el.getAttribute('data-room-rules');
+                            if (!rulesJson) {
+                                rulesOk = null;
+                            } else {
+                                try {
+                                    const rules = JSON.parse(rulesJson) || [];
+                                    const activeRules = Array.isArray(rules)
+                                        ? rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active)
+                                        : [];
+                                    if (activeRules.length > 0) {
+                                        const a = state.guests ? state.guests.filter(g => g.type === 'adult').length : 0;
+                                        const c = state.guests ? state.guests.filter(g => g.type === 'child').length : 0;
+                                        rulesOk = activeRules.some(rule => {
+                                            const minAdults = parseInt(rule.min_adults) || 0;
+                                            const maxAdults = parseInt(rule.max_adults) || 999;
+                                            const minChildren = parseInt(rule.min_children) || 0;
+                                            const maxChildren = parseInt(rule.max_children) || 999;
+                                            return a >= minAdults && a <= maxAdults && c >= minChildren && c <= maxChildren;
+                                        });
+                                    } else {
+                                        // rules loaded but none active => allowed
+                                        rulesOk = true;
+                                    }
+                                } catch (e) {
+                                    rulesOk = null;
+                                }
+                            }
+                            return { el, rid, cap, label, rulesOk };
+                        })
+                        // Only recommend a single-room replacement if we KNOW it satisfies rules (or has no active rules)
+                        .filter((c) => c.rid && c.cap >= totalGuests && c.rulesOk === true)
+                        .sort((a, b) => (a.cap - b.cap));
+
+                    const best = candidates[0] || null;
+                    if (best && best.rid) {
+                        // If clicked room is not a good single fit, still propose best.
+                        const clickedCap = capacity || 0;
+                        const clickedIsSingleFit = clickedCap >= totalGuests;
+                        const proposeRid = clickedIsSingleFit ? String(roomId) : String(best.rid);
+
+                        // Only prompt if replacing would reduce room count (avoid spam)
+                        const shouldPrompt = true;
+                        if (shouldPrompt) {
+                            const proposedEl =
+                                listings.find(el => String(el.getAttribute('data-room-id') || '') === proposeRid) || best.el;
+                            const proposedName = proposedEl?.querySelector('.room-name')?.textContent?.trim() || gettext('Room');
+                            const proposedFeats = proposedEl?.querySelector('.room-features')?.textContent?.trim() || '';
+                            const proposedLabel = `${proposedName}${proposedFeats ? ` • ${proposedFeats}` : ''}`;
+                            const proposedCap = parseInt(proposedEl?.getAttribute('data-room-capacity') || String(best.cap || 0), 10) || (best.cap || 0);
+
+                            const ok = confirm(t('confirmReplaceWithBiggerRoom', { guests: totalGuests, label: proposedLabel, cap: proposedCap }));
+                            if (ok) {
+                                // Clear existing selection
+                                state.rooms = [];
+                                state.guestAssignments = {};
+                                listings.forEach((el) => el.removeAttribute('data-selected'));
+
+                                // Select proposed room
+                                const finalRoomId = String(proposeRid);
+                                const finalEl = proposedEl || best.el;
+                                const finalCap = parseInt(finalEl?.getAttribute('data-room-capacity') || String(proposedCap || 0), 10) || proposedCap || 0;
+                                const finalLabel = proposedLabel || interpolate(gettext('Room %(id)s'), { id: finalRoomId }, true);
+                                state.rooms.push({ roomId: finalRoomId, roomLabel: finalLabel, capacity: finalCap });
+                                state.guestAssignments[finalRoomId] = [];
+                                if (finalEl) finalEl.setAttribute('data-selected', 'true');
+
+                                autoDistributeGuests(pk);
+                                updateRoomsPriceCalculation(pk);
+                                validateRoomSelection(pk);
+                                showToast(t('switchedToRoomOne', { label: finalLabel }), 'success', 4500);
+                                return;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                // ignore
+            }
+
             // Adding a new room - check if it's actually needed
             // Only warn if total capacity would still be insufficient, but allow selection
             const newTotalCapacity = totalCapacity + capacity;
@@ -1767,7 +2168,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
                 // Show toast
                 if (firstImageUrl) {
-                    showToast(`Adding this room would give you ${newTotalCapacity} total capacity, but you have ${totalGuests} guests. Please add another room or change to a room with higher capacity.`, 'warning', 6000, firstImageUrl);
+                    showToast(t('addRoomStillInsufficient', { cap: newTotalCapacity, guests: totalGuests }), 'warning', 6000, firstImageUrl);
                 } else if (roomDetailUrl) {
                     fetch(roomDetailUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                         .then(res => res.ok ? res.json() : null)
@@ -1775,13 +2176,13 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                             const imgUrl = (data && data.images && data.images.length > 0)
                                 ? (data.images[0].image_url || data.images[0].url)
                                 : null;
-                            showToast(`Adding this room would give you ${newTotalCapacity} total capacity, but you have ${totalGuests} guests. Please add another room or change to a room with higher capacity.`, 'warning', 6000, imgUrl);
+                            showToast(t('addRoomStillInsufficient', { cap: newTotalCapacity, guests: totalGuests }), 'warning', 6000, imgUrl);
                         })
                         .catch(() => {
-                            showToast(`Adding this room would give you ${newTotalCapacity} total capacity, but you have ${totalGuests} guests. Please add another room or change to a room with higher capacity.`, 'warning');
+                            showToast(t('addRoomStillInsufficient', { cap: newTotalCapacity, guests: totalGuests }), 'warning');
                         });
                 } else {
-                    showToast(`Adding this room would give you ${newTotalCapacity} total capacity, but you have ${totalGuests} guests. Please select more rooms or adjust guests.`, 'warning');
+                    showToast(t('addRoomStillInsufficientAlt', { cap: newTotalCapacity, guests: totalGuests }), 'warning');
                 }
                 // Don't return - allow selection but show warning
             }
@@ -1805,7 +2206,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
             // Show toast immediately with image if available, or fetch it
             if (firstImageUrl) {
-                showToast(`This room fits ${capacity} guests, but you have ${total} guests. Please adjust guests or choose another room.`, 'warning', 6000, firstImageUrl);
+                showToast(t('roomFitsButYouHave', { cap: capacity, guests: total }), 'warning', 6000, firstImageUrl);
             } else if (roomDetailUrl) {
                 // Fetch image quickly and show toast
                 fetch(roomDetailUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
@@ -1814,19 +2215,19 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                         const imgUrl = (data && data.images && data.images.length > 0)
                             ? (data.images[0].image_url || data.images[0].url)
                             : null;
-                        showToast(`This room fits ${capacity} guests, but you have ${total} guests. Please adjust guests or choose another room.`, 'warning', 6000, imgUrl);
+                        showToast(t('roomFitsButYouHave', { cap: capacity, guests: total }), 'warning', 6000, imgUrl);
                     })
                     .catch(() => {
                         // Show toast without image if fetch fails
-                        showToast(`This room fits ${capacity} guests, but you have ${total} guests. Please adjust guests or choose another room.`, 'warning');
+                        showToast(t('roomFitsButYouHave', { cap: capacity, guests: total }), 'warning');
                     });
             } else {
                 // No image available, show toast without image
-                showToast(`This room fits ${capacity} guests, but you have ${total} guests. Please adjust guests or choose another room.`, 'warning');
+                showToast(t('roomFitsButYouHave', { cap: capacity, guests: total }), 'warning');
             }
             return;
         }
-        const roomName = roomListing?.querySelector('.room-name')?.textContent?.trim() || 'Room';
+        const roomName = roomListing?.querySelector('.room-name')?.textContent?.trim() || gettext('Room');
         const roomFeatures = roomListing?.querySelector('.room-features')?.textContent?.trim() || '';
         const roomLabel = `${roomName}${roomFeatures ? ` • ${roomFeatures}` : ''}`;
 
@@ -1835,7 +2236,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             // Check if removing this room would leave enough capacity
             const remainingCapacity = totalCapacity - capacity;
             if (remainingCapacity < totalGuests && state.rooms.length > 1) {
-                showToast(`Cannot remove this room. Remaining capacity (${remainingCapacity}) would be insufficient for ${totalGuests} guests.`, 'warning', 4000);
+                showToast(t('cannotRemoveRoomCapacity', { remaining: remainingCapacity, guests: totalGuests }), 'warning', 4000);
                 return;
             }
 
@@ -1852,12 +2253,12 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                     foundRoom.removeAttribute('data-selected');
                 }
             }
-            showToast(`Room "${roomLabel}" removed from selection`, 'info', 3000);
+            showToast(t('roomRemoved', { label: roomLabel }), 'info', 3000);
         } else {
             // Smart check: Only add if actually needed or user explicitly wants multiple rooms
             // If a single room can already accommodate all guests, warn but allow
             if (state.rooms.length > 0 && totalGuests <= totalCapacity) {
-                const confirmAdd = confirm(`You already have enough capacity with ${state.rooms.length} room${state.rooms.length > 1 ? 's' : ''} (${totalCapacity} guests). Do you want to add another room anyway?`);
+                const confirmAdd = confirm(t('alreadyEnoughCapacityConfirm', { count: state.rooms.length, cap: totalCapacity }));
                 if (!confirmAdd) {
                     return;
                 }
@@ -1881,7 +2282,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                     foundRoom.setAttribute('data-selected', 'true');
                 }
             }
-            showToast(`Room "${roomLabel}" added to selection (${state.rooms.length} room${state.rooms.length > 1 ? 's' : ''} selected)`, 'success', 3000);
+            showToast(t('roomAdded', { label: roomLabel, count: state.rooms.length }), 'success', 3000);
         }
 
         // Auto-distribute guests if not manually assigned yet
@@ -1929,7 +2330,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             statusEl.style.background = '#d4edda';
             statusEl.style.border = '1px solid #c3e6cb';
             statusEl.style.color = '#155724';
-            statusEl.innerHTML = `<i class="fas fa-check-circle me-1"></i><strong>Room selected!</strong> Ready to continue.`;
+            statusEl.innerHTML = `<i class="fas fa-check-circle me-1"></i><strong>${escapeHtml(t('roomSelectedReady'))}</strong>`;
         }
     }
 
@@ -2036,7 +2437,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         const selectBtn = q(`room-detail-modal-select-btn${pk}`);
 
         // Reset UI
-        if (titleEl) titleEl.textContent = 'Loading...';
+        if (titleEl) titleEl.textContent = gettext('Loading...');
         if (subtitleEl) subtitleEl.textContent = '';
         if (descEl) descEl.innerHTML = '';
         if (capEl) capEl.textContent = '-';
@@ -2049,7 +2450,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         if (rulesEl) rulesEl.innerHTML = '';
         if (rulesValidationEl) rulesValidationEl.innerHTML = '';
         if (rulesContainerEl) rulesContainerEl.style.display = 'none';
-        if (galleryEl) galleryEl.innerHTML = `<div style="padding: 18px; color: #6c757d; text-align: center;">Loading...</div>`;
+        if (galleryEl) galleryEl.innerHTML = `<div style="padding: 18px; color: #6c757d; text-align: center;">${gettext('Loading...')}</div>`;
 
         // Store room ID and PK on select button for later use
         if (selectBtn) {
@@ -2150,7 +2551,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
             // Update title and subtitle
             if (titleEl) {
-                const roomName = data.name || data.room_type || 'Room';
+                const roomName = data.name || data.room_type || gettext('Room');
                 const roomNumber = data.room_number ? ` • ${data.room_number}` : '';
                 titleEl.textContent = `${roomName}${roomNumber}`;
             }
@@ -2164,30 +2565,30 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                 if (data.description && data.description.trim()) {
                     descEl.innerHTML = `<div style="white-space: pre-wrap; line-height: 1.6; font-weight: 400;">${escapeHtml(data.description)}</div>`;
                 } else {
-                    descEl.innerHTML = `<div style="color: #6c757d; font-style: italic; font-size: 0.85rem; font-weight: 400;">No description available.</div>`;
+                    descEl.innerHTML = `<div style="color: #6c757d; font-style: italic; font-size: 0.85rem; font-weight: 400;">${gettext('No description available.')}</div>`;
                 }
             }
 
             // Update capacity and price
-            if (capEl) capEl.textContent = `${data.capacity ?? '-'} ${data.capacity === 1 ? 'person' : 'people'}`;
+            if (capEl) capEl.textContent = `${data.capacity ?? '-'} ${data.capacity === 1 ? gettext('person') : gettext('people')}`;
             if (priceEl) priceEl.textContent = `$${parseFloat(data.price_per_night || 0).toFixed(2)}`;
 
             // Update additional information
             const includesGuestsEl = q(`room-detail-modal-includes-guests${pk}`);
             if (includesGuestsEl) {
                 const includes = data.price_includes_guests || 1;
-                includesGuestsEl.textContent = `${includes} ${includes === 1 ? 'guest' : 'guests'}`;
+                includesGuestsEl.textContent = `${includes} ${includes === 1 ? gettext('guest') : gettext('guests')}`;
             }
 
             const additionalPriceEl = q(`room-detail-modal-additional-price${pk}`);
             if (additionalPriceEl) {
                 const addPrice = parseFloat(data.additional_guest_price || 0);
-                additionalPriceEl.textContent = addPrice > 0 ? `$${addPrice.toFixed(2)}/night` : 'Included';
+                additionalPriceEl.textContent = addPrice > 0 ? `$${addPrice.toFixed(2)}/${gettext('night')}` : gettext('Included');
             }
 
             const breakfastEl = q(`room-detail-modal-breakfast${pk}`);
             if (breakfastEl) {
-                breakfastEl.textContent = data.breakfast_included ? 'Included' : 'Not included';
+                breakfastEl.textContent = data.breakfast_included ? gettext('Included') : gettext('Not included');
                 breakfastEl.style.color = data.breakfast_included ? 'var(--mlb-blue)' : '#6c757d';
             }
 
@@ -2200,7 +2601,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             if (galleryEl) {
                 const images = Array.isArray(data.images) ? data.images : [];
                 if (!images.length) {
-                    galleryEl.innerHTML = `<div style="padding: 18px; color: #6c757d; text-align: center; font-size: 0.85rem;">No images available.</div>`;
+                    galleryEl.innerHTML = `<div style="padding: 18px; color: #6c757d; text-align: center; font-size: 0.85rem;">${gettext('No images available.')}</div>`;
                 } else {
                     // Store images globally for lightbox
                     if (!window.roomImages) window.roomImages = {};
@@ -2211,7 +2612,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                     const heights = [200, 180, 220, 190, 210, 200, 185, 215]; // Alternating heights for better balance
                     const masonryItems = images.map((img, idx) => {
                         const imgUrl = img.image_url || img.url;
-                        const imgAlt = escapeHtml(img.title || img.alt || `Room image ${idx + 1}`);
+                        const imgAlt = escapeHtml(img.title || img.alt || interpolate(gettext('Room image %(num)s'), { num: idx + 1 }, true));
                         // Use alternating heights for better visual balance
                         const height = heights[idx % heights.length];
                         const rowSpan = Math.ceil(height / 10);
@@ -2259,14 +2660,24 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                     rulesContainerEl.style.display = 'block';
                     rulesEl.innerHTML = rules.map(rule => {
                         const desc = rule.description ||
-                            `Adults: ${rule.min_adults}-${rule.max_adults} • Children: ${rule.min_children}-${rule.max_children}`;
+                            interpolate(gettext('Adults: %(minAdults)s-%(maxAdults)s • Children: %(minChildren)s-%(maxChildren)s'), {
+                                minAdults: rule.min_adults,
+                                maxAdults: rule.max_adults,
+                                minChildren: rule.min_children,
+                                maxChildren: rule.max_children
+                            }, true);
                         return `
                             <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 0.85rem;">
                                 <div style="font-weight: 600; color: var(--mlb-blue); margin-bottom: 4px;">
                                     <i class="fas fa-check-circle me-1" style="color: var(--mlb-red);"></i>${escapeHtml(desc)}
                                 </div>
                                 <div style="color: #6c757d; font-size: 0.8rem; font-weight: 400;">
-                                    Adults: ${rule.min_adults}-${rule.max_adults} • Children: ${rule.min_children}-${rule.max_children}
+                                    ${interpolate(gettext('Adults: %(minAdults)s-%(maxAdults)s • Children: %(minChildren)s-%(maxChildren)s'), {
+                                        minAdults: rule.min_adults,
+                                        maxAdults: rule.max_adults,
+                                        minChildren: rule.min_children,
+                                        maxChildren: rule.max_children
+                                    }, true)}
                                 </div>
                             </div>
                         `;
@@ -2292,14 +2703,14 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                             rulesValidationEl.innerHTML = `
                                 <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 10px; color: #155724; font-size: 0.85rem;">
                                     <i class="fas fa-check-circle me-1"></i>
-                                    <strong>Valid:</strong> Your selection (${adults} adults, ${children} children) matches the occupancy rules.
+                                    <strong>✅ ${escapeHtml(t('correct'))}:</strong> ${escapeHtml(t('selectionMatchesRules', { adults, children }))}
                                 </div>
                             `;
                         } else {
                             rulesValidationEl.innerHTML = `
                                 <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 10px; color: #856404; font-size: 0.85rem;">
                                     <i class="fas fa-exclamation-triangle me-1"></i>
-                                    <strong>Warning:</strong> Your selection (${adults} adults, ${children} children) does not match any occupancy rule.
+                                    <strong>⚠ ${escapeHtml(t('attention'))}:</strong> ${escapeHtml(t('selectionDoesNotMatchRules', { adults, children }))}
                                 </div>
                             `;
                         }
@@ -2320,7 +2731,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                         </div>
                     `).join('');
                 } else {
-                    amenitiesEl.innerHTML = `<div style="color:#6c757d; font-size: 0.85rem; font-style: italic;">No amenities listed.</div>`;
+                    amenitiesEl.innerHTML = `<div style="color:#6c757d; font-size: 0.85rem; font-style: italic;">${escapeHtml(t('noAmenities'))}</div>`;
                 }
             }
 
@@ -2447,10 +2858,10 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         } catch (err) {
             console.error('openRoomDetail: Error loading room details', err);
             if (galleryEl) {
-                galleryEl.innerHTML = `<div style="padding: 18px; color: #b30029; font-weight: 800; text-align: center;">Failed to load room details. Please try again.</div>`;
+                galleryEl.innerHTML = `<div style="padding: 18px; color: #b30029; font-weight: 800; text-align: center;">${gettext('Failed to load room details. Please try again.')}</div>`;
             }
-            if (titleEl) titleEl.textContent = 'Error loading room';
-            if (descEl) descEl.innerHTML = `<div style="color: #b30029; font-size: 0.85rem;">Error: ${escapeHtml(err.message || 'Unknown error')}</div>`;
+            if (titleEl) titleEl.textContent = gettext('Error loading room');
+        if (descEl) descEl.innerHTML = `<div style="color: #b30029; font-size: 0.85rem;">${gettext('Error')}: ${escapeHtml(err.message || t('unknownError'))}</div>`;
         }
     }
 
@@ -2492,7 +2903,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
         const state = stateByPk.get(pk);
         if (!state || !state.rooms || state.rooms.length === 0) {
-            showToast('No rooms selected', 'error');
+            showToast(gettext('No rooms selected'), 'error');
             return;
         }
 
@@ -2599,7 +3010,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             }
         }
 
-        showToast('Hotel reservation added to checkout', 'success');
+        showToast(gettext('Hotel reservation added to checkout'), 'success');
     });
 
     // Add hotel reservation to checkout card
@@ -2620,7 +3031,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 15px; margin-bottom: 12px;">
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
                     <h6 style="font-weight: 800; color: var(--mlb-blue); font-size: 0.95rem; margin: 0;">
-                        <i class="fas fa-hotel me-2" style="color: var(--mlb-red);"></i>Hotel Stay
+                        <i class="fas fa-hotel me-2" style="color: var(--mlb-red);"></i>${gettext('Hotel Stay')}
                     </h6>
                     <button type="button" class="btn-remove-hotel" onclick="this.closest('.hotel-reservation-item').remove(); updateCheckoutTotal();"
                             style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer;">
@@ -2634,13 +3045,13 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             html += `
                 <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 8px; border-left: 3px solid var(--mlb-blue);">
                     <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.85rem; margin-bottom: 4px;">
-                        ${escapeHtml(room.roomLabel)} (${room.guests}/${room.capacity} guests)
+                        ${escapeHtml(room.roomLabel)} (${room.guests}/${room.capacity} ${gettext('guests')})
                     </div>
                     <div style="font-size: 0.8rem; color: #6c757d;">
-                        Check-in: ${reservationData.checkIn || 'N/A'} • Check-out: ${reservationData.checkOut || 'N/A'}
+                        ${gettext('Check-in')}: ${reservationData.checkIn || gettext('N/A')} • ${gettext('Check-out')}: ${reservationData.checkOut || gettext('N/A')}
                     </div>
                     <div style="font-weight: 700; color: var(--mlb-red); font-size: 0.9rem; margin-top: 4px;">
-                        $${room.price.toFixed(2)}/night
+                        $${room.price.toFixed(2)}/${gettext('night')}
                     </div>
                 </div>
             `;
@@ -2651,10 +3062,10 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         html += `
             <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e9ecef;">
                 <div style="font-size: 0.8rem; color: #6c757d; margin-bottom: 4px;">
-                    <strong>Main Contact:</strong> ${escapeHtml(reservationData.mainContact.name)}${reservationData.mainContact.email ? ` (${escapeHtml(reservationData.mainContact.email)})` : ''}
+                    <strong>${gettext('Main Contact')}:</strong> ${escapeHtml(reservationData.mainContact.name)}${reservationData.mainContact.email ? ` (${escapeHtml(reservationData.mainContact.email)})` : ''}
                 </div>
                 <div style="font-size: 0.8rem; color: #6c757d;">
-                    <strong>Total Guests:</strong> ${totalGuests} (${reservationData.players.length} player${reservationData.players.length !== 1 ? 's' : ''}, ${reservationData.additionalAdults.length} additional adult${reservationData.additionalAdults.length !== 1 ? 's' : ''}, ${reservationData.additionalChildren.length} additional child${reservationData.additionalChildren.length !== 1 ? 'ren' : ''})
+                    <strong>${gettext('Total Guests')}:</strong> ${totalGuests} (${reservationData.players.length} ${reservationData.players.length !== 1 ? gettext('players') : gettext('player')}, ${reservationData.additionalAdults.length} ${reservationData.additionalAdults.length !== 1 ? gettext('additional adults') : gettext('additional adult')}, ${reservationData.additionalChildren.length} ${reservationData.additionalChildren.length !== 1 ? gettext('additional children') : gettext('additional child')})
                 </div>
             </div>
         `;
@@ -2662,9 +3073,9 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         // Add total price
         html += `
             <div style="margin-top: 12px; padding-top: 12px; border-top: 2px solid var(--mlb-red); display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-weight: 800; color: var(--mlb-blue); font-size: 1rem;">Total:</span>
+                <span style="font-weight: 800; color: var(--mlb-blue); font-size: 1rem;">${gettext('Total')}:</span>
                 <span class="hotel-reservation-total" style="font-weight: 800; color: var(--mlb-red); font-size: 1.2rem;">
-                    $${reservationData.totalPrice.toFixed(2)}/night
+                    $${reservationData.totalPrice.toFixed(2)}/${gettext('night')}
                 </span>
             </div>
         `;
@@ -3007,13 +3418,68 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
             // Collect rules
             const rulesJson = roomEl.getAttribute('data-room-rules');
+            let activeRoomRules = [];
+            let roomRuleStatus = null; // { valid: boolean, matchedDesc?: string, allowedDesc?: string[] }
             if (rulesJson) {
                 try {
                     const rules = JSON.parse(rulesJson);
                     allRules = allRules.concat(rules);
+                    activeRoomRules = Array.isArray(rules) ? rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active) : [];
                 } catch (e) {
                     console.warn('Error parsing rules for room:', room.roomId, e);
                 }
+            }
+
+            // Per-room rules validation based on ASSIGNED guests (not global totals)
+            try {
+                if (activeRoomRules && activeRoomRules.length > 0) {
+                    const assignedGuestsObjs = assignedGuestIndices.map(gi => state.guests[gi]).filter(Boolean);
+                    const assignedAdults = assignedGuestsObjs.filter(g => g.type === 'adult').length;
+                    const assignedChildren = assignedGuestsObjs.filter(g => g.type === 'child').length;
+                    const isGenericDesc = (desc) => {
+                        const d = (desc || '').toString().trim().toLowerCase();
+                        return !d || /^regla\s*\d+$/i.test(d) || /^rule\s*\d+$/i.test(d);
+                    };
+                    const describeRule = (rule) => {
+                        const minA = parseInt(rule.min_adults) || 0;
+                        const maxA = parseInt(rule.max_adults) || 0;
+                        const minC = parseInt(rule.min_children) || 0;
+                        const maxC = parseInt(rule.max_children) || 0;
+                        const current = t('nowYouHave', {
+                            adults: assignedAdults,
+                            adultWord: nounForCount(assignedAdults, 'adultOne', 'adultMany'),
+                            children: assignedChildren,
+                            childWord: nounForCount(assignedChildren, 'childOne', 'childMany')
+                        });
+                        const req = `${t('requirementPrefix')} ` + t('requirementLine', {
+                            adultsReq: rangeText(minA, rule.max_adults, 'adultOne', 'adultMany'),
+                            childrenReq: rangeText(minC, rule.max_children, 'childOne', 'childMany')
+                        });
+                        const hintA = makeActionHint(assignedAdults, minA, rule.max_adults, 'adultOne', 'adultMany');
+                        const hintC = makeActionHint(assignedChildren, minC, rule.max_children, 'childOne', 'childMany');
+                        const hint = [hintA, hintC].filter(Boolean).join(' ');
+                        const custom = rule.description;
+                        const customText = isGenericDesc(custom) ? '' : `${escapeHtml(custom)}. `;
+                        return `${customText}${current} ${req}${hint ? ' ' + hint : ''}`;
+                    };
+                    const validRules = activeRoomRules.filter(rule => {
+                        const minAdults = parseInt(rule.min_adults) || 0;
+                        const maxAdults = parseInt(rule.max_adults) || 999;
+                        const minChildren = parseInt(rule.min_children) || 0;
+                        const maxChildren = parseInt(rule.max_children) || 999;
+                        return assignedAdults >= minAdults && assignedAdults <= maxAdults &&
+                               assignedChildren >= minChildren && assignedChildren <= maxChildren;
+                    });
+                    if (validRules.length > 0) {
+                        const rule = validRules[0];
+                        roomRuleStatus = { valid: true, matchedDesc: describeRule(rule), assignedAdults, assignedChildren };
+                    } else {
+                        const allowedDesc = activeRoomRules.map(rule => describeRule(rule));
+                        roomRuleStatus = { valid: false, allowedDesc, assignedAdults, assignedChildren };
+                    }
+                }
+            } catch (e) {
+                // fail-open
             }
 
             roomBreakdown.push({
@@ -3026,20 +3492,21 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                 roomTotal: roomTotal,
                 roomCapacity: roomCapacity,
                 assignedGuests: assignedGuestIndices,
-                actualGuestsCount: actualGuestsForRoom
+                actualGuestsCount: actualGuestsForRoom,
+                roomRuleStatus: roomRuleStatus
             });
         });
 
-        let html = `<div style="font-weight: 600; color: var(--mlb-blue); margin-bottom: 8px; font-size: 0.9rem;">Price Breakdown (${state.rooms.length} room${state.rooms.length > 1 ? 's' : ''}):</div>`;
+        let html = `<div style="font-weight: 600; color: var(--mlb-blue); margin-bottom: 8px; font-size: 0.9rem;">${escapeHtml(t('priceBreakdownTitle', { count: state.rooms.length }))}</div>`;
 
         // Show breakdown for each room with guest assignment
         roomBreakdown.forEach((room, idx) => {
             html += `<div style="margin-bottom: 8px; padding: 8px; background: #f8f9fa; border-radius: 6px; border-left: 3px solid var(--mlb-blue);">`;
             html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">`;
-            html += `<div style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem;">Room ${idx + 1}: ${escapeHtml(room.roomLabel)}</div>`;
+            html += `<div style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem;">${escapeHtml(interpolate(gettext('Room %(id)s'), { id: idx + 1 }, true))}: ${escapeHtml(room.roomLabel)}</div>`;
             html += `<div style="display: flex; gap: 6px;">`;
-            html += `<button type="button" onclick="window.NSC_HotelReservation?.showGuestAssignment?.('${pk}', '${room.roomId}');" style="background: var(--mlb-blue); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='var(--mlb-red)';" onmouseout="this.style.background='var(--mlb-blue)';">Assign Guests</button>`;
-            html += `<button type="button" onclick="window.NSC_HotelReservation?.removeRoom?.('${pk}', '${room.roomId}');" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#c82333';" onmouseout="this.style.background='#dc3545';" title="Remove room from selection"><i class="fas fa-times"></i></button>`;
+            html += `<button type="button" onclick="window.NSC_HotelReservation?.showGuestAssignment?.('${pk}', '${room.roomId}');" style="background: var(--mlb-blue); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='var(--mlb-red)';" onmouseout="this.style.background='var(--mlb-blue)';">${escapeHtml(t('assignGuests'))}</button>`;
+            html += `<button type="button" onclick="window.NSC_HotelReservation?.removeRoom?.('${pk}', '${room.roomId}');" style="background: #dc3545; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#c82333';" onmouseout="this.style.background='#dc3545';" title="${escapeHtml(t('removeRoom'))}"><i class="fas fa-times"></i></button>`;
             html += `</div>`;
             html += `</div>`;
 
@@ -3049,20 +3516,37 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                     const guest = state.guests[gi];
                     return guest ? escapeHtml(guest.name) : '';
                 }).filter(n => n).join(', ');
-                html += `<div style="font-size: 0.75rem; color: #6c757d; margin-bottom: 4px; font-style: italic;">Assigned: ${assignedGuestNames || 'None'}</div>`;
+                html += `<div style="font-size: 0.75rem; color: #6c757d; margin-bottom: 4px; font-style: italic;">${escapeHtml(t('assignedLabel', { names: assignedGuestNames || t('none') }))}</div>`;
             } else {
-                html += `<div style="font-size: 0.75rem; color: #ffc107; margin-bottom: 4px; font-style: italic;">⚠ No guests assigned to this room</div>`;
+                html += `<div style="font-size: 0.75rem; color: #ffc107; margin-bottom: 4px; font-style: italic;">⚠ ${escapeHtml(t('noGuestsAssignedThisRoom'))}</div>`;
             }
 
-            html += `<div style="font-size: 0.8rem; color: #333; margin-bottom: 2px;">Base price (${room.roomIncludesGuests} ${room.roomIncludesGuests === 1 ? 'guest' : 'guests'}): <strong>$${room.roomPrice.toFixed(2)}</strong>/night</div>`;
-            if (room.additionalGuestsForRoom > 0) {
-                html += `<div style="font-size: 0.8rem; color: #333; margin-bottom: 2px;">Additional guests (${room.actualGuestsCount - room.roomIncludesGuests}): <strong style="color: var(--mlb-red);">+$${room.additionalCostForRoom.toFixed(2)}</strong>/night</div>`;
+            // Per-room occupancy rule help (based on assigned guests)
+            if (room.roomRuleStatus) {
+                if (room.roomRuleStatus.valid) {
+                    // Keep this subtle; the important UX is when it fails
+                    html += `<div style="font-size: 0.74rem; color: #155724; margin-bottom: 4px; font-weight: 800;">✅ ${escapeHtml(t('rulesSatisfied'))}</div>`;
+                if (room.roomRuleStatus.matchedDesc) {
+                        html += `<div style="font-size: 0.73rem; color: #6c757d; margin-bottom: 4px;">${escapeHtml(room.roomRuleStatus.matchedDesc)}</div>`;
+                    }
+                } else {
+                    html += `<div style="font-size: 0.75rem; color: #b45309; margin-bottom: 4px; font-weight: 900;">⚠ ${escapeHtml(t('roomRulesNotMetTitle'))}</div>`;
+                    if (room.roomRuleStatus.allowedDesc && room.roomRuleStatus.allowedDesc.length) {
+                        const list = room.roomRuleStatus.allowedDesc.map(d => `<div style="font-size: 0.72rem; color: #6c757d; padding-left: 10px; margin-top: 2px;">• ${escapeHtml(d)}</div>`).join('');
+                        html += `<div style="margin-bottom: 6px;">${list}</div>`;
+                    }
+                }
             }
-            html += `<div style="font-size: 0.85rem; color: var(--mlb-blue); margin-top: 4px; font-weight: 600;">Room Total: $${room.roomTotal.toFixed(2)}/night (${room.actualGuestsCount}/${room.roomCapacity} capacity)</div>`;
+
+            html += `<div style="font-size: 0.8rem; color: #333; margin-bottom: 2px;">${gettext('Base price')} (${room.roomIncludesGuests} ${room.roomIncludesGuests === 1 ? gettext('guest') : gettext('guests')}): <strong>$${room.roomPrice.toFixed(2)}</strong>/${gettext('night')}</div>`;
+            if (room.additionalGuestsForRoom > 0) {
+                html += `<div style="font-size: 0.8rem; color: #333; margin-bottom: 2px;">${gettext('Additional guests')} (${room.actualGuestsCount - room.roomIncludesGuests}): <strong style="color: var(--mlb-red);">+$${room.additionalCostForRoom.toFixed(2)}</strong>/${gettext('night')}</div>`;
+            }
+            html += `<div style="font-size: 0.85rem; color: var(--mlb-blue); margin-top: 4px; font-weight: 600;">${gettext('Room Total')}: $${room.roomTotal.toFixed(2)}/${gettext('night')} (${room.actualGuestsCount}/${room.roomCapacity} ${gettext('capacity')})</div>`;
             html += `</div>`;
         });
 
-        html += `<div style="font-weight: 700; color: var(--mlb-red); margin-top: 12px; padding-top: 12px; border-top: 2px solid #e9ecef; font-size: 1.1rem;">Total (All Rooms): $${totalPrice.toFixed(2)}/night</div>`;
+        html += `<div style="font-weight: 700; color: var(--mlb-red); margin-top: 12px; padding-top: 12px; border-top: 2px solid #e9ecef; font-size: 1.1rem;">${gettext('Total (All Rooms)')}: $${totalPrice.toFixed(2)}/${gettext('night')}</div>`;
 
         // Capacity validation
         const adults = state.guests.filter(g => g.type === 'adult').length;
@@ -3072,137 +3556,42 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
         html += `<div style="margin-top: 12px; padding: 8px; border-radius: 6px; ${!capacityValid ? 'background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24;' : 'background: #d4edda; border: 1px solid #c3e6cb; color: #155724;'} font-size: 0.85rem;">`;
         html += `<i class="fas ${!capacityValid ? 'fa-exclamation-circle' : 'fa-check-circle'} me-1"></i>`;
-        html += `<strong>Capacity:</strong> ${total} guest${total !== 1 ? 's' : ''} (${adults} adult${adults !== 1 ? 's' : ''}, ${children} child${children !== 1 ? 'ren' : ''}) / ${totalCapacity} total capacity (${state.rooms.length} room${state.rooms.length > 1 ? 's' : ''})`;
+        html += `<strong>${escapeHtml(t('capacitySummary', { total, adults, children, totalCapacity, rooms: state.rooms.length }))}</strong>`;
         if (!capacityValid) {
-            html += ` <span style="color: #721c24; font-weight: 700; display: block; margin-top: 6px;">⚠ Exceeds capacity by ${total - totalCapacity} guest${total - totalCapacity !== 1 ? 's' : ''}</span>`;
+            html += ` <span style="color: #721c24; font-weight: 700; display: block; margin-top: 6px;">⚠ ${gettext('Exceeds capacity by')} ${total - totalCapacity} ${(total - totalCapacity) === 1 ? gettext('guest') : gettext('guests')}</span>`;
             html += `<div style="margin-top: 8px; padding: 8px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; color: #856404; font-size: 0.8rem;">`;
-            html += `<i class="fas fa-info-circle me-1"></i><strong>Action required:</strong> Please add another room or change to a room with higher capacity to accommodate all ${total} guest${total !== 1 ? 's' : ''}.</div>`;
+            html += `<i class="fas fa-info-circle me-1"></i><strong>${gettext('Action required')}:</strong> ${interpolate(gettext('Please add another room or change to a room with higher capacity to accommodate all %(total)s guests.'), { total }, true)}</div>`;
         }
         html += `</div>`;
 
-        // Add occupancy rules validation
-        if (allRules.length > 0) {
-            try {
-                const rules = allRules;
+        // Occupancy rules summary:
+        // NOTE: When multiple rooms are selected, rules are validated PER ROOM (using assigned guests),
+        // not as a single combined rule across all rooms.
+        const roomsWithRuleStatus = roomBreakdown.filter(r => r.roomRuleStatus);
+        if (roomsWithRuleStatus.length > 0) {
+            html += `<div style="margin-top: 12px; padding-top: 12px; border-top: 2px solid #e9ecef;">`;
+            html += `<div style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem; margin-bottom: 6px;"><i class="fas fa-users-cog me-1"></i>${gettext('Occupancy Rules')}:</div>`;
 
-                // Find matching rules - check if adults and children are within the rule's range
-                console.log('Validating rules:', {
-                    totalRules: rules.length,
-                    adults: adults,
-                    children: children,
-                    rules: rules
-                });
-
-                const validRules = rules.filter(rule => {
-                    // Skip inactive rules (if is_active field exists and is false)
-                    if (rule.hasOwnProperty('is_active') && !rule.is_active) {
-                        console.log('Skipping inactive rule:', rule);
-                        return false;
-                    }
-                    // Check if adults and children are within the rule's range
-                    // Ensure values are numbers for comparison
-                    const minAdults = parseInt(rule.min_adults) || 0;
-                    const maxAdults = parseInt(rule.max_adults) || 999;
-                    const minChildren = parseInt(rule.min_children) || 0;
-                    const maxChildren = parseInt(rule.max_children) || 999;
-                    const adultsMatch = adults >= minAdults && adults <= maxAdults;
-                    const childrenMatch = children >= minChildren && children <= maxChildren;
-                    const isValid = adultsMatch && childrenMatch;
-
-                    console.log('Rule validation:', {
-                        ruleId: rule.id,
-                        ruleDescription: rule.description,
-                        adults: adults,
-                        children: children,
-                        minAdults: minAdults,
-                        maxAdults: maxAdults,
-                        minChildren: minChildren,
-                        maxChildren: maxChildren,
-                        adultsMatch: adultsMatch,
-                        childrenMatch: childrenMatch,
-                        valid: isValid
-                    });
-
-                    return isValid;
-                });
-
-                console.log('Valid rules found:', validRules.length, validRules);
-
-                html += `<div style="margin-top: 12px; padding-top: 12px; border-top: 2px solid #e9ecef;">`;
-                html += `<div style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem; margin-bottom: 6px;"><i class="fas fa-users-cog me-1"></i>Occupancy Rules:</div>`;
-
-                // Only show validation if there are rules defined
-                if (rules.length === 0) {
-                    // No rules defined for this room - show info message
-                    html += `<div style="font-size: 0.8rem; color: #6c757d; font-style: italic; padding: 8px; background: #f8f9fa; border-radius: 6px; margin-bottom: 6px;">No occupancy rules defined for this room. Any combination of guests is allowed.</div>`;
-                }
-
-                // Check capacity
-                if (!capacityValid) {
-                    html += `<div style="background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 6px; padding: 8px; color: #721c24; font-size: 0.8rem; margin-bottom: 6px;">`;
-                    html += `<i class="fas fa-exclamation-circle me-1"></i><strong>Error:</strong> Total guests (${total}) exceeds total room capacity (${totalCapacity}).`;
-                    html += `<div style="margin-top: 6px; padding: 6px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; color: #856404; font-size: 0.75rem;">`;
-                    html += `<i class="fas fa-info-circle me-1"></i><strong>Solution:</strong> Please add another room or change to a room with higher capacity to accommodate all ${total} guest${total !== 1 ? 's' : ''}.</div>`;
-                    html += `</div>`;
-
-                    // Show available rules when capacity is exceeded
-                    if (rules.length > 0) {
-                        html += `<div style="font-size: 0.75rem; color: #6c757d; margin-top: 6px; font-weight: 600;">Available rules:</div>`;
-                        rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active).forEach((rule, idx) => {
-                            const desc = rule.description || `Adults: ${rule.min_adults}-${rule.max_adults} • Children: ${rule.min_children}-${rule.max_children}`;
-                            html += `<div style="font-size: 0.75rem; color: #6c757d; margin-top: 4px; padding-left: 12px;">`;
-                            html += `<i class="fas fa-circle me-1" style="font-size: 0.65rem;"></i>${escapeHtml(desc)}`;
-                            // Show example combinations
-                            if (rule.min_adults > 0 && rule.min_children > 0) {
-                                html += ` <span style="color: #999; font-size: 0.7rem;">(e.g., ${rule.min_adults} adult${rule.min_adults > 1 ? 's' : ''} + ${rule.min_children} child${rule.min_children > 1 ? 'ren' : ''})</span>`;
-                            } else if (rule.min_adults > 0) {
-                                html += ` <span style="color: #999; font-size: 0.7rem;">(e.g., ${rule.min_adults} adult${rule.min_adults > 1 ? 's' : ''})</span>`;
-                            } else if (rule.min_children > 0) {
-                                html += ` <span style="color: #999; font-size: 0.7rem;">(e.g., ${rule.min_children} child${rule.min_children > 1 ? 'ren' : ''})</span>`;
-                            }
-                            html += `</div>`;
-                        });
-                    }
-                } else if (validRules.length > 0) {
-                    // Show which specific rules match - DON'T show available rules when valid
-                    html += `<div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; padding: 8px; color: #155724; font-size: 0.8rem; margin-bottom: 6px;">`;
-                    html += `<i class="fas fa-check-circle me-1"></i><strong>Valid:</strong> Your selection (${adults} adults, ${children} children) matches ${validRules.length} rule(s).`;
-                    if (validRules.length === 1) {
-                        const rule = validRules[0];
-                        const desc = rule.description || `Adults: ${rule.min_adults}-${rule.max_adults} • Children: ${rule.min_children}-${rule.max_children}`;
-                        html += `<div style="margin-top: 4px; font-size: 0.75rem;">Matching rule: ${escapeHtml(desc)}</div>`;
-                    }
-                    html += `</div>`;
-                } else {
-                    // Show warning and available rules when no rules match
-                    html += `<div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 8px; color: #856404; font-size: 0.8rem; margin-bottom: 6px;">`;
-                    html += `<i class="fas fa-exclamation-triangle me-1"></i><strong>Warning:</strong> Your selection (${adults} adults, ${children} children) does not match any occupancy rule.`;
-                    html += `</div>`;
-
-                    // Show available rules only when rules don't match
-                    if (rules.length > 0) {
-                        html += `<div style="font-size: 0.75rem; color: #6c757d; margin-top: 6px; font-weight: 600;">Available rules:</div>`;
-                        rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active).forEach((rule, idx) => {
-                            const desc = rule.description || `Adults: ${rule.min_adults}-${rule.max_adults} • Children: ${rule.min_children}-${rule.max_children}`;
-                            html += `<div style="font-size: 0.75rem; color: #6c757d; margin-top: 4px; padding-left: 12px;">`;
-                            html += `<i class="fas fa-circle me-1" style="font-size: 0.65rem;"></i>${escapeHtml(desc)}`;
-                            // Show example combinations
-                            if (rule.min_adults > 0 && rule.min_children > 0) {
-                                html += ` <span style="color: #999; font-size: 0.7rem;">(e.g., ${rule.min_adults} adult${rule.min_adults > 1 ? 's' : ''} + ${rule.min_children} child${rule.min_children > 1 ? 'ren' : ''})</span>`;
-                            } else if (rule.min_adults > 0) {
-                                html += ` <span style="color: #999; font-size: 0.7rem;">(e.g., ${rule.min_adults} adult${rule.min_adults > 1 ? 's' : ''})</span>`;
-                            } else if (rule.min_children > 0) {
-                                html += ` <span style="color: #999; font-size: 0.7rem;">(e.g., ${rule.min_children} child${rule.min_children > 1 ? 'ren' : ''})</span>`;
-                            }
-                            html += `</div>`;
-                        });
-                    }
-                }
-
+            const invalidRooms = roomsWithRuleStatus.filter(r => r.roomRuleStatus && r.roomRuleStatus.valid === false);
+            if (invalidRooms.length === 0) {
+                html += `<div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; padding: 8px; color: #155724; font-size: 0.8rem; margin-bottom: 6px;">`;
+                html += `<i class="fas fa-check-circle me-1"></i><strong>✅ ${gettext('All selected rooms meet occupancy rules.')}</strong>`;
                 html += `</div>`;
-            } catch (e) {
-                console.error('Error parsing room rules:', e);
+            } else {
+                html += `<div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 8px; color: #856404; font-size: 0.8rem; margin-bottom: 6px;">`;
+                html += `<i class="fas fa-exclamation-triangle me-1"></i><strong>⚠ ${gettext('Attention')}:</strong> ${gettext('Some selected rooms do not meet occupancy rules.')}`;
+                html += `</div>`;
+
+                invalidRooms.forEach((room, idx) => {
+                    html += `<div style="font-size: 0.8rem; color: #6c757d; margin-top: 6px; font-weight: 800;">${escapeHtml(interpolate(gettext('Room %(id)s'), { id: idx + 1 }, true))}: ${escapeHtml(room.roomLabel)}</div>`;
+                    if (room.roomRuleStatus?.allowedDesc?.length) {
+                        const list = room.roomRuleStatus.allowedDesc.map(d => `<div style="font-size: 0.75rem; color: #6c757d; margin-top: 4px; padding-left: 12px;">• ${escapeHtml(d)}</div>`).join('');
+                        html += `<div style="margin-top: 4px;">${list}</div>`;
+                    }
+                });
             }
+
+            html += `</div>`;
         }
 
         calcEl.innerHTML = html;
@@ -3495,6 +3884,11 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         const state = stateByPk.get(pk);
         if (!state || !state.guests) return;
 
+        // Ensure guestAssignments exists (some older states may not initialize it)
+        if (!state.guestAssignments) {
+            state.guestAssignments = {};
+        }
+
         const adults = state.guests.filter(g => g.type === 'adult').length;
         const children = state.guests.filter(g => g.type === 'child').length;
         const total = adults + children;
@@ -3509,6 +3903,86 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             const roomsModalEl = q(`hotelRoomsModal${pk}`);
             let totalCapacity = 0;
             const allRules = [];
+            const roomsWithoutGuests = [];
+            const roomsWithRuleViolations = [];
+
+            // Determine if there exists ANY single available room that can fit all guests
+            // AND can satisfy occupancy rules with those guests (adults/children) when everyone stays in one room.
+            // This lets us recommend "Change room" instead of "Add room" when capacity is exceeded.
+            let singleRoomCandidate = null; // { roomId, cap, price, label }
+            try {
+                const listings = Array.from(roomsModalEl?.querySelectorAll('.room-listing-inline') || []);
+                const candidates = listings
+                    .map((el) => {
+                        const cap = parseInt(el.getAttribute('data-room-capacity') || '0', 10) || 0;
+                        const price = parseFloat(el.getAttribute('data-room-price') || '0') || 0;
+                        const roomId = el.getAttribute('data-room-id') || '';
+                        const label = el.querySelector('.room-name')?.textContent?.trim() || 'Room';
+                        // Rules feasibility:
+                        // - if rules loaded: must satisfy
+                        // - if rules not loaded: treat as UNKNOWN (do not recommend single-room change yet)
+                        let rulesOk = null;
+                        const rulesJson = el.getAttribute('data-room-rules');
+                        if (!rulesJson) {
+                            rulesOk = null;
+                        } else {
+                            try {
+                                const rules = JSON.parse(rulesJson) || [];
+                                const activeRules = Array.isArray(rules)
+                                    ? rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active)
+                                    : [];
+                                if (activeRules.length > 0) {
+                                    rulesOk = activeRules.some(rule => {
+                                        const minAdults = parseInt(rule.min_adults) || 0;
+                                        const maxAdults = parseInt(rule.max_adults) || 999;
+                                        const minChildren = parseInt(rule.min_children) || 0;
+                                        const maxChildren = parseInt(rule.max_children) || 999;
+                                        return adults >= minAdults && adults <= maxAdults &&
+                                               children >= minChildren && children <= maxChildren;
+                                    });
+                                } else {
+                                    rulesOk = true;
+                                }
+                            } catch (e) {
+                                rulesOk = null;
+                            }
+                        }
+                        return { el, roomId, cap, price, label };
+                    })
+                    .filter((c) => c.cap >= total && (c.el ? true : true));
+
+                if (candidates.length) {
+                    // Filter out candidates that don't satisfy rules (if rules exist)
+                    const filtered = candidates.filter((c) => {
+                        try {
+                            const rulesJson = c.el?.getAttribute?.('data-room-rules');
+                            if (!rulesJson) return false; // unknown rules -> do not recommend change yet
+                            const rules = JSON.parse(rulesJson) || [];
+                            const activeRules = Array.isArray(rules)
+                                ? rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active)
+                                : [];
+                            if (!activeRules.length) return true;
+                            return activeRules.some(rule => {
+                                const minAdults = parseInt(rule.min_adults) || 0;
+                                const maxAdults = parseInt(rule.max_adults) || 999;
+                                const minChildren = parseInt(rule.min_children) || 0;
+                                const maxChildren = parseInt(rule.max_children) || 999;
+                                return adults >= minAdults && adults <= maxAdults &&
+                                       children >= minChildren && children <= maxChildren;
+                            });
+                        } catch (e) {
+                            return false;
+                        }
+                    });
+
+                    // Prefer exact/smallest fit, then cheaper
+                    filtered.sort((a, b) => (a.cap - b.cap) || (a.price - b.price));
+                    const best = filtered[0];
+                    singleRoomCandidate = { roomId: best.roomId, cap: best.cap, price: best.price, label: best.label };
+                }
+            } catch (e) {
+                // ignore
+            }
 
             state.rooms.forEach(room => {
                 const roomEl = roomsModalEl?.querySelector(`[data-room-id="${room.roomId}"]`) ||
@@ -3527,30 +4001,278 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                         }
                     }
                 }
+
+                // Validate guest assignment per room: every selected room must have at least one guest
+                const assignments = state.guestAssignments ? (state.guestAssignments[String(room.roomId)] || []) : [];
+                if (!assignments || assignments.length === 0) {
+                    roomsWithoutGuests.push(room);
+                } else {
+                    // Validate occupancy rules PER ROOM (based on assigned guests)
+                    try {
+                        const assignedGuests = assignments.map(idx => state.guests[idx]).filter(Boolean);
+                        const assignedAdults = assignedGuests.filter(g => g.type === 'adult').length;
+                        const assignedChildren = assignedGuests.filter(g => g.type === 'child').length;
+
+                        const rulesJson = roomEl?.getAttribute('data-room-rules');
+                        let rules = [];
+                        if (rulesJson) {
+                            try { rules = JSON.parse(rulesJson) || []; } catch (e) { rules = []; }
+                        }
+                        const activeRules = Array.isArray(rules) ? rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active) : [];
+                        if (activeRules.length > 0) {
+                            const validRules = activeRules.filter(rule => {
+                                const minAdults = parseInt(rule.min_adults) || 0;
+                                const maxAdults = parseInt(rule.max_adults) || 999;
+                                const minChildren = parseInt(rule.min_children) || 0;
+                                const maxChildren = parseInt(rule.max_children) || 999;
+                                return assignedAdults >= minAdults && assignedAdults <= maxAdults &&
+                                       assignedChildren >= minChildren && assignedChildren <= maxChildren;
+                            });
+                            if (validRules.length === 0) {
+                                roomsWithRuleViolations.push({
+                                    room,
+                                    assignedAdults,
+                                    assignedChildren,
+                                    activeRules
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        // If we can't validate, fail-open (do not block)
+                    }
+                }
             });
+
+            // Highlight rooms that need guest assignment
+            try {
+                const roomsModalEl2 = q(`hotelRoomsModal${pk}`);
+                const allRoomEls = roomsModalEl2 ? roomsModalEl2.querySelectorAll(`[data-room-id]`) : document.querySelectorAll(`[data-room-id]`);
+                allRoomEls.forEach((el) => {
+                    if (!el || !el.classList || !el.classList.contains('room-listing-inline')) return;
+                    el.removeAttribute('data-needs-guests');
+                });
+                roomsWithoutGuests.forEach((room) => {
+                    const el = roomsModalEl?.querySelector(`[data-room-id="${room.roomId}"]`) || document.querySelector(`[data-room-id="${room.roomId}"]`);
+                    if (el) el.setAttribute('data-needs-guests', 'true');
+                });
+            } catch (e) {
+                // ignore
+            }
 
             // Validate capacity
             const capacityValid = total <= totalCapacity;
-
-            // Validate occupancy rules
-            let rulesValid = true;
-            if (allRules.length > 0) {
-                const activeRules = allRules.filter(r => !r.hasOwnProperty('is_active') || r.is_active);
-                if (activeRules.length > 0) {
-                    const validRules = activeRules.filter(rule => {
-                        const minAdults = parseInt(rule.min_adults) || 0;
-                        const maxAdults = parseInt(rule.max_adults) || 999;
-                        const minChildren = parseInt(rule.min_children) || 0;
-                        const maxChildren = parseInt(rule.max_children) || 999;
-                        return adults >= minAdults && adults <= maxAdults &&
-                               children >= minChildren && children <= maxChildren;
-                    });
-                    rulesValid = validRules.length > 0;
+            // Validate if there exists ANY combination that could possibly fit all guests (capacity availability)
+            let capacityPossible = true;
+            let maxAvailableCapacity = null;
+            let unselectedRoomsCount = null;
+            try {
+                const roomsModalElForAvail = q(`hotelRoomsModal${pk}`);
+                const listingsAvail = Array.from(roomsModalElForAvail?.querySelectorAll('.room-listing-inline') || []);
+                const seen = new Set();
+                let sum = 0;
+                let unselected = 0;
+                const selectedSet = new Set((state.rooms || []).map(r => String(r.roomId)));
+                listingsAvail.forEach((el) => {
+                    const rid = String(el.getAttribute('data-room-id') || '');
+                    if (!rid || seen.has(rid)) return;
+                    seen.add(rid);
+                    const cap = parseInt(el.getAttribute('data-room-capacity') || '0', 10) || 0;
+                    sum += cap;
+                    if (!selectedSet.has(rid)) unselected += 1;
+                });
+                maxAvailableCapacity = sum;
+                unselectedRoomsCount = unselected;
+                if (maxAvailableCapacity > 0 && total > maxAvailableCapacity) {
+                    capacityPossible = false;
                 }
+            } catch (e) {
+                // fail-open
+                capacityPossible = true;
             }
 
+            // Validate if the guest mix (adults/children) is even feasible with available room rules.
+            // This is a conservative check meant to catch obvious "no solution" cases like:
+            // - 0 children, but every room requires at least 1 child
+            // - children > sum of max_children across all rooms (or adults > sum max_adults)
+            // Only hard-block when rules are known for all rooms we inspected.
+            let rulesPossible = true;
+            let rulesPossibleReason = null;
+            let rulesKnownForAll = true;
+            try {
+                const roomsModalElForRules = q(`hotelRoomsModal${pk}`);
+                const listingsRules = Array.from(roomsModalElForRules?.querySelectorAll('.room-listing-inline') || []);
+                const seen = new Set();
+                let sumMaxAdults = 0;
+                let sumMaxChildren = 0;
+                let anyAllowsZeroChildren = false;
+                let anyAllowsAnyChildren = false;
+                let anyAllowsAnyAdults = false;
+
+                listingsRules.forEach((el) => {
+                    const rid = String(el.getAttribute('data-room-id') || '');
+                    if (!rid || seen.has(rid)) return;
+                    seen.add(rid);
+                    const cap = parseInt(el.getAttribute('data-room-capacity') || '0', 10) || 0;
+                    const rulesJson = el.getAttribute('data-room-rules');
+                    if (!rulesJson) {
+                        rulesKnownForAll = false;
+                        // Unknown rules: don't assume restrictive; keep fail-open.
+                        sumMaxAdults += cap;
+                        sumMaxChildren += cap;
+                        anyAllowsZeroChildren = true;
+                        anyAllowsAnyChildren = true;
+                        anyAllowsAnyAdults = true;
+                        return;
+                    }
+
+                    let rules = [];
+                    try { rules = JSON.parse(rulesJson) || []; } catch (e) { rules = []; rulesKnownForAll = false; }
+                    const activeRules = Array.isArray(rules) ? rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active) : [];
+                    if (!activeRules.length) {
+                        // No active rules => unrestricted by type, only capacity matters
+                        sumMaxAdults += cap;
+                        sumMaxChildren += cap;
+                        anyAllowsZeroChildren = true;
+                        anyAllowsAnyChildren = true;
+                        anyAllowsAnyAdults = true;
+                        return;
+                    }
+
+                    // For bounds, use the most permissive rule (max) while respecting cap.
+                    let roomMaxA = 0;
+                    let roomMaxC = 0;
+                    let roomAllowsZeroChild = false;
+                    let roomAllowsAnyChild = false;
+                    let roomAllowsAnyAdult = false;
+                    activeRules.forEach((rule) => {
+                        const minA = parseInt(rule.min_adults) || 0;
+                        const maxA = parseInt(rule.max_adults) || 999;
+                        const minC = parseInt(rule.min_children) || 0;
+                        const maxC = parseInt(rule.max_children) || 999;
+                        roomMaxA = Math.max(roomMaxA, Math.min(cap, maxA));
+                        roomMaxC = Math.max(roomMaxC, Math.min(cap, maxC));
+                        if (minC === 0) roomAllowsZeroChild = true;
+                        if (maxC > 0) roomAllowsAnyChild = true;
+                        if (maxA > 0) roomAllowsAnyAdult = true;
+                    });
+
+                    sumMaxAdults += roomMaxA;
+                    sumMaxChildren += roomMaxC;
+                    if (roomAllowsZeroChild) anyAllowsZeroChildren = true;
+                    if (roomAllowsAnyChild) anyAllowsAnyChildren = true;
+                    if (roomAllowsAnyAdult) anyAllowsAnyAdults = true;
+                });
+
+                if (rulesKnownForAll) {
+                    if (children === 0 && !anyAllowsZeroChildren) {
+                        rulesPossible = false;
+                        rulesPossibleReason = t('noRoomAllowsZeroChildren');
+                    } else if (children > 0 && !anyAllowsAnyChildren) {
+                        rulesPossible = false;
+                        rulesPossibleReason = t('noRoomAllowsChildren');
+                    } else if (adults > 0 && !anyAllowsAnyAdults) {
+                        rulesPossible = false;
+                        rulesPossibleReason = t('noRoomAllowsAdults');
+                    } else if (children > sumMaxChildren && sumMaxChildren > 0) {
+                        rulesPossible = false;
+                        rulesPossibleReason = t('tooManyChildrenForHotel', { max: sumMaxChildren });
+                    } else if (adults > sumMaxAdults && sumMaxAdults > 0) {
+                        rulesPossible = false;
+                        rulesPossibleReason = t('tooManyAdultsForHotel', { max: sumMaxAdults });
+                    }
+                }
+            } catch (e) {
+                // fail-open
+                rulesPossible = true;
+            }
+
+            // Validate guest assignment (each selected room must have >= 1 assigned guest)
+            const allRoomsHaveGuests = roomsWithoutGuests.length === 0;
+            // Validate per-room rules (each room must satisfy at least 1 active rule, if rules exist)
+            const perRoomRulesValid = roomsWithRuleViolations.length === 0;
+
             // Determine if we can continue
-            const canContinue = total >= 1 && adults >= 1 && capacityValid && rulesValid;
+            // IMPORTANT: Occupancy rules must be satisfied PER ROOM (based on assigned guests),
+            // not via a single combined rule using the total adults/children across all rooms.
+            const canContinue = total >= 1 && adults >= 1 && capacityValid && capacityPossible && rulesPossible && allRoomsHaveGuests && perRoomRulesValid;
+
+            // Update "Change room" CTA text (selected room(s))
+            try {
+                const ctaTextEl = document.getElementById(`rooms-selected-room-text${pk}`);
+                const changeBtn = document.getElementById(`rooms-change-room-btn${pk}`);
+                const addBtn = document.getElementById(`rooms-add-room-btn${pk}`);
+                if (ctaTextEl) {
+                    if (state.rooms.length === 1) {
+                        ctaTextEl.textContent = t('selectedOne', { room: state.rooms[0].roomLabel || 'Room' });
+                        if (changeBtn) changeBtn.innerHTML = `<i class="fas fa-exchange-alt me-2"></i>${escapeHtml(t('replaceARoom'))}`;
+                    } else {
+                        ctaTextEl.textContent = t('selectedMany', { count: state.rooms.length });
+                        if (changeBtn) changeBtn.innerHTML = `<i class="fas fa-exchange-alt me-2"></i>${escapeHtml(t('replaceARoom'))}`;
+                    }
+                }
+
+                // Capacity guidance:
+                // - If guests exceed current selected capacity and a single room can fit all guests => recommend CHANGE (bigger room)
+                // - Otherwise => recommend ADD room(s)
+                if (addBtn) {
+                    const needMoreCapacity = total > totalCapacity;
+                    const canChangeToSingle = !!singleRoomCandidate;
+
+                    if (!needMoreCapacity) {
+                        addBtn.disabled = true;
+                        addBtn.style.display = 'none';
+                        addBtn.removeAttribute('title');
+                        if (changeBtn) changeBtn.style.display = 'inline-flex';
+                    } else if (!capacityPossible) {
+                        // Impossible state: even selecting all rooms cannot fit all guests
+                        addBtn.disabled = true;
+                        addBtn.style.display = 'none';
+                        addBtn.removeAttribute('title');
+                        if (changeBtn) changeBtn.style.display = 'inline-flex';
+                        if (ctaTextEl && maxAvailableCapacity !== null) {
+                            ctaTextEl.textContent += ` • ${t('notEnoughRoomsAvailableMax', { max: maxAvailableCapacity })}`;
+                        }
+                    } else if (canChangeToSingle) {
+                        // Recommend changing to a bigger room
+                        addBtn.disabled = true;
+                        addBtn.style.display = 'none';
+                        addBtn.removeAttribute('title');
+                        if (changeBtn) {
+                            changeBtn.style.display = 'inline-flex';
+                            // more explicit label in this scenario
+                            changeBtn.innerHTML = `<i class="fas fa-exchange-alt me-2"></i>${escapeHtml(t('changeToBiggerRoom'))}`;
+                            changeBtn.setAttribute('title', `A room is available that fits ${total} guests (e.g. ${singleRoomCandidate.label}, cap ${singleRoomCandidate.cap})`);
+                        }
+                        if (ctaTextEl) {
+                            ctaTextEl.textContent += ` • ${t('needBiggerRoomForGuests', { guests: total })}`;
+                        }
+                    } else {
+                        // Must add a room (no single room can fit everyone)
+                        const diff = total - totalCapacity;
+                        // If there are no unselected rooms remaining, disable (nothing else to add)
+                        if (unselectedRoomsCount === 0) {
+                            addBtn.disabled = true;
+                            addBtn.style.display = 'inline-flex';
+                            addBtn.setAttribute('title', t('noMoreRoomsAvailableToAdd'));
+                            if (ctaTextEl) {
+                                ctaTextEl.textContent += ` • ${t('noMoreRoomsAvailableToAdd')}`;
+                            }
+                        } else {
+                            addBtn.disabled = false;
+                            addBtn.style.display = 'inline-flex';
+                            addBtn.setAttribute('title', t('actionAddRoomFor', { diff }));
+                            if (ctaTextEl) {
+                                ctaTextEl.textContent += ` • ${t('needPlusCapacityAddRoom', { diff })}`;
+                            }
+                        }
+                        if (changeBtn && state.rooms.length === 1) {
+                            changeBtn.style.display = 'none';
+                        }
+                    }
+                }
+            } catch (e) {
+                // ignore
+            }
 
             if (statusEl) {
                 statusEl.style.display = 'block';
@@ -3558,41 +4280,112 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                     statusEl.style.background = '#d4edda';
                     statusEl.style.border = '1px solid #c3e6cb';
                     statusEl.style.color = '#155724';
-                    statusEl.innerHTML = `<i class="fas fa-check-circle me-1"></i><strong>${state.rooms.length} room${state.rooms.length > 1 ? 's' : ''} selected!</strong> Ready to continue.`;
+                    statusEl.innerHTML = `<i class="fas fa-check-circle me-1"></i><strong>${escapeHtml(t('roomsSelectedReady', { count: state.rooms.length }))}</strong>`;
                 } else {
                     statusEl.style.background = '#fff3cd';
                     statusEl.style.border = '1px solid #ffc107';
                     statusEl.style.color = '#856404';
                     const errors = [];
                     if (total < 1 || adults < 1) {
-                        errors.push('You must have at least one adult guest');
+                        errors.push(t('youMustHaveAdult'));
+                    }
+                    if (!allRoomsHaveGuests) {
+                        const names = roomsWithoutGuests.map(r => r.roomLabel || `Room ${r.roomId}`).join(', ');
+                        errors.push(t('noGuestsAssignedTo', { rooms: names }));
+                    }
+                    if (!perRoomRulesValid) {
+                        const msg = roomsWithRuleViolations.map(v => {
+                            const label = v.room.roomLabel || `Room ${v.room.roomId}`;
+                            const ruleHints = (v.activeRules || []).map(r => {
+                                const minA = parseInt(r.min_adults) || 0;
+                                const maxA = parseInt(r.max_adults) || 999;
+                                const minC = parseInt(r.min_children) || 0;
+                                const maxC = parseInt(r.max_children) || 999;
+                                return `${minA}-${maxA} adults, ${minC}-${maxC} children`;
+                            }).join(' OR ');
+                            return `${label} (${v.assignedAdults}A/${v.assignedChildren}C) must match: ${ruleHints}`;
+                        }).join(' | ');
+                        errors.push(t('occupancyPerRoomNotMet', { details: msg }));
+                    }
+                    // Hard "no solution" guardrail for guest mix vs room rules (when rules are known)
+                    if (typeof rulesPossible !== 'undefined' && rulesPossible === false) {
+                        errors.push(rulesPossibleReason || 'No available rooms are compatible with your guest mix.');
                     }
                     if (!capacityValid) {
-                        errors.push(`${total} guest${total !== 1 ? 's' : ''} exceed${total === 1 ? 's' : ''} ${totalCapacity} capacity by ${total - totalCapacity}`);
+                        errors.push(t('guestsExceedCapacityBy', { guests: total, cap: totalCapacity, diff: (total - totalCapacity) }));
                     }
-                    if (!rulesValid && allRules.length > 0) {
-                        errors.push('Occupancy rules not met');
+                    // NOTE: global rulesValid check removed; per-room rule validation is authoritative.
+                    const actionButtons = [];
+                    if (!allRoomsHaveGuests) {
+                        actionButtons.push(`
+                            <button type="button"
+                                    onclick="window.NSC_HotelReservation?.autoDistributeGuests?.('${pk}');"
+                                    style="background: var(--mlb-red); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 800; cursor: pointer;">
+                                <i class="fas fa-magic me-1"></i>${escapeHtml(t('actionAutoAssignGuests'))}
+                            </button>
+                        `);
+                        actionButtons.push(`
+                            <button type="button"
+                                    onclick="window.NSC_HotelReservation?.showGuestAssignment?.('${pk}', '${roomsWithoutGuests[0]?.roomId || ''}');"
+                                    style="background: var(--mlb-blue); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 800; cursor: pointer;">
+                                <i class="fas fa-users me-1"></i>${escapeHtml(t('actionAssignNow'))}
+                            </button>
+                        `);
                     }
-                    statusEl.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i><strong>Warning:</strong> ${errors.join('. ')}. Please add another room or change to a room with higher capacity.`;
+
+                    // If capacity is the issue, guide user:
+                    // - if a single room can fit all guests: change to bigger room
+                    // - else: add another room
+                    if (!capacityValid) {
+                        const diff = total - totalCapacity;
+                        if (!capacityPossible && maxAvailableCapacity !== null) {
+                            errors.push(t('notEnoughRoomsAvailableDetail', { max: maxAvailableCapacity, guests: total }));
+                        } else if (singleRoomCandidate) {
+                            actionButtons.push(`
+                                <button type="button"
+                                        onclick="if (window.nscShowRoomsListZone) window.nscShowRoomsListZone('${pk}');"
+                                        style="background: var(--mlb-red); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 900; cursor: pointer;">
+                                    <i class="fas fa-exchange-alt me-1"></i>${escapeHtml(t('changeToBiggerRoom'))}
+                                </button>
+                            `);
+                        } else {
+                            actionButtons.push(`
+                                <button type="button"
+                                        onclick="if (window.nscShowRoomsListZone) window.nscShowRoomsListZone('${pk}');"
+                                        style="background: var(--mlb-blue); color: white; border: none; padding: 8px 12px; border-radius: 8px; font-weight: 900; cursor: pointer;">
+                                    <i class="fas fa-plus me-1"></i>${escapeHtml(t('actionAddRoomFor', { diff }))}
+                                </button>
+                            `);
+                        }
+                    }
+
+                    const actions = actionButtons.length
+                        ? `<div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">${actionButtons.join('')}</div>`
+                        : '';
+                    statusEl.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i><strong>Atención:</strong> ${errors.join('. ')}.${actions}`;
                 }
             }
 
             if (footerMsgEl) {
                 if (canContinue) {
-                    footerMsgEl.innerHTML = `<i class="fas fa-check-circle me-1" style="color: #28a745;"></i>${state.rooms.length} room${state.rooms.length > 1 ? 's' : ''} selected. Click 'Continue' to proceed`;
+                    footerMsgEl.innerHTML = `<i class="fas fa-check-circle me-1" style="color: #28a745;"></i>${escapeHtml(t('footerRoomsSelectedContinue', { count: state.rooms.length }))}`;
                     footerMsgEl.style.color = '#28a745';
                 } else {
                     const errors = [];
                     if (total < 1 || adults < 1) {
-                        errors.push('At least one adult required');
+                        errors.push(t('atLeastOneAdultRequired'));
+                    }
+                    if (!allRoomsHaveGuests) {
+                        errors.push(t('guestsMustBeAssignedEveryRoom'));
+                    }
+                    if (!perRoomRulesValid) {
+                        errors.push(t('perRoomRulesNotMetShort'));
                     }
                     if (!capacityValid) {
-                        errors.push('Capacity exceeded');
+                        errors.push(t('capacityExceededShort'));
                     }
-                    if (!rulesValid && allRules.length > 0) {
-                        errors.push('Occupancy rules not met');
-                    }
-                    footerMsgEl.innerHTML = `<i class="fas fa-exclamation-triangle me-1" style="color: #ffc107;"></i>Cannot continue: ${errors.join('. ')}. Please add another room or change to a room with higher capacity.`;
+                    // NOTE: global rulesValid check removed; per-room rule validation is authoritative.
+                    footerMsgEl.innerHTML = `<i class="fas fa-exclamation-triangle me-1" style="color: #ffc107;"></i>${escapeHtml(t('cannotContinuePrefix'))}: ${escapeHtml(errors.join('. '))}. ${escapeHtml(t('pleaseFixErrors'))}.`;
                     footerMsgEl.style.color = '#856404';
                 }
             }
@@ -3608,15 +4401,19 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                     continueBtn.style.cursor = 'not-allowed';
                     const errors = [];
                     if (total < 1 || adults < 1) {
-                        errors.push('You must have at least one adult guest');
+                        errors.push(t('youMustHaveAdult'));
+                    }
+                    if (!allRoomsHaveGuests) {
+                        errors.push(t('guestsMustBeAssignedEveryRoom'));
+                    }
+                    if (!perRoomRulesValid) {
+                        errors.push(t('perRoomRulesNotMetShort'));
                     }
                     if (!capacityValid) {
-                        errors.push(`Capacity exceeded: ${total} guests vs ${totalCapacity} capacity`);
+                        errors.push(t('guestsExceedCapacityBy', { guests: total, cap: totalCapacity, diff: Math.max(0, total - totalCapacity) }));
                     }
-                    if (!rulesValid && allRules.length > 0) {
-                        errors.push('Occupancy rules not met');
-                    }
-                    continueBtn.setAttribute('title', `Cannot continue: ${errors.join('. ')}. Please fix these errors.`);
+                    // NOTE: global rulesValid check removed; per-room rule validation is authoritative.
+                    continueBtn.setAttribute('title', `${t('cannotContinuePrefix')}: ${errors.join('. ')}. ${t('pleaseFixErrors')}.`);
                 }
             }
         } else {
@@ -3625,27 +4422,141 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                 statusEl.style.background = '#fff3cd';
                 statusEl.style.border = '1px solid #ffc107';
                 statusEl.style.color = '#856404';
-                statusEl.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i>Please select a room from the list below`;
+                statusEl.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i>${escapeHtml(t('selectRoomFromList'))}`;
             }
             if (footerMsgEl) {
-                footerMsgEl.innerHTML = `<i class="fas fa-info-circle me-1"></i>Please select a room to continue`;
+                footerMsgEl.innerHTML = `<i class="fas fa-info-circle me-1"></i>${escapeHtml(t('selectRoomToContinue'))}`;
                 footerMsgEl.style.color = '#6c757d';
             }
             if (continueBtn) {
                 continueBtn.disabled = true;
                 continueBtn.style.opacity = '0.5';
                 continueBtn.style.cursor = 'not-allowed';
-                continueBtn.setAttribute('title', 'Please select at least one room to continue');
+                continueBtn.setAttribute('title', t('selectAtLeastOneRoomToContinue'));
+            }
+
+            // Hide Add room button until at least one room is selected
+            try {
+                const addBtn = document.getElementById(`rooms-add-room-btn${pk}`);
+                if (addBtn) {
+                    addBtn.disabled = true;
+                    addBtn.style.display = 'none';
+                    addBtn.removeAttribute('title');
+                }
+            } catch (e) {
+                // ignore
             }
         }
+    }
+
+    // Change currently selected room:
+    // - if exactly 1 room selected: remove it and show the room list again
+    // - if multiple rooms selected: show the list and let user deselect/select (non-destructive)
+    function changeSelectedRoom(pk) {
+        const state = stateByPk.get(pk);
+        if (!state || !state.rooms || state.rooms.length === 0) {
+            // Nothing selected, just show list
+            if (window.nscShowRoomsListZone) window.nscShowRoomsListZone(pk);
+            return;
+        }
+
+        if (state.rooms.length === 1) {
+            // If the real issue is capacity (more guests than this room fits), do NOT replace.
+            // Decide between changing to a bigger single room vs adding another room based on availability.
+            try {
+                const roomsModalEl = q(`hotelRoomsModal${pk}`);
+                const roomId = String(state.rooms[0].roomId);
+                const roomEl = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`) ||
+                              document.querySelector(`[data-room-id="${roomId}"]`);
+                const capacity = roomEl ? parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10) : 0;
+                const totalGuests = state.guests ? state.guests.length : 0;
+                if (capacity > 0 && totalGuests > capacity) {
+                    // If there exists any available room that can fit all guests, recommend CHANGE.
+                    let hasSingleFit = false;
+                    try {
+                        const listings = Array.from(roomsModalEl?.querySelectorAll('.room-listing-inline') || []);
+                        hasSingleFit = listings.some((el) => {
+                            const cap = parseInt(el.getAttribute('data-room-capacity') || '0', 10) || 0;
+                            return cap >= totalGuests;
+                        });
+                    } catch (e) { /* ignore */ }
+
+                    if (window.nscShowRoomsListZone) window.nscShowRoomsListZone(pk);
+                    if (hasSingleFit) {
+                        showToast(t('infoRoomFitsChange', { guests: totalGuests, cap: capacity }), 'info', 6500);
+                    } else {
+                        showToast(t('infoRoomFitsAdd', { guests: totalGuests, cap: capacity }), 'info', 6500);
+                    }
+                    return;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            const roomId = String(state.rooms[0].roomId);
+            removeRoom(pk, roomId);
+            if (window.nscShowRoomsListZone) window.nscShowRoomsListZone(pk);
+            showToast(t('selectNewRoomReplace'), 'info', 3500);
+            return;
+        }
+
+        if (window.nscShowRoomsListZone) window.nscShowRoomsListZone(pk);
+        showToast(t('replaceRoomInstruction'), 'info', 4500);
     }
 
     // Continue to guest details
     function continueToGuestDetails(pk) {
         const state = stateByPk.get(pk);
         if (!state || !state.rooms || state.rooms.length === 0) {
-            showToast('Please select at least one room first', 'warning');
+            showToast(t('pleaseSelectRoomFirst'), 'warning');
             return;
+        }
+
+        // Block if any selected room has no guest assignment
+        if (!state.guestAssignments) state.guestAssignments = {};
+        const roomsWithoutGuests = (state.rooms || []).filter((room) => {
+            const assignments = state.guestAssignments[String(room.roomId)] || [];
+            return !assignments || assignments.length === 0;
+        });
+        if (roomsWithoutGuests.length > 0) {
+            const names = roomsWithoutGuests.map(r => r.roomLabel || `Room ${r.roomId}`).join(', ');
+            showToast(t('noGuestsAssignedTo', { rooms: names }), 'warning');
+            return;
+        }
+
+        // Block if any selected room violates its occupancy rules (based on assigned guests)
+        try {
+            const roomsModalEl = q(`hotelRoomsModal${pk}`);
+            const invalidRooms = [];
+            state.rooms.forEach((room) => {
+                const roomEl = roomsModalEl?.querySelector(`[data-room-id="${room.roomId}"]`) ||
+                              document.querySelector(`[data-room-id="${room.roomId}"]`);
+                const rulesJson = roomEl?.getAttribute('data-room-rules');
+                if (!rulesJson) return;
+                let rules = [];
+                try { rules = JSON.parse(rulesJson) || []; } catch (e) { rules = []; }
+                const activeRules = Array.isArray(rules) ? rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active) : [];
+                if (!activeRules.length) return;
+
+                const assignedIdxs = (state.guestAssignments || {})[String(room.roomId)] || [];
+                const assignedGuests = assignedIdxs.map(i => state.guests[i]).filter(Boolean);
+                const a = assignedGuests.filter(g => g.type === 'adult').length;
+                const c = assignedGuests.filter(g => g.type === 'child').length;
+                const ok = activeRules.some(rule => {
+                    const minAdults = parseInt(rule.min_adults) || 0;
+                    const maxAdults = parseInt(rule.max_adults) || 999;
+                    const minChildren = parseInt(rule.min_children) || 0;
+                    const maxChildren = parseInt(rule.max_children) || 999;
+                    return a >= minAdults && a <= maxAdults && c >= minChildren && c <= maxChildren;
+                });
+                if (!ok) invalidRooms.push(room.roomLabel || `Room ${room.roomId}`);
+            });
+            if (invalidRooms.length) {
+                showToast(t('occupancyNotMetFor', { rooms: invalidRooms.join(', ') }), 'warning');
+                return;
+            }
+        } catch (e) {
+            // fail-open
         }
 
         const adults = state.guests ? state.guests.filter(g => g.type === 'adult').length : 0;
@@ -3653,7 +4564,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         const total = adults + children;
 
         if (total < 1 || adults < 1) {
-            showToast('You must have at least one adult guest', 'warning');
+            showToast(t('youMustHaveAdult'), 'warning');
             return;
         }
 
@@ -3955,88 +4866,375 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         const state = stateByPk.get(pk);
         if (!state || !state.guests || !state.rooms || state.rooms.length === 0) return;
 
-        // Check if any room has manual assignments
-        const hasManualAssignments = Object.values(state.guestAssignments || {}).some(arr => arr.length > 0);
+        // Ensure guestAssignments exists
+        if (!state.guestAssignments) state.guestAssignments = {};
 
-        // If there are manual assignments, check if all guests are assigned
-        if (hasManualAssignments) {
-            const totalAssigned = Object.values(state.guestAssignments || {}).reduce((sum, arr) => sum + arr.length, 0);
-            const totalGuests = state.guests.length;
+        const roomsModalEl = q(`hotelRoomsModal${pk}`);
 
-            // If all guests are already assigned, don't redistribute
-            if (totalAssigned >= totalGuests) {
-                return;
+        function getRoomMeta(roomId) {
+            const roomEl = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`) ||
+                          document.querySelector(`[data-room-id="${roomId}"]`);
+            const capacity = roomEl ? parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10) : 0;
+            const label = roomEl?.querySelector('.room-name')?.textContent?.trim()
+                || roomEl?.getAttribute('data-room-label')
+                || `Room ${roomId}`;
+            let rules = [];
+            const rulesJson = roomEl?.getAttribute('data-room-rules');
+            if (rulesJson) {
+                try { rules = JSON.parse(rulesJson) || []; } catch (e) { rules = []; }
             }
+            const activeRules = Array.isArray(rules) ? rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active) : [];
+            return { roomId: String(roomId), capacity: Number.isFinite(capacity) ? capacity : 0, label, activeRules };
+        }
 
-            // If there are unassigned guests, assign them to rooms with available capacity
-            // Find unassigned guest indices
-            const assignedIndices = new Set();
+        const roomMetas = (state.rooms || []).map(r => getRoomMeta(String(r.roomId))).filter(r => r.roomId);
+        if (!roomMetas.length) return;
+
+        function ensureRoomKey(roomId) {
+            if (!state.guestAssignments[String(roomId)]) state.guestAssignments[String(roomId)] = [];
+        }
+
+        roomMetas.forEach(r => ensureRoomKey(r.roomId));
+
+        const totalGuests = state.guests.length;
+        const roomCount = roomMetas.length;
+
+        // Determine if there are manual assignments (keep them, but improve)
+        const hasManualAssignments = Object.values(state.guestAssignments || {}).some(arr => Array.isArray(arr) && arr.length > 0);
+
+        function assignedSet() {
+            const s = new Set();
             Object.values(state.guestAssignments || {}).forEach(arr => {
-                arr.forEach(idx => assignedIndices.add(idx));
+                (arr || []).forEach(idx => s.add(idx));
             });
+            return s;
+        }
 
-            const unassignedIndices = [];
-            for (let i = 0; i < state.guests.length; i++) {
-                if (!assignedIndices.has(i)) {
-                    unassignedIndices.push(i);
+        function getUnassigned() {
+            const s = assignedSet();
+            const res = [];
+            for (let i = 0; i < totalGuests; i++) if (!s.has(i)) res.push(i);
+            return res;
+        }
+
+        function countTypes(indices) {
+            let adults = 0, children = 0;
+            (indices || []).forEach(idx => {
+                const g = state.guests[idx];
+                if (!g) return;
+                if (g.type === 'adult') adults++;
+                else children++;
+            });
+            return { adults, children, total: adults + children };
+        }
+
+        function pickGuestIndexOfType(unassigned, type) {
+            const idx = unassigned.find(i => state.guests[i] && state.guests[i].type === type);
+            if (idx === undefined) return null;
+            // remove from array
+            const pos = unassigned.indexOf(idx);
+            if (pos >= 0) unassigned.splice(pos, 1);
+            return idx;
+        }
+
+        function pushIfCapacity(roomId, guestIdx, capacity) {
+            const arr = state.guestAssignments[String(roomId)] || [];
+            if (arr.length >= capacity) return false;
+            arr.push(guestIdx);
+            state.guestAssignments[String(roomId)] = arr;
+            return true;
+        }
+
+        function roomNeedsAdult(meta, assigned) {
+            if (!meta.activeRules || meta.activeRules.length === 0) return true; // common-sense: ensure adult possible
+            // If every active rule requires at least 1 adult, then we need an adult
+            const minAdultsAll = meta.activeRules.map(r => parseInt(r.min_adults) || 0);
+            const requiresAdult = minAdultsAll.length ? Math.min(...minAdultsAll) >= 1 : true;
+            const counts = countTypes(assigned);
+            return requiresAdult && counts.adults < 1;
+        }
+
+        function ensureNoEmptyRooms(unassigned) {
+            if (totalGuests < roomCount) return; // impossible to give every room 1 guest
+            const emptyRooms = roomMetas.filter(r => (state.guestAssignments[r.roomId] || []).length === 0);
+            emptyRooms.forEach((meta) => {
+                // Prefer adult if rules suggest it
+                let pick = null;
+                if (roomNeedsAdult(meta, [])) pick = pickGuestIndexOfType(unassigned, 'adult');
+                if (pick === null) pick = pickGuestIndexOfType(unassigned, 'child');
+                if (pick === null) pick = unassigned.shift() ?? null;
+
+                if (pick !== null) {
+                    pushIfCapacity(meta.roomId, pick, meta.capacity);
+                    return;
                 }
-            }
 
-            // Assign unassigned guests to rooms with available capacity
-            const roomsModalEl = q(`hotelRoomsModal${pk}`);
-            for (const guestIdx of unassignedIndices) {
-                for (const room of state.rooms) {
-                    const roomEl = roomsModalEl?.querySelector(`[data-room-id="${room.roomId}"]`) ||
-                                  document.querySelector(`[data-room-id="${room.roomId}"]`);
-                    const capacity = roomEl ? parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10) : room.capacity;
-                    const currentAssigned = state.guestAssignments[room.roomId]?.length || 0;
-
-                    if (currentAssigned < capacity) {
-                        if (!state.guestAssignments[room.roomId]) {
-                            state.guestAssignments[room.roomId] = [];
-                        }
-                        state.guestAssignments[room.roomId].push(guestIdx);
-                        break; // Guest assigned, move to next
+                // No unassigned guests left; move from a room with >1
+                const donor = roomMetas
+                    .map(r => ({ r, assigned: state.guestAssignments[r.roomId] || [] }))
+                    .filter(x => x.assigned.length > 1)
+                    .sort((a, b) => b.assigned.length - a.assigned.length)[0];
+                if (donor) {
+                    const moved = donor.assigned.pop();
+                    if (moved !== undefined) {
+                        pushIfCapacity(meta.roomId, moved, meta.capacity);
                     }
                 }
-            }
-
-            return; // Done assigning unassigned guests
+            });
         }
 
-        // Clear all assignments
-        state.guestAssignments = {};
-        state.rooms.forEach(room => {
-            state.guestAssignments[room.roomId] = [];
-        });
+        function distributeBalanced(unassigned) {
+            // Assign remaining guests to the room with lowest fill ratio (assigned/capacity)
+            while (unassigned.length > 0) {
+                const guestIdx = unassigned.shift();
+                if (guestIdx === undefined) break;
+                const candidates = roomMetas
+                    .map(r => {
+                        const assigned = state.guestAssignments[r.roomId] || [];
+                        const cap = r.capacity || 0;
+                        const ratio = cap > 0 ? (assigned.length / cap) : 1e9;
+                        return { r, assigned, cap, ratio };
+                    })
+                    .filter(x => x.cap > 0 && x.assigned.length < x.cap)
+                    .sort((a, b) => a.ratio - b.ratio || a.assigned.length - b.assigned.length);
+                if (!candidates.length) break;
+                pushIfCapacity(candidates[0].r.roomId, guestIdx, candidates[0].cap);
+            }
+        }
 
-        // Get room capacities
-        const roomsModalEl = q(`hotelRoomsModal${pk}`);
-        const roomsWithCapacity = state.rooms.map(room => {
-            const roomEl = roomsModalEl?.querySelector(`[data-room-id="${room.roomId}"]`) ||
-                          document.querySelector(`[data-room-id="${room.roomId}"]`);
-            const capacity = roomEl ? parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10) : room.capacity;
-            return { ...room, capacity };
-        });
+        function roomRulesSatisfied(meta, assignedIdxs) {
+            try {
+                const indices = assignedIdxs || [];
+                if (indices.length <= 0) return false;
+                if (!meta.activeRules || meta.activeRules.length === 0) return true;
+                const counts = countTypes(indices);
+                return meta.activeRules.some(rule => {
+                    const minAdults = parseInt(rule.min_adults) || 0;
+                    const maxAdults = parseInt(rule.max_adults) || 999;
+                    const minChildren = parseInt(rule.min_children) || 0;
+                    const maxChildren = parseInt(rule.max_children) || 999;
+                    return counts.adults >= minAdults && counts.adults <= maxAdults &&
+                           counts.children >= minChildren && counts.children <= maxChildren;
+                });
+            } catch (e) {
+                return true; // fail-open
+            }
+        }
 
-        // Distribute guests optimally
-        let guestIndex = 0;
-        for (let i = 0; i < roomsWithCapacity.length && guestIndex < state.guests.length; i++) {
-            const room = roomsWithCapacity[i];
-            const remainingCapacity = room.capacity - (state.guestAssignments[room.roomId]?.length || 0);
-            const guestsToAssign = Math.min(remainingCapacity, state.guests.length - guestIndex);
+        function strictRepairAssignments() {
+            // Try to repair per-room rule violations by moving guests between rooms (heuristic).
+            // Only runs if there are rules; otherwise no-op.
+            const maxMoves = 80;
+            let moves = 0;
 
-            for (let j = 0; j < guestsToAssign; j++) {
-                if (!state.guestAssignments[room.roomId]) {
-                    state.guestAssignments[room.roomId] = [];
+            function getMeta(roomId) {
+                return roomMetas.find(r => String(r.roomId) === String(roomId));
+            }
+
+            function getAssigned(roomId) {
+                return state.guestAssignments[String(roomId)] || [];
+            }
+
+            function setAssigned(roomId, arr) {
+                state.guestAssignments[String(roomId)] = arr;
+            }
+
+            function canTake(roomId) {
+                const meta = getMeta(roomId);
+                if (!meta) return false;
+                return getAssigned(roomId).length < meta.capacity;
+            }
+
+            function moveOne(fromRoomId, toRoomId, type) {
+                const from = getAssigned(fromRoomId);
+                const to = getAssigned(toRoomId);
+                const metaTo = getMeta(toRoomId);
+                if (!metaTo) return false;
+                if (to.length >= metaTo.capacity) return false;
+                const idxPos = from.findIndex(i => state.guests[i] && state.guests[i].type === type);
+                if (idxPos === -1) return false;
+                const guestIdx = from[idxPos];
+
+                // Apply move
+                from.splice(idxPos, 1);
+                to.push(guestIdx);
+                setAssigned(fromRoomId, from);
+                setAssigned(toRoomId, to);
+                return true;
+            }
+
+            function findViolations() {
+                return roomMetas
+                    .map(m => ({ m, assigned: getAssigned(m.roomId) }))
+                    .filter(x => x.m.activeRules && x.m.activeRules.length > 0)
+                    .filter(x => !roomRulesSatisfied(x.m, x.assigned));
+            }
+
+            while (moves < maxMoves) {
+                const violations = findViolations();
+                if (!violations.length) break;
+
+                // Work on the "most violated" room: pick the one with smallest assignment size (often needs mins)
+                violations.sort((a, b) => a.assigned.length - b.assigned.length);
+                const target = violations[0];
+                const meta = target.m;
+                const assigned = target.assigned;
+                const counts = countTypes(assigned);
+
+                // Find the "closest" rule to satisfy
+                const rules = meta.activeRules || [];
+                const scored = rules.map(rule => {
+                    const minA = parseInt(rule.min_adults) || 0;
+                    const maxA = parseInt(rule.max_adults) || 999;
+                    const minC = parseInt(rule.min_children) || 0;
+                    const maxC = parseInt(rule.max_children) || 999;
+                    const needA = Math.max(0, minA - counts.adults) + Math.max(0, counts.adults - maxA);
+                    const needC = Math.max(0, minC - counts.children) + Math.max(0, counts.children - maxC);
+                    return { rule, minA, maxA, minC, maxC, score: needA + needC, needA, needC };
+                }).sort((a, b) => a.score - b.score);
+                const best = scored[0];
+                if (!best) break;
+
+                // If missing adults/children, try to pull from other rooms (that remain valid after giving)
+                const donors = roomMetas
+                    .filter(r => r.roomId !== meta.roomId)
+                    .map(r => ({ r, assigned: getAssigned(r.roomId), counts: countTypes(getAssigned(r.roomId)) }))
+                    .filter(x => x.assigned.length > 1); // avoid emptying donor
+
+                let didMove = false;
+
+                if (counts.adults < best.minA) {
+                    for (const d of donors) {
+                        // donor must have an adult to give
+                        if (d.counts.adults <= 0) continue;
+                        // simulate donor after move: remove 1 adult
+                        const newDonorIdxs = [...d.assigned];
+                        const pos = newDonorIdxs.findIndex(i => state.guests[i] && state.guests[i].type === 'adult');
+                        if (pos === -1) continue;
+                        newDonorIdxs.splice(pos, 1);
+                        // donor should remain valid if it has rules
+                        if (d.r.activeRules && d.r.activeRules.length > 0 && !roomRulesSatisfied(d.r, newDonorIdxs)) continue;
+                        if (!moveOne(d.r.roomId, meta.roomId, 'adult')) continue;
+                        moves++;
+                        didMove = true;
+                        break;
+                    }
                 }
-                state.guestAssignments[room.roomId].push(guestIndex);
-                guestIndex++;
+
+                if (!didMove && counts.children < best.minC) {
+                    for (const d of donors) {
+                        if (d.counts.children <= 0) continue;
+                        const newDonorIdxs = [...d.assigned];
+                        const pos = newDonorIdxs.findIndex(i => state.guests[i] && state.guests[i].type === 'child');
+                        if (pos === -1) continue;
+                        newDonorIdxs.splice(pos, 1);
+                        if (d.r.activeRules && d.r.activeRules.length > 0 && !roomRulesSatisfied(d.r, newDonorIdxs)) continue;
+                        if (!moveOne(d.r.roomId, meta.roomId, 'child')) continue;
+                        moves++;
+                        didMove = true;
+                        break;
+                    }
+                }
+
+                // If we couldn't pull required types, stop (user must resolve manually)
+                if (!didMove) break;
             }
         }
 
-        // Update price calculation
-        updateRoomsPriceCalculation(pk);
+        // If there are no manual assignments, do a smarter fresh allocation (respecting rules best-effort)
+        if (!hasManualAssignments) {
+            state.guestAssignments = {};
+            roomMetas.forEach(r => ensureRoomKey(r.roomId));
+
+            // Build pools
+            const unassigned = [];
+            for (let i = 0; i < totalGuests; i++) unassigned.push(i);
+
+            // Greedy: allocate minimums for one "best" rule per room (most restrictive first)
+            const roomOrder = [...roomMetas].sort((a, b) => {
+                const aStrict = a.activeRules && a.activeRules.length
+                    ? Math.max(...a.activeRules.map(r => (parseInt(r.min_adults) || 0) + (parseInt(r.min_children) || 0)))
+                    : 0;
+                const bStrict = b.activeRules && b.activeRules.length
+                    ? Math.max(...b.activeRules.map(r => (parseInt(r.min_adults) || 0) + (parseInt(r.min_children) || 0)))
+                    : 0;
+                return bStrict - aStrict;
+            });
+
+            for (const meta of roomOrder) {
+                // Choose a feasible rule
+                const rules = meta.activeRules || [];
+                let chosen = null;
+                if (rules.length) {
+                    const sorted = [...rules].sort((a, b) => {
+                        const aNeed = (parseInt(a.min_adults) || 0) + (parseInt(a.min_children) || 0);
+                        const bNeed = (parseInt(b.min_adults) || 0) + (parseInt(b.min_children) || 0);
+                        return bNeed - aNeed;
+                    });
+                    for (const rule of sorted) {
+                        const minA = parseInt(rule.min_adults) || 0;
+                        const minC = parseInt(rule.min_children) || 0;
+                        if (minA + minC > meta.capacity) continue;
+                        // Check if pool has enough
+                        const poolAdults = unassigned.filter(i => state.guests[i]?.type === 'adult').length;
+                        const poolChildren = unassigned.filter(i => state.guests[i]?.type === 'child').length;
+                        if (poolAdults >= minA && poolChildren >= minC) {
+                            chosen = { minA, minC };
+                            break;
+                        }
+                    }
+                }
+                // Default: require at least 1 adult if possible
+                if (!chosen) {
+                    const poolAdults = unassigned.filter(i => state.guests[i]?.type === 'adult').length;
+                    chosen = poolAdults > 0 ? { minA: 1, minC: 0 } : { minA: 0, minC: 1 };
+                }
+
+                // Allocate mins
+                for (let a = 0; a < (chosen.minA || 0); a++) {
+                    const idx = pickGuestIndexOfType(unassigned, 'adult');
+                    if (idx === null) break;
+                    pushIfCapacity(meta.roomId, idx, meta.capacity);
+                }
+                for (let c = 0; c < (chosen.minC || 0); c++) {
+                    const idx = pickGuestIndexOfType(unassigned, 'child');
+                    if (idx === null) break;
+                    pushIfCapacity(meta.roomId, idx, meta.capacity);
+                }
+            }
+
+            // Ensure every selected room has >=1 guest if possible
+            ensureNoEmptyRooms(unassigned);
+            // Distribute remaining guests
+            distributeBalanced(unassigned);
+        } else {
+            // Manual assignments exist: do not destroy them.
+            const unassigned = getUnassigned();
+            ensureNoEmptyRooms(unassigned);
+            distributeBalanced(unassigned);
+        }
+
+        // Strict pass: attempt to repair assignments so per-room rules are satisfied (best-effort).
+        try { strictRepairAssignments(); } catch (e) {}
+
+        // Refresh UI + validations (so the button can be a single call)
+        try { updateRoomsGuestsList(pk); } catch (e) {}
+        try { updateRoomsPriceCalculation(pk); } catch (e) {}
+        try { validateRoomSelection(pk); } catch (e) {}
+
+        // Feedback
+        try {
+            const roomsWithoutGuests = roomMetas.filter(r => (state.guestAssignments[r.roomId] || []).length === 0);
+            if (totalGuests < roomCount) {
+                showToast(t('autoAssignTooManyRooms', { guests: totalGuests, rooms: roomCount }), 'warning', 5000);
+            } else if (roomsWithoutGuests.length) {
+                showToast(t('autoAssignStillEmpty'), 'warning', 5000);
+            } else {
+                showToast(t('autoAssignSuccess'), 'success', 3000);
+            }
+        } catch (e) {
+            // ignore
+        }
     }
 
     // Show guest assignment modal
@@ -4097,27 +5295,58 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
         // Create modal content
         let html = `<div style="padding: 20px;">`;
-        html += `<h5 style="margin-bottom: 16px; color: var(--mlb-blue);">Assign Guests to ${escapeHtml(room.roomLabel)}</h5>`;
-        html += `<p style="font-size: 0.85rem; color: #6c757d; margin-bottom: 8px;">Capacity: ${capacity} guests</p>`;
-        html += `<p style="font-size: 0.85rem; color: #6c757d; margin-bottom: 16px;">Currently assigned: ${assignedTotal} (${assignedAdults} adult${assignedAdults !== 1 ? 's' : ''}, ${assignedChildren} child${assignedChildren !== 1 ? 'ren' : ''})</p>`;
+        html += `<h5 style="margin-bottom: 16px; color: var(--mlb-blue);">${escapeHtml(t('assignGuestsToRoomTitle', { room: room.roomLabel }))}</h5>`;
+        html += `<p style="font-size: 0.85rem; color: #6c757d; margin-bottom: 8px;">${escapeHtml(t('capacityLine', { cap: capacity }))}</p>`;
+        html += `<p style="font-size: 0.85rem; color: #6c757d; margin-bottom: 16px;">${escapeHtml(t('currentlyAssignedLine', { total: assignedTotal, adults: assignedAdults, children: assignedChildren }))}</p>`;
 
         // Show rules validation
         if (rulesValidation) {
             if (rulesValidation.valid) {
                 html += `<div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; padding: 10px; margin-bottom: 16px; color: #155724; font-size: 0.85rem;">`;
-                html += `<i class="fas fa-check-circle me-1"></i><strong>Valid:</strong> Current assignment matches ${rulesValidation.validRules.length} rule(s).`;
+                html += `<i class="fas fa-check-circle me-1"></i><strong>${escapeHtml(t('rulesComplyTitle'))}:</strong> ${escapeHtml(t('assignmentCompliesNRules', { n: rulesValidation.validRules.length }))}`;
                 if (rulesValidation.validRules.length === 1) {
                     const rule = rulesValidation.validRules[0];
-                    const desc = rule.description || `Adults: ${rule.min_adults}-${rule.max_adults} • Children: ${rule.min_children}-${rule.max_children}`;
-                    html += `<div style="margin-top: 4px; font-size: 0.8rem;">Matching rule: ${escapeHtml(desc)}</div>`;
+                    const isGeneric = (desc) => {
+                        const d = (desc || '').toString().trim().toLowerCase();
+                        return !d || /^regla\s*\d+$/i.test(d) || /^rule\s*\d+$/i.test(d);
+                    };
+                    const current = t('nowYouHave', {
+                        adults: assignedAdults,
+                        adultWord: nounForCount(assignedAdults, 'adultOne', 'adultMany'),
+                        children: assignedChildren,
+                        childWord: nounForCount(assignedChildren, 'childOne', 'childMany')
+                    });
+                    const req = `${t('requirementPrefix')} ` + t('requirementLine', {
+                        adultsReq: rangeText(rule.min_adults, rule.max_adults, 'adultOne', 'adultMany'),
+                        childrenReq: rangeText(rule.min_children, rule.max_children, 'childOne', 'childMany')
+                    });
+                    const custom = rule.description;
+                    html += `<div style="margin-top: 4px; font-size: 0.8rem;">${isGeneric(custom) ? `${current} ${req}` : `${escapeHtml(custom)} — ${current} ${req}`}</div>`;
                 }
                 html += `</div>`;
             } else {
                 html += `<div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 10px; margin-bottom: 16px; color: #856404; font-size: 0.85rem;">`;
-                html += `<i class="fas fa-exclamation-triangle me-1"></i><strong>Warning:</strong> Current assignment (${assignedAdults} adults, ${assignedChildren} children) does not match any occupancy rule.`;
-                html += `<div style="margin-top: 8px; font-size: 0.8rem; font-weight: 600;">Available rules:</div>`;
+                html += `<i class="fas fa-exclamation-triangle me-1"></i><strong>⚠ ${escapeHtml(t('roomRulesNotMetShort'))}:</strong> ${escapeHtml(t('roomRulesNotMetDetail', { adults: assignedAdults, children: assignedChildren }))}`;
+                html += `<div style="margin-top: 8px; font-size: 0.8rem; font-weight: 700;">${escapeHtml(t('availableRulesLabel'))}</div>`;
                 rulesValidation.allRules.forEach((rule, idx) => {
-                    const desc = rule.description || `Adults: ${rule.min_adults}-${rule.max_adults} • Children: ${rule.min_children}-${rule.max_children}`;
+                    const isGeneric = (desc) => {
+                        const d = (desc || '').toString().trim().toLowerCase();
+                        return !d || /^regla\s*\d+$/i.test(d) || /^rule\s*\d+$/i.test(d);
+                    };
+                    const noun = (n, singular, plural) => (n === 1 ? singular : plural);
+                    const rangeText = (min, max, singular, plural) => {
+                        const minN = parseInt(min) || 0;
+                        const maxN = parseInt(max);
+                        const isInf = Number.isFinite(maxN) && maxN >= 999;
+                        if (isInf) return `al menos ${minN} ${noun(minN, singular, plural)}`;
+                        const maxVal = Number.isFinite(maxN) ? maxN : 0;
+                        if (minN === maxVal) return `exactamente ${minN} ${noun(minN, singular, plural)}`;
+                        return `entre ${minN} y ${maxVal} ${plural}`;
+                    };
+                    const current = `Ahora: ${assignedAdults} ${noun(assignedAdults, 'adulto', 'adultos')} y ${assignedChildren} ${noun(assignedChildren, 'niño', 'niños')}.`;
+                    const req = `Requisito: ${rangeText(rule.min_adults, rule.max_adults, 'adulto', 'adultos')} y ${rangeText(rule.min_children, rule.max_children, 'niño', 'niños')}.`;
+                    const custom = rule.description;
+                    const desc = isGeneric(custom) ? `${current} ${req}` : `${custom} — ${current} ${req}`;
                     html += `<div style="font-size: 0.75rem; color: #6c757d; margin-top: 4px; padding-left: 12px;">`;
                     html += `<i class="fas fa-circle me-1" style="font-size: 0.65rem;"></i>${escapeHtml(desc)}`;
                     html += `</div>`;
@@ -4125,7 +5354,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                 html += `</div>`;
             }
         } else if (rules.length === 0) {
-            html += `<div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 10px; margin-bottom: 16px; color: #6c757d; font-size: 0.85rem; font-style: italic;">No occupancy rules defined for this room. Any combination of guests is allowed.</div>`;
+            html += `<div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 6px; padding: 10px; margin-bottom: 16px; color: #6c757d; font-size: 0.85rem; font-style: italic;">Esta habitación no tiene reglas de ocupación. Cualquier combinación es válida.</div>`;
         }
 
         html += `<div style="max-height: 400px; overflow-y: auto;">`;
@@ -4150,8 +5379,8 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
         html += `</div>`;
         html += `<div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e9ecef; display: flex; justify-content: space-between; align-items: center;">`;
-        html += `<button type="button" onclick="if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); window.NSC_HotelReservation?.autoDistributeGuests?.('${pk}'); setTimeout(() => { const modal = bootstrap.Modal.getInstance(document.getElementById('guestAssignmentModal${pk}')); if (modal) modal.hide(); }, 50);" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Auto-Distribute</button>`;
-        html += `<button type="button" onclick="if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); setTimeout(() => { const modal = bootstrap.Modal.getInstance(document.getElementById('guestAssignmentModal${pk}')); if (modal) modal.hide(); window.NSC_HotelReservation?.updateRoomsPriceCalculation?.('${pk}'); }, 50);" style="background: var(--mlb-blue); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Done</button>`;
+        html += `<button type="button" onclick="if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); window.NSC_HotelReservation?.autoDistributeGuests?.('${pk}'); setTimeout(() => { const modal = bootstrap.Modal.getInstance(document.getElementById('guestAssignmentModal${pk}')); if (modal) modal.hide(); }, 50);" style="background: #6c757d; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">${escapeHtml(t('autoDistribute'))}</button>`;
+        html += `<button type="button" onclick="if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); setTimeout(() => { const modal = bootstrap.Modal.getInstance(document.getElementById('guestAssignmentModal${pk}')); if (modal) modal.hide(); window.NSC_HotelReservation?.updateRoomsPriceCalculation?.('${pk}'); }, 50);" style="background: var(--mlb-blue); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">${escapeHtml(t('done'))}</button>`;
         html += `</div>`;
         html += `</div>`;
 
@@ -4243,7 +5472,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         updateRoomsPriceCalculation(pk);
         validateRoomSelection(pk);
 
-        showToast(`Room "${room.roomLabel}" removed from selection`, 'info', 3000);
+        showToast(t('roomRemoved', { label: room.roomLabel }), 'info', 3000);
     }
 
     // Toggle guest assignment to a room
@@ -4266,7 +5495,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             // Check capacity
             const currentCount = state.guestAssignments[roomId].length;
             if (currentCount >= capacity) {
-                showToast(`Room capacity (${capacity}) reached. Cannot assign more guests.`, 'warning');
+                showToast(t('roomCapacityReached', { cap: capacity }), 'warning');
                 return false;
             }
 
@@ -4337,7 +5566,36 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         return true;
     }
 
-    return { initModal, showRooms, showRoomsDirect, selectRoom, openRoomDetail, updateSummary, addAdult, addChild, stepper, backToGuests, backToRooms, addAdditionalGuest, saveGuest, removeGuest, continueToGuestDetails, openLightbox, closeLightbox, prevLightboxImage, nextLightboxImage, sortRooms, autoDistributeGuests, showGuestAssignment, toggleGuestAssignment, updateRoomsPriceCalculation, removeRoom };
+    return {
+        initModal,
+        showRooms,
+        showRoomsDirect,
+        selectRoom,
+        openRoomDetail,
+        updateSummary,
+        addAdult,
+        addChild,
+        stepper,
+        backToGuests,
+        backToRooms,
+        addAdditionalGuest,
+        saveGuest,
+        removeGuest,
+        continueToGuestDetails,
+        openLightbox,
+        closeLightbox,
+        prevLightboxImage,
+        nextLightboxImage,
+        sortRooms,
+        autoDistributeGuests,
+        showGuestAssignment,
+        toggleGuestAssignment,
+        updateRoomsPriceCalculation,
+        validateRoomSelection,
+        updateRoomsGuestsList,
+        changeSelectedRoom,
+        removeRoom
+    };
 })();
 
 // ===== TOPBAR BUTTON FUNCTIONS =====
