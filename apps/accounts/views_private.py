@@ -1176,7 +1176,7 @@ def create_stripe_event_checkout_session(request, pk):
     discount_percent = 5 if (payment_mode == "now" and hotel_total > 0) else 0
     discount_multiplier = Decimal("1.00") - (Decimal(str(discount_percent)) / Decimal("100"))
 
-    no_show_fee = Decimal("500.00") if (players_count > 0 and not cart) else Decimal("0.00")
+    no_show_fee = Decimal("1000.00") if (players_count > 0 and not cart) else Decimal("0.00")
 
     subtotal = (players_total + hotel_total + no_show_fee).quantize(Decimal("0.01"))
     total = (subtotal * discount_multiplier).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)

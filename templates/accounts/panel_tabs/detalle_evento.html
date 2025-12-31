@@ -1154,7 +1154,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Hotel buy out fee: solo aplica si hay jugadores seleccionados y NO se añadió hotel
-        const NO_SHOW_FEE = 500;
+        const NO_SHOW_FEE = 1000;
         const applyNoShowFee = (playersCount > 0) && !window.checkoutItems.hotel;
         const noShowFee = applyNoShowFee ? NO_SHOW_FEE : 0;
 
@@ -1339,7 +1339,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 if (noShowRow) {
                     const applyNoShowFee = (playersCount > 0) && !window.checkoutItems.hotel;
-                    const noShowFee = applyNoShowFee ? 500 : 0;
+                    const noShowFee = applyNoShowFee ? 1000 : 0;
                     if (applyNoShowFee) {
                         noShowRow.style.display = 'block';
                         noShowRow.innerHTML =
