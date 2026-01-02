@@ -831,7 +831,108 @@
     </style>
 </head>
 <body>
-    {% include 'includes/navbar_mlb.html' %}
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    {% if site_settings.contact_phone %}
+                        <span><i class="fas fa-phone me-2"></i>{{ site_settings.contact_phone }}</span>
+                    {% endif %}
+                    {% if site_settings.contact_email %}
+                        <span class="{% if site_settings.contact_phone %}ms-4{% endif %}"><i class="fas fa-envelope me-2"></i>{{ site_settings.contact_email }}</span>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 text-end">
+                    <!-- Language Selector with Flags Dropdown -->
+                    {% get_current_language as CURRENT_LANGUAGE %}
+                    {% if not CURRENT_LANGUAGE or CURRENT_LANGUAGE == '' %}{% get_language_info for 'en' as lang_info %}{% endif %}
+                    <div class="language-selector-wrapper">
+                        <button type="button" class="language-selector-btn" id="languageSelectorBtn" onclick="toggleLanguageDropdown()">
+                            <span class="flag-icon {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}flag-es{% else %}flag-us{% endif %}"></span>
+                            <span class="language-text">
+                                {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}
+                                    ES
+                                {% else %}
+                                    EN
+                                {% endif %}
+                            </span>
+                            <i class="fas fa-chevron-down arrow-icon"></i>
+                        </button>
+                        <div class="language-dropdown" id="languageDropdown">
+                            <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-en">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/' }}">
+                                <input type="hidden" name="language" value="en">
+                                <button type="submit" class="language-option {% if CURRENT_LANGUAGE != 'es' and CURRENT_LANGUAGE|slice:":2" != 'es' %}active{% endif %}" style="background: none; border: none; width: 100%; text-align: left; padding: 10px; cursor: pointer;">
+                                    <span class="flag-icon flag-us"></span>
+                                    <span class="language-name">English</span>
+                                </button>
+                            </form>
+                            <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-es">
+                                {% csrf_token %}
+                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/' }}">
+                                <input type="hidden" name="language" value="es">
+                                <button type="submit" class="language-option {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}active{% endif %}" style="background: none; border: none; width: 100%; text-align: left; padding: 10px; cursor: pointer;">
+                                    <span class="flag-icon flag-es"></span>
+                                    <span class="language-name">Español</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <span class="mx-2">|</span>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'accounts:panel' %}"><i class="fas fa-user me-1"></i>{% trans "My Account" %}</a>
+                        <span class="mx-2">|</span>
+                        <a href="{% url 'accounts:logout' %}">{% trans "Log Out" %}</a>
+                    {% else %}
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">{% trans "Log In" %}</a>
+                        <span class="mx-2">|</span>
+                        <a href="/accounts/register/">{% trans "Sign Up" %}</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navbar MLB Style -->
+    <nav class="navbar navbar-expand-lg navbar-mlb">
+        <div class="container-fluid px-0">
+            <a class="navbar-brand" href="/">
+                <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" class="navbar-logo">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: white;">
+                <span style="color: white;"><i class="fas fa-bars"></i></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">{% trans "Home" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'events:public_list' %}">{% trans "Events" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#equipos">{% trans "Teams" %}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:public_player_list' %}">{% trans "Players" %}</a>
+                    </li>
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'accounts:panel' %}">{% trans "My Account" %}</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/accounts/register/">
+                                <span class="badge-mlb">{% trans "Sign Up" %}</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
 
     <!-- Main Content -->
     <div class="main-content">
