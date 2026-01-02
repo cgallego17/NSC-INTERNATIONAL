@@ -78,6 +78,8 @@ urlpatterns = [
     path("rules/api/", views.rules_api, name="rules_api"),
     path("sites/api/", views.sites_api, name="sites_api"),
     path("hotels/api/", views.hotels_api, name="hotels_api"),
+    # Public API URLs (sin autenticación) - Deben ir antes para evitar conflictos
+    path("", include("apps.locations.urls_public")),
     # Front URLs (hotels, reservations - require login) - Deben ir antes para evitar conflictos
     path("", include("apps.locations.urls_front")),
     # Admin URLs (hotels, rooms, services, reservations)
