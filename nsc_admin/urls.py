@@ -36,7 +36,7 @@ urlpatterns = [
     path("locations/", include("apps.locations.urls")),
     path("accounts/", include("apps.accounts.urls")),  # Login público aquí
     path("users/", include("django.contrib.auth.urls")),  # Mantener para compatibilidad
-    path("media/", include("apps.media.urls")),  # Multimedia
+    path("files/", include("apps.media.urls")),  # Multimedia
     path("i18n/setlang/", set_language, name="set_language"),  # Language switching
     # JavaScript i18n catalog (uses djangojs.po)
     path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),

@@ -771,7 +771,7 @@
 </style>
 
 <script>
-// Selector Multimedia para imágenes de habitación (usa /media/list-ajax/ y /media/upload/)
+// Selector Multimedia para imágenes de habitación (usa /files/list-ajax/ y /files/upload/)
 document.addEventListener('DOMContentLoaded', () => {
     const modalEl = document.getElementById('mediaSelectorModalRoom');
     if (!modalEl) return;
@@ -855,7 +855,7 @@ document.addEventListener('DOMContentLoaded', () => {
         emptyEl.style.display = 'none';
 
         const qs = new URLSearchParams({ type: 'image', search: search || '', limit: '60' });
-        const res = await fetch(`/media/list-ajax/?${qs.toString()}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        const res = await fetch(`/files/list-ajax/?${qs.toString()}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
         const data = await res.json();
         const results = (data && data.results) ? data.results : [];
 
@@ -909,7 +909,7 @@ document.addEventListener('DOMContentLoaded', () => {
             fd.append('title', file.name);
             fd.append('file_type', 'image');
             fd.append('original_file', file);
-            const res = await fetch('/media/upload/', {
+            const res = await fetch('/files/upload/', {
                 method: 'POST',
                 headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' },
                 body: fd
