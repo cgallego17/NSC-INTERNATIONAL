@@ -2614,10 +2614,6 @@
                                 <i class="fas fa-baseball-ball"></i>
                                 <span id="promoType">-</span>
                             </span>
-                            <span>
-                                <i class="fas fa-users"></i>
-                                <span id="promoDivisions">-</span>
-                            </span>
                         </div>
                         <a href="#" class="video-promo-cta-btn" id="promoEventLink">{% trans "VIEW EVENT" %}</a>
                     </div>
@@ -3683,7 +3679,6 @@
                 const descEl = document.getElementById('promoDescription');
                 const locationEl = document.getElementById('promoLocation');
                 const typeEl = document.getElementById('promoType');
-                const divisionsEl = document.getElementById('promoDivisions');
                 const linkEl = document.getElementById('promoEventLink');
 
                 if (titleEl) {
@@ -3697,9 +3692,6 @@
                 }
                 if (typeEl) {
                     typeEl.textContent = event.event_type || '{% trans "Tournament / Showcase" %}';
-                }
-                if (divisionsEl) {
-                    divisionsEl.textContent = event.divisions || '{% trans "All Categories" %}';
                 }
                 if (linkEl) {
                     linkEl.href = event.detail_url || '#';
