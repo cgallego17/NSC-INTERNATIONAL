@@ -261,11 +261,32 @@
         }
 
         .hero-mlb .carousel-item {
-            height: 500px;
-            min-height: 500px;
+            height: 600px;
+            min-height: 600px;
+        }
+
+        @media (max-width: 1200px) {
+            .hero-mlb .carousel-item {
+                height: 550px;
+                min-height: 550px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .hero-mlb .carousel-item {
+                height: 500px;
+                min-height: 500px;
+            }
         }
 
         @media (max-width: 768px) {
+            .hero-mlb .carousel-item {
+                height: 450px;
+                min-height: 450px;
+            }
+        }
+
+        @media (max-width: 576px) {
             .hero-mlb .carousel-item {
                 height: 400px;
                 min-height: 400px;
@@ -276,13 +297,31 @@
             position: relative;
             width: 100%;
             height: 100%;
-            min-height: 500px;
+            min-height: 600px;
             display: flex;
             align-items: center;
             overflow: hidden;
         }
 
+        @media (max-width: 1200px) {
+            .hero-slide-item {
+                min-height: 550px;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .hero-slide-item {
+                min-height: 500px;
+            }
+        }
+
         @media (max-width: 768px) {
+            .hero-slide-item {
+                min-height: 450px;
+            }
+        }
+
+        @media (max-width: 576px) {
             .hero-slide-item {
                 min-height: 400px;
             }
@@ -299,6 +338,12 @@
             z-index: 0;
         }
 
+        @media (max-width: 768px) {
+            .hero-slide-item img {
+                object-position: center center;
+            }
+        }
+
         /* Ajuste para banners de tipo imagen - mostrar completo sin recortes si es necesario */
         .hero-slide-item.banner-image img {
             object-fit: contain;
@@ -306,10 +351,22 @@
             background-color: #0d2c54;
         }
 
+        @media (max-width: 768px) {
+            .hero-slide-item.banner-image img {
+                object-fit: cover;
+            }
+        }
+
         /* Ajuste para banner de World Series - mostrar completo sin recortes */
         .hero-slide-item img[alt*="World Series"] {
             object-fit: contain;
             object-position: center;
+        }
+
+        @media (max-width: 768px) {
+            .hero-slide-item img[alt*="World Series"] {
+                object-fit: cover;
+            }
         }
 
         .hero-slide-overlay {
@@ -346,6 +403,25 @@
         .hero-content {
             position: relative;
             z-index: 2;
+            padding: 0 20px;
+        }
+
+        @media (max-width: 992px) {
+            .hero-content {
+                padding: 0 15px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-content {
+                padding: 0 10px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-content {
+                padding: 0 5px;
+            }
         }
 
         .carousel-control-prev,
@@ -361,12 +437,53 @@
             z-index: 10;
         }
 
+        @media (max-width: 768px) {
+            .carousel-control-prev,
+            .carousel-control-next {
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .carousel-control-prev,
+            .carousel-control-next {
+                width: 35px;
+                height: 35px;
+                opacity: 0.6;
+            }
+        }
+
         .carousel-control-prev {
             left: 20px;
         }
 
+        @media (max-width: 768px) {
+            .carousel-control-prev {
+                left: 10px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .carousel-control-prev {
+                left: 5px;
+            }
+        }
+
         .carousel-control-next {
             right: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .carousel-control-next {
+                right: 10px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .carousel-control-next {
+                right: 5px;
+            }
         }
 
         .carousel-control-prev:hover,
@@ -380,6 +497,18 @@
             z-index: 10;
         }
 
+        @media (max-width: 768px) {
+            .carousel-indicators {
+                margin-bottom: 15px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .carousel-indicators {
+                margin-bottom: 10px;
+            }
+        }
+
         .carousel-indicators button {
             width: 12px;
             height: 12px;
@@ -390,10 +519,24 @@
             transition: all 0.3s ease;
         }
 
+        @media (max-width: 576px) {
+            .carousel-indicators button {
+                width: 10px;
+                height: 10px;
+                margin: 0 3px;
+            }
+        }
+
         .carousel-indicators button.active {
             background-color: rgba(255, 255, 255, 1);
             width: 30px;
             border-radius: 6px;
+        }
+
+        @media (max-width: 576px) {
+            .carousel-indicators button.active {
+                width: 25px;
+            }
         }
 
         .carousel-item {
@@ -428,12 +571,64 @@
             letter-spacing: 2px;
             margin-bottom: 1rem;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            line-height: 1.2;
+        }
+
+        @media (max-width: 1200px) {
+            .hero-title {
+                font-size: 3rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .hero-title {
+                font-size: 2.5rem;
+                letter-spacing: 1.5px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+                letter-spacing: 1px;
+                margin-bottom: 0.75rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-title {
+                font-size: 1.5rem;
+                letter-spacing: 0.5px;
+                margin-bottom: 0.5rem;
+            }
         }
 
         .hero-subtitle {
             font-size: 1.3rem;
             opacity: 0.95;
             margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 992px) {
+            .hero-subtitle {
+                font-size: 1.15rem;
+                margin-bottom: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-subtitle {
+                font-size: 1rem;
+                margin-bottom: 1.25rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-subtitle {
+                font-size: 0.9rem;
+                margin-bottom: 1rem;
+            }
         }
 
         .btn-mlb {
@@ -446,6 +641,21 @@
             border-radius: 4px;
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(213, 0, 50, 0.3);
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .btn-mlb {
+                padding: 10px 25px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .btn-mlb {
+                padding: 8px 20px;
+                font-size: 0.85rem;
+            }
         }
 
         .btn-mlb:hover {
@@ -464,6 +674,21 @@
             text-transform: uppercase;
             border-radius: 4px;
             transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .btn-mlb-outline {
+                padding: 10px 25px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .btn-mlb-outline {
+                padding: 8px 20px;
+                font-size: 0.85rem;
+            }
         }
 
         .btn-mlb-outline:hover {
