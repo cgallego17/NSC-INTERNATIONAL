@@ -42,7 +42,7 @@ urlpatterns = [
     ),
     # ===== URLs PRIVADAS =====
     # Logout (requiere login) - pero la URL debe estar disponible siempre
-    path("logout/", auth_views.LogoutView.as_view(next_page="/"), name="logout"),
+    path("logout/", auth_views.LogoutView.as_view(next_page="/accounts/login/"), name="logout"),
     # Panel y perfil
     path("panel/", views_private.UserDashboardView.as_view(), name="panel"),
     path("user-dashboard/", views.UserDashboardView.as_view(), name="user_dashboard"),

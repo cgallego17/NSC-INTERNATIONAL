@@ -311,7 +311,7 @@ class PublicLoginView(BaseLoginView):
 
     def form_valid(self, form):
         """Redirigir según el tipo de usuario después del login"""
-        response = super().form_valid(form)
+        super().form_valid(form)
         user = form.get_user()
 
         # Verificar que la cuenta esté activa
@@ -347,8 +347,12 @@ class PublicLoginView(BaseLoginView):
 
         # Redirigir según el tipo de usuario
         if user.is_superuser or user.is_staff:
-            # Admin va al admin panel
-            return redirect("/admin/")
+            # Admin va al dashboard
+            messages.success(
+                self.request,
+                _("Welcome, %(name)s!") % {"name": user.get_full_name()},
+            )
+            return redirect("/dashboard/")
         elif hasattr(user, "profile"):
             if user.profile.is_team_manager:
                 # Manager va al panel
@@ -395,7 +399,8 @@ class PublicRegistrationView(CreateView):
         username = self.object.username
         messages.success(
             self.request,
-            _("Registration successful! Welcome. Your username is: %(username)s") % {"username": username},
+            _("Registration successful! Welcome. Your username is: %(username)s")
+            % {"username": username},
         )
 
         # Si es manager, redirigir a crear equipo
@@ -408,7 +413,9 @@ class PublicRegistrationView(CreateView):
         elif user_type == "parent":
             messages.info(
                 self.request,
-                _("Now you can register your child(ren) or ward(s) from the dashboard."),
+                _(
+                    "Now you can register your child(ren) or ward(s) from the dashboard."
+                ),
             )
             return redirect("accounts:panel")
 
