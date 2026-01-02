@@ -1874,27 +1874,11 @@
             font-size: 1.1rem;
             line-height: 1.7;
             margin: 0 0 25px 0;
-            max-height: 200px;
-            overflow-y: auto;
-            padding-right: 10px;
-        }
-
-        .video-promo-description::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .video-promo-description::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 3px;
-        }
-
-        .video-promo-description::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-        }
-
-        .video-promo-description::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .video-promo-description p {
