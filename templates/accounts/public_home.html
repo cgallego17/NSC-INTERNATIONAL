@@ -1642,10 +1642,31 @@
         }
 
         .video-promo-description {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 1.05rem;
-            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 1.1rem;
+            line-height: 1.7;
             margin: 0 0 25px 0;
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .video-promo-description::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .video-promo-description::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .video-promo-description::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .video-promo-description::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
         }
 
         .video-promo-description p {
@@ -2678,7 +2699,7 @@
                 {
                     "id": {{ event.id }},
                     "title": "{{ event.title|escapejs }}",
-                    "description": "{{ event.description|striptags|escapejs|truncatewords:30 }}",
+                    "description": "{{ event.description|striptags|escapejs|truncatewords:80 }}",
                     "video_url": {% if event.video_url %}"{{ event.video_url|escapejs }}"{% else %}null{% endif %},
                     "location": "{% if event.city %}{{ event.city.name }}{% if event.state %}, {{ event.state.name }}{% endif %}{% else %}{{ event.location|default:"-" }}{% endif %}",
                     "event_type": "{% if event.event_type %}{{ event.event_type.name|escapejs }}{% else %}{% trans 'Tournament / Showcase' %}{% endif %}",
