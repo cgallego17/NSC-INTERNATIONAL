@@ -57,7 +57,7 @@
                     <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="/">Inicio</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'events' in request.resolver_match.namespace %}active{% endif %}" href="{% url 'events:list' %}">Eventos</a>
+                    <a class="nav-link {% if 'events' in request.resolver_match.namespace %}active{% endif %}" href="{% url 'events:public_list' %}">Eventos</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if 'accounts' in request.resolver_match.namespace and 'team' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'accounts:team_list' %}">Equipos</a>

@@ -644,6 +644,38 @@
             width: 16px;
         }
 
+        /* Password Toggle Visibility */
+        .password-input-wrapper {
+            position: relative;
+        }
+
+        .password-input-wrapper input {
+            padding-right: 45px;
+        }
+
+        .password-toggle-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6c757d;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+            z-index: 10;
+            background: transparent;
+            border: none;
+            padding: 5px;
+        }
+
+        .password-toggle-icon:hover {
+            color: var(--mlb-blue);
+        }
+
+        .password-toggle-icon:focus {
+            outline: none;
+        }
+
         /* Field Validation Styles */
         .field-wrapper {
             position: relative;
@@ -799,108 +831,7 @@
     </style>
 </head>
 <body>
-    <!-- Top Bar -->
-    <div class="top-bar">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    {% if site_settings.contact_phone %}
-                        <span><i class="fas fa-phone me-2"></i>{{ site_settings.contact_phone }}</span>
-                    {% endif %}
-                    {% if site_settings.contact_email %}
-                        <span class="{% if site_settings.contact_phone %}ms-4{% endif %}"><i class="fas fa-envelope me-2"></i>{{ site_settings.contact_email }}</span>
-                    {% endif %}
-                </div>
-                <div class="col-md-6 text-end">
-                    <!-- Language Selector with Flags Dropdown -->
-                    {% get_current_language as CURRENT_LANGUAGE %}
-                    {% if not CURRENT_LANGUAGE or CURRENT_LANGUAGE == '' %}{% get_language_info for 'en' as lang_info %}{% endif %}
-                    <div class="language-selector-wrapper">
-                        <button type="button" class="language-selector-btn" id="languageSelectorBtn" onclick="toggleLanguageDropdown()">
-                            <span class="flag-icon {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}flag-es{% else %}flag-us{% endif %}"></span>
-                            <span class="language-text">
-                                {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}
-                                    ES
-                                {% else %}
-                                    EN
-                                {% endif %}
-                            </span>
-                            <i class="fas fa-chevron-down arrow-icon"></i>
-                        </button>
-                        <div class="language-dropdown" id="languageDropdown">
-                            <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-en">
-                                {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/' }}">
-                                <input type="hidden" name="language" value="en">
-                                <button type="submit" class="language-option {% if CURRENT_LANGUAGE != 'es' and CURRENT_LANGUAGE|slice:":2" != 'es' %}active{% endif %}" style="background: none; border: none; width: 100%; text-align: left; padding: 10px; cursor: pointer;">
-                                    <span class="flag-icon flag-us"></span>
-                                    <span class="language-name">English</span>
-                                </button>
-                            </form>
-                            <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-es">
-                                {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/' }}">
-                                <input type="hidden" name="language" value="es">
-                                <button type="submit" class="language-option {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}active{% endif %}" style="background: none; border: none; width: 100%; text-align: left; padding: 10px; cursor: pointer;">
-                                    <span class="flag-icon flag-es"></span>
-                                    <span class="language-name">Español</span>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    <span class="mx-2">|</span>
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'accounts:panel' %}"><i class="fas fa-user me-1"></i>{% trans "My Account" %}</a>
-                        <span class="mx-2">|</span>
-                        <a href="{% url 'accounts:logout' %}">{% trans "Log Out" %}</a>
-                    {% else %}
-                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">{% trans "Log In" %}</a>
-                        <span class="mx-2">|</span>
-                        <a href="{% url 'accounts:register' %}">{% trans "Sign Up" %}</a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Navbar MLB Style -->
-    <nav class="navbar navbar-expand-lg navbar-mlb">
-        <div class="container-fluid px-0">
-            <a class="navbar-brand" href="/">
-                <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" class="navbar-logo">
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: white;">
-                <span style="color: white;"><i class="fas fa-bars"></i></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">{% trans "Home" %}</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'events:public_list' %}">{% trans "Events" %}</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#equipos">{% trans "Teams" %}</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:public_player_list' %}">{% trans "Players" %}</a>
-                    </li>
-                    {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'accounts:panel' %}">{% trans "My Account" %}</a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'accounts:register' %}">
-                                <span class="badge-mlb">{% trans "Sign Up" %}</span>
-                            </a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
+    {% include 'includes/navbar_mlb.html' %}
 
     <!-- Main Content -->
     <div class="main-content">
@@ -980,7 +911,12 @@
                                             <label for="{{ form.password1.id_for_label }}" class="form-label">
                                                 <i class="fas fa-lock me-1"></i>{% trans "Password" %} *
                                             </label>
-                                            {{ form.password1 }}
+                                            <div class="password-input-wrapper">
+                                                {{ form.password1 }}
+                                                <button type="button" class="password-toggle-icon" id="togglePassword1" aria-label="{% trans 'Show password' %}">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </div>
                                             {% if form.password1.errors %}
                                                 <div class="error-message">{{ form.password1.errors }}</div>
                                             {% endif %}
@@ -1027,7 +963,12 @@
                                                 <label for="{{ form.password2.id_for_label }}" class="form-label">
                                                     <i class="fas fa-lock me-1"></i>{% trans "Confirm Password" %} <span class="required-field">*</span>
                                                 </label>
-                                                {{ form.password2 }}
+                                                <div class="password-input-wrapper">
+                                                    {{ form.password2 }}
+                                                    <button type="button" class="password-toggle-icon" id="togglePassword2" aria-label="{% trans 'Show password' %}">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                </div>
                                                 <i class="field-validation-icon fas fa-check-circle valid" id="password2Icon"></i>
                                                 <i class="field-validation-icon fas fa-times-circle invalid" id="password2ErrorIcon"></i>
                                                 <div class="field-validation-message" id="password2Message"></div>
@@ -1757,6 +1698,33 @@
             password2Field.addEventListener('blur', validatePasswordMatch);
             passwordInput.addEventListener('input', validatePasswordMatch);
         }
+
+        // Password Toggle Visibility
+        function setupPasswordToggle(toggleId, inputId) {
+            const toggle = document.getElementById(toggleId);
+            const input = document.getElementById(inputId);
+
+            if (toggle && input) {
+                toggle.addEventListener('click', function() {
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+
+                    // Cambiar icono
+                    const icon = toggle.querySelector('i');
+                    if (type === 'password') {
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    } else {
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    }
+                });
+            }
+        }
+
+        // Configurar toggles para ambos campos de contraseña
+        setupPasswordToggle('togglePassword1', 'id_password1');
+        setupPasswordToggle('togglePassword2', 'id_password2');
 
         // Validación de Nombre
         const firstNameField = document.getElementById('id_first_name');

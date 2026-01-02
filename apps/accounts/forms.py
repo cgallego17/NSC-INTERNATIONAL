@@ -431,6 +431,67 @@ class PublicRegistrationForm(UserCreationForm):
             return last_name2.strip()
         return ""
 
+    def clean_password1(self):
+        """Validar que la contraseña sea segura"""
+        password = self.cleaned_data.get("password1")
+
+        if not password:
+            return password
+
+        # Verificar longitud mínima
+        if len(password) < 8:
+            raise forms.ValidationError(
+                _("Password must be at least 8 characters long.")
+            )
+
+        # Verificar que tenga al menos una letra mayúscula
+        if not re.search(r'[A-Z]', password):
+            raise forms.ValidationError(
+                _("Password must contain at least one uppercase letter.")
+            )
+
+        # Verificar que tenga al menos una letra minúscula
+        if not re.search(r'[a-z]', password):
+            raise forms.ValidationError(
+                _("Password must contain at least one lowercase letter.")
+            )
+
+        # Verificar que tenga al menos un número
+        if not re.search(r'[0-9]', password):
+            raise forms.ValidationError(
+                _("Password must contain at least one number.")
+            )
+
+        # Verificar que tenga al menos un carácter especial
+        if not re.search(r'[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?]', password):
+            raise forms.ValidationError(
+                _("Password must contain at least one special character (!@#$%^&*).")
+            )
+
+        # Verificar que no sea demasiado común o similar al email/nombre
+        email = self.cleaned_data.get("email", "")
+        first_name = self.cleaned_data.get("first_name", "")
+        last_name = self.cleaned_data.get("last_name", "")
+
+        # No permitir que la contraseña sea similar al email
+        if email and password.lower() in email.lower():
+            raise forms.ValidationError(
+                _("Password cannot be too similar to your email address.")
+            )
+
+        # No permitir que la contraseña sea similar al nombre
+        if first_name and password.lower() in first_name.lower():
+            raise forms.ValidationError(
+                _("Password cannot be too similar to your first name.")
+            )
+
+        if last_name and password.lower() in last_name.lower():
+            raise forms.ValidationError(
+                _("Password cannot be too similar to your last name.")
+            )
+
+        return password
+
     def save(self, commit=True):
         # Generar username automáticamente
         first_name = self.cleaned_data["first_name"]
