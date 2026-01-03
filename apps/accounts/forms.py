@@ -1856,8 +1856,16 @@ class PlayerUpdateForm(forms.ModelForm):
 
     def clean_is_pitcher(self):
         """Asegurar que is_pitcher siempre tenga un valor booleano"""
+        # Obtener el valor del campo desde los datos originales
         # Django puede recibir múltiples valores si hay un checkbox y un hidden con el mismo name
         # Tomar el último valor (que será el del checkbox si está marcado, o el hidden si no)
+
+        # Primero verificar si el campo está en los datos originales
+        if "is_pitcher" not in self.data:
+            # Si no está presente, retornar False
+            return False
+
+        # Obtener el valor desde cleaned_data (ya procesado por Django)
         value = self.cleaned_data.get("is_pitcher", False)
 
         # Si es una lista (múltiples valores), tomar el último

@@ -521,27 +521,37 @@
                     console.warn('⚠️ secondary_position NO encontrado en el formulario');
                 }
 
-                // Si el checkbox no está marcado, agregar un campo hidden para asegurar que se envíe
+                // Asegurar que is_pitcher siempre se envíe correctamente
+                // Remover cualquier hidden anterior
+                const existingHidden = playerEditForm.querySelector('input[name="is_pitcher"][type="hidden"]');
+                if (existingHidden) {
+                    existingHidden.remove();
+                }
+
+                // Si el checkbox no está marcado, agregar un campo hidden para asegurar que se envíe False
+                // Django necesita recibir explícitamente el valor, incluso si es False
                 if (!isPitcherCheckbox.checked) {
-                    // Remover cualquier hidden anterior
-                    const existingHidden = playerEditForm.querySelector('input[name="is_pitcher"][type="hidden"]');
-                    if (existingHidden) {
-                        existingHidden.remove();
-                    }
-                    // Crear un nuevo hidden con valor False
+                    // Crear un nuevo hidden con valor 'False' (Django lo interpretará como False)
                     const hiddenInput = document.createElement('input');
                     hiddenInput.type = 'hidden';
                     hiddenInput.name = 'is_pitcher';
-                    hiddenInput.value = '0';
+                    hiddenInput.value = 'False'; // Valor explícito para que Django lo interprete como False
                     playerEditForm.appendChild(hiddenInput);
-                    console.log('✅ is_pitcher checkbox no marcado - agregado hidden con valor 0');
+                    console.log('✅ is_pitcher checkbox no marcado - agregado hidden con valor False');
                 } else {
-                    // Si está marcado, remover cualquier hidden que pueda existir
-                    const existingHidden = playerEditForm.querySelector('input[name="is_pitcher"][type="hidden"]');
-                    if (existingHidden) {
-                        existingHidden.remove();
-                    }
                     console.log('✅ is_pitcher checkbox marcado - valor será True');
+                }
+
+                // Asegurar que secondary_position siempre tenga un valor (incluso si está vacío)
+                if (secondaryPositionField) {
+                    // El campo siempre se enviará, incluso si está vacío (Django lo manejará correctamente)
+                    if (secondaryPositionField.value) {
+                        console.log('✅ secondary_position tiene valor:', secondaryPositionField.value);
+                    } else {
+                        console.log('✅ secondary_position vacío - se enviará como cadena vacía');
+                    }
+                } else {
+                    console.warn('⚠️ secondary_position NO encontrado en el formulario');
                 }
 
                 // Verificar todos los campos antes de enviar
@@ -593,7 +603,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Formulario de edición de hijo cargado');
 
-    // Traducciones para evitar problemas con tags {% trans %} dentro de template literals
+    // Traducciones para evitar problemas con tags de traducción dentro de template literals
     const fileUploadTranslations = {
         documentUploaded: "{% trans 'Document Uploaded' %}",
         clickToChangeFile: "{% trans 'Click to change file' %}",

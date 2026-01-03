@@ -821,23 +821,26 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
 
             logger = logging.getLogger(__name__)
             try:
+                logger.info("PlayerUpdateView.get: Starting AJAX request handling")
+
+                # Obtener el objeto
                 logger.info("PlayerUpdateView.get: Getting object...")
                 self.object = self.get_object()
-                logger.info(f"PlayerUpdateView.get: Object obtained: {self.object}")
+                logger.info(f"PlayerUpdateView.get: Object obtained: {self.object.pk}")
 
+                # Obtener el formulario
                 logger.info("PlayerUpdateView.get: Getting form...")
                 form = self.get_form()
-                logger.info(f"PlayerUpdateView.get: Form obtained: {form}")
+                logger.info(f"PlayerUpdateView.get: Form obtained")
 
+                # Obtener el contexto
                 logger.info("PlayerUpdateView.get: Getting context...")
                 context = self.get_context_data(object=self.object, form=form)
                 logger.info(
                     f"PlayerUpdateView.get: Context obtained with keys: {list(context.keys())}"
                 )
 
-                # Usar el método render_to_response normal pero con el template correcto
-                from django.template.response import TemplateResponse
-
+                # Obtener el nombre del template
                 template_names = self.get_template_names()
                 template_name = (
                     template_names[0]
@@ -846,47 +849,19 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
                 )
                 logger.info(f"PlayerUpdateView.get: Using template: {template_name}")
 
+                # Renderizar el template
                 logger.info("PlayerUpdateView.get: Rendering template...")
-                # Usar render_to_string para obtener el HTML completo
-                from django.http import HttpResponse
                 from django.template.loader import render_to_string
+                from django.http import HttpResponse
 
                 html = render_to_string(template_name, context, request=request)
                 logger.info(
-                    f"PlayerUpdateView.get: Template rendered, HTML length: {len(html)}"
+                    f"PlayerUpdateView.get: Template rendered successfully, HTML length: {len(html)}"
                 )
 
-                # Extraer solo el contenido del bloque content
-                # Buscar el inicio del contenido (después de {% block content %})
-                content_start = html.find('<div class="tab-content-header">')
-                if content_start == -1:
-                    content_start = html.find('<div class="form-container">')
-                if content_start == -1:
-                    content_start = html.find('<div class="messages-container">')
-                if content_start == -1:
-                    # Si no se encuentra, buscar el inicio del bloque content
-                    content_start = html.find("<!-- Messages")
+                # Devolver el HTML completo - el JavaScript del frontend extraerá lo que necesita
+                return HttpResponse(html)
 
-                if content_start != -1:
-                    # Encontrar el final del bloque content
-                    script_end = html.rfind("</script>")
-                    if script_end != -1 and script_end > content_start:
-                        content_end = script_end + len("</script>")
-                        logger.info(
-                            f"PlayerUpdateView.get: Extracted content from {content_start} to {content_end}"
-                        )
-                        return HttpResponse(html[content_start:content_end])
-                    else:
-                        logger.info(
-                            f"PlayerUpdateView.get: Extracted content from {content_start} to end"
-                        )
-                        return HttpResponse(html[content_start:])
-                else:
-                    # Si no se encuentra el inicio, devolver el HTML completo
-                    logger.warning(
-                        "PlayerUpdateView.get: Could not find content start, returning full HTML"
-                    )
-                    return HttpResponse(html)
             except Exception as e:
                 import traceback
 
