@@ -1854,16 +1854,19 @@ class PlayerUpdateForm(forms.ModelForm):
                 if profile.profile_picture:
                     self.fields["profile_picture"].initial = profile.profile_picture
 
+    def clean_is_pitcher(self):
+        """Asegurar que is_pitcher siempre tenga un valor booleano"""
+        value = self.cleaned_data.get("is_pitcher", False)
+        return bool(value)
+
+    def clean_secondary_position(self):
+        """Asegurar que secondary_position siempre tenga un valor (puede ser vacío)"""
+        value = self.cleaned_data.get("secondary_position", "")
+        return value or ""
+
     def save(self, commit=True):
         """Guardar los cambios, manteniendo los valores originales de campos deshabilitados para padres"""
         player = super().save(commit=False)
-
-        # Asegurar que secondary_position e is_pitcher se guarden explícitamente desde cleaned_data
-        # super().save(commit=False) debería guardar estos campos, pero los establecemos explícitamente para asegurar
-        # que siempre se guarden correctamente, incluso si están vacíos o no se enviaron en el POST
-        player.secondary_position = self.cleaned_data.get("secondary_position", "") or ""
-        # Para is_pitcher, si no está en cleaned_data significa que el checkbox no estaba marcado
-        player.is_pitcher = bool(self.cleaned_data.get("is_pitcher", False))
 
         # Guardar campos de User
         if hasattr(player, "user"):
@@ -1958,6 +1961,31 @@ class PlayerUpdateForm(forms.ModelForm):
 
             if commit:
                 user.save()
+
+        # IMPORTANTE: Establecer secondary_position e is_pitcher explícitamente
+        # justo antes de guardar para asegurar que siempre se guarden correctamente
+        # Esto es necesario porque super().save(commit=False) podría no estar guardando estos campos
+
+        # Para secondary_position: verificar primero en cleaned_data, luego en data, y finalmente usar valor por defecto
+        if "secondary_position" in self.cleaned_data:
+            player.secondary_position = self.cleaned_data["secondary_position"] or ""
+        elif hasattr(self, 'data') and "secondary_position" in self.data:
+            # Si está en data pero no en cleaned_data, usar el valor de data
+            player.secondary_position = self.data.get("secondary_position", "") or ""
+        else:
+            # Si no está en ningún lado, mantener el valor actual o establecer vacío
+            if not hasattr(player, 'secondary_position') or not player.secondary_position:
+                player.secondary_position = ""
+
+        # Para is_pitcher: los checkboxes no marcados no se envían en POST, así que verificar en data
+        if "is_pitcher" in self.cleaned_data:
+            player.is_pitcher = bool(self.cleaned_data["is_pitcher"])
+        elif hasattr(self, 'data') and "is_pitcher" in self.data:
+            # Si está en data, el checkbox estaba marcado
+            player.is_pitcher = bool(self.data.get("is_pitcher", False))
+        else:
+            # Si no está en data ni en cleaned_data, el checkbox no estaba marcado
+            player.is_pitcher = False
 
         if commit:
             player.save()
