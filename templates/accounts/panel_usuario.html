@@ -1367,8 +1367,21 @@
                     // Asegurarse de que el formulario sea visible
                     form.style.display = 'block';
 
-                    form.addEventListener('submit', function(e) {
-                        e.preventDefault();
+                    // Verificar si ya tiene un listener de submit (usando una marca)
+                    if (form.dataset.submitListenerAdded === 'true') {
+                        console.log('Listener de submit ya agregado al formulario, omitiendo...');
+                    } else {
+                        // Marcar que el listener fue agregado
+                        form.dataset.submitListenerAdded = 'true';
+
+                        form.addEventListener('submit', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+
+                            // Preparar campos del formulario si existe la función (desde player_edit_hijo.html)
+                            if (typeof window.preparePlayerEditFormFields === 'function') {
+                                window.preparePlayerEditFormFields();
+                            }
 
                         const formData = new FormData(form);
                         const submitButton = form.querySelector('button[type="submit"]');

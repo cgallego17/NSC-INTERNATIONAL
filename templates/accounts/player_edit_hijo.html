@@ -511,9 +511,9 @@
             // Marcar que el listener fue agregado
             playerEditForm.dataset.pitcherListenerAdded = 'true';
 
-            // Antes de enviar el formulario, asegurar que is_pitcher siempre se envíe
-            playerEditForm.addEventListener('submit', function(e) {
-                console.log('=== FORMULARIO ENVIADO ===');
+            // Función para preparar los campos antes del submit
+            function prepareFormFields() {
+                console.log('=== PREPARANDO CAMPOS DEL FORMULARIO ===');
                 console.log('is_pitcher checkbox:', isPitcherCheckbox.checked);
 
                 // Verificar que secondary_position esté presente
@@ -555,7 +555,34 @@
                         console.log(`✅ ${key}:`, value);
                     }
                 }
-            });
+            }
+
+            // Verificar si estamos en el panel (cuando se carga vía AJAX)
+            // Si el formulario tiene el atributo data-submit-listener-added, significa que el panel ya maneja el submit
+            const isInPanel = playerEditForm.hasAttribute('data-submit-listener-added') ||
+                                document.getElementById('tab-content-editar-jugador') !== null;
+
+            if (!isInPanel) {
+                // Si NO está en el panel, agregar listener normal
+                // Verificar si ya tiene un listener (usando una marca)
+                if (playerEditForm.dataset.pitcherListenerAdded === 'true') {
+                    console.log('Listener de is_pitcher ya agregado, omitiendo...');
+                    return;
+                }
+
+                // Marcar que el listener fue agregado
+                playerEditForm.dataset.pitcherListenerAdded = 'true';
+
+                playerEditForm.addEventListener('submit', function(e) {
+                    prepareFormFields();
+                    // No prevenir el submit aquí, dejar que se envíe normalmente
+                });
+            } else {
+                // Si está en el panel, exponer la función para que el listener del panel la llame
+                // El listener del panel manejará el submit
+                window.preparePlayerEditFormFields = prepareFormFields;
+                console.log('✅ Función prepareFormFields expuesta para el panel');
+            }
         }
     }
 
