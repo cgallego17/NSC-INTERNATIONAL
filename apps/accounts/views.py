@@ -298,6 +298,11 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
         except ImportError:
             context["upcoming_events"] = []
 
+        # Obtener mensajes activos del marquee
+        from .models import MarqueeMessage
+        marquee_messages = MarqueeMessage.objects.filter(is_active=True).order_by("order", "-created_at")
+        context["marquee_messages"] = marquee_messages
+
         return context
 
 

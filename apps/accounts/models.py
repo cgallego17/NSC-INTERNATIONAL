@@ -705,6 +705,36 @@ class DashboardContent(models.Model):
         return f"{self.title} ({self.get_user_type_display()})"
 
 
+class MarqueeMessage(models.Model):
+    """Modelo para mensajes del marquee en la barra de quick actions"""
+
+    message = models.CharField(
+        max_length=500,
+        verbose_name=_("Message"),
+        help_text=_("Message text to display in the marquee"),
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name=_("Active"),
+        help_text=_("Only active messages will be displayed"),
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name=_("Order"),
+        help_text=_("Order of appearance (lower numbers appear first)"),
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("Marquee Message")
+        verbose_name_plural = _("Marquee Messages")
+        ordering = ["order", "-created_at"]
+
+    def __str__(self):
+        return f"{self.message[:50]}..." if len(self.message) > 50 else self.message
+
+
 class HomeBanner(models.Model):
     """Modelo para banners del carousel del home"""
 

@@ -38,7 +38,7 @@ from .forms import (
     UserProfileForm,
     UserUpdateForm,
 )
-from .models import DashboardContent, Player, PlayerParent, Team, UserProfile, StripeEventCheckout
+from .models import DashboardContent, MarqueeMessage, Player, PlayerParent, Team, UserProfile, StripeEventCheckout
 
 
 class UserDashboardView(LoginRequiredMixin, TemplateView):
@@ -131,6 +131,10 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             .order_by("order", "-created_at")
         )
         context["dashboard_content"] = dashboard_content
+
+        # Obtener mensajes activos del marquee
+        marquee_messages = MarqueeMessage.objects.filter(is_active=True).order_by("order", "-created_at")
+        context["marquee_messages"] = marquee_messages
 
         # Contexto adicional para los includes de los tabs
         # Formulario de equipo (para managers)

@@ -8,6 +8,7 @@ from .models import (
     Player,
     PlayerParent,
     DashboardContent,
+    MarqueeMessage,
     HomeBanner,
     SiteSettings,
     Sponsor,
@@ -127,6 +128,27 @@ class DashboardContentAdmin(admin.ModelAdmin):
             'all': ('admin/css/widgets.css',)
         }
         js = ('admin/js/core.js',)
+
+
+@admin.register(MarqueeMessage)
+class MarqueeMessageAdmin(admin.ModelAdmin):
+    list_display = ["message", "is_active", "order", "created_at"]
+    list_filter = ["is_active", "created_at"]
+    search_fields = ["message"]
+    readonly_fields = ["created_at", "updated_at"]
+    fieldsets = (
+        (
+            "Mensaje del Marquee",
+            {
+                "fields": ("message", "is_active", "order"),
+                "description": "Configure los mensajes que se mostrarán en el marquee de la barra de quick actions. Solo los mensajes activos se mostrarán. Puede crear múltiples mensajes y se rotarán automáticamente."
+            }
+        ),
+        (
+            "Auditoría",
+            {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
+        ),
+    )
 
 
 @admin.register(HomeBanner)
