@@ -1158,6 +1158,18 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         ),
         help_text=_("Player's date of birth"),
     )
+    profile_picture = forms.ImageField(
+        label=_("Profile Picture"),
+        required=False,
+        widget=forms.FileInput(
+            attrs={
+                "class": "form-control",
+                "accept": "image/*",
+                "id": "id_profile_picture_register",
+            }
+        ),
+        help_text=_("Upload a profile picture (optional)"),
+    )
     relationship = forms.ChoiceField(
         choices=[
             ("father", _("Father")),
@@ -1586,6 +1598,8 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
             user_type="player",
             phone=self.cleaned_data.get("phone", ""),
             birth_date=self.cleaned_data.get("birth_date"),
+            last_name2=last_name2,
+            profile_picture=self.cleaned_data.get("profile_picture"),
         )
 
         # Crear perfil de jugador

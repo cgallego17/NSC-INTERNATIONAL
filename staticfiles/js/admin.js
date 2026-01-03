@@ -771,15 +771,15 @@ class AdminDashboard {
         // Find all Django messages and convert them to toasts
         const messages = document.querySelectorAll('.django-message');
         console.log(`🔄 Converting ${messages.length} Django messages to toasts`);
-        
+
         if (messages.length === 0) {
             console.log('ℹ️ No Django messages to convert');
             return;
         }
-        
+
         // Array para rastrear mensajes procesados
         const processedMessages = [];
-        
+
         messages.forEach(msg => {
             const tag = msg.getAttribute('data-tag');
             const message = msg.getAttribute('data-message');
@@ -833,24 +833,24 @@ class AdminDashboard {
 
             // Show toast
             this.showToast(message, toastType, title, duration);
-            
+
             // Marcar como procesado
             processedMessages.push(msg);
         });
-        
+
         // Eliminar mensajes procesados del DOM para evitar duplicados
         processedMessages.forEach(msg => {
             if (msg.parentNode) {
                 msg.parentNode.removeChild(msg);
             }
         });
-        
+
         // Ocultar el contenedor de mensajes si está vacío
         const messagesContainer = document.querySelector('.messages-container');
         if (messagesContainer && messagesContainer.children.length === 0) {
             messagesContainer.style.display = 'none';
         }
-        
+
         console.log(`✅ ${processedMessages.length} messages converted and removed from DOM`);
     }
 
