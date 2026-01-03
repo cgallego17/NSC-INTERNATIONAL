@@ -1856,11 +1856,19 @@ class PlayerUpdateForm(forms.ModelForm):
 
     def clean_is_pitcher(self):
         """Asegurar que is_pitcher siempre tenga un valor booleano"""
-        # Si el campo no está en cleaned_data (checkbox no marcado), retornar False
-        if "is_pitcher" not in self.cleaned_data:
-            return False
+        # Django puede recibir múltiples valores si hay un checkbox y un hidden con el mismo name
+        # Tomar el último valor (que será el del checkbox si está marcado, o el hidden si no)
         value = self.cleaned_data.get("is_pitcher", False)
-        return bool(value)
+
+        # Si es una lista (múltiples valores), tomar el último
+        if isinstance(value, list):
+            value = value[-1] if value else False
+
+        # Convertir a booleano
+        # Si el valor es '1', 'on', True, o cualquier valor truthy, retornar True
+        if value in (True, '1', 'on', 1, 'True', 'true'):
+            return True
+        return False
 
     def clean_secondary_position(self):
         """Asegurar que secondary_position siempre tenga un valor (puede ser vacío)"""
@@ -1912,15 +1920,8 @@ class PlayerUpdateForm(forms.ModelForm):
         # IMPORTANTE: Establecer secondary_position e is_pitcher DESPUÉS del bucle
         # y ANTES de las restricciones de padre, para asegurar que siempre se guarden
         # Usar cleaned_data directamente ya que clean() asegura que estén presentes
-        if "secondary_position" in self.cleaned_data:
-            player.secondary_position = self.cleaned_data["secondary_position"] or ""
-        else:
-            player.secondary_position = ""
-
-        if "is_pitcher" in self.cleaned_data:
-            player.is_pitcher = bool(self.cleaned_data["is_pitcher"])
-        else:
-            player.is_pitcher = False
+        player.secondary_position = self.cleaned_data.get("secondary_position", "") or ""
+        player.is_pitcher = bool(self.cleaned_data.get("is_pitcher", False))
 
         # Si es padre (no staff), mantener los valores originales de campos restringidos
         if is_parent and not is_staff and player.pk:
@@ -1975,16 +1976,29 @@ class PlayerUpdateForm(forms.ModelForm):
 
         # Guardar el Player
         # Asegurar una última vez que secondary_position e is_pitcher estén correctos antes de guardar
-        if "secondary_position" in self.cleaned_data:
-            player.secondary_position = self.cleaned_data["secondary_position"] or ""
-        if "is_pitcher" in self.cleaned_data:
-            player.is_pitcher = bool(self.cleaned_data["is_pitcher"])
+        # Esto es crítico porque estos campos podrían no guardarse si Django no los detecta como "changed"
+        player.secondary_position = self.cleaned_data.get("secondary_position", "") or ""
+        player.is_pitcher = bool(self.cleaned_data.get("is_pitcher", False))
 
         if commit:
             # Guardar el player
-            # Usar save() normal para guardar todos los campos
-            # update_fields podría causar problemas si no incluye todos los campos modificados
+            # Usar save() normal primero
             player.save()
+
+            # Verificar que se guardaron correctamente y forzar guardado si es necesario
+            player.refresh_from_db()
+
+            # Si no se guardaron correctamente, forzar el guardado explícitamente
+            expected_secondary = self.cleaned_data.get("secondary_position", "") or ""
+            expected_is_pitcher = bool(self.cleaned_data.get("is_pitcher", False))
+
+            if player.secondary_position != expected_secondary:
+                player.secondary_position = expected_secondary
+                player.save(update_fields=["secondary_position"])
+
+            if player.is_pitcher != expected_is_pitcher:
+                player.is_pitcher = expected_is_pitcher
+                player.save(update_fields=["is_pitcher"])
 
         return player
 

@@ -181,6 +181,8 @@
                     {% if form.is_pitcher.errors %}
                         <div class="error-message mt-1">{{ form.is_pitcher.errors }}</div>
                     {% endif %}
+                    <!-- Campo hidden para asegurar que is_pitcher siempre se envíe, incluso si el checkbox no está marcado -->
+                    <input type="hidden" name="is_pitcher" value="0" id="is_pitcher_hidden">
                 </div>
             </div>
             <div class="row">
@@ -532,6 +534,32 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Formulario de edición de jugador cargado');
+
+    // Asegurar que is_pitcher siempre se envíe en el formulario
+    const isPitcherCheckbox = document.getElementById('{{ form.is_pitcher.id_for_label }}');
+    const isPitcherHidden = document.getElementById('is_pitcher_hidden');
+    const playerEditForm = document.getElementById('playerEditForm');
+
+    if (isPitcherCheckbox && isPitcherHidden && playerEditForm) {
+        // Inicializar el valor del hidden según el estado del checkbox
+        isPitcherHidden.value = isPitcherCheckbox.checked ? '1' : '0';
+
+        // Cuando el checkbox cambia, actualizar el valor del hidden
+        isPitcherCheckbox.addEventListener('change', function() {
+            isPitcherHidden.value = this.checked ? '1' : '0';
+            console.log('is_pitcher checkbox cambiado:', this.checked, 'hidden value:', isPitcherHidden.value);
+        });
+
+        // Antes de enviar el formulario, asegurar que el valor esté sincronizado
+        playerEditForm.addEventListener('submit', function(e) {
+            if (isPitcherCheckbox.checked) {
+                isPitcherHidden.value = '1';
+            } else {
+                isPitcherHidden.value = '0';
+            }
+            console.log('Formulario enviado - is_pitcher:', isPitcherCheckbox.checked, 'hidden value:', isPitcherHidden.value);
+        });
+    }
 
     // Mejorar el área de carga de archivos
     const fileInput = document.querySelector('#playerEditForm input[type="file"][name*="age_verification"]');
