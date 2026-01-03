@@ -1883,8 +1883,8 @@ class PlayerUpdateForm(forms.ModelForm):
 
     def save(self, commit=True):
         """Guardar los cambios, manteniendo los valores originales de campos deshabilitados para padres"""
-        # super().save(commit=False) establece todos los campos del Player desde cleaned_data
-        player = super().save(commit=False)
+        # Obtener el player (nuevo o existente)
+        player = self.instance
 
         # Verificar si el usuario es padre/acudiente del jugador
         is_parent = False
@@ -1893,14 +1893,29 @@ class PlayerUpdateForm(forms.ModelForm):
             if hasattr(self.user, "profile") and self.user.profile.is_parent:
                 from .models import PlayerParent
                 is_parent = PlayerParent.objects.filter(
-                    parent=self.user, player=self.instance
+                    parent=self.user, player=player
                 ).exists()
             is_staff = self.user.is_staff or self.user.is_superuser
 
+        # Establecer TODOS los campos del Player explícitamente desde cleaned_data
+        for field_name in self.Meta.fields:
+            if field_name in self.cleaned_data:
+                value = self.cleaned_data[field_name]
+                # Para ForeignKey y FileField, establecer solo si hay valor
+                if field_name in ["team", "age_verification_document"]:
+                    if value is not None:
+                        setattr(player, field_name, value)
+                else:
+                    # Para otros campos, establecer el valor directamente
+                    setattr(player, field_name, value)
+
+        # Asegurar que secondary_position e is_pitcher siempre se establezcan
+        player.secondary_position = self.cleaned_data.get("secondary_position", "") or ""
+        player.is_pitcher = bool(self.cleaned_data.get("is_pitcher", False))
+
         # Si es padre (no staff), mantener los valores originales de campos restringidos
-        if is_parent and not is_staff and self.instance.pk:
+        if is_parent and not is_staff and player.pk:
             # Mantener valores originales de campos que no puede cambiar
-            # Si hay un campo hidden con el team, usarlo (para cuando el Select está disabled)
             if "team_hidden" in self.cleaned_data and self.cleaned_data.get("team_hidden"):
                 try:
                     from .models import Team
@@ -1924,26 +1939,6 @@ class PlayerUpdateForm(forms.ModelForm):
                 player.age_verification_status = self.instance.age_verification_status
                 player.age_verification_approved_date = self.instance.age_verification_approved_date
                 player.age_verification_notes = self.instance.age_verification_notes
-
-        # IMPORTANTE: Establecer TODOS los campos del Player explícitamente desde cleaned_data
-        # Esto asegura que todos los campos se guarden, incluso si super().save(commit=False) no los estableció
-        # Establecer todos los campos que están en Meta.fields
-        for field_name in self.Meta.fields:
-            if field_name in self.cleaned_data:
-                value = self.cleaned_data[field_name]
-                # Establecer el campo, manejando None y valores vacíos apropiadamente
-                if field_name in ["team", "age_verification_document"]:
-                    # ForeignKey y FileField: establecer solo si hay valor
-                    if value is not None:
-                        setattr(player, field_name, value)
-                else:
-                    # Otros campos: establecer el valor (puede ser None, "", False, etc.)
-                    setattr(player, field_name, value)
-
-        # Asegurar que secondary_position e is_pitcher siempre se establezcan explícitamente
-        # (por si no están en cleaned_data o tienen valores especiales)
-        player.secondary_position = self.cleaned_data.get("secondary_position", "") or ""
-        player.is_pitcher = bool(self.cleaned_data.get("is_pitcher", False))
 
         # Guardar campos de User
         if hasattr(player, "user"):
