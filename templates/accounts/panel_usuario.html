@@ -408,44 +408,6 @@
         <div class="quick-actions-section">
             <h5 class="quick-actions-title">
                 <i class="fas fa-bolt me-2"></i>{% trans "Quick Actions" %}
-            </h5>
-            <div class="quick-actions">
-                <div class="quick-actions-left">
-                    <button type="button" class="quick-action-btn tab-btn active" data-tab="inicio">
-                        <i class="fas fa-home"></i>
-                        <span>{% trans "Home" %}</span>
-                    </button>
-                    {% if profile.is_team_manager %}
-                        <button type="button" class="quick-action-btn tab-btn" data-tab="crear-equipo" data-url="{% url 'accounts:team_create' %}">
-                            <i class="fas fa-plus-circle"></i>
-                            <span>{% trans "Create Team" %}</span>
-                        </button>
-                        <button type="button" class="quick-action-btn tab-btn" data-tab="registrar-jugador" data-url="{% url 'accounts:player_register' %}">
-                            <i class="fas fa-user-plus"></i>
-                            <span>{% trans "Register Player" %}</span>
-                        </button>
-                        <button type="button" class="quick-action-btn tab-btn" data-tab="mis-equipos" data-url="{% url 'accounts:team_list' %}">
-                            <i class="fas fa-users"></i>
-                            <span>{% trans "My Teams" %}</span>
-                        </button>
-                        <button type="button" class="quick-action-btn tab-btn" data-tab="ver-jugadores" data-url="{% url 'accounts:player_list' %}">
-                            <i class="fas fa-users"></i>
-                            <span>{% trans "View Players" %}</span>
-                        </button>
-                    {% endif %}
-                    {% if profile.is_parent %}
-                        <button type="button" class="quick-action-btn tab-btn" data-tab="registrar-hijo" data-url="{% url 'accounts:parent_player_register' %}">
-                            <i class="fas fa-user-plus"></i>
-                            <span>{% trans "Register Child" %}</span>
-                        </button>
-                        <button type="button" class="quick-action-btn tab-btn" data-tab="mis-hijos" data-url="{% url 'accounts:player_list' %}">
-                            <i class="fas fa-child"></i>
-                            <span>{% trans "My Children/Players" %}</span>
-                        </button>
-                    {% endif %}
-                </div>
-
-                <!-- Marquee en el medio -->
                 <div class="quick-actions-marquee">
                     {% if marquee_messages %}
                         <marquee behavior="scroll" direction="left" scrollamount="3">
@@ -463,47 +425,78 @@
                         </marquee>
                     {% endif %}
                 </div>
-
-                <div class="quick-actions-right">
-                    {% if not profile.is_team_manager and not profile.is_parent %}
-                        {% if user.player_profile %}
-                            <button type="button" class="quick-action-btn tab-btn" data-tab="mi-perfil" data-url="{% url 'accounts:player_detail' user.player_profile.pk %}">
-                                <i class="fas fa-user"></i>
-                                <span>{% trans "My Profile" %}</span>
-                            </button>
-                            <button type="button" class="quick-action-btn tab-btn" data-tab="perfil-publico" data-url="{% url 'accounts:front_player_profile' user.player_profile.pk %}">
-                                <i class="fas fa-id-card"></i>
-                                <span>{% trans "Public Profile" %}</span>
-                            </button>
-                        {% endif %}
+            </h5>
+            <div class="quick-actions">
+                <button type="button" class="quick-action-btn tab-btn active" data-tab="inicio">
+                    <i class="fas fa-home"></i>
+                    <span>{% trans "Home" %}</span>
+                </button>
+                {% if profile.is_team_manager %}
+                    <button type="button" class="quick-action-btn tab-btn" data-tab="crear-equipo" data-url="{% url 'accounts:team_create' %}">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>{% trans "Create Team" %}</span>
+                    </button>
+                    <button type="button" class="quick-action-btn tab-btn" data-tab="registrar-jugador" data-url="{% url 'accounts:player_register' %}">
+                        <i class="fas fa-user-plus"></i>
+                        <span>{% trans "Register Player" %}</span>
+                    </button>
+                    <button type="button" class="quick-action-btn tab-btn" data-tab="mis-equipos" data-url="{% url 'accounts:team_list' %}">
+                        <i class="fas fa-users"></i>
+                        <span>{% trans "My Teams" %}</span>
+                    </button>
+                    <button type="button" class="quick-action-btn tab-btn" data-tab="ver-jugadores" data-url="{% url 'accounts:player_list' %}">
+                        <i class="fas fa-users"></i>
+                        <span>{% trans "View Players" %}</span>
+                    </button>
+                {% endif %}
+                {% if profile.is_parent %}
+                    <button type="button" class="quick-action-btn tab-btn" data-tab="registrar-hijo" data-url="{% url 'accounts:parent_player_register' %}">
+                        <i class="fas fa-user-plus"></i>
+                        <span>{% trans "Register Child" %}</span>
+                    </button>
+                    <button type="button" class="quick-action-btn tab-btn" data-tab="mis-hijos" data-url="{% url 'accounts:player_list' %}">
+                        <i class="fas fa-child"></i>
+                        <span>{% trans "My Children/Players" %}</span>
+                    </button>
+                {% endif %}
+                {% if not profile.is_team_manager and not profile.is_parent %}
+                    {% if user.player_profile %}
+                        <button type="button" class="quick-action-btn tab-btn" data-tab="mi-perfil" data-url="{% url 'accounts:player_detail' user.player_profile.pk %}">
+                            <i class="fas fa-user"></i>
+                            <span>{% trans "My Profile" %}</span>
+                        </button>
+                        <button type="button" class="quick-action-btn tab-btn" data-tab="perfil-publico" data-url="{% url 'accounts:front_player_profile' user.player_profile.pk %}">
+                            <i class="fas fa-id-card"></i>
+                            <span>{% trans "Public Profile" %}</span>
+                        </button>
                     {% endif %}
-                    <button type="button" class="quick-action-btn tab-btn" data-tab="eventos" data-url="{% url 'events:list' %}">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>{% trans "Events" %}</span>
-                        {% if upcoming_events %}
-                            <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ upcoming_events|length }}</span>
-                        {% endif %}
-                    </button>
-                    <button type="button" class="quick-action-btn tab-btn" data-tab="calendario" data-url="{% url 'events:calendar' %}">
-                        <i class="fas fa-calendar"></i>
-                        <span>{% trans "Calendar" %}</span>
-                    </button>
-                    <button type="button" class="quick-action-btn tab-btn" data-tab="reservas" data-url="{% url 'locations:front_hotel_reservation_list' %}">
-                        <i class="fas fa-calendar-check"></i>
-                        <span>{% trans "Reservations" %}</span>
-                        {% if pending_reservations > 0 %}
-                            <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ pending_reservations }}</span>
-                        {% endif %}
-                    </button>
-                    <button type="button" class="quick-action-btn tab-btn" data-tab="plan-pagos">
-                        <i class="fas fa-credit-card"></i>
-                        <span>{% trans "Plans & Payments" %}</span>
-                    </button>
-                    <button type="button" class="quick-action-btn tab-btn" data-tab="perfil" data-url="{% url 'accounts:profile' %}">
-                        <i class="fas fa-user"></i>
-                        <span>{% trans "Profile" %}</span>
-                    </button>
-                </div>
+                {% endif %}
+                <button type="button" class="quick-action-btn tab-btn" data-tab="eventos" data-url="{% url 'events:list' %}">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>{% trans "Events" %}</span>
+                    {% if upcoming_events %}
+                        <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ upcoming_events|length }}</span>
+                    {% endif %}
+                </button>
+                <button type="button" class="quick-action-btn tab-btn" data-tab="calendario" data-url="{% url 'events:calendar' %}">
+                    <i class="fas fa-calendar"></i>
+                    <span>{% trans "Calendar" %}</span>
+                </button>
+                <button type="button" class="quick-action-btn tab-btn" data-tab="reservas" data-url="{% url 'locations:front_hotel_reservation_list' %}">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>{% trans "Reservations" %}</span>
+                    {% if pending_reservations > 0 %}
+                        <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ pending_reservations }}</span>
+                    {% endif %}
+                </button>
+                <button type="button" class="quick-action-btn tab-btn" data-tab="plan-pagos">
+                    <i class="fas fa-credit-card"></i>
+                    <span>{% trans "Plans & Payments" %}</span>
+                </button>
+                <button type="button" class="quick-action-btn tab-btn" data-tab="perfil" data-url="{% url 'accounts:profile' %}">
+                    <i class="fas fa-user"></i>
+                    <span>{% trans "Profile" %}</span>
+                </button>
             </div>
         </div>
 
