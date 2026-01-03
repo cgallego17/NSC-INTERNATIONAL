@@ -1089,13 +1089,16 @@ class PlayerRegistrationForm(forms.ModelForm):
             profile.save()
 
         # Crear perfil de jugador directamente (no usar super().save() porque requiere user)
+        secondary_position = self.cleaned_data.get("secondary_position") or ""
+        is_pitcher = self.cleaned_data.get("is_pitcher") or False
+
         player = Player.objects.create(
             user=user,
             team=self.cleaned_data.get("team"),
             jersey_number=self.cleaned_data.get("jersey_number"),
             position=self.cleaned_data.get("position"),
-            secondary_position=self.cleaned_data.get("secondary_position"),
-            is_pitcher=self.cleaned_data.get("is_pitcher", False),
+            secondary_position=secondary_position,
+            is_pitcher=is_pitcher,
             height=self.cleaned_data.get("height"),
             weight=self.cleaned_data.get("weight"),
             batting_hand=self.cleaned_data.get("batting_hand"),
@@ -1587,13 +1590,16 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
 
         # Crear perfil de jugador
         # NOTA: El equipo y número de jersey NO se asignan aquí - serán asignados por un administrador o manager
+        secondary_position = self.cleaned_data.get("secondary_position") or ""
+        is_pitcher = self.cleaned_data.get("is_pitcher") or False
+
         player = Player.objects.create(
             user=user,
             team=None,  # El equipo se asignará posteriormente por admin o manager
             jersey_number=None,  # El número de jersey se asignará posteriormente por admin o manager
             position=self.cleaned_data.get("position"),
-            secondary_position=self.cleaned_data.get("secondary_position"),
-            is_pitcher=self.cleaned_data.get("is_pitcher", False),
+            secondary_position=secondary_position,
+            is_pitcher=is_pitcher,
             height=self.cleaned_data.get("height"),
             weight=self.cleaned_data.get("weight"),
             batting_hand=self.cleaned_data.get("batting_hand"),
@@ -1849,6 +1855,19 @@ class PlayerUpdateForm(forms.ModelForm):
     def save(self, commit=True):
         """Guardar los cambios, manteniendo los valores originales de campos deshabilitados para padres"""
         player = super().save(commit=False)
+
+        # Asegurar que secondary_position e is_pitcher se guarden explícitamente
+        secondary_position = self.cleaned_data.get("secondary_position")
+        if secondary_position:
+            player.secondary_position = secondary_position
+        else:
+            player.secondary_position = ""
+
+        is_pitcher = self.cleaned_data.get("is_pitcher")
+        if is_pitcher is not None:
+            player.is_pitcher = bool(is_pitcher)
+        else:
+            player.is_pitcher = False
 
         # Guardar campos de User
         if hasattr(player, "user"):
