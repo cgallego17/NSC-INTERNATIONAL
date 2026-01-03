@@ -1152,13 +1152,16 @@
                 if (form) {
                     const hasEmail = form.querySelector('input[name="email"]');
                     const hasBirthDate = form.querySelector('input[name="birth_date"]');
-                    const hasTeam = form.querySelector('select[name="team"]');
+                    // Buscar team como select o como input hidden (para formularios de hijo)
+                    const hasTeam = form.querySelector('select[name="team"]') || form.querySelector('input[name="team"][type="hidden"]') || form.querySelector('input[name="team_hidden"]');
                     console.log('Campos del formulario:');
                     console.log('  - Email:', hasEmail ? '✅ Presente' : '❌ No presente');
                     console.log('  - Birth Date:', hasBirthDate ? '✅ Presente' : '❌ No presente');
                     console.log('  - Team:', hasTeam ? '✅ Presente' : '❌ No presente');
                     if (hasTeam) {
+                        const teamType = hasTeam.tagName.toLowerCase();
                         const teamDisabled = hasTeam.hasAttribute('disabled');
+                        console.log('  - Team type:', teamType === 'select' ? 'Select' : teamType === 'input' ? 'Hidden Input' : 'Unknown');
                         console.log('  - Team disabled:', teamDisabled ? '✅ Sí (correcto para hijo)' : '❌ No');
                     }
                 }
