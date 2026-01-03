@@ -1,11 +1,12 @@
 {% load static %}
 {% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ LANGUAGE_CODE|default:'es' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jugadores - NCS International</title>
+    <title>{% trans "Players" %} - NCS International</title>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -419,6 +420,42 @@
             box-shadow: 0 4px 12px rgba(213, 0, 50, 0.4);
         }
 
+        /* Filter Buttons */
+        .btn-primary {
+            background: var(--mlb-blue) !important;
+            border-color: var(--mlb-blue) !important;
+            color: white !important;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 25px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: var(--mlb-light-blue) !important;
+            border-color: var(--mlb-light-blue) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13, 44, 84, 0.4);
+        }
+
+        .btn-outline-secondary {
+            border-color: #6c757d;
+            color: #6c757d;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 10px 20px;
+            transition: all 0.3s;
+        }
+
+        .btn-outline-secondary:hover {
+            background: #6c757d;
+            border-color: #6c757d;
+            color: white;
+            transform: translateY(-2px);
+        }
+
         /* Pagination */
         .pagination {
             justify-content: center;
@@ -640,8 +677,8 @@
         <div class="container">
             <div class="row">
                 <div class="col-12 text-center">
-                    <h1><i class="fas fa-users me-3"></i>Jugadores</h1>
-                    <p class="lead mt-3">Conoce a nuestros jugadores registrados</p>
+                    <h1><i class="fas fa-users me-3"></i>{% trans "Players" %}</h1>
+                    <p class="lead mt-3">{% trans "Meet our registered players" %}</p>
                 </div>
             </div>
         </div>
@@ -693,12 +730,12 @@
                     </select>
                 </div>
                 <div class="col-lg">
-                    <label for="division" class="form-label"><i class="fas fa-users me-1"></i>{% trans "Division" %}</label>
+                    <label for="division" class="form-label"><i class="fas fa-layer-group me-1"></i>{% trans "Division" %}</label>
                     <select class="form-select" id="division" name="division">
                         <option value="">{% trans "All" %}</option>
-                        {% for team in teams %}
-                            <option value="{{ team.pk }}" {% if current_filters.division == team.pk|stringformat:"s" %}selected{% endif %}>
-                                {{ team.name }}
+                        {% for div_value, div_label in divisions %}
+                            <option value="{{ div_value }}" {% if current_filters.division == div_value %}selected{% endif %}>
+                                {{ div_label }}
                             </option>
                         {% endfor %}
                     </select>
@@ -754,7 +791,7 @@
                                 <i class="fas fa-map-marker-alt"></i>
                             </div>
                             <div class="player-info-content">
-                                <div class="player-info-label">Posición</div>
+                                <div class="player-info-label">{% trans "Position" %}</div>
                                 <div class="player-info-value">{{ player.get_position_display }}</div>
                             </div>
                         </div>
@@ -768,8 +805,8 @@
                                         <i class="fas fa-birthday-cake"></i>
                                     </div>
                                     <div class="player-info-content">
-                                        <div class="player-info-label">Edad</div>
-                                        <div class="player-info-value">{{ age }} años</div>
+                                        <div class="player-info-label">{% trans "Age" %}</div>
+                                        <div class="player-info-value">{{ age }} {% trans "years" %}</div>
                                     </div>
                                 </div>
                                 {% endif %}
@@ -782,7 +819,7 @@
                                 <i class="fas fa-trophy"></i>
                             </div>
                             <div class="player-info-content">
-                                <div class="player-info-label">División</div>
+                                <div class="player-info-label">{% trans "Division" %}</div>
                                 <div class="player-info-value">{{ player.division }}</div>
                             </div>
                         </div>
@@ -794,7 +831,7 @@
                                 <i class="fas fa-ruler-vertical"></i>
                             </div>
                             <div class="player-info-content">
-                                <div class="player-info-label">Estatura</div>
+                                <div class="player-info-label">{% trans "Height" %}</div>
                                 <div class="player-info-value">{{ player.height }}</div>
                             </div>
                         </div>
@@ -803,7 +840,7 @@
 
                     <div class="player-card-footer">
                         <a href="{% url 'accounts:public_player_profile' player.pk %}" class="btn-view-profile">
-                            <i class="fas fa-eye me-2"></i>Ver Perfil
+                            <i class="fas fa-eye me-2"></i>{% trans "View Profile" %}
                         </a>
                     </div>
                 </div>
@@ -859,8 +896,8 @@
         {% else %}
         <div class="no-results">
             <i class="fas fa-user-slash"></i>
-            <h3>No se encontraron jugadores</h3>
-            <p>Intenta ajustar los filtros de búsqueda</p>
+            <h3>{% trans "No players found" %}</h3>
+            <p>{% trans "Try adjusting the search filters" %}</p>
         </div>
         {% endif %}
     </div>

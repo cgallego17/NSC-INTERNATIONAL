@@ -102,13 +102,13 @@
                         <!-- Filtro por División -->
                         <div class="col-lg">
                             <label for="division" class="form-label">
-                                <i class="fas fa-users me-1"></i>{% trans "Division" %}
+                                <i class="fas fa-layer-group me-1"></i>{% trans "Division" %}
                             </label>
                             <select name="division" class="form-select" id="division">
                                 <option value="">{% trans "All" %}</option>
-                                {% for team in teams %}
-                                    <option value="{{ team.pk }}" {% if current_filters.division == team.pk|stringformat:"s" %}selected{% endif %}>
-                                        {{ team.name }}
+                                {% for div_value, div_label in divisions %}
+                                    <option value="{{ div_value }}" {% if current_filters.division == div_value %}selected{% endif %}>
+                                        {{ div_label }}
                                     </option>
                                 {% endfor %}
                             </select>

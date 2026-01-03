@@ -699,7 +699,7 @@ class PlayerListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(user__profile__city_id=city_filter)
 
         if division_filter:
-            queryset = queryset.filter(team_id=division_filter)
+            queryset = queryset.filter(division=division_filter)
 
         if is_active_filter:
             is_active = is_active_filter.lower() == "true"
@@ -725,7 +725,9 @@ class PlayerListView(LoginRequiredMixin, ListView):
         context["countries"] = Country.objects.filter(is_active=True).order_by("name")
         context["states"] = State.objects.filter(is_active=True).order_by("name")
         context["cities"] = City.objects.filter(is_active=True).order_by("name")
-        context["teams"] = Team.objects.filter(is_active=True).order_by("name")
+
+        # Divisiones desde el modelo Player
+        context["divisions"] = Player.DIVISION_CHOICES
 
         # Guardar filtros actuales para mantenerlos en la paginación
         context["current_filters"] = {

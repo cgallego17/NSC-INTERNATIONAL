@@ -276,10 +276,10 @@ class PublicPlayerListView(ListView):
         if city_filter:
             queryset = queryset.filter(user__profile__city_id=city_filter)
 
-        # Filtro por división (usando team)
+        # Filtro por división
         division_filter = self.request.GET.get("division")
         if division_filter:
-            queryset = queryset.filter(team_id=division_filter)
+            queryset = queryset.filter(division=division_filter)
 
         return queryset
 
@@ -293,7 +293,9 @@ class PublicPlayerListView(ListView):
         context["countries"] = Country.objects.filter(is_active=True).order_by("name")
         context["states"] = State.objects.filter(is_active=True).order_by("name")
         context["cities"] = City.objects.filter(is_active=True).order_by("name")
-        context["teams"] = Team.objects.filter(is_active=True).order_by("name")
+
+        # Divisiones desde el modelo Player
+        context["divisions"] = Player.DIVISION_CHOICES
 
         # Filtros actuales
         context["current_filters"] = {
