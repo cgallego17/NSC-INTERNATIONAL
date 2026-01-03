@@ -5,14 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar Jugador - NCS International</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
     <style>
         :root {
             --mlb-blue: #0d2c54;
@@ -21,36 +21,36 @@
             --mlb-gold: #ffd700;
             --mlb-dark: #1a1a1a;
         }
-        
+
         body {
             font-family: 'Arial', 'Helvetica', sans-serif;
             background-color: #f5f5f5;
             color: #333;
         }
-        
+
         .top-bar {
             background: var(--mlb-dark);
             color: white;
             padding: 8px 0;
             font-size: 0.85rem;
         }
-        
+
         .top-bar a {
             color: #ccc;
             text-decoration: none;
             transition: color 0.3s;
         }
-        
+
         .top-bar a:hover {
             color: white;
         }
-        
+
         .navbar-mlb {
             background: var(--mlb-blue) !important;
             padding: 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
-        
+
         .navbar-mlb .navbar-brand {
             font-size: 1.8rem;
             font-weight: 700;
@@ -58,7 +58,7 @@
             padding: 15px 20px;
             background: var(--mlb-red);
         }
-        
+
         .navbar-mlb .nav-link {
             color: white !important;
             font-weight: 600;
@@ -68,19 +68,19 @@
             letter-spacing: 0.5px;
             transition: background 0.3s;
         }
-        
+
         .navbar-mlb .nav-link:hover,
         .navbar-mlb .nav-link.active {
             background: var(--mlb-red);
         }
-        
+
         .page-hero {
             background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
             color: white;
             padding: 40px 0;
             margin-bottom: 40px;
         }
-        
+
         .form-card {
             background: white;
             border-radius: 15px;
@@ -89,14 +89,14 @@
             border-top: 5px solid var(--mlb-red);
             margin-bottom: 40px;
         }
-        
+
         .form-header {
             background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
             color: white;
             padding: 30px;
             text-align: center;
         }
-        
+
         .form-header h2 {
             font-size: 2rem;
             font-weight: 900;
@@ -104,21 +104,21 @@
             letter-spacing: 2px;
             margin-bottom: 10px;
         }
-        
+
         .form-body {
             padding: 40px;
         }
-        
+
         .form-section {
             margin-bottom: 30px;
             padding-bottom: 30px;
             border-bottom: 2px solid #f0f0f0;
         }
-        
+
         .form-section:last-child {
             border-bottom: none;
         }
-        
+
         .form-section-title {
             font-size: 1.3rem;
             font-weight: 700;
@@ -129,7 +129,7 @@
             border-bottom: 2px solid var(--mlb-red);
             display: inline-block;
         }
-        
+
         .form-label {
             font-weight: 600;
             color: var(--mlb-blue);
@@ -138,19 +138,19 @@
             font-size: 0.85rem;
             letter-spacing: 0.5px;
         }
-        
+
         .form-control, .form-select {
             border: 2px solid #e9ecef;
             border-radius: 8px;
             padding: 12px 15px;
             transition: all 0.3s;
         }
-        
+
         .form-control:focus, .form-select:focus {
             border-color: var(--mlb-blue);
             box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.25);
         }
-        
+
         .btn-mlb {
             background: var(--mlb-red);
             color: white;
@@ -162,14 +162,14 @@
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(213, 0, 50, 0.3);
         }
-        
+
         .btn-mlb:hover {
             background: #b30029;
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(213, 0, 50, 0.4);
             color: white;
         }
-        
+
         .btn-secondary-mlb {
             background: #6c757d;
             color: white;
@@ -177,25 +177,25 @@
             font-weight: 600;
             border-radius: 8px;
         }
-        
+
         .btn-secondary-mlb:hover {
             background: #5a6268;
             color: white;
         }
-        
+
         .error-message {
             color: var(--mlb-red);
             font-size: 0.85rem;
             margin-top: 5px;
             font-weight: 600;
         }
-        
+
         .help-text {
             font-size: 0.8rem;
             color: #666;
             margin-top: 5px;
         }
-        
+
         .footer-mlb {
             background: var(--mlb-dark);
             color: #ccc;
@@ -276,17 +276,17 @@
                         <h2><i class="fas fa-user-plus me-2"></i>Registrar Nuevo Jugador</h2>
                         <p class="mb-0">Completa la información del jugador</p>
                     </div>
-                    
+
                     <div class="form-body">
                         <form method="post" enctype="multipart/form-data" id="playerForm">
                             {% csrf_token %}
-                            
+
                             {% if form.non_field_errors %}
                                 <div class="alert alert-danger">
                                     {{ form.non_field_errors }}
                                 </div>
                             {% endif %}
-                            
+
                             <!-- Información de Usuario -->
                             <div class="form-section">
                                 <div class="form-section-title"><i class="fas fa-user me-2"></i>Información de Usuario</div>
@@ -320,7 +320,7 @@
                                         <div class="help-text">Opcional</div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.email.id_for_label }}" class="form-label">
@@ -344,7 +344,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.phone.id_for_label }}" class="form-label">
@@ -366,7 +366,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Información Deportiva -->
                             <div class="form-section">
                                 <div class="form-section-title"><i class="fas fa-baseball-ball me-2"></i>Información Deportiva</div>
@@ -390,7 +390,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-4 mb-3">
                                         <label for="{{ form.position.id_for_label }}" class="form-label">
@@ -421,7 +421,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.batting_hand.id_for_label }}" class="form-label">
@@ -443,7 +443,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Elegibilidad y División -->
                             <div class="form-section">
                                 <div class="form-section-title"><i class="fas fa-check-circle me-2"></i>Elegibilidad y División</div>
@@ -451,7 +451,7 @@
                                     <i class="fas fa-exclamation-triangle me-2"></i>
                                     <strong>Importante:</strong> Los jugadores sin verificación de edad aprobada no son elegibles hasta que se produzca y apruebe la documentación.
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.grade.id_for_label }}" class="form-label">
@@ -478,7 +478,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 <div class="mb-3">
                                     <label for="{{ form.age_verification_document.id_for_label }}" class="form-label">
                                         <i class="fas fa-file-upload me-1"></i>Documento de Verificación de Edad
@@ -490,10 +490,10 @@
                                     {% if form.age_verification_document.errors %}
                                         <div class="error-message">{{ form.age_verification_document.errors }}</div>
                                     {% endif %}
-                                    <div class="help-text">Certificado de nacimiento, pasaporte o ID (original o digital)</div>
+                                    <div class="help-text">{% trans "Birth certificate, passport or ID (original or digital)" %}</div>
                                 </div>
                             </div>
-                            
+
                             <!-- Tallas de Uniformes -->
                             <div class="form-section">
                                 <div class="form-section-title"><i class="fas fa-tshirt me-2"></i>Tallas de Uniformes</div>
@@ -501,7 +501,7 @@
                                     <i class="fas fa-info-circle me-2"></i>
                                     <strong>Nota:</strong> Selecciona una talla por cada categoría de uniforme.
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.jersey_size.id_for_label }}" class="form-label">
@@ -522,7 +522,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.batting_glove_size.id_for_label }}" class="form-label">
@@ -543,7 +543,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.shorts_size.id_for_label }}" class="form-label">
@@ -556,7 +556,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Contacto de Emergencia -->
                             <div class="form-section">
                                 <div class="form-section-title"><i class="fas fa-phone-alt me-2"></i>Contacto de Emergencia</div>
@@ -589,7 +589,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 <div class="mb-3">
                                     <label for="{{ form.medical_conditions.id_for_label }}" class="form-label">
                                         <i class="fas fa-heartbeat me-1"></i>Condiciones Médicas
@@ -601,7 +601,7 @@
                                     <div class="help-text">Especifica cualquier condición médica relevante o "Ninguna"</div>
                                 </div>
                             </div>
-                            
+
                             <div class="d-flex justify-content-between mt-4">
                                 <a href="{% url 'accounts:player_list' %}" class="btn btn-secondary-mlb">
                                     <i class="fas fa-times me-1"></i>Cancelar

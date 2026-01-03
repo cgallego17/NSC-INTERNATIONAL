@@ -5,14 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar Jugador - NCS International</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
     <style>
         :root {
             --mlb-blue: #0d2c54;
@@ -21,36 +21,36 @@
             --mlb-gold: #ffd700;
             --mlb-dark: #1a1a1a;
         }
-        
+
         body {
             font-family: 'Arial', 'Helvetica', sans-serif;
             background-color: #f5f5f5;
             color: #333;
         }
-        
+
         .top-bar {
             background: var(--mlb-dark);
             color: white;
             padding: 8px 0;
             font-size: 0.85rem;
         }
-        
+
         .top-bar a {
             color: #ccc;
             text-decoration: none;
             transition: color 0.3s;
         }
-        
+
         .top-bar a:hover {
             color: white;
         }
-        
+
         .navbar-mlb {
             background: var(--mlb-blue) !important;
             padding: 0;
             box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
-        
+
         .navbar-mlb .navbar-brand {
             font-size: 1.8rem;
             font-weight: 700;
@@ -58,7 +58,7 @@
             padding: 15px 20px;
             background: var(--mlb-red);
         }
-        
+
         .navbar-mlb .nav-link {
             color: white !important;
             font-weight: 600;
@@ -68,19 +68,19 @@
             letter-spacing: 0.5px;
             transition: background 0.3s;
         }
-        
+
         .navbar-mlb .nav-link:hover,
         .navbar-mlb .nav-link.active {
             background: var(--mlb-red);
         }
-        
+
         .page-hero {
             background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
             color: white;
             padding: 40px 0;
             margin-bottom: 40px;
         }
-        
+
         .form-card {
             background: white;
             border-radius: 15px;
@@ -89,14 +89,14 @@
             border-top: 5px solid var(--mlb-red);
             margin-bottom: 40px;
         }
-        
+
         .form-header {
             background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
             color: white;
             padding: 30px;
             text-align: center;
         }
-        
+
         .form-header h2 {
             font-size: 2rem;
             font-weight: 900;
@@ -104,21 +104,21 @@
             letter-spacing: 2px;
             margin-bottom: 10px;
         }
-        
+
         .form-body {
             padding: 40px;
         }
-        
+
         .form-section {
             margin-bottom: 30px;
             padding-bottom: 30px;
             border-bottom: 2px solid #f0f0f0;
         }
-        
+
         .form-section:last-child {
             border-bottom: none;
         }
-        
+
         .form-section-title {
             font-size: 1.3rem;
             font-weight: 700;
@@ -129,7 +129,7 @@
             border-bottom: 2px solid var(--mlb-red);
             display: inline-block;
         }
-        
+
         .form-label {
             font-weight: 600;
             color: var(--mlb-blue);
@@ -138,19 +138,19 @@
             font-size: 0.85rem;
             letter-spacing: 0.5px;
         }
-        
+
         .form-control, .form-select {
             border: 2px solid #e9ecef;
             border-radius: 8px;
             padding: 12px 15px;
             transition: all 0.3s;
         }
-        
+
         .form-control:focus, .form-select:focus {
             border-color: var(--mlb-blue);
             box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.25);
         }
-        
+
         .btn-mlb {
             background: var(--mlb-red);
             color: white;
@@ -162,14 +162,14 @@
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(213, 0, 50, 0.3);
         }
-        
+
         .btn-mlb:hover {
             background: #b30029;
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(213, 0, 50, 0.4);
             color: white;
         }
-        
+
         .btn-secondary-mlb {
             background: #6c757d;
             color: white;
@@ -177,32 +177,32 @@
             font-weight: 600;
             border-radius: 8px;
         }
-        
+
         .btn-secondary-mlb:hover {
             background: #5a6268;
             color: white;
         }
-        
+
         .error-message {
             color: var(--mlb-red);
             font-size: 0.85rem;
             margin-top: 5px;
             font-weight: 600;
         }
-        
+
         .help-text {
             font-size: 0.8rem;
             color: #666;
             margin-top: 5px;
         }
-        
+
         .footer-mlb {
             background: var(--mlb-dark);
             color: #ccc;
             padding: 40px 0 20px;
             margin-top: 60px;
         }
-        
+
         .alert-info-custom {
             background: #e3f2fd;
             border-left: 4px solid var(--mlb-blue);
@@ -277,23 +277,23 @@
                     <i class="fas fa-info-circle me-2"></i>
                     <strong>Información:</strong> Puedes registrar a tu hijo/a o acudido. Los jugadores <strong>NO pueden iniciar sesión</strong> - tú como padre/acudiente gestionarás toda su información desde tu dashboard.
                 </div>
-                
+
                 <div class="form-card">
                     <div class="form-header">
                         <h2><i class="fas fa-user-plus me-2"></i>Registrar Jugador</h2>
                         <p class="mb-0">Completa la información del jugador</p>
                     </div>
-                    
+
                     <div class="form-body">
                         <form method="post" enctype="multipart/form-data" id="playerForm">
                             {% csrf_token %}
-                            
+
                             {% if form.non_field_errors %}
                                 <div class="alert alert-danger">
                                     {{ form.non_field_errors }}
                                 </div>
                             {% endif %}
-                            
+
                             <!-- Información de Relación -->
                             <div class="form-section">
                                 <div class="form-section-title"><i class="fas fa-users me-2"></i>Relación con el Jugador</div>
@@ -323,7 +323,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Información de Usuario -->
                             <div class="form-section">
                                 <div class="form-section-title"><i class="fas fa-user me-2"></i>Información del Jugador</div>
@@ -356,7 +356,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.phone.id_for_label }}" class="form-label">
@@ -381,7 +381,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Información Deportiva -->
                             <div class="form-section">
                                 <div class="form-section-title"><i class="fas fa-baseball-ball me-2"></i>Información Deportiva</div>
@@ -389,7 +389,7 @@
                                     <i class="fas fa-info-circle me-2"></i>
                                     <strong>Nota:</strong> El equipo y número de jersey serán asignados posteriormente por un administrador o manager del equipo.
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-4 mb-3">
                                         <label for="{{ form.position.id_for_label }}" class="form-label">
@@ -420,7 +420,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.batting_hand.id_for_label }}" class="form-label">
@@ -442,7 +442,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Elegibilidad y División -->
                             <div class="form-section">
                                 <div class="form-section-title"><i class="fas fa-check-circle me-2"></i>Elegibilidad y División</div>
@@ -450,7 +450,7 @@
                                     <i class="fas fa-exclamation-triangle me-2"></i>
                                     <strong>Importante:</strong> Los jugadores sin verificación de edad aprobada no son elegibles hasta que se produzca y apruebe la documentación.
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.grade.id_for_label }}" class="form-label">
@@ -478,7 +478,7 @@
                                         <div class="help-text">Será asignada por un administrador o manager</div>
                                     </div>
                                 </div>
-                                
+
                                 <div class="mb-3">
                                     <label for="{{ form.age_verification_document.id_for_label }}" class="form-label">
                                         <i class="fas fa-file-upload me-1"></i>Documento de Verificación de Edad *
@@ -490,10 +490,10 @@
                                     {% if form.age_verification_document.errors %}
                                         <div class="error-message">{{ form.age_verification_document.errors }}</div>
                                     {% endif %}
-                                    <div class="help-text">Certificado de nacimiento, pasaporte o ID (original o digital)</div>
+                                    <div class="help-text">{% trans "Birth certificate, passport or ID (original or digital)" %}</div>
                                 </div>
                             </div>
-                            
+
                             <!-- Tallas de Uniformes -->
                             <div class="form-section">
                                 <div class="form-section-title"><i class="fas fa-tshirt me-2"></i>Tallas de Uniformes</div>
@@ -501,7 +501,7 @@
                                     <i class="fas fa-info-circle me-2"></i>
                                     <strong>Nota:</strong> Selecciona una talla por cada categoría de uniforme.
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.jersey_size.id_for_label }}" class="form-label">
@@ -522,7 +522,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.batting_glove_size.id_for_label }}" class="form-label">
@@ -543,7 +543,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 <div class="row">
                                     <div class="col-md-6 mb-3">
                                         <label for="{{ form.shorts_size.id_for_label }}" class="form-label">
@@ -556,7 +556,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Contacto de Emergencia -->
                             <div class="form-section">
                                 <div class="form-section-title"><i class="fas fa-phone-alt me-2"></i>Contacto de Emergencia</div>
@@ -589,7 +589,7 @@
                                         {% endif %}
                                     </div>
                                 </div>
-                                
+
                                 <div class="mb-3">
                                     <label for="{{ form.medical_conditions.id_for_label }}" class="form-label">
                                         <i class="fas fa-heartbeat me-1"></i>Condiciones Médicas
@@ -601,7 +601,7 @@
                                     <div class="help-text">Especifica cualquier condición médica relevante o "Ninguna"</div>
                                 </div>
                             </div>
-                            
+
                             <div class="d-flex justify-content-between mt-4">
                                 <a href="{% url 'accounts:panel' %}" class="btn btn-secondary-mlb">
                                     <i class="fas fa-times me-1"></i>Cancelar
@@ -646,24 +646,24 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const birthDateField = document.getElementById('id_birth_date');
         const gradeField = document.getElementById('id_grade');
         const divisionField = document.getElementById('id_division');
-        
+
         console.log('Inicializando cálculo de división y grado:', {
             birthDateField: !!birthDateField,
             gradeField: !!gradeField,
             divisionField: !!divisionField
         });
-        
+
         if (!birthDateField) {
             console.warn('Campo de fecha de nacimiento no encontrado');
             return;
         }
-        
+
         if (!gradeField) {
             console.warn('Campo de grado no encontrado. ID buscado: id_grade');
             // Intentar encontrar el campo con otro método
@@ -672,42 +672,42 @@
                 console.log('Campo de grado encontrado con selector alternativo');
             }
         }
-        
+
         if (!divisionField) {
             console.warn('Campo de división no encontrado. ID buscado: id_division');
         }
-        
+
         // Función para calcular la edad al 30 de abril
         function calculateAgeAsOfApril30(birthDate) {
             if (!birthDate) return null;
-            
+
             const today = new Date();
             const currentYear = today.getFullYear();
-            
+
             // Fecha de corte: 30 de abril
             const cutoffDate = new Date(currentYear, 3, 30); // Mes 3 = abril (0-indexed)
-            
+
             // Calcular edad
             let age = cutoffDate.getFullYear() - birthDate.getFullYear();
             const monthDiff = cutoffDate.getMonth() - birthDate.getMonth();
-            
+
             if (monthDiff < 0 || (monthDiff === 0 && cutoffDate.getDate() < birthDate.getDate())) {
                 age -= 1;
             }
-            
+
             return age;
         }
-        
+
         // Función para obtener la división basada en la edad
         function getAgeBasedDivision(age) {
             if (age === null || age === undefined || age < 5) {
                 return null;
             }
-            
+
             if (age >= 18) {
                 return '18U';
             }
-            
+
             const divisionMap = {
                 5: '05U',
                 6: '06U',
@@ -723,16 +723,16 @@
                 16: '16U',
                 17: '17U',
             };
-            
+
             return divisionMap[age] || null;
         }
-        
+
         // Función para sugerir el grado basado en la edad
         function suggestGradeFromAge(age) {
             if (age === null || age === undefined) {
                 return null;
             }
-            
+
             // Mapeo aproximado de edad a grado
             // Esto es una aproximación, ya que el grado real depende del mes de nacimiento
             const ageToGradeMap = {
@@ -752,14 +752,14 @@
                 17: '12th',
                 18: '12th',
             };
-            
+
             return ageToGradeMap[age] || null;
         }
-        
+
         // Función para actualizar división y grado
         function updateDivisionAndGrade() {
             const birthDateValue = birthDateField.value;
-            
+
             if (!birthDateValue) {
                 // Si no hay fecha, limpiar sugerencias
                 if (divisionField && !divisionField.value) {
@@ -770,28 +770,28 @@
                 }
                 return;
             }
-            
+
             const birthDate = new Date(birthDateValue);
             const age = calculateAgeAsOfApril30(birthDate);
-            
+
             console.log('Fecha de nacimiento:', birthDateValue);
             console.log('Edad al 30 de abril:', age);
-            
+
             // Calcular y sugerir división
             if (age !== null) {
                 const suggestedDivision = getAgeBasedDivision(age);
                 const suggestedGrade = suggestGradeFromAge(age);
-                
+
                 console.log('División sugerida:', suggestedDivision);
                 console.log('Grado sugerido:', suggestedGrade);
-                
+
                 // Actualizar división
                 if (divisionField && suggestedDivision) {
                     // Si el campo está vacío, actualizar automáticamente
                     if (!divisionField.value || divisionField.value === '') {
                         divisionField.value = suggestedDivision;
                         divisionField.dataset.autoSet = 'true';
-                        
+
                         // Mostrar mensaje informativo
                         showInfoMessage('division', `División sugerida: ${suggestedDivision} (basada en edad al 30 de abril). Puede cambiarla manualmente si es necesario.`);
                     } else if (divisionField.dataset.autoSet === 'true') {
@@ -805,14 +805,14 @@
                         showInfoMessage('division', `División sugerida basada en edad: ${suggestedDivision}. Actualmente seleccionada: ${currentText}`);
                     }
                 }
-                
+
                 // Actualizar grado
                 if (gradeField && suggestedGrade) {
                     console.log('Actualizando grado. Campo encontrado:', !!gradeField);
                     console.log('Grado sugerido:', suggestedGrade);
                     console.log('Valor actual del campo:', gradeField.value);
                     console.log('Opciones disponibles:', Array.from(gradeField.options).map(opt => opt.value));
-                    
+
                     // Verificar que el valor sugerido existe en las opciones
                     const optionExists = Array.from(gradeField.options).some(opt => opt.value === suggestedGrade);
                     if (!optionExists) {
@@ -820,31 +820,31 @@
                         showInfoMessage('grade', `Grado sugerido: ${getGradeLabel(suggestedGrade)} (no disponible en las opciones). Por favor seleccione manualmente.`);
                         return;
                     }
-                    
+
                     // Verificar si el campo está vacío o tiene el valor por defecto (primera opción vacía)
                     const isEmpty = !gradeField.value || gradeField.value === '' || gradeField.value === null;
                     const hasDefaultEmptyOption = gradeField.selectedIndex === 0 && (!gradeField.value || gradeField.value === '');
-                    
+
                     // Si el campo está vacío o tiene solo la opción por defecto, actualizar automáticamente
                     if (isEmpty || hasDefaultEmptyOption) {
                         // Establecer el valor
                         gradeField.value = suggestedGrade;
-                        
+
                         // Verificar que se estableció correctamente
                         if (gradeField.value === suggestedGrade) {
                             gradeField.dataset.autoSet = 'true';
                             gradeField.dataset.lastAutoValue = suggestedGrade;
-                            
+
                             console.log('Grado establecido automáticamente:', gradeField.value);
-                            
+
                             // Forzar el evento change para asegurar que se actualice visualmente
                             const changeEvent = new Event('change', { bubbles: true });
                             gradeField.dispatchEvent(changeEvent);
-                            
+
                             // También disparar el evento input para algunos navegadores
                             const inputEvent = new Event('input', { bubbles: true });
                             gradeField.dispatchEvent(inputEvent);
-                            
+
                             // Mostrar mensaje informativo
                             showInfoMessage('grade', `Grado sugerido: ${getGradeLabel(suggestedGrade)} (aproximado basado en edad). Puede cambiarlo manualmente si es necesario.`);
                         } else {
@@ -855,12 +855,12 @@
                         // Si fue establecido automáticamente anteriormente, actualizar
                         gradeField.value = suggestedGrade;
                         gradeField.dataset.lastAutoValue = suggestedGrade;
-                        
+
                         console.log('Grado actualizado automáticamente:', gradeField.value);
-                        
+
                         // Forzar el evento change
                         gradeField.dispatchEvent(new Event('change', { bubbles: true }));
-                        
+
                         showInfoMessage('grade', `Grado actualizado: ${getGradeLabel(suggestedGrade)} (aproximado basado en edad). Puede cambiarlo manualmente si es necesario.`);
                     } else {
                         // El usuario lo cambió manualmente, solo mostrar información
@@ -877,7 +877,7 @@
                 console.warn('No se pudo calcular la edad');
             }
         }
-        
+
         // Función para obtener la etiqueta del grado
         function getGradeLabel(gradeValue) {
             const gradeLabels = {
@@ -898,7 +898,7 @@
             };
             return gradeLabels[gradeValue] || gradeValue;
         }
-        
+
         // Función para mostrar mensaje informativo
         function showInfoMessage(fieldType, message) {
             // Remover mensajes anteriores
@@ -906,21 +906,21 @@
             if (existingMessage) {
                 existingMessage.remove();
             }
-            
+
             // Crear nuevo mensaje
             const infoDiv = document.createElement('div');
             infoDiv.id = `${fieldType}_info_message`;
             infoDiv.className = 'alert alert-info mt-2 mb-0';
             infoDiv.style.fontSize = '0.85rem';
             infoDiv.innerHTML = `<i class="fas fa-info-circle me-2"></i>${message}`;
-            
+
             // Insertar después del campo correspondiente
             const targetField = fieldType === 'division' ? divisionField : gradeField;
             if (targetField) {
                 const parentDiv = targetField.closest('.mb-3');
                 if (parentDiv) {
                     parentDiv.appendChild(infoDiv);
-                    
+
                     // Remover el mensaje después de 5 segundos
                     setTimeout(() => {
                         if (infoDiv.parentNode) {
@@ -936,7 +936,7 @@
                 }
             }
         }
-        
+
         // Escuchar cambios en la fecha de nacimiento
         birthDateField.addEventListener('change', function() {
             console.log('Fecha de nacimiento cambiada:', this.value);
@@ -946,7 +946,7 @@
             console.log('Fecha de nacimiento perdió el foco:', this.value);
             updateDivisionAndGrade();
         });
-        
+
         // También escuchar el evento input para capturar cambios más rápido
         birthDateField.addEventListener('input', function() {
             if (this.value) {
@@ -955,7 +955,7 @@
                 setTimeout(updateDivisionAndGrade, 100);
             }
         });
-        
+
         // Escuchar cambios manuales en división y grado para detectar cuando el usuario los cambia
         if (divisionField) {
             divisionField.addEventListener('change', function() {
@@ -966,7 +966,7 @@
                 this.dataset.lastAutoValue = this.value;
             });
         }
-        
+
         if (gradeField) {
             gradeField.addEventListener('change', function() {
                 // Si el usuario cambia manualmente, marcar que no fue automático
@@ -976,7 +976,7 @@
                 this.dataset.lastAutoValue = this.value;
             });
         }
-        
+
         // Si ya hay una fecha de nacimiento al cargar la página (modo edición), calcular automáticamente
         if (birthDateField.value) {
             // Si los campos ya tienen valores, asumir que fueron establecidos manualmente

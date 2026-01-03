@@ -404,7 +404,7 @@ class Player(models.Model):
         blank=True,
         null=True,
         verbose_name="Documento de Verificación de Edad",
-        help_text="Certificado de nacimiento, pasaporte o ID (original o digital)",
+        help_text=_("Certificado de nacimiento, pasaporte o ID (original o digital)"),
     )
     age_verification_status = models.CharField(
         max_length=20,
