@@ -1856,17 +1856,79 @@ class PlayerUpdateForm(forms.ModelForm):
 
     def clean_is_pitcher(self):
         """Asegurar que is_pitcher siempre tenga un valor booleano"""
+        # Si el campo no está en cleaned_data (checkbox no marcado), retornar False
+        if "is_pitcher" not in self.cleaned_data:
+            return False
         value = self.cleaned_data.get("is_pitcher", False)
         return bool(value)
 
     def clean_secondary_position(self):
         """Asegurar que secondary_position siempre tenga un valor (puede ser vacío)"""
+        # Si el campo no está en cleaned_data, retornar cadena vacía
+        if "secondary_position" not in self.cleaned_data:
+            return ""
         value = self.cleaned_data.get("secondary_position", "")
         return value or ""
 
+    def clean(self):
+        """Asegurar que secondary_position e is_pitcher siempre estén en cleaned_data"""
+        cleaned_data = super().clean()
+        # Asegurar que is_pitcher siempre esté en cleaned_data
+        if "is_pitcher" not in cleaned_data:
+            cleaned_data["is_pitcher"] = False
+        # Asegurar que secondary_position siempre esté en cleaned_data
+        if "secondary_position" not in cleaned_data:
+            cleaned_data["secondary_position"] = ""
+        return cleaned_data
+
     def save(self, commit=True):
         """Guardar los cambios, manteniendo los valores originales de campos deshabilitados para padres"""
+        # super().save(commit=False) establece todos los campos del Player desde cleaned_data
         player = super().save(commit=False)
+
+        # Verificar si el usuario es padre/acudiente del jugador
+        is_parent = False
+        is_staff = False
+        if hasattr(self, "user") and self.user:
+            if hasattr(self.user, "profile") and self.user.profile.is_parent:
+                from .models import PlayerParent
+                is_parent = PlayerParent.objects.filter(
+                    parent=self.user, player=self.instance
+                ).exists()
+            is_staff = self.user.is_staff or self.user.is_superuser
+
+        # Si es padre (no staff), mantener los valores originales de campos restringidos
+        if is_parent and not is_staff and self.instance.pk:
+            # Mantener valores originales de campos que no puede cambiar
+            # Si hay un campo hidden con el team, usarlo (para cuando el Select está disabled)
+            if "team_hidden" in self.cleaned_data and self.cleaned_data.get("team_hidden"):
+                try:
+                    from .models import Team
+                    team_id = int(self.cleaned_data["team_hidden"])
+                    player.team = Team.objects.get(pk=team_id)
+                except (ValueError, Team.DoesNotExist, TypeError):
+                    player.team = self.instance.team
+            else:
+                player.team = self.instance.team
+            player.jersey_number = self.instance.jersey_number
+            player.is_active = self.instance.is_active
+
+            # Si se sube un nuevo documento, resetear el estado a "pending"
+            if "age_verification_document" in self.cleaned_data and self.cleaned_data.get("age_verification_document"):
+                if self.instance.age_verification_document != self.cleaned_data["age_verification_document"]:
+                    player.age_verification_status = "pending"
+                    player.age_verification_approved_date = None
+                    player.age_verification_notes = ""
+            else:
+                # Mantener el estado original si no se sube documento nuevo
+                player.age_verification_status = self.instance.age_verification_status
+                player.age_verification_approved_date = self.instance.age_verification_approved_date
+                player.age_verification_notes = self.instance.age_verification_notes
+
+        # IMPORTANTE: Establecer secondary_position e is_pitcher explícitamente
+        # Asegurar que siempre se guarden correctamente desde cleaned_data
+        player.secondary_position = self.cleaned_data.get("secondary_position", "") or ""
+        player.is_pitcher = bool(self.cleaned_data.get("is_pitcher", False))
 
         # Guardar campos de User
         if hasattr(player, "user"):
@@ -1892,101 +1954,7 @@ class PlayerUpdateForm(forms.ModelForm):
             if commit:
                 user.save()
 
-        # Si los campos están deshabilitados (padre editando), mantener los valores originales
-        if hasattr(self, "user") and self.user:
-            is_parent = False
-            is_staff = False
-            if hasattr(self.user, "profile") and self.user.profile.is_parent:
-                from .models import PlayerParent
-
-                is_parent = PlayerParent.objects.filter(
-                    parent=self.user, player=self.instance
-                ).exists()
-            is_staff = self.user.is_staff or self.user.is_superuser
-
-            # Si es padre (no staff), mantener los valores originales de campos restringidos
-            if is_parent and not is_staff:
-                # Mantener valores originales de campos que no puede cambiar
-                if self.instance.pk:
-                    # Si hay un campo hidden con el team, usarlo (para cuando el Select está disabled)
-                    if "team_hidden" in self.cleaned_data and self.cleaned_data.get(
-                        "team_hidden"
-                    ):
-                        try:
-                            from .models import Team
-
-                            team_id = int(self.cleaned_data["team_hidden"])
-                            player.team = Team.objects.get(pk=team_id)
-                        except (ValueError, Team.DoesNotExist, TypeError):
-                            # Si no hay team o no se puede obtener, mantener el original
-                            player.team = self.instance.team
-                    else:
-                        player.team = self.instance.team
-                    player.jersey_number = self.instance.jersey_number
-                    player.is_active = self.instance.is_active
-
-                    # Si se sube un nuevo documento, resetear el estado a "pending"
-                    if "age_verification_document" in self.cleaned_data and self.cleaned_data.get("age_verification_document"):
-                        # Verificar si es un documento nuevo (diferente al anterior)
-                        if self.instance.age_verification_document != self.cleaned_data["age_verification_document"]:
-                            player.age_verification_status = "pending"
-                            player.age_verification_approved_date = None
-                            player.age_verification_notes = ""
-                    else:
-                        # Mantener el estado original si no se sube documento nuevo
-                        player.age_verification_status = self.instance.age_verification_status
-                        player.age_verification_approved_date = self.instance.age_verification_approved_date
-                        player.age_verification_notes = self.instance.age_verification_notes
-
-        # Guardar campos de User y UserProfile
-        if hasattr(player, "user"):
-            user = player.user
-            user.first_name = self.cleaned_data.get("first_name", user.first_name)
-            user.last_name = self.cleaned_data.get("last_name", user.last_name)
-            user.email = self.cleaned_data.get("email", user.email)
-
-            # Guardar campos de UserProfile
-            if hasattr(user, "profile"):
-                profile = user.profile
-                profile.last_name2 = self.cleaned_data.get("last_name2", getattr(profile, "last_name2", ""))
-                profile.phone = self.cleaned_data.get("phone", getattr(profile, "phone", ""))
-                profile.birth_date = self.cleaned_data.get("birth_date", getattr(profile, "birth_date", None))
-
-                # Guardar foto de perfil si se proporciona
-                if self.cleaned_data.get("profile_picture"):
-                    profile.profile_picture = self.cleaned_data["profile_picture"]
-
-                if commit:
-                    profile.save()
-
-            if commit:
-                user.save()
-
-        # IMPORTANTE: Establecer secondary_position e is_pitcher explícitamente
-        # justo antes de guardar para asegurar que siempre se guarden correctamente
-        # Esto es necesario porque super().save(commit=False) podría no estar guardando estos campos
-
-        # Para secondary_position: verificar primero en cleaned_data, luego en data, y finalmente usar valor por defecto
-        if "secondary_position" in self.cleaned_data:
-            player.secondary_position = self.cleaned_data["secondary_position"] or ""
-        elif hasattr(self, 'data') and "secondary_position" in self.data:
-            # Si está en data pero no en cleaned_data, usar el valor de data
-            player.secondary_position = self.data.get("secondary_position", "") or ""
-        else:
-            # Si no está en ningún lado, mantener el valor actual o establecer vacío
-            if not hasattr(player, 'secondary_position') or not player.secondary_position:
-                player.secondary_position = ""
-
-        # Para is_pitcher: los checkboxes no marcados no se envían en POST, así que verificar en data
-        if "is_pitcher" in self.cleaned_data:
-            player.is_pitcher = bool(self.cleaned_data["is_pitcher"])
-        elif hasattr(self, 'data') and "is_pitcher" in self.data:
-            # Si está en data, el checkbox estaba marcado
-            player.is_pitcher = bool(self.data.get("is_pitcher", False))
-        else:
-            # Si no está en data ni en cleaned_data, el checkbox no estaba marcado
-            player.is_pitcher = False
-
+        # Guardar el Player
         if commit:
             player.save()
 
