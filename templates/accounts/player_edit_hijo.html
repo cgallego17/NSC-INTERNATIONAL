@@ -909,8 +909,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const initialCountry = countrySelect.value;
         const initialState = stateSelect.value;
         const initialCity = citySelect.value;
+        let isInitialLoad = true;
 
-        function updateStates() {
+        function updateStates(showLoader = true) {
             const countryId = countrySelect.value;
             const currentStateValue = stateSelect.value;
 
@@ -919,10 +920,12 @@ document.addEventListener('DOMContentLoaded', function() {
             citySelect.innerHTML = '<option value="">{% trans "Select a city" %}</option>';
 
             if (countryId) {
-                // Mostrar loader y deshabilitar select
-                if (stateLoader) stateLoader.style.display = 'block';
-                stateSelect.disabled = true;
-                citySelect.disabled = true;
+                // Mostrar loader y deshabilitar select solo si no es la carga inicial
+                if (showLoader && stateLoader) stateLoader.style.display = 'block';
+                if (showLoader) {
+                    stateSelect.disabled = true;
+                    citySelect.disabled = true;
+                }
 
                 fetch(`/locations/ajax/states/${countryId}/`)
                     .then(response => response.json())
@@ -938,7 +941,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                         // Si había un estado seleccionado, actualizar ciudades
                         if (currentStateValue) {
-                            updateCities();
+                            updateCities(showLoader);
                         }
                     })
                     .catch(error => {
@@ -949,9 +952,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Ocultar loader y habilitar select
                         if (stateLoader) stateLoader.style.display = 'none';
                         stateSelect.disabled = false;
-                        if (!citySelect.value || citySelect.innerHTML.includes('Select a city')) {
-                            citySelect.disabled = false;
-                        }
+                        citySelect.disabled = false;
                     });
             } else {
                 // Si no hay país seleccionado, habilitar ambos selects
@@ -960,16 +961,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        function updateCities() {
+        function updateCities(showLoader = true) {
             const stateId = stateSelect.value;
             const currentCityValue = citySelect.value;
 
             citySelect.innerHTML = '<option value="">{% trans "Select a city" %}</option>';
 
             if (stateId) {
-                // Mostrar loader y deshabilitar select
-                if (cityLoader) cityLoader.style.display = 'block';
-                citySelect.disabled = true;
+                // Mostrar loader y deshabilitar select solo si no es la carga inicial
+                if (showLoader && cityLoader) cityLoader.style.display = 'block';
+                if (showLoader) citySelect.disabled = true;
 
                 fetch(`/locations/ajax/cities/${stateId}/`)
                     .then(response => response.json())
@@ -999,13 +1000,18 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Event listeners
-        countrySelect.addEventListener('change', updateStates);
-        stateSelect.addEventListener('change', updateCities);
+        // Event listeners para cambios manuales del usuario
+        countrySelect.addEventListener('change', function() {
+            updateStates(true); // Mostrar loader en cambios manuales
+        });
 
-        // Cargar datos iniciales si hay un país seleccionado
+        stateSelect.addEventListener('change', function() {
+            updateCities(true); // Mostrar loader en cambios manuales
+        });
+
+        // Cargar datos iniciales si hay un país seleccionado (sin loader ni bloqueo)
         if (initialCountry) {
-            updateStates();
+            updateStates(false); // No mostrar loader en carga inicial
         }
     }
 });
