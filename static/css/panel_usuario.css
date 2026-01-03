@@ -233,7 +233,10 @@
     gap: 10px !important;
     position: relative !important;
     z-index: 2 !important;
-    flex-wrap: wrap !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 .quick-actions-title i {
@@ -276,6 +279,7 @@
     overflow: hidden !important;
     position: relative !important;
     height: 30px !important;
+    width: 100% !important;
 }
 
 .quick-actions-marquee marquee {
