@@ -78,25 +78,27 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             except Player.DoesNotExist:
                 context["player"] = None
 
-        # Si es manager, obtener sus equipos
+        # Si es manager, obtener sus equipos (optimizado)
         if profile.is_team_manager:
-            context["teams"] = Team.objects.filter(manager=user).order_by(
-                "-created_at"
-            )[:5]
-            context["total_teams"] = Team.objects.filter(manager=user).count()
-            context["total_players"] = Player.objects.filter(team__manager=user).count()
-            context["recent_players"] = Player.objects.filter(
-                team__manager=user
-            ).order_by("-created_at")[:5]
+            teams_qs = Team.objects.filter(manager=user).order_by("-created_at")
+            context["teams"] = teams_qs[:5]
+            context["total_teams"] = teams_qs.count()
 
-        # Si es padre, obtener sus jugadores
+            players_qs = Player.objects.filter(team__manager=user).select_related(
+                "user", "team", "user__profile"
+            )
+            context["total_players"] = players_qs.count()
+            context["recent_players"] = players_qs.order_by("-created_at")[:5]
+
+        # Si es padre, obtener sus jugadores (optimizado)
         if profile.is_parent:
             player_parents = PlayerParent.objects.filter(parent=user).select_related(
-                "player", "player__team", "player__user"
-            )
+                "player", "player__team", "player__user", "player__user__profile",
+                "player__user__profile__country", "player__user__profile__state", "player__user__profile__city"
+            ).order_by("-created_at")
             context["children"] = player_parents
             context["total_children"] = player_parents.count()
-            context["recent_children"] = player_parents.order_by("-created_at")[:5]
+            context["recent_children"] = player_parents[:5]
 
         # Obtener banners activos del dashboard (siempre devolver al menos uno para el bucle)
         try:
@@ -110,22 +112,19 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
         except ImportError:
             context["dashboard_banners"] = []
 
-        # Obtener eventos para la pestaña de eventos
+        # Obtener eventos para la pestaña de eventos (optimizado - limitar a 50)
         try:
             from apps.events.models import Event
 
             now = timezone.now()
-            # Obtener TODOS los eventos creados (excepto cancelados)
-            # Mostrar primero los futuros, luego los pasados
+            # Obtener eventos (excepto cancelados) - limitar a 50 para mejor rendimiento
             context["upcoming_events"] = (
                 Event.objects.exclude(status="cancelled")
                 .select_related(
                     "category", "event_type", "city", "state", "primary_site"
                 )
                 .prefetch_related("divisions")
-                .order_by(
-                    "start_date"
-                )  # Más próximos primero (orden ascendente por fecha)
+                .order_by("start_date")[:50]  # Limitar a 50 eventos
             )
         except ImportError:
             context["upcoming_events"] = []
@@ -189,12 +188,12 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             context["all_teams"] = Team.objects.filter(manager=user).order_by(
                 "-created_at"
             )
-            all_players = Player.objects.filter(team__manager=user).order_by(
-                "-created_at"
-            )
-            # Anotar cada jugador con información sobre si es hijo del usuario actual
+            all_players = Player.objects.filter(team__manager=user).select_related(
+                "user", "user__profile", "team"
+            ).order_by("-created_at")
+            # Anotar cada jugador con información sobre si es hijo del usuario actual (optimizado)
             if profile.is_parent:
-                # Obtener IDs de jugadores que son hijos del usuario
+                # Obtener IDs de jugadores que son hijos del usuario (una sola consulta)
                 child_player_ids = set(
                     PlayerParent.objects.filter(parent=user).values_list(
                         "player_id", flat=True
@@ -215,14 +214,17 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
 
             context["player_form"] = PlayerRegistrationForm(manager=user)
 
-        # Formulario de jugador para padres
+        # Formulario de jugador para padres (optimizado)
         if profile.is_parent:
             from .forms import ParentPlayerRegistrationForm
 
             context["parent_player_form"] = ParentPlayerRegistrationForm(parent=user)
             context["parent_players"] = (
                 Player.objects.filter(parents__parent=user)
-                .select_related("user", "team")
+                .select_related(
+                    "user", "user__profile", "user__profile__country",
+                    "user__profile__state", "user__profile__city", "team"
+                )
                 .order_by("-created_at")
             )
 
@@ -246,27 +248,52 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
         except ImportError:
             context["total_reservations"] = 0
 
-        # Calcular total del carrito
+        # Calcular total del carrito (optimizado - evitar múltiples queries)
         from decimal import Decimal
 
         from apps.locations.models import Hotel, HotelRoom, HotelService
 
         cart_total = Decimal("0.00")
+        if cart:
+            # Obtener todos los IDs de habitaciones y servicios de una vez
+            room_ids = [
+                item_data.get("room_id")
+                for item_data in cart.values()
+                if item_data.get("type") == "room" and item_data.get("room_id")
+            ]
+            service_ids = [
+                item_data.get("service_id")
+                for item_data in cart.values()
+                if item_data.get("type") == "service" and item_data.get("service_id")
+            ]
+
+            # Hacer una sola consulta para todas las habitaciones
+            rooms_dict = {
+                room.id: room
+                for room in HotelRoom.objects.filter(id__in=room_ids).select_related("hotel")
+            } if room_ids else {}
+
+            # Hacer una sola consulta para todos los servicios
+            services_dict = {
+                service.id: service
+                for service in HotelService.objects.filter(id__in=service_ids).select_related("hotel")
+            } if service_ids else {}
+
         for item_id, item_data in cart.items():
             try:
                 if item_data.get("type") == "room":
-                    room = HotelRoom.objects.get(id=item_data.get("room_id"))
+                    room = rooms_dict.get(item_data.get("room_id"))
+                    if not room:
+                        continue
                     nights = int(item_data.get("nights", 1))
                     guests = int(item_data.get("guests", 1))
                     room_total = room.price_per_night * nights
                     services_total = Decimal("0.00")
+                    # Usar servicios del diccionario en lugar de consultas individuales
                     for service_data in item_data.get("services", []):
-                        try:
-                            service = HotelService.objects.get(
-                                id=service_data.get("service_id"),
-                                hotel=room.hotel,
-                                is_active=True,
-                            )
+                        service_id = service_data.get("service_id")
+                        service = services_dict.get(service_id)
+                        if service and service.hotel_id == room.hotel_id and service.is_active:
                             quantity = int(service_data.get("quantity", 1))
                             service_price = service.price * quantity
                             if service.is_per_person:
@@ -274,10 +301,8 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
                             if service.is_per_night:
                                 service_price = service_price * nights
                             services_total += service_price
-                        except HotelService.DoesNotExist:
-                            pass
                     cart_total += room_total + services_total
-            except (HotelRoom.DoesNotExist, ValueError, KeyError):
+            except (ValueError, KeyError):
                 pass
         context["cart_total"] = cart_total
 
@@ -814,6 +839,17 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
     form_class = PlayerUpdateForm
     template_name = "accounts/player_edit.html"  # Default, se puede sobrescribir en get_template_names
 
+    def get_queryset(self):
+        """Optimizar consulta con select_related para evitar múltiples queries"""
+        return Player.objects.select_related(
+            "user",
+            "user__profile",
+            "user__profile__country",
+            "user__profile__state",
+            "user__profile__city",
+            "team"
+        )
+
     def dispatch(self, request, *args, **kwargs):
         try:
             # Verificar que el usuario esté autenticado y tenga sesión válida
@@ -887,9 +923,11 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
             player = self.get_object()
         user = self.request.user
 
-        # Verificar si existe la relación PlayerParent (independientemente de si el usuario es staff)
+        # Verificar si existe la relación PlayerParent (optimizado - usar select_related si está disponible)
         # Esto permite que incluso staff que son padres vean el template de hijo
-        is_parent = PlayerParent.objects.filter(parent=user, player=player).exists()
+        is_parent = PlayerParent.objects.filter(
+            parent=user, player=player
+        ).exists()
 
         # Si el usuario es padre del jugador (existe la relación PlayerParent),
         # usar el template de hijo, independientemente de si es staff
@@ -907,24 +945,14 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
 
             logger = logging.getLogger(__name__)
             try:
-                logger.info("PlayerUpdateView.get: Starting AJAX request handling")
-
-                # Obtener el objeto
-                logger.info("PlayerUpdateView.get: Getting object...")
+                # Obtener el objeto (ya optimizado con get_queryset)
                 self.object = self.get_object()
-                logger.info(f"PlayerUpdateView.get: Object obtained: {self.object.pk}")
 
                 # Obtener el formulario
-                logger.info("PlayerUpdateView.get: Getting form...")
                 form = self.get_form()
-                logger.info(f"PlayerUpdateView.get: Form obtained")
 
                 # Obtener el contexto
-                logger.info("PlayerUpdateView.get: Getting context...")
                 context = self.get_context_data(object=self.object, form=form)
-                logger.info(
-                    f"PlayerUpdateView.get: Context obtained with keys: {list(context.keys())}"
-                )
 
                 # Obtener el nombre del template
                 template_names = self.get_template_names()
@@ -933,17 +961,12 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
                     if isinstance(template_names, list)
                     else template_names
                 )
-                logger.info(f"PlayerUpdateView.get: Using template: {template_name}")
 
                 # Renderizar el template
-                logger.info("PlayerUpdateView.get: Rendering template...")
                 from django.template.loader import render_to_string
                 from django.http import HttpResponse
 
                 html = render_to_string(template_name, context, request=request)
-                logger.info(
-                    f"PlayerUpdateView.get: Template rendered successfully, HTML length: {len(html)}"
-                )
 
                 # Devolver el HTML completo - el JavaScript del frontend extraerá lo que necesita
                 return HttpResponse(html)
@@ -967,11 +990,14 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Determinar si el usuario es padre del jugador para ocultar campos en el template
+        # (optimizado - reutilizar la consulta si ya se hizo en get_template_names)
         is_parent = False
         if (
             hasattr(self.request.user, "profile")
             and self.request.user.profile.is_parent
+            and self.object
         ):
+            # Usar exists() que es más eficiente que filter().exists() si ya tenemos el objeto
             is_parent = PlayerParent.objects.filter(
                 parent=self.request.user, player=self.object
             ).exists()
@@ -1000,46 +1026,9 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         # Guardar usando el método save() del formulario para asegurar que todos los campos se guarden
-        # El método save() del formulario maneja User, UserProfile y Player correctamente
-        player = form.save()
-
-        # CRÍTICO: Asegurar que secondary_position e is_pitcher se guarden explícitamente
-        # Esto es necesario porque Django podría no detectar cambios si los valores son los mismos
-        import logging
-
-        logger = logging.getLogger(__name__)
-
-        secondary_pos_value = form.cleaned_data.get("secondary_position", "") or ""
-        is_pitcher_value = bool(form.cleaned_data.get("is_pitcher", False))
-
-        logger.info(
-            f"PlayerUpdateView.form_valid - secondary_position: {secondary_pos_value}, is_pitcher: {is_pitcher_value}"
-        )
-
-        # Forzar el guardado de estos campos usando update_fields
-        player.secondary_position = secondary_pos_value
-        player.is_pitcher = is_pitcher_value
-        player.save(update_fields=["secondary_position", "is_pitcher"])
-
-        # Verificar que se guardaron correctamente
-        player.refresh_from_db()
-        logger.info(
-            f"PlayerUpdateView.form_valid - DESPUÉS de guardar - secondary_position: {player.secondary_position}, is_pitcher: {player.is_pitcher}"
-        )
-
-        if (
-            player.secondary_position != secondary_pos_value
-            or player.is_pitcher != is_pitcher_value
-        ):
-            logger.warning(
-                f"PlayerUpdateView.form_valid - Los campos no se guardaron correctamente. Usando update() directo."
-            )
-            from .models import Player as PlayerModel
-
-            PlayerModel.objects.filter(pk=player.pk).update(
-                secondary_position=secondary_pos_value, is_pitcher=is_pitcher_value
-            )
-            player.refresh_from_db()
+        # El método save() del formulario ya maneja User, UserProfile y Player de forma robusta,
+        # incluyendo el guardado forzado de secondary_position e is_pitcher.
+        form.save()
 
         messages.success(
             self.request,
@@ -1054,7 +1043,7 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
             return JsonResponse(
                 {
                     "success": True,
-                    "message": "Jugador actualizado exitosamente",
+                    "message": _("Player information updated successfully."),
                     "redirect_url": str(self.get_success_url()),
                 }
             )

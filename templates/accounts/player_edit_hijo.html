@@ -161,9 +161,8 @@
             <!-- Ubicación -->
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label for="{{ form.country.id_for_label }}" class="form-label">
-                        <i class="fas fa-globe me-1"></i>{% trans "Country" %}
-                        <span class="text-muted small">({% trans "optional" %})</span>
+                    <label for="{{ form.country.id_for_label }}" class="form-label required-field">
+                        <i class="fas fa-globe me-1"></i>{% trans "Country" %} *
                     </label>
                     {{ form.country }}
                     {% if form.country.errors %}
@@ -171,9 +170,8 @@
                     {% endif %}
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="{{ form.state.id_for_label }}" class="form-label">
-                        <i class="fas fa-map-marker-alt me-1"></i>{% trans "State" %}
-                        <span class="text-muted small">({% trans "optional" %})</span>
+                    <label for="{{ form.state.id_for_label }}" class="form-label required-field">
+                        <i class="fas fa-map-marker-alt me-1"></i>{% trans "State" %} *
                     </label>
                     <div class="position-relative">
                         {{ form.state }}
@@ -186,9 +184,8 @@
                     {% endif %}
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label for="{{ form.city.id_for_label }}" class="form-label">
-                        <i class="fas fa-city me-1"></i>{% trans "City" %}
-                        <span class="text-muted small">({% trans "optional" %})</span>
+                    <label for="{{ form.city.id_for_label }}" class="form-label required-field">
+                        <i class="fas fa-city me-1"></i>{% trans "City" %} *
                     </label>
                     <div class="position-relative">
                         {{ form.city }}
@@ -689,6 +686,18 @@ console.log('🔄 PLAYER EDIT HIJO SCRIPT v3.0 - CARGADO');
 
                 playerEditForm.addEventListener('submit', function(e) {
                     prepareFormFields();
+
+                    // Mostrar spinner
+                    const btn = document.getElementById('btnSubmitPlayerEdit');
+                    if (btn) {
+                        const text = btn.querySelector('.button-text');
+                        const spinner = btn.querySelector('.button-spinner');
+                        if (text && spinner) {
+                            text.style.display = 'none';
+                            spinner.style.display = 'inline-block';
+                            btn.disabled = true;
+                        }
+                    }
                     // No prevenir el submit aquí, dejar que se envíe normalmente
                 });
                 console.log('✅ Listener de submit agregado al formulario (NO está en panel)');

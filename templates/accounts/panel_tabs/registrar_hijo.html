@@ -162,9 +162,8 @@
                 <!-- Ubicación -->
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <label for="{{ parent_player_form.country.id_for_label }}" class="form-label">
-                            <i class="fas fa-globe me-1"></i>{% trans "Country" %}
-                            <span class="text-muted small">({% trans "optional" %})</span>
+                        <label for="{{ parent_player_form.country.id_for_label }}" class="form-label required-field">
+                            <i class="fas fa-globe me-1"></i>{% trans "Country" %} *
                         </label>
                         {{ parent_player_form.country }}
                         {% if parent_player_form.country.errors %}
@@ -172,9 +171,8 @@
                         {% endif %}
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="{{ parent_player_form.state.id_for_label }}" class="form-label">
-                            <i class="fas fa-map-marker-alt me-1"></i>{% trans "State" %}
-                            <span class="text-muted small">({% trans "optional" %})</span>
+                        <label for="{{ parent_player_form.state.id_for_label }}" class="form-label required-field">
+                            <i class="fas fa-map-marker-alt me-1"></i>{% trans "State" %} *
                         </label>
                         <div class="position-relative">
                             {{ parent_player_form.state }}
@@ -187,9 +185,8 @@
                         {% endif %}
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="{{ parent_player_form.city.id_for_label }}" class="form-label">
-                            <i class="fas fa-city me-1"></i>{% trans "City" %}
-                            <span class="text-muted small">({% trans "optional" %})</span>
+                        <label for="{{ parent_player_form.city.id_for_label }}" class="form-label required-field">
+                            <i class="fas fa-city me-1"></i>{% trans "City" %} *
                         </label>
                         <div class="position-relative">
                             {{ parent_player_form.city }}

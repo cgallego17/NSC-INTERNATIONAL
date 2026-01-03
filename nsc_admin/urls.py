@@ -22,7 +22,7 @@ from django.urls import include, path
 from django.views.i18n import JavaScriptCatalog
 
 from apps.accounts.views_public import PublicHomeView
-from apps.core.views import set_language
+from apps.core.views import set_language, CachedJavaScriptCatalog
 from apps.events.views import DashboardView
 
 urlpatterns = [
@@ -38,8 +38,8 @@ urlpatterns = [
     path("users/", include("django.contrib.auth.urls")),  # Mantener para compatibilidad
     path("files/", include("apps.media.urls")),  # Multimedia
     path("i18n/setlang/", set_language, name="set_language"),  # Language switching
-    # JavaScript i18n catalog (uses djangojs.po)
-    path("jsi18n/", JavaScriptCatalog.as_view(), name="javascript-catalog"),
+    # JavaScript i18n catalog (uses djangojs.po) - Optimizado con caché
+    path("jsi18n/", CachedJavaScriptCatalog.as_view(), name="javascript-catalog"),
 ]
 
 # Serve media files in development

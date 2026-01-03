@@ -5,6 +5,8 @@ URLs de accounts - Combinación de públicas y privadas
 from django.contrib.auth import views as auth_views
 from django.urls import path
 
+from apps.core.views import custom_logout_view
+
 from . import (
     views,
     views_banners,
@@ -44,7 +46,7 @@ urlpatterns = [
     # Logout (requiere login) - pero la URL debe estar disponible siempre
     path(
         "logout/",
-        auth_views.LogoutView.as_view(next_page="/accounts/login/"),
+        custom_logout_view,
         name="logout",
     ),
     # Panel y perfil

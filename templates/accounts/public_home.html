@@ -3609,6 +3609,54 @@
     {% endif %}
 
     <script>
+        // Mostrar toast cuando se hace logout
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('logout') === 'success') {
+                // Crear y mostrar toast de logout exitoso
+                const toastContainer = document.createElement('div');
+                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                document.body.appendChild(toastContainer);
+
+                const toastEl = document.createElement('div');
+                toastEl.className = 'toast show';
+                toastEl.setAttribute('role', 'alert');
+                toastEl.setAttribute('aria-live', 'assertive');
+                toastEl.setAttribute('aria-atomic', 'true');
+                toastEl.style.minWidth = '300px';
+
+                toastEl.innerHTML = `
+                    <div class="toast-header bg-success text-white">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong class="me-auto">{% trans "Success" %}</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        <i class="fas fa-sign-out-alt me-2 text-success"></i>
+                        {% trans "You have been successfully logged out." %}
+                    </div>
+                `;
+
+                toastContainer.appendChild(toastEl);
+
+                // Inicializar toast de Bootstrap
+                const toast = new bootstrap.Toast(toastEl, {
+                    autohide: true,
+                    delay: 5000
+                });
+                toast.show();
+
+                // Limpiar después de que se oculte
+                toastEl.addEventListener('hidden.bs.toast', function() {
+                    toastContainer.remove();
+                });
+
+                // Limpiar el parámetro de la URL sin recargar la página
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+
         // Inicializar el carousel del hero slider
         document.addEventListener('DOMContentLoaded', function() {
             const heroSlider = document.getElementById('heroSlider');

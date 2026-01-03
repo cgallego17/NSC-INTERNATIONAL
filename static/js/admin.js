@@ -729,14 +729,29 @@ class AdminDashboard {
     }
 
     hideToast(toast) {
-        toast.classList.remove('show');
-        toast.classList.add('hide');
-
-        setTimeout(() => {
-            if (toast.parentNode) {
-                toast.parentNode.removeChild(toast);
+        try {
+            // Verificar que el toast existe y está conectado al DOM
+            if (!toast || !toast.isConnected) {
+                console.warn('⚠️ Toast node is not connected to DOM, cannot hide');
+                return;
             }
-        }, 300);
+
+            toast.classList.remove('show');
+            toast.classList.add('hide');
+
+            setTimeout(() => {
+                try {
+                    // Verificar nuevamente antes de eliminar
+                    if (toast.isConnected && toast.parentNode) {
+                        toast.remove(); // Usar remove() en lugar de removeChild() (más moderno y seguro)
+                    }
+                } catch (error) {
+                    console.error('Error removing toast:', error);
+                }
+            }, 300);
+        } catch (error) {
+            console.error('Error in hideToast:', error);
+        }
     }
 
     createToastContainer() {
@@ -768,90 +783,126 @@ class AdminDashboard {
     }
 
     convertDjangoMessagesToToasts() {
-        // Find all Django messages and convert them to toasts
-        const messages = document.querySelectorAll('.django-message');
-        console.log(`🔄 Converting ${messages.length} Django messages to toasts`);
+        try {
+            // Find all Django messages and convert them to toasts
+            const messages = document.querySelectorAll('.django-message');
+            console.log(`🔄 Converting ${messages.length} Django messages to toasts`);
 
-        if (messages.length === 0) {
-            console.log('ℹ️ No Django messages to convert');
-            return;
-        }
-
-        // Array para rastrear mensajes procesados
-        const processedMessages = [];
-
-        messages.forEach(msg => {
-            const tag = msg.getAttribute('data-tag');
-            const message = msg.getAttribute('data-message');
-            const extraTags = msg.getAttribute('data-extra-tags') || '';
-
-            // Map Django message tags to toast types
-            let toastType = 'info';
-            if (tag === 'success') toastType = 'success';
-            else if (tag === 'error' || tag === 'danger') toastType = 'error';
-            else if (tag === 'warning') toastType = 'warning';
-            else if (tag === 'info') toastType = 'info';
-
-            // Special handling for player registration and updates
-            let title = null;
-            let duration = 5000;
-            const messageLower = message.toLowerCase();
-
-            // Detect player registration messages in both Spanish and English
-            const isPlayerRegistration =
-                extraTags.includes('player_registered') ||
-                (messageLower.includes('player') && (messageLower.includes('registered') || messageLower.includes('registrado'))) ||
-                (messageLower.includes('jugador') && messageLower.includes('registrado'));
-
-            // Detect player update messages
-            const isPlayerUpdate =
-                extraTags.includes('player_updated') ||
-                (messageLower.includes('player') && (messageLower.includes('updated') || messageLower.includes('actualizado') || messageLower.includes('actualizada'))) ||
-                (messageLower.includes('jugador') && (messageLower.includes('actualizado') || messageLower.includes('actualizada'))) ||
-                (messageLower.includes('información') && (messageLower.includes('actualizada') || messageLower.includes('updated'))) ||
-                (messageLower.includes('information') && messageLower.includes('updated'));
-
-            if (isPlayerRegistration) {
-                toastType = 'success';
-                // Detect language and set appropriate title
-                if (messageLower.includes('registrado') || messageLower.includes('jugador')) {
-                title = '¡Registro Exitoso!';
-                } else {
-                    title = 'Registration Successful!';
-                }
-                duration = 7000; // Show longer for important messages
-            } else if (isPlayerUpdate) {
-                toastType = 'success';
-                // Detect language and set appropriate title
-                if (messageLower.includes('actualizado') || messageLower.includes('actualizada') || messageLower.includes('información')) {
-                    title = '¡Actualización Exitosa!';
-                } else {
-                    title = 'Update Successful!';
-                }
-                duration = 6000; // Show longer for important messages
+            if (messages.length === 0) {
+                console.log('ℹ️ No Django messages to convert');
+                return;
             }
 
-            // Show toast
-            this.showToast(message, toastType, title, duration);
+            // Array para rastrear mensajes procesados
+            const processedMessages = [];
 
-            // Marcar como procesado
-            processedMessages.push(msg);
-        });
+            messages.forEach(msg => {
+                try {
+                    // Verificar que el nodo todavía existe en el DOM
+                    if (!msg.isConnected) {
+                        console.warn('⚠️ Message node is not connected to DOM, skipping');
+                        return;
+                    }
 
-        // Eliminar mensajes procesados del DOM para evitar duplicados
-        processedMessages.forEach(msg => {
-            if (msg.parentNode) {
-                msg.parentNode.removeChild(msg);
+                    const tag = msg.getAttribute('data-tag');
+                    const message = msg.getAttribute('data-message');
+                    const extraTags = msg.getAttribute('data-extra-tags') || '';
+
+                    // Validar que tenemos un mensaje válido
+                    if (!message) {
+                        console.warn('⚠️ Message node has no data-message attribute, skipping');
+                        return;
+                    }
+
+                    // Map Django message tags to toast types
+                    let toastType = 'info';
+                    if (tag === 'success') toastType = 'success';
+                    else if (tag === 'error' || tag === 'danger') toastType = 'error';
+                    else if (tag === 'warning') toastType = 'warning';
+                    else if (tag === 'info') toastType = 'info';
+
+                    // Special handling for player registration and updates
+                    let title = null;
+                    let duration = 5000;
+                    const messageLower = message.toLowerCase();
+
+                    // Detect player registration messages in both Spanish and English
+                    const isPlayerRegistration =
+                        extraTags.includes('player_registered') ||
+                        (messageLower.includes('player') && (messageLower.includes('registered') || messageLower.includes('registrado'))) ||
+                        (messageLower.includes('jugador') && messageLower.includes('registrado'));
+
+                    // Detect player update messages
+                    const isPlayerUpdate =
+                        extraTags.includes('player_updated') ||
+                        (messageLower.includes('player') && (messageLower.includes('updated') || messageLower.includes('actualizado') || messageLower.includes('actualizada'))) ||
+                        (messageLower.includes('jugador') && (messageLower.includes('actualizado') || messageLower.includes('actualizada'))) ||
+                        (messageLower.includes('información') && (messageLower.includes('actualizada') || messageLower.includes('updated'))) ||
+                        (messageLower.includes('information') && messageLower.includes('updated'));
+
+                    if (isPlayerRegistration) {
+                        toastType = 'success';
+                        // Detect language and set appropriate title
+                        if (messageLower.includes('registrado') || messageLower.includes('jugador')) {
+                        title = '¡Registro Exitoso!';
+                        } else {
+                            title = 'Registration Successful!';
+                        }
+                        duration = 7000; // Show longer for important messages
+                    } else if (isPlayerUpdate) {
+                        toastType = 'success';
+                        // Detect language and set appropriate title
+                        if (messageLower.includes('actualizado') || messageLower.includes('actualizada') || messageLower.includes('información')) {
+                            title = '¡Actualización Exitosa!';
+                        } else {
+                            title = 'Update Successful!';
+                        }
+                        duration = 6000; // Show longer for important messages
+                    }
+
+                    // Show toast
+                    this.showToast(message, toastType, title, duration);
+
+                    // Marcar como procesado solo si el nodo todavía existe
+                    if (msg.isConnected) {
+                        processedMessages.push(msg);
+                    }
+                } catch (error) {
+                    console.error('Error processing individual message:', error);
+                }
+            });
+
+            // Eliminar mensajes procesados del DOM para evitar duplicados
+            // Usar requestAnimationFrame para asegurar que el DOM esté listo
+            if (processedMessages.length > 0) {
+                requestAnimationFrame(() => {
+                    processedMessages.forEach(msg => {
+                        try {
+                            // Verificar que el nodo todavía existe y está conectado
+                            if (msg.isConnected && msg.parentNode) {
+                                msg.remove(); // Usar remove() en lugar de removeChild() (más moderno y seguro)
+                            }
+                        } catch (error) {
+                            console.error('Error removing message node:', error);
+                        }
+                    });
+
+                    // Ocultar el contenedor de mensajes si está vacío
+                    try {
+                        const messagesContainer = document.querySelector('.messages-container');
+                        if (messagesContainer && messagesContainer.children.length === 0) {
+                            messagesContainer.style.display = 'none';
+                        }
+                    } catch (error) {
+                        console.error('Error hiding messages container:', error);
+                    }
+
+                    console.log(`✅ ${processedMessages.length} messages converted and removed from DOM`);
+                });
             }
-        });
-
-        // Ocultar el contenedor de mensajes si está vacío
-        const messagesContainer = document.querySelector('.messages-container');
-        if (messagesContainer && messagesContainer.children.length === 0) {
-            messagesContainer.style.display = 'none';
+        } catch (error) {
+            console.error('Error in convertDjangoMessagesToToasts:', error);
         }
-
-        console.log(`✅ ${processedMessages.length} messages converted and removed from DOM`);
     }
 
     confirmDialog(message, callback) {
@@ -6070,3 +6121,13 @@ document.addEventListener('keydown', (e) => {
         }
     }
 });
+
+// Initialize the dashboard
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!window.adminDashboard) {
+            window.adminDashboard = new AdminDashboard();
+            console.log('🚀 AdminDashboard initialized');
+        }
+    });
+}

@@ -2,11 +2,11 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}Editar Jugador - NCS International{% endblock %}
+{% block title %}{% trans "Edit Player" %} - NCS International{% endblock %}
 
 {% block breadcrumb %}
-    <span>Jugadores</span>
-    <span>Editar</span>
+    <span>{% trans "Players" %}</span>
+    <span>{% trans "Edit" %}</span>
 {% endblock %}
 
 {% block content %}
@@ -36,7 +36,7 @@
             </div>
         {% endif %}
 
-        <!-- Información del Jugador -->
+        <!-- Información Personal -->
         <div class="form-section mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
             <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 600; font-size: 1.1rem;">
                 <i class="fas fa-user me-2" style="color: var(--mlb-red);"></i>{% trans "Personal Information" %}
@@ -97,7 +97,6 @@
                 </div>
             </div>
 
-            {% if form.birth_date %}
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="{{ form.birth_date.id_for_label }}" class="form-label">
@@ -114,7 +113,86 @@
                     {% endif %}
                 </div>
             </div>
-            {% endif %}
+
+            <!-- Foto de Perfil -->
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label for="{{ form.profile_picture.id_for_label }}" class="form-label">
+                        <i class="fas fa-camera me-2"></i>{% trans "Profile Picture" %}
+                        <span class="text-muted small">({% trans "optional" %})</span>
+                    </label>
+                    <div class="profile-picture-upload-area" id="profilePictureUploadArea" style="border: 2px dashed #0d2c54; border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.3s; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                        {% if object.user.profile.profile_picture %}
+                            <div style="position: relative;">
+                                <img src="{{ object.user.profile.profile_picture.url }}" alt="Profile Picture" style="max-width: 200px; max-height: 200px; border-radius: 12px; object-fit: cover; margin-bottom: 15px;">
+                                <div>
+                                    <i class="fas fa-check-circle fa-2x mb-2" style="color: #28a745;"></i>
+                                    <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue);">
+                                        {% trans "Photo Uploaded" %}
+                                    </p>
+                                    <small class="text-muted">{% trans "Click to change photo" %}</small>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div>
+                                <i class="fas fa-camera fa-3x mb-3" style="color: #0d2c54; opacity: 0.5;"></i>
+                                <p class="mb-2" style="font-weight: 600; color: var(--mlb-blue); font-size: 1.05rem;">
+                                    {% trans "Upload Profile Picture" %}
+                                </p>
+                                <small class="text-muted">{% trans "Click here to select an image" %}</small>
+                            </div>
+                        {% endif %}
+                    </div>
+                    {{ form.profile_picture }}
+                    {% if form.profile_picture.errors %}
+                        <div class="error-message mt-2">{{ form.profile_picture.errors }}</div>
+                    {% endif %}
+                    <small class="text-muted d-block mt-2">
+                        <i class="fas fa-info-circle me-1"></i>{% trans "Accepted formats: JPG, PNG, GIF. Max size: 5MB" %}
+                    </small>
+                </div>
+            </div>
+
+            <!-- Ubicación -->
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.country.id_for_label }}" class="form-label required-field">
+                        <i class="fas fa-globe me-1"></i>{% trans "Country" %} *
+                    </label>
+                    {{ form.country }}
+                    {% if form.country.errors %}
+                        <div class="error-message mt-1">{{ form.country.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.state.id_for_label }}" class="form-label required-field">
+                        <i class="fas fa-map-marker-alt me-1"></i>{% trans "State" %} *
+                    </label>
+                    <div class="position-relative">
+                        {{ form.state }}
+                        <div id="stateLoader" class="position-absolute" style="display: none; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none;">
+                            <i class="fas fa-spinner fa-spin" style="color: var(--mlb-blue);"></i>
+                        </div>
+                    </div>
+                    {% if form.state.errors %}
+                        <div class="error-message mt-1">{{ form.state.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.city.id_for_label }}" class="form-label required-field">
+                        <i class="fas fa-city me-1"></i>{% trans "City" %} *
+                    </label>
+                    <div class="position-relative">
+                        {{ form.city }}
+                        <div id="cityLoader" class="position-absolute" style="display: none; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none;">
+                            <i class="fas fa-spinner fa-spin" style="color: var(--mlb-blue);"></i>
+                        </div>
+                    </div>
+                    {% if form.city.errors %}
+                        <div class="error-message mt-1">{{ form.city.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
         <!-- Información Deportiva -->
@@ -307,7 +385,7 @@
                 <label for="{{ form.age_verification_document.id_for_label }}" class="form-label" style="font-weight: 700; color: var(--mlb-blue); font-size: 1.05rem; margin-bottom: 12px;">
                     <i class="fas fa-file-upload me-2" style="color: var(--mlb-red);"></i>{% trans "Age Verification Document" %}
                 </label>
-                <div class="file-upload-area" id="ageVerificationUploadArea" style="border: 3px dashed var(--mlb-blue); border-radius: 12px; padding: 30px; text-align: center; background: linear-gradient(135deg, #f8f9fa 0%, #e7f3ff 100%); cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;" onmouseover="this.style.borderColor='var(--mlb-red)'; this.style.background='linear-gradient(135deg, #e7f3ff 0%, #fff5f5 100%)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(13, 44, 84, 0.15)';" onmouseout="this.style.borderColor='var(--mlb-blue)'; this.style.background='linear-gradient(135deg, #f8f9fa 0%, #e7f3ff 100%)'; this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                <div class="file-upload-area" id="ageVerificationUploadArea" style="border: 3px dashed var(--mlb-blue); border-radius: 12px; padding: 30px; text-align: center; background: linear-gradient(135deg, #f8f9fa 0%, #e7f3ff 100%); cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden;">
                     <div style="position: relative; z-index: 2;">
                         {% if object.age_verification_document %}
                             <i class="fas fa-check-circle fa-3x mb-3" style="color: #28a745; animation: none;"></i>
@@ -500,12 +578,18 @@
         <!-- Botones de Acción -->
         <div class="form-actions mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
             <div class="d-flex justify-content-between align-items-center">
-            <a href="{% url 'accounts:player_detail' object.pk %}" class="btn btn-form-cancel">
-                <i class="fas fa-times me-2"></i>{% trans "Cancel" %}
-            </a>
-            <button type="submit" class="btn btn-form-submit">
-                <i class="fas fa-save me-2"></i>{% trans "Save Changes" %}
-            </button>
+                <a href="{% url 'accounts:player_detail' object.pk %}" class="btn btn-form-cancel">
+                    <i class="fas fa-times me-2"></i>{% trans "Cancel" %}
+                </a>
+                <button type="submit" class="btn btn-form-submit" id="btnSavePlayer">
+                    <span class="button-text">
+                        <i class="fas fa-save me-2"></i>{% trans "Save Changes" %}
+                    </span>
+                    <span class="button-spinner" style="display: none;">
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        {% trans "Saving..." %}
+                    </span>
+                </button>
             </div>
         </div>
     </form>
@@ -527,103 +611,247 @@
     cursor: pointer;
     z-index: 3;
 }
+
+.profile-picture-upload-area:hover {
+    border-color: var(--mlb-red) !important;
+    transform: scale(1.02);
+    box-shadow: 0 8px 20px rgba(13, 44, 84, 0.1) !important;
+}
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('✅ Formulario de edición de jugador cargado');
+(function() {
+    // Función para inicializar el formulario de edición
+    function initPlayerEditForm() {
+        console.log('🔄 Inicializando formulario de edición de jugador...');
+        const playerEditForm = document.getElementById('playerEditForm');
+        if (!playerEditForm) return;
 
-    // Asegurar que is_pitcher siempre se envíe en el formulario
-    // Si el checkbox no está marcado, agregar un hidden antes de enviar
-    const isPitcherCheckbox = document.getElementById('{{ form.is_pitcher.id_for_label }}');
-    const playerEditForm = document.getElementById('playerEditForm');
+        // 1. Manejo de is_pitcher y secondary_position
+        const isPitcherCheckbox = document.getElementById('{{ form.is_pitcher.id_for_label }}');
+        const secondaryPositionSelect = document.getElementById('{{ form.secondary_position.id_for_label }}');
 
-    if (isPitcherCheckbox && playerEditForm) {
-        // Antes de enviar el formulario, asegurar que is_pitcher siempre se envíe
-        playerEditForm.addEventListener('submit', function(e) {
-            // Si el checkbox no está marcado, agregar un campo hidden para asegurar que se envíe
-            if (!isPitcherCheckbox.checked) {
-                // Remover cualquier hidden anterior
+        function prepareFormFields() {
+            console.log('🛠️ Preparando campos del formulario antes de enviar...');
+
+            // Asegurar is_pitcher
+            if (isPitcherCheckbox) {
                 const existingHidden = playerEditForm.querySelector('input[name="is_pitcher"][type="hidden"]');
-                if (existingHidden) {
-                    existingHidden.remove();
+                if (existingHidden) existingHidden.remove();
+
+                if (!isPitcherCheckbox.checked) {
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'is_pitcher';
+                    hiddenInput.value = '0';
+                    playerEditForm.appendChild(hiddenInput);
+                    console.log('✅ Added hidden is_pitcher=0');
                 }
-                // Crear un nuevo hidden con valor False
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = 'is_pitcher';
-                hiddenInput.value = '0';
-                playerEditForm.appendChild(hiddenInput);
-                console.log('is_pitcher checkbox no marcado - agregado hidden con valor 0');
-            } else {
-                // Si está marcado, remover cualquier hidden que pueda existir
-                const existingHidden = playerEditForm.querySelector('input[name="is_pitcher"][type="hidden"]');
-                if (existingHidden) {
-                    existingHidden.remove();
-                }
-                console.log('is_pitcher checkbox marcado - valor será True');
             }
-        });
+
+            // Asegurar secondary_position
+            if (secondaryPositionSelect) {
+                const val = secondaryPositionSelect.value;
+                if (!val) {
+                    const existingHidden = playerEditForm.querySelector('input[name="secondary_position"][type="hidden"]');
+                    if (existingHidden) existingHidden.remove();
+
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'secondary_position';
+                    hiddenInput.value = '';
+                    playerEditForm.appendChild(hiddenInput);
+                    console.log('✅ Added hidden secondary_position=""');
+                }
+            }
+        }
+
+        // Exponer globalmente para el panel
+        window.preparePlayerEditFormFields = prepareFormFields;
+
+        // Agregar listener si no estamos en el panel
+        const isInPanel = playerEditForm.hasAttribute('data-submit-listener-added') ||
+                          document.getElementById('tab-content-editar-jugador') !== null;
+
+        if (!isInPanel) {
+            playerEditForm.addEventListener('submit', function(e) {
+                prepareFormFields();
+
+                // Mostrar spinner
+                const btn = document.getElementById('btnSavePlayer');
+                if (btn) {
+                    const text = btn.querySelector('.button-text');
+                    const spinner = btn.querySelector('.button-spinner');
+                    if (text && spinner) {
+                        text.style.display = 'none';
+                        spinner.style.display = 'inline-block';
+                        btn.disabled = true;
+                    }
+                }
+            });
+        }
+
+        // 2. Inicializar Foto de Perfil
+        const profilePictureInput = document.getElementById('id_profile_picture');
+        const profilePictureUploadArea = document.getElementById('profilePictureUploadArea');
+
+        if (profilePictureInput && profilePictureUploadArea) {
+            // Click triggers input
+            profilePictureUploadArea.addEventListener('click', function(e) {
+                if (e.target !== profilePictureInput) {
+                    profilePictureInput.click();
+                }
+            });
+
+            // Preview
+            profilePictureInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Validaciones
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('{% trans "The file is too large. Maximum size is 5MB." %}');
+                        this.value = '';
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        profilePictureUploadArea.innerHTML = `
+                            <div style="position: relative;">
+                                <img src="${e.target.result}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 12px; object-fit: cover; margin-bottom: 15px;">
+                                <div>
+                                    <i class="fas fa-check-circle fa-2x mb-2" style="color: #28a745;"></i>
+                                    <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue);">{% trans "Photo Selected" %}</p>
+                                    <small class="text-success">${file.name}</small>
+                                </div>
+                            </div>
+                        `;
+                        profilePictureUploadArea.style.borderColor = '#28a745';
+                        profilePictureUploadArea.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        // 3. Inicializar Verificación de Edad (File Area)
+        const ageVerifInput = document.querySelector('#playerEditForm input[type="file"][name*="age_verification"]');
+        const ageVerifArea = document.getElementById('ageVerificationUploadArea');
+
+        if (ageVerifInput && ageVerifArea) {
+            ageVerifArea.addEventListener('click', function(e) {
+                if (e.target !== ageVerifInput) {
+                    ageVerifInput.click();
+                }
+            });
+
+            ageVerifInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 10 * 1024 * 1024) {
+                        alert('{% trans "The file is too large. Maximum allowed size is 10MB." %}');
+                        this.value = '';
+                        return;
+                    }
+
+                    const contentDiv = ageVerifArea.querySelector('div[style*="position: relative"]');
+                    if (contentDiv) {
+                        contentDiv.innerHTML = `
+                            <i class="fas fa-check-circle fa-3x mb-3" style="color: #28a745;"></i>
+                            <p class="mb-2" style="font-weight: 700; color: #28a745; font-size: 1.1rem;">{% trans "Document Uploaded" %}</p>
+                            <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.95rem;">${file.name}</small>
+                        `;
+                    }
+                    ageVerifArea.style.borderColor = '#28a745';
+                    ageVerifArea.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
+                }
+            });
+        }
+
+        // 4. Filtros Dinámicos de Ubicación
+        const countrySelect = document.getElementById('id_country');
+        const stateSelect = document.getElementById('id_state');
+        const citySelect = document.getElementById('id_city');
+        const stateLoader = document.getElementById('stateLoader');
+        const cityLoader = document.getElementById('cityLoader');
+
+        if (countrySelect && stateSelect && citySelect) {
+            const initialCountry = countrySelect.value;
+
+            function updateStates(showLoader = true) {
+                const countryId = countrySelect.value;
+                const currentStateValue = stateSelect.value;
+
+                stateSelect.innerHTML = '<option value="">{% trans "Select a state" %}</option>';
+                citySelect.innerHTML = '<option value="">{% trans "Select a city" %}</option>';
+
+                if (countryId) {
+                    if (showLoader && stateLoader) stateLoader.style.display = 'block';
+                    if (showLoader) {
+                        stateSelect.disabled = true;
+                        citySelect.disabled = true;
+                    }
+
+                    fetch(`/locations/ajax/states/${countryId}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(state => {
+                                const opt = document.createElement('option');
+                                opt.value = state.id;
+                                opt.textContent = state.name;
+                                if (currentStateValue == state.id) opt.selected = true;
+                                stateSelect.appendChild(opt);
+                            });
+                            if (stateSelect.value) updateCities(showLoader);
+                        })
+                        .finally(() => {
+                            if (stateLoader) stateLoader.style.display = 'none';
+                            stateSelect.disabled = false;
+                            citySelect.disabled = false;
+                        });
+                }
+            }
+
+            function updateCities(showLoader = true) {
+                const stateId = stateSelect.value;
+                const currentCityValue = citySelect.value;
+
+                citySelect.innerHTML = '<option value="">{% trans "Select a city" %}</option>';
+
+                if (stateId) {
+                    if (showLoader && cityLoader) cityLoader.style.display = 'block';
+                    if (showLoader) citySelect.disabled = true;
+
+                    fetch(`/locations/ajax/cities/${stateId}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(city => {
+                                const opt = document.createElement('option');
+                                opt.value = city.id;
+                                opt.textContent = city.name;
+                                if (currentCityValue == city.id) opt.selected = true;
+                                citySelect.appendChild(opt);
+                            });
+                        })
+                        .finally(() => {
+                            if (cityLoader) cityLoader.style.display = 'none';
+                            citySelect.disabled = false;
+                        });
+                }
+            }
+
+            countrySelect.addEventListener('change', () => updateStates(true));
+            stateSelect.addEventListener('change', () => updateCities(true));
+
+            if (initialCountry) updateStates(false);
+        }
     }
 
-    // Mejorar el área de carga de archivos
-    const fileInput = document.querySelector('#playerEditForm input[type="file"][name*="age_verification"]');
-    const fileUploadArea = document.getElementById('ageVerificationUploadArea');
-
-    if (fileInput && fileUploadArea) {
-        // Asegurar que el campo no sea requerido
-        fileInput.removeAttribute('required');
-        fileInput.required = false;
-
-        fileUploadArea.addEventListener('click', function(e) {
-            if (e.target !== fileInput) {
-                fileInput.click();
-            }
-        });
-
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const fileName = file.name;
-                const fileSize = (file.size / 1024 / 1024).toFixed(2);
-
-                // Validar tamaño (máx 10MB)
-                if (file.size > 10 * 1024 * 1024) {
-                    alert('{% trans "The file is too large. Maximum allowed size is 10MB." %}');
-                    fileInput.value = '';
-                    return;
-                }
-
-                // Validar tipo de archivo
-                const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-                if (!allowedTypes.includes(file.type)) {
-                    alert('{% trans "File type not allowed. Only PDF, JPG or PNG are accepted." %}');
-                    fileInput.value = '';
-                    return;
-                }
-
-                // Actualizar el área con el archivo cargado
-                const contentDiv = fileUploadArea.querySelector('div[style*="position: relative"]');
-                if (contentDiv) {
-                    contentDiv.innerHTML = `
-                        <i class="fas fa-check-circle fa-3x mb-3" style="color: #28a745; animation: none;"></i>
-                        <p class="mb-2" style="font-weight: 700; color: #28a745; font-size: 1.1rem;">
-                            <i class="fas fa-file-check me-2"></i>{% trans "Document Uploaded" %}
-                        </p>
-                        <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.95rem; word-break: break-word;">${fileName}</p>
-                        <small class="text-muted d-block mt-2" style="font-size: 0.9rem;">${fileSize} MB</small>
-                        <small class="text-success d-block mt-1" style="font-size: 0.85rem;">
-                            <i class="fas fa-check me-1"></i>{% trans "Click to change file" %}
-                        </small>
-                    `;
-                }
-
-                fileUploadArea.style.borderColor = '#28a745';
-                fileUploadArea.style.borderWidth = '3px';
-                fileUploadArea.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
-                fileUploadArea.style.boxShadow = '0 4px 12px rgba(40, 167, 69, 0.2)';
-            }
-        });
+    // Ejecutar
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPlayerEditForm);
+    } else {
+        initPlayerEditForm();
     }
 
     // Convert Django messages to toasts
@@ -632,6 +860,6 @@ document.addEventListener('DOMContentLoaded', function() {
             window.adminDashboard.convertDjangoMessagesToToasts();
         }
     }, 100);
-});
+})();
 </script>
 {% endblock %}

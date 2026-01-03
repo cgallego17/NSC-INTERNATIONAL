@@ -1013,6 +1013,8 @@
 
         // Convert Django messages to modern toasts
         let toastsInitialized = false;
+        let toastInitAttempts = 0;
+        const MAX_TOAST_INIT_ATTEMPTS = 10;
 
         function initializeToasts() {
             // Evitar inicialización múltiple
@@ -1021,27 +1023,65 @@
                 return;
             }
 
-            if (window.adminDashboard && typeof window.adminDashboard.convertDjangoMessagesToToasts === 'function') {
-                console.log('✅ adminDashboard found, converting messages to toasts');
-                window.adminDashboard.convertDjangoMessagesToToasts();
-                toastsInitialized = true;
+            // Prevenir intentos infinitos
+            if (toastInitAttempts >= MAX_TOAST_INIT_ATTEMPTS) {
+                console.warn('⚠️ Max toast initialization attempts reached, giving up');
+                return;
+            }
 
-                // Ocultar cualquier contenedor de mensajes de Bootstrap que pueda estar visible
-                const bootstrapAlerts = document.querySelectorAll('.alert:not(.alert-persistent)');
-                bootstrapAlerts.forEach(alert => {
-                    // Solo ocultar si es un mensaje Django (tiene el icono de éxito/error típico)
-                    if (alert.querySelector('.fa-check-circle, .fa-exclamation-circle, .fa-exclamation-triangle, .fa-info-circle')) {
-                        alert.style.display = 'none';
-                    }
-                });
-            } else {
-                console.warn('⚠️ adminDashboard not ready yet, retrying...');
-                setTimeout(initializeToasts, 100);
+            toastInitAttempts++;
+
+            try {
+                if (window.adminDashboard && typeof window.adminDashboard.convertDjangoMessagesToToasts === 'function') {
+                    console.log('✅ adminDashboard found, converting messages to toasts');
+
+                    // Usar requestAnimationFrame para asegurar que el DOM esté completamente listo
+                    requestAnimationFrame(() => {
+                        try {
+                            window.adminDashboard.convertDjangoMessagesToToasts();
+                            toastsInitialized = true;
+
+                            // Ocultar cualquier contenedor de mensajes de Bootstrap que pueda estar visible
+                            // Usar setTimeout para hacer esto después de que los toasts se hayan creado
+                            setTimeout(() => {
+                                try {
+                                    const bootstrapAlerts = document.querySelectorAll('.alert:not(.alert-persistent)');
+                                    bootstrapAlerts.forEach(alert => {
+                                        try {
+                                            // Verificar que el nodo todavía existe
+                                            if (alert.isConnected) {
+                                                // Solo ocultar si es un mensaje Django (tiene el icono de éxito/error típico)
+                                                const icon = alert.querySelector('.fa-check-circle, .fa-exclamation-circle, .fa-exclamation-triangle, .fa-info-circle');
+                                                if (icon) {
+                                                    alert.style.display = 'none';
+                                                }
+                                            }
+                                        } catch (error) {
+                                            console.error('Error hiding alert:', error);
+                                        }
+                                    });
+                                } catch (error) {
+                                    console.error('Error processing Bootstrap alerts:', error);
+                                }
+                            }, 100);
+                        } catch (error) {
+                            console.error('Error in convertDjangoMessagesToToasts:', error);
+                        }
+                    });
+                } else {
+                    console.warn(`⚠️ adminDashboard not ready yet, retrying... (attempt ${toastInitAttempts}/${MAX_TOAST_INIT_ATTEMPTS})`);
+                    setTimeout(initializeToasts, 100);
+                }
+            } catch (error) {
+                console.error('Error in initializeToasts:', error);
+                // No reintentar si hay un error crítico
+                toastsInitialized = true;
             }
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(initializeToasts, 50);
+            // Esperar un poco más para asegurar que todos los scripts estén cargados
+            setTimeout(initializeToasts, 100);
         });
 
         // Funcionalidad de Tabs para Acciones Rápidas
@@ -1371,23 +1411,18 @@
                 }
             }, 100);
 
-            // Verificar que tenemos sesión activa antes de cargar
-            if (!document.cookie.includes('sessionid')) {
-                console.error('❌ No se encontró sesión activa');
-                alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
-                window.location.href = '/accounts/login/?next=' + encodeURIComponent(window.location.pathname);
-                return;
-            }
-
             // Cargar el contenido mediante AJAX con timeout
             console.log('🔵 Iniciando petición AJAX a:', url);
 
-            // Crear un timeout de 30 segundos
+            // Mostrar indicador de carga
+            editTab.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3 text-muted">Cargando formulario de edición...</p></div>';
+
+            // Crear un timeout de 15 segundos (reducido de 30)
             const controller = new AbortController();
             const timeoutId = setTimeout(() => {
-                console.error('⏱️ TIMEOUT: La petición tardó más de 30 segundos');
+                console.error('⏱️ TIMEOUT: La petición tardó más de 15 segundos');
                 controller.abort();
-            }, 30000);
+            }, 15000);
 
             fetch(url, {
                 method: 'GET',
@@ -1405,12 +1440,28 @@
                     contentLength: response.headers.get('content-length')
                 });
 
-                // Manejar sesión expirada (401)
+                // Manejar sesión expirada (401) - puede ser JSON o HTML
                 if (response.status === 401) {
                     console.error('❌ Sesión expirada (401)');
-                    alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
-                    window.location.href = '/accounts/login/?next=' + encodeURIComponent(window.location.pathname);
-                    throw new Error('Session expired');
+
+                    // Intentar parsear como JSON primero
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        // Clonar la respuesta para poder leerla dos veces
+                        response.clone().json().then(data => {
+                            console.error('❌ Error JSON de sesión:', data);
+                        }).catch(() => {});
+
+                        // Mostrar alerta y redirigir
+                        alert('Tu sesión ha expirado. Por favor, recarga la página e inicia sesión nuevamente.');
+                        window.location.href = '/accounts/login/?next=' + encodeURIComponent(window.location.pathname);
+                        throw new Error('Session expired');
+                    } else {
+                        // Si no es JSON, manejar como HTML/text
+                        alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                        window.location.href = '/accounts/login/?next=' + encodeURIComponent(window.location.pathname);
+                        throw new Error('Session expired');
+                    }
                 }
 
                 // Manejar otros errores
@@ -1640,6 +1691,36 @@
                     }
                 }
 
+                // EXTRAER Y EJECUTAR SCRIPTS DEL HTML CARGADO
+                function executeScripts(container) {
+                    console.log('🔍 Ejecutando scripts del contenedor...');
+                    try {
+                        const scripts = container.querySelectorAll('script');
+                        scripts.forEach(oldScript => {
+                            const newScript = document.createElement('script');
+                            Array.from(oldScript.attributes).forEach(attr => {
+                                newScript.setAttribute(attr.name, attr.value);
+                            });
+                            if (oldScript.src) {
+                                newScript.src = oldScript.src;
+                            } else {
+                                newScript.textContent = oldScript.innerHTML;
+                            }
+                            document.body.appendChild(newScript);
+                            setTimeout(() => {
+                                if (newScript.parentNode) {
+                                    newScript.parentNode.removeChild(newScript);
+                                }
+                            }, 1000);
+                        });
+                        console.log(`✅ ${scripts.length} scripts ejecutados`);
+                    } catch (scriptError) {
+                        console.error('❌ Error al ejecutar scripts:', scriptError);
+                    }
+                }
+
+                executeScripts(tempDiv);
+
                 console.log('Contenido agregado al tab, buscando formulario...');
                 console.log('HTML del tab después de agregar contenido:', editTab.innerHTML.substring(0, 500));
 
@@ -1867,24 +1948,77 @@
                                 .then(data => {
                                     console.log('🔵 Data recibida:', data);
                                     if (data.success === true) {
-                                        // Éxito - mostrar mensaje y recargar el tab de mis-hijos
-                                        const successMsg = document.createElement('div');
-                                        successMsg.className = 'alert alert-success';
-                                        successMsg.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + (data.message || translations.playerUpdated);
-                                        // Insertar el mensaje antes del formulario
-                                        if (form.parentNode) {
-                                            form.parentNode.insertBefore(successMsg, form);
+                                        // Éxito - mostrar toast usando adminDashboard
+                                        const successMessage = data.message || translations.playerUpdated;
+
+                                        // Usar el método showToast de adminDashboard si está disponible
+                                        if (window.adminDashboard && typeof window.adminDashboard.showToast === 'function') {
+                                            window.adminDashboard.showToast(
+                                                successMessage,
+                                                'success',
+                                                '{% trans "Success" %}',
+                                                3000
+                                            );
                                         } else {
-                                            editTab.insertBefore(successMsg, form);
+                                            // Fallback: crear toast manualmente solo si adminDashboard no está disponible
+                                            try {
+                                                const toastContainer = document.getElementById('toastContainer') || (() => {
+                                                    const container = document.createElement('div');
+                                                    container.id = 'toastContainer';
+                                                    container.className = 'toast-container position-fixed top-0 end-0 p-3';
+                                                    container.style.zIndex = '9999';
+                                                    document.body.appendChild(container);
+                                                    return container;
+                                                })();
+
+                                                const toastEl = document.createElement('div');
+                                                toastEl.className = 'toast';
+                                                toastEl.setAttribute('role', 'alert');
+                                                toastEl.setAttribute('aria-live', 'assertive');
+                                                toastEl.setAttribute('aria-atomic', 'true');
+
+                                                toastEl.innerHTML = `
+                                                    <div class="toast-header bg-success text-white">
+                                                        <i class="fas fa-check-circle me-2"></i>
+                                                        <strong class="me-auto">{% trans "Success" %}</strong>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                                                    </div>
+                                                    <div class="toast-body">
+                                                        <i class="fas fa-user-check me-2 text-success"></i>
+                                                        ${successMessage}
+                                                    </div>
+                                                `;
+
+                                                toastContainer.appendChild(toastEl);
+
+                                                // Inicializar toast de Bootstrap
+                                                const toast = new bootstrap.Toast(toastEl, {
+                                                    autohide: true,
+                                                    delay: 3000
+                                                });
+
+                                                // Limpiar después de que se oculte
+                                                toastEl.addEventListener('hidden.bs.toast', function() {
+                                                    if (toastEl.parentNode) {
+                                                        toastEl.remove();
+                                                    }
+                                                });
+
+                                                toast.show();
+                                            } catch (error) {
+                                                console.error('Error creating toast:', error);
+                                                // Fallback final: alert simple
+                                                alert(successMessage);
+                                            }
                                         }
 
-                                        // Recargar el tab de mis-hijos después de 1.5 segundos
+                                        // Recargar el tab de mis-hijos después de 2 segundos
                                         setTimeout(() => {
                                             const misHijosButton = document.querySelector('.tab-btn[data-tab="mis-hijos"]');
                                             if (misHijosButton) {
                                                 window.location.reload();
                                             }
-                                        }, 1500);
+                                        }, 2000);
                                     } else if (data.success === false && data.errors) {
                                         // Hay errores de validación JSON
                                         console.log('🔴 Errores de validación:', data.errors);
@@ -1926,6 +2060,8 @@
                                             const newForm = tempDiv.querySelector('form');
                                             if (newForm) {
                                                 form.parentNode.replaceChild(newForm.cloneNode(true), form);
+                                                // Re-ejecutar scripts si el nuevo formulario los trae
+                                                executeScripts(tempDiv);
                                             }
 
                                             restoreButton();

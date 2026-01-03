@@ -1,8 +1,14 @@
 """
 Middleware para establecer inglés como idioma predeterminado
+y manejar errores de sesión
 """
 from django.utils import translation
 from django.conf import settings
+from django.contrib.sessions.exceptions import SessionInterrupted
+from django.http import JsonResponse
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class DefaultLanguageMiddleware:
@@ -70,4 +76,47 @@ class DefaultLanguageMiddleware:
         response.setdefault('Content-Language', translation.get_language())
 
         return response
+
+
+class SessionInterruptedMiddleware:
+    """
+    Middleware para manejar errores de SessionInterrupted de manera elegante.
+
+    Este error ocurre cuando la sesión se elimina antes de que la petición se complete,
+    típicamente por peticiones concurrentes o problemas de sincronización.
+
+    Debe ir DESPUÉS de SessionMiddleware en MIDDLEWARE.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        try:
+            response = self.get_response(request)
+            return response
+        except SessionInterrupted as e:
+            logger.warning(
+                f"SessionInterrupted error for user {request.user if request.user.is_authenticated else 'anonymous'}: {e}"
+            )
+
+            # Si es una petición AJAX, devolver JSON con error
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                return JsonResponse(
+                    {
+                        "error": "Session expired. Please refresh the page and try again.",
+                        "session_expired": True
+                    },
+                    status=401
+                )
+
+            # Si no es AJAX, intentar crear una respuesta básica
+            # No podemos usar redirect porque la sesión está interrumpida
+            from django.http import HttpResponse
+            response = HttpResponse(
+                "<html><body><h1>Session Error</h1><p>Your session has expired. "
+                "Please <a href='/accounts/login/'>log in again</a>.</p></body></html>",
+                status=401
+            )
+            return response
 
