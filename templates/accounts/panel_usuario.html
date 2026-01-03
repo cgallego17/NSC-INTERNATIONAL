@@ -1764,16 +1764,44 @@
                                 const submitButton = form.querySelector('button[type="submit"]');
                                 const originalButtonText = submitButton ? submitButton.innerHTML : '';
 
-                                console.log('🔵 Botón de submit:', submitButton);
-                                console.log('🔵 Form action:', form.action || url);
-                                console.log('🔵 FormData entries:');
-                                for (let [key, value] of formData.entries()) {
-                                    console.log(`  - ${key}: ${value}`);
-                                }
+                                // Función para restaurar el botón
+                                const restoreButton = () => {
+                                    if (!submitButton) return;
 
+                                    const buttonText = submitButton.querySelector('.button-text');
+                                    const buttonSpinner = submitButton.querySelector('.button-spinner');
+
+                                    if (buttonText && buttonSpinner) {
+                                        // Restaurar estructura moderna
+                                        buttonText.style.display = 'inline-block';
+                                        buttonSpinner.style.display = 'none';
+                                    } else {
+                                        // Restaurar método antiguo
+                                        submitButton.innerHTML = originalButtonText;
+                                    }
+
+                                    submitButton.disabled = false;
+                                    submitButton.style.opacity = '1';
+                                    submitButton.style.cursor = 'pointer';
+                                };
+
+                                // Mostrar spinner en el botón
                                 if (submitButton) {
+                                    const buttonText = submitButton.querySelector('.button-text');
+                                    const buttonSpinner = submitButton.querySelector('.button-spinner');
+
+                                    if (buttonText && buttonSpinner) {
+                                        // Usar estructura de spinner moderna
+                                        buttonText.style.display = 'none';
+                                        buttonSpinner.style.display = 'inline-block';
+                                    } else {
+                                        // Fallback al método antiguo si no hay estructura de spinner
+                                        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>' + translations.saving;
+                                    }
+
                                     submitButton.disabled = true;
-                                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>' + translations.saving;
+                                    submitButton.style.opacity = '0.7';
+                                    submitButton.style.cursor = 'not-allowed';
                                 }
 
                                 console.log('🔵 Enviando fetch...');
@@ -1843,10 +1871,7 @@
                                         // Insertar mensaje de error antes del formulario
                                         form.parentNode.insertBefore(errorContainer, form);
 
-                                        if (submitButton) {
-                                            submitButton.disabled = false;
-                                            submitButton.innerHTML = originalButtonText;
-                                        }
+                                        restoreButton();
                                     } else if (data.html) {
                                         // Hay HTML de respuesta, podría ser un error o el formulario con errores
                                         const tempDiv = document.createElement('div');
@@ -1861,10 +1886,7 @@
                                             errorContainer.innerHTML = errors.innerHTML;
                                             form.parentNode.insertBefore(errorContainer, form);
 
-                                            if (submitButton) {
-                                                submitButton.disabled = false;
-                                                submitButton.innerHTML = originalButtonText;
-                                            }
+                                            restoreButton();
                                         } else {
                                             // Podría ser el formulario actualizado, reemplazar el contenido
                                             const newForm = tempDiv.querySelector('form');
@@ -1872,10 +1894,7 @@
                                                 form.parentNode.replaceChild(newForm.cloneNode(true), form);
                                             }
 
-                                            if (submitButton) {
-                                                submitButton.disabled = false;
-                                                submitButton.innerHTML = originalButtonText;
-                                            }
+                                            restoreButton();
                                         }
                                     }
                                 })
@@ -1887,10 +1906,7 @@
                                     errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + translations.errorSaving + '<br><small>' + error.message + '</small>';
                                     form.parentNode.insertBefore(errorMsg, form);
 
-                                    if (submitButton) {
-                                        submitButton.disabled = false;
-                                        submitButton.innerHTML = originalButtonText;
-                                    }
+                                    restoreButton();
                                 });
                             });
                         }

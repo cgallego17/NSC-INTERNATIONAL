@@ -37,8 +37,10 @@
         {% endif %}
 
         <!-- Campos ocultos para age_verification (solo para padres) -->
-        {{ form.age_verification_status }}
-        {{ form.age_verification_notes }}
+        <div style="display: none;">
+            {{ form.age_verification_status }}
+            {{ form.age_verification_notes }}
+        </div>
 
         <!-- Información del Jugador -->
         <div class="form-section mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
@@ -170,12 +172,14 @@
             </div>
 
             <!-- Campos ocultos para mantener valores cuando padre edita -->
-            {% if form.team_hidden %}
-                {{ form.team_hidden }}
-            {% endif %}
-            {{ form.team.as_hidden }}
-            {{ form.jersey_number.as_hidden }}
-            {{ form.is_active.as_hidden }}
+            <div style="display: none;">
+                {% if form.team_hidden %}
+                    {{ form.team_hidden }}
+                {% endif %}
+                {{ form.team.as_hidden }}
+                {{ form.jersey_number.as_hidden }}
+                {{ form.is_active.as_hidden }}
+            </div>
 
             <div class="row">
                 <div class="col-md-4 mb-3">
@@ -506,8 +510,14 @@
                 <a href="{% url 'accounts:panel' %}" class="btn btn-form-cancel">
                     <i class="fas fa-times me-2"></i>{% trans "Cancel" %}
                 </a>
-                <button type="submit" class="btn btn-form-submit">
-                    <i class="fas fa-save me-2"></i>{% trans "Save Changes" %}
+                <button type="submit" class="btn btn-form-submit" id="btnSubmitPlayerEdit">
+                    <span class="button-text">
+                        <i class="fas fa-save me-2"></i>{% trans "Save Changes" %}
+                    </span>
+                    <span class="button-spinner" style="display: none;">
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        {% trans "Saving..." %}
+                    </span>
                 </button>
             </div>
         </div>

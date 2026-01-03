@@ -466,8 +466,14 @@
                     <a href="{% url 'accounts:panel' %}" class="btn btn-form-cancel">
                         <i class="fas fa-times me-2"></i>{% trans "Cancel" %}
                     </a>
-                    <button type="submit" class="btn btn-form-submit">
-                        <i class="fas fa-save me-2"></i>{% trans "Register Player" %}
+                    <button type="submit" class="btn btn-form-submit" id="btnSubmitPlayer">
+                        <span class="button-text">
+                            <i class="fas fa-save me-2"></i>{% trans "Register Player" %}
+                        </span>
+                        <span class="button-spinner" style="display: none;">
+                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            {% trans "Saving..." %}
+                        </span>
                     </button>
                 </div>
             </div>
@@ -539,25 +545,6 @@ Object.assign(translations, {
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Formulario de registro de hijo cargado');
-
-    // DEBUG: Verificar estado de la foto en el submit anterior
-    const debugPhotoOnClick = sessionStorage.getItem('debugPhotoOnClick');
-    const debugPhotoOnSubmit = sessionStorage.getItem('debugPhotoOnSubmit');
-
-    if (debugPhotoOnClick || debugPhotoOnSubmit) {
-        console.log('📊 === DEBUG DEL SUBMIT ANTERIOR ===');
-        if (debugPhotoOnClick) {
-            console.log('   En el CLICK del botón:', debugPhotoOnClick === 'NO_FILE' ? '❌ NO había foto' : '✅ Foto: ' + debugPhotoOnClick);
-        }
-        if (debugPhotoOnSubmit) {
-            console.log('   En el SUBMIT del formulario:', debugPhotoOnSubmit === 'NO_FILE' ? '❌ NO había foto' : '✅ Foto: ' + debugPhotoOnSubmit);
-        }
-        console.log('📊 =====================================');
-
-        // Limpiar para el próximo test
-        sessionStorage.removeItem('debugPhotoOnClick');
-        sessionStorage.removeItem('debugPhotoOnSubmit');
-    }
 
     // ========== TEST COMPLETO DEL FORMULARIO ==========
     function testFormulario() {
@@ -992,61 +979,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Validación antes de enviar - CAPTURAR EN FASE DE CAPTURA
+    // Validación antes de enviar
     if (form) {
-        console.log('✅ Listener de submit agregado al formulario');
-        console.log('   Formulario ID:', form.id);
-        console.log('   Formulario:', form);
-        console.log('   Submit button:', form.querySelector('button[type="submit"]'));
-
-        // AGREGAR LISTENER AL BOTÓN TAMBIÉN
-        const submitButton = form.querySelector('button[type="submit"]');
-        if (submitButton) {
-            submitButton.addEventListener('click', function(e) {
-                console.log('🔘 BOTÓN DE SUBMIT CLICKED!');
-                console.log('   Botón:', this);
-
-                // Verificar foto AHORA
-                const profilePicInput = document.getElementById('id_profile_picture');
-                if (profilePicInput && profilePicInput.files && profilePicInput.files.length > 0) {
-                    const fileInfo = {
-                        name: profilePicInput.files[0].name,
-                        size: profilePicInput.files[0].size,
-                        type: profilePicInput.files[0].type
-                    };
-                    console.log('   ✅ FOTO presente en el input al hacer clic:', fileInfo);
-                    sessionStorage.setItem('debugPhotoOnClick', JSON.stringify(fileInfo));
-                } else {
-                    console.log('   ❌ NO hay foto en el input al hacer clic');
-                    sessionStorage.setItem('debugPhotoOnClick', 'NO_FILE');
-                }
-            }, true);
-        }
-
-        // Usar fase de captura para interceptar antes que cualquier otro listener
         form.addEventListener('submit', function(e) {
-            console.log('🚀🚀🚀 SUBMIT EVENTO DISPARADO 🚀🚀🚀');
-            console.log('📤 Intentando enviar formulario...');
-
-            // DEBUG: Verificar si hay foto seleccionada
-            const profilePicInput = document.getElementById('id_profile_picture');
-            console.log('📸 Input de foto:', profilePicInput);
-            console.log('📸 Files:', profilePicInput ? profilePicInput.files : 'NO INPUT');
-            console.log('📸 Files length:', profilePicInput && profilePicInput.files ? profilePicInput.files.length : 'N/A');
-
-            if (profilePicInput && profilePicInput.files && profilePicInput.files.length > 0) {
-                const fileInfo = {
-                    nombre: profilePicInput.files[0].name,
-                    tamaño: profilePicInput.files[0].size,
-                    tipo: profilePicInput.files[0].type
-                };
-                console.log('✅ FOTO SELECCIONADA EN SUBMIT:', fileInfo);
-                sessionStorage.setItem('debugPhotoOnSubmit', JSON.stringify(fileInfo));
-            } else {
-                console.log('❌❌❌ NO hay foto seleccionada EN SUBMIT');
-                console.log('❌ El archivo se perdió entre la selección y el envío');
-                sessionStorage.setItem('debugPhotoOnSubmit', 'NO_FILE');
-            }
 
             // Verificar campos requeridos
             const requiredFields = form.querySelectorAll('input[required], select[required], textarea[required]');
@@ -1068,11 +1003,23 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!isValid) {
                 e.preventDefault();
                 alert(translations.pleaseCompleteFields + '\n\n' + missingFields.join('\n'));
-                console.error('❌ Formulario inválido. Campos faltantes:', missingFields);
                 return false;
             }
 
-            console.log('✅ Formulario válido, enviando...');
+            // Mostrar spinner en el botón
+            const submitBtn = document.getElementById('btnSubmitPlayer');
+            if (submitBtn) {
+                const buttonText = submitBtn.querySelector('.button-text');
+                const buttonSpinner = submitBtn.querySelector('.button-spinner');
+
+                if (buttonText && buttonSpinner) {
+                    buttonText.style.display = 'none';
+                    buttonSpinner.style.display = 'inline-block';
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.7';
+                    submitBtn.style.cursor = 'not-allowed';
+                }
+            }
         });
     }
 
@@ -1080,15 +1027,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const profilePictureInput = document.getElementById('id_profile_picture');
     const profilePictureUploadArea = document.getElementById('profilePictureUploadAreaPanel');
 
-    console.log('📸 Profile Picture Input:', profilePictureInput);
-    console.log('📸 Profile Picture Upload Area:', profilePictureUploadArea);
-
     if (profilePictureInput && profilePictureUploadArea) {
-        console.log('✅ Campo de foto encontrado, configurando...');
 
         // Hacer clic en el área activa el input de archivo
         profilePictureUploadArea.addEventListener('click', function(e) {
-            console.log('🖱️ Upload area clicked!');
             e.preventDefault();
             e.stopPropagation();
             profilePictureInput.click();
@@ -1096,26 +1038,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Preview de la imagen seleccionada
         profilePictureInput.addEventListener('change', function(e) {
-            console.log('📸 EVENTO CHANGE DISPARADO - Archivo seleccionado');
             const file = e.target.files[0];
             if (file) {
-                console.log('✅ FOTO DETECTADA:', {
-                    nombre: file.name,
-                    tipo: file.type,
-                    tamaño: file.size + ' bytes',
-                    tamañoMB: (file.size / 1024 / 1024).toFixed(2) + ' MB'
-                });
-
-                // Verificar que el input conserva el archivo
-                setTimeout(() => {
-                    console.log('⏱️ Verificando después de 100ms...');
-                    console.log('   Files en input:', profilePictureInput.files.length);
-                    if (profilePictureInput.files.length > 0) {
-                        console.log('   ✅ Archivo TODAVÍA presente:', profilePictureInput.files[0].name);
-                    } else {
-                        console.log('   ❌ Archivo SE PERDIÓ!');
-                    }
-                }, 100);
 
                 // Validar tamaño (5MB máximo)
                 const maxSize = 5 * 1024 * 1024;
@@ -1171,10 +1095,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             this.style.transform = 'scale(1)';
         });
-
-        console.log('✅ Campo de foto de perfil configurado correctamente');
-    } else {
-        console.warn('⚠️ Campo de foto no encontrado');
     }
 });
 </script>

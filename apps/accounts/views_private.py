@@ -737,37 +737,10 @@ class ParentPlayerRegistrationView(LoginRequiredMixin, CreateView):
         kwargs["parent"] = self.request.user
         return kwargs
 
-    def post(self, request, *args, **kwargs):
-        import logging
-        logger = logging.getLogger(__name__)
-
-        # DEBUG: Verificar si el archivo está en request.FILES
-        logger.info(f"🔍 POST recibido - request.FILES: {list(request.FILES.keys())}")
-        if 'profile_picture' in request.FILES:
-            photo = request.FILES['profile_picture']
-            logger.info(f"   ✅ FOTO RECIBIDA: {photo.name}, Tamaño: {photo.size}")
-        else:
-            logger.warning(f"   ⚠️ NO hay 'profile_picture' en request.FILES")
-
-        logger.info(f"🔍 Content-Type: {request.META.get('CONTENT_TYPE')}")
-
-        return super().post(request, *args, **kwargs)
-
     def form_valid(self, form):
-        import logging
-        logger = logging.getLogger(__name__)
-
         # El formulario ya creó el usuario, player y la relación
-        logger.info(f"🔍 form_valid - Guardando formulario...")
         player = form.save()
         player_name = player.user.get_full_name() or player.user.username
-
-        # Verificar si se guardó la foto
-        if hasattr(player.user, 'profile') and player.user.profile.profile_picture:
-            logger.info(f"✅ Foto guardada correctamente: {player.user.profile.profile_picture}")
-        else:
-            logger.warning(f"⚠️ NO se guardó la foto")
-
         messages.success(
             self.request,
             _("Player %(name)s registered successfully! The profile is ready to use.")
