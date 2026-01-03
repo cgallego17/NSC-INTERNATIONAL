@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: NSC International 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-01-03 15:49-0500\n"
+"POT-Creation-Date: 2026-01-03 15:54-0500\n"
 "PO-Revision-Date: 2025-01-01 00:00+0000\n"
 "Last-Translator: \n"
 "Language-Team: English\n"
@@ -28,6 +28,7 @@ msgstr ""
 #: .\templates\accounts\player_edit_hijo.html:85
 #: .\templates\accounts\profile_sections\profile_info.html:52
 #: .\templates\accounts\public_home.html:3515
+#: .\templates\accounts\public_player_profile.html:510
 #: .\templates\accounts\public_register.html:1245
 #: .\templates\accounts\public_register.html:1658
 #: .\templates\events\public_detail.html:2121
@@ -167,6 +168,7 @@ msgstr "Season description (optional)"
 #: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2344
 #: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2398
 #: .\templates\accounts\panel_tabs\detalle_evento_modals.html:2446
+#: .\templates\accounts\public_player_profile.html:463
 msgid "Date of Birth"
 msgstr ""
 
@@ -182,7 +184,7 @@ msgstr "Profile Picture"
 #: .\apps\accounts\forms.py:212
 #: .\templates\accounts\panel_tabs\crear_equipo.html:74
 #: .\templates\accounts\player_list.html:60
-#: .\templates\accounts\public_player_list.html:664
+#: .\templates\accounts\public_player_list.html:700
 #: .\templates\accounts\public_register.html:1492
 msgid "Country"
 msgstr "Country"
@@ -197,7 +199,7 @@ msgstr "Select a country first"
 #: .\apps\accounts\forms.py:219
 #: .\templates\accounts\panel_tabs\crear_equipo.html:83
 #: .\templates\accounts\player_list.html:75
-#: .\templates\accounts\public_player_list.html:675
+#: .\templates\accounts\public_player_list.html:711
 #: .\templates\accounts\public_register.html:1501
 msgid "State"
 msgstr "State"
@@ -210,7 +212,7 @@ msgstr "Select a state"
 #: .\apps\accounts\forms.py:226
 #: .\templates\accounts\panel_tabs\crear_equipo.html:92
 #: .\templates\accounts\player_list.html:90
-#: .\templates\accounts\public_player_list.html:686
+#: .\templates\accounts\public_player_list.html:722
 #: .\templates\accounts\public_register.html:1510
 msgid "City"
 msgstr "City"
@@ -1266,7 +1268,7 @@ msgstr "Available Categories"
 #: .\templates\accounts\hotel_list.html:49
 #: .\templates\accounts\panel_tabs\reservas.html:31
 #: .\templates\accounts\player_list.html:134
-#: .\templates\accounts\public_player_list.html:709
+#: .\templates\accounts\public_player_list.html:745
 #: .\templates\events\public_list.html:1183
 msgid "Filter"
 msgstr ""
@@ -1374,6 +1376,7 @@ msgstr "Preview"
 
 #: .\templates\accounts\panel_tabs\crear_equipo.html:69
 #: .\templates\accounts\panel_tabs\detalle_evento.html:80
+#: .\templates\accounts\public_player_profile.html:524
 #: .\templates\events\public_detail.html:1608
 #: .\templates\events\public_detail.html:1791
 #: .\templates\events\public_detail.html:1856
@@ -1381,6 +1384,7 @@ msgid "Location"
 msgstr "Location"
 
 #: .\templates\accounts\panel_tabs\crear_equipo.html:105
+#: .\templates\accounts\public_player_profile.html:505
 msgid "Contact Information"
 msgstr "Contact Information"
 
@@ -2111,6 +2115,7 @@ msgstr "Full hotel address"
 #: .\templates\accounts\player_edit.html:89
 #: .\templates\accounts\player_edit_hijo.html:95
 #: .\templates\accounts\profile_sections\profile_info.html:70
+#: .\templates\accounts\public_player_profile.html:517
 msgid "Phone"
 msgstr ""
 
@@ -2374,6 +2379,7 @@ msgstr "View and manage your information as a player"
 #: .\templates\accounts\panel_tabs\mi_perfil.html:10
 #: .\templates\accounts\panel_tabs\registrar_jugador.html:88
 #: .\templates\accounts\player_edit.html:134
+#: .\templates\accounts\public_player_profile.html:557
 msgid "Team"
 msgstr "Team"
 
@@ -2730,6 +2736,7 @@ msgstr "Your legal relationship with the player"
 #: .\templates\accounts\panel_tabs\registrar_hijo.html:72
 #: .\templates\accounts\player_edit.html:42
 #: .\templates\accounts\player_edit_hijo.html:48
+#: .\templates\accounts\public_player_profile.html:458
 msgid "Personal Information"
 msgstr "Personal Information"
 
@@ -2785,7 +2792,8 @@ msgstr "Yes, I am a pitcher"
 #: .\templates\accounts\panel_tabs\registrar_jugador.html:142
 #: .\templates\accounts\player_edit.html:189
 #: .\templates\accounts\player_edit_hijo.html:221
-#: .\templates\accounts\public_player_list.html:798
+#: .\templates\accounts\public_player_list.html:834
+#: .\templates\accounts\public_player_profile.html:481
 msgid "Height"
 msgstr "Height"
 
@@ -3049,6 +3057,7 @@ msgstr "Player Information"
 
 #: .\templates\accounts\panel_tabs\registrar_jugador.html:97
 #: .\templates\accounts\player_edit.html:143
+#: .\templates\accounts\public_player_profile.html:628
 msgid "Jersey Number"
 msgstr "Jersey Number"
 
@@ -3083,13 +3092,13 @@ msgstr "View and manage your information as a player"
 #: .\templates\accounts\player_list.html:343
 #: .\templates\accounts\player_list.html:344
 #: .\templates\accounts\player_list.html:376
-#: .\templates\accounts\public_player_list.html:666
-#: .\templates\accounts\public_player_list.html:677
-#: .\templates\accounts\public_player_list.html:688
-#: .\templates\accounts\public_player_list.html:699
-#: .\templates\accounts\public_player_list.html:892
-#: .\templates\accounts\public_player_list.html:893
-#: .\templates\accounts\public_player_list.html:927
+#: .\templates\accounts\public_player_list.html:702
+#: .\templates\accounts\public_player_list.html:713
+#: .\templates\accounts\public_player_list.html:724
+#: .\templates\accounts\public_player_list.html:735
+#: .\templates\accounts\public_player_list.html:928
+#: .\templates\accounts\public_player_list.html:929
+#: .\templates\accounts\public_player_list.html:963
 msgid "All"
 msgstr ""
 
@@ -3339,7 +3348,7 @@ msgstr "Teams"
 #: .\templates\accounts\panel_usuario.html:580
 #: .\templates\accounts\public_home.html:2810
 #: .\templates\accounts\public_player_list.html:9
-#: .\templates\accounts\public_player_list.html:644
+#: .\templates\accounts\public_player_list.html:680
 #: .\templates\accounts\public_register.html:1166
 #: .\templates\events\public_detail.html:1551
 #: .\templates\events\public_list.html:1130
@@ -3463,7 +3472,8 @@ msgstr ""
 
 #: .\templates\accounts\player_edit.html:259
 #: .\templates\accounts\player_edit_hijo.html:275
-#: .\templates\accounts\public_player_list.html:773
+#: .\templates\accounts\public_player_list.html:809
+#: .\templates\accounts\public_player_profile.html:473
 #: .\templates\accounts\public_register.html:2210
 msgid "years"
 msgstr ""
@@ -3567,7 +3577,7 @@ msgid "Photo Selected"
 msgstr "Select a state"
 
 #: .\templates\accounts\player_list.html:50
-#: .\templates\accounts\public_player_list.html:658
+#: .\templates\accounts\public_player_list.html:694
 #: .\templates\events\public_list.html:1152
 #, fuzzy
 #| msgid "Search city..."
@@ -3575,15 +3585,17 @@ msgid "Search"
 msgstr "Search city..."
 
 #: .\templates\accounts\player_list.html:54
-#: .\templates\accounts\public_player_list.html:661
+#: .\templates\accounts\public_player_list.html:697
 #, fuzzy
 #| msgid "Name, email, hotel..."
 msgid "Name, email..."
 msgstr "Name, email, hotel..."
 
 #: .\templates\accounts\player_list.html:105
-#: .\templates\accounts\public_player_list.html:697
-#: .\templates\accounts\public_player_list.html:786
+#: .\templates\accounts\public_player_list.html:733
+#: .\templates\accounts\public_player_list.html:822
+#: .\templates\accounts\public_player_profile.html:439
+#: .\templates\accounts\public_player_profile.html:576
 #, fuzzy
 #| msgid "Divisions"
 msgid "Division"
@@ -3956,40 +3968,106 @@ msgstr ""
 msgid "Check back soon for upcoming events"
 msgstr "No upcoming events."
 
-#: .\templates\accounts\public_player_list.html:645
+#: .\templates\accounts\public_player_list.html:681
 #, fuzzy
 #| msgid "List of registered players"
 msgid "Meet our registered players"
 msgstr "List of registered players"
 
-#: .\templates\accounts\public_player_list.html:655
+#: .\templates\accounts\public_player_list.html:691
 msgid "Filters"
 msgstr ""
 
-#: .\templates\accounts\public_player_list.html:758
+#: .\templates\accounts\public_player_list.html:794
+#: .\templates\accounts\public_player_profile.html:607
 msgid "Position"
 msgstr "Position"
 
-#: .\templates\accounts\public_player_list.html:772
+#: .\templates\accounts\public_player_list.html:808
+#: .\templates\accounts\public_player_profile.html:472
 msgid "Age"
 msgstr ""
 
-#: .\templates\accounts\public_player_list.html:807
+#: .\templates\accounts\public_player_list.html:843
 #, fuzzy
 #| msgid "Edit Profile"
 msgid "View Profile"
 msgstr "Edit Profile"
 
-#: .\templates\accounts\public_player_list.html:863
+#: .\templates\accounts\public_player_list.html:899
 #, fuzzy
 #| msgid "player"
 #| msgid_plural "players"
 msgid "No players found"
 msgstr "player"
 
-#: .\templates\accounts\public_player_list.html:864
+#: .\templates\accounts\public_player_list.html:900
 msgid "Try adjusting the search filters"
 msgstr ""
+
+#: .\templates\accounts\public_player_profile.html:401
+#, fuzzy
+#| msgid "View Players"
+msgid "Back to Players"
+msgstr "View Players"
+
+#: .\templates\accounts\public_player_profile.html:488
+#, fuzzy
+#| msgid "Height"
+msgid "Weight"
+msgstr "Height"
+
+#: .\templates\accounts\public_player_profile.html:495
+#, fuzzy
+#| msgid "1st Grade"
+msgid "Grade"
+msgstr "1st Grade"
+
+#: .\templates\accounts\public_player_profile.html:535
+#, fuzzy
+#| msgid "Events"
+msgid "Parents"
+msgstr "Events"
+
+#: .\templates\accounts\public_player_profile.html:552
+msgid "Team & Coach"
+msgstr ""
+
+#: .\templates\accounts\public_player_profile.html:564
+msgid "Coach"
+msgstr ""
+
+#: .\templates\accounts\public_player_profile.html:585
+#, fuzzy
+#| msgid "Eligibility and Division"
+msgid "Eligible Divisions"
+msgstr "Eligibility and Division"
+
+#: .\templates\accounts\public_player_profile.html:602
+msgid "Player Statistics"
+msgstr ""
+
+#: .\templates\accounts\public_player_profile.html:614
+msgid "Bats"
+msgstr ""
+
+#: .\templates\accounts\public_player_profile.html:621
+#, fuzzy
+#| msgid "Throwing"
+msgid "Throws"
+msgstr "Throwing"
+
+#: .\templates\accounts\public_player_profile.html:640
+#, fuzzy
+#| msgid "No upcoming events."
+msgid "Upcoming Events"
+msgstr "No upcoming events."
+
+#: .\templates\accounts\public_player_profile.html:654
+#, fuzzy
+#| msgid "Location"
+msgid "Location TBD"
+msgstr "Location"
 
 #: .\templates\accounts\public_register.html:10
 #, fuzzy
@@ -4878,9 +4956,6 @@ msgstr ""
 
 #~ msgid "Kindergarten"
 #~ msgstr "Kindergarten"
-
-#~ msgid "1st Grade"
-#~ msgstr "1st Grade"
 
 #~ msgid "2nd Grade"
 #~ msgstr "2nd Grade"
