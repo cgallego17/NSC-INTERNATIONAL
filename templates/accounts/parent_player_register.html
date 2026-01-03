@@ -674,27 +674,50 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // ====== Manejo de Foto de Perfil ======
+    // Función global para inicializar el campo de foto de perfil en registro
+    window.initProfilePictureRegister = function() {
+        console.log('🔄 Inicializando campo de foto de perfil (registro)...');
+
         const profilePictureInput = document.getElementById('id_profile_picture_register');
         const profilePictureUploadArea = document.getElementById('profilePictureUploadAreaRegister');
 
-        console.log('Profile Picture Input:', profilePictureInput);
-        console.log('Profile Picture Upload Area:', profilePictureUploadArea);
+        console.log('🎨 Profile Picture Input:', profilePictureInput);
+        console.log('🎨 Profile Picture Upload Area:', profilePictureUploadArea);
 
         if (profilePictureInput && profilePictureUploadArea) {
+            console.log('✅ Ambos elementos encontrados, configurando event listeners');
+
+            // Limpiar listeners previos si existen
+            const newUploadArea = profilePictureUploadArea.cloneNode(true);
+            profilePictureUploadArea.parentNode.replaceChild(newUploadArea, profilePictureUploadArea);
+            const uploadArea = document.getElementById('profilePictureUploadAreaRegister');
+
             // Hacer clic en el área activa el input de archivo
-            profilePictureUploadArea.addEventListener('click', function(e) {
+            // Usar capturing phase para capturar el evento antes que los hijos
+            uploadArea.addEventListener('click', function(e) {
+                console.log('🖱️ Upload area clicked!');
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Upload area clicked, triggering file input');
+
+                // Verificar que el input esté habilitado
+                if (profilePictureInput.disabled) {
+                    console.warn('⚠️ Input está deshabilitado');
+                    return;
+                }
+
+                console.log('🚀 Triggering file input click');
                 profilePictureInput.click();
-            });
+            }, true); // true = usar capturing phase
+
+            console.log('✅ Event listener agregado');
 
             // Preview de la imagen seleccionada
             profilePictureInput.addEventListener('change', function(e) {
+                console.log('📸 Archivo seleccionado');
                 const file = e.target.files[0];
                 if (file) {
+                    console.log('📄 Archivo:', file.name, file.type, file.size);
+
                     // Validar tamaño (5MB máximo)
                     const maxSize = 5 * 1024 * 1024; // 5MB
                     if (file.size > maxSize) {
@@ -714,7 +737,7 @@
                     // Mostrar preview
                     const reader = new FileReader();
                     reader.onload = function(e) {
-                        profilePictureUploadArea.innerHTML = `
+                        uploadArea.innerHTML = `
                             <div style="position: relative;">
                                 <img src="${e.target.result}" alt="Vista previa" style="max-width: 200px; max-height: 200px; border-radius: 12px; object-fit: cover; margin-bottom: 15px;">
                                 <div>
@@ -728,26 +751,36 @@
                                 </div>
                             </div>
                         `;
-                        profilePictureUploadArea.style.borderColor = '#28a745';
-                        profilePictureUploadArea.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
+                        uploadArea.style.borderColor = '#28a745';
+                        uploadArea.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
                     };
                     reader.readAsDataURL(file);
                 }
             });
 
             // Hover effect
-            profilePictureUploadArea.addEventListener('mouseenter', function() {
+            uploadArea.addEventListener('mouseenter', function() {
                 this.style.borderColor = 'var(--mlb-red)';
                 this.style.transform = 'scale(1.02)';
             });
 
-            profilePictureUploadArea.addEventListener('mouseleave', function() {
+            uploadArea.addEventListener('mouseleave', function() {
                 if (!profilePictureInput.files.length) {
                     this.style.borderColor = '#0d2c54';
                 }
                 this.style.transform = 'scale(1)';
             });
+        } else {
+            console.error('❌ No se encontraron los elementos:', {
+                input: profilePictureInput,
+                area: profilePictureUploadArea
+            });
         }
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar foto de perfil
+        setTimeout(window.initProfilePictureRegister, 100);
 
         // ====== Cálculo automático de división y grado ======
         const birthDateField = document.getElementById('id_birth_date');

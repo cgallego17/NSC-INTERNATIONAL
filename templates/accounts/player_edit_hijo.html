@@ -657,82 +657,116 @@ console.log('🔄 PLAYER EDIT HIJO SCRIPT v3.0 - CARGADO');
     setTimeout(initPlayerEditForm, 500);
 })();
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('✅ Formulario de edición de hijo cargado');
+// Función global para inicializar el campo de foto de perfil
+window.initProfilePictureUpload = function() {
+    console.log('🔄 Inicializando campo de foto de perfil...');
 
-    // ====== Manejo de Foto de Perfil ======
     const profilePictureInput = document.getElementById('id_profile_picture');
     const profilePictureUploadArea = document.getElementById('profilePictureUploadArea');
 
-    console.log('Profile Picture Input:', profilePictureInput);
-    console.log('Profile Picture Upload Area:', profilePictureUploadArea);
+    console.log('🎨 Profile Picture Input:', profilePictureInput);
+    console.log('🎨 Profile Picture Upload Area:', profilePictureUploadArea);
 
     if (profilePictureInput && profilePictureUploadArea) {
+        console.log('✅ Ambos elementos encontrados, configurando event listeners');
+
+        // Limpiar listeners previos si existen
+        const newUploadArea = profilePictureUploadArea.cloneNode(true);
+        profilePictureUploadArea.parentNode.replaceChild(newUploadArea, profilePictureUploadArea);
+        const uploadArea = document.getElementById('profilePictureUploadArea');
+
         // Hacer clic en el área activa el input de archivo
-        profilePictureUploadArea.addEventListener('click', function(e) {
+        // Usar capturing phase para capturar el evento antes que los hijos
+        uploadArea.addEventListener('click', function(e) {
+            console.log('🖱️ Upload area clicked!');
             e.preventDefault();
             e.stopPropagation();
-            console.log('Upload area clicked, triggering file input');
-            profilePictureInput.click();
-        });
 
-        // Preview de la imagen seleccionada
-        profilePictureInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                // Validar tamaño (5MB máximo)
-                const maxSize = 5 * 1024 * 1024; // 5MB
-                if (file.size > maxSize) {
-                    alert('{% trans "The file is too large. Maximum size is 5MB." %}');
-                    profilePictureInput.value = '';
-                    return;
-                }
-
-                // Validar tipo de archivo
-                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-                if (!allowedTypes.includes(file.type)) {
-                    alert('{% trans "Invalid file type. Only JPG, PNG and GIF are allowed." %}');
-                    profilePictureInput.value = '';
-                    return;
-                }
-
-                // Mostrar preview
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    profilePictureUploadArea.innerHTML = `
-                        <div style="position: relative;">
-                            <img src="${e.target.result}" alt="Profile Picture Preview" style="max-width: 200px; max-height: 200px; border-radius: 12px; object-fit: cover; margin-bottom: 15px;">
-                            <div>
-                                <i class="fas fa-check-circle fa-2x mb-2" style="color: #28a745;"></i>
-                                <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue);">
-                                    {% trans "Photo Selected" %}
-                                </p>
-                                <small class="text-success">${file.name} (${(file.size / 1024).toFixed(2)} KB)</small>
-                                <br>
-                                <small class="text-muted">{% trans "Click to change photo" %}</small>
-                            </div>
-                        </div>
-                    `;
-                    profilePictureUploadArea.style.borderColor = '#28a745';
-                    profilePictureUploadArea.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
-                };
-                reader.readAsDataURL(file);
+            // Verificar que el input esté habilitado
+            if (profilePictureInput.disabled) {
+                console.warn('⚠️ Input está deshabilitado');
+                return;
             }
-        });
+
+            console.log('🚀 Triggering file input click');
+            profilePictureInput.click();
+        }, true); // true = usar capturing phase
+
+        console.log('✅ Event listener agregado');
+
+            // Preview de la imagen seleccionada
+            profilePictureInput.addEventListener('change', function(e) {
+                console.log('📸 Archivo seleccionado');
+                const file = e.target.files[0];
+                if (file) {
+                    console.log('📄 Archivo:', file.name, file.type, file.size);
+
+                    // Validar tamaño (5MB máximo)
+                    const maxSize = 5 * 1024 * 1024; // 5MB
+                    if (file.size > maxSize) {
+                        alert('{% trans "The file is too large. Maximum size is 5MB." %}');
+                        profilePictureInput.value = '';
+                        return;
+                    }
+
+                    // Validar tipo de archivo
+                    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                    if (!allowedTypes.includes(file.type)) {
+                        alert('{% trans "Invalid file type. Only JPG, PNG and GIF are allowed." %}');
+                        profilePictureInput.value = '';
+                        return;
+                    }
+
+                    // Mostrar preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        profilePictureUploadArea.innerHTML = `
+                            <div style="position: relative;">
+                                <img src="${e.target.result}" alt="Profile Picture Preview" style="max-width: 200px; max-height: 200px; border-radius: 12px; object-fit: cover; margin-bottom: 15px;">
+                                <div>
+                                    <i class="fas fa-check-circle fa-2x mb-2" style="color: #28a745;"></i>
+                                    <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue);">
+                                        {% trans "Photo Selected" %}
+                                    </p>
+                                    <small class="text-success">${file.name} (${(file.size / 1024).toFixed(2)} KB)</small>
+                                    <br>
+                                    <small class="text-muted">{% trans "Click to change photo" %}</small>
+                                </div>
+                            </div>
+                        `;
+                        profilePictureUploadArea.style.borderColor = '#28a745';
+                        profilePictureUploadArea.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
 
         // Hover effect
-        profilePictureUploadArea.addEventListener('mouseenter', function() {
+        uploadArea.addEventListener('mouseenter', function() {
             this.style.borderColor = 'var(--mlb-red)';
             this.style.transform = 'scale(1.02)';
         });
 
-        profilePictureUploadArea.addEventListener('mouseleave', function() {
+        uploadArea.addEventListener('mouseleave', function() {
             if (!profilePictureInput.files.length) {
                 this.style.borderColor = '#0d2c54';
             }
             this.style.transform = 'scale(1)';
         });
+    } else {
+        console.error('❌ No se encontraron los elementos:', {
+            input: profilePictureInput,
+            area: profilePictureUploadArea
+        });
     }
+};
+
+// Ejecutar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('✅ Formulario de edición de hijo cargado');
+    // Intentar inicializar inmediatamente
+    setTimeout(window.initProfilePictureUpload, 100);
+});
 
     // Traducciones para evitar problemas con tags de traducción dentro de template literals
     const fileUploadTranslations = {

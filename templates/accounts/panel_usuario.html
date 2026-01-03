@@ -1635,6 +1635,16 @@
                         // Asegurarse de que el formulario sea visible
                         form.style.display = 'block';
 
+                        // Inicializar el campo de foto de perfil si existe la función
+                        setTimeout(function() {
+                            if (typeof window.initProfilePictureUpload === 'function') {
+                                console.log('📸 Inicializando campo de foto de perfil...');
+                                window.initProfilePictureUpload();
+                            } else {
+                                console.warn('⚠️ window.initProfilePictureUpload no encontrada');
+                            }
+                        }, 200);
+
                         // Verificar si ya tiene un listener de submit (usando una marca)
                         if (form.dataset.submitListenerAdded === 'true') {
                             console.log('Listener de submit ya agregado al formulario, omitiendo...');
