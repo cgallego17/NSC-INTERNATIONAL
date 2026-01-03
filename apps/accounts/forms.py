@@ -1925,8 +1925,23 @@ class PlayerUpdateForm(forms.ModelForm):
                 player.age_verification_approved_date = self.instance.age_verification_approved_date
                 player.age_verification_notes = self.instance.age_verification_notes
 
-        # IMPORTANTE: Establecer secondary_position e is_pitcher explícitamente
-        # Asegurar que siempre se guarden correctamente desde cleaned_data
+        # IMPORTANTE: Establecer TODOS los campos del Player explícitamente desde cleaned_data
+        # Esto asegura que todos los campos se guarden, incluso si super().save(commit=False) no los estableció
+        # Establecer todos los campos que están en Meta.fields
+        for field_name in self.Meta.fields:
+            if field_name in self.cleaned_data:
+                value = self.cleaned_data[field_name]
+                # Establecer el campo, manejando None y valores vacíos apropiadamente
+                if field_name in ["team", "age_verification_document"]:
+                    # ForeignKey y FileField: establecer solo si hay valor
+                    if value is not None:
+                        setattr(player, field_name, value)
+                else:
+                    # Otros campos: establecer el valor (puede ser None, "", False, etc.)
+                    setattr(player, field_name, value)
+
+        # Asegurar que secondary_position e is_pitcher siempre se establezcan explícitamente
+        # (por si no están en cleaned_data o tienen valores especiales)
         player.secondary_position = self.cleaned_data.get("secondary_position", "") or ""
         player.is_pitcher = bool(self.cleaned_data.get("is_pitcher", False))
 

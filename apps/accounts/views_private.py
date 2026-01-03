@@ -803,21 +803,9 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
         return reverse_lazy("accounts:player_detail", kwargs={"pk": self.object.pk})
 
     def form_valid(self, form):
-        # Guardar la foto de perfil si se subió una nueva
-        if (
-            "profile_picture" in form.cleaned_data
-            and form.cleaned_data["profile_picture"]
-        ):
-            player = form.save(commit=False)
-            # Actualizar la foto de perfil del UserProfile
-            if hasattr(player.user, "profile"):
-                player.user.profile.profile_picture = form.cleaned_data[
-                    "profile_picture"
-                ]
-                player.user.profile.save()
-            player.save()
-        else:
-            form.save()
+        # Guardar usando el método save() del formulario para asegurar que todos los campos se guarden
+        # El método save() del formulario maneja User, UserProfile y Player correctamente
+        form.save()
 
         messages.success(
             self.request, _("Player information updated successfully."),
