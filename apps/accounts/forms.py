@@ -1909,9 +1909,18 @@ class PlayerUpdateForm(forms.ModelForm):
                     # Para otros campos, establecer el valor directamente
                     setattr(player, field_name, value)
 
-        # Asegurar que secondary_position e is_pitcher siempre se establezcan
-        player.secondary_position = self.cleaned_data.get("secondary_position", "") or ""
-        player.is_pitcher = bool(self.cleaned_data.get("is_pitcher", False))
+        # IMPORTANTE: Establecer secondary_position e is_pitcher DESPUÉS del bucle
+        # y ANTES de las restricciones de padre, para asegurar que siempre se guarden
+        # Usar cleaned_data directamente ya que clean() asegura que estén presentes
+        if "secondary_position" in self.cleaned_data:
+            player.secondary_position = self.cleaned_data["secondary_position"] or ""
+        else:
+            player.secondary_position = ""
+
+        if "is_pitcher" in self.cleaned_data:
+            player.is_pitcher = bool(self.cleaned_data["is_pitcher"])
+        else:
+            player.is_pitcher = False
 
         # Si es padre (no staff), mantener los valores originales de campos restringidos
         if is_parent and not is_staff and player.pk:
@@ -1965,7 +1974,16 @@ class PlayerUpdateForm(forms.ModelForm):
                 user.save()
 
         # Guardar el Player
+        # Asegurar una última vez que secondary_position e is_pitcher estén correctos antes de guardar
+        if "secondary_position" in self.cleaned_data:
+            player.secondary_position = self.cleaned_data["secondary_position"] or ""
+        if "is_pitcher" in self.cleaned_data:
+            player.is_pitcher = bool(self.cleaned_data["is_pitcher"])
+
         if commit:
+            # Guardar el player
+            # Usar save() normal para guardar todos los campos
+            # update_fields podría causar problemas si no incluye todos los campos modificados
             player.save()
 
         return player
