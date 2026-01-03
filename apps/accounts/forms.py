@@ -1083,6 +1083,10 @@ class PlayerRegistrationForm(forms.ModelForm):
             phone=self.cleaned_data.get("phone", ""),
             birth_date=self.cleaned_data.get("birth_date"),
         )
+        # Guardar last_name2 si existe (usando setattr por si el campo no existe en el modelo)
+        if last_name2:
+            setattr(profile, "last_name2", last_name2)
+            profile.save()
 
         # Crear perfil de jugador directamente (no usar super().save() porque requiere user)
         player = Player.objects.create(
@@ -1090,6 +1094,8 @@ class PlayerRegistrationForm(forms.ModelForm):
             team=self.cleaned_data.get("team"),
             jersey_number=self.cleaned_data.get("jersey_number"),
             position=self.cleaned_data.get("position"),
+            secondary_position=self.cleaned_data.get("secondary_position"),
+            is_pitcher=self.cleaned_data.get("is_pitcher", False),
             height=self.cleaned_data.get("height"),
             weight=self.cleaned_data.get("weight"),
             batting_hand=self.cleaned_data.get("batting_hand"),
@@ -1438,6 +1444,8 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
             team=None,  # El equipo se asignará posteriormente por admin o manager
             jersey_number=None,  # El número de jersey se asignará posteriormente por admin o manager
             position=self.cleaned_data.get("position"),
+            secondary_position=self.cleaned_data.get("secondary_position"),
+            is_pitcher=self.cleaned_data.get("is_pitcher", False),
             height=self.cleaned_data.get("height"),
             weight=self.cleaned_data.get("weight"),
             batting_hand=self.cleaned_data.get("batting_hand"),

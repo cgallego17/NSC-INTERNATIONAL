@@ -426,20 +426,20 @@ class ProfileView(LoginRequiredMixin, TemplateView):
             billing_form = BillingAddressForm(request.POST, instance=request.user.profile)
             if billing_form.is_valid():
                 billing_form.save()
-                messages.success(request, "Billing address updated successfully.")
+                messages.success(request, _("Billing address updated successfully."))
                 return redirect("accounts:profile?section=billing")
         elif section == "security":
             password_form = CustomPasswordChangeForm(user=request.user, data=request.POST)
             if password_form.is_valid():
                 password_form.save()
-                messages.success(request, "Password changed successfully.")
+                messages.success(request, _("Password changed successfully."))
                 return redirect("accounts:profile?section=security")
         elif section == "notifications":
             notification_form = NotificationPreferencesForm(request.POST)
             if notification_form.is_valid():
                 # Guardar preferencias en el perfil (necesitarías agregar estos campos al modelo)
                 # Por ahora solo mostramos mensaje de éxito
-                messages.success(request, "Notification preferences saved successfully.")
+                messages.success(request, _("Notification preferences saved successfully."))
                 return redirect("accounts:profile?section=notifications")
 
         # Si hay errores, volver a mostrar el formulario con errores
@@ -481,7 +481,7 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
             self.request.session.modified = True
             translation.activate(preferred_language)
 
-        messages.success(self.request, "Perfil actualizado exitosamente.")
+        messages.success(self.request, _("Profile updated successfully."))
         return super().form_valid(form)
 
 
@@ -497,7 +497,7 @@ class UserInfoUpdateView(LoginRequiredMixin, UpdateView):
         return self.request.user
 
     def form_valid(self, form):
-        messages.success(self.request, "Información actualizada exitosamente.")
+        messages.success(self.request, _("Information updated successfully."))
         return super().form_valid(form)
 
 
@@ -547,7 +547,7 @@ class TeamCreateView(ManagerRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.manager = self.request.user
-        messages.success(self.request, "Equipo creado exitosamente.")
+        messages.success(self.request, _("Team created successfully."))
         return super().form_valid(form)
 
     def get_form_kwargs(self):
@@ -568,7 +568,7 @@ class TeamUpdateView(LoginRequiredMixin, UpdateView):
         if team.manager != request.user and not (
             request.user.is_staff or request.user.is_superuser
         ):
-            messages.error(request, "No tienes permiso para editar este equipo.")
+            messages.error(request, _("You do not have permission to edit this team."))
             return redirect("accounts:team_list")
         return super().dispatch(request, *args, **kwargs)
 
@@ -576,7 +576,7 @@ class TeamUpdateView(LoginRequiredMixin, UpdateView):
         return reverse_lazy("accounts:team_detail", kwargs={"pk": self.object.pk})
 
     def form_valid(self, form):
-        messages.success(self.request, "Equipo actualizado exitosamente.")
+        messages.success(self.request, _("Team updated successfully."))
         return super().form_valid(form)
 
 
@@ -643,7 +643,7 @@ class PlayerRegistrationView(ManagerRequiredMixin, CreateView):
         player = form.save()
         player_name = player.user.get_full_name() or player.user.username
         messages.success(
-            self.request, f"Jugador {player_name} registrado exitosamente."
+            self.request, _("Player %(name)s registered successfully.") % {"name": player_name}
         )
         return redirect("accounts:player_list")
 
@@ -660,7 +660,7 @@ class ParentPlayerRegistrationView(LoginRequiredMixin, CreateView):
         # Verificar que el usuario sea padre
         if not hasattr(request.user, "profile") or not request.user.profile.is_parent:
             messages.error(
-                request, "Solo los padres/acudientes pueden registrar jugadores."
+                request, _("Only parents/guardians can register players.")
             )
             return redirect("accounts:panel")
         return super().dispatch(request, *args, **kwargs)
@@ -676,7 +676,7 @@ class ParentPlayerRegistrationView(LoginRequiredMixin, CreateView):
         player_name = player.user.get_full_name() or player.user.username
         messages.success(
             self.request,
-            f"¡Jugador {player_name} registrado exitosamente! El perfil está listo para usar.",
+            _("Player %(name)s registered successfully! The profile is ready to use.") % {"name": player_name},
             extra_tags="player_registered",
         )
         return redirect("accounts:panel")
@@ -713,7 +713,7 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
         # Los jugadores NO pueden editar su propia información (están inactivos)
         # Solo padres, managers y staff pueden editar
         if not is_parent and not is_manager and not is_staff:
-            messages.error(request, "No tienes permiso para editar este jugador.")
+            messages.error(request, _("You do not have permission to edit this player."))
             return redirect("accounts:player_detail", pk=player.pk)
         return super().dispatch(request, *args, **kwargs)
 
@@ -793,7 +793,7 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
             form.save()
 
         messages.success(
-            self.request, "Información del jugador actualizada exitosamente."
+            self.request, _("Player information updated successfully.")
         )
 
         # Si es una petición AJAX, devolver una respuesta JSON
@@ -947,10 +947,10 @@ class PanelEventDetailView(UserDashboardView):
 
         except Event.DoesNotExist:
             context["event"] = None
-            messages.error(self.request, "Event not found.")
+            messages.error(self.request, _("Event not found."))
         except ImportError:
             context["event"] = None
-            messages.error(self.request, "Events app is not available.")
+            messages.error(self.request, _("Events app is not available."))
 
         return context
 
@@ -967,14 +967,14 @@ def register_children_to_event(request, pk):
 
         # Verificar que el usuario es padre
         if not (hasattr(user, "profile") and user.profile.is_parent):
-            messages.error(request, "You must be a parent to register children to events.")
+            messages.error(request, _("You must be a parent to register children to events."))
             return redirect("accounts:panel")
 
         # Obtener los IDs de los jugadores seleccionados
         player_ids = request.POST.getlist("players")
 
         if not player_ids:
-            messages.warning(request, "Please select at least one child/player to register.")
+            messages.warning(request, _("Please select at least one child/player to register."))
             return redirect("accounts:panel_event_detail", pk=pk)
 
         # Obtener los jugadores relacionados al usuario
@@ -1003,18 +1003,18 @@ def register_children_to_event(request, pk):
         if registered_count > 0:
             messages.success(
                 request,
-                f"Successfully registered {registered_count} child/children to the event.",
+                _("Successfully registered %(count)d child/children to the event.") % {"count": registered_count},
             )
         else:
-            messages.info(request, "The selected children are already registered to this event.")
+            messages.info(request, _("The selected children are already registered to this event."))
 
         return redirect("accounts:panel_event_detail", pk=pk)
 
     except ImportError:
-        messages.error(request, "Events app is not available.")
+        messages.error(request, _("Events app is not available."))
         return redirect("accounts:panel")
     except Exception as e:
-        messages.error(request, f"An error occurred: {str(e)}")
+        messages.error(request, _("An error occurred: %(error)s") % {"error": str(e)})
         return redirect("accounts:panel")
 
 
@@ -1127,14 +1127,14 @@ def _plan_months_until_deadline(payment_deadline):
 def create_stripe_event_checkout_session(request, pk):
     if not settings.STRIPE_SECRET_KEY:
         return JsonResponse(
-            {"success": False, "error": "Stripe no está configurado (STRIPE_SECRET_KEY)."},
+            {"success": False, "error": _("Stripe is not configured (STRIPE_SECRET_KEY).")},
             status=500,
         )
 
     try:
         import stripe  # type: ignore
     except Exception:
-        return JsonResponse({"success": False, "error": "Stripe SDK no está instalado."}, status=500)
+        return JsonResponse({"success": False, "error": _("Stripe SDK is not installed.")}, status=500)
 
     from apps.events.models import Event
 
@@ -1142,11 +1142,11 @@ def create_stripe_event_checkout_session(request, pk):
     user = request.user
 
     if not (hasattr(user, "profile") and user.profile.is_parent):
-        return JsonResponse({"success": False, "error": "Solo padres pueden pagar registros."}, status=403)
+        return JsonResponse({"success": False, "error": _("Only parents can pay for registrations.")}, status=403)
 
     player_ids = request.POST.getlist("players")
     if not player_ids:
-        return JsonResponse({"success": False, "error": "Selecciona al menos 1 jugador."}, status=400)
+        return JsonResponse({"success": False, "error": _("Select at least 1 player.")}, status=400)
 
     player_parents = PlayerParent.objects.filter(
         parent=user, player_id__in=player_ids
@@ -1154,7 +1154,7 @@ def create_stripe_event_checkout_session(request, pk):
     valid_players = [pp.player for pp in player_parents if getattr(pp.player, "is_active", True)]
     if len(valid_players) != len(player_ids):
         return JsonResponse(
-            {"success": False, "error": "Hay jugadores inválidos o que no pertenecen al usuario."},
+            {"success": False, "error": _("There are invalid players or players that do not belong to the user.")},
             status=400,
         )
 
@@ -1201,7 +1201,7 @@ def create_stripe_event_checkout_session(request, pk):
         # Plan doesn't apply discount. Monthly amount is approximate = subtotal / months.
         plan_monthly_amount = (subtotal / Decimal(str(plan_months))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         if plan_monthly_amount <= 0:
-            return JsonResponse({"success": False, "error": "No hay nada para cobrar."}, status=400)
+            return JsonResponse({"success": False, "error": _("There is nothing to charge.")}, status=400)
 
         line_items = [
             {
@@ -1263,7 +1263,7 @@ def create_stripe_event_checkout_session(request, pk):
             )
 
         if not line_items:
-            return JsonResponse({"success": False, "error": "No hay nada para cobrar."}, status=400)
+            return JsonResponse({"success": False, "error": _("There is nothing to charge.")}, status=400)
 
     stripe.api_key = settings.STRIPE_SECRET_KEY
     stripe_account = event.stripe_payment_profile if getattr(event, "stripe_payment_profile", None) else None
@@ -1474,18 +1474,18 @@ def _ensure_plan_subscription_schedule(event, subscription_id: str, months: int)
 def stripe_event_checkout_success(request, pk):
     session_id = request.GET.get("session_id")
     if not session_id:
-        messages.error(request, "Stripe no devolvió session_id.")
+        messages.error(request, _("Stripe did not return session_id."))
         return redirect("accounts:panel_event_detail", pk=pk)
 
     if not settings.STRIPE_SECRET_KEY:
-        messages.error(request, "Stripe no está configurado.")
+        messages.error(request, _("Stripe is not configured."))
         return redirect("accounts:panel_event_detail", pk=pk)
 
     try:
         import stripe  # type: ignore
         stripe.api_key = settings.STRIPE_SECRET_KEY
     except Exception:
-        messages.error(request, "Stripe SDK no está instalado.")
+        messages.error(request, _("Stripe SDK is not installed."))
         return redirect("accounts:panel_event_detail", pk=pk)
 
     from apps.events.models import Event
@@ -1496,17 +1496,17 @@ def stripe_event_checkout_success(request, pk):
     try:
         session = stripe.checkout.Session.retrieve(session_id, stripe_account=stripe_account)
     except Exception as e:
-        messages.error(request, f"No se pudo verificar el pago: {str(e)}")
+        messages.error(request, _("Could not verify payment: %(error)s") % {"error": str(e)})
         return redirect("accounts:panel_event_detail", pk=pk)
 
     if getattr(session, "payment_status", "") != "paid":
-        messages.warning(request, "El pago aún no está confirmado.")
+        messages.warning(request, _("Payment is not yet confirmed."))
         return redirect("accounts:panel_event_detail", pk=pk)
 
     try:
         checkout = StripeEventCheckout.objects.get(stripe_session_id=session_id)
     except StripeEventCheckout.DoesNotExist:
-        messages.error(request, "No se encontró el checkout en el sistema.")
+        messages.error(request, _("Checkout not found in the system."))
         return redirect("accounts:panel_event_detail", pk=pk)
 
     # Store subscription id (plan payments)
@@ -1528,13 +1528,13 @@ def stripe_event_checkout_success(request, pk):
     request.session["hotel_cart"] = {}
     request.session.modified = True
 
-    messages.success(request, "Pago completado. Registro confirmado.")
+    messages.success(request, _("Payment completed. Registration confirmed."))
     return redirect("accounts:panel_event_detail", pk=pk)
 
 
 @login_required
 def stripe_event_checkout_cancel(request, pk):
-    messages.info(request, "Pago cancelado.")
+    messages.info(request, _("Payment cancelled."))
     return redirect("accounts:panel_event_detail", pk=pk)
 
 
@@ -1608,7 +1608,7 @@ def wallet_add_funds(request):
         description = request.POST.get("description", "Depósito de fondos")
 
         if amount <= 0:
-            messages.error(request, "El monto debe ser mayor a cero.")
+            messages.error(request, _("The amount must be greater than zero."))
             return redirect("accounts:panel")
 
         # Obtener o crear wallet
@@ -1620,11 +1620,11 @@ def wallet_add_funds(request):
         wallet.add_funds(amount, description)
 
         messages.success(
-            request, f"${amount} agregados exitosamente a tu billetera."
+            request, _("$%(amount)s successfully added to your wallet.") % {"amount": amount}
         )
     except ValueError as e:
         messages.error(request, str(e))
     except Exception as e:
-        messages.error(request, f"Error al procesar el depósito: {str(e)}")
+        messages.error(request, _("Error processing deposit: %(error)s") % {"error": str(e)})
 
     return redirect("accounts:panel")
