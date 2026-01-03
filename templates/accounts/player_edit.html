@@ -181,8 +181,6 @@
                     {% if form.is_pitcher.errors %}
                         <div class="error-message mt-1">{{ form.is_pitcher.errors }}</div>
                     {% endif %}
-                    <!-- Campo hidden para asegurar que is_pitcher siempre se envíe, incluso si el checkbox no está marcado -->
-                    <input type="hidden" name="is_pitcher" value="0" id="is_pitcher_hidden">
                 </div>
             </div>
             <div class="row">
@@ -536,28 +534,35 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Formulario de edición de jugador cargado');
 
     // Asegurar que is_pitcher siempre se envíe en el formulario
+    // Si el checkbox no está marcado, agregar un hidden antes de enviar
     const isPitcherCheckbox = document.getElementById('{{ form.is_pitcher.id_for_label }}');
-    const isPitcherHidden = document.getElementById('is_pitcher_hidden');
     const playerEditForm = document.getElementById('playerEditForm');
 
-    if (isPitcherCheckbox && isPitcherHidden && playerEditForm) {
-        // Inicializar el valor del hidden según el estado del checkbox
-        isPitcherHidden.value = isPitcherCheckbox.checked ? '1' : '0';
-
-        // Cuando el checkbox cambia, actualizar el valor del hidden
-        isPitcherCheckbox.addEventListener('change', function() {
-            isPitcherHidden.value = this.checked ? '1' : '0';
-            console.log('is_pitcher checkbox cambiado:', this.checked, 'hidden value:', isPitcherHidden.value);
-        });
-
-        // Antes de enviar el formulario, asegurar que el valor esté sincronizado
+    if (isPitcherCheckbox && playerEditForm) {
+        // Antes de enviar el formulario, asegurar que is_pitcher siempre se envíe
         playerEditForm.addEventListener('submit', function(e) {
-            if (isPitcherCheckbox.checked) {
-                isPitcherHidden.value = '1';
+            // Si el checkbox no está marcado, agregar un campo hidden para asegurar que se envíe
+            if (!isPitcherCheckbox.checked) {
+                // Remover cualquier hidden anterior
+                const existingHidden = playerEditForm.querySelector('input[name="is_pitcher"][type="hidden"]');
+                if (existingHidden) {
+                    existingHidden.remove();
+                }
+                // Crear un nuevo hidden con valor False
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'is_pitcher';
+                hiddenInput.value = '0';
+                playerEditForm.appendChild(hiddenInput);
+                console.log('is_pitcher checkbox no marcado - agregado hidden con valor 0');
             } else {
-                isPitcherHidden.value = '0';
+                // Si está marcado, remover cualquier hidden que pueda existir
+                const existingHidden = playerEditForm.querySelector('input[name="is_pitcher"][type="hidden"]');
+                if (existingHidden) {
+                    existingHidden.remove();
+                }
+                console.log('is_pitcher checkbox marcado - valor será True');
             }
-            console.log('Formulario enviado - is_pitcher:', isPitcherCheckbox.checked, 'hidden value:', isPitcherHidden.value);
         });
     }
 

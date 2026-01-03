@@ -805,7 +805,35 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         # Guardar usando el método save() del formulario para asegurar que todos los campos se guarden
         # El método save() del formulario maneja User, UserProfile y Player correctamente
-        form.save()
+        player = form.save()
+
+        # CRÍTICO: Asegurar que secondary_position e is_pitcher se guarden explícitamente
+        # Esto es necesario porque Django podría no detectar cambios si los valores son los mismos
+        import logging
+        logger = logging.getLogger(__name__)
+
+        secondary_pos_value = form.cleaned_data.get("secondary_position", "") or ""
+        is_pitcher_value = bool(form.cleaned_data.get("is_pitcher", False))
+
+        logger.info(f"PlayerUpdateView.form_valid - secondary_position: {secondary_pos_value}, is_pitcher: {is_pitcher_value}")
+
+        # Forzar el guardado de estos campos usando update_fields
+        player.secondary_position = secondary_pos_value
+        player.is_pitcher = is_pitcher_value
+        player.save(update_fields=["secondary_position", "is_pitcher"])
+
+        # Verificar que se guardaron correctamente
+        player.refresh_from_db()
+        logger.info(f"PlayerUpdateView.form_valid - DESPUÉS de guardar - secondary_position: {player.secondary_position}, is_pitcher: {player.is_pitcher}")
+
+        if player.secondary_position != secondary_pos_value or player.is_pitcher != is_pitcher_value:
+            logger.warning(f"PlayerUpdateView.form_valid - Los campos no se guardaron correctamente. Usando update() directo.")
+            from .models import Player as PlayerModel
+            PlayerModel.objects.filter(pk=player.pk).update(
+                secondary_position=secondary_pos_value,
+                is_pitcher=is_pitcher_value
+            )
+            player.refresh_from_db()
 
         messages.success(
             self.request, _("Player information updated successfully."),

@@ -1866,9 +1866,13 @@ class PlayerUpdateForm(forms.ModelForm):
 
         # Convertir a booleano
         # Si el valor es '1', 'on', True, o cualquier valor truthy, retornar True
+        # Si es '0', False, '', None, o cualquier valor falsy, retornar False
         if value in (True, '1', 'on', 1, 'True', 'true'):
             return True
-        return False
+        elif value in (False, '0', '', None, 0, 'False', 'false'):
+            return False
+        # Por defecto, convertir a booleano
+        return bool(value)
 
     def clean_secondary_position(self):
         """Asegurar que secondary_position siempre tenga un valor (puede ser vacío)"""
@@ -1977,28 +1981,38 @@ class PlayerUpdateForm(forms.ModelForm):
         # Guardar el Player
         # Asegurar una última vez que secondary_position e is_pitcher estén correctos antes de guardar
         # Esto es crítico porque estos campos podrían no guardarse si Django no los detecta como "changed"
-        player.secondary_position = self.cleaned_data.get("secondary_position", "") or ""
-        player.is_pitcher = bool(self.cleaned_data.get("is_pitcher", False))
+        secondary_pos_value = self.cleaned_data.get("secondary_position", "") or ""
+        is_pitcher_value = bool(self.cleaned_data.get("is_pitcher", False))
+
+        # Establecer los valores explícitamente
+        player.secondary_position = secondary_pos_value
+        player.is_pitcher = is_pitcher_value
 
         if commit:
-            # Guardar el player
-            # Usar save() normal primero
+            # Guardar primero todos los campos normalmente
             player.save()
 
-            # Verificar que se guardaron correctamente y forzar guardado si es necesario
+            # CRÍTICO: Forzar el guardado de estos campos específicos usando update_fields
+            # Esto asegura que se guarden incluso si Django no detecta cambios
+            player.secondary_position = secondary_pos_value
+            player.is_pitcher = is_pitcher_value
+            player.save(update_fields=["secondary_position", "is_pitcher"])
+
+            # Verificar que se guardaron correctamente
             player.refresh_from_db()
 
-            # Si no se guardaron correctamente, forzar el guardado explícitamente
-            expected_secondary = self.cleaned_data.get("secondary_position", "") or ""
-            expected_is_pitcher = bool(self.cleaned_data.get("is_pitcher", False))
-
-            if player.secondary_position != expected_secondary:
-                player.secondary_position = expected_secondary
-                player.save(update_fields=["secondary_position"])
-
-            if player.is_pitcher != expected_is_pitcher:
-                player.is_pitcher = expected_is_pitcher
-                player.save(update_fields=["is_pitcher"])
+            # Si aún no se guardaron correctamente, intentar una vez más
+            if player.secondary_position != secondary_pos_value or player.is_pitcher != is_pitcher_value:
+                player.secondary_position = secondary_pos_value
+                player.is_pitcher = is_pitcher_value
+                # Usar update() directamente en la base de datos como último recurso
+                from django.db.models import F
+                from .models import Player as PlayerModel
+                PlayerModel.objects.filter(pk=player.pk).update(
+                    secondary_position=secondary_pos_value,
+                    is_pitcher=is_pitcher_value
+                )
+                player.refresh_from_db()
 
         return player
 
