@@ -438,6 +438,12 @@
         </button>
         <div id="sbPlayers" class="collapse sb-sub{% if active_section == 'players' %} show{% endif %}">
             <a class="link{% if active_subsection == 'player_list' %} active{% endif %}" href="{% url 'accounts:player_list' %}">Lista de Jugadores</a>
+            {% if pending_verifications_count %}
+                <a class="link{% if active_subsection == 'pending_verifications' %} active{% endif %}" href="{% url 'accounts:panel' %}?tab=verificaciones-pendientes">
+                    Verificaciones Pendientes
+                    <span class="badge bg-danger ms-2" style="font-size: 0.7rem;">{{ pending_verifications_count }}</span>
+                </a>
+            {% endif %}
         </div>
 
             <div class="sb-label hide-mini">Administración</div>

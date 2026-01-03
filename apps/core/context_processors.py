@@ -14,12 +14,14 @@ def sidebar_context(request):
             return {
                 "active_section": None,
                 "active_subsection": None,
+                "pending_verifications_count": 0,
             }
     except Exception:
         # Si hay cualquier error al verificar, retornar valores por defecto
         return {
             "active_section": None,
             "active_subsection": None,
+            "pending_verifications_count": 0,
         }
 
     # Verificar que request tenga los atributos necesarios
@@ -27,6 +29,7 @@ def sidebar_context(request):
         return {
             "active_section": None,
             "active_subsection": None,
+            "pending_verifications_count": 0,
         }
 
     current_path = request.path
@@ -274,9 +277,40 @@ def sidebar_context(request):
             active_section = "media"
             active_subsection = "list"
 
+    # Obtener conteo de verificaciones pendientes (solo para managers y staff)
+    pending_verifications_count = 0
+    try:
+        if hasattr(request, "user") and request.user.is_authenticated:
+            from apps.accounts.models import Player
+            user = request.user
+
+            # Verificar si es staff/admin o manager
+            is_staff = user.is_staff or user.is_superuser
+            is_manager = False
+            if hasattr(user, "profile") and hasattr(user.profile, "is_team_manager"):
+                is_manager = user.profile.is_team_manager
+
+            if is_staff:
+                # Staff/admin ve todos los documentos pendientes
+                pending_verifications_count = Player.objects.filter(
+                    age_verification_status="pending",
+                    age_verification_document__isnull=False
+                ).count()
+            elif is_manager:
+                # Manager ve solo documentos de sus equipos
+                pending_verifications_count = Player.objects.filter(
+                    team__manager=user,
+                    age_verification_status="pending",
+                    age_verification_document__isnull=False
+                ).count()
+    except Exception:
+        # Si hay error, mantener en 0
+        pending_verifications_count = 0
+
     return {
         "active_section": active_section,
         "active_subsection": active_subsection,
+        "pending_verifications_count": pending_verifications_count,
     }
 
 

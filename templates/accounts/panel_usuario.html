@@ -779,6 +779,16 @@
             const tabButtons = document.querySelectorAll('.tab-btn');
             const tabContents = document.querySelectorAll('.tab-content');
 
+            // Verificar si hay un parámetro 'tab' en la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab');
+            if (tabParam) {
+                const tabButton = document.querySelector(`[data-tab="${tabParam}"]`);
+                if (tabButton) {
+                    tabButton.click();
+                }
+            }
+
             // Función para activar un tab
             // Activar tab si viene desde la vista de detalle de evento y hacer scroll
             function scrollToEventDetails() {
