@@ -1635,38 +1635,109 @@
                         // Asegurarse de que el formulario sea visible
                         form.style.display = 'block';
 
-                        // Extraer y ejecutar scripts del HTML cargado
+                        // Inicializar el campo de foto de perfil directamente
                         setTimeout(function() {
-                            const scripts = editTab.querySelectorAll('script');
-                            console.log('📜 Scripts encontrados en el HTML:', scripts.length);
+                            console.log('📸 Inicializando campo de foto de perfil...');
 
-                            scripts.forEach((script, index) => {
-                                try {
-                                    console.log(`📜 Ejecutando script ${index + 1}/${scripts.length}`);
-                                    const scriptContent = script.textContent || script.innerHTML;
-                                    if (scriptContent.trim()) {
-                                        // Crear un nuevo script tag y ejecutarlo
-                                        const newScript = document.createElement('script');
-                                        newScript.textContent = scriptContent;
-                                        document.body.appendChild(newScript);
-                                        document.body.removeChild(newScript);
-                                        console.log(`✅ Script ${index + 1} ejecutado`);
+                            const profilePictureInput = document.getElementById('id_profile_picture');
+                            const profilePictureUploadArea = document.getElementById('profilePictureUploadArea');
+
+                            console.log('🎨 Profile Picture Input:', profilePictureInput);
+                            console.log('🎨 Profile Picture Upload Area:', profilePictureUploadArea);
+
+                            if (profilePictureInput && profilePictureUploadArea) {
+                                console.log('✅ Ambos elementos encontrados, configurando event listeners');
+
+                                // Limpiar listeners previos si existen (clonar y reemplazar)
+                                const newUploadArea = profilePictureUploadArea.cloneNode(true);
+                                profilePictureUploadArea.parentNode.replaceChild(newUploadArea, profilePictureUploadArea);
+                                const uploadArea = document.getElementById('profilePictureUploadArea');
+
+                                // Hacer clic en el área activa el input de archivo
+                                uploadArea.addEventListener('click', function(e) {
+                                    console.log('🖱️ Upload area clicked!');
+                                    e.preventDefault();
+                                    e.stopPropagation();
+
+                                    if (profilePictureInput.disabled) {
+                                        console.warn('⚠️ Input está deshabilitado');
+                                        return;
                                     }
-                                } catch (error) {
-                                    console.error(`❌ Error ejecutando script ${index + 1}:`, error);
-                                }
-                            });
 
-                            // Después de ejecutar los scripts, intentar inicializar el campo de foto
-                            setTimeout(function() {
-                                if (typeof window.initProfilePictureUpload === 'function') {
-                                    console.log('📸 Inicializando campo de foto de perfil...');
-                                    window.initProfilePictureUpload();
-                                } else {
-                                    console.warn('⚠️ window.initProfilePictureUpload no encontrada después de ejecutar scripts');
-                                }
-                            }, 100);
-                        }, 200);
+                                    console.log('🚀 Triggering file input click');
+                                    profilePictureInput.click();
+                                }, true);
+
+                                console.log('✅ Event listener para click agregado');
+
+                                // Preview de la imagen seleccionada
+                                profilePictureInput.addEventListener('change', function(e) {
+                                    console.log('📸 Archivo seleccionado');
+                                    const file = e.target.files[0];
+                                    if (file) {
+                                        console.log('📄 Archivo:', file.name, file.type, file.size);
+
+                                        // Validar tamaño (5MB máximo)
+                                        const maxSize = 5 * 1024 * 1024;
+                                        if (file.size > maxSize) {
+                                            alert('El archivo es demasiado grande. El tamaño máximo es 5MB.');
+                                            profilePictureInput.value = '';
+                                            return;
+                                        }
+
+                                        // Validar tipo de archivo
+                                        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                                        if (!allowedTypes.includes(file.type)) {
+                                            alert('Tipo de archivo inválido. Solo se permiten JPG, PNG y GIF.');
+                                            profilePictureInput.value = '';
+                                            return;
+                                        }
+
+                                        // Mostrar preview
+                                        const reader = new FileReader();
+                                        reader.onload = function(e) {
+                                            uploadArea.innerHTML = `
+                                                <div style="position: relative;">
+                                                    <img src="${e.target.result}" alt="Profile Picture Preview" style="max-width: 200px; max-height: 200px; border-radius: 12px; object-fit: cover; margin-bottom: 15px;">
+                                                    <div>
+                                                        <i class="fas fa-check-circle fa-2x mb-2" style="color: #28a745;"></i>
+                                                        <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue);">
+                                                            Foto Seleccionada
+                                                        </p>
+                                                        <small class="text-success">${file.name} (${(file.size / 1024).toFixed(2)} KB)</small>
+                                                        <br>
+                                                        <small class="text-muted">Haz clic para cambiar la foto</small>
+                                                    </div>
+                                                </div>
+                                            `;
+                                            uploadArea.style.borderColor = '#28a745';
+                                            uploadArea.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
+                                        };
+                                        reader.readAsDataURL(file);
+                                    }
+                                });
+
+                                // Hover effect
+                                uploadArea.addEventListener('mouseenter', function() {
+                                    this.style.borderColor = 'var(--mlb-red)';
+                                    this.style.transform = 'scale(1.02)';
+                                });
+
+                                uploadArea.addEventListener('mouseleave', function() {
+                                    if (!profilePictureInput.files.length) {
+                                        this.style.borderColor = '#0d2c54';
+                                    }
+                                    this.style.transform = 'scale(1)';
+                                });
+
+                                console.log('✅ Todos los event listeners agregados correctamente');
+                            } else {
+                                console.error('❌ No se encontraron los elementos:', {
+                                    input: profilePictureInput,
+                                    area: profilePictureUploadArea
+                                });
+                            }
+                        }, 300);
 
                         // Verificar si ya tiene un listener de submit (usando una marca)
                         if (form.dataset.submitListenerAdded === 'true') {
