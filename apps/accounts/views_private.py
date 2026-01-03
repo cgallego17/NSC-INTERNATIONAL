@@ -2,16 +2,18 @@
 Vistas privadas - Requieren autenticación
 """
 
+import json
+from decimal import ROUND_HALF_UP, Decimal
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
-from django.http import JsonResponse, HttpResponse
-from django.shortcuts import redirect, get_object_or_404
-from django.contrib import messages
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone, translation
 from django.utils.translation import gettext_lazy as _
@@ -24,9 +26,6 @@ from django.views.generic import (
     TemplateView,
     UpdateView,
 )
-from django.db import transaction
-from decimal import Decimal, ROUND_HALF_UP
-import json
 
 from apps.core.mixins import ManagerRequiredMixin
 
@@ -38,7 +37,15 @@ from .forms import (
     UserProfileForm,
     UserUpdateForm,
 )
-from .models import DashboardContent, MarqueeMessage, Player, PlayerParent, Team, UserProfile, StripeEventCheckout
+from .models import (
+    DashboardContent,
+    MarqueeMessage,
+    Player,
+    PlayerParent,
+    StripeEventCheckout,
+    Team,
+    UserProfile,
+)
 
 
 class UserDashboardView(LoginRequiredMixin, TemplateView):
@@ -133,7 +140,9 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
         context["dashboard_content"] = dashboard_content
 
         # Obtener mensajes activos del marquee
-        marquee_messages = MarqueeMessage.objects.filter(is_active=True).order_by("order", "-created_at")
+        marquee_messages = MarqueeMessage.objects.filter(is_active=True).order_by(
+            "order", "-created_at"
+        )
         context["marquee_messages"] = marquee_messages
 
         # Inicializar contadores de verificaciones pendientes
@@ -142,25 +151,33 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
 
         # Si es staff/admin, obtener todos los documentos pendientes (no solo de sus equipos)
         if user.is_staff or user.is_superuser:
-            context["pending_verifications"] = Player.objects.filter(
-                age_verification_status="pending",
-                age_verification_document__isnull=False
-            ).select_related("user", "team", "user__profile").order_by("-updated_at")[:20]
+            context["pending_verifications"] = (
+                Player.objects.filter(
+                    age_verification_status="pending",
+                    age_verification_document__isnull=False,
+                )
+                .select_related("user", "team", "user__profile")
+                .order_by("-updated_at")[:20]
+            )
             context["pending_verifications_count"] = Player.objects.filter(
                 age_verification_status="pending",
-                age_verification_document__isnull=False
+                age_verification_document__isnull=False,
             ).count()
         # Si es manager (pero no staff), obtener solo documentos de sus equipos
         elif profile.is_team_manager:
-            context["pending_verifications"] = Player.objects.filter(
-                team__manager=user,
-                age_verification_status="pending",
-                age_verification_document__isnull=False
-            ).select_related("user", "team", "user__profile").order_by("-updated_at")[:10]
+            context["pending_verifications"] = (
+                Player.objects.filter(
+                    team__manager=user,
+                    age_verification_status="pending",
+                    age_verification_document__isnull=False,
+                )
+                .select_related("user", "team", "user__profile")
+                .order_by("-updated_at")[:10]
+            )
             context["pending_verifications_count"] = Player.objects.filter(
                 team__manager=user,
                 age_verification_status="pending",
-                age_verification_document__isnull=False
+                age_verification_document__isnull=False,
             ).count()
 
         # Contexto adicional para los includes de los tabs
@@ -314,8 +331,9 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
 
         # Obtener reservas del usuario para el dashboard
         try:
-            from apps.locations.models import HotelReservation
             from django.core.paginator import Paginator
+
+            from apps.locations.models import HotelReservation
 
             # Reservas para el dashboard (últimas 5)
             context["user_reservations"] = (
@@ -340,7 +358,9 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             # Filtro por estado si viene en GET
             status_filter = self.request.GET.get("status")
             if status_filter:
-                reservations_queryset = reservations_queryset.filter(status=status_filter)
+                reservations_queryset = reservations_queryset.filter(
+                    status=status_filter
+                )
 
             # Paginación
             paginator = Paginator(reservations_queryset, 10)  # 10 reservas por página
@@ -366,10 +386,9 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             wallet, created = UserWallet.objects.get_or_create(user=user)
             context["wallet"] = wallet
             # Obtener últimas transacciones
-            context["wallet_transactions"] = (
-                WalletTransaction.objects.filter(wallet=wallet)
-                .order_by("-created_at")[:10]
-            )
+            context["wallet_transactions"] = WalletTransaction.objects.filter(
+                wallet=wallet
+            ).order_by("-created_at")[:10]
         except Exception:
             context["wallet"] = None
             context["wallet_transactions"] = []
@@ -399,10 +418,14 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
         # Pasar formularios según la sección activa
         if context["active_section"] == "profile":
-            context["profile_form"] = UserProfileForm(instance=self.request.user.profile)
+            context["profile_form"] = UserProfileForm(
+                instance=self.request.user.profile
+            )
             context["user_form"] = UserProfileUpdateForm(instance=self.request.user)
         elif context["active_section"] == "billing":
-            context["billing_form"] = BillingAddressForm(instance=self.request.user.profile)
+            context["billing_form"] = BillingAddressForm(
+                instance=self.request.user.profile
+            )
         elif context["active_section"] == "security":
             context["password_form"] = CustomPasswordChangeForm(user=self.request.user)
         elif context["active_section"] == "notifications":
@@ -411,10 +434,16 @@ class ProfileView(LoginRequiredMixin, TemplateView):
             initial_data = {
                 "email_notifications": getattr(profile, "email_notifications", True),
                 "event_notifications": getattr(profile, "event_notifications", True),
-                "reservation_notifications": getattr(profile, "reservation_notifications", True),
-                "marketing_notifications": getattr(profile, "marketing_notifications", False),
+                "reservation_notifications": getattr(
+                    profile, "reservation_notifications", True
+                ),
+                "marketing_notifications": getattr(
+                    profile, "marketing_notifications", False
+                ),
             }
-            context["notification_form"] = NotificationPreferencesForm(initial=initial_data)
+            context["notification_form"] = NotificationPreferencesForm(
+                initial=initial_data
+            )
 
         return context
 
@@ -431,7 +460,9 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         section = request.GET.get("section", "profile")
 
         if section == "profile":
-            profile_form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
+            profile_form = UserProfileForm(
+                request.POST, request.FILES, instance=request.user.profile
+            )
             user_form = UserProfileUpdateForm(request.POST, instance=request.user)
 
             if profile_form.is_valid() and user_form.is_valid():
@@ -440,8 +471,12 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
                 # Si se actualizó el idioma preferido, guardarlo en la sesión
                 if "preferred_language" in profile_form.cleaned_data:
-                    preferred_language = profile_form.cleaned_data["preferred_language"] or "en"
-                    language_key = getattr(translation, "LANGUAGE_SESSION_KEY", "_language")
+                    preferred_language = (
+                        profile_form.cleaned_data["preferred_language"] or "en"
+                    )
+                    language_key = getattr(
+                        translation, "LANGUAGE_SESSION_KEY", "_language"
+                    )
                     request.session[language_key] = preferred_language
                     request.session["user_selected_language"] = True
                     request.session.modified = True
@@ -450,13 +485,17 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                 messages.success(request, _("Profile updated successfully."))
                 return redirect("accounts:profile?section=profile")
         elif section == "billing":
-            billing_form = BillingAddressForm(request.POST, instance=request.user.profile)
+            billing_form = BillingAddressForm(
+                request.POST, instance=request.user.profile
+            )
             if billing_form.is_valid():
                 billing_form.save()
                 messages.success(request, _("Billing address updated successfully."))
                 return redirect("accounts:profile?section=billing")
         elif section == "security":
-            password_form = CustomPasswordChangeForm(user=request.user, data=request.POST)
+            password_form = CustomPasswordChangeForm(
+                user=request.user, data=request.POST
+            )
             if password_form.is_valid():
                 password_form.save()
                 messages.success(request, _("Password changed successfully."))
@@ -466,7 +505,9 @@ class ProfileView(LoginRequiredMixin, TemplateView):
             if notification_form.is_valid():
                 # Guardar preferencias en el perfil (necesitarías agregar estos campos al modelo)
                 # Por ahora solo mostramos mensaje de éxito
-                messages.success(request, _("Notification preferences saved successfully."))
+                messages.success(
+                    request, _("Notification preferences saved successfully.")
+                )
                 return redirect("accounts:profile?section=notifications")
 
         # Si hay errores, volver a mostrar el formulario con errores
@@ -670,7 +711,8 @@ class PlayerRegistrationView(ManagerRequiredMixin, CreateView):
         player = form.save()
         player_name = player.user.get_full_name() or player.user.username
         messages.success(
-            self.request, _("Player %(name)s registered successfully.") % {"name": player_name}
+            self.request,
+            _("Player %(name)s registered successfully.") % {"name": player_name},
         )
         return redirect("accounts:player_list")
 
@@ -686,9 +728,7 @@ class ParentPlayerRegistrationView(LoginRequiredMixin, CreateView):
     def dispatch(self, request, *args, **kwargs):
         # Verificar que el usuario sea padre
         if not hasattr(request.user, "profile") or not request.user.profile.is_parent:
-            messages.error(
-                request, _("Only parents/guardians can register players.")
-            )
+            messages.error(request, _("Only parents/guardians can register players."))
             return redirect("accounts:panel")
         return super().dispatch(request, *args, **kwargs)
 
@@ -703,7 +743,8 @@ class ParentPlayerRegistrationView(LoginRequiredMixin, CreateView):
         player_name = player.user.get_full_name() or player.user.username
         messages.success(
             self.request,
-            _("Player %(name)s registered successfully! The profile is ready to use.") % {"name": player_name},
+            _("Player %(name)s registered successfully! The profile is ready to use.")
+            % {"name": player_name},
             extra_tags="player_registered",
         )
         return redirect("accounts:panel")
@@ -740,7 +781,9 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
         # Los jugadores NO pueden editar su propia información (están inactivos)
         # Solo padres, managers y staff pueden editar
         if not is_parent and not is_manager and not is_staff:
-            messages.error(request, _("You do not have permission to edit this player."))
+            messages.error(
+                request, _("You do not have permission to edit this player.")
+            )
             return redirect("accounts:player_detail", pk=player.pk)
         return super().dispatch(request, *args, **kwargs)
 
@@ -752,14 +795,15 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_template_names(self):
         """Usar diferentes templates según si es padre o manager/admin"""
-        player = self.get_object()
+        # Usar self.object si ya está establecido, de lo contrario obtenerlo
+        player = getattr(self, "object", None)
+        if player is None:
+            player = self.get_object()
         user = self.request.user
 
         # Verificar si existe la relación PlayerParent (independientemente de si el usuario es staff)
         # Esto permite que incluso staff que son padres vean el template de hijo
-        is_parent = PlayerParent.objects.filter(
-            parent=user, player=player
-        ).exists()
+        is_parent = PlayerParent.objects.filter(parent=user, player=player).exists()
 
         # Si el usuario es padre del jugador (existe la relación PlayerParent),
         # usar el template de hijo, independientemente de si es staff
@@ -770,64 +814,94 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
 
     def get(self, request, *args, **kwargs):
         """Sobrescribir get para manejar peticiones AJAX"""
-        try:
-            self.object = self.get_object()
-
-            # Si es una petición AJAX, renderizar solo el contenido del formulario
-            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-                from django.template.loader import render_to_string
-                from django.http import HttpResponse
-                import logging
-
-                logger = logging.getLogger(__name__)
-
-                try:
-                    form = self.get_form()
-                    context = self.get_context_data(object=self.object, form=form)
-
-                    # Renderizar el template completo
-                    template_names = self.get_template_names()
-                    html = render_to_string(template_names, context, request=request)
-
-                    # Extraer solo el contenido del bloque content
-                    # Buscar el inicio del contenido (después de {% block content %})
-                    content_start = html.find('<div class="tab-content-header">')
-                    if content_start == -1:
-                        # Si no se encuentra, buscar el inicio del formulario
-                        content_start = html.find('<div class="form-container">')
-                    if content_start == -1:
-                        # Si aún no se encuentra, buscar el primer div con mensajes
-                        content_start = html.find('<div class="messages-container">')
-
-                    if content_start != -1:
-                        # Encontrar el final del bloque content (antes de {% endblock %})
-                        # Buscar el último </script> antes de {% endblock %}
-                        script_end = html.rfind('</script>')
-                        if script_end != -1 and script_end > content_start:
-                            content_end = script_end + len('</script>')
-                            # Buscar si hay un {% endblock %} después del script
-                            endblock_pos = html.find('{% endblock %}', content_end)
-                            if endblock_pos != -1:
-                                # Devolver solo el contenido del bloque
-                                return HttpResponse(html[content_start:content_end])
-                            else:
-                                return HttpResponse(html[content_start:])
-                        else:
-                            return HttpResponse(html[content_start:])
-                    else:
-                        # Si no se encuentra el inicio, devolver el HTML completo
-                        return HttpResponse(html)
-                except Exception as e:
-                    logger.error(f"Error rendering template for AJAX request: {e}", exc_info=True)
-                    from django.http import JsonResponse
-                    return JsonResponse({"error": str(e)}, status=500)
-
-            return super().get(request, *args, **kwargs)
-        except Exception as e:
+        # Si es una petición AJAX, renderizar el template normalmente
+        # El JavaScript del frontend extraerá solo la parte que necesita
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             import logging
+
             logger = logging.getLogger(__name__)
-            logger.error(f"Error in PlayerUpdateView.get: {e}", exc_info=True)
-            raise
+            try:
+                logger.info("PlayerUpdateView.get: Getting object...")
+                self.object = self.get_object()
+                logger.info(f"PlayerUpdateView.get: Object obtained: {self.object}")
+
+                logger.info("PlayerUpdateView.get: Getting form...")
+                form = self.get_form()
+                logger.info(f"PlayerUpdateView.get: Form obtained: {form}")
+
+                logger.info("PlayerUpdateView.get: Getting context...")
+                context = self.get_context_data(object=self.object, form=form)
+                logger.info(
+                    f"PlayerUpdateView.get: Context obtained with keys: {list(context.keys())}"
+                )
+
+                # Usar el método render_to_response normal pero con el template correcto
+                from django.template.response import TemplateResponse
+
+                template_names = self.get_template_names()
+                template_name = (
+                    template_names[0]
+                    if isinstance(template_names, list)
+                    else template_names
+                )
+                logger.info(f"PlayerUpdateView.get: Using template: {template_name}")
+
+                logger.info("PlayerUpdateView.get: Rendering template...")
+                # Usar render_to_string para obtener el HTML completo
+                from django.http import HttpResponse
+                from django.template.loader import render_to_string
+
+                html = render_to_string(template_name, context, request=request)
+                logger.info(
+                    f"PlayerUpdateView.get: Template rendered, HTML length: {len(html)}"
+                )
+
+                # Extraer solo el contenido del bloque content
+                # Buscar el inicio del contenido (después de {% block content %})
+                content_start = html.find('<div class="tab-content-header">')
+                if content_start == -1:
+                    content_start = html.find('<div class="form-container">')
+                if content_start == -1:
+                    content_start = html.find('<div class="messages-container">')
+                if content_start == -1:
+                    # Si no se encuentra, buscar el inicio del bloque content
+                    content_start = html.find("<!-- Messages")
+
+                if content_start != -1:
+                    # Encontrar el final del bloque content
+                    script_end = html.rfind("</script>")
+                    if script_end != -1 and script_end > content_start:
+                        content_end = script_end + len("</script>")
+                        logger.info(
+                            f"PlayerUpdateView.get: Extracted content from {content_start} to {content_end}"
+                        )
+                        return HttpResponse(html[content_start:content_end])
+                    else:
+                        logger.info(
+                            f"PlayerUpdateView.get: Extracted content from {content_start} to end"
+                        )
+                        return HttpResponse(html[content_start:])
+                else:
+                    # Si no se encuentra el inicio, devolver el HTML completo
+                    logger.warning(
+                        "PlayerUpdateView.get: Could not find content start, returning full HTML"
+                    )
+                    return HttpResponse(html)
+            except Exception as e:
+                import traceback
+
+                error_traceback = traceback.format_exc()
+                logger.error(
+                    f"Error in PlayerUpdateView.get for AJAX request: {e}\n{error_traceback}",
+                    exc_info=True,
+                )
+                from django.http import JsonResponse
+
+                return JsonResponse(
+                    {"error": str(e), "traceback": error_traceback}, status=500
+                )
+
+        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -871,12 +945,15 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
         # CRÍTICO: Asegurar que secondary_position e is_pitcher se guarden explícitamente
         # Esto es necesario porque Django podría no detectar cambios si los valores son los mismos
         import logging
+
         logger = logging.getLogger(__name__)
 
         secondary_pos_value = form.cleaned_data.get("secondary_position", "") or ""
         is_pitcher_value = bool(form.cleaned_data.get("is_pitcher", False))
 
-        logger.info(f"PlayerUpdateView.form_valid - secondary_position: {secondary_pos_value}, is_pitcher: {is_pitcher_value}")
+        logger.info(
+            f"PlayerUpdateView.form_valid - secondary_position: {secondary_pos_value}, is_pitcher: {is_pitcher_value}"
+        )
 
         # Forzar el guardado de estos campos usando update_fields
         player.secondary_position = secondary_pos_value
@@ -885,20 +962,28 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
 
         # Verificar que se guardaron correctamente
         player.refresh_from_db()
-        logger.info(f"PlayerUpdateView.form_valid - DESPUÉS de guardar - secondary_position: {player.secondary_position}, is_pitcher: {player.is_pitcher}")
+        logger.info(
+            f"PlayerUpdateView.form_valid - DESPUÉS de guardar - secondary_position: {player.secondary_position}, is_pitcher: {player.is_pitcher}"
+        )
 
-        if player.secondary_position != secondary_pos_value or player.is_pitcher != is_pitcher_value:
-            logger.warning(f"PlayerUpdateView.form_valid - Los campos no se guardaron correctamente. Usando update() directo.")
+        if (
+            player.secondary_position != secondary_pos_value
+            or player.is_pitcher != is_pitcher_value
+        ):
+            logger.warning(
+                f"PlayerUpdateView.form_valid - Los campos no se guardaron correctamente. Usando update() directo."
+            )
             from .models import Player as PlayerModel
+
             PlayerModel.objects.filter(pk=player.pk).update(
-                secondary_position=secondary_pos_value,
-                is_pitcher=is_pitcher_value
+                secondary_position=secondary_pos_value, is_pitcher=is_pitcher_value
             )
             player.refresh_from_db()
 
         messages.success(
-            self.request, _("Player information updated successfully."),
-            extra_tags="player_updated"
+            self.request,
+            _("Player information updated successfully."),
+            extra_tags="player_updated",
         )
 
         # Si es una petición AJAX, devolver una respuesta JSON
@@ -998,23 +1083,33 @@ class PanelEventDetailView(UserDashboardView):
             # Obtener el evento
             from apps.locations.models import HotelRoom
 
-            event = Event.objects.select_related(
-                "category", "event_type", "country", "state", "city",
-                "hotel", "hotel__city", "hotel__state", "hotel__country",
-                "primary_site"
-            ).prefetch_related(
-                "divisions",
-                "hotel__rooms",
-                "hotel__images",
-                "hotel__amenities"
-            ).get(pk=event_id)
+            event = (
+                Event.objects.select_related(
+                    "category",
+                    "event_type",
+                    "country",
+                    "state",
+                    "city",
+                    "hotel",
+                    "hotel__city",
+                    "hotel__state",
+                    "hotel__country",
+                    "primary_site",
+                )
+                .prefetch_related(
+                    "divisions", "hotel__rooms", "hotel__images", "hotel__amenities"
+                )
+                .get(pk=event_id)
+            )
 
             # Obtener habitaciones disponibles del hotel
             if event.hotel:
-                available_rooms = HotelRoom.objects.filter(
-                    hotel=event.hotel,
-                    is_available=True
-                ).select_related("hotel").prefetch_related("amenities").order_by("room_type", "price_per_night")
+                available_rooms = (
+                    HotelRoom.objects.filter(hotel=event.hotel, is_available=True)
+                    .select_related("hotel")
+                    .prefetch_related("amenities")
+                    .order_by("room_type", "price_per_night")
+                )
                 context["available_rooms"] = available_rooms
             else:
                 context["available_rooms"] = []
@@ -1072,18 +1167,22 @@ def register_children_to_event(request, pk):
 
         # Verificar que el usuario es padre
         if not (hasattr(user, "profile") and user.profile.is_parent):
-            messages.error(request, _("You must be a parent to register children to events."))
+            messages.error(
+                request, _("You must be a parent to register children to events.")
+            )
             return redirect("accounts:panel")
 
         # Obtener los IDs de los jugadores seleccionados
         player_ids = request.POST.getlist("players")
 
         if not player_ids:
-            messages.warning(request, _("Please select at least one child/player to register."))
+            messages.warning(
+                request, _("Please select at least one child/player to register.")
+            )
             return redirect("accounts:panel_event_detail", pk=pk)
 
         # Obtener los jugadores relacionados al usuario
-        from .models import PlayerParent, Player
+        from .models import Player, PlayerParent
 
         player_parents = PlayerParent.objects.filter(
             parent=user, player_id__in=player_ids
@@ -1108,10 +1207,14 @@ def register_children_to_event(request, pk):
         if registered_count > 0:
             messages.success(
                 request,
-                _("Successfully registered %(count)d child/children to the event.") % {"count": registered_count},
+                _("Successfully registered %(count)d child/children to the event.")
+                % {"count": registered_count},
             )
         else:
-            messages.info(request, _("The selected children are already registered to this event."))
+            messages.info(
+                request,
+                _("The selected children are already registered to this event."),
+            )
 
         return redirect("accounts:panel_event_detail", pk=pk)
 
@@ -1146,8 +1249,9 @@ def _compute_hotel_amount_from_cart(cart: dict) -> dict:
     Compute hotel totals from session cart using server-side room/service data.
     Taxes (IVA 16% + ISH 5%) are applied to room base (incl. extra guests), mirroring the UI.
     """
-    from apps.locations.models import HotelRoom, HotelService
     from datetime import datetime
+
+    from apps.locations.models import HotelRoom, HotelService
 
     room_base = Decimal("0.00")
     services_total = Decimal("0.00")
@@ -1175,7 +1279,10 @@ def _compute_hotel_amount_from_cart(cart: dict) -> dict:
         includes = int(room.price_includes_guests or 1)
         extra_guests = max(0, guests - includes)
 
-        per_night_total = room.price_per_night + (room.additional_guest_price or Decimal("0.00")) * extra_guests
+        per_night_total = (
+            room.price_per_night
+            + (room.additional_guest_price or Decimal("0.00")) * extra_guests
+        )
         item_room_base = per_night_total * nights
         room_base += item_room_base
 
@@ -1219,7 +1326,11 @@ def _plan_months_until_deadline(payment_deadline):
         if not payment_deadline:
             return 1
         now = timezone.localdate()
-        months = (payment_deadline.year - now.year) * 12 + (payment_deadline.month - now.month) + 1
+        months = (
+            (payment_deadline.year - now.year) * 12
+            + (payment_deadline.month - now.month)
+            + 1
+        )
         if not months or months < 1:
             months = 1
         return int(months)
@@ -1232,14 +1343,19 @@ def _plan_months_until_deadline(payment_deadline):
 def create_stripe_event_checkout_session(request, pk):
     if not settings.STRIPE_SECRET_KEY:
         return JsonResponse(
-            {"success": False, "error": _("Stripe is not configured (STRIPE_SECRET_KEY).")},
+            {
+                "success": False,
+                "error": _("Stripe is not configured (STRIPE_SECRET_KEY)."),
+            },
             status=500,
         )
 
     try:
         import stripe  # type: ignore
     except Exception:
-        return JsonResponse({"success": False, "error": _("Stripe SDK is not installed.")}, status=500)
+        return JsonResponse(
+            {"success": False, "error": _("Stripe SDK is not installed.")}, status=500
+        )
 
     from apps.events.models import Event
 
@@ -1247,19 +1363,31 @@ def create_stripe_event_checkout_session(request, pk):
     user = request.user
 
     if not (hasattr(user, "profile") and user.profile.is_parent):
-        return JsonResponse({"success": False, "error": _("Only parents can pay for registrations.")}, status=403)
+        return JsonResponse(
+            {"success": False, "error": _("Only parents can pay for registrations.")},
+            status=403,
+        )
 
     player_ids = request.POST.getlist("players")
     if not player_ids:
-        return JsonResponse({"success": False, "error": _("Select at least 1 player.")}, status=400)
+        return JsonResponse(
+            {"success": False, "error": _("Select at least 1 player.")}, status=400
+        )
 
     player_parents = PlayerParent.objects.filter(
         parent=user, player_id__in=player_ids
     ).select_related("player", "player__user")
-    valid_players = [pp.player for pp in player_parents if getattr(pp.player, "is_active", True)]
+    valid_players = [
+        pp.player for pp in player_parents if getattr(pp.player, "is_active", True)
+    ]
     if len(valid_players) != len(player_ids):
         return JsonResponse(
-            {"success": False, "error": _("There are invalid players or players that do not belong to the user.")},
+            {
+                "success": False,
+                "error": _(
+                    "There are invalid players or players that do not belong to the user."
+                ),
+            },
             status=400,
         )
 
@@ -1272,28 +1400,40 @@ def create_stripe_event_checkout_session(request, pk):
     players_total = (entry_fee * Decimal(str(players_count))).quantize(Decimal("0.01"))
 
     cart = request.session.get("hotel_cart", {}) or {}
-    hotel_breakdown = _compute_hotel_amount_from_cart(cart) if cart else {
-        "room_base": Decimal("0.00"),
-        "services_total": Decimal("0.00"),
-        "iva": Decimal("0.00"),
-        "ish": Decimal("0.00"),
-        "total": Decimal("0.00"),
-    }
+    hotel_breakdown = (
+        _compute_hotel_amount_from_cart(cart)
+        if cart
+        else {
+            "room_base": Decimal("0.00"),
+            "services_total": Decimal("0.00"),
+            "iva": Decimal("0.00"),
+            "ish": Decimal("0.00"),
+            "total": Decimal("0.00"),
+        }
+    )
     hotel_total = hotel_breakdown["total"]
 
     # Pay now discount only applies if a hotel stay is included
     discount_percent = 5 if (payment_mode == "now" and hotel_total > 0) else 0
-    discount_multiplier = Decimal("1.00") - (Decimal(str(discount_percent)) / Decimal("100"))
+    discount_multiplier = Decimal("1.00") - (
+        Decimal(str(discount_percent)) / Decimal("100")
+    )
 
-    no_show_fee = Decimal("1000.00") if (players_count > 0 and not cart) else Decimal("0.00")
+    no_show_fee = (
+        Decimal("1000.00") if (players_count > 0 and not cart) else Decimal("0.00")
+    )
 
     subtotal = (players_total + hotel_total + no_show_fee).quantize(Decimal("0.01"))
-    total = (subtotal * discount_multiplier).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    total = (subtotal * discount_multiplier).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
 
     currency = (getattr(settings, "STRIPE_CURRENCY", "usd") or "usd").lower()
 
     def scale(amount: Decimal) -> Decimal:
-        return (amount * discount_multiplier).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        return (amount * discount_multiplier).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
 
     # Build Stripe line items differently for pay-now vs plan:
     # - now: one-time payment line items
@@ -1304,9 +1444,14 @@ def create_stripe_event_checkout_session(request, pk):
 
     if payment_mode == "plan":
         # Plan doesn't apply discount. Monthly amount is approximate = subtotal / months.
-        plan_monthly_amount = (subtotal / Decimal(str(plan_months))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        plan_monthly_amount = (subtotal / Decimal(str(plan_months))).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
         if plan_monthly_amount <= 0:
-            return JsonResponse({"success": False, "error": _("There is nothing to charge.")}, status=400)
+            return JsonResponse(
+                {"success": False, "error": _("There is nothing to charge.")},
+                status=400,
+            )
 
         line_items = [
             {
@@ -1348,7 +1493,9 @@ def create_stripe_event_checkout_session(request, pk):
                 {
                     "price_data": {
                         "currency": currency,
-                        "product_data": {"name": f"Hotel stay{(' - ' + hotel_name) if hotel_name else ''}"},
+                        "product_data": {
+                            "name": f"Hotel stay{(' - ' + hotel_name) if hotel_name else ''}"
+                        },
                         "unit_amount": _money_to_cents(scale(hotel_total)),
                     },
                     "quantity": 1,
@@ -1368,14 +1515,24 @@ def create_stripe_event_checkout_session(request, pk):
             )
 
         if not line_items:
-            return JsonResponse({"success": False, "error": _("There is nothing to charge.")}, status=400)
+            return JsonResponse(
+                {"success": False, "error": _("There is nothing to charge.")},
+                status=400,
+            )
 
     stripe.api_key = settings.STRIPE_SECRET_KEY
-    stripe_account = event.stripe_payment_profile if getattr(event, "stripe_payment_profile", None) else None
+    stripe_account = (
+        event.stripe_payment_profile
+        if getattr(event, "stripe_payment_profile", None)
+        else None
+    )
 
-    success_url = request.build_absolute_uri(
-        reverse("accounts:stripe_event_checkout_success", kwargs={"pk": event.pk})
-    ) + "?session_id={CHECKOUT_SESSION_ID}"
+    success_url = (
+        request.build_absolute_uri(
+            reverse("accounts:stripe_event_checkout_success", kwargs={"pk": event.pk})
+        )
+        + "?session_id={CHECKOUT_SESSION_ID}"
+    )
     cancel_url = request.build_absolute_uri(
         reverse("accounts:stripe_event_checkout_cancel", kwargs={"pk": event.pk})
     )
@@ -1428,11 +1585,15 @@ def create_stripe_event_checkout_session(request, pk):
         status="created",
     )
 
-    return JsonResponse({"success": True, "checkout_url": session.url, "session_id": session.id})
+    return JsonResponse(
+        {"success": True, "checkout_url": session.url, "session_id": session.id}
+    )
 
 
 def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
     """Idempotent finalize: confirm event attendance + create hotel reservations."""
+    from datetime import datetime
+
     from apps.events.models import EventAttendance
     from apps.locations.models import (
         HotelReservation,
@@ -1440,7 +1601,6 @@ def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
         HotelRoom,
         HotelService,
     )
-    from datetime import datetime
 
     with transaction.atomic():
         checkout.refresh_from_db()
@@ -1463,7 +1623,9 @@ def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
             )
             if attendance.status != "confirmed":
                 attendance.status = "confirmed"
-            attendance.notes = (attendance.notes or "") + f"\nPaid via Stripe session {checkout.stripe_session_id}"
+            attendance.notes = (
+                attendance.notes or ""
+            ) + f"\nPaid via Stripe session {checkout.stripe_session_id}"
             attendance.save()
 
         # Create hotel reservations from snapshot
@@ -1474,8 +1636,12 @@ def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
 
             try:
                 room = HotelRoom.objects.get(id=item_data.get("room_id"))
-                check_in = datetime.strptime(item_data.get("check_in"), "%Y-%m-%d").date()
-                check_out = datetime.strptime(item_data.get("check_out"), "%Y-%m-%d").date()
+                check_in = datetime.strptime(
+                    item_data.get("check_in"), "%Y-%m-%d"
+                ).date()
+                check_out = datetime.strptime(
+                    item_data.get("check_out"), "%Y-%m-%d"
+                ).date()
             except Exception:
                 continue
 
@@ -1544,14 +1710,21 @@ def _ensure_plan_subscription_schedule(event, subscription_id: str, months: int)
 
     try:
         import stripe  # type: ignore
+
         stripe.api_key = settings.STRIPE_SECRET_KEY
     except Exception:
         return ""
 
-    stripe_account = event.stripe_payment_profile if getattr(event, "stripe_payment_profile", None) else None
+    stripe_account = (
+        event.stripe_payment_profile
+        if getattr(event, "stripe_payment_profile", None)
+        else None
+    )
 
     try:
-        sub = stripe.Subscription.retrieve(subscription_id, stripe_account=stripe_account)
+        sub = stripe.Subscription.retrieve(
+            subscription_id, stripe_account=stripe_account
+        )
         items = (sub.get("items", {}) or {}).get("data", []) or []
         if not items:
             return ""
@@ -1588,6 +1761,7 @@ def stripe_event_checkout_success(request, pk):
 
     try:
         import stripe  # type: ignore
+
         stripe.api_key = settings.STRIPE_SECRET_KEY
     except Exception:
         messages.error(request, _("Stripe SDK is not installed."))
@@ -1596,12 +1770,20 @@ def stripe_event_checkout_success(request, pk):
     from apps.events.models import Event
 
     event = get_object_or_404(Event, pk=pk)
-    stripe_account = event.stripe_payment_profile if getattr(event, "stripe_payment_profile", None) else None
+    stripe_account = (
+        event.stripe_payment_profile
+        if getattr(event, "stripe_payment_profile", None)
+        else None
+    )
 
     try:
-        session = stripe.checkout.Session.retrieve(session_id, stripe_account=stripe_account)
+        session = stripe.checkout.Session.retrieve(
+            session_id, stripe_account=stripe_account
+        )
     except Exception as e:
-        messages.error(request, _("Could not verify payment: %(error)s") % {"error": str(e)})
+        messages.error(
+            request, _("Could not verify payment: %(error)s") % {"error": str(e)}
+        )
         return redirect("accounts:panel_event_detail", pk=pk)
 
     if getattr(session, "payment_status", "") != "paid":
@@ -1621,11 +1803,19 @@ def stripe_event_checkout_success(request, pk):
 
     # If it's a plan, create schedule to stop after N months
     if checkout.payment_mode == "plan" and subscription_id:
-        schedule_id = _ensure_plan_subscription_schedule(checkout.event, str(subscription_id), int(checkout.plan_months or 1))
+        schedule_id = _ensure_plan_subscription_schedule(
+            checkout.event, str(subscription_id), int(checkout.plan_months or 1)
+        )
         if schedule_id and not checkout.stripe_subscription_schedule_id:
             checkout.stripe_subscription_schedule_id = schedule_id
 
-    checkout.save(update_fields=["stripe_subscription_id", "stripe_subscription_schedule_id", "updated_at"])
+    checkout.save(
+        update_fields=[
+            "stripe_subscription_id",
+            "stripe_subscription_schedule_id",
+            "updated_at",
+        ]
+    )
 
     _finalize_stripe_event_checkout(checkout)
 
@@ -1650,6 +1840,7 @@ def stripe_webhook(request):
 
     try:
         import stripe  # type: ignore
+
         stripe.api_key = settings.STRIPE_SECRET_KEY
     except Exception:
         return HttpResponse(status=500)
@@ -1682,11 +1873,25 @@ def stripe_webhook(request):
                 subscription_id = obj.get("subscription") or ""
                 if subscription_id and not checkout.stripe_subscription_id:
                     checkout.stripe_subscription_id = str(subscription_id)
-                if checkout.payment_mode == "plan" and subscription_id and not checkout.stripe_subscription_schedule_id:
-                    schedule_id = _ensure_plan_subscription_schedule(checkout.event, str(subscription_id), int(checkout.plan_months or 1))
+                if (
+                    checkout.payment_mode == "plan"
+                    and subscription_id
+                    and not checkout.stripe_subscription_schedule_id
+                ):
+                    schedule_id = _ensure_plan_subscription_schedule(
+                        checkout.event,
+                        str(subscription_id),
+                        int(checkout.plan_months or 1),
+                    )
                     if schedule_id:
                         checkout.stripe_subscription_schedule_id = schedule_id
-                checkout.save(update_fields=["stripe_subscription_id", "stripe_subscription_schedule_id", "updated_at"])
+                checkout.save(
+                    update_fields=[
+                        "stripe_subscription_id",
+                        "stripe_subscription_schedule_id",
+                        "updated_at",
+                    ]
+                )
                 _finalize_stripe_event_checkout(checkout)
             except StripeEventCheckout.DoesNotExist:
                 pass
@@ -1724,7 +1929,9 @@ def approve_age_verification(request, pk):
         is_manager = player.team and player.team.manager == user
 
     if not is_staff and not is_manager:
-        messages.error(request, _("You do not have permission to approve age verifications."))
+        messages.error(
+            request, _("You do not have permission to approve age verifications.")
+        )
         return redirect("accounts:panel")
 
     action = request.POST.get("action")  # "approve" or "reject"
@@ -1738,7 +1945,8 @@ def approve_age_verification(request, pk):
         player.save()
         messages.success(
             request,
-            _("Age verification approved for player %(name)s.") % {"name": player.user.get_full_name() or player.user.username}
+            _("Age verification approved for player %(name)s.")
+            % {"name": player.user.get_full_name() or player.user.username},
         )
     elif action == "reject":
         player.age_verification_status = "rejected"
@@ -1747,7 +1955,8 @@ def approve_age_verification(request, pk):
         player.save()
         messages.warning(
             request,
-            _("Age verification rejected for player %(name)s.") % {"name": player.user.get_full_name() or player.user.username}
+            _("Age verification rejected for player %(name)s.")
+            % {"name": player.user.get_full_name() or player.user.username},
         )
     else:
         messages.error(request, _("Invalid action."))
@@ -1765,8 +1974,9 @@ def events_blocked_view(request, *args, **kwargs):
 
 def wallet_add_funds(request):
     """Vista para agregar fondos a la wallet del usuario"""
-    from .models import UserWallet
     from decimal import Decimal
+
+    from .models import UserWallet
 
     try:
         amount = Decimal(request.POST.get("amount", "0"))
@@ -1785,11 +1995,14 @@ def wallet_add_funds(request):
         wallet.add_funds(amount, description)
 
         messages.success(
-            request, _("$%(amount)s successfully added to your wallet.") % {"amount": amount}
+            request,
+            _("$%(amount)s successfully added to your wallet.") % {"amount": amount},
         )
     except ValueError as e:
         messages.error(request, str(e))
     except Exception as e:
-        messages.error(request, _("Error processing deposit: %(error)s") % {"error": str(e)})
+        messages.error(
+            request, _("Error processing deposit: %(error)s") % {"error": str(e)}
+        )
 
     return redirect("accounts:panel")
