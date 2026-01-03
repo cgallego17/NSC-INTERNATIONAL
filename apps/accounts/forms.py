@@ -1172,7 +1172,7 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
             attrs={
                 "class": "form-control",
                 "accept": "image/*",
-                "id": "id_profile_picture_register",
+                "id": "id_profile_picture",
                 "style": "display: none;",
             }
         ),
@@ -1593,8 +1593,19 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
     def save(self, commit=True):
         import secrets
         import string
+        import logging
 
         from django.contrib.auth.models import User
+
+        logger = logging.getLogger(__name__)
+
+        # DEBUG: Verificar que la foto está en cleaned_data
+        profile_picture = self.cleaned_data.get("profile_picture")
+        logger.info(f"🔍 SAVE FORM - profile_picture en cleaned_data: {profile_picture}")
+        if profile_picture:
+            logger.info(f"   📸 Archivo: {profile_picture.name}, Tamaño: {profile_picture.size}")
+        else:
+            logger.warning(f"   ⚠️ NO hay foto en cleaned_data")
 
         # Generar username automáticamente
         first_name = self.cleaned_data["first_name"]
@@ -1627,14 +1638,20 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         )
 
         # Crear perfil de usuario
+        logger.info(f"🔍 Creando UserProfile con profile_picture: {profile_picture}")
         profile = UserProfile.objects.create(
             user=user,
             user_type="player",
             phone=self.cleaned_data.get("phone", ""),
             birth_date=self.cleaned_data.get("birth_date"),
             last_name2=last_name2,
-            profile_picture=self.cleaned_data.get("profile_picture"),
+            profile_picture=profile_picture,
         )
+        logger.info(f"✅ UserProfile creado. profile_picture guardado: {profile.profile_picture}")
+        if profile.profile_picture:
+            logger.info(f"   📂 Ruta del archivo: {profile.profile_picture.path}")
+        else:
+            logger.warning(f"   ⚠️ profile_picture está vacío después de guardar")
 
         # Crear perfil de jugador
         # NOTA: El equipo y número de jersey NO se asignan aquí - serán asignados por un administrador o manager
