@@ -777,7 +777,7 @@ class AdminDashboard {
                 extraTags.includes('player_updated') ||
                 (messageLower.includes('player') && (messageLower.includes('updated') || messageLower.includes('actualizado') || messageLower.includes('actualizada'))) ||
                 (messageLower.includes('jugador') && (messageLower.includes('actualizado') || messageLower.includes('actualizada'))) ||
-                (messageLower.includes('información') && (messageLower.includes('actualizada') || messageLower.includes('updated')) ||
+                (messageLower.includes('información') && (messageLower.includes('actualizada') || messageLower.includes('updated'))) ||
                 (messageLower.includes('information') && messageLower.includes('updated'));
 
             if (isPlayerRegistration) {
