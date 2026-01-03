@@ -261,13 +261,22 @@
         .hero-mlb .carousel-inner {
             width: 100%;
             height: 100%;
+            min-height: 600px;
+            max-height: 100vh;
             position: relative;
             overflow: hidden;
         }
 
         .hero-mlb .carousel-item {
-            height: 600px;
+            height: auto;
             min-height: 600px;
+            max-height: 100vh;
+        }
+
+        .hero-mlb .carousel-item.active {
+            height: auto;
+            min-height: 600px;
+            max-height: 100vh;
         }
 
         .hero-slide-item {
@@ -275,6 +284,7 @@
             width: 100%;
             height: 100%;
             min-height: 600px;
+            max-height: 100vh;
             display: flex;
             align-items: center;
             overflow: hidden;
@@ -427,6 +437,13 @@
 
         .carousel-item.active {
             display: block;
+            height: auto;
+        }
+
+        .hero-mlb .carousel-item.active {
+            display: block;
+            height: auto;
+            min-height: inherit;
         }
 
         .hero-title {
@@ -505,12 +522,20 @@
         /* Tablet Large (≤1200px) */
         @media (max-width: 1200px) {
             .hero-mlb .carousel-item {
-                height: 550px;
+                height: auto;
                 min-height: 550px;
+                max-height: 90vh;
+            }
+
+            .hero-mlb .carousel-item.active {
+                height: auto;
+                min-height: 550px;
+                max-height: 90vh;
             }
 
             .hero-slide-item {
                 min-height: 550px;
+                max-height: 90vh;
             }
 
             .hero-title {
@@ -525,12 +550,20 @@
         /* Tablet (≤992px) */
         @media (max-width: 992px) {
             .hero-mlb .carousel-item {
-                height: 500px;
+                height: auto;
                 min-height: 500px;
+                max-height: 85vh;
+            }
+
+            .hero-mlb .carousel-item.active {
+                height: auto;
+                min-height: 500px;
+                max-height: 85vh;
             }
 
             .hero-slide-item {
                 min-height: 500px;
+                max-height: 85vh;
             }
 
             .hero-title {
@@ -562,15 +595,24 @@
         @media (max-width: 768px) {
             .hero-mlb .carousel-inner {
                 min-height: 450px;
+                max-height: 80vh;
             }
 
             .hero-mlb .carousel-item {
-                height: 450px;
+                height: auto;
                 min-height: 450px;
+                max-height: 80vh;
+            }
+
+            .hero-mlb .carousel-item.active {
+                height: auto;
+                min-height: 450px;
+                max-height: 80vh;
             }
 
             .hero-slide-item {
                 min-height: 450px;
+                max-height: 80vh;
             }
 
             .hero-slide-item img {
@@ -633,15 +675,24 @@
         @media (max-width: 576px) {
             .hero-mlb .carousel-inner {
                 min-height: 400px;
+                max-height: 75vh;
             }
 
             .hero-mlb .carousel-item {
-                height: 400px;
+                height: auto;
                 min-height: 400px;
+                max-height: 75vh;
+            }
+
+            .hero-mlb .carousel-item.active {
+                height: auto;
+                min-height: 400px;
+                max-height: 75vh;
             }
 
             .hero-slide-item {
                 min-height: 400px;
+                max-height: 75vh;
             }
 
             .hero-title {
@@ -4187,6 +4238,150 @@
             if (wrapper && !wrapper.contains(event.target)) {
                 dropdown.classList.remove('show');
                 btn.classList.remove('active');
+            }
+        });
+    </script>
+
+    <!-- Messages Modal Container -->
+    <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" id="messageModalContent">
+                <div class="modal-header" id="messageModalHeader">
+                    <h5 class="modal-title" id="messageModalLabel">
+                        <i class="fas fa-info-circle me-2" id="messageModalIcon"></i>
+                        <span id="messageModalTitle">Notificación</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="messageModalBody">
+                    <p id="messageModalText"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages (hidden, converted to modals) -->
+    {% if messages %}
+        <div class="messages-container" style="display: none;">
+            {% for message in messages %}
+                <div class="django-message" data-tag="{{ message.tags }}" data-message="{{ message|escapejs }}">
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <script>
+        // Convert Django messages to Bootstrap modals
+        document.addEventListener('DOMContentLoaded', function() {
+            const messages = document.querySelectorAll('.django-message');
+            let messageIndex = 0;
+
+            function showMessageModal(message, tag) {
+                const modalEl = document.getElementById('messageModal');
+                const modalBody = document.getElementById('messageModalBody');
+                const modalTitle = document.getElementById('messageModalTitle');
+                const modalHeader = document.getElementById('messageModalHeader');
+                const modalIcon = document.getElementById('messageModalIcon');
+                const modalContent = document.getElementById('messageModalContent');
+
+                if (!modalEl || !modalBody) return;
+
+                // Set message text
+                modalBody.querySelector('#messageModalText').textContent = message;
+
+                // Map Django message tags to Bootstrap alert types
+                let alertType = 'info';
+                let iconClass = 'fa-info-circle';
+                let title = 'Notificación';
+
+                if (tag === 'success') {
+                    alertType = 'success';
+                    iconClass = 'fa-check-circle';
+                    title = '¡Éxito!';
+                } else if (tag === 'error' || tag === 'danger') {
+                    alertType = 'danger';
+                    iconClass = 'fa-exclamation-circle';
+                    title = 'Error';
+                } else if (tag === 'warning') {
+                    alertType = 'warning';
+                    iconClass = 'fa-exclamation-triangle';
+                    title = 'Advertencia';
+                } else if (tag === 'info') {
+                    alertType = 'info';
+                    iconClass = 'fa-info-circle';
+                    title = 'Información';
+                }
+
+                // Update modal styling
+                modalTitle.textContent = title;
+                modalIcon.className = `fas ${iconClass} me-2`;
+
+                // Remove previous alert classes
+                modalHeader.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info', 'text-white');
+                modalContent.classList.remove('border-success', 'border-danger', 'border-warning', 'border-info');
+
+                // Add new alert classes
+                if (alertType === 'success') {
+                    modalHeader.classList.add('bg-success', 'text-white');
+                    modalContent.classList.add('border-success');
+                } else if (alertType === 'danger') {
+                    modalHeader.classList.add('bg-danger', 'text-white');
+                    modalContent.classList.add('border-danger');
+                } else if (alertType === 'warning') {
+                    modalHeader.classList.add('bg-warning', 'text-dark');
+                    modalContent.classList.add('border-warning');
+                } else {
+                    modalHeader.classList.add('bg-info', 'text-white');
+                    modalContent.classList.add('border-info');
+                }
+
+                // Show modal
+                const modal = new bootstrap.Modal(modalEl, {
+                    backdrop: 'static',
+                    keyboard: true
+                });
+
+                modal.show();
+
+                // Auto-close after 5 seconds for success/info, 7 seconds for warnings, 10 seconds for errors
+                let autoCloseTime = 5000;
+                if (alertType === 'warning') autoCloseTime = 7000;
+                if (alertType === 'danger') autoCloseTime = 10000;
+
+                const autoCloseTimer = setTimeout(() => {
+                    modal.hide();
+                }, autoCloseTime);
+
+                // Clear timer when modal is closed
+                modalEl.addEventListener('hidden.bs.modal', function() {
+                    clearTimeout(autoCloseTimer);
+                }, { once: true });
+            }
+
+            // Show messages one by one
+            function showNextMessage() {
+                if (messageIndex < messages.length) {
+                    const msg = messages[messageIndex];
+                    const tag = msg.getAttribute('data-tag');
+                    const message = msg.getAttribute('data-message');
+
+                    showMessageModal(message, tag);
+                    messageIndex++;
+
+                    // Wait for modal to close before showing next message
+                    const modalEl = document.getElementById('messageModal');
+                    modalEl.addEventListener('hidden.bs.modal', function() {
+                        showNextMessage();
+                    }, { once: true });
+                }
+            }
+
+            // Start showing messages
+            if (messages.length > 0) {
+                showNextMessage();
             }
         });
     </script>

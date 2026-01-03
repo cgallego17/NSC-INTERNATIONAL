@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 
 
 class UserProfile(models.Model):
@@ -389,14 +390,14 @@ class Player(models.Model):
         choices=GRADE_CHOICES,
         blank=True,
         verbose_name="Grado Actual",
-        help_text="Grado escolar actual del jugador",
+        help_text=_("Grado escolar actual del jugador"),
     )
     division = models.CharField(
         max_length=10,
         choices=DIVISION_CHOICES,
         blank=True,
         verbose_name="División Asignada",
-        help_text="División en la que el jugador está asignado",
+        help_text=_("División en la que el jugador está asignado"),
     )
     age_verification_document = models.FileField(
         upload_to="accounts/age_verification/",
