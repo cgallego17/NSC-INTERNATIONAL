@@ -508,9 +508,6 @@
                 return;
             }
 
-            // Marcar que el listener fue agregado
-            playerEditForm.dataset.pitcherListenerAdded = 'true';
-
             // Función para preparar los campos antes del submit
             function prepareFormFields() {
                 console.log('=== PREPARANDO CAMPOS DEL FORMULARIO ===');
@@ -564,12 +561,6 @@
 
             if (!isInPanel) {
                 // Si NO está en el panel, agregar listener normal
-                // Verificar si ya tiene un listener (usando una marca)
-                if (playerEditForm.dataset.pitcherListenerAdded === 'true') {
-                    console.log('Listener de is_pitcher ya agregado, omitiendo...');
-                    return;
-                }
-
                 // Marcar que el listener fue agregado
                 playerEditForm.dataset.pitcherListenerAdded = 'true';
 
