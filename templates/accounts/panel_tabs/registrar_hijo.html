@@ -176,7 +176,12 @@
                             <i class="fas fa-map-marker-alt me-1"></i>{% trans "State" %}
                             <span class="text-muted small">({% trans "optional" %})</span>
                         </label>
-                        {{ parent_player_form.state }}
+                        <div class="position-relative">
+                            {{ parent_player_form.state }}
+                            <div id="stateLoader" class="position-absolute" style="display: none; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none;">
+                                <i class="fas fa-spinner fa-spin" style="color: var(--mlb-blue);"></i>
+                            </div>
+                        </div>
                         {% if parent_player_form.state.errors %}
                             <div class="error-message mt-1">{{ parent_player_form.state.errors }}</div>
                         {% endif %}
@@ -186,7 +191,12 @@
                             <i class="fas fa-city me-1"></i>{% trans "City" %}
                             <span class="text-muted small">({% trans "optional" %})</span>
                         </label>
-                        {{ parent_player_form.city }}
+                        <div class="position-relative">
+                            {{ parent_player_form.city }}
+                            <div id="cityLoader" class="position-absolute" style="display: none; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none;">
+                                <i class="fas fa-spinner fa-spin" style="color: var(--mlb-blue);"></i>
+                            </div>
+                        </div>
                         {% if parent_player_form.city.errors %}
                             <div class="error-message mt-1">{{ parent_player_form.city.errors }}</div>
                         {% endif %}
@@ -1135,6 +1145,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const countrySelect = document.getElementById('id_country');
     const stateSelect = document.getElementById('id_state');
     const citySelect = document.getElementById('id_city');
+    const stateLoader = document.getElementById('stateLoader');
+    const cityLoader = document.getElementById('cityLoader');
 
     if (countrySelect && stateSelect && citySelect) {
         // Guardar valores iniciales
@@ -1151,6 +1163,11 @@ document.addEventListener('DOMContentLoaded', function() {
             citySelect.innerHTML = '<option value="">{% trans "Select a city" %}</option>';
 
             if (countryId) {
+                // Mostrar loader y deshabilitar select
+                if (stateLoader) stateLoader.style.display = 'block';
+                stateSelect.disabled = true;
+                citySelect.disabled = true;
+
                 fetch(`/locations/ajax/states/${countryId}/`)
                     .then(response => response.json())
                     .then(data => {
@@ -1168,7 +1185,22 @@ document.addEventListener('DOMContentLoaded', function() {
                             updateCities();
                         }
                     })
-                    .catch(error => console.error('Error loading states:', error));
+                    .catch(error => {
+                        console.error('Error loading states:', error);
+                        stateSelect.innerHTML = '<option value="">{% trans "Error loading states" %}</option>';
+                    })
+                    .finally(() => {
+                        // Ocultar loader y habilitar select
+                        if (stateLoader) stateLoader.style.display = 'none';
+                        stateSelect.disabled = false;
+                        if (!citySelect.value || citySelect.innerHTML.includes('Select a city')) {
+                            citySelect.disabled = false;
+                        }
+                    });
+            } else {
+                // Si no hay país seleccionado, habilitar ambos selects
+                stateSelect.disabled = false;
+                citySelect.disabled = false;
             }
         }
 
@@ -1179,6 +1211,10 @@ document.addEventListener('DOMContentLoaded', function() {
             citySelect.innerHTML = '<option value="">{% trans "Select a city" %}</option>';
 
             if (stateId) {
+                // Mostrar loader y deshabilitar select
+                if (cityLoader) cityLoader.style.display = 'block';
+                citySelect.disabled = true;
+
                 fetch(`/locations/ajax/cities/${stateId}/`)
                     .then(response => response.json())
                     .then(data => {
@@ -1192,7 +1228,18 @@ document.addEventListener('DOMContentLoaded', function() {
                             citySelect.appendChild(option);
                         });
                     })
-                    .catch(error => console.error('Error loading cities:', error));
+                    .catch(error => {
+                        console.error('Error loading cities:', error);
+                        citySelect.innerHTML = '<option value="">{% trans "Error loading cities" %}</option>';
+                    })
+                    .finally(() => {
+                        // Ocultar loader y habilitar select
+                        if (cityLoader) cityLoader.style.display = 'none';
+                        citySelect.disabled = false;
+                    });
+            } else {
+                // Si no hay estado seleccionado, habilitar select
+                citySelect.disabled = false;
             }
         }
 
