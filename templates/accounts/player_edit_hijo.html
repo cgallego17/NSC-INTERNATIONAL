@@ -593,6 +593,14 @@
 document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Formulario de edición de hijo cargado');
 
+    // Traducciones para evitar problemas con tags {% trans %} dentro de template literals
+    const fileUploadTranslations = {
+        documentUploaded: "{% trans 'Document Uploaded' %}",
+        clickToChangeFile: "{% trans 'Click to change file' %}",
+        fileTooLarge: "{% trans 'The file is too large. Maximum allowed size is 10MB.' %}",
+        fileTypeNotAllowed: "{% trans 'File type not allowed. Only PDF, JPG or PNG are accepted.' %}"
+    };
+
     // Mejorar el área de carga de archivos
     const fileInput = document.querySelector('#playerEditForm input[type="file"][name*="age_verification"]');
     const fileUploadArea = document.getElementById('ageVerificationUploadArea');
@@ -616,7 +624,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Validar tamaño (máx 10MB)
                 if (file.size > 10 * 1024 * 1024) {
-                    alert('{% trans "The file is too large. Maximum allowed size is 10MB." %}');
+                    alert(fileUploadTranslations.fileTooLarge);
                     fileInput.value = '';
                     return;
                 }
@@ -624,7 +632,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Validar tipo de archivo
                 const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
                 if (!allowedTypes.includes(file.type)) {
-                    alert('{% trans "File type not allowed. Only PDF, JPG or PNG are accepted." %}');
+                    alert(fileUploadTranslations.fileTypeNotAllowed);
                     fileInput.value = '';
                     return;
                 }
@@ -635,12 +643,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     contentDiv.innerHTML = `
                         <i class="fas fa-check-circle fa-3x mb-3" style="color: #28a745; animation: none;"></i>
                         <p class="mb-2" style="font-weight: 700; color: #28a745; font-size: 1.1rem;">
-                            <i class="fas fa-file-check me-2"></i>{% trans "Document Uploaded" %}
+                            <i class="fas fa-file-check me-2"></i>${fileUploadTranslations.documentUploaded}
                         </p>
                         <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.95rem; word-break: break-word;">${fileName}</p>
                         <small class="text-muted d-block mt-2" style="font-size: 0.9rem;">${fileSize} MB</small>
                         <small class="text-success d-block mt-1" style="font-size: 0.85rem;">
-                            <i class="fas fa-check me-1"></i>{% trans "Click to change file" %}
+                            <i class="fas fa-check me-1"></i>${fileUploadTranslations.clickToChangeFile}
                         </small>
                     `;
                 }
