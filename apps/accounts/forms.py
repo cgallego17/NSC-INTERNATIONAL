@@ -1054,6 +1054,77 @@ class PlayerRegistrationForm(forms.ModelForm):
             return last_name2.strip()
         return ""
 
+    def clean_division(self):
+        """Validar que la división asignada sea válida según las reglas de elegibilidad"""
+        division = self.cleaned_data.get("division")
+        if not division:
+            return division
+
+        # Necesitamos birth_date y grade para calcular la división elegible
+        birth_date = self.cleaned_data.get("birth_date")
+        grade = self.cleaned_data.get("grade")
+
+        if not birth_date and not grade:
+            # Si no hay birth_date ni grade, permitir asignar división de todas formas
+            return division
+
+        # Crear una instancia temporal del Player con un usuario temporal para usar sus métodos
+        # Necesitamos un usuario temporal porque get_birth_date() accede a user.profile.birth_date
+        from django.contrib.auth.models import User
+        from .models import UserProfile
+
+        temp_user = User(username="temp_validation")
+        temp_profile = UserProfile(user=temp_user, birth_date=birth_date)
+        temp_user.profile = temp_profile
+
+        temp_player = Player(user=temp_user, grade=grade)
+
+        # Validar reglas de división sin requerir verificación aprobada
+        # Solo validar que no juegue "down" y que esté dentro del rango permitido
+        try:
+            eligible_divisions = temp_player.get_eligible_divisions()
+        except Exception:
+            eligible_divisions = []
+
+        if not eligible_divisions:
+            # Si no se puede determinar elegibilidad, permitir asignar división de todas formas
+            return division
+
+        # Obtener el número de la división objetivo
+        try:
+            target_num = int(division.replace("U", ""))
+        except (ValueError, AttributeError):
+            return division
+
+        # Obtener el número de la división más baja elegible (basada en edad)
+        try:
+            age_division = temp_player.get_age_based_division()
+        except Exception:
+            age_division = None
+
+        if not age_division:
+            # Si no se puede determinar división basada en edad, permitir asignar
+            return division
+
+        try:
+            age_division_num = int(age_division.replace("U", ""))
+        except (ValueError, AttributeError):
+            return division
+
+        # No puede jugar "down" (en una división menor)
+        if target_num < age_division_num:
+            raise forms.ValidationError(
+                f"El jugador no puede jugar en una división menor ({division}). División mínima elegible: {age_division}"
+            )
+
+        # Puede jugar "up" máximo 2 divisiones
+        if target_num > age_division_num + 2:
+            raise forms.ValidationError(
+                f"El jugador solo puede jugar hasta 2 divisiones arriba de su división basada en edad ({age_division}). División solicitada: {division}"
+            )
+
+        return division
+
     def save(self, commit=True):
         # Generar username automáticamente
         first_name = self.cleaned_data["first_name"]
@@ -1372,6 +1443,77 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
             )
         return email
 
+    def clean_division(self):
+        """Validar que la división asignada sea válida según las reglas de elegibilidad"""
+        division = self.cleaned_data.get("division")
+        if not division:
+            return division
+
+        # Necesitamos birth_date y grade para calcular la división elegible
+        birth_date = self.cleaned_data.get("birth_date")
+        grade = self.cleaned_data.get("grade")
+
+        if not birth_date and not grade:
+            # Si no hay birth_date ni grade, permitir asignar división de todas formas
+            return division
+
+        # Crear una instancia temporal del Player con un usuario temporal para usar sus métodos
+        # Necesitamos un usuario temporal porque get_birth_date() accede a user.profile.birth_date
+        from django.contrib.auth.models import User
+        from .models import UserProfile
+
+        temp_user = User(username="temp_validation")
+        temp_profile = UserProfile(user=temp_user, birth_date=birth_date)
+        temp_user.profile = temp_profile
+
+        temp_player = Player(user=temp_user, grade=grade)
+
+        # Validar reglas de división sin requerir verificación aprobada
+        # Solo validar que no juegue "down" y que esté dentro del rango permitido
+        try:
+            eligible_divisions = temp_player.get_eligible_divisions()
+        except Exception:
+            eligible_divisions = []
+
+        if not eligible_divisions:
+            # Si no se puede determinar elegibilidad, permitir asignar división de todas formas
+            return division
+
+        # Obtener el número de la división objetivo
+        try:
+            target_num = int(division.replace("U", ""))
+        except (ValueError, AttributeError):
+            return division
+
+        # Obtener el número de la división más baja elegible (basada en edad)
+        try:
+            age_division = temp_player.get_age_based_division()
+        except Exception:
+            age_division = None
+
+        if not age_division:
+            # Si no se puede determinar división basada en edad, permitir asignar
+            return division
+
+        try:
+            age_division_num = int(age_division.replace("U", ""))
+        except (ValueError, AttributeError):
+            return division
+
+        # No puede jugar "down" (en una división menor)
+        if target_num < age_division_num:
+            raise forms.ValidationError(
+                f"El jugador no puede jugar en una división menor ({division}). División mínima elegible: {age_division}"
+            )
+
+        # Puede jugar "up" máximo 2 divisiones
+        if target_num > age_division_num + 2:
+            raise forms.ValidationError(
+                f"El jugador solo puede jugar hasta 2 divisiones arriba de su división basada en edad ({age_division}). División solicitada: {division}"
+            )
+
+        return division
+
     def clean_first_name(self):
         """Validar que el nombre no esté vacío"""
         first_name = self.cleaned_data.get("first_name")
@@ -1385,6 +1527,77 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         if not last_name or not last_name.strip():
             raise forms.ValidationError(_("Last name is required."))
         return last_name.strip()
+
+    def clean_division(self):
+        """Validar que la división asignada sea válida según las reglas de elegibilidad"""
+        division = self.cleaned_data.get("division")
+        if not division:
+            return division
+
+        # Necesitamos birth_date y grade para calcular la división elegible
+        birth_date = self.cleaned_data.get("birth_date")
+        grade = self.cleaned_data.get("grade")
+
+        if not birth_date and not grade:
+            # Si no hay birth_date ni grade, permitir asignar división de todas formas
+            return division
+
+        # Crear una instancia temporal del Player con un usuario temporal para usar sus métodos
+        # Necesitamos un usuario temporal porque get_birth_date() accede a user.profile.birth_date
+        from django.contrib.auth.models import User
+        from .models import UserProfile
+
+        temp_user = User(username="temp_validation")
+        temp_profile = UserProfile(user=temp_user, birth_date=birth_date)
+        temp_user.profile = temp_profile
+
+        temp_player = Player(user=temp_user, grade=grade)
+
+        # Validar reglas de división sin requerir verificación aprobada
+        # Solo validar que no juegue "down" y que esté dentro del rango permitido
+        try:
+            eligible_divisions = temp_player.get_eligible_divisions()
+        except Exception:
+            eligible_divisions = []
+
+        if not eligible_divisions:
+            # Si no se puede determinar elegibilidad, permitir asignar división de todas formas
+            return division
+
+        # Obtener el número de la división objetivo
+        try:
+            target_num = int(division.replace("U", ""))
+        except (ValueError, AttributeError):
+            return division
+
+        # Obtener el número de la división más baja elegible (basada en edad)
+        try:
+            age_division = temp_player.get_age_based_division()
+        except Exception:
+            age_division = None
+
+        if not age_division:
+            # Si no se puede determinar división basada en edad, permitir asignar
+            return division
+
+        try:
+            age_division_num = int(age_division.replace("U", ""))
+        except (ValueError, AttributeError):
+            return division
+
+        # No puede jugar "down" (en una división menor)
+        if target_num < age_division_num:
+            raise forms.ValidationError(
+                f"El jugador no puede jugar en una división menor ({division}). División mínima elegible: {age_division}"
+            )
+
+        # Puede jugar "up" máximo 2 divisiones
+        if target_num > age_division_num + 2:
+            raise forms.ValidationError(
+                f"El jugador solo puede jugar hasta 2 divisiones arriba de su división basada en edad ({age_division}). División solicitada: {division}"
+            )
+
+        return division
 
     def clean_birth_date(self):
         """Validar que la fecha de nacimiento sea válida"""
