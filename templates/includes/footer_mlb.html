@@ -1,0 +1,76 @@
+{% load i18n %}
+<!-- Footer MLB Style -->
+<footer class="footer-mlb">
+    <div class="container-fluid px-4">
+        <div class="row" style="max-width: 1400px; margin: 0 auto;">
+            <div class="col-md-4 footer-col">
+                <div class="footer-logo-section">
+                    <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" style="height: 40px; width: auto; margin-bottom: 20px;">
+                </div>
+                <p>
+                    {% trans "NCS International was designed to provide opportunities for players and teams through our national and international tournaments and showcases." %}
+                </p>
+            </div>
+            <div class="col-md-4 footer-col">
+                <h5>{% trans "Quick Links" %}</h5>
+                <div class="quick-links">
+                    <a href="/">
+                        <i class="fas fa-home"></i>
+                        <span>{% trans "Home" %}</span>
+                    </a>
+                    <a href="{% url 'events:public_list' %}">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>{% trans "Events" %}</span>
+                    </a>
+                    <a href="/accounts/teams/">
+                        <i class="fas fa-users"></i>
+                        <span>{% trans "Teams" %}</span>
+                    </a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'accounts:panel' %}">
+                            <i class="fas fa-user-circle"></i>
+                            <span>{% trans "My Account" %}</span>
+                        </a>
+                    {% else %}
+                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span>{% trans "Log In" %}</span>
+                        </a>
+                        <a href="/accounts/register/">
+                            <i class="fas fa-user-plus"></i>
+                            <span>{% trans "Sign Up" %}</span>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-4 footer-col">
+                <h5>{% trans "Contact" %}</h5>
+                <div class="contact-info">
+                    {% if site_settings.contact_email %}
+                    <p>
+                        <i class="fas fa-envelope"></i>
+                        <span>{{ site_settings.contact_email }}</span>
+                    </p>
+                    {% endif %}
+                    {% if site_settings.contact_phone %}
+                    <p>
+                        <i class="fas fa-phone"></i>
+                        <span>{{ site_settings.contact_phone }}</span>
+                    </p>
+                    {% endif %}
+                    {% if site_settings.contact_address %}
+                    <p>
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>{{ site_settings.contact_address }}</span>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 NCS International. {% trans "All rights reserved." %}</p>
+        </div>
+    </div>
+</footer>
+
+

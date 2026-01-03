@@ -5,26 +5,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ player.user.get_full_name|default:player.user.username }} - NCS International</title>
-    
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Arial', 'Helvetica', sans-serif;
             background: #f5f5f5;
             padding: 20px;
             color: #333;
         }
-        
+
         .profile-sheet {
             max-width: 900px;
             margin: 0 auto;
@@ -32,7 +32,7 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             position: relative;
         }
-        
+
         .sheet-title {
             text-align: center;
             color: #666;
@@ -43,7 +43,7 @@
             letter-spacing: 1px;
             border-bottom: 1px solid #e0e0e0;
         }
-        
+
         .profile-header {
             background: #0d2c54;
             color: white;
@@ -51,7 +51,7 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .profile-header::before {
             content: '';
             position: absolute;
@@ -62,14 +62,14 @@
             background: rgba(255,255,255,0.05);
             border-radius: 50%;
         }
-        
+
         .header-top {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 20px;
         }
-        
+
         .player-number {
             background: #0d2c54;
             color: white;
@@ -83,13 +83,13 @@
             border: 4px solid white;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-        
+
         .logo-section {
             flex: 1;
             text-align: center;
             padding: 0 20px;
         }
-        
+
         .logo-placeholder {
             background: rgba(255,255,255,0.1);
             border: 2px dashed rgba(255,255,255,0.3);
@@ -98,19 +98,19 @@
             color: rgba(255,255,255,0.7);
             font-size: 0.85rem;
         }
-        
+
         .logo-icon {
             font-size: 2.5rem;
             color: #d50032;
             margin-bottom: 10px;
         }
-        
+
         .player-photo-section {
             width: 180px;
             height: 180px;
             position: relative;
         }
-        
+
         .player-photo {
             width: 100%;
             height: 100%;
@@ -119,7 +119,7 @@
             border: 5px solid white;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
-        
+
         .player-photo-placeholder {
             width: 100%;
             height: 100%;
@@ -132,7 +132,7 @@
             font-size: 4rem;
             color: white;
         }
-        
+
         .player-name-section {
             margin-top: 20px;
             background: #0d2c54;
@@ -141,7 +141,7 @@
             align-items: center;
             gap: 10px;
         }
-        
+
         .player-first-name {
             font-size: 2.5rem;
             font-weight: 900;
@@ -151,7 +151,7 @@
             text-transform: uppercase;
             letter-spacing: 2px;
         }
-        
+
         .player-last-name {
             font-size: 2.5rem;
             font-weight: 900;
@@ -159,7 +159,7 @@
             text-transform: uppercase;
             letter-spacing: 2px;
         }
-        
+
         .section-title {
             background: #0d2c54;
             color: white;
@@ -169,27 +169,27 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-        
+
         .player-info-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 0;
             border: 2px solid #0d2c54;
         }
-        
+
         .info-column {
             padding: 20px;
             border-right: 2px solid #0d2c54;
         }
-        
+
         .info-column:last-child {
             border-right: none;
         }
-        
+
         .info-item {
             margin-bottom: 15px;
         }
-        
+
         .info-label {
             font-size: 0.75rem;
             color: #666;
@@ -198,20 +198,20 @@
             margin-bottom: 5px;
             letter-spacing: 0.5px;
         }
-        
+
         .info-value {
             font-size: 0.95rem;
             color: #333;
             font-weight: 500;
         }
-        
+
         .stats-section {
             background: white;
             padding: 20px;
             border: 2px solid #0d2c54;
             border-top: none;
         }
-        
+
         .stats-title {
             font-size: 0.85rem;
             font-weight: 700;
@@ -220,13 +220,13 @@
             margin-bottom: 10px;
             letter-spacing: 1px;
         }
-        
+
         .stats-content {
             font-size: 0.9rem;
             color: #333;
             line-height: 1.8;
         }
-        
+
         .bottom-sections {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -234,37 +234,37 @@
             border: 2px solid #0d2c54;
             border-top: none;
         }
-        
+
         .bottom-section {
             border-right: 2px solid #0d2c54;
             min-height: 300px;
         }
-        
+
         .bottom-section:last-child {
             border-right: none;
         }
-        
+
         .bottom-section-content {
             padding: 20px;
             background: white;
         }
-        
+
         .schedule-item {
             padding: 8px 0;
             border-bottom: 1px solid #e0e0e0;
             font-size: 0.85rem;
         }
-        
+
         .schedule-item:last-child {
             border-bottom: none;
         }
-        
+
         .achievement-item {
             padding: 8px 0;
             font-size: 0.85rem;
             color: #333;
         }
-        
+
         .achievement-title {
             font-weight: 700;
             color: #0d2c54;
@@ -273,14 +273,14 @@
             font-size: 0.8rem;
             text-transform: uppercase;
         }
-        
+
         .footer-logo {
             text-align: center;
             padding: 20px;
             color: #999;
             font-size: 0.8rem;
         }
-        
+
         @media print {
             body {
                 background: white;
@@ -290,34 +290,34 @@
                 box-shadow: none;
             }
         }
-        
+
         @media (max-width: 768px) {
             .header-top {
                 flex-direction: column;
                 align-items: center;
             }
-            
+
             .player-info-grid,
             .bottom-sections {
                 grid-template-columns: 1fr;
             }
-            
+
             .info-column,
             .bottom-section {
                 border-right: none;
                 border-bottom: 2px solid #0d2c54;
             }
-            
+
             .info-column:last-child,
             .bottom-section:last-child {
                 border-bottom: none;
             }
-            
+
             .player-name-section {
                 flex-direction: column;
                 text-align: center;
             }
-            
+
             .player-first-name,
             .player-last-name {
                 font-size: 1.8rem;
@@ -328,14 +328,14 @@
 <body>
     <div class="profile-sheet">
         <div class="sheet-title">EDITABLE SPORTS PROFILE SHEET</div>
-        
+
         <!-- Header -->
         <div class="profile-header">
             <div class="header-top">
                 <div class="player-number">
                     {% if player.jersey_number %}{{ player.jersey_number }}{% else %}#{% endif %}
                 </div>
-                
+
                 <div class="logo-section">
                     <div class="logo-placeholder">
                         <div class="logo-icon">
@@ -344,11 +344,11 @@
                         <div>NCS INTERNATIONAL</div>
                     </div>
                 </div>
-                
+
                 <div class="player-photo-section">
                     {% if player.user.profile.profile_picture %}
-                        <img src="{{ player.user.profile.profile_picture.url }}" 
-                             alt="{{ player.user.get_full_name }}" 
+                        <img src="{{ player.user.profile.profile_picture.url }}"
+                             alt="{{ player.user.get_full_name }}"
                              class="player-photo">
                     {% else %}
                         <div class="player-photo-placeholder">
@@ -357,7 +357,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <div class="player-name-section">
                 {% if player.user.first_name %}
                     <div class="player-first-name">{{ player.user.first_name|upper }}</div>
@@ -369,10 +369,10 @@
                 {% endif %}
             </div>
         </div>
-        
+
         <!-- Section Title -->
         <div class="section-title">PLAYER INFORMATION</div>
-        
+
         <!-- Player Information Grid -->
         <div class="player-info-grid">
             <!-- Left Column -->
@@ -383,14 +383,14 @@
                     <div class="info-value">{{ player.user.profile.phone }}</div>
                 </div>
                 {% endif %}
-                
+
                 {% if player.user.email and '@nsc-temp.local' not in player.user.email %}
                 <div class="info-item">
                     <div class="info-label">Email</div>
                     <div class="info-value">{{ player.user.email }}</div>
                 </div>
                 {% endif %}
-                
+
                 {% if player.parents.all %}
                 <div class="info-item">
                     <div class="info-label">Parents</div>
@@ -408,7 +408,7 @@
                 </div>
                 {% endif %}
             </div>
-            
+
             <!-- Middle Column -->
             <div class="info-column">
                 {% if player.team and player.team.manager %}
@@ -422,7 +422,7 @@
                     </div>
                 </div>
                 {% endif %}
-                
+
                 <div class="info-item">
                     <div class="info-label">Offensive Stats</div>
                     <div class="info-value" style="font-size: 0.85rem; line-height: 1.8;">
@@ -444,7 +444,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Right Column -->
             <div class="info-column">
                 {% if player.user.profile.birth_date %}
@@ -453,7 +453,7 @@
                     <div class="info-value">{{ player.user.profile.birth_date|date:"m/d/Y" }}</div>
                 </div>
                 {% endif %}
-                
+
                 {% if player.user.profile.birth_date %}
                     {% with age=player.calculate_age_as_of_april_30 %}
                         {% if age %}
@@ -464,21 +464,21 @@
                         {% endif %}
                     {% endwith %}
                 {% endif %}
-                
+
                 {% if player.position %}
                 <div class="info-item">
                     <div class="info-label">Position</div>
                     <div class="info-value">{{ player.get_position_display }}</div>
                 </div>
                 {% endif %}
-                
+
                 {% if player.division %}
                 <div class="info-item">
                     <div class="info-label">Division</div>
                     <div class="info-value">{{ player.division }}</div>
                 </div>
                 {% endif %}
-                
+
                 {% if player.team %}
                 <div class="info-item">
                     <div class="info-label">Team</div>
@@ -487,7 +487,7 @@
                 {% endif %}
             </div>
         </div>
-        
+
         <!-- Defensive Stats -->
         <div class="stats-section">
             <div class="stats-title">Defensive Stats</div>
@@ -503,7 +503,7 @@
                 {% endif %}
             </div>
         </div>
-        
+
         <!-- Bottom Sections -->
         <div class="bottom-sections">
             <!-- School & Academics -->
@@ -516,7 +516,7 @@
                         <div class="info-value">{{ player.get_grade_display }}</div>
                     </div>
                     {% endif %}
-                    
+
                     {% if player.user.profile.city %}
                     <div class="info-item">
                         <div class="info-label">School District</div>
@@ -528,7 +528,7 @@
                         </div>
                     </div>
                     {% endif %}
-                    
+
                     {% if player.team and player.team.manager %}
                     <div class="info-item">
                         <div class="info-label">School Coach</div>
@@ -542,7 +542,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <!-- Match Schedule -->
             <div class="bottom-section">
                 <div class="section-title">Match Schedule</div>
@@ -566,7 +566,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <!-- Achievements -->
             <div class="bottom-section">
                 <div class="section-title">Achievements</div>
@@ -576,7 +576,7 @@
                         <strong>Division:</strong> {{ player.division }}
                     </div>
                     {% endif %}
-                    
+
                     {% if player.user.profile.birth_date %}
                         {% with eligible=player.get_eligible_divisions %}
                             {% if eligible %}
@@ -587,13 +587,13 @@
                             {% endif %}
                         {% endwith %}
                     {% endif %}
-                    
+
                     {% if player.is_active %}
                     <div class="achievement-item">
                         <strong>Status:</strong> Active Player
                     </div>
                     {% endif %}
-                    
+
                     {% if player.team %}
                     <div class="achievement-item">
                         <strong>Team:</strong> {{ player.team.name }}
@@ -602,11 +602,15 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="footer-logo">
             NCS International - Player Profile
         </div>
     </div>
+
+    <!-- Footer MLB -->
+    {% include 'includes/footer_mlb.html' %}
+
 </body>
 </html>
 

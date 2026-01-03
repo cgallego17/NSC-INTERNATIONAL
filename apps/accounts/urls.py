@@ -42,7 +42,11 @@ urlpatterns = [
     ),
     # ===== URLs PRIVADAS =====
     # Logout (requiere login) - pero la URL debe estar disponible siempre
-    path("logout/", auth_views.LogoutView.as_view(next_page="/accounts/login/"), name="logout"),
+    path(
+        "logout/",
+        auth_views.LogoutView.as_view(next_page="/accounts/login/"),
+        name="logout",
+    ),
     # Panel y perfil
     path("panel/", views_private.UserDashboardView.as_view(), name="panel"),
     path("user-dashboard/", views.UserDashboardView.as_view(), name="user_dashboard"),
@@ -122,12 +126,6 @@ urlpatterns = [
         "wallet/add-funds/",
         views_private.wallet_add_funds,
         name="wallet_add_funds",
-    ),
-    # Editar jugador para front (requiere login) - después de la privada para evitar conflictos
-    path(
-        "front/players/<int:pk>/edit/",
-        views_public.FrontPlayerUpdateView.as_view(),
-        name="front_player_edit",
     ),
     # Registro de jugadores por padres
     path(

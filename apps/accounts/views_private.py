@@ -660,7 +660,10 @@ class PlayerListView(LoginRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        queryset = Player.objects.filter(is_active=True).select_related("user", "team")
+        queryset = Player.objects.filter(is_active=True).select_related(
+            "user", "team", "user__profile", "user__profile__country",
+            "user__profile__state", "user__profile__city"
+        )
 
         # Si es manager, solo mostrar jugadores de sus equipos
         if (
@@ -669,20 +672,72 @@ class PlayerListView(LoginRequiredMixin, ListView):
         ):
             queryset = queryset.filter(team__manager=self.request.user)
 
+        # Búsqueda por nombre
         search = self.request.GET.get("search")
-        team_filter = self.request.GET.get("team")
-
         if search:
             queryset = queryset.filter(
                 Q(user__first_name__icontains=search)
                 | Q(user__last_name__icontains=search)
                 | Q(user__username__icontains=search)
+                | Q(user__email__icontains=search)
             )
 
-        if team_filter:
-            queryset = queryset.filter(team_id=team_filter)
+        # Filtros
+        country_filter = self.request.GET.get("country")
+        state_filter = self.request.GET.get("state")
+        city_filter = self.request.GET.get("city")
+        division_filter = self.request.GET.get("division")
+        is_active_filter = self.request.GET.get("is_active")
+
+        if country_filter:
+            queryset = queryset.filter(user__profile__country_id=country_filter)
+
+        if state_filter:
+            queryset = queryset.filter(user__profile__state_id=state_filter)
+
+        if city_filter:
+            queryset = queryset.filter(user__profile__city_id=city_filter)
+
+        if division_filter:
+            queryset = queryset.filter(team_id=division_filter)
+
+        if is_active_filter:
+            is_active = is_active_filter.lower() == "true"
+            queryset = queryset.filter(is_active=is_active)
 
         return queryset.order_by("user__last_name", "user__first_name")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Agregar site_settings para navbar y footer
+        try:
+            from .models import SiteSettings
+            site_settings = SiteSettings.load()
+            context["site_settings"] = site_settings
+        except (ImportError, AttributeError):
+            context["site_settings"] = None
+
+        # Importar modelos de locations
+        from apps.locations.models import Country, State, City
+
+        # Agregar opciones para filtros
+        context["countries"] = Country.objects.filter(is_active=True).order_by("name")
+        context["states"] = State.objects.filter(is_active=True).order_by("name")
+        context["cities"] = City.objects.filter(is_active=True).order_by("name")
+        context["teams"] = Team.objects.filter(is_active=True).order_by("name")
+
+        # Guardar filtros actuales para mantenerlos en la paginación
+        context["current_filters"] = {
+            "search": self.request.GET.get("search", ""),
+            "country": self.request.GET.get("country", ""),
+            "state": self.request.GET.get("state", ""),
+            "city": self.request.GET.get("city", ""),
+            "division": self.request.GET.get("division", ""),
+            "is_active": self.request.GET.get("is_active", ""),
+        }
+
+        return context
 
 
 class PlayerDetailView(LoginRequiredMixin, DetailView):

@@ -20,10 +20,9 @@ from django.views.generic import (
     DetailView,
     ListView,
     TemplateView,
-    UpdateView,
 )
 
-from .forms import EmailAuthenticationForm, PlayerUpdateForm, PublicRegistrationForm
+from .forms import EmailAuthenticationForm, PublicRegistrationForm
 from .models import Player, PlayerParent, Team
 
 
@@ -248,11 +247,11 @@ class PublicPlayerListView(ListView):
     def get_queryset(self):
         queryset = (
             Player.objects.filter(is_active=True)
-            .select_related("user", "user__profile", "team")
+            .select_related("user", "user__profile", "team", "user__profile__country", "user__profile__state", "user__profile__city")
             .order_by("user__last_name", "user__first_name")
         )
 
-        # Búsqueda
+        # Búsqueda por nombre
         search = self.request.GET.get("search")
         if search:
             queryset = queryset.filter(
@@ -262,40 +261,46 @@ class PublicPlayerListView(ListView):
                 | Q(team__name__icontains=search)
             )
 
-        # Filtro por equipo
-        team_filter = self.request.GET.get("team")
-        if team_filter:
-            queryset = queryset.filter(team_id=team_filter)
+        # Filtro por país
+        country_filter = self.request.GET.get("country")
+        if country_filter:
+            queryset = queryset.filter(user__profile__country_id=country_filter)
 
-        # Filtro por posición
-        position_filter = self.request.GET.get("position")
-        if position_filter:
-            queryset = queryset.filter(position=position_filter)
+        # Filtro por estado
+        state_filter = self.request.GET.get("state")
+        if state_filter:
+            queryset = queryset.filter(user__profile__state_id=state_filter)
 
-        # Filtro por división
+        # Filtro por ciudad
+        city_filter = self.request.GET.get("city")
+        if city_filter:
+            queryset = queryset.filter(user__profile__city_id=city_filter)
+
+        # Filtro por división (usando team)
         division_filter = self.request.GET.get("division")
         if division_filter:
-            queryset = queryset.filter(division=division_filter)
+            queryset = queryset.filter(team_id=division_filter)
 
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Agregar equipos para el filtro
+        # Importar modelos de locations
+        from apps.locations.models import Country, State, City
+
+        # Agregar opciones para filtros
+        context["countries"] = Country.objects.filter(is_active=True).order_by("name")
+        context["states"] = State.objects.filter(is_active=True).order_by("name")
+        context["cities"] = City.objects.filter(is_active=True).order_by("name")
         context["teams"] = Team.objects.filter(is_active=True).order_by("name")
-
-        # Agregar opciones de posición
-        context["position_choices"] = Player.POSITION_CHOICES
-
-        # Agregar opciones de división
-        context["division_choices"] = Player.DIVISION_CHOICES
 
         # Filtros actuales
         context["current_filters"] = {
             "search": self.request.GET.get("search", ""),
-            "team": self.request.GET.get("team", ""),
-            "position": self.request.GET.get("position", ""),
+            "country": self.request.GET.get("country", ""),
+            "state": self.request.GET.get("state", ""),
+            "city": self.request.GET.get("city", ""),
             "division": self.request.GET.get("division", ""),
         }
 
@@ -506,95 +511,6 @@ class FrontPlayerProfileView(LoginRequiredMixin, DetailView):
             context["upcoming_events"] = []
 
         return context
-
-
-class FrontPlayerUpdateView(LoginRequiredMixin, UpdateView):
-    """Vista de edición de jugador para el front - Requiere autenticación"""
-
-    model = Player
-    form_class = PlayerUpdateForm
-    template_name = "accounts/front_player_edit.html"
-
-    def dispatch(self, request, *args, **kwargs):
-        player = self.get_object()
-
-        # Verificar si el usuario es padre/acudiente del jugador
-        is_parent = False
-        if hasattr(request.user, "profile") and request.user.profile.is_parent:
-            is_parent = PlayerParent.objects.filter(
-                parent=request.user, player=player
-            ).exists()
-
-        # Verificar si es manager del equipo del jugador
-        is_manager = False
-        if hasattr(request.user, "profile"):
-            is_manager = (
-                request.user.profile.is_team_manager
-                and player.team
-                and player.team.manager == request.user
-            )
-
-        is_staff = request.user.is_staff or request.user.is_superuser
-
-        # Los jugadores NO pueden editar su propia información (están inactivos)
-        # Solo padres, managers y staff pueden editar
-        if not is_parent and not is_manager and not is_staff:
-            messages.error(request, "No tienes permiso para editar este jugador.")
-            return redirect("accounts:front_player_profile", pk=player.pk)
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        # Pasar información del usuario para que el formulario sepa si es padre
-        kwargs["user"] = self.request.user
-        return kwargs
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # Determinar si el usuario es padre del jugador para ocultar campos en el template
-        is_parent = False
-        if (
-            hasattr(self.request.user, "profile")
-            and self.request.user.profile.is_parent
-        ):
-            is_parent = PlayerParent.objects.filter(
-                parent=self.request.user, player=self.object
-            ).exists()
-        context["is_parent_editing"] = is_parent and not (
-            self.request.user.is_staff or self.request.user.is_superuser
-        )
-        return context
-
-    def get_success_url(self):
-        # Redirigir al perfil del front después de editar
-        return reverse_lazy(
-            "accounts:front_player_profile", kwargs={"pk": self.object.pk}
-        )
-
-    def form_valid(self, form):
-        # Guardar la foto de perfil si se subió una nueva
-        if (
-            "profile_picture" in form.cleaned_data
-            and form.cleaned_data["profile_picture"]
-        ):
-            player = form.save(commit=False)
-            # Actualizar la foto de perfil del UserProfile
-            if hasattr(player.user, "profile"):
-                player.user.profile.profile_picture = form.cleaned_data[
-                    "profile_picture"
-                ]
-                player.user.profile.save()
-            player.save()
-            messages.success(
-                self.request, "Información del jugador actualizada exitosamente."
-            )
-            return redirect("accounts:front_player_profile", pk=player.pk)
-        else:
-            messages.success(
-                self.request, "Información del jugador actualizada exitosamente."
-            )
-            return super().form_valid(form)
-
 
 def instagram_posts_api(request):
     """
