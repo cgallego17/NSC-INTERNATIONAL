@@ -907,6 +907,8 @@ class PlayerRegistrationForm(forms.ModelForm):
             "team",
             "jersey_number",
             "position",
+            "secondary_position",
+            "is_pitcher",
             "height",
             "weight",
             "batting_hand",
@@ -928,6 +930,8 @@ class PlayerRegistrationForm(forms.ModelForm):
             "team": forms.Select(attrs={"class": "form-select"}),
             "jersey_number": forms.NumberInput(attrs={"class": "form-control"}),
             "position": forms.Select(attrs={"class": "form-select"}),
+            "secondary_position": forms.Select(attrs={"class": "form-select"}),
+            "is_pitcher": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "height": forms.TextInput(attrs={"class": "form-control"}),
             "weight": forms.NumberInput(attrs={"class": "form-control"}),
             "batting_hand": forms.Select(attrs={"class": "form-select"}),
@@ -1168,6 +1172,8 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         model = Player
         fields = [
             "position",
+            "secondary_position",
+            "is_pitcher",
             "height",
             "weight",
             "batting_hand",
@@ -1187,11 +1193,13 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         ]
         widgets = {
             "position": forms.Select(attrs={"class": "form-select", "required": True}),
+            "secondary_position": forms.Select(attrs={"class": "form-select"}),
+            "is_pitcher": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "height": forms.TextInput(
-                attrs={"class": "form-control", "required": True}
+                attrs={"class": "form-control"}
             ),
             "weight": forms.NumberInput(
-                attrs={"class": "form-control", "required": True}
+                attrs={"class": "form-control"}
             ),
             "batting_hand": forms.Select(
                 attrs={"class": "form-select", "required": True}
@@ -1236,8 +1244,6 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         # Los campos que ya están en el Meta se configuran en los widgets
         # Campos adicionales que necesitan ser obligatorios:
         self.fields["position"].required = True
-        self.fields["height"].required = True
-        self.fields["weight"].required = True
         self.fields["batting_hand"].required = True
         self.fields["throwing_hand"].required = True
         self.fields["emergency_contact_name"].required = True
@@ -1482,12 +1488,44 @@ class PlayerUpdateForm(forms.ModelForm):
         help_text="Sube una nueva foto de perfil",
     )
 
+    # Campos de User
+    first_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    last_name = forms.CharField(
+        max_length=30,
+        required=True,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    last_name2 = forms.CharField(
+        max_length=30,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={"class": "form-control"}),
+    )
+    phone = forms.CharField(
+        max_length=20,
+        required=False,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
+    birth_date = forms.DateField(
+        required=False,
+        widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+    )
+
     class Meta:
         model = Player
         fields = [
             "team",
             "jersey_number",
             "position",
+            "secondary_position",
+            "is_pitcher",
             "height",
             "weight",
             "batting_hand",
@@ -1515,6 +1553,8 @@ class PlayerUpdateForm(forms.ModelForm):
                 attrs={"class": "form-control", "placeholder": "Número de jersey"}
             ),
             "position": forms.Select(attrs={"class": "form-select"}),
+            "secondary_position": forms.Select(attrs={"class": "form-select"}),
+            "is_pitcher": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "height": forms.TextInput(attrs={"class": "form-control"}),
             "weight": forms.NumberInput(attrs={"class": "form-control"}),
             "batting_hand": forms.Select(attrs={"class": "form-select"}),
@@ -1627,13 +1667,23 @@ class PlayerUpdateForm(forms.ModelForm):
         # El documento de verificación de edad no es requerido
         self.fields["age_verification_document"].required = False
 
-        # Cargar la foto de perfil actual si existe
+        # Inicializar campos de User si hay una instancia
         if self.instance and hasattr(self.instance, "user"):
-            if hasattr(self.instance.user, "profile"):
-                if self.instance.user.profile.profile_picture:
-                    self.fields["profile_picture"].initial = (
-                        self.instance.user.profile.profile_picture
-                    )
+            user = self.instance.user
+            self.fields["first_name"].initial = user.first_name
+            self.fields["last_name"].initial = user.last_name
+            self.fields["email"].initial = user.email
+
+            # Campos de UserProfile
+            if hasattr(user, "profile"):
+                profile = user.profile
+                self.fields["last_name2"].initial = getattr(profile, "last_name2", "")
+                self.fields["phone"].initial = getattr(profile, "phone", "")
+                self.fields["birth_date"].initial = getattr(profile, "birth_date", None)
+
+                # Cargar la foto de perfil actual si existe
+                if profile.profile_picture:
+                    self.fields["profile_picture"].initial = profile.profile_picture
 
     def clean_division(self):
         """Validar que la división asignada sea válida según las reglas de elegibilidad"""
@@ -1652,6 +1702,30 @@ class PlayerUpdateForm(forms.ModelForm):
     def save(self, commit=True):
         """Guardar los cambios, manteniendo los valores originales de campos deshabilitados para padres"""
         player = super().save(commit=False)
+
+        # Guardar campos de User
+        if hasattr(player, "user"):
+            user = player.user
+            user.first_name = self.cleaned_data.get("first_name", user.first_name)
+            user.last_name = self.cleaned_data.get("last_name", user.last_name)
+            user.email = self.cleaned_data.get("email", user.email)
+
+            # Guardar campos de UserProfile
+            if hasattr(user, "profile"):
+                profile = user.profile
+                profile.last_name2 = self.cleaned_data.get("last_name2", getattr(profile, "last_name2", ""))
+                profile.phone = self.cleaned_data.get("phone", getattr(profile, "phone", ""))
+                profile.birth_date = self.cleaned_data.get("birth_date", getattr(profile, "birth_date", None))
+
+                # Guardar foto de perfil si se proporciona
+                if self.cleaned_data.get("profile_picture"):
+                    profile.profile_picture = self.cleaned_data["profile_picture"]
+
+                if commit:
+                    profile.save()
+
+            if commit:
+                user.save()
 
         # Si los campos están deshabilitados (padre editando), mantener los valores originales
         if hasattr(self, "user") and self.user:
@@ -1685,6 +1759,30 @@ class PlayerUpdateForm(forms.ModelForm):
                         player.team = self.instance.team
                     player.jersey_number = self.instance.jersey_number
                     player.is_active = self.instance.is_active
+
+        # Guardar campos de User y UserProfile
+        if hasattr(player, "user"):
+            user = player.user
+            user.first_name = self.cleaned_data.get("first_name", user.first_name)
+            user.last_name = self.cleaned_data.get("last_name", user.last_name)
+            user.email = self.cleaned_data.get("email", user.email)
+
+            # Guardar campos de UserProfile
+            if hasattr(user, "profile"):
+                profile = user.profile
+                profile.last_name2 = self.cleaned_data.get("last_name2", getattr(profile, "last_name2", ""))
+                profile.phone = self.cleaned_data.get("phone", getattr(profile, "phone", ""))
+                profile.birth_date = self.cleaned_data.get("birth_date", getattr(profile, "birth_date", None))
+
+                # Guardar foto de perfil si se proporciona
+                if self.cleaned_data.get("profile_picture"):
+                    profile.profile_picture = self.cleaned_data["profile_picture"]
+
+                if commit:
+                    profile.save()
+
+            if commit:
+                user.save()
 
         if commit:
             player.save()

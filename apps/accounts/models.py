@@ -232,7 +232,19 @@ class Player(models.Model):
         null=True, blank=True, verbose_name="Número de Jersey"
     )
     position = models.CharField(
-        max_length=20, choices=POSITION_CHOICES, blank=True, verbose_name="Posición"
+        max_length=20, choices=POSITION_CHOICES, blank=True, verbose_name=_("Primary Position")
+    )
+    secondary_position = models.CharField(
+        max_length=20,
+        choices=POSITION_CHOICES,
+        blank=True,
+        verbose_name=_("Secondary Position"),
+        help_text=_("Secondary position the player can play"),
+    )
+    is_pitcher = models.BooleanField(
+        default=False,
+        verbose_name=_("Are you a pitcher?"),
+        help_text=_("Check if the player is a pitcher"),
     )
     height = models.CharField(
         max_length=10, blank=True, verbose_name="Estatura (ej: 5'10\")"
