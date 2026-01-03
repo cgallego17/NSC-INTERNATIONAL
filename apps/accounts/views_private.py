@@ -820,7 +820,8 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
             form.save()
 
         messages.success(
-            self.request, _("Player information updated successfully.")
+            self.request, _("Player information updated successfully."),
+            extra_tags="player_updated"
         )
 
         # Si es una petición AJAX, devolver una respuesta JSON

@@ -10,6 +10,14 @@
 {% endblock %}
 
 {% block content %}
+<!-- Messages (hidden, converted to toasts) -->
+<div class="messages-container" style="display: none;">
+    {% for message in messages %}
+        <div class="django-message" data-tag="{{ message.tags }}" data-message="{{ message|escapejs }}" data-extra-tags="{{ message.extra_tags|default:'' }}">
+        </div>
+    {% endfor %}
+</div>
+
 <div class="tab-content-header mb-4">
     <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
         <i class="fas fa-user-edit me-2" style="color: var(--mlb-red);"></i>{% trans "Edit Player" %}
@@ -584,6 +592,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Convert Django messages to toasts
+    setTimeout(function() {
+        if (window.adminDashboard) {
+            window.adminDashboard.convertDjangoMessagesToToasts();
+        }
+    }, 100);
 });
 </script>
 {% endblock %}

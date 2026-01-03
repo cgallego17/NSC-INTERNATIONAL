@@ -761,7 +761,7 @@ class AdminDashboard {
             else if (tag === 'warning') toastType = 'warning';
             else if (tag === 'info') toastType = 'info';
 
-            // Special handling for player registration
+            // Special handling for player registration and updates
             let title = null;
             let duration = 5000;
             const messageLower = message.toLowerCase();
@@ -772,6 +772,14 @@ class AdminDashboard {
                 (messageLower.includes('player') && (messageLower.includes('registered') || messageLower.includes('registrado'))) ||
                 (messageLower.includes('jugador') && messageLower.includes('registrado'));
 
+            // Detect player update messages
+            const isPlayerUpdate =
+                extraTags.includes('player_updated') ||
+                (messageLower.includes('player') && (messageLower.includes('updated') || messageLower.includes('actualizado') || messageLower.includes('actualizada'))) ||
+                (messageLower.includes('jugador') && (messageLower.includes('actualizado') || messageLower.includes('actualizada'))) ||
+                (messageLower.includes('información') && (messageLower.includes('actualizada') || messageLower.includes('updated')) ||
+                (messageLower.includes('information') && messageLower.includes('updated'));
+
             if (isPlayerRegistration) {
                 toastType = 'success';
                 // Detect language and set appropriate title
@@ -781,6 +789,15 @@ class AdminDashboard {
                     title = 'Registration Successful!';
                 }
                 duration = 7000; // Show longer for important messages
+            } else if (isPlayerUpdate) {
+                toastType = 'success';
+                // Detect language and set appropriate title
+                if (messageLower.includes('actualizado') || messageLower.includes('actualizada') || messageLower.includes('información')) {
+                    title = '¡Actualización Exitosa!';
+                } else {
+                    title = 'Update Successful!';
+                }
+                duration = 6000; // Show longer for important messages
             }
 
             // Show toast
