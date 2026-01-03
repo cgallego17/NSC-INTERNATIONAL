@@ -661,15 +661,19 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ Formulario de edición de hijo cargado');
 
     // ====== Manejo de Foto de Perfil ======
-    const profilePictureInput = document.querySelector('#playerEditForm input[type="file"][id*="profile_picture"]');
+    const profilePictureInput = document.getElementById('id_profile_picture');
     const profilePictureUploadArea = document.getElementById('profilePictureUploadArea');
+
+    console.log('Profile Picture Input:', profilePictureInput);
+    console.log('Profile Picture Upload Area:', profilePictureUploadArea);
 
     if (profilePictureInput && profilePictureUploadArea) {
         // Hacer clic en el área activa el input de archivo
         profilePictureUploadArea.addEventListener('click', function(e) {
-            if (e.target !== profilePictureInput) {
-                profilePictureInput.click();
-            }
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Upload area clicked, triggering file input');
+            profilePictureInput.click();
         });
 
         // Preview de la imagen seleccionada

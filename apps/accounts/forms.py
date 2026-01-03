@@ -126,7 +126,7 @@ class PublicRegistrationForm(UserCreationForm):
     user_type = forms.ChoiceField(
         choices=USER_TYPE_CHOICES,
         widget=forms.RadioSelect(),
-        label=_("Registration Type")
+        label=_("Registration Type"),
     )
 
     # Información de contacto
@@ -191,7 +191,13 @@ class PublicRegistrationForm(UserCreationForm):
     birth_date = forms.DateField(
         label=_("Date of Birth"),
         required=False,
-        widget=forms.DateInput(attrs={"class": "form-control", "type": "date", "placeholder": _("Date of Birth")}),
+        widget=forms.DateInput(
+            attrs={
+                "class": "form-control",
+                "type": "date",
+                "placeholder": _("Date of Birth"),
+            }
+        ),
     )
 
     # Foto de perfil
@@ -272,7 +278,10 @@ class PublicRegistrationForm(UserCreationForm):
         label=_("Website"),
         required=False,
         widget=forms.URLInput(
-            attrs={"class": "form-control", "placeholder": _("https://your-website.com")}
+            attrs={
+                "class": "form-control",
+                "placeholder": _("https://your-website.com"),
+            }
         ),
     )
     social_media = forms.CharField(
@@ -445,22 +454,20 @@ class PublicRegistrationForm(UserCreationForm):
             )
 
         # Verificar que tenga al menos una letra mayúscula
-        if not re.search(r'[A-Z]', password):
+        if not re.search(r"[A-Z]", password):
             raise forms.ValidationError(
                 _("Password must contain at least one uppercase letter.")
             )
 
         # Verificar que tenga al menos una letra minúscula
-        if not re.search(r'[a-z]', password):
+        if not re.search(r"[a-z]", password):
             raise forms.ValidationError(
                 _("Password must contain at least one lowercase letter.")
             )
 
         # Verificar que tenga al menos un número
-        if not re.search(r'[0-9]', password):
-            raise forms.ValidationError(
-                _("Password must contain at least one number.")
-            )
+        if not re.search(r"[0-9]", password):
+            raise forms.ValidationError(_("Password must contain at least one number."))
 
         # Verificar que tenga al menos un carácter especial
         if not re.search(r'[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>\/?]', password):
@@ -1166,6 +1173,7 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
                 "class": "form-control",
                 "accept": "image/*",
                 "id": "id_profile_picture_register",
+                "style": "display: none;",
             }
         ),
         help_text=_("Upload a profile picture (optional)"),
@@ -1216,12 +1224,8 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
             "position": forms.Select(attrs={"class": "form-select", "required": True}),
             "secondary_position": forms.Select(attrs={"class": "form-select"}),
             "is_pitcher": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-            "height": forms.TextInput(
-                attrs={"class": "form-control"}
-            ),
-            "weight": forms.NumberInput(
-                attrs={"class": "form-control"}
-            ),
+            "height": forms.TextInput(attrs={"class": "form-control"}),
+            "weight": forms.NumberInput(attrs={"class": "form-control"}),
             "batting_hand": forms.Select(
                 attrs={"class": "form-select", "required": True}
             ),
@@ -1407,20 +1411,35 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         if birth_date:
             try:
                 from datetime import date
+
                 # Calcular edad al 30 de abril
                 cutoff_date = date(date.today().year, 4, 30)
                 if cutoff_date < date.today():
                     cutoff_date = date(date.today().year + 1, 4, 30)
 
                 age = cutoff_date.year - birth_date.year
-                if (cutoff_date.month, cutoff_date.day) < (birth_date.month, birth_date.day):
+                if (cutoff_date.month, cutoff_date.day) < (
+                    birth_date.month,
+                    birth_date.day,
+                ):
                     age -= 1
 
                 # Mapeo de edad a división
                 division_map = {
-                    5: "05U", 6: "06U", 7: "07U", 8: "08U", 9: "09U",
-                    10: "10U", 11: "11U", 12: "12U", 13: "13U", 14: "14U",
-                    15: "15U", 16: "16U", 17: "17U", 18: "18U",
+                    5: "05U",
+                    6: "06U",
+                    7: "07U",
+                    8: "08U",
+                    9: "09U",
+                    10: "10U",
+                    11: "11U",
+                    12: "12U",
+                    13: "13U",
+                    14: "14U",
+                    15: "15U",
+                    16: "16U",
+                    17: "17U",
+                    18: "18U",
                 }
 
                 if age < 5:
@@ -1495,20 +1514,35 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         if birth_date:
             try:
                 from datetime import date
+
                 # Calcular edad al 30 de abril
                 cutoff_date = date(date.today().year, 4, 30)
                 if cutoff_date < date.today():
                     cutoff_date = date(date.today().year + 1, 4, 30)
 
                 age = cutoff_date.year - birth_date.year
-                if (cutoff_date.month, cutoff_date.day) < (birth_date.month, birth_date.day):
+                if (cutoff_date.month, cutoff_date.day) < (
+                    birth_date.month,
+                    birth_date.day,
+                ):
                     age -= 1
 
                 # Mapeo de edad a división
                 division_map = {
-                    5: "05U", 6: "06U", 7: "07U", 8: "08U", 9: "09U",
-                    10: "10U", 11: "11U", 12: "12U", 13: "13U", 14: "14U",
-                    15: "15U", 16: "16U", 17: "17U", 18: "18U",
+                    5: "05U",
+                    6: "06U",
+                    7: "07U",
+                    8: "08U",
+                    9: "09U",
+                    10: "10U",
+                    11: "11U",
+                    12: "12U",
+                    13: "13U",
+                    14: "14U",
+                    15: "15U",
+                    16: "16U",
+                    17: "17U",
+                    18: "18U",
                 }
 
                 if age < 5:
@@ -1842,8 +1876,12 @@ class PlayerUpdateForm(forms.ModelForm):
             self.fields["age_verification_notes"].required = False
             # Asegurar que el campo oculto tenga el valor actual del jugador
             if self.instance and self.instance.pk:
-                self.fields["age_verification_status"].initial = self.instance.age_verification_status
-                self.fields["age_verification_notes"].initial = self.instance.age_verification_notes or ""
+                self.fields["age_verification_status"].initial = (
+                    self.instance.age_verification_status
+                )
+                self.fields["age_verification_notes"].initial = (
+                    self.instance.age_verification_notes or ""
+                )
 
         # El documento de verificación de edad no es requerido
         self.fields["age_verification_document"].required = False
@@ -1892,9 +1930,9 @@ class PlayerUpdateForm(forms.ModelForm):
         # Convertir a booleano
         # Si el valor es '1', 'on', True, o cualquier valor truthy, retornar True
         # Si es '0', False, '', None, o cualquier valor falsy, retornar False
-        if value in (True, '1', 'on', 1, 'True', 'true'):
+        if value in (True, "1", "on", 1, "True", "true"):
             return True
-        elif value in (False, '0', '', None, 0, 'False', 'false'):
+        elif value in (False, "0", "", None, 0, "False", "false"):
             return False
         # Por defecto, convertir a booleano
         return bool(value)
@@ -1924,6 +1962,7 @@ class PlayerUpdateForm(forms.ModelForm):
             if hasattr(self, "user") and self.user:
                 if hasattr(self.user, "profile") and self.user.profile.is_parent:
                     from .models import PlayerParent
+
                     is_parent = PlayerParent.objects.filter(
                         parent=self.user, player=self.instance
                     ).exists()
@@ -1931,10 +1970,17 @@ class PlayerUpdateForm(forms.ModelForm):
 
             # Si es padre (no staff), asegurar que age_verification_status mantenga su valor original
             if is_parent and not is_staff:
-                if "age_verification_status" not in cleaned_data or not cleaned_data["age_verification_status"]:
-                    cleaned_data["age_verification_status"] = self.instance.age_verification_status
+                if (
+                    "age_verification_status" not in cleaned_data
+                    or not cleaned_data["age_verification_status"]
+                ):
+                    cleaned_data["age_verification_status"] = (
+                        self.instance.age_verification_status
+                    )
                 if "age_verification_notes" not in cleaned_data:
-                    cleaned_data["age_verification_notes"] = self.instance.age_verification_notes or ""
+                    cleaned_data["age_verification_notes"] = (
+                        self.instance.age_verification_notes or ""
+                    )
 
         return cleaned_data
 
@@ -1949,6 +1995,7 @@ class PlayerUpdateForm(forms.ModelForm):
         if hasattr(self, "user") and self.user:
             if hasattr(self.user, "profile") and self.user.profile.is_parent:
                 from .models import PlayerParent
+
                 is_parent = PlayerParent.objects.filter(
                     parent=self.user, player=player
                 ).exists()
@@ -1969,15 +2016,20 @@ class PlayerUpdateForm(forms.ModelForm):
         # IMPORTANTE: Establecer secondary_position e is_pitcher DESPUÉS del bucle
         # y ANTES de las restricciones de padre, para asegurar que siempre se guarden
         # Usar cleaned_data directamente ya que clean() asegura que estén presentes
-        player.secondary_position = self.cleaned_data.get("secondary_position", "") or ""
+        player.secondary_position = (
+            self.cleaned_data.get("secondary_position", "") or ""
+        )
         player.is_pitcher = bool(self.cleaned_data.get("is_pitcher", False))
 
         # Si es padre (no staff), mantener los valores originales de campos restringidos
         if is_parent and not is_staff and player.pk:
             # Mantener valores originales de campos que no puede cambiar
-            if "team_hidden" in self.cleaned_data and self.cleaned_data.get("team_hidden"):
+            if "team_hidden" in self.cleaned_data and self.cleaned_data.get(
+                "team_hidden"
+            ):
                 try:
                     from .models import Team
+
                     team_id = int(self.cleaned_data["team_hidden"])
                     player.team = Team.objects.get(pk=team_id)
                 except (ValueError, Team.DoesNotExist, TypeError):
@@ -1988,15 +2040,23 @@ class PlayerUpdateForm(forms.ModelForm):
             player.is_active = self.instance.is_active
 
             # Si se sube un nuevo documento, resetear el estado a "pending"
-            if "age_verification_document" in self.cleaned_data and self.cleaned_data.get("age_verification_document"):
-                if self.instance.age_verification_document != self.cleaned_data["age_verification_document"]:
+            if (
+                "age_verification_document" in self.cleaned_data
+                and self.cleaned_data.get("age_verification_document")
+            ):
+                if (
+                    self.instance.age_verification_document
+                    != self.cleaned_data["age_verification_document"]
+                ):
                     player.age_verification_status = "pending"
                     player.age_verification_approved_date = None
                     player.age_verification_notes = ""
             else:
                 # Mantener el estado original si no se sube documento nuevo
                 player.age_verification_status = self.instance.age_verification_status
-                player.age_verification_approved_date = self.instance.age_verification_approved_date
+                player.age_verification_approved_date = (
+                    self.instance.age_verification_approved_date
+                )
                 player.age_verification_notes = self.instance.age_verification_notes
 
         # Guardar campos de User
@@ -2009,9 +2069,13 @@ class PlayerUpdateForm(forms.ModelForm):
             # Guardar campos de UserProfile
             if hasattr(user, "profile"):
                 profile = user.profile
-                profile.last_name2 = self.cleaned_data.get("last_name2", profile.last_name2)
+                profile.last_name2 = self.cleaned_data.get(
+                    "last_name2", profile.last_name2
+                )
                 profile.phone = self.cleaned_data.get("phone", profile.phone)
-                profile.birth_date = self.cleaned_data.get("birth_date", profile.birth_date)
+                profile.birth_date = self.cleaned_data.get(
+                    "birth_date", profile.birth_date
+                )
 
                 # Guardar foto de perfil si se proporciona
                 if self.cleaned_data.get("profile_picture"):
@@ -2047,15 +2111,19 @@ class PlayerUpdateForm(forms.ModelForm):
             player.refresh_from_db()
 
             # Si aún no se guardaron correctamente, intentar una vez más
-            if player.secondary_position != secondary_pos_value or player.is_pitcher != is_pitcher_value:
+            if (
+                player.secondary_position != secondary_pos_value
+                or player.is_pitcher != is_pitcher_value
+            ):
                 player.secondary_position = secondary_pos_value
                 player.is_pitcher = is_pitcher_value
                 # Usar update() directamente en la base de datos como último recurso
                 from django.db.models import F
+
                 from .models import Player as PlayerModel
+
                 PlayerModel.objects.filter(pk=player.pk).update(
-                    secondary_position=secondary_pos_value,
-                    is_pitcher=is_pitcher_value
+                    secondary_position=secondary_pos_value, is_pitcher=is_pitcher_value
                 )
                 player.refresh_from_db()
 
