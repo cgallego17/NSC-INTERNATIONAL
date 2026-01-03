@@ -664,7 +664,11 @@ class AdminDashboard {
             </div>
         `;
 
+        // Asegurar que el toast tenga pointer-events habilitado
+        toast.style.pointerEvents = 'all';
+
         toastContainer.appendChild(toast);
+        console.log(`🎉 Toast created and added to container: ${type} - ${message.substring(0, 50)}...`);
 
         // Animate in
         setTimeout(() => {
@@ -737,18 +741,45 @@ class AdminDashboard {
 
     createToastContainer() {
         const container = document.getElementById('toastContainer');
-        if (container) return container;
+        if (container) {
+            console.log('✅ Toast container already exists');
+            return container;
+        }
 
+        console.log('📦 Creating new toast container');
         const newContainer = document.createElement('div');
         newContainer.id = 'toastContainer';
         newContainer.className = 'modern-toast-container';
+
+        // Asegurar que el contenedor tenga los estilos correctos inline también
+        newContainer.style.position = 'fixed';
+        newContainer.style.top = '20px';
+        newContainer.style.right = '20px';
+        newContainer.style.zIndex = '9999';
+        newContainer.style.display = 'flex';
+        newContainer.style.flexDirection = 'column';
+        newContainer.style.gap = '12px';
+        newContainer.style.maxWidth = '400px';
+        newContainer.style.pointerEvents = 'none';
+
         document.body.appendChild(newContainer);
+        console.log('✅ Toast container created and added to body');
         return newContainer;
     }
 
     convertDjangoMessagesToToasts() {
         // Find all Django messages and convert them to toasts
         const messages = document.querySelectorAll('.django-message');
+        console.log(`🔄 Converting ${messages.length} Django messages to toasts`);
+
+        if (messages.length === 0) {
+            console.log('ℹ️ No Django messages to convert');
+            return;
+        }
+
+        // Array para rastrear mensajes procesados
+        const processedMessages = [];
+
         messages.forEach(msg => {
             const tag = msg.getAttribute('data-tag');
             const message = msg.getAttribute('data-message');
@@ -784,7 +815,7 @@ class AdminDashboard {
                 toastType = 'success';
                 // Detect language and set appropriate title
                 if (messageLower.includes('registrado') || messageLower.includes('jugador')) {
-                    title = '¡Registro Exitoso!';
+                title = '¡Registro Exitoso!';
                 } else {
                     title = 'Registration Successful!';
                 }
@@ -802,7 +833,25 @@ class AdminDashboard {
 
             // Show toast
             this.showToast(message, toastType, title, duration);
+
+            // Marcar como procesado
+            processedMessages.push(msg);
         });
+
+        // Eliminar mensajes procesados del DOM para evitar duplicados
+        processedMessages.forEach(msg => {
+            if (msg.parentNode) {
+                msg.parentNode.removeChild(msg);
+            }
+        });
+
+        // Ocultar el contenedor de mensajes si está vacío
+        const messagesContainer = document.querySelector('.messages-container');
+        if (messagesContainer && messagesContainer.children.length === 0) {
+            messagesContainer.style.display = 'none';
+        }
+
+        console.log(`✅ ${processedMessages.length} messages converted and removed from DOM`);
     }
 
     confirmDialog(message, callback) {
@@ -1777,10 +1826,10 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                 let score = rulesPenalty;
                 if (singleRoomMode) {
                     // Priority: exact/smallest waste, then cheapest
-                    const waste = Math.max(0, cap - total);
+                const waste = Math.max(0, cap - total);
                     const isExactMatch = cap === total ? 0 : 1;
                     score += selectedPenalty + isExactMatch * 1000 + waste * 10 + price / 100;
-                    candidates.push({ el: roomListing, cap: cap || 0, price, waste, isExactMatch, score });
+                candidates.push({ el: roomListing, cap: cap || 0, price, waste, isExactMatch, score });
                 } else {
                     // Multi-room mode:
                     // Prioritize covering the current deficit with minimal waste, then cheaper.
@@ -3605,18 +3654,18 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         // not as a single combined rule across all rooms.
         const roomsWithRuleStatus = roomBreakdown.filter(r => r.roomRuleStatus);
         if (roomsWithRuleStatus.length > 0) {
-            html += `<div style="margin-top: 12px; padding-top: 12px; border-top: 2px solid #e9ecef;">`;
+                html += `<div style="margin-top: 12px; padding-top: 12px; border-top: 2px solid #e9ecef;">`;
             html += `<div style="font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem; margin-bottom: 6px;"><i class="fas fa-users-cog me-1"></i>${gettext('Occupancy Rules')}:</div>`;
 
             const invalidRooms = roomsWithRuleStatus.filter(r => r.roomRuleStatus && r.roomRuleStatus.valid === false);
             if (invalidRooms.length === 0) {
-                html += `<div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; padding: 8px; color: #155724; font-size: 0.8rem; margin-bottom: 6px;">`;
+                    html += `<div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; padding: 8px; color: #155724; font-size: 0.8rem; margin-bottom: 6px;">`;
                 html += `<i class="fas fa-check-circle me-1"></i><strong>✅ ${gettext('All selected rooms meet occupancy rules.')}</strong>`;
-                html += `</div>`;
-            } else {
-                html += `<div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 8px; color: #856404; font-size: 0.8rem; margin-bottom: 6px;">`;
+                    html += `</div>`;
+                } else {
+                    html += `<div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 8px; color: #856404; font-size: 0.8rem; margin-bottom: 6px;">`;
                 html += `<i class="fas fa-exclamation-triangle me-1"></i><strong>⚠ ${gettext('Attention')}:</strong> ${gettext('Some selected rooms do not meet occupancy rules.')}`;
-                html += `</div>`;
+                    html += `</div>`;
 
                 invalidRooms.forEach((room, idx) => {
                     html += `<div style="font-size: 0.8rem; color: #6c757d; margin-top: 6px; font-weight: 800;">${escapeHtml(interpolate(gettext('Room %(id)s'), { id: idx + 1 }, true))}: ${escapeHtml(room.roomLabel)}</div>`;
@@ -3625,9 +3674,9 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                         html += `<div style="margin-top: 4px;">${list}</div>`;
                     }
                 });
-            }
+                }
 
-            html += `</div>`;
+                html += `</div>`;
         }
 
         calcEl.innerHTML = html;
@@ -4055,12 +4104,12 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                             try { rules = JSON.parse(rulesJson) || []; } catch (e) { rules = []; }
                         }
                         const activeRules = Array.isArray(rules) ? rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active) : [];
-                        if (activeRules.length > 0) {
-                            const validRules = activeRules.filter(rule => {
-                                const minAdults = parseInt(rule.min_adults) || 0;
-                                const maxAdults = parseInt(rule.max_adults) || 999;
-                                const minChildren = parseInt(rule.min_children) || 0;
-                                const maxChildren = parseInt(rule.max_children) || 999;
+                if (activeRules.length > 0) {
+                    const validRules = activeRules.filter(rule => {
+                        const minAdults = parseInt(rule.min_adults) || 0;
+                        const maxAdults = parseInt(rule.max_adults) || 999;
+                        const minChildren = parseInt(rule.min_children) || 0;
+                        const maxChildren = parseInt(rule.max_children) || 999;
                                 return assignedAdults >= minAdults && assignedAdults <= maxAdults &&
                                        assignedChildren >= minChildren && assignedChildren <= maxChildren;
                             });
@@ -4932,7 +4981,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
         roomMetas.forEach(r => ensureRoomKey(r.roomId));
 
-        const totalGuests = state.guests.length;
+            const totalGuests = state.guests.length;
         const roomCount = roomMetas.length;
 
         // Determine if there are manual assignments (keep them, but improve)
@@ -5002,8 +5051,8 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
                 if (pick !== null) {
                     pushIfCapacity(meta.roomId, pick, meta.capacity);
-                    return;
-                }
+                return;
+            }
 
                 // No unassigned guests left; move from a room with >1
                 const donor = roomMetas
@@ -5179,7 +5228,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
         // If there are no manual assignments, do a smarter fresh allocation (respecting rules best-effort)
         if (!hasManualAssignments) {
-            state.guestAssignments = {};
+        state.guestAssignments = {};
             roomMetas.forEach(r => ensureRoomKey(r.roomId));
 
             // Build pools

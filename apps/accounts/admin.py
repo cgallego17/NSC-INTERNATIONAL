@@ -20,16 +20,37 @@ from .models import (
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ["user", "user_type", "phone", "city", "is_active", "created_at"]
+    list_display = ["user", "user_type", "last_name2", "phone", "city", "is_active", "created_at"]
     list_filter = ["user_type", "is_active", "created_at"]
     search_fields = [
         "user__username",
         "user__first_name",
         "user__last_name",
+        "last_name2",
         "user__email",
         "phone",
     ]
     readonly_fields = ["created_at", "updated_at"]
+    fieldsets = (
+        ("Usuario", {
+            "fields": ("user", "user_type", "is_active")
+        }),
+        ("Información Personal", {
+            "fields": ("last_name2", "phone", "phone_secondary", "birth_date", "profile_picture")
+        }),
+        ("Ubicación", {
+            "fields": ("address", "address_line_2", "country", "state", "city", "postal_code")
+        }),
+        ("Redes Sociales", {
+            "fields": ("bio", "website", "social_media")
+        }),
+        ("Configuración", {
+            "fields": ("preferred_language",)
+        }),
+        ("Fechas", {
+            "fields": ("created_at", "updated_at")
+        }),
+    )
 
 
 @admin.register(Team)

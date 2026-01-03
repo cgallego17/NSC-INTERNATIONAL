@@ -975,6 +975,34 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
 
         return redirect(self.get_success_url())
 
+    def form_invalid(self, form):
+        """Manejar errores de validación del formulario"""
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"PlayerUpdateView.form_invalid - Errores del formulario: {form.errors}")
+        logger.error(f"PlayerUpdateView.form_invalid - Errores no de campo: {form.non_field_errors()}")
+
+        # Si es una petición AJAX, devolver JSON con los errores
+        if self.request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            from django.http import JsonResponse
+
+            # Construir diccionario de errores
+            errors = {}
+            for field, error_list in form.errors.items():
+                errors[field] = [str(error) for error in error_list]
+
+            return JsonResponse(
+                {
+                    "success": False,
+                    "errors": errors,
+                    "message": "Por favor corrige los errores en el formulario",
+                },
+                status=400,
+            )
+
+        return super().form_invalid(form)
+
 
 class UserListView(UserPassesTestMixin, LoginRequiredMixin, ListView):
     """Lista de usuarios (solo staff)"""

@@ -20,6 +20,246 @@
     <link href="{% static 'css/panel_usuario.css' %}" rel="stylesheet">
 
     <style>
+        /* Modern Toast Styles - Extracted from admin.css */
+        .modern-toast-container {
+            position: fixed !important;
+            top: 20px !important;
+            right: 20px !important;
+            z-index: 99999 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 12px !important;
+            max-width: 400px !important;
+            pointer-events: none !important;
+        }
+
+        .modern-toast {
+            position: relative !important;
+            background: #ffffff !important;
+            border-radius: 12px !important;
+            box-shadow: 0 10px 40px rgba(13, 44, 84, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+            overflow: hidden !important;
+            opacity: 0 !important;
+            transform: translateX(400px) scale(0.95) !important;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
+            pointer-events: all !important;
+            min-width: 320px !important;
+            max-width: 400px !important;
+            border: 1px solid rgba(13, 44, 84, 0.1) !important;
+        }
+
+        .modern-toast.show {
+            opacity: 1 !important;
+            transform: translateX(0) scale(1) !important;
+        }
+
+        .modern-toast.hide {
+            opacity: 0 !important;
+            transform: translateX(400px) scale(0.95) !important;
+        }
+
+        .toast-content {
+            display: flex !important;
+            align-items: flex-start !important;
+            padding: 16px 20px !important;
+            gap: 14px !important;
+            position: relative !important;
+            z-index: 2 !important;
+        }
+
+        .toast-icon {
+            width: 40px !important;
+            height: 40px !important;
+            border-radius: 10px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex-shrink: 0 !important;
+            font-size: 18px !important;
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        .toast-body-wrapper {
+            flex: 1 !important;
+            min-width: 0 !important;
+        }
+
+        .toast-title {
+            font-weight: 700 !important;
+            font-size: 16px !important;
+            margin-bottom: 4px !important;
+            color: var(--mlb-blue) !important;
+            line-height: 1.4 !important;
+            font-family: 'Arial', 'Helvetica', sans-serif !important;
+        }
+
+        .toast-message {
+            font-size: 14px !important;
+            color: #2c3e50 !important;
+            line-height: 1.6 !important;
+            word-wrap: break-word !important;
+            font-family: 'Arial', 'Helvetica', sans-serif !important;
+        }
+
+        .toast-close {
+            background: none !important;
+            border: none !important;
+            color: #a0aec0 !important;
+            cursor: pointer !important;
+            padding: 4px !important;
+            width: 24px !important;
+            height: 24px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border-radius: 6px !important;
+            transition: all 0.2s ease !important;
+            flex-shrink: 0 !important;
+            font-size: 12px !important;
+        }
+
+        .toast-close:hover {
+            background: rgba(0, 0, 0, 0.05) !important;
+            color: #2d3748 !important;
+            transform: rotate(90deg) !important;
+        }
+
+        .toast-progress {
+            position: absolute !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            height: 3px !important;
+            background: rgba(0, 0, 0, 0.05) !important;
+            overflow: hidden !important;
+        }
+
+        .toast-progress-bar {
+            height: 100% !important;
+            width: 100% !important;
+            transform-origin: left !important;
+            animation: progressShrink linear forwards !important;
+            animation-play-state: paused !important;
+        }
+
+        @keyframes progressShrink {
+            from { transform: scaleX(1); }
+            to { transform: scaleX(0); }
+        }
+
+        /* Toast Type Styles - MLB Theme Colors */
+        .toast-success {
+            border-left: 4px solid #28a745 !important;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fff9 100%) !important;
+        }
+
+        .toast-success .toast-icon {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%) !important;
+        }
+
+        .toast-success .toast-progress-bar {
+            background: linear-gradient(90deg, #28a745 0%, #218838 100%) !important;
+        }
+
+        .toast-error {
+            border-left: 4px solid var(--mlb-red) !important;
+            background: linear-gradient(135deg, #ffffff 0%, #fff8f8 100%) !important;
+        }
+
+        .toast-error .toast-icon {
+            background: linear-gradient(135deg, var(--mlb-red) 0%, #b50028 100%) !important;
+        }
+
+        .toast-error .toast-progress-bar {
+            background: linear-gradient(90deg, var(--mlb-red) 0%, #b50028 100%) !important;
+        }
+
+        .toast-warning {
+            border-left: 4px solid #ffc107 !important;
+            background: linear-gradient(135deg, #ffffff 0%, #fffef8 100%) !important;
+        }
+
+        .toast-warning .toast-icon {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important;
+        }
+
+        .toast-warning .toast-progress-bar {
+            background: linear-gradient(90deg, #ffc107 0%, #e0a800 100%) !important;
+        }
+
+        .toast-info {
+            border-left: 4px solid var(--mlb-blue) !important;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%) !important;
+        }
+
+        .toast-info .toast-icon {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, #0a1f3d 100%) !important;
+        }
+
+        .toast-info .toast-progress-bar {
+            background: linear-gradient(90deg, var(--mlb-blue) 0%, #0a1f3d 100%) !important;
+        }
+
+        .toast-primary {
+            border-left: 4px solid var(--mlb-blue) !important;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%) !important;
+        }
+
+        .toast-primary .toast-icon {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-red) 100%) !important;
+        }
+
+        .toast-primary .toast-progress-bar {
+            background: linear-gradient(90deg, var(--mlb-blue) 0%, var(--mlb-red) 100%) !important;
+        }
+
+        /* Special styling for player registration toasts */
+        .modern-toast.player-registered {
+            border-left-width: 6px !important;
+            box-shadow: 0 12px 48px rgba(40, 167, 69, 0.2), 0 4px 16px rgba(40, 167, 69, 0.15) !important;
+        }
+
+        .modern-toast.player-registered .toast-icon {
+            animation: celebrationPulse 1.5s ease-in-out infinite !important;
+        }
+
+        @keyframes celebrationPulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 6px 20px rgba(40, 167, 69, 0.5);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .modern-toast-container {
+                top: 10px !important;
+                right: 10px !important;
+                left: 10px !important;
+                max-width: none !important;
+            }
+
+            .modern-toast {
+                min-width: auto !important;
+                max-width: none !important;
+                transform: translateY(-100px) scale(0.95) !important;
+            }
+
+            .modern-toast.show {
+                transform: translateY(0) scale(1) !important;
+            }
+
+            .modern-toast.hide {
+                transform: translateY(-100px) scale(0.95) !important;
+            }
+        }
+
+        /* Original Panel Usuario styles */
         :root {
             --mlb-blue: #0d2c54;
             --mlb-red: #d50032;
@@ -768,12 +1008,36 @@
         });
 
         // Convert Django messages to modern toasts
+        let toastsInitialized = false;
+
+        function initializeToasts() {
+            // Evitar inicialización múltiple
+            if (toastsInitialized) {
+                console.log('ℹ️ Toasts already initialized, skipping...');
+                return;
+            }
+
+            if (window.adminDashboard && typeof window.adminDashboard.convertDjangoMessagesToToasts === 'function') {
+                console.log('✅ adminDashboard found, converting messages to toasts');
+                window.adminDashboard.convertDjangoMessagesToToasts();
+                toastsInitialized = true;
+
+                // Ocultar cualquier contenedor de mensajes de Bootstrap que pueda estar visible
+                const bootstrapAlerts = document.querySelectorAll('.alert:not(.alert-persistent)');
+                bootstrapAlerts.forEach(alert => {
+                    // Solo ocultar si es un mensaje Django (tiene el icono de éxito/error típico)
+                    if (alert.querySelector('.fa-check-circle, .fa-exclamation-circle, .fa-exclamation-triangle, .fa-info-circle')) {
+                        alert.style.display = 'none';
+                    }
+                });
+            } else {
+                console.warn('⚠️ adminDashboard not ready yet, retrying...');
+                setTimeout(initializeToasts, 100);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                if (window.adminDashboard) {
-                    window.adminDashboard.convertDjangoMessagesToToasts();
-                }
-            }, 100);
+            setTimeout(initializeToasts, 50);
         });
 
         // Funcionalidad de Tabs para Acciones Rápidas
@@ -1375,23 +1639,36 @@
                             form.dataset.submitListenerAdded = 'true';
 
                             form.addEventListener('submit', function(e) {
+                                console.log('🔵 SUBMIT EVENT TRIGGERED!');
                                 e.preventDefault();
                                 e.stopPropagation();
 
+                                console.log('🔵 Preparando campos del formulario...');
                                 // Preparar campos del formulario si existe la función (desde player_edit_hijo.html)
                                 if (typeof window.preparePlayerEditFormFields === 'function') {
+                                    console.log('✅ preparePlayerEditFormFields encontrada, ejecutándola...');
                                     window.preparePlayerEditFormFields();
+                                } else {
+                                    console.warn('⚠️ preparePlayerEditFormFields NO encontrada');
                                 }
 
                                 const formData = new FormData(form);
                                 const submitButton = form.querySelector('button[type="submit"]');
                                 const originalButtonText = submitButton ? submitButton.innerHTML : '';
 
+                                console.log('🔵 Botón de submit:', submitButton);
+                                console.log('🔵 Form action:', form.action || url);
+                                console.log('🔵 FormData entries:');
+                                for (let [key, value] of formData.entries()) {
+                                    console.log(`  - ${key}: ${value}`);
+                                }
+
                                 if (submitButton) {
                                     submitButton.disabled = true;
                                     submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>' + translations.saving;
                                 }
 
+                                console.log('🔵 Enviando fetch...');
                                 fetch(form.action || url, {
                                     method: 'POST',
                                     body: formData,
@@ -1401,16 +1678,25 @@
                                     credentials: 'same-origin'
                                 })
                                 .then(response => {
+                                    console.log('🔵 Respuesta recibida, status:', response.status);
+                                    console.log('🔵 Response headers:', response.headers);
                                     // Verificar si la respuesta es JSON (éxito) o HTML (error)
                                     const contentType = response.headers.get('content-type');
+                                    console.log('🔵 Content-Type:', contentType);
                                     if (contentType && contentType.includes('application/json')) {
+                                        console.log('🔵 Parseando como JSON...');
                                         return response.json();
                                     } else {
-                                        return response.text().then(text => ({ html: text }));
+                                        console.log('🔵 Parseando como HTML/text...');
+                                        return response.text().then(text => {
+                                            console.log('🔵 HTML length:', text.length);
+                                            return { html: text };
+                                        });
                                     }
                                 })
                                 .then(data => {
-                                    if (data.success) {
+                                    console.log('🔵 Data recibida:', data);
+                                    if (data.success === true) {
                                         // Éxito - mostrar mensaje y recargar el tab de mis-hijos
                                         const successMsg = document.createElement('div');
                                         successMsg.className = 'alert alert-success';
@@ -1429,6 +1715,30 @@
                                                 window.location.reload();
                                             }
                                         }, 1500);
+                                    } else if (data.success === false && data.errors) {
+                                        // Hay errores de validación JSON
+                                        console.log('🔴 Errores de validación:', data.errors);
+                                        console.log('🔴 Detalle de errores:', JSON.stringify(data.errors, null, 2));
+                                        const errorContainer = document.createElement('div');
+                                        errorContainer.className = 'alert alert-danger mt-3';
+                                        let errorHtml = '<i class="fas fa-exclamation-triangle me-2"></i><strong>' + (data.message || 'Hay errores en el formulario') + '</strong><ul class="mb-0 mt-2">';
+
+                                        for (let [field, errors] of Object.entries(data.errors)) {
+                                            console.log('🔴 Campo:', field, 'Errores:', errors);
+                                            for (let error of errors) {
+                                                errorHtml += '<li><strong>' + field + '</strong>: ' + error + '</li>';
+                                            }
+                                        }
+                                        errorHtml += '</ul>';
+                                        errorContainer.innerHTML = errorHtml;
+
+                                        // Insertar mensaje de error antes del formulario
+                                        form.parentNode.insertBefore(errorContainer, form);
+
+                                        if (submitButton) {
+                                            submitButton.disabled = false;
+                                            submitButton.innerHTML = originalButtonText;
+                                        }
                                     } else if (data.html) {
                                         // Hay HTML de respuesta, podría ser un error o el formulario con errores
                                         const tempDiv = document.createElement('div');
@@ -1462,10 +1772,11 @@
                                     }
                                 })
                                 .catch(error => {
-                                    console.error('Error:', error);
+                                    console.error('🔴 ERROR en fetch:', error);
+                                    console.error('🔴 Error stack:', error.stack);
                                     const errorMsg = document.createElement('div');
                                     errorMsg.className = 'alert alert-danger mt-3';
-                                    errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + translations.errorSaving;
+                                    errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + translations.errorSaving + '<br><small>' + error.message + '</small>';
                                     form.parentNode.insertBefore(errorMsg, form);
 
                                     if (submitButton) {

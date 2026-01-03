@@ -25,6 +25,12 @@ class UserProfile(models.Model):
         default="player",
         verbose_name="Tipo de Usuario",
     )
+    last_name2 = models.CharField(
+        max_length=30,
+        blank=True,
+        verbose_name="Segundo Apellido",
+        help_text="Segundo apellido (opcional)",
+    )
     phone = models.CharField(max_length=20, blank=True, verbose_name="Teléfono")
     phone_secondary = models.CharField(
         max_length=20, blank=True, verbose_name="Teléfono Secundario"

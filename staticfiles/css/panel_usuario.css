@@ -233,6 +233,10 @@
     gap: 10px !important;
     position: relative !important;
     z-index: 2 !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 .quick-actions-title i {
@@ -262,6 +266,34 @@
     box-sizing: border-box !important;
     position: relative !important;
     z-index: 2 !important;
+}
+
+.quick-actions-marquee {
+    flex: 1 1 auto !important;
+    min-width: 200px !important;
+    max-width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    margin-left: 20px !important;
+    overflow: hidden !important;
+    position: relative !important;
+    height: 30px !important;
+    width: 100% !important;
+}
+
+.quick-actions-marquee marquee {
+    width: 100% !important;
+    height: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    line-height: 1.5 !important;
+}
+
+@media (max-width: 992px) {
+    .quick-actions-marquee {
+        display: none !important;
+    }
 }
 
 .quick-actions .quick-action-btn {
@@ -670,6 +702,174 @@ button.quick-action-btn.active span,
     color: var(--mlb-red);
 }
 
+/* ============================================
+   HOTEL RESERVATION MODALS (match dashboard look)
+   ============================================ */
+
+[id^="hotelReservationModal"] .modal-content,
+[id^="hotelGuestDetailsModal"] .modal-content {
+    border-radius: 16px !important;
+    overflow: hidden !important;
+    border: none !important;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2) !important;
+}
+
+[id^="hotelReservationModal"] .modal-header {
+    background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%) !important;
+    color: white !important;
+    border: none !important;
+}
+
+[id^="hotelGuestDetailsModal"] .modal-header {
+    background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%) !important;
+    color: white !important;
+    border: none !important;
+}
+
+[id^="hotelRoomsModal"] .modal-header {
+    background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%) !important;
+    color: white !important;
+    border: none !important;
+}
+
+[id^="roomDetailModal"] .modal-header {
+    background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%) !important;
+    color: white !important;
+    border: none !important;
+}
+
+[id^="roomDetailModal"] .modal-title {
+    color: white !important;
+    font-weight: 900 !important;
+}
+
+[id^="roomDetailModal"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+    opacity: 0.95;
+}
+
+[id^="hotelReservationModal"] .modal-title,
+[id^="hotelGuestDetailsModal"] .modal-title,
+[id^="hotelRoomsModal"] .modal-title {
+    color: white !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.2px !important;
+}
+
+[id^="hotelRoomsModal"] .nsc-step {
+    color: rgba(255, 255, 255, 0.92) !important;
+}
+
+[id^="hotelReservationModal"] .btn-close,
+[id^="hotelGuestDetailsModal"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+    opacity: 0.95;
+}
+
+.nsc-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-radius: 999px;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.16);
+    font-weight: 800;
+}
+
+.nsc-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 2px solid #e9ecef;
+    border-radius: 16px;
+}
+
+.nsc-card-title {
+    font-weight: 800;
+    color: var(--mlb-blue);
+    font-size: 1rem;
+    margin: 0;
+}
+
+.nsc-card-subtitle {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin: 2px 0 0 0;
+}
+
+.nsc-stepper-btn {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    border-width: 2px !important;
+}
+
+.nsc-stepper-count {
+    width: 64px;
+    text-align: center;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 6px 8px;
+    font-weight: 900;
+    color: var(--mlb-blue);
+    background: #ffffff;
+}
+
+.nsc-summary {
+    background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);
+    border: 2px solid #e9ecef;
+    border-radius: 16px;
+    padding: 16px;
+}
+
+.nsc-summary .nsc-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    border: 2px solid #e9ecef;
+    background: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--mlb-blue);
+}
+
+/* Recommended room highlight (hotel rooms modal) */
+.room-listing.nsc-room-recommended {
+    border-color: var(--mlb-red) !important;
+    box-shadow: 0 12px 30px rgba(213, 0, 50, 0.18) !important;
+    transform: translateY(-2px);
+}
+
+.room-listing .nsc-recommended-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    margin-bottom: 10px;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%);
+    color: white;
+    font-weight: 900;
+    font-size: 0.78rem;
+    letter-spacing: 0.3px;
+    box-shadow: 0 4px 14px rgba(213, 0, 50, 0.35);
+    width: fit-content;
+}
+
+.room-listing .nsc-recommended-badge::before {
+    content: "★";
+    font-size: 0.85rem;
+    opacity: 0.95;
+}
+
 .form-label {
     font-weight: 600;
     color: var(--mlb-blue);
@@ -726,12 +926,12 @@ button.quick-action-btn.active span,
         padding: 20px;
         border-radius: 12px;
     }
-    
+
     .form-section {
         margin-bottom: 20px;
         padding-bottom: 20px;
     }
-    
+
     .form-section-title {
         font-size: 1rem;
     }

@@ -36,6 +36,10 @@
             </div>
         {% endif %}
 
+        <!-- Campos ocultos para age_verification (solo para padres) -->
+        {{ form.age_verification_status }}
+        {{ form.age_verification_notes }}
+
         <!-- Información del Jugador -->
         <div class="form-section mb-4" style="background: white; border-radius: 12px; padding: 25px; border: 1px solid #e9ecef;">
             <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 600; font-size: 1.1rem;">
@@ -490,11 +494,12 @@
 </style>
 
 <script>
+console.log('🔄 PLAYER EDIT HIJO SCRIPT v3.0 - CARGADO');
 (function() {
     // Función que se ejecuta inmediatamente, sin esperar DOMContentLoaded
     // Esto asegura que funcione tanto cuando se carga la página completa como cuando se carga vía AJAX
     function initPlayerEditForm() {
-        console.log('✅ Inicializando formulario de edición de hijo');
+        console.log('✅ Inicializando formulario de edición de hijo v3.0');
 
         // Asegurar que is_pitcher siempre se envíe en el formulario
         // Si el checkbox no está marcado, agregar un hidden antes de enviar
@@ -510,8 +515,10 @@
 
             // Función para preparar los campos antes del submit
             function prepareFormFields() {
-                console.log('=== PREPARANDO CAMPOS DEL FORMULARIO ===');
-                console.log('is_pitcher checkbox:', isPitcherCheckbox.checked);
+                console.log('🟢 === PREPARANDO CAMPOS DEL FORMULARIO ===');
+                console.log('🟢 Formulario:', playerEditForm);
+                console.log('🟢 isPitcherCheckbox:', isPitcherCheckbox);
+                console.log('🟢 is_pitcher checkbox checked:', isPitcherCheckbox ? isPitcherCheckbox.checked : 'N/A');
 
                 // Verificar que secondary_position esté presente
                 const secondaryPositionField = playerEditForm.querySelector('[name="secondary_position"]');
@@ -564,10 +571,23 @@
                 }
             }
 
+            // SIEMPRE exponer la función globalmente para que el panel pueda usarla
+            window.preparePlayerEditFormFields = prepareFormFields;
+            console.log('✅ Función prepareFormFields expuesta globalmente v3.0');
+            console.log('✅ window.preparePlayerEditFormFields:', typeof window.preparePlayerEditFormFields);
+            console.log('✅ TEST - Ejecutando prepareFormFields ahora...');
+            // Ejecutar una vez para verificar
+            if (typeof window.preparePlayerEditFormFields === 'function') {
+                console.log('✅✅✅ preparePlayerEditFormFields ES UNA FUNCIÓN Y ESTÁ DISPONIBLE');
+            }
+
             // Verificar si estamos en el panel (cuando se carga vía AJAX)
             // Si el formulario tiene el atributo data-submit-listener-added, significa que el panel ya maneja el submit
             const isInPanel = playerEditForm.hasAttribute('data-submit-listener-added') ||
                                 document.getElementById('tab-content-editar-jugador') !== null;
+
+            console.log('✅ isInPanel:', isInPanel);
+            console.log('✅ tab-content-editar-jugador:', document.getElementById('tab-content-editar-jugador'));
 
             if (!isInPanel) {
                 // Si NO está en el panel, agregar listener normal
@@ -578,11 +598,9 @@
                     prepareFormFields();
                     // No prevenir el submit aquí, dejar que se envíe normalmente
                 });
+                console.log('✅ Listener de submit agregado al formulario (NO está en panel)');
             } else {
-                // Si está en el panel, exponer la función para que el listener del panel la llame
-                // El listener del panel manejará el submit
-                window.preparePlayerEditFormFields = prepareFormFields;
-                console.log('✅ Función prepareFormFields expuesta para el panel');
+                console.log('✅ Formulario en panel detectado - el panel manejará el submit');
             }
         }
     }

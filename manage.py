@@ -3,6 +3,12 @@
 import os
 import sys
 
+# Aplicar parche para compatibilidad con Python 3.14 si es necesario
+try:
+    from nsc_admin.patch_django_context import *
+except ImportError:
+    pass
+
 
 def main():
     """Run administrative tasks."""

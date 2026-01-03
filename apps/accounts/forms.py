@@ -1083,10 +1083,9 @@ class PlayerRegistrationForm(forms.ModelForm):
             phone=self.cleaned_data.get("phone", ""),
             birth_date=self.cleaned_data.get("birth_date"),
         )
-        # Guardar last_name2 si existe (usando setattr por si el campo no existe en el modelo)
-        if last_name2:
-            setattr(profile, "last_name2", last_name2)
-            profile.save()
+        # Guardar last_name2 en el perfil
+        profile.last_name2 = last_name2
+        profile.save()
 
         # Crear perfil de jugador directamente (no usar super().save() porque requiere user)
         # Obtener secondary_position e is_pitcher explícitamente
@@ -1827,6 +1826,10 @@ class PlayerUpdateForm(forms.ModelForm):
             self.fields["age_verification_notes"].widget = forms.HiddenInput()
             self.fields["age_verification_status"].required = False
             self.fields["age_verification_notes"].required = False
+            # Asegurar que el campo oculto tenga el valor actual del jugador
+            if self.instance and self.instance.pk:
+                self.fields["age_verification_status"].initial = self.instance.age_verification_status
+                self.fields["age_verification_notes"].initial = self.instance.age_verification_notes or ""
 
         # El documento de verificación de edad no es requerido
         self.fields["age_verification_document"].required = False
@@ -1846,9 +1849,9 @@ class PlayerUpdateForm(forms.ModelForm):
             # Campos de UserProfile
             if hasattr(user, "profile"):
                 profile = user.profile
-                self.fields["last_name2"].initial = getattr(profile, "last_name2", "")
-                self.fields["phone"].initial = getattr(profile, "phone", "")
-                self.fields["birth_date"].initial = getattr(profile, "birth_date", None)
+                self.fields["last_name2"].initial = profile.last_name2
+                self.fields["phone"].initial = profile.phone
+                self.fields["birth_date"].initial = profile.birth_date
 
                 # Cargar la foto de perfil actual si existe
                 if profile.profile_picture:
@@ -1899,6 +1902,26 @@ class PlayerUpdateForm(forms.ModelForm):
         # Asegurar que secondary_position siempre esté en cleaned_data
         if "secondary_position" not in cleaned_data:
             cleaned_data["secondary_position"] = ""
+
+        # Si es padre y age_verification_status no está o es inválido, usar el valor original
+        if self.instance and self.instance.pk:
+            is_parent = False
+            is_staff = False
+            if hasattr(self, "user") and self.user:
+                if hasattr(self.user, "profile") and self.user.profile.is_parent:
+                    from .models import PlayerParent
+                    is_parent = PlayerParent.objects.filter(
+                        parent=self.user, player=self.instance
+                    ).exists()
+                is_staff = self.user.is_staff or self.user.is_superuser
+
+            # Si es padre (no staff), asegurar que age_verification_status mantenga su valor original
+            if is_parent and not is_staff:
+                if "age_verification_status" not in cleaned_data or not cleaned_data["age_verification_status"]:
+                    cleaned_data["age_verification_status"] = self.instance.age_verification_status
+                if "age_verification_notes" not in cleaned_data:
+                    cleaned_data["age_verification_notes"] = self.instance.age_verification_notes or ""
+
         return cleaned_data
 
     def save(self, commit=True):
@@ -1972,9 +1995,9 @@ class PlayerUpdateForm(forms.ModelForm):
             # Guardar campos de UserProfile
             if hasattr(user, "profile"):
                 profile = user.profile
-                profile.last_name2 = self.cleaned_data.get("last_name2", getattr(profile, "last_name2", ""))
-                profile.phone = self.cleaned_data.get("phone", getattr(profile, "phone", ""))
-                profile.birth_date = self.cleaned_data.get("birth_date", getattr(profile, "birth_date", None))
+                profile.last_name2 = self.cleaned_data.get("last_name2", profile.last_name2)
+                profile.phone = self.cleaned_data.get("phone", profile.phone)
+                profile.birth_date = self.cleaned_data.get("birth_date", profile.birth_date)
 
                 # Guardar foto de perfil si se proporciona
                 if self.cleaned_data.get("profile_picture"):
