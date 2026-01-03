@@ -1364,120 +1364,121 @@
                         console.log('Form action después:', form.action);
                         console.log('Form method:', form.method);
 
-                    // Asegurarse de que el formulario sea visible
-                    form.style.display = 'block';
+                        // Asegurarse de que el formulario sea visible
+                        form.style.display = 'block';
 
-                    // Verificar si ya tiene un listener de submit (usando una marca)
-                    if (form.dataset.submitListenerAdded === 'true') {
-                        console.log('Listener de submit ya agregado al formulario, omitiendo...');
-                    } else {
-                        // Marcar que el listener fue agregado
-                        form.dataset.submitListenerAdded = 'true';
+                        // Verificar si ya tiene un listener de submit (usando una marca)
+                        if (form.dataset.submitListenerAdded === 'true') {
+                            console.log('Listener de submit ya agregado al formulario, omitiendo...');
+                        } else {
+                            // Marcar que el listener fue agregado
+                            form.dataset.submitListenerAdded = 'true';
 
-                        form.addEventListener('submit', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
+                            form.addEventListener('submit', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
 
-                            // Preparar campos del formulario si existe la función (desde player_edit_hijo.html)
-                            if (typeof window.preparePlayerEditFormFields === 'function') {
-                                window.preparePlayerEditFormFields();
-                            }
+                                // Preparar campos del formulario si existe la función (desde player_edit_hijo.html)
+                                if (typeof window.preparePlayerEditFormFields === 'function') {
+                                    window.preparePlayerEditFormFields();
+                                }
 
-                        const formData = new FormData(form);
-                        const submitButton = form.querySelector('button[type="submit"]');
-                        const originalButtonText = submitButton ? submitButton.innerHTML : '';
+                                const formData = new FormData(form);
+                                const submitButton = form.querySelector('button[type="submit"]');
+                                const originalButtonText = submitButton ? submitButton.innerHTML : '';
 
-                        if (submitButton) {
-                            submitButton.disabled = true;
-                            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>' + translations.saving;
+                                if (submitButton) {
+                                    submitButton.disabled = true;
+                                    submitButton.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>' + translations.saving;
+                                }
+
+                                fetch(form.action || url, {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                    },
+                                    credentials: 'same-origin'
+                                })
+                                .then(response => {
+                                    // Verificar si la respuesta es JSON (éxito) o HTML (error)
+                                    const contentType = response.headers.get('content-type');
+                                    if (contentType && contentType.includes('application/json')) {
+                                        return response.json();
+                                    } else {
+                                        return response.text().then(text => ({ html: text }));
+                                    }
+                                })
+                                .then(data => {
+                                    if (data.success) {
+                                        // Éxito - mostrar mensaje y recargar el tab de mis-hijos
+                                        const successMsg = document.createElement('div');
+                                        successMsg.className = 'alert alert-success';
+                                        successMsg.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + (data.message || translations.playerUpdated);
+                                        // Insertar el mensaje antes del formulario
+                                        if (form.parentNode) {
+                                            form.parentNode.insertBefore(successMsg, form);
+                                        } else {
+                                            editTab.insertBefore(successMsg, form);
+                                        }
+
+                                        // Recargar el tab de mis-hijos después de 1.5 segundos
+                                        setTimeout(() => {
+                                            const misHijosButton = document.querySelector('.tab-btn[data-tab="mis-hijos"]');
+                                            if (misHijosButton) {
+                                                window.location.reload();
+                                            }
+                                        }, 1500);
+                                    } else if (data.html) {
+                                        // Hay HTML de respuesta, podría ser un error o el formulario con errores
+                                        const tempDiv = document.createElement('div');
+                                        tempDiv.innerHTML = data.html;
+
+                                        // Verificar si hay mensajes de error
+                                        const errors = tempDiv.querySelector('.errorlist, .alert-danger, .non-field-errors');
+                                        if (errors) {
+                                            // Mostrar errores
+                                            const errorContainer = document.createElement('div');
+                                            errorContainer.className = 'alert alert-danger mt-3';
+                                            errorContainer.innerHTML = errors.innerHTML;
+                                            form.parentNode.insertBefore(errorContainer, form);
+
+                                            if (submitButton) {
+                                                submitButton.disabled = false;
+                                                submitButton.innerHTML = originalButtonText;
+                                            }
+                                        } else {
+                                            // Podría ser el formulario actualizado, reemplazar el contenido
+                                            const newForm = tempDiv.querySelector('form');
+                                            if (newForm) {
+                                                form.parentNode.replaceChild(newForm.cloneNode(true), form);
+                                            }
+
+                                            if (submitButton) {
+                                                submitButton.disabled = false;
+                                                submitButton.innerHTML = originalButtonText;
+                                            }
+                                        }
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Error:', error);
+                                    const errorMsg = document.createElement('div');
+                                    errorMsg.className = 'alert alert-danger mt-3';
+                                    errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + translations.errorSaving;
+                                    form.parentNode.insertBefore(errorMsg, form);
+
+                                    if (submitButton) {
+                                        submitButton.disabled = false;
+                                        submitButton.innerHTML = originalButtonText;
+                                    }
+                                });
+                            });
                         }
-
-                        fetch(form.action || url, {
-                            method: 'POST',
-                            body: formData,
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest',
-                            },
-                            credentials: 'same-origin'
-                        })
-                        .then(response => {
-                            // Verificar si la respuesta es JSON (éxito) o HTML (error)
-                            const contentType = response.headers.get('content-type');
-                            if (contentType && contentType.includes('application/json')) {
-                                return response.json();
-                            } else {
-                                return response.text().then(text => ({ html: text }));
-                            }
-                        })
-                        .then(data => {
-                            if (data.success) {
-                                // Éxito - mostrar mensaje y recargar el tab de mis-hijos
-                                const successMsg = document.createElement('div');
-                                successMsg.className = 'alert alert-success';
-                                successMsg.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + (data.message || translations.playerUpdated);
-                                // Insertar el mensaje antes del formulario
-                                if (form.parentNode) {
-                                    form.parentNode.insertBefore(successMsg, form);
-                                } else {
-                                    editTab.insertBefore(successMsg, form);
-                                }
-
-                                // Recargar el tab de mis-hijos después de 1.5 segundos
-                                setTimeout(() => {
-                                    const misHijosButton = document.querySelector('.tab-btn[data-tab="mis-hijos"]');
-                                    if (misHijosButton) {
-                                        window.location.reload();
-                                    }
-                                }, 1500);
-                            } else if (data.html) {
-                                // Hay HTML de respuesta, podría ser un error o el formulario con errores
-                                const tempDiv = document.createElement('div');
-                                tempDiv.innerHTML = data.html;
-
-                                // Verificar si hay mensajes de error
-                                const errors = tempDiv.querySelector('.errorlist, .alert-danger, .non-field-errors');
-                                if (errors) {
-                                    // Mostrar errores
-                                    const errorContainer = document.createElement('div');
-                                    errorContainer.className = 'alert alert-danger mt-3';
-                                    errorContainer.innerHTML = errors.innerHTML;
-                                    form.parentNode.insertBefore(errorContainer, form);
-
-                                    if (submitButton) {
-                                        submitButton.disabled = false;
-                                        submitButton.innerHTML = originalButtonText;
-                                    }
-                                } else {
-                                    // Podría ser el formulario actualizado, reemplazar el contenido
-                                    const newForm = tempDiv.querySelector('form');
-                                    if (newForm) {
-                                        form.parentNode.replaceChild(newForm.cloneNode(true), form);
-                                    }
-
-                                    if (submitButton) {
-                                        submitButton.disabled = false;
-                                        submitButton.innerHTML = originalButtonText;
-                                    }
-                                }
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            const errorMsg = document.createElement('div');
-                            errorMsg.className = 'alert alert-danger mt-3';
-                            errorMsg.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + translations.errorSaving;
-                            form.parentNode.insertBefore(errorMsg, form);
-
-                            if (submitButton) {
-                                submitButton.disabled = false;
-                                submitButton.innerHTML = originalButtonText;
-                            }
-                        });
-                    });
-                } else {
-                    console.error('Formulario NO encontrado después de agregar contenido');
-                    console.log('Contenido del tab:', editTab.innerHTML.substring(0, 1000));
-                }
+                    } else {
+                        console.error('Formulario NO encontrado después de agregar contenido');
+                        console.log('Contenido del tab:', editTab.innerHTML.substring(0, 1000));
+                    }
                 }, 100); // Esperar 100ms para que el DOM se actualice
 
                 // Hacer scroll hacia el tab después de que se complete la carga
