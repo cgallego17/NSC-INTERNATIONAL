@@ -505,8 +505,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'id_relationship',
             'id_first_name',
             'id_last_name',
-            'id_birth_date',
-            'id_age_verification_document'
+            'id_birth_date'
         ];
 
         let camposEncontrados = 0;
@@ -858,6 +857,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 fileInput.click();
             }
         });
+
+        // Asegurar que el campo no sea requerido
+        fileInput.removeAttribute('required');
+        fileInput.required = false;
 
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];

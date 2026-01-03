@@ -955,6 +955,7 @@ class PlayerRegistrationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.manager = kwargs.pop("manager", None)
         super().__init__(*args, **kwargs)
+        self.fields["age_verification_document"].required = False
         if self.manager:
             # Solo mostrar equipos que el manager gestiona
             self.fields["team"].queryset = Team.objects.filter(manager=self.manager)
@@ -1245,6 +1246,7 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         self.fields["medical_conditions"].required = True
         self.fields["grade"].required = True
         self.fields["division"].required = True
+        self.fields["age_verification_document"].required = False
 
         # Tallas de uniformes también son obligatorias
         self.fields["jersey_size"].required = True
@@ -1621,6 +1623,9 @@ class PlayerUpdateForm(forms.ModelForm):
             self.fields["age_verification_notes"].widget = forms.HiddenInput()
             self.fields["age_verification_status"].required = False
             self.fields["age_verification_notes"].required = False
+
+        # El documento de verificación de edad no es requerido
+        self.fields["age_verification_document"].required = False
 
         # Cargar la foto de perfil actual si existe
         if self.instance and hasattr(self.instance, "user"):

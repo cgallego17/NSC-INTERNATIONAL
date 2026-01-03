@@ -499,6 +499,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const fileUploadArea = document.getElementById('ageVerificationUploadArea');
 
     if (fileInput && fileUploadArea) {
+        // Asegurar que el campo no sea requerido
+        fileInput.removeAttribute('required');
+        fileInput.required = false;
+
         fileUploadArea.addEventListener('click', function(e) {
             if (e.target !== fileInput) {
                 fileInput.click();
