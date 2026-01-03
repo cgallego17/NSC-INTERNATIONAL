@@ -1624,6 +1624,13 @@ def stripe_webhook(request):
 
 
 @login_required
+def events_blocked_view(request, *args, **kwargs):
+    """Vista temporal para bloquear acceso a eventos desde accounts"""
+    messages.error(request, _("Access to events is temporarily blocked."))
+    return redirect("accounts:panel")
+
+
+@login_required
 @require_POST
 def approve_age_verification(request, pk):
     """Vista para aprobar o rechazar verificación de edad de un jugador"""
@@ -1672,6 +1679,12 @@ def approve_age_verification(request, pk):
 
 @login_required
 @require_POST
+def events_blocked_view(request, *args, **kwargs):
+    """Vista temporal para bloquear acceso a eventos desde accounts"""
+    messages.error(request, _("Access to events is temporarily blocked."))
+    return redirect("accounts:panel")
+
+
 def wallet_add_funds(request):
     """Vista para agregar fondos a la wallet del usuario"""
     from .models import UserWallet

@@ -119,6 +119,7 @@
                                 <i class="fas fa-users"></i>
                                 <span>Ver Jugadores</span>
                             </button>
+                            {% comment %} BLOQUEADO TEMPORALMENTE
                             <button type="button" class="quick-action-btn tab-btn" data-tab="eventos" data-url="{% url 'events:list' %}">
                                 <i class="fas fa-calendar-alt"></i>
                                 <span>Eventos</span>
@@ -126,6 +127,7 @@
                                     <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ upcoming_events|length }}</span>
                                 {% endif %}
                             </button>
+                            {% endcomment %}
                             <button type="button" class="quick-action-btn tab-btn" data-tab="calendario" data-url="{% url 'events:calendar' %}">
                                 <i class="fas fa-calendar"></i>
                                 <span>Calendario</span>
@@ -161,6 +163,7 @@
                                 <i class="fas fa-child"></i>
                                 <span>Mis Hijos/Jugadores</span>
                             </button>
+                            {% comment %} BLOQUEADO TEMPORALMENTE
                             <button type="button" class="quick-action-btn tab-btn" data-tab="eventos" data-url="{% url 'events:list' %}">
                                 <i class="fas fa-calendar-alt"></i>
                                 <span>Eventos</span>
@@ -168,6 +171,7 @@
                                     <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ upcoming_events|length }}</span>
                                 {% endif %}
                             </button>
+                            {% endcomment %}
                             <button type="button" class="quick-action-btn tab-btn" data-tab="calendario" data-url="{% url 'events:calendar' %}">
                                 <i class="fas fa-calendar"></i>
                                 <span>Calendario</span>
@@ -205,6 +209,7 @@
                                     <span>Perfil Público</span>
                                 </button>
                             {% endif %}
+                            {% comment %} BLOQUEADO TEMPORALMENTE
                             <button type="button" class="quick-action-btn tab-btn" data-tab="eventos" data-url="{% url 'events:list' %}">
                                 <i class="fas fa-calendar-alt"></i>
                                 <span>Eventos</span>
@@ -212,6 +217,7 @@
                                     <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ upcoming_events|length }}</span>
                                 {% endif %}
                             </button>
+                            {% endcomment %}
                             <button type="button" class="quick-action-btn tab-btn" data-tab="calendario" data-url="{% url 'events:calendar' %}">
                                 <i class="fas fa-calendar"></i>
                                 <span>Calendario</span>

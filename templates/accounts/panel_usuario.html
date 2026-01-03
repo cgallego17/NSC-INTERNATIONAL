@@ -480,6 +480,7 @@
                         </button>
                     {% endif %}
                 {% endif %}
+                {% comment %} BLOQUEADO TEMPORALMENTE
                 <button type="button" class="quick-action-btn tab-btn" data-tab="eventos" data-url="{% url 'events:list' %}">
                     <i class="fas fa-calendar-alt"></i>
                     <span>{% trans "Events" %}</span>
@@ -487,6 +488,7 @@
                         <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ upcoming_events|length }}</span>
                     {% endif %}
                 </button>
+                {% endcomment %}
                 <button type="button" class="quick-action-btn tab-btn" data-tab="calendario" data-url="{% url 'events:calendar' %}">
                     <i class="fas fa-calendar"></i>
                     <span>{% trans "Calendar" %}</span>

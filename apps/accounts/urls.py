@@ -84,31 +84,36 @@ urlpatterns = [
         views_private.approve_age_verification,
         name="approve_age_verification",
     ),
-    # Eventos en el panel
+    # Eventos en el panel - BLOQUEADO TEMPORALMENTE
+    path(
+        "events/",
+        views_private.events_blocked_view,
+        name="events_blocked",
+    ),
     path(
         "events/<int:pk>/",
-        views_private.PanelEventDetailView.as_view(),
+        views_private.events_blocked_view,
         name="panel_event_detail",
     ),
     path(
         "events/<int:pk>/register/",
-        views_private.register_children_to_event,
+        views_private.events_blocked_view,
         name="register_children_to_event",
     ),
-    # Stripe checkout (evento)
+    # Stripe checkout (evento) - BLOQUEADO TEMPORALMENTE
     path(
         "events/<int:pk>/stripe/create-checkout-session/",
-        views_private.create_stripe_event_checkout_session,
+        views_private.events_blocked_view,
         name="create_stripe_event_checkout_session",
     ),
     path(
         "events/<int:pk>/stripe/success/",
-        views_private.stripe_event_checkout_success,
+        views_private.events_blocked_view,
         name="stripe_event_checkout_success",
     ),
     path(
         "events/<int:pk>/stripe/cancel/",
-        views_private.stripe_event_checkout_cancel,
+        views_private.events_blocked_view,
         name="stripe_event_checkout_cancel",
     ),
     path("stripe/webhook/", views_private.stripe_webhook, name="stripe_webhook"),
