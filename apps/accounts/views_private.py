@@ -768,6 +768,67 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
         else:
             return ["accounts/player_edit.html"]
 
+    def get(self, request, *args, **kwargs):
+        """Sobrescribir get para manejar peticiones AJAX"""
+        try:
+            self.object = self.get_object()
+
+            # Si es una petición AJAX, renderizar solo el contenido del formulario
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                from django.template.loader import render_to_string
+                from django.http import HttpResponse
+                import logging
+
+                logger = logging.getLogger(__name__)
+
+                try:
+                    form = self.get_form()
+                    context = self.get_context_data(object=self.object, form=form)
+
+                    # Renderizar el template completo
+                    template_names = self.get_template_names()
+                    html = render_to_string(template_names, context, request=request)
+
+                    # Extraer solo el contenido del bloque content
+                    # Buscar el inicio del contenido (después de {% block content %})
+                    content_start = html.find('<div class="tab-content-header">')
+                    if content_start == -1:
+                        # Si no se encuentra, buscar el inicio del formulario
+                        content_start = html.find('<div class="form-container">')
+                    if content_start == -1:
+                        # Si aún no se encuentra, buscar el primer div con mensajes
+                        content_start = html.find('<div class="messages-container">')
+
+                    if content_start != -1:
+                        # Encontrar el final del bloque content (antes de {% endblock %})
+                        # Buscar el último </script> antes de {% endblock %}
+                        script_end = html.rfind('</script>')
+                        if script_end != -1 and script_end > content_start:
+                            content_end = script_end + len('</script>')
+                            # Buscar si hay un {% endblock %} después del script
+                            endblock_pos = html.find('{% endblock %}', content_end)
+                            if endblock_pos != -1:
+                                # Devolver solo el contenido del bloque
+                                return HttpResponse(html[content_start:content_end])
+                            else:
+                                return HttpResponse(html[content_start:])
+                        else:
+                            return HttpResponse(html[content_start:])
+                    else:
+                        # Si no se encuentra el inicio, devolver el HTML completo
+                        return HttpResponse(html)
+                except Exception as e:
+                    logger.error(f"Error rendering template for AJAX request: {e}", exc_info=True)
+                    from django.http import JsonResponse
+                    return JsonResponse({"error": str(e)}, status=500)
+
+            return super().get(request, *args, **kwargs)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error in PlayerUpdateView.get: {e}", exc_info=True)
+            raise
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Determinar si el usuario es padre del jugador para ocultar campos en el template

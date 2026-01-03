@@ -1,7 +1,3 @@
-{% if is_ajax %}
-{% load static %}
-{% load i18n %}
-{% else %}
 {% extends 'base.html' %}
 {% load static %}
 {% load i18n %}
@@ -14,7 +10,6 @@
 {% endblock %}
 
 {% block content %}
-{% endif %}
 <!-- Messages (hidden, converted to toasts) -->
 <div class="messages-container" style="display: none;">
     {% for message in messages %}
@@ -674,7 +669,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
 });
 </script>
-{% if not is_ajax %}
 {% endblock %}
-{% endif %}
 
