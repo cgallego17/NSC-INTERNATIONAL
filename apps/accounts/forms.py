@@ -1221,7 +1221,6 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "accept": ".pdf,.jpg,.jpeg,.png",
-                    "required": True,
                 }
             ),
         }
@@ -1246,7 +1245,6 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         self.fields["medical_conditions"].required = True
         self.fields["grade"].required = True
         self.fields["division"].required = True
-        self.fields["age_verification_document"].required = True
 
         # Tallas de uniformes también son obligatorias
         self.fields["jersey_size"].required = True
