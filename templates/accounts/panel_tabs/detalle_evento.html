@@ -16,11 +16,11 @@
                 <!-- Banner del Evento -->
                 {% if event.banner %}
                     <div style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 25px;">
-                        <img src="{{ event.banner }}" alt="{{ event.title }}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                        <img src="{{ event.banner|clean_localhost_url }}" alt="{{ event.title }}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
                     </div>
                 {% elif event.logo %}
                     <div style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 25px;">
-                        <img src="{{ event.logo }}" alt="{{ event.title }}" style="width: 100%; height: 100%; object-fit: contain; object-position: center; background: #f8f9fa;">
+                        <img src="{{ event.logo|clean_localhost_url }}" alt="{{ event.title }}" style="width: 100%; height: 100%; object-fit: contain; object-position: center; background: #f8f9fa;">
                     </div>
                 {% endif %}
 
@@ -1004,7 +1004,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 hotelTotal = hotelBasePrice + hotelIVA + hotelISH;
             }
 
-            hotelSummary.style.display = 'block';
+            if (hotelSummary) {
+                hotelSummary.style.display = 'block';
+            }
 
             // Nombre del hotel
             const hotelNameEl = document.getElementById('checkout-hotel-name');

@@ -1,4 +1,5 @@
 {% load i18n %}
+{% load url_filters %}
 <div class="tab-content-header mb-4">
     <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
         <i class="fas fa-calendar-alt me-2" style="color: var(--mlb-red);"></i>{% trans "Events" %}
@@ -17,7 +18,7 @@
                     <!-- Imagen del evento - Lado izquierdo -->
                     <div style="width: 280px; min-width: 280px; max-width: 280px; min-height: 280px; overflow: hidden; position: relative; background: #f8f9fa; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
                         {% if event.logo %}
-                            <img src="{{ event.logo }}" alt="{{ event.title }}" style="width: 100%; height: 100%; min-height: 280px; object-fit: contain; object-position: center; display: block; margin: 0; padding: 0;">
+                            <img src="{{ event.logo|clean_localhost_url }}" alt="{{ event.title }}" style="width: 100%; height: 100%; min-height: 280px; object-fit: contain; object-position: center; display: block; margin: 0; padding: 0;">
                         {% else %}
                             <div style="width: 100%; height: 100%; min-height: 280px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); display: flex; align-items: center; justify-content: center;">
                                 <i class="fas fa-calendar-alt" style="font-size: 3.5rem; color: rgba(255,255,255,0.3);"></i>
