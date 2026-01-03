@@ -1635,14 +1635,37 @@
                         // Asegurarse de que el formulario sea visible
                         form.style.display = 'block';
 
-                        // Inicializar el campo de foto de perfil si existe la función
+                        // Extraer y ejecutar scripts del HTML cargado
                         setTimeout(function() {
-                            if (typeof window.initProfilePictureUpload === 'function') {
-                                console.log('📸 Inicializando campo de foto de perfil...');
-                                window.initProfilePictureUpload();
-                            } else {
-                                console.warn('⚠️ window.initProfilePictureUpload no encontrada');
-                            }
+                            const scripts = editTab.querySelectorAll('script');
+                            console.log('📜 Scripts encontrados en el HTML:', scripts.length);
+
+                            scripts.forEach((script, index) => {
+                                try {
+                                    console.log(`📜 Ejecutando script ${index + 1}/${scripts.length}`);
+                                    const scriptContent = script.textContent || script.innerHTML;
+                                    if (scriptContent.trim()) {
+                                        // Crear un nuevo script tag y ejecutarlo
+                                        const newScript = document.createElement('script');
+                                        newScript.textContent = scriptContent;
+                                        document.body.appendChild(newScript);
+                                        document.body.removeChild(newScript);
+                                        console.log(`✅ Script ${index + 1} ejecutado`);
+                                    }
+                                } catch (error) {
+                                    console.error(`❌ Error ejecutando script ${index + 1}:`, error);
+                                }
+                            });
+
+                            // Después de ejecutar los scripts, intentar inicializar el campo de foto
+                            setTimeout(function() {
+                                if (typeof window.initProfilePictureUpload === 'function') {
+                                    console.log('📸 Inicializando campo de foto de perfil...');
+                                    window.initProfilePictureUpload();
+                                } else {
+                                    console.warn('⚠️ window.initProfilePictureUpload no encontrada después de ejecutar scripts');
+                                }
+                            }, 100);
                         }, 200);
 
                         // Verificar si ya tiene un listener de submit (usando una marca)
