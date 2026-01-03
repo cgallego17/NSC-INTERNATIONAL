@@ -933,6 +933,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Función para actualizar el resumen del checkout
     function updateCheckoutSummary() {
+        // Verificar que estamos en el contexto correcto (página de detalles de evento)
+        // Si no hay elementos del checkout, salir temprano para evitar errores
+        const checkoutContainer = document.getElementById('checkout-players-summary') ||
+                                  document.getElementById('checkout-hotel-summary') ||
+                                  document.querySelector('.child-checkbox');
+
+        if (!checkoutContainer) {
+            // No estamos en la página de checkout, salir silenciosamente
+            return;
+        }
+
         const playersCount = document.querySelectorAll('.child-checkbox:checked').length;
         const playersTotal = playersCount * pricePerPlayer;
         const addHotelBtn = document.getElementById('add-hotel-stay-btn');
@@ -954,12 +965,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const playersTotalSpan = document.getElementById('checkout-players-total');
         const emptyMessage = document.getElementById('checkout-empty-message');
 
-        if (playersCount > 0) {
-            playersSummary.style.display = 'block';
-            playersCountSpan.textContent = playersCount;
-            playersTotalSpan.textContent = '$' + formatPrice(playersTotal);
-        } else {
-            playersSummary.style.display = 'none';
+        if (playersSummary) {
+            if (playersCount > 0) {
+                playersSummary.style.display = 'block';
+                if (playersCountSpan) {
+                    playersCountSpan.textContent = playersCount;
+                }
+                if (playersTotalSpan) {
+                    playersTotalSpan.textContent = '$' + formatPrice(playersTotal);
+                }
+            } else {
+                playersSummary.style.display = 'none';
+            }
         }
 
         // Step 2: require players before allowing hotel selection
