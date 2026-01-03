@@ -79,6 +79,11 @@ urlpatterns = [
         views_private.PlayerUpdateView.as_view(),
         name="player_edit",
     ),
+    path(
+        "players/<int:pk>/approve-verification/",
+        views_private.approve_age_verification,
+        name="approve_age_verification",
+    ),
     # Eventos en el panel
     path(
         "events/<int:pk>/",

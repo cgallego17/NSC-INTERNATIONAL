@@ -1768,6 +1768,19 @@ class PlayerUpdateForm(forms.ModelForm):
                     player.jersey_number = self.instance.jersey_number
                     player.is_active = self.instance.is_active
 
+                    # Si se sube un nuevo documento, resetear el estado a "pending"
+                    if "age_verification_document" in self.cleaned_data and self.cleaned_data.get("age_verification_document"):
+                        # Verificar si es un documento nuevo (diferente al anterior)
+                        if self.instance.age_verification_document != self.cleaned_data["age_verification_document"]:
+                            player.age_verification_status = "pending"
+                            player.age_verification_approved_date = None
+                            player.age_verification_notes = ""
+                    else:
+                        # Mantener el estado original si no se sube documento nuevo
+                        player.age_verification_status = self.instance.age_verification_status
+                        player.age_verification_approved_date = self.instance.age_verification_approved_date
+                        player.age_verification_notes = self.instance.age_verification_notes
+
         # Guardar campos de User y UserProfile
         if hasattr(player, "user"):
             user = player.user

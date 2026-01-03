@@ -136,6 +136,33 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
         marquee_messages = MarqueeMessage.objects.filter(is_active=True).order_by("order", "-created_at")
         context["marquee_messages"] = marquee_messages
 
+        # Inicializar contadores de verificaciones pendientes
+        context["pending_verifications"] = []
+        context["pending_verifications_count"] = 0
+
+        # Si es staff/admin, obtener todos los documentos pendientes (no solo de sus equipos)
+        if user.is_staff or user.is_superuser:
+            context["pending_verifications"] = Player.objects.filter(
+                age_verification_status="pending",
+                age_verification_document__isnull=False
+            ).select_related("user", "team", "user__profile").order_by("-updated_at")[:20]
+            context["pending_verifications_count"] = Player.objects.filter(
+                age_verification_status="pending",
+                age_verification_document__isnull=False
+            ).count()
+        # Si es manager (pero no staff), obtener solo documentos de sus equipos
+        elif profile.is_team_manager:
+            context["pending_verifications"] = Player.objects.filter(
+                team__manager=user,
+                age_verification_status="pending",
+                age_verification_document__isnull=False
+            ).select_related("user", "team", "user__profile").order_by("-updated_at")[:10]
+            context["pending_verifications_count"] = Player.objects.filter(
+                team__manager=user,
+                age_verification_status="pending",
+                age_verification_document__isnull=False
+            ).count()
+
         # Contexto adicional para los includes de los tabs
         # Formulario de equipo (para managers)
         if profile.is_team_manager:
@@ -1594,6 +1621,53 @@ def stripe_webhook(request):
             ).update(status="expired")
 
     return HttpResponse(status=200)
+
+
+@login_required
+@require_POST
+def approve_age_verification(request, pk):
+    """Vista para aprobar o rechazar verificación de edad de un jugador"""
+    from django.utils import timezone
+
+    player = get_object_or_404(Player, pk=pk)
+    user = request.user
+
+    # Verificar permisos: solo staff, superuser o manager del equipo del jugador
+    is_staff = user.is_staff or user.is_superuser
+    is_manager = False
+    if hasattr(user, "profile") and user.profile.is_team_manager:
+        is_manager = player.team and player.team.manager == user
+
+    if not is_staff and not is_manager:
+        messages.error(request, _("You do not have permission to approve age verifications."))
+        return redirect("accounts:panel")
+
+    action = request.POST.get("action")  # "approve" or "reject"
+    notes = request.POST.get("notes", "")
+
+    if action == "approve":
+        player.age_verification_status = "approved"
+        player.age_verification_approved_date = timezone.now().date()
+        if notes:
+            player.age_verification_notes = notes
+        player.save()
+        messages.success(
+            request,
+            _("Age verification approved for player %(name)s.") % {"name": player.user.get_full_name() or player.user.username}
+        )
+    elif action == "reject":
+        player.age_verification_status = "rejected"
+        if notes:
+            player.age_verification_notes = notes
+        player.save()
+        messages.warning(
+            request,
+            _("Age verification rejected for player %(name)s.") % {"name": player.user.get_full_name() or player.user.username}
+        )
+    else:
+        messages.error(request, _("Invalid action."))
+
+    return redirect("accounts:panel")
 
 
 @login_required

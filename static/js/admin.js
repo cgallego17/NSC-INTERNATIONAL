@@ -624,7 +624,13 @@ class AdminDashboard {
         let toastClass = `modern-toast toast-${type}`;
 
         // Add special class for player registration
-        if (title && title.includes('Registro') || message.includes('Jugador') && message.includes('registrado')) {
+        const messageLower = message.toLowerCase();
+        const isPlayerRegistration =
+            (title && (title.includes('Registro') || title.includes('Registration'))) ||
+            (messageLower.includes('player') && (messageLower.includes('registered') || messageLower.includes('registrado'))) ||
+            (messageLower.includes('jugador') && messageLower.includes('registrado'));
+
+        if (isPlayerRegistration) {
             toastClass += ' player-registered';
         }
 
@@ -758,10 +764,23 @@ class AdminDashboard {
             // Special handling for player registration
             let title = null;
             let duration = 5000;
-            if (extraTags.includes('player_registered') || message.includes('Jugador') && message.includes('registrado')) {
+            const messageLower = message.toLowerCase();
+
+            // Detect player registration messages in both Spanish and English
+            const isPlayerRegistration =
+                extraTags.includes('player_registered') ||
+                (messageLower.includes('player') && (messageLower.includes('registered') || messageLower.includes('registrado'))) ||
+                (messageLower.includes('jugador') && messageLower.includes('registrado'));
+
+            if (isPlayerRegistration) {
                 toastType = 'success';
-                title = '¡Registro Exitoso!';
-                duration = 6000; // Show longer for important messages
+                // Detect language and set appropriate title
+                if (messageLower.includes('registrado') || messageLower.includes('jugador')) {
+                    title = '¡Registro Exitoso!';
+                } else {
+                    title = 'Registration Successful!';
+                }
+                duration = 7000; // Show longer for important messages
             }
 
             // Show toast
