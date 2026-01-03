@@ -1089,8 +1089,9 @@ class PlayerRegistrationForm(forms.ModelForm):
             profile.save()
 
         # Crear perfil de jugador directamente (no usar super().save() porque requiere user)
-        secondary_position = self.cleaned_data.get("secondary_position") or ""
-        is_pitcher = self.cleaned_data.get("is_pitcher") or False
+        # Obtener secondary_position e is_pitcher explícitamente
+        secondary_position = self.cleaned_data.get("secondary_position", "") or ""
+        is_pitcher = bool(self.cleaned_data.get("is_pitcher", False))
 
         player = Player.objects.create(
             user=user,
@@ -1590,8 +1591,9 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
 
         # Crear perfil de jugador
         # NOTA: El equipo y número de jersey NO se asignan aquí - serán asignados por un administrador o manager
-        secondary_position = self.cleaned_data.get("secondary_position") or ""
-        is_pitcher = self.cleaned_data.get("is_pitcher") or False
+        # Obtener secondary_position e is_pitcher explícitamente
+        secondary_position = self.cleaned_data.get("secondary_position", "") or ""
+        is_pitcher = bool(self.cleaned_data.get("is_pitcher", False))
 
         player = Player.objects.create(
             user=user,
@@ -1856,18 +1858,12 @@ class PlayerUpdateForm(forms.ModelForm):
         """Guardar los cambios, manteniendo los valores originales de campos deshabilitados para padres"""
         player = super().save(commit=False)
 
-        # Asegurar que secondary_position e is_pitcher se guarden explícitamente
-        secondary_position = self.cleaned_data.get("secondary_position")
-        if secondary_position:
-            player.secondary_position = secondary_position
-        else:
-            player.secondary_position = ""
-
-        is_pitcher = self.cleaned_data.get("is_pitcher")
-        if is_pitcher is not None:
-            player.is_pitcher = bool(is_pitcher)
-        else:
-            player.is_pitcher = False
+        # Asegurar que secondary_position e is_pitcher se guarden explícitamente desde cleaned_data
+        # super().save(commit=False) debería guardar estos campos, pero los establecemos explícitamente para asegurar
+        # que siempre se guarden correctamente, incluso si están vacíos o no se enviaron en el POST
+        player.secondary_position = self.cleaned_data.get("secondary_position", "") or ""
+        # Para is_pitcher, si no está en cleaned_data significa que el checkbox no estaba marcado
+        player.is_pitcher = bool(self.cleaned_data.get("is_pitcher", False))
 
         # Guardar campos de User
         if hasattr(player, "user"):
