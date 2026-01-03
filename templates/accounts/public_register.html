@@ -2592,6 +2592,84 @@
             }
         });
     </script>
+
+    <!-- Filtros en Cascada para País, Estado, Ciudad -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const countrySelect = document.getElementById('id_country');
+            const stateSelect = document.getElementById('id_state');
+            const citySelect = document.getElementById('id_city');
+
+            if (!countrySelect || !stateSelect || !citySelect) {
+                return; // Si no existen los campos, salir
+            }
+
+            // Guardar estados y ciudades originales
+            const allStates = Array.from(stateSelect.options).slice(1); // Excluir opción vacía
+            const allCities = Array.from(citySelect.options).slice(1); // Excluir opción vacía
+
+            // Cuando cambia el país, actualizar estados
+            countrySelect.addEventListener('change', function() {
+                const countryId = this.value;
+
+                // Limpiar estado y ciudad
+                stateSelect.innerHTML = '<option value="">---------</option>';
+                citySelect.innerHTML = '<option value="">---------</option>';
+
+                if (countryId) {
+                    // Cargar estados del país seleccionado
+                    fetch(`/locations/api/states/?country=${countryId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(state => {
+                                const option = document.createElement('option');
+                                option.value = state.id;
+                                option.textContent = state.name;
+                                stateSelect.appendChild(option);
+                            });
+                        })
+                        .catch(error => console.error('Error loading states:', error));
+                } else {
+                    // Restaurar todos los estados
+                    allStates.forEach(option => {
+                        stateSelect.appendChild(option.cloneNode(true));
+                    });
+                    // Restaurar todas las ciudades
+                    allCities.forEach(option => {
+                        citySelect.appendChild(option.cloneNode(true));
+                    });
+                }
+            });
+
+            // Cuando cambia el estado, actualizar ciudades
+            stateSelect.addEventListener('change', function() {
+                const stateId = this.value;
+
+                // Limpiar ciudad
+                citySelect.innerHTML = '<option value="">---------</option>';
+
+                if (stateId) {
+                    // Cargar ciudades del estado seleccionado
+                    fetch(`/locations/api/cities/?state=${stateId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(city => {
+                                const option = document.createElement('option');
+                                option.value = city.id;
+                                option.textContent = city.name;
+                                citySelect.appendChild(option);
+                            });
+                        })
+                        .catch(error => console.error('Error loading cities:', error));
+                } else if (!countrySelect.value) {
+                    // Solo restaurar todas las ciudades si no hay país seleccionado
+                    allCities.forEach(option => {
+                        citySelect.appendChild(option.cloneNode(true));
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
 
