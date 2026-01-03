@@ -1,3 +1,7 @@
+{% if is_ajax %}
+{% load static %}
+{% load i18n %}
+{% else %}
 {% extends 'base.html' %}
 {% load static %}
 {% load i18n %}
@@ -10,6 +14,7 @@
 {% endblock %}
 
 {% block content %}
+{% endif %}
 <!-- Messages (hidden, converted to toasts) -->
 <div class="messages-container" style="display: none;">
     {% for message in messages %}
@@ -22,7 +27,7 @@
     <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
         <i class="fas fa-user-edit me-2" style="color: var(--mlb-red);"></i>{% trans "Edit Child/Player" %}
     </h4>
-    <p class="text-muted">{% trans "Modify your child's information" %}: {{ object.user.get_full_name|default:object.user.username }}</p>
+    <p class="text-muted">{% trans "Modify your child's information" %}: {% if object.user %}{{ object.user.get_full_name|default:object.user.username }}{% else %}{{ object.first_name }} {{ object.last_name }}{% endif %}</p>
 </div>
 
 <div class="form-container">
@@ -669,5 +674,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
 });
 </script>
+{% if not is_ajax %}
 {% endblock %}
+{% endif %}
 
