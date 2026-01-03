@@ -815,34 +815,63 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
     template_name = "accounts/player_edit.html"  # Default, se puede sobrescribir en get_template_names
 
     def dispatch(self, request, *args, **kwargs):
-        player = self.get_object()
+        try:
+            # Verificar que el usuario esté autenticado y tenga sesión válida
+            if not request.user.is_authenticated:
+                from django.http import JsonResponse
+                if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                    return JsonResponse(
+                        {"error": "Session expired. Please log in again."},
+                        status=401
+                    )
+                messages.error(request, _("Your session has expired. Please log in again."))
+                return redirect("accounts:login")
 
-        # Verificar si el usuario es padre/acudiente del jugador
-        is_parent = False
-        if hasattr(request.user, "profile") and request.user.profile.is_parent:
-            is_parent = PlayerParent.objects.filter(
-                parent=request.user, player=player
-            ).exists()
+            player = self.get_object()
 
-        # Verificar si es manager del equipo del jugador
-        is_manager = False
-        if hasattr(request.user, "profile"):
-            is_manager = (
-                request.user.profile.is_team_manager
-                and player.team
-                and player.team.manager == request.user
-            )
+            # Verificar si el usuario es padre/acudiente del jugador
+            is_parent = False
+            if hasattr(request.user, "profile") and request.user.profile.is_parent:
+                is_parent = PlayerParent.objects.filter(
+                    parent=request.user, player=player
+                ).exists()
 
-        is_staff = request.user.is_staff or request.user.is_superuser
+            # Verificar si es manager del equipo del jugador
+            is_manager = False
+            if hasattr(request.user, "profile"):
+                is_manager = (
+                    request.user.profile.is_team_manager
+                    and player.team
+                    and player.team.manager == request.user
+                )
 
-        # Los jugadores NO pueden editar su propia información (están inactivos)
-        # Solo padres, managers y staff pueden editar
-        if not is_parent and not is_manager and not is_staff:
-            messages.error(
-                request, _("You do not have permission to edit this player.")
-            )
-            return redirect("accounts:player_detail", pk=player.pk)
-        return super().dispatch(request, *args, **kwargs)
+            is_staff = request.user.is_staff or request.user.is_superuser
+
+            # Los jugadores NO pueden editar su propia información (están inactivos)
+            # Solo padres, managers y staff pueden editar
+            if not is_parent and not is_manager and not is_staff:
+                messages.error(
+                    request, _("You do not have permission to edit this player.")
+                )
+                return redirect("accounts:player_detail", pk=player.pk)
+            return super().dispatch(request, *args, **kwargs)
+
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error in PlayerUpdateView.dispatch: {e}", exc_info=True)
+
+            # Si es una petición AJAX, devolver error JSON
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                from django.http import JsonResponse
+                return JsonResponse(
+                    {"error": f"Session error: {str(e)}"},
+                    status=500
+                )
+
+            # Si no es AJAX, redirigir al login
+            messages.error(request, _("An error occurred. Please try logging in again."))
+            return redirect("accounts:login")
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()

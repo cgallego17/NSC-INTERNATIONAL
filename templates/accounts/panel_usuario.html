@@ -1371,19 +1371,53 @@
                 }
             }, 100);
 
-            // Cargar el contenido mediante AJAX
+            // Verificar que tenemos sesión activa antes de cargar
+            if (!document.cookie.includes('sessionid')) {
+                console.error('❌ No se encontró sesión activa');
+                alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                window.location.href = '/accounts/login/?next=' + encodeURIComponent(window.location.pathname);
+                return;
+            }
+
+            // Cargar el contenido mediante AJAX con timeout
+            console.log('🔵 Iniciando petición AJAX a:', url);
+
+            // Crear un timeout de 30 segundos
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                console.error('⏱️ TIMEOUT: La petición tardó más de 30 segundos');
+                controller.abort();
+            }, 30000);
+
             fetch(url, {
                 method: 'GET',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                 },
-                credentials: 'same-origin'
+                credentials: 'same-origin',
+                signal: controller.signal
             })
             .then(response => {
-                console.log('Respuesta recibida, status:', response.status);
+                clearTimeout(timeoutId);
+                console.log('✅ Respuesta recibida, status:', response.status);
+                console.log('✅ Response headers:', {
+                    contentType: response.headers.get('content-type'),
+                    contentLength: response.headers.get('content-length')
+                });
+
+                // Manejar sesión expirada (401)
+                if (response.status === 401) {
+                    console.error('❌ Sesión expirada (401)');
+                    alert('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
+                    window.location.href = '/accounts/login/?next=' + encodeURIComponent(window.location.pathname);
+                    throw new Error('Session expired');
+                }
+
+                // Manejar otros errores
                 if (!response.ok) {
                     throw new Error(translations.errorLoadingForm + ': ' + response.status);
                 }
+
                 return response.text();
             })
             .then(html => {
@@ -1926,8 +1960,28 @@
                 }, 300);
             })
             .catch(error => {
-                console.error('Error al cargar el formulario:', error);
-                editTab.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>' + translations.errorLoadingForm + ': ' + error.message + '. ' + translations.pleaseReload + '</div>';
+                if (timeoutId) clearTimeout(timeoutId);
+
+                // Si el error es de sesión expirada, ya se manejó en el then anterior
+                if (error.message === 'Session expired') {
+                    return;
+                }
+
+                console.error('❌ Error al cargar el formulario:', error);
+                console.error('❌ Error name:', error.name);
+                console.error('❌ Error message:', error.message);
+                console.error('❌ Error stack:', error.stack);
+
+                let errorMessage = translations.errorLoadingForm;
+                if (error.name === 'AbortError') {
+                    errorMessage = '⏱️ La petición tardó demasiado tiempo (timeout). Por favor, verifica tu conexión e intenta de nuevo.';
+                } else if (error.message.includes('Session')) {
+                    errorMessage = '🔐 Error de sesión. Por favor, recarga la página e intenta de nuevo.';
+                } else {
+                    errorMessage += ': ' + error.message;
+                }
+
+                editTab.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>' + errorMessage + '. ' + translations.pleaseReload + '<br><br><button class="btn btn-primary" onclick="window.location.reload()"><i class="fas fa-sync-alt me-2"></i>Recargar Página</button></div>';
 
                 // Hacer scroll incluso si hay error
                 setTimeout(() => {
