@@ -267,24 +267,27 @@
             overflow: hidden;
         }
 
+        /* Asegurar que carousel-item y hero-slide-item tengan la misma altura */
+        .hero-mlb .carousel-item.active {
+            display: block;
+        }
+
         .hero-mlb .carousel-item {
             height: auto;
             min-height: 600px;
+<<<<<<< Updated upstream
             max-height: 100vh;
         }
 
         .hero-mlb .carousel-item.active {
-            height: auto;
-            min-height: 600px;
-            max-height: 100vh;
+            display: block;
         }
 
         .hero-slide-item {
             position: relative;
             width: 100%;
             height: 100%;
-            min-height: 600px;
-            max-height: 100vh;
+            min-height: 100%;
             display: flex;
             align-items: center;
             overflow: hidden;
@@ -302,6 +305,10 @@
         }
 
         /* Ajuste para banners de tipo imagen - mostrar completo sin recortes si es necesario */
+        .hero-slide-item.banner-image {
+            background-color: #0d2c54;
+        }
+
         .hero-slide-item.banner-image img {
             object-fit: contain;
             object-position: center;
@@ -312,6 +319,29 @@
         .hero-slide-item img[alt*="World Series"] {
             object-fit: contain;
             object-position: center;
+        }
+
+        /* Asegurar que las imágenes ocupen todo el espacio disponible */
+        .hero-slide-item.banner-image {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-slide-item.banner-image img {
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        /* Mejorar el responsive de las imágenes en diferentes tamaños */
+        @media (max-width: 992px) {
+            .hero-slide-item.banner-image img {
+                object-fit: cover;
+            }
         }
 
         .hero-slide-overlay {
@@ -534,8 +564,7 @@
             }
 
             .hero-slide-item {
-                min-height: 550px;
-                max-height: 90vh;
+                min-height: 100%;
             }
 
             .hero-title {
@@ -562,8 +591,7 @@
             }
 
             .hero-slide-item {
-                min-height: 500px;
-                max-height: 85vh;
+                min-height: 100%;
             }
 
             .hero-title {
@@ -611,8 +639,7 @@
             }
 
             .hero-slide-item {
-                min-height: 450px;
-                max-height: 80vh;
+                min-height: 100%;
             }
 
             .hero-slide-item img {
@@ -621,10 +648,14 @@
 
             .hero-slide-item.banner-image img {
                 object-fit: cover;
+                width: 100%;
+                height: 100%;
             }
 
             .hero-slide-item img[alt*="World Series"] {
                 object-fit: cover;
+                width: 100%;
+                height: 100%;
             }
 
             .hero-title {
@@ -691,8 +722,15 @@
             }
 
             .hero-slide-item {
-                min-height: 400px;
-                max-height: 75vh;
+                min-height: 100%;
+            }
+
+            .hero-slide-item.banner-image img,
+            .hero-slide-item img[alt*="World Series"] {
+                object-fit: cover;
+                width: 100%;
+                height: 100%;
+>>>>>>> Stashed changes
             }
 
             .hero-title {
