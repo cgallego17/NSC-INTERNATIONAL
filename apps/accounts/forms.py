@@ -1178,6 +1178,24 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         ),
         help_text=_("Upload a profile picture (optional)"),
     )
+    country = forms.ModelChoiceField(
+        queryset=None,
+        required=False,
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_country"}),
+        label=_("Country"),
+    )
+    state = forms.ModelChoiceField(
+        queryset=None,
+        required=False,
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_state"}),
+        label=_("State"),
+    )
+    city = forms.ModelChoiceField(
+        queryset=None,
+        required=False,
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_city"}),
+        label=_("City"),
+    )
     relationship = forms.ChoiceField(
         choices=[
             ("father", _("Father")),
@@ -1262,6 +1280,21 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.parent = kwargs.pop("parent", None)
         super().__init__(*args, **kwargs)
+
+        # Importar modelos de ubicación
+        from apps.locations.models import City, Country, State
+
+        # Inicializar querysets para ubicación
+        self.fields["country"].queryset = Country.objects.filter(
+            is_active=True
+        ).order_by("name")
+        self.fields["state"].queryset = State.objects.filter(is_active=True).order_by(
+            "name"
+        )
+        self.fields["city"].queryset = City.objects.filter(is_active=True).order_by(
+            "name"
+        )
+
         # Los padres NO pueden seleccionar equipo - será asignado por admin o manager
         # El campo 'team' no está en los fields del Meta, así que no aparecerá en el formulario
 
@@ -1494,95 +1527,6 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
             raise forms.ValidationError(_("Last name is required."))
         return last_name.strip()
 
-    def clean_division(self):
-        """Validar que la división asignada sea válida según las reglas de elegibilidad"""
-        division = self.cleaned_data.get("division")
-        if not division:
-            return division
-
-        # Necesitamos birth_date y grade para calcular la división elegible
-        birth_date = self.cleaned_data.get("birth_date")
-        grade = self.cleaned_data.get("grade")
-
-        if not birth_date and not grade:
-            # Si no hay birth_date ni grade, permitir asignar división de todas formas
-            return division
-
-        # Calcular la división basada en edad directamente sin crear instancia completa
-        # Esto evita problemas con la verificación de edad
-        age_division = None
-        if birth_date:
-            try:
-                from datetime import date
-
-                # Calcular edad al 30 de abril
-                cutoff_date = date(date.today().year, 4, 30)
-                if cutoff_date < date.today():
-                    cutoff_date = date(date.today().year + 1, 4, 30)
-
-                age = cutoff_date.year - birth_date.year
-                if (cutoff_date.month, cutoff_date.day) < (
-                    birth_date.month,
-                    birth_date.day,
-                ):
-                    age -= 1
-
-                # Mapeo de edad a división
-                division_map = {
-                    5: "05U",
-                    6: "06U",
-                    7: "07U",
-                    8: "08U",
-                    9: "09U",
-                    10: "10U",
-                    11: "11U",
-                    12: "12U",
-                    13: "13U",
-                    14: "14U",
-                    15: "15U",
-                    16: "16U",
-                    17: "17U",
-                    18: "18U",
-                }
-
-                if age < 5:
-                    age_division = None
-                elif age >= 18:
-                    age_division = "18U"
-                else:
-                    age_division = division_map.get(age)
-            except Exception:
-                age_division = None
-
-        if not age_division:
-            # Si no se puede determinar división basada en edad, permitir asignar
-            return division
-
-        # Obtener el número de la división objetivo
-        try:
-            target_num = int(division.replace("U", ""))
-        except (ValueError, AttributeError):
-            return division
-
-        try:
-            age_division_num = int(age_division.replace("U", ""))
-        except (ValueError, AttributeError):
-            return division
-
-        # No puede jugar "down" (en una división menor)
-        if target_num < age_division_num:
-            raise forms.ValidationError(
-                f"El jugador no puede jugar en una división menor ({division}). División mínima elegible: {age_division}"
-            )
-
-        # Puede jugar "up" máximo 2 divisiones
-        if target_num > age_division_num + 2:
-            raise forms.ValidationError(
-                f"El jugador solo puede jugar hasta 2 divisiones arriba de su división basada en edad ({age_division}). División solicitada: {division}"
-            )
-
-        return division
-
     def clean_birth_date(self):
         """Validar que la fecha de nacimiento sea válida"""
         birth_date = self.cleaned_data.get("birth_date")
@@ -1637,6 +1581,9 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
             birth_date=self.cleaned_data.get("birth_date"),
             last_name2=last_name2,
             profile_picture=profile_picture,
+            country=self.cleaned_data.get("country"),
+            state=self.cleaned_data.get("state"),
+            city=self.cleaned_data.get("city"),
         )
 
         # Crear perfil de jugador
@@ -1731,6 +1678,24 @@ class PlayerUpdateForm(forms.ModelForm):
         required=False,
         widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
     )
+    country = forms.ModelChoiceField(
+        queryset=None,
+        required=False,
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_country"}),
+        label=_("Country"),
+    )
+    state = forms.ModelChoiceField(
+        queryset=None,
+        required=False,
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_state"}),
+        label=_("State"),
+    )
+    city = forms.ModelChoiceField(
+        queryset=None,
+        required=False,
+        widget=forms.Select(attrs={"class": "form-select", "id": "id_city"}),
+        label=_("City"),
+    )
 
     class Meta:
         model = Player
@@ -1807,6 +1772,31 @@ class PlayerUpdateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
+
+        # Importar modelos de ubicación
+        from apps.locations.models import City, Country, State
+
+        # Inicializar querysets para ubicación
+        self.fields["country"].queryset = Country.objects.filter(
+            is_active=True
+        ).order_by("name")
+        self.fields["state"].queryset = State.objects.filter(is_active=True).order_by(
+            "name"
+        )
+        self.fields["city"].queryset = City.objects.filter(is_active=True).order_by(
+            "name"
+        )
+
+        # Valores iniciales de ubicación desde el perfil del jugador
+        if (
+            self.instance
+            and hasattr(self.instance, "user")
+            and hasattr(self.instance.user, "profile")
+        ):
+            profile = self.instance.user.profile
+            self.fields["country"].initial = profile.country
+            self.fields["state"].initial = profile.state
+            self.fields["city"].initial = profile.city
 
         # Verificar si el usuario es padre/acudiente del jugador
         is_parent = False
@@ -2079,6 +2069,11 @@ class PlayerUpdateForm(forms.ModelForm):
                 profile.birth_date = self.cleaned_data.get(
                     "birth_date", profile.birth_date
                 )
+
+                # Guardar campos de ubicación
+                profile.country = self.cleaned_data.get("country", profile.country)
+                profile.state = self.cleaned_data.get("state", profile.state)
+                profile.city = self.cleaned_data.get("city", profile.city)
 
                 # Guardar foto de perfil si se proporciona
                 if self.cleaned_data.get("profile_picture"):
