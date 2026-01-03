@@ -271,6 +271,9 @@ def sidebar_context(request):
             if "/users" in current_path:
                 active_section = "users"
                 active_subsection = "user_list"
+            elif "verificaciones-pendientes" in current_path or "tab=verificaciones-pendientes" in current_path:
+                active_section = "age_verifications"
+                active_subsection = "pending_verifications"
             elif "/players" in current_path:
                 active_section = "players"
         elif current_path.startswith("/media/"):

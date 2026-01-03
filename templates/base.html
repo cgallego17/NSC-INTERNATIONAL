@@ -430,6 +430,17 @@
         </div>
         {% endif %}
 
+        <!-- Verificaciones de Edad (solo para managers y staff) -->
+        {% if pending_verifications_count %}
+            {% if user.is_staff or user.is_superuser or user.profile.is_team_manager %}
+            <a href="{% url 'accounts:panel' %}?tab=verificaciones-pendientes" class="sb-item{% if active_section == 'age_verifications' %} active{% endif %}" data-bs-title="Verificaciones de Edad">
+                <i class="sb-ico bi bi-file-check"></i>
+                <span class="hide-mini">Verificaciones de Edad</span>
+                <span class="badge bg-danger ms-auto" style="font-size: 0.7rem; padding: 2px 6px;">{{ pending_verifications_count }}</span>
+            </a>
+            {% endif %}
+        {% endif %}
+
         <!-- Jugadores -->
         <button class="sb-item w-100{% if active_section == 'players' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbPlayers" aria-expanded="{% if active_section == 'players' %}true{% else %}false{% endif %}" data-bs-title="Jugadores">
             <i class="sb-ico bi bi-person-badge"></i>
@@ -438,12 +449,6 @@
         </button>
         <div id="sbPlayers" class="collapse sb-sub{% if active_section == 'players' %} show{% endif %}">
             <a class="link{% if active_subsection == 'player_list' %} active{% endif %}" href="{% url 'accounts:player_list' %}">Lista de Jugadores</a>
-            {% if pending_verifications_count %}
-                <a class="link{% if active_subsection == 'pending_verifications' %} active{% endif %}" href="{% url 'accounts:panel' %}?tab=verificaciones-pendientes">
-                    Verificaciones Pendientes
-                    <span class="badge bg-danger ms-2" style="font-size: 0.7rem;">{{ pending_verifications_count }}</span>
-                </a>
-            {% endif %}
         </div>
 
             <div class="sb-label hide-mini">Administración</div>
