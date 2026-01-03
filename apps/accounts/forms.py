@@ -1675,6 +1675,11 @@ class PlayerUpdateForm(forms.ModelForm):
         # El documento de verificación de edad no es requerido
         self.fields["age_verification_document"].required = False
 
+        # Inicializar campos de Player (secondary_position e is_pitcher)
+        if self.instance and self.instance.pk:
+            self.fields["secondary_position"].initial = self.instance.secondary_position
+            self.fields["is_pitcher"].initial = self.instance.is_pitcher
+
         # Inicializar campos de User si hay una instancia
         if self.instance and hasattr(self.instance, "user"):
             user = self.instance.user
@@ -1699,11 +1704,43 @@ class PlayerUpdateForm(forms.ModelForm):
         if not division:
             return division
 
-        # Si hay una instancia, validar contra las reglas
+        # Si hay una instancia, validar contra las reglas (pero permitir sin verificación aprobada)
         if self.instance and self.instance.pk:
-            can_play, message = self.instance.can_play_in_division(division)
-            if not can_play:
-                raise forms.ValidationError(message)
+            # Validar reglas de división sin requerir verificación aprobada
+            # Solo validar que no juegue "down" y que esté dentro del rango permitido
+            eligible_divisions = self.instance.get_eligible_divisions()
+            if not eligible_divisions:
+                # Si no se puede determinar elegibilidad, permitir asignar división de todas formas
+                return division
+
+            # Obtener el número de la división objetivo
+            try:
+                target_num = int(division.replace("U", ""))
+            except (ValueError, AttributeError):
+                return division
+
+            # Obtener el número de la división más baja elegible (basada en edad)
+            age_division = self.instance.get_age_based_division()
+            if not age_division:
+                # Si no se puede determinar división basada en edad, permitir asignar
+                return division
+
+            try:
+                age_division_num = int(age_division.replace("U", ""))
+            except (ValueError, AttributeError):
+                return division
+
+            # No puede jugar "down" (en una división menor)
+            if target_num < age_division_num:
+                raise forms.ValidationError(
+                    f"El jugador no puede jugar en una división menor ({division}). División mínima elegible: {age_division}"
+                )
+
+            # Puede jugar "up" máximo 2 divisiones
+            if target_num > age_division_num + 2:
+                raise forms.ValidationError(
+                    f"El jugador solo puede jugar hasta 2 divisiones arriba de su división basada en edad ({age_division}). División solicitada: {division}"
+                )
 
         return division
 
