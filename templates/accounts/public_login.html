@@ -34,6 +34,7 @@
             min-height: 100vh;
             padding: 0;
             margin: 0;
+            overflow-x: hidden;
         }
 
         /* Contenedor principal que envuelve todo */
@@ -42,6 +43,17 @@
             display: flex;
             flex-direction: column;
             width: 100%;
+            overflow-x: hidden;
+        }
+
+        /* Forzar que todos los hijos directos sean bloques */
+        .login-page-wrapper > * {
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            float: none !important;
+            clear: both !important;
+            position: relative !important;
         }
 
         /* Área de contenido principal (login) */
@@ -55,6 +67,8 @@
             min-height: calc(100vh - 200px);
             width: 100%;
             max-width: 100%;
+            box-sizing: border-box;
+            order: 2;
         }
 
         /* Asegurar que el footer esté abajo y no al lado */
@@ -65,20 +79,28 @@
             position: relative !important;
             float: none !important;
             clear: both !important;
+            order: 3;
+            margin-top: auto;
         }
 
         /* Asegurar que el navbar no interfiera */
-        .login-page-wrapper .navbar-mlb {
+        .login-page-wrapper .navbar-mlb,
+        .login-page-wrapper .top-bar {
             width: 100% !important;
             flex-shrink: 0;
+            order: 1;
         }
 
-        /* Forzar layout de una columna - evitar que elementos se posicionen al lado */
-        .login-page-wrapper > * {
-            width: 100% !important;
-            max-width: 100% !important;
+        /* Asegurar que el navbar esté en bloque */
+        .login-page-wrapper .navbar-mlb,
+        .login-page-wrapper .top-bar-mlb,
+        .login-page-wrapper .top-bar {
             display: block !important;
+            width: 100% !important;
+            position: relative !important;
             float: none !important;
+            clear: both !important;
+            flex-shrink: 0;
         }
 
         /* Asegurar que el contenido del login no se expanda más allá de su contenedor */
