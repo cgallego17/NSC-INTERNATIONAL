@@ -1164,47 +1164,148 @@
                 // Mostrar el contenido correspondiente
                 const targetContent = document.getElementById('tab-content-' + tabId);
                 if (targetContent) {
-                    targetContent.style.display = 'block';
-                    targetContent.classList.add('active');
+                    // Verificar si el botón tiene una URL para cargar contenido dinámicamente
+                    const url = button ? button.getAttribute('data-url') : null;
 
-                    // Inicializar selectores de ubicación si es el tab de registrar hijo
-                    if (tabId === 'registrar-hijo') {
-                        setTimeout(function() {
-                            if (typeof window.initParentPlayerForm === 'function') {
-                                window.initParentPlayerForm();
+                    // Si hay URL y el contenido está vacío o no se ha cargado, cargarlo
+                    if (url && (!targetContent.innerHTML.trim() || targetContent.dataset.loaded !== 'true')) {
+                        // Mostrar indicador de carga
+                        targetContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">' + (translations.loading || 'Loading...') + '</span></div><p class="mt-3">' + (translations.loadingForm || 'Loading content...') + '</p></div>';
+                        targetContent.style.display = 'block';
+                        targetContent.classList.add('active');
+
+                        // Cargar contenido desde la URL
+                        fetch(url, {
+                            method: 'GET',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                            },
+                            credentials: 'same-origin'
+                        })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
                             }
-                        }, 100);
-                    }
+                            return response.text();
+                        })
+                        .then(html => {
+                            // Crear un elemento temporal para parsear el HTML
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = html;
 
-                    // Hacer scroll suave hacia el contenido del tab
-                    if (tabId === 'detalle-eventos') {
-                        // Para el tab de detalle de eventos, hacer scroll a la sección Event Details
-                        // Usar múltiples intentos para asegurar que el contenido esté renderizado
-                        const scrollAttempts = [200, 400, 600, 800];
-                        scrollAttempts.forEach((delay) => {
-                            setTimeout(() => {
-                                const eventDetailsSection = document.getElementById('event-details-section');
-                                if (eventDetailsSection) {
-                                    const rect = eventDetailsSection.getBoundingClientRect();
-                                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                                    const targetPosition = rect.top + scrollTop - 120; // 120px de offset
+                            // Intentar extraer solo el contenido del bloque 'content' o el body
+                            let content = null;
 
-                                    window.scrollTo({
-                                        top: targetPosition,
-                                        behavior: delay === scrollAttempts[0] ? 'smooth' : 'auto' // Solo smooth en el primer intento
-                                    });
+                            // Buscar el contenido dentro de un contenedor específico según el tab
+                            if (tabId === 'calendario') {
+                                // Para calendar, buscar el contenedor .calendar-container
+                                content = tempDiv.querySelector('.calendar-container');
+                                if (!content) {
+                                    // Si no existe, buscar el contenido dentro de block content
+                                    const contentBlock = tempDiv.querySelector('[data-content-block]') || tempDiv.querySelector('main') || tempDiv.querySelector('.container-fluid');
+                                    if (contentBlock) {
+                                        content = contentBlock;
+                                    }
                                 }
-                            }, delay);
+                            } else if (tabId === 'reservas') {
+                                // Para reservations, buscar contenedor similar
+                                content = tempDiv.querySelector('.reservation-container') || tempDiv.querySelector('.container-fluid') || tempDiv.querySelector('main');
+                            } else {
+                                // Para otros tabs, buscar el contenido principal
+                                content = tempDiv.querySelector('main') || tempDiv.querySelector('.container-fluid') || tempDiv.querySelector('.content');
+                            }
+
+                            // Si no se encuentra contenido específico, usar todo el body o el HTML completo
+                            if (!content) {
+                                const body = tempDiv.querySelector('body');
+                                if (body) {
+                                    content = body;
+                                } else {
+                                    content = tempDiv;
+                                }
+                            }
+
+                            // Insertar el contenido extraído
+                            targetContent.innerHTML = content.innerHTML;
+                            targetContent.dataset.loaded = 'true';
+
+                            // Ejecutar scripts dentro del contenido cargado
+                            const scripts = content.querySelectorAll('script');
+                            scripts.forEach(oldScript => {
+                                const newScript = document.createElement('script');
+                                Array.from(oldScript.attributes).forEach(attr => {
+                                    newScript.setAttribute(attr.name, attr.value);
+                                });
+                                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                                targetContent.appendChild(newScript);
+                            });
+
+                            // Inicializar scripts si es necesario
+                            if (tabId === 'registrar-hijo') {
+                                setTimeout(function() {
+                                    if (typeof window.initParentPlayerForm === 'function') {
+                                        window.initParentPlayerForm();
+                                    }
+                                }, 100);
+                            }
+
+                            // Hacer scroll suave hacia el contenido del tab
+                            setTimeout(() => {
+                                targetContent.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start',
+                                    inline: 'nearest'
+                                });
+                            }, 100);
+                        })
+                        .catch(error => {
+                            console.error('Error loading tab content:', error);
+                            targetContent.innerHTML = '<div class="alert alert-danger p-4"><i class="fas fa-exclamation-triangle me-2"></i>' + (translations.errorLoading || 'Error loading content. Please try again.') + '</div>';
                         });
                     } else {
-                        // Para otros tabs, hacer scroll normal
-                        setTimeout(() => {
-                            targetContent.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'start',
-                                inline: 'nearest'
+                        // Si no hay URL o ya está cargado, solo mostrar el contenido
+                        targetContent.style.display = 'block';
+                        targetContent.classList.add('active');
+
+                        // Inicializar selectores de ubicación si es el tab de registrar hijo
+                        if (tabId === 'registrar-hijo') {
+                            setTimeout(function() {
+                                if (typeof window.initParentPlayerForm === 'function') {
+                                    window.initParentPlayerForm();
+                                }
+                            }, 100);
+                        }
+
+                        // Hacer scroll suave hacia el contenido del tab
+                        if (tabId === 'detalle-eventos') {
+                            // Para el tab de detalle de eventos, hacer scroll a la sección Event Details
+                            // Usar múltiples intentos para asegurar que el contenido esté renderizado
+                            const scrollAttempts = [200, 400, 600, 800];
+                            scrollAttempts.forEach((delay) => {
+                                setTimeout(() => {
+                                    const eventDetailsSection = document.getElementById('event-details-section');
+                                    if (eventDetailsSection) {
+                                        const rect = eventDetailsSection.getBoundingClientRect();
+                                        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                                        const targetPosition = rect.top + scrollTop - 120; // 120px de offset
+
+                                        window.scrollTo({
+                                            top: targetPosition,
+                                            behavior: delay === scrollAttempts[0] ? 'smooth' : 'auto' // Solo smooth en el primer intento
+                                        });
+                                    }
+                                }, delay);
                             });
-                        }, 100);
+                        } else {
+                            // Para otros tabs, hacer scroll normal
+                            setTimeout(() => {
+                                targetContent.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start',
+                                    inline: 'nearest'
+                                });
+                            }, 100);
+                        }
                     }
                 }
             }
