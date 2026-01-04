@@ -3,20 +3,28 @@
 
 {% block title %}Administración de Contenido del Home - NCS International{% endblock %}
 
+{% block breadcrumb %}
+    <span>Dashboard</span> / <span>Contenido del Home</span>
+{% endblock %}
+
+{% block page_title %}
+    <h1>Administración de Contenido del Home</h1>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .admin-content-container {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        padding: 2rem 2rem 2rem 3rem;
+        padding: 2rem;
         min-height: 100vh;
     }
-    
+
     @media (max-width: 992px) {
         .admin-content-container {
-            padding: 2rem 1.5rem;
+            padding: 1.5rem;
         }
     }
-    
+
     .admin-card {
         background: #ffffff;
         border-radius: 0.5rem;
@@ -26,12 +34,12 @@
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         transition: transform 0.2s, box-shadow 0.2s;
     }
-    
+
     .admin-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    
+
     .admin-card-header {
         display: flex;
         justify-content: space-between;
@@ -40,51 +48,51 @@
         padding-bottom: 1rem;
         border-bottom: 2px solid #e9ecef;
     }
-    
+
     .admin-card-title {
         font-size: 1.25rem;
         font-weight: 600;
         color: #4a5568;
         margin: 0;
     }
-    
+
     .admin-card-icon {
         font-size: 2rem;
         color: #4a5568;
         margin-right: 1rem;
     }
-    
+
     .admin-stats {
         display: flex;
         gap: 1rem;
         flex-wrap: wrap;
     }
-    
+
     .admin-stat {
         background: #f8f9fa;
         padding: 0.75rem 1rem;
         border-radius: 0.5rem;
         border-left: 4px solid #0d2c54;
     }
-    
+
     .admin-stat-label {
         font-size: 0.85rem;
         color: #6c757d;
         margin-bottom: 0.25rem;
     }
-    
+
     .admin-stat-value {
         font-size: 1.5rem;
         font-weight: 700;
         color: #0d2c54;
     }
-    
+
     .quick-actions {
         display: flex;
         gap: 0.5rem;
         flex-wrap: wrap;
     }
-    
+
     .section-preview {
         margin-top: 1rem;
         padding: 1rem;
@@ -92,7 +100,7 @@
         border-radius: 0.5rem;
         border: 1px solid #e9ecef;
     }
-    
+
     .preview-image {
         max-width: 100%;
         max-height: 200px;
@@ -108,20 +116,9 @@
         <!-- Header -->
         <div class="row mb-4">
             <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h1 class="h3 mb-1">
-                            <i class="bi bi-sliders text-primary me-2"></i>
-                            Administración de Contenido del Home
-                        </h1>
-                        <p class="text-muted mb-0">
-                            Gestiona todos los elementos visuales y de contenido de la página principal
-                        </p>
-                    </div>
-                    <a href="{% url 'events:dashboard' %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-2"></i>Volver al Dashboard
-                    </a>
-                </div>
+                <p class="text-muted mb-3">
+                    Gestiona todos los elementos visuales y de contenido de la página principal
+                </p>
             </div>
         </div>
 

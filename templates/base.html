@@ -141,7 +141,7 @@
 <body data-theme="light">
 
     {% block navbar %}
-        {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.namespace == 'events' or request.resolver_match.namespace == 'locations' or request.resolver_match.namespace == 'media' or request.path|slice:":8" == '/admin/' %}
+        {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'home_content_admin' or request.resolver_match.namespace == 'events' or request.resolver_match.namespace == 'locations' or request.resolver_match.namespace == 'media' or '/accounts/home-content' in request.path or '/accounts/banner' in request.path or '/accounts/sponsor' in request.path or '/accounts/dashboard-banner' in request.path or request.path|slice:":8" == '/admin/' %}
             <!-- Topbar (solo para dashboard/admin) -->
             <header class="topbar">
         <div class="topbar-container">
@@ -291,7 +291,7 @@
         {% endif %}
     {% endblock %}
 
-    {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.namespace == 'events' or request.resolver_match.namespace == 'locations' or request.resolver_match.namespace == 'media' or request.path|slice:":8" == '/admin/' %}
+    {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'home_content_admin' or request.resolver_match.namespace == 'events' or request.resolver_match.namespace == 'locations' or request.resolver_match.namespace == 'media' or '/accounts/home-content' in request.path or '/accounts/banner' in request.path or '/accounts/sponsor' in request.path or '/accounts/dashboard-banner' in request.path or request.path|slice:":8" == '/admin/' %}
     <!-- Sidebar (solo para dashboard/admin) -->
     <aside id="sidebar" class="sidebar">
         <!-- Header aplicación -->
@@ -466,9 +466,9 @@
     {% endif %}
 
     <!-- Main Content -->
-    <div class="main-content{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'media' and request.path|slice:":8" != '/admin/' %} container{% endif %}" id="mainContent"{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'media' and request.path|slice:":8" != '/admin/' %} style="padding: 40px 0; min-height: calc(100vh - 200px);"{% endif %}>
+    <div class="main-content{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'home_content_admin' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'media' and '/accounts/home-content' not in request.path and '/accounts/banner' not in request.path and '/accounts/sponsor' not in request.path and '/accounts/dashboard-banner' not in request.path and request.path|slice:":8" != '/admin/' %} container{% endif %}" id="mainContent"{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'home_content_admin' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'media' and '/accounts/home-content' not in request.path and '/accounts/banner' not in request.path and '/accounts/sponsor' not in request.path and '/accounts/dashboard-banner' not in request.path and request.path|slice:":8" != '/admin/' %} style="padding: 40px 0; min-height: calc(100vh - 200px);"{% endif %}>
         <!-- Page Content -->
-        <main class="page-content{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'media' and request.path|slice:":8" != '/admin/' %}" style="padding: 0;"{% endif %}>
+        <main class="page-content{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'home_content_admin' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'media' and '/accounts/home-content' not in request.path and '/accounts/banner' not in request.path and '/accounts/sponsor' not in request.path and '/accounts/dashboard-banner' not in request.path and request.path|slice:":8" != '/admin/' %}" style="padding: 0;"{% endif %}>
             {% if messages %}
                 <div class="messages-container">
                     {% for message in messages %}

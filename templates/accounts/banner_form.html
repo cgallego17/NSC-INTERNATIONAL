@@ -5,20 +5,28 @@
     {% if object %}Editar Banner{% else %}Crear Banner{% endif %} - NCS International
 {% endblock %}
 
+{% block breadcrumb %}
+    <span>Dashboard</span> / <span>Contenido del Home</span> / <span>{% if object %}Editar Banner{% else %}Crear Banner{% endif %}</span>
+{% endblock %}
+
+{% block page_title %}
+    <h1>{% if object %}Editar Banner{% else %}Crear Nuevo Banner{% endif %}</h1>
+{% endblock %}
+
 {% block extra_css %}
 <style>
     .banner-form-container {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        padding: 2rem 2rem 2rem 3rem;
+        padding: 2rem;
         min-height: 100vh;
     }
-    
+
     @media (max-width: 992px) {
         .banner-form-container {
-            padding: 2rem 1.5rem;
+            padding: 1.5rem;
         }
     }
-    
+
     .form-section-card {
         background: #ffffff;
         border-radius: 0.5rem;
@@ -27,7 +35,7 @@
         border: 1px solid #e9ecef;
         box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
-    
+
     .form-section-title {
         font-size: 1rem;
         font-weight: 600;
@@ -36,17 +44,32 @@
         padding-bottom: 0.75rem;
         border-bottom: 2px solid #e9ecef;
     }
-    
+
     .image-preview {
-        max-width: 300px;
-        max-height: 200px;
+        max-width: 100%;
+        max-height: 300px;
+        width: auto;
+        height: auto;
         border-radius: 0.5rem;
         border: 2px solid #e9ecef;
         padding: 0.5rem;
         background: #f8f9fa;
-        margin-top: 1rem;
+        margin-top: 0.5rem;
+        display: block;
     }
-    
+
+    .image-upload-section {
+        border: 2px dashed #dee2e6;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+    }
+
+    .image-upload-section:hover {
+        border-color: #0d2c54;
+        background-color: #f8f9fa;
+    }
+
     .gradient-preview {
         width: 100%;
         height: 150px;
@@ -54,13 +77,13 @@
         border: 2px solid #e9ecef;
         margin-top: 1rem;
     }
-    
+
     .color-input-group {
         display: flex;
         gap: 1rem;
         align-items: center;
     }
-    
+
     .color-input-group input[type="color"] {
         width: 80px;
         height: 40px;
@@ -74,23 +97,12 @@
 {% block content %}
 <div class="banner-form-container">
     <div class="container-fluid">
-        <!-- Header -->
+        <!-- Descripción -->
         <div class="row mb-4">
             <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h1 class="h3 mb-1">
-                            <i class="bi bi-image text-primary me-2"></i>
-                            {% if object %}Editar Banner{% else %}Crear Nuevo Banner{% endif %}
-                        </h1>
-                        <p class="text-muted mb-0">
-                            {% if object %}Modifica los datos del banner{% else %}Agrega un nuevo banner para el carousel del home{% endif %}
-                        </p>
-                    </div>
-                    <a href="{% url 'accounts:home_content_admin' %}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-2"></i>Volver
-                    </a>
-                </div>
+                <p class="text-muted mb-3">
+                    {% if object %}Modifica los datos del banner{% else %}Agrega un nuevo banner para el carousel del home{% endif %}
+                </p>
             </div>
         </div>
 
@@ -99,7 +111,7 @@
             <div class="col-12">
                 <form method="post" enctype="multipart/form-data">
                     {% csrf_token %}
-                    
+
                     <!-- Información General -->
                     <div class="form-section-card">
                         <div class="form-section-title">
@@ -168,25 +180,64 @@
                     <!-- Imagen -->
                     <div class="form-section-card" id="image-section">
                         <div class="form-section-title">
-                            <i class="bi bi-image"></i>Imagen del Banner
+                            <i class="bi bi-image"></i>Imágenes del Banner
                         </div>
-                        <div class="mb-3">
-                            <label for="{{ form.image.id_for_label }}" class="form-label">
-                                {{ form.image.label }}
-                                <span class="text-danger" id="image-required">*</span>
-                            </label>
+                        <div class="alert alert-info mb-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Puedes subir dos imágenes:</strong> una para dispositivos desktop y otra para dispositivos móviles. Si no subes imagen móvil, se usará la imagen desktop en todos los dispositivos.
+                        </div>
+
+                        <!-- Imagen Desktop -->
+                        <div class="mb-4 p-3 border rounded" style="background-color: #f8f9fa;">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-laptop text-primary me-2" style="font-size: 1.5rem;"></i>
+                                <label for="{{ form.image.id_for_label }}" class="form-label mb-0 fw-bold">
+                                    Imagen para Desktop
+                                    <span class="text-danger" id="image-required">*</span>
+                                </label>
+                            </div>
+                            <p class="text-muted small mb-2">Tamaño recomendado: 1905x500px</p>
                             {{ form.image }}
                             {% if form.image.errors %}
-                                <div class="text-danger small">{{ form.image.errors }}</div>
+                                <div class="text-danger small mt-1">{{ form.image.errors }}</div>
                             {% endif %}
                             {% if object and object.image %}
-                                <div class="mt-2">
-                                    <p class="text-muted small">Imagen actual:</p>
-                                    <img src="{{ object.image.url }}" alt="Preview" class="image-preview" id="image-preview">
+                                <div class="mt-3">
+                                    <p class="text-muted small mb-1">Imagen actual:</p>
+                                    <img src="{{ object.image.url }}" alt="Preview Desktop" class="image-preview" id="image-preview">
                                 </div>
                             {% else %}
-                                <div class="mt-2">
-                                    <img src="" alt="Preview" class="image-preview" id="image-preview" style="display: none;">
+                                <div class="mt-3">
+                                    <img src="" alt="Preview Desktop" class="image-preview" id="image-preview" style="display: none;">
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Imagen Móvil -->
+                        <div class="mb-3 p-3 border rounded" style="background-color: #f8f9fa;">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-phone text-success me-2" style="font-size: 1.5rem;"></i>
+                                <label for="{{ form.mobile_image.id_for_label }}" class="form-label mb-0 fw-bold">
+                                    Imagen para Móvil
+                                    <span class="badge bg-info ms-2">Opcional</span>
+                                </label>
+                            </div>
+                            <p class="text-muted small mb-2">Si no subes una imagen móvil, se usará la imagen desktop en dispositivos móviles.</p>
+                            {{ form.mobile_image }}
+                            {% if form.mobile_image.errors %}
+                                <div class="text-danger small mt-1">{{ form.mobile_image.errors }}</div>
+                            {% endif %}
+                            {% if form.mobile_image.help_text %}
+                                <small class="form-text text-muted d-block mt-1">{{ form.mobile_image.help_text }}</small>
+                            {% endif %}
+                            {% if object and object.mobile_image %}
+                                <div class="mt-3">
+                                    <p class="text-muted small mb-1">Imagen actual:</p>
+                                    <img src="{{ object.mobile_image.url }}" alt="Preview Móvil" class="image-preview" id="mobile-image-preview">
+                                </div>
+                            {% else %}
+                                <div class="mt-3">
+                                    <img src="" alt="Preview Móvil" class="image-preview" id="mobile-image-preview" style="display: none;">
                                 </div>
                             {% endif %}
                         </div>
@@ -203,8 +254,8 @@
                                     {{ form.gradient_color_1.label }}
                                 </label>
                                 <div class="color-input-group">
-                                    <input type="color" id="gradient_color_1_color" 
-                                           value="{{ form.gradient_color_1.value|default:'#0d2c54' }}" 
+                                    <input type="color" id="gradient_color_1_color"
+                                           value="{{ form.gradient_color_1.value|default:'#0d2c54' }}"
                                            class="form-control">
                                     {{ form.gradient_color_1 }}
                                 </div>
@@ -217,8 +268,8 @@
                                     {{ form.gradient_color_2.label }}
                                 </label>
                                 <div class="color-input-group">
-                                    <input type="color" id="gradient_color_2_color" 
-                                           value="{{ form.gradient_color_2.value|default:'#132448' }}" 
+                                    <input type="color" id="gradient_color_2_color"
+                                           value="{{ form.gradient_color_2.value|default:'#132448' }}"
                                            class="form-control">
                                     {{ form.gradient_color_2 }}
                                 </div>
@@ -231,8 +282,8 @@
                                     {{ form.gradient_color_3.label }}
                                 </label>
                                 <div class="color-input-group">
-                                    <input type="color" id="gradient_color_3_color" 
-                                           value="{{ form.gradient_color_3.value|default:'' }}" 
+                                    <input type="color" id="gradient_color_3_color"
+                                           value="{{ form.gradient_color_3.value|default:'' }}"
                                            class="form-control">
                                     {{ form.gradient_color_3 }}
                                 </div>
@@ -332,7 +383,7 @@
     const imageSection = document.getElementById('image-section');
     const gradientSection = document.getElementById('gradient-section');
     const imageRequired = document.getElementById('image-required');
-    
+
     function toggleSections() {
         const bannerType = bannerTypeSelect.value;
         if (bannerType === 'image') {
@@ -345,14 +396,14 @@
             imageRequired.style.display = 'none';
         }
     }
-    
+
     bannerTypeSelect.addEventListener('change', toggleSections);
     toggleSections(); // Ejecutar al cargar
-    
-    // Preview de imagen
+
+    // Preview de imagen desktop
     const imageInput = document.getElementById('{{ form.image.id_for_label }}');
     const imagePreview = document.getElementById('image-preview');
-    
+
     if (imageInput) {
         imageInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -366,7 +417,25 @@
             }
         });
     }
-    
+
+    // Preview de imagen móvil
+    const mobileImageInput = document.getElementById('{{ form.mobile_image.id_for_label }}');
+    const mobileImagePreview = document.getElementById('mobile-image-preview');
+
+    if (mobileImageInput) {
+        mobileImageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    mobileImagePreview.src = e.target.result;
+                    mobileImagePreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
     // Preview de gradiente
     const color1Input = document.getElementById('gradient_color_1_color');
     const color1Text = document.getElementById('{{ form.gradient_color_1.id_for_label }}');
@@ -375,14 +444,14 @@
     const color3Input = document.getElementById('gradient_color_3_color');
     const color3Text = document.getElementById('{{ form.gradient_color_3.id_for_label }}');
     const gradientPreview = document.getElementById('gradient-preview');
-    
+
     function updateGradientPreview() {
         const color1 = color1Text.value || '#0d2c54';
         const color2 = color2Text.value || '#132448';
         const color3 = color3Text.value || color2;
         gradientPreview.style.background = `linear-gradient(135deg, ${color1} 0%, ${color2} 50%, ${color3} 100%)`;
     }
-    
+
     // Sincronizar color picker con input de texto
     if (color1Input && color1Text) {
         color1Input.addEventListener('input', function() {
@@ -394,7 +463,7 @@
             updateGradientPreview();
         });
     }
-    
+
     if (color2Input && color2Text) {
         color2Input.addEventListener('input', function() {
             color2Text.value = this.value;
@@ -405,7 +474,7 @@
             updateGradientPreview();
         });
     }
-    
+
     if (color3Input && color3Text) {
         color3Input.addEventListener('input', function() {
             color3Text.value = this.value;
@@ -418,7 +487,7 @@
             updateGradientPreview();
         });
     }
-    
+
     updateGradientPreview(); // Inicializar preview
 </script>
 {% endblock %}
