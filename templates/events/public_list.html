@@ -710,15 +710,6 @@
                 <input type="text" id="search" name="search" value="{{ request.GET.search }}" placeholder="{% trans 'Search events...' %}">
             </div>
             <div class="filter-group">
-                <label for="category">{% trans "Category" %}</label>
-                <select id="category" name="category">
-                    <option value="">{% trans "All Categories" %}</option>
-                    {% for cat in categories %}
-                        <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="filter-group">
                 <label for="event_type">{% trans "Event Type" %}</label>
                 <select id="event_type" name="event_type">
                     <option value="">{% trans "All Types" %}</option>
@@ -826,10 +817,10 @@
                 <ul class="pagination">
                     {% if page_obj.has_previous %}
                         <li class="page-item">
-                            <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.event_type %}&event_type={{ request.GET.event_type }}{% endif %}{% if request.GET.time_filter %}&time_filter={{ request.GET.time_filter }}{% endif %}">{% trans "First" %}</a>
+                            <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.event_type %}&event_type={{ request.GET.event_type }}{% endif %}{% if request.GET.time_filter %}&time_filter={{ request.GET.time_filter }}{% endif %}">{% trans "First" %}</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.event_type %}&event_type={{ request.GET.event_type }}{% endif %}{% if request.GET.time_filter %}&time_filter={{ request.GET.time_filter }}{% endif %}">{% trans "Previous" %}</a>
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.event_type %}&event_type={{ request.GET.event_type }}{% endif %}{% if request.GET.time_filter %}&time_filter={{ request.GET.time_filter }}{% endif %}">{% trans "Previous" %}</a>
                         </li>
                     {% else %}
                         <li class="page-item disabled">
@@ -847,17 +838,17 @@
                             </li>
                         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                             <li class="page-item">
-                                <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.event_type %}&event_type={{ request.GET.event_type }}{% endif %}{% if request.GET.time_filter %}&time_filter={{ request.GET.time_filter }}{% endif %}">{{ num }}</a>
+                                <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.event_type %}&event_type={{ request.GET.event_type }}{% endif %}{% if request.GET.time_filter %}&time_filter={{ request.GET.time_filter }}{% endif %}">{{ num }}</a>
                             </li>
                         {% endif %}
                     {% endfor %}
 
                     {% if page_obj.has_next %}
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.event_type %}&event_type={{ request.GET.event_type }}{% endif %}{% if request.GET.time_filter %}&time_filter={{ request.GET.time_filter }}{% endif %}">{% trans "Next" %}</a>
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.event_type %}&event_type={{ request.GET.event_type }}{% endif %}{% if request.GET.time_filter %}&time_filter={{ request.GET.time_filter }}{% endif %}">{% trans "Next" %}</a>
                         </li>
                         <li class="page-item">
-                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.event_type %}&event_type={{ request.GET.event_type }}{% endif %}{% if request.GET.time_filter %}&time_filter={{ request.GET.time_filter }}{% endif %}">{% trans "Last" %}</a>
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.event_type %}&event_type={{ request.GET.event_type }}{% endif %}{% if request.GET.time_filter %}&time_filter={{ request.GET.time_filter }}{% endif %}">{% trans "Last" %}</a>
                         </li>
                     {% else %}
                         <li class="page-item disabled">
