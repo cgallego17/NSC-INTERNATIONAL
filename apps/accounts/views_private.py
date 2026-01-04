@@ -160,17 +160,17 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
         # Si es staff/admin, obtener todos los documentos pendientes (no solo de sus equipos)
         if user.is_staff or user.is_superuser:
             pending_qs = Player.objects.filter(
-                age_verification_status="pending",
-                age_verification_document__isnull=False,
+                    age_verification_status="pending",
+                    age_verification_document__isnull=False,
             ).select_related("user", "team", "user__profile")
             context["pending_verifications"] = pending_qs.order_by("-updated_at")[:20]
             context["pending_verifications_count"] = pending_qs.count()  # Una sola consulta
         # Si es manager (pero no staff), obtener solo documentos de sus equipos
         elif profile.is_team_manager:
             pending_qs = Player.objects.filter(
-                team__manager=user,
-                age_verification_status="pending",
-                age_verification_document__isnull=False,
+                    team__manager=user,
+                    age_verification_status="pending",
+                    age_verification_document__isnull=False,
             ).select_related("user", "team", "user__profile")
             context["pending_verifications"] = pending_qs.order_by("-updated_at")[:10]
             context["pending_verifications_count"] = pending_qs.count()  # Una sola consulta
