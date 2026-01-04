@@ -1146,6 +1146,46 @@
                 }
             {% endif %}
 
+            // Función para cargar iframe dinámicamente
+            function loadIframe(tabContent, url) {
+                // Verificar si el iframe ya existe
+                let iframe = tabContent.querySelector('iframe');
+                if (!iframe) {
+                    // Crear contenedor para el iframe si no existe
+                    const iframeContainer = document.createElement('div');
+                    iframeContainer.style.width = '100%';
+                    iframeContainer.style.height = '600px';
+                    iframeContainer.style.minHeight = '600px';
+
+                    iframe = document.createElement('iframe');
+                    iframe.src = url;
+                    iframe.style.width = '100%';
+                    iframe.style.height = '100%';
+                    iframe.style.border = 'none';
+                    iframe.style.borderRadius = '12px';
+                    iframe.style.minHeight = '600px';
+
+                    // Si el tab tiene header, agregar el iframe después del header
+                    const header = tabContent.querySelector('.tab-content-header');
+                    if (header) {
+                        // Crear un contenedor para el iframe después del header
+                        const iframeWrapper = document.createElement('div');
+                        iframeWrapper.style.marginTop = '20px';
+                        iframeWrapper.appendChild(iframe);
+                        tabContent.appendChild(iframeWrapper);
+                    } else {
+                        // Si no hay header, reemplazar todo el contenido
+                        tabContent.innerHTML = '';
+                        tabContent.appendChild(iframe);
+                    }
+                } else {
+                    // Si el iframe existe, actualizar la URL si es diferente
+                    if (iframe.src !== url && url) {
+                        iframe.src = url;
+                    }
+                }
+            }
+
             function activateTab(tabId, button) {
                 // Remover clase active de todos los botones
                 tabButtons.forEach(btn => btn.classList.remove('active'));
@@ -1166,6 +1206,31 @@
                 if (targetContent) {
                     targetContent.style.display = 'block';
                     targetContent.classList.add('active');
+
+                    // Obtener la URL del botón
+                    const url = button ? button.getAttribute('data-url') : null;
+
+                    // Si hay una URL, verificar si necesita cargar iframe
+                    if (url) {
+                        const existingIframe = targetContent.querySelector('iframe');
+                        const hasStaticContent = targetContent.querySelector('.row') ||
+                                               targetContent.querySelector('.card') ||
+                                               targetContent.querySelector('.welcome-content-item') ||
+                                               targetContent.querySelector('.event-card') ||
+                                               targetContent.querySelector('.tab-content-header');
+
+                        // Si no hay iframe existente, crear uno
+                        if (!existingIframe) {
+                            // Si hay contenido estático, agregar iframe después
+                            // Si no hay contenido estático, reemplazar todo con iframe
+                            loadIframe(targetContent, url);
+                        } else {
+                            // Si el iframe existe pero no tiene src o tiene src diferente, actualizarlo
+                            if (!existingIframe.src || existingIframe.src !== url) {
+                                existingIframe.src = url;
+                            }
+                        }
+                    }
 
                     // Inicializar selectores de ubicación si es el tab de registrar hijo
                     if (tabId === 'registrar-hijo') {
