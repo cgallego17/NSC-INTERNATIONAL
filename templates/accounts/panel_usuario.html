@@ -1243,24 +1243,49 @@
             {% if active_tab %}
                 // Activar el tab especificado
                 const activeTabId = '{{ active_tab }}';
-                const activeTabButton = document.querySelector(`.tab-btn[data-tab="${activeTabId}"]`);
-                if (activeTabButton) {
-                    activateTab(activeTabId, activeTabButton);
-                } else {
-                    // Si no se encuentra el botón, activar el tab directamente
+                console.log('Activando tab desde active_tab:', activeTabId);
+
+                // Función para activar el tab
+                function activateActiveTab() {
+                    const activeTabButton = document.querySelector(`.tab-btn[data-tab="${activeTabId}"]`);
                     const activeTabContent = document.getElementById('tab-content-' + activeTabId);
+
                     if (activeTabContent) {
+                        console.log('Tab content encontrado:', activeTabContent.id);
+                        // Ocultar todos los tabs primero
+                        tabContents.forEach(content => {
+                            content.style.display = 'none';
+                            content.classList.remove('active');
+                        });
+
+                        // Mostrar el tab activo
                         activeTabContent.style.display = 'block';
                         activeTabContent.classList.add('active');
-                        // Ocultar otros tabs
-                        tabContents.forEach(content => {
-                            if (content.id !== 'tab-content-' + activeTabId) {
-                                content.style.display = 'none';
-                                content.classList.remove('active');
-                            }
-                        });
+
+                        // Activar el botón si existe
+                        if (activeTabButton) {
+                            tabButtons.forEach(btn => btn.classList.remove('active'));
+                            activeTabButton.classList.add('active');
+                        }
+
+                        // Hacer scroll al contenido
+                        setTimeout(() => {
+                            activeTabContent.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start',
+                                inline: 'nearest'
+                            });
+                        }, 100);
+                    } else {
+                        console.warn('Tab content no encontrado:', 'tab-content-' + activeTabId);
                     }
                 }
+
+                // Intentar activar inmediatamente
+                activateActiveTab();
+
+                // También intentar después de un pequeño delay por si acaso
+                setTimeout(activateActiveTab, 200);
             {% else %}
                 const inicioButton = document.querySelector('.tab-btn[data-tab="inicio"]');
                 if (inicioButton) {
