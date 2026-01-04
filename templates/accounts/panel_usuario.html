@@ -539,7 +539,7 @@
                     </div>
                     <span class="mx-2">|</span>
                     {% if user.is_authenticated %}
-                        <a href="{% url 'accounts:panel' %}" title="{% trans 'My Account' %}"><i class="fas fa-user me-1"></i>{% trans "My Account" %}</a>
+                        <a href="{% url 'panel' %}" title="{% trans 'My Account' %}"><i class="fas fa-user me-1"></i>{% trans "My Account" %}</a>
                         {% if user.is_staff or user.is_superuser %}
                             <span class="mx-2">|</span>
                             <a href="{% url 'dashboard' %}" title="{% trans 'Admin Dashboard' %}" style="color: var(--mlb-gold, #ffd700); font-weight: 600;"><i class="fas fa-tachometer-alt me-1"></i>{% trans 'Dashboard' %}</a>
@@ -577,11 +577,11 @@
                         <a class="nav-link" href="/accounts/teams/">{% trans "Teams" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:public_player_list' %}">{% trans "Players" %}</a>
+                        <a class="nav-link" href="{% url 'public_player_list' %}">{% trans "Players" %}</a>
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'accounts:panel' %}">{% trans "My Account" %}</a>
+                            <a class="nav-link active" href="{% url 'panel' %}">{% trans "My Account" %}</a>
                         </li>
                     {% else %}
                         <li class="nav-item">
@@ -724,7 +724,6 @@
                         </button>
                     {% endif %}
                 {% endif %}
-                {% comment %} BLOQUEADO TEMPORALMENTE
                 <button type="button" class="quick-action-btn tab-btn" data-tab="eventos" data-url="{% url 'events:list' %}">
                     <i class="fas fa-calendar-alt"></i>
                     <span>{% trans "Events" %}</span>
@@ -732,7 +731,6 @@
                         <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ upcoming_events|length }}</span>
                     {% endif %}
                 </button>
-                {% endcomment %}
                 <button type="button" class="quick-action-btn tab-btn" data-tab="calendario" data-url="{% url 'events:calendar' %}">
                     <i class="fas fa-calendar"></i>
                     <span>{% trans "Calendar" %}</span>
