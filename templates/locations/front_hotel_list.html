@@ -13,7 +13,7 @@
             </h1>
             <p class="text-muted">Selecciona un hotel para hacer tu reserva</p>
         </div>
-        <a href="{% url 'accounts:panel' %}" class="btn btn-outline-secondary">
+        <a href="{% url 'panel' %}" class="btn btn-outline-secondary">
             <i class="fas fa-arrow-left me-2"></i>Volver al Panel
         </a>
     </div>
@@ -24,7 +24,7 @@
             <form method="get" class="row g-3">
                 <div class="col-md-6">
                     <label for="search" class="form-label">Buscar</label>
-                    <input type="text" class="form-control" id="search" name="search" 
+                    <input type="text" class="form-control" id="search" name="search"
                            value="{{ request.GET.search }}" placeholder="Nombre, dirección, ciudad...">
                 </div>
                 <div class="col-md-4">
@@ -32,7 +32,7 @@
                     <select class="form-select" id="country" name="country">
                         <option value="">Todos los Países</option>
                         {% for country in countries %}
-                            <option value="{{ country.id }}" 
+                            <option value="{{ country.id }}"
                                     {% if request.GET.country == country.id|stringformat:"s" %}selected{% endif %}>
                                 {{ country.name }}
                             </option>
@@ -58,10 +58,10 @@
                 <div class="col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm hotel-card">
                         {% if hotel.photo %}
-                            <img src="{{ hotel.photo.url }}" class="card-img-top" alt="{{ hotel.hotel_name }}" 
+                            <img src="{{ hotel.photo.url }}" class="card-img-top" alt="{{ hotel.hotel_name }}"
                                  style="height: 200px; object-fit: cover;">
                         {% else %}
-                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
                                  style="height: 200px;">
                                 <i class="fas fa-hotel fa-4x text-muted"></i>
                             </div>

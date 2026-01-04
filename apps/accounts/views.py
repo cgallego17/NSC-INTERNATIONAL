@@ -202,14 +202,14 @@ class PublicLoginView(BaseLoginView):
             if user.profile.is_team_manager:
                 # Manager va al panel
                 messages.success(self.request, f"¡Bienvenido, {user.get_full_name()}!")
-                return redirect("accounts:panel")
+                return redirect("panel")
             elif user.profile.is_player:
                 # Jugador va al panel
                 messages.success(self.request, f"¡Bienvenido, {user.get_full_name()}!")
-                return redirect("accounts:panel")
+                return redirect("panel")
 
         # Por defecto, ir al panel
-        return redirect("accounts:panel")
+        return redirect("panel")
 
 
 class PublicRegistrationView(CreateView):
@@ -312,7 +312,7 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     model = UserProfile
     form_class = UserProfileForm
     template_name = "accounts/profile_edit.html"
-    success_url = reverse_lazy("accounts:panel")
+    success_url = reverse_lazy("panel")
 
     def get_object(self):
         return self.request.user.profile
@@ -328,7 +328,7 @@ class UserInfoUpdateView(LoginRequiredMixin, UpdateView):
     model = User
     form_class = UserUpdateForm
     template_name = "accounts/user_edit.html"
-    success_url = reverse_lazy("accounts:panel")
+    success_url = reverse_lazy("panel")
 
     def get_object(self):
         return self.request.user
@@ -388,7 +388,7 @@ class TeamCreateView(LoginRequiredMixin, CreateView):
             or not request.user.profile.is_team_manager
         ):
             messages.error(request, "Solo los managers pueden crear equipos.")
-            return redirect("accounts:panel")
+            return redirect("panel")
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
@@ -483,7 +483,7 @@ class PlayerRegistrationView(LoginRequiredMixin, CreateView):
             or not request.user.profile.is_team_manager
         ):
             messages.error(request, "Solo los managers pueden registrar jugadores.")
-            return redirect("accounts:panel")
+            return redirect("panel")
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -556,4 +556,4 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
 @login_required
 def profile_view(request):
     """Vista de perfil que redirige al dashboard"""
-    return redirect("accounts:panel")
+    return redirect("panel")

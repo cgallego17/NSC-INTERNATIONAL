@@ -537,7 +537,7 @@
                         <p style="color: var(--mlb-blue); font-weight: 600; margin-bottom: 0;">
                             {% trans "You don't have any children/players registered. Please register a child/player first." %}
                         </p>
-                        <a href="{% url 'accounts:panel' %}" class="btn mt-3" style="background: var(--mlb-blue); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none;">
+                        <a href="{% url 'panel' %}" class="btn mt-3" style="background: var(--mlb-blue); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none;">
                             <i class="fas fa-user-plus me-2"></i>{% trans "Register Child/Player" %}
                         </a>
                     </div>
@@ -1433,7 +1433,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const hotelCartJsonUrl = '{% url "locations:get_cart_json" %}';
     const hotelCartRemoveUrl = '{% url "locations:remove_from_cart" %}';
 
-    // Stripe create-session URL (guarded for pages that render this template without an event, e.g. /accounts/panel/)
+    // Stripe create-session URL (guarded for pages that render this template without an event, e.g. /panel/)
     const stripeCreateSessionUrl = {% if event and event.pk %}'{% url "accounts:create_stripe_event_checkout_session" event.pk %}'{% else %}null{% endif %};
 
     function showStripeCheckoutLoader() {

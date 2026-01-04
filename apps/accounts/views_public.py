@@ -441,17 +441,17 @@ class PublicLoginView(BaseLoginView):
                     self.request,
                     _("Welcome, %(name)s!") % {"name": user.get_full_name()},
                 )
-                return redirect("accounts:panel")
+                return redirect("panel")
             elif user.profile.is_parent:
                 # Padre va al panel
                 messages.success(
                     self.request,
                     _("Welcome, %(name)s!") % {"name": user.get_full_name()},
                 )
-                return redirect("accounts:panel")
+                return redirect("panel")
 
         # Por defecto, ir al panel
-        return redirect("accounts:panel")
+        return redirect("panel")
 
     def form_invalid(self, form):
         """Si el formulario es inválido, redirigir a la página principal con el modal abierto"""
@@ -498,7 +498,7 @@ class PublicRegistrationView(CreateView):
                     "Now you can register your child(ren) or ward(s) from the dashboard."
                 ),
             )
-            return redirect("accounts:panel")
+            return redirect("panel")
 
         return response
 

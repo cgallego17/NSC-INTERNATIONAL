@@ -37,8 +37,7 @@ urlpatterns = [
         custom_logout_view,
         name="logout",
     ),
-    # Panel y perfil
-    path("panel/", views_private.UserDashboardView.as_view(), name="panel"),
+    # Panel y perfil (movido a /panel/ en nsc_admin/urls.py)
     path("user-dashboard/", views.UserDashboardView.as_view(), name="user_dashboard"),
     path("profile/", views_private.profile_view, name="profile"),
     path(

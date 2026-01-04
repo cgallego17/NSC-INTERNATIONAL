@@ -519,7 +519,7 @@
                         <div class="language-dropdown" id="languageDropdown">
                             <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-en">
                                 {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/accounts/panel/' }}">
+                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/panel/' }}">
                                 <input type="hidden" name="language" value="en">
                                 <button type="submit" class="language-option {% if CURRENT_LANGUAGE != 'es' and CURRENT_LANGUAGE|slice:":2" != 'es' %}active{% endif %}" style="background: none; border: none; width: 100%; text-align: left; padding: 10px; cursor: pointer;">
                                     <span class="flag-icon flag-us"></span>
@@ -528,7 +528,7 @@
                             </form>
                             <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-es">
                                 {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/accounts/panel/' }}">
+                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/panel/' }}">
                                 <input type="hidden" name="language" value="es">
                                 <button type="submit" class="language-option {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}active{% endif %}" style="background: none; border: none; width: 100%; text-align: left; padding: 10px; cursor: pointer;">
                                     <span class="flag-icon flag-es"></span>
@@ -539,7 +539,7 @@
                     </div>
                     <span class="mx-2">|</span>
                     {% if user.is_authenticated %}
-                        <a href="{% url 'accounts:panel' %}" title="{% trans 'My Account' %}"><i class="fas fa-user me-1"></i>{% trans "My Account" %}</a>
+                        <a href="{% url 'panel' %}" title="{% trans 'My Account' %}"><i class="fas fa-user me-1"></i>{% trans "My Account" %}</a>
                         {% if user.is_staff or user.is_superuser %}
                             <span class="mx-2">|</span>
                             <a href="{% url 'dashboard' %}" title="{% trans 'Admin Dashboard' %}" style="color: var(--mlb-gold, #ffd700); font-weight: 600;"><i class="fas fa-tachometer-alt me-1"></i>{% trans 'Dashboard' %}</a>
@@ -581,7 +581,7 @@
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'accounts:panel' %}">{% trans "My Account" %}</a>
+                            <a class="nav-link active" href="{% url 'panel' %}">{% trans "My Account" %}</a>
                         </li>
                     {% else %}
                         <li class="nav-item">

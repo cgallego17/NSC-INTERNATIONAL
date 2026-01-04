@@ -1003,7 +1003,7 @@ class SiteSettings(models.Model):
         blank=True,
         null=True,
         verbose_name="Banner de Bienvenida del Panel",
-        help_text="Imagen que se muestra en el welcome banner del panel de usuario (/accounts/panel/)",
+        help_text="Imagen que se muestra en el welcome banner del panel de usuario (/panel/)",
     )
     # Información de contacto
     contact_email = models.EmailField(

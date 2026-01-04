@@ -21,8 +21,14 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.i18n import JavaScriptCatalog
 
-from apps.accounts.views_public import PublicHomeView, PublicTeamListView, PublicPlayerListView, PublicPlayerProfileView
-from apps.core.views import set_language, CachedJavaScriptCatalog
+from apps.accounts.views_private import UserDashboardView
+from apps.accounts.views_public import (
+    PublicHomeView,
+    PublicPlayerListView,
+    PublicPlayerProfileView,
+    PublicTeamListView,
+)
+from apps.core.views import CachedJavaScriptCatalog, set_language
 from apps.events.views import DashboardView
 
 urlpatterns = [
@@ -32,9 +38,20 @@ urlpatterns = [
     path(
         "dashboard/", DashboardView.as_view(), name="dashboard"
     ),  # Dashboard principal
-    path("teams/", PublicTeamListView.as_view(), name="public_team_list"),  # Teams público
-    path("players/", PublicPlayerListView.as_view(), name="public_player_list"),  # Players público
-    path("players/<int:pk>/", PublicPlayerProfileView.as_view(), name="public_player_profile"),  # Perfil público de jugador
+    path(
+        "panel/", UserDashboardView.as_view(), name="panel"
+    ),  # Panel de usuario (debe estar antes de accounts/)
+    path(
+        "teams/", PublicTeamListView.as_view(), name="public_team_list"
+    ),  # Teams público
+    path(
+        "players/", PublicPlayerListView.as_view(), name="public_player_list"
+    ),  # Players público
+    path(
+        "players/<int:pk>/",
+        PublicPlayerProfileView.as_view(),
+        name="public_player_profile",
+    ),  # Perfil público de jugador
     path("events/", include("apps.events.urls")),
     path("locations/", include("apps.locations.urls")),
     path("accounts/", include("apps.accounts.urls")),  # Login público aquí

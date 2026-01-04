@@ -22,7 +22,7 @@ class StaffRequiredMixin(LoginRequiredMixin):
                 request,
                 "No tienes permisos para acceder a esta sección. Se requieren permisos de administrador.",
             )
-            return redirect("accounts:panel")
+            return redirect("panel")
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -49,7 +49,7 @@ class ManagerRequiredMixin(LoginRequiredMixin):
             messages.error(
                 request, "Solo los managers de equipo pueden acceder a esta sección."
             )
-            return redirect("accounts:panel")
+            return redirect("panel")
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -77,28 +77,28 @@ class OwnerOrStaffRequiredMixin(LoginRequiredMixin):
                 messages.error(
                     request, "No tienes permisos para acceder a este recurso."
                 )
-                return redirect("accounts:panel")
+                return redirect("panel")
         elif hasattr(obj, "manager"):
             if obj.manager != request.user:
                 messages.error(
                     request, "No tienes permisos para acceder a este recurso."
                 )
-                return redirect("accounts:panel")
+                return redirect("panel")
         elif hasattr(obj, "organizer"):
             if obj.organizer != request.user:
                 messages.error(
                     request, "No tienes permisos para acceder a este recurso."
                 )
-                return redirect("accounts:panel")
+                return redirect("panel")
         elif hasattr(obj, "owner"):
             if obj.owner != request.user:
                 messages.error(
                     request, "No tienes permisos para acceder a este recurso."
                 )
-                return redirect("accounts:panel")
+                return redirect("panel")
         else:
             # Si no tiene atributo de ownership, requerir staff
             messages.error(request, "No tienes permisos para acceder a este recurso.")
-            return redirect("accounts:panel")
+            return redirect("panel")
 
         return super().dispatch(request, *args, **kwargs)

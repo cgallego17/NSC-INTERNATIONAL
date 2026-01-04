@@ -607,7 +607,7 @@ class UserInfoUpdateView(LoginRequiredMixin, UpdateView):
     model = User
     form_class = UserUpdateForm
     template_name = "accounts/user_edit.html"
-    success_url = reverse_lazy("accounts:panel")
+    success_url = reverse_lazy("panel")
 
     def get_object(self):
         return self.request.user
@@ -833,13 +833,13 @@ class ParentPlayerRegistrationView(LoginRequiredMixin, CreateView):
     model = Player
     form_class = ParentPlayerRegistrationForm
     template_name = "accounts/parent_player_register.html"
-    success_url = reverse_lazy("accounts:panel")
+    success_url = reverse_lazy("panel")
 
     def dispatch(self, request, *args, **kwargs):
         # Verificar que el usuario sea padre
         if not hasattr(request.user, "profile") or not request.user.profile.is_parent:
             messages.error(request, _("Only parents/guardians can register players."))
-            return redirect("accounts:panel")
+            return redirect("panel")
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
@@ -857,7 +857,7 @@ class ParentPlayerRegistrationView(LoginRequiredMixin, CreateView):
             % {"name": player_name},
             extra_tags="player_registered",
         )
-        return redirect("accounts:panel")
+        return redirect("panel")
 
 
 class PlayerUpdateView(LoginRequiredMixin, UpdateView):
@@ -1051,7 +1051,7 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
             if PlayerParent.objects.filter(
                 parent=self.request.user, player=self.object
             ).exists():
-                return reverse_lazy("accounts:panel")
+                return reverse_lazy("panel")
         return reverse_lazy("accounts:player_detail", kwargs={"pk": self.object.pk})
 
     def form_valid(self, form):
@@ -1219,7 +1219,7 @@ class UserListView(UserPassesTestMixin, LoginRequiredMixin, ListView):
 @login_required
 def profile_view(request):
     """Vista de perfil que redirige al panel"""
-    return redirect("accounts:panel")
+    return redirect("panel")
 
 
 class PanelEventDetailView(UserDashboardView):
@@ -1325,7 +1325,7 @@ def register_children_to_event(request, pk):
             messages.error(
                 request, _("You must be a parent to register children to events.")
             )
-            return redirect("accounts:panel")
+            return redirect("panel")
 
         # Obtener los IDs de los jugadores seleccionados
         player_ids = request.POST.getlist("players")
@@ -1334,7 +1334,7 @@ def register_children_to_event(request, pk):
             messages.warning(
                 request, _("Please select at least one child/player to register.")
             )
-            return redirect("accounts:panel_event_detail", pk=pk)
+            return redirect("panel_event_detail", pk=pk)
 
         # Obtener los jugadores relacionados al usuario
         from .models import Player, PlayerParent
@@ -1371,14 +1371,14 @@ def register_children_to_event(request, pk):
                 _("The selected children are already registered to this event."),
             )
 
-        return redirect("accounts:panel_event_detail", pk=pk)
+        return redirect("panel_event_detail", pk=pk)
 
     except ImportError:
         messages.error(request, _("Events app is not available."))
-        return redirect("accounts:panel")
+        return redirect("panel")
     except Exception as e:
         messages.error(request, _("An error occurred: %(error)s") % {"error": str(e)})
-        return redirect("accounts:panel")
+        return redirect("panel")
 
 
 def _money_to_cents(amount: Decimal) -> int:
@@ -1908,11 +1908,11 @@ def stripe_event_checkout_success(request, pk):
     session_id = request.GET.get("session_id")
     if not session_id:
         messages.error(request, _("Stripe did not return session_id."))
-        return redirect("accounts:panel_event_detail", pk=pk)
+        return redirect("panel_event_detail", pk=pk)
 
     if not settings.STRIPE_SECRET_KEY:
         messages.error(request, _("Stripe is not configured."))
-        return redirect("accounts:panel_event_detail", pk=pk)
+        return redirect("panel_event_detail", pk=pk)
 
     try:
         import stripe  # type: ignore
@@ -1920,7 +1920,7 @@ def stripe_event_checkout_success(request, pk):
         stripe.api_key = settings.STRIPE_SECRET_KEY
     except Exception:
         messages.error(request, _("Stripe SDK is not installed."))
-        return redirect("accounts:panel_event_detail", pk=pk)
+        return redirect("panel_event_detail", pk=pk)
 
     from apps.events.models import Event
 
@@ -1939,17 +1939,17 @@ def stripe_event_checkout_success(request, pk):
         messages.error(
             request, _("Could not verify payment: %(error)s") % {"error": str(e)}
         )
-        return redirect("accounts:panel_event_detail", pk=pk)
+        return redirect("panel_event_detail", pk=pk)
 
     if getattr(session, "payment_status", "") != "paid":
         messages.warning(request, _("Payment is not yet confirmed."))
-        return redirect("accounts:panel_event_detail", pk=pk)
+        return redirect("panel_event_detail", pk=pk)
 
     try:
         checkout = StripeEventCheckout.objects.get(stripe_session_id=session_id)
     except StripeEventCheckout.DoesNotExist:
         messages.error(request, _("Checkout not found in the system."))
-        return redirect("accounts:panel_event_detail", pk=pk)
+        return redirect("panel_event_detail", pk=pk)
 
     # Store subscription id (plan payments)
     subscription_id = getattr(session, "subscription", "") or ""
@@ -1979,13 +1979,13 @@ def stripe_event_checkout_success(request, pk):
     request.session.modified = True
 
     messages.success(request, _("Payment completed. Registration confirmed."))
-    return redirect("accounts:panel_event_detail", pk=pk)
+    return redirect("panel_event_detail", pk=pk)
 
 
 @login_required
 def stripe_event_checkout_cancel(request, pk):
     messages.info(request, _("Payment cancelled."))
-    return redirect("accounts:panel_event_detail", pk=pk)
+    return redirect("panel_event_detail", pk=pk)
 
 
 @csrf_exempt
@@ -2065,7 +2065,7 @@ def stripe_webhook(request):
 def events_blocked_view(request, *args, **kwargs):
     """Vista temporal para bloquear acceso a eventos desde accounts"""
     messages.error(request, _("Access to events is temporarily blocked."))
-    return redirect("accounts:panel")
+    return redirect("panel")
 
 
 @login_required
@@ -2125,7 +2125,7 @@ def approve_age_verification(request, pk):
 def events_blocked_view(request, *args, **kwargs):
     """Vista temporal para bloquear acceso a eventos desde accounts"""
     messages.error(request, _("Access to events is temporarily blocked."))
-    return redirect("accounts:panel")
+    return redirect("panel")
 
 
 def wallet_add_funds(request):
@@ -2140,7 +2140,7 @@ def wallet_add_funds(request):
 
         if amount <= 0:
             messages.error(request, _("The amount must be greater than zero."))
-            return redirect("accounts:panel")
+            return redirect("panel")
 
         # Obtener o crear wallet
         wallet, created = UserWallet.objects.get_or_create(user=request.user)
@@ -2161,4 +2161,4 @@ def wallet_add_funds(request):
             request, _("Error processing deposit: %(error)s") % {"error": str(e)}
         )
 
-    return redirect("accounts:panel")
+    return redirect("panel")

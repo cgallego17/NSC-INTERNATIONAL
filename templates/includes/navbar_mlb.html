@@ -470,7 +470,7 @@
                     </div>
                     <span class="top-bar-separator"></span>
                     {% if user.is_authenticated %}
-                        <a href="{% url 'accounts:panel' %}" title="{% trans 'My Account' %}"><i class="fas fa-user"></i>{% trans "My Account" %}</a>
+                        <a href="{% url 'panel' %}" title="{% trans 'My Account' %}"><i class="fas fa-user"></i>{% trans "My Account" %}</a>
                         {% if user.is_staff or user.is_superuser %}
                             <span class="top-bar-separator"></span>
                             <a href="{% url 'dashboard' %}" title="{% trans 'Admin Dashboard' %}" style="color: #ffd700; font-weight: 600;"><i class="fas fa-tachometer-alt"></i>{% trans 'Dashboard' %}</a>
@@ -514,7 +514,7 @@
                 </li>
                 {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link {% if 'accounts' in request.resolver_match.namespace and request.resolver_match.url_name == 'panel' %}active{% endif %}" href="{% url 'accounts:panel' %}">{% trans "My Account" %}</a>
+                        <a class="nav-link {% if request.resolver_match.url_name == 'panel' %}active{% endif %}" href="{% url 'panel' %}">{% trans "My Account" %}</a>
                     </li>
                 {% else %}
                     <li class="nav-item">

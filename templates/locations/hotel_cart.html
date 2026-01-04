@@ -14,7 +14,7 @@
             <p class="text-muted">Revisa tus reservas antes de confirmar</p>
         </div>
         <div>
-            <a href="{% url 'accounts:panel' %}" class="btn btn-outline-secondary me-2">
+            <a href="{% url 'panel' %}" class="btn btn-outline-secondary me-2">
                 <i class="fas fa-arrow-left me-2"></i>Volver al Panel
             </a>
             <a href="{% url 'locations:front_hotel_list' %}" class="btn btn-primary">
@@ -54,7 +54,7 @@
                                     {{ item.guests }} persona{{ item.guests|pluralize }}</p>
                                 </div>
                             </div>
-                            
+
                             {% if item.services %}
                                 <hr>
                                 <h6><i class="fas fa-concierge-bell me-2"></i>Servicios Adicionales:</h6>
@@ -62,14 +62,14 @@
                                     {% for service_item in item.services %}
                                         <li class="mb-2">
                                             <i class="fas fa-check text-success me-2"></i>
-                                            {{ service_item.service.service_name }} 
+                                            {{ service_item.service.service_name }}
                                             (x{{ service_item.quantity }})
                                             <span class="float-end">${{ service_item.price|floatformat:2 }}</span>
                                         </li>
                                     {% endfor %}
                                 </ul>
                             {% endif %}
-                            
+
                             <hr>
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
@@ -84,7 +84,7 @@
                     </div>
                 {% endfor %}
             </div>
-            
+
             <!-- Resumen y Checkout -->
             <div class="col-lg-4">
                 <div class="card sticky-top" style="top: 20px;">
@@ -103,21 +103,21 @@
                                 <strong class="text-primary" style="font-size: 1.5rem;">${{ cart_total|floatformat:2 }}</strong>
                             </div>
                         </div>
-                        
+
                         <form method="post" action="{% url 'locations:checkout_cart' %}" id="checkoutForm">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-success w-100 btn-lg mb-2">
                                 <i class="fas fa-credit-card me-2"></i>Proceder al Pago
                             </button>
                         </form>
-                        
+
                         <form method="post" action="{% url 'locations:clear_cart' %}" id="clearForm">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('¿Estás seguro de limpiar el carrito?');">
                                 <i class="fas fa-trash me-2"></i>Limpiar Carrito
                             </button>
                         </form>
-                        
+
                         <hr>
                         <a href="{% url 'locations:front_hotel_list' %}" class="btn btn-outline-primary w-100">
                             <i class="fas fa-plus me-2"></i>Agregar Más Reservas

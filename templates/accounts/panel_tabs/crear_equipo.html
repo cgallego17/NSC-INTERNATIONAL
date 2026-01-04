@@ -9,14 +9,14 @@
     <div class="form-container">
         <form method="post" action="{% url 'accounts:team_create' %}" enctype="multipart/form-data" id="teamForm">
             {% csrf_token %}
-            
+
             {% if team_form.non_field_errors %}
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     {{ team_form.non_field_errors }}
                 </div>
             {% endif %}
-            
+
             <!-- Información Básica -->
             <div class="form-section">
                 <div class="form-section-title">
@@ -62,7 +62,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Ubicación -->
             <div class="form-section">
                 <div class="form-section-title">
@@ -98,7 +98,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Información de Contacto -->
             <div class="form-section">
                 <div class="form-section-title">
@@ -136,10 +136,10 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Botones de Acción -->
             <div class="form-actions">
-                <a href="{% url 'accounts:panel' %}" class="btn btn-form-cancel">
+                <a href="{% url 'panel' %}" class="btn btn-form-cancel">
                     <i class="fas fa-times me-2"></i>{% trans "Cancel" %}
                 </a>
                 <button type="submit" class="btn btn-form-submit">

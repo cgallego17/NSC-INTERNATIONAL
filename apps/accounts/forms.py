@@ -2317,7 +2317,7 @@ class HomeBannerForm(forms.ModelForm):
             "button_url_2": forms.TextInput(
                 attrs={
                     "class": "form-control",
-                    "placeholder": "/accounts/panel/ o URL completa",
+                    "placeholder": "/panel/ o URL completa",
                 }
             ),
             "icon_class": forms.TextInput(
