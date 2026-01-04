@@ -1164,18 +1164,28 @@
                 // Mostrar el contenido correspondiente
                 const targetContent = document.getElementById('tab-content-' + tabId);
                 if (targetContent) {
-                    console.log('Activating tab:', tabId, 'Content found:', targetContent);
-                    console.log('Before setting display:', targetContent.style.display);
-                    // Establecer display: block
-                    targetContent.style.display = 'block';
+                    // Establecer display: block de forma inmediata y forzada
+                    targetContent.style.setProperty('display', 'block', 'important');
                     targetContent.classList.add('active');
+
                     // Verificar que se estableció correctamente
-                    console.log('After setting display:', targetContent.style.display);
-                    console.log('Computed style:', window.getComputedStyle(targetContent).display);
-                    // Forzar si es necesario
-                    if (window.getComputedStyle(targetContent).display === 'none') {
-                        console.warn('Display is still none, forcing with !important');
-                        targetContent.setAttribute('style', 'display: block !important;');
+                    const computedDisplay = window.getComputedStyle(targetContent).display;
+                    const hasContent = targetContent.innerHTML.trim().length > 0;
+                    const hasHeight = targetContent.offsetHeight > 0;
+
+                    console.log('Tab activated:', tabId);
+                    console.log('- Display:', computedDisplay);
+                    console.log('- Has content:', hasContent, '(length:', targetContent.innerHTML.length, ')');
+                    console.log('- Has height:', hasHeight, '(height:', targetContent.offsetHeight, ')');
+
+                    // Si no tiene altura pero tiene contenido, forzar visibilidad
+                    if (hasContent && !hasHeight) {
+                        console.warn('Content exists but no height, checking parent...');
+                        const parent = targetContent.parentElement;
+                        if (parent) {
+                            console.log('Parent display:', window.getComputedStyle(parent).display);
+                            console.log('Parent height:', parent.offsetHeight);
+                        }
                     }
 
                     // Inicializar selectores de ubicación si es el tab de registrar hijo
@@ -1210,11 +1220,18 @@
                     } else {
                         // Para otros tabs, hacer scroll normal
                         setTimeout(() => {
-                            targetContent.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'start',
-                                inline: 'nearest'
-                            });
+                            // Verificar que el contenido sigue visible antes de hacer scroll
+                            const computedDisplay = window.getComputedStyle(targetContent).display;
+                            console.log('Before scrollIntoView - display:', computedDisplay, 'offsetHeight:', targetContent.offsetHeight);
+                            if (computedDisplay === 'block' && targetContent.offsetHeight > 0) {
+                                targetContent.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start',
+                                    inline: 'nearest'
+                                });
+                            } else {
+                                console.warn('Content not visible, skipping scroll. Display:', computedDisplay, 'Height:', targetContent.offsetHeight);
+                            }
                         }, 100);
                     }
                 } else {
