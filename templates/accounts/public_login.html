@@ -10,8 +10,6 @@
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
@@ -21,195 +19,121 @@
             --mlb-red: #d50032;
             --mlb-light-blue: #132448;
             --mlb-gold: #ffd700;
-            --mlb-dark: #1a1a1a;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Arial', 'Helvetica', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
-            min-height: 100vh;
-            padding: 0;
-            margin: 0;
-            overflow-x: hidden;
-        }
-
-        /* Contenedor principal que envuelve todo */
-        .login-page-wrapper {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            width: 100%;
-            overflow-x: hidden;
         }
 
-        /* Forzar que todos los hijos directos sean bloques */
-        .login-page-wrapper > * {
-            display: block !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            float: none !important;
-            clear: both !important;
-            position: relative !important;
+        .login-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Área de contenido principal (login) */
-        .login-main-content {
+        .login-content {
             flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 80px 20px 40px;
-            position: relative;
+            padding: 2rem 1rem;
             min-height: calc(100vh - 200px);
-            width: 100%;
-            max-width: 100%;
-            box-sizing: border-box;
-            order: 2;
-        }
-
-        /* Asegurar que el footer esté abajo y no al lado */
-        .login-page-wrapper .footer-mlb {
-            width: 100% !important;
-            flex-shrink: 0;
-            display: block !important;
-            position: relative !important;
-            float: none !important;
-            clear: both !important;
-            order: 3;
-            margin-top: auto;
-        }
-
-        /* Asegurar que el navbar no interfiera */
-        .login-page-wrapper .navbar-mlb,
-        .login-page-wrapper .top-bar {
-            width: 100% !important;
-            flex-shrink: 0;
-            order: 1;
-        }
-
-        /* Asegurar que el navbar esté en bloque */
-        .login-page-wrapper .navbar-mlb,
-        .login-page-wrapper .top-bar-mlb,
-        .login-page-wrapper .top-bar {
-            display: block !important;
-            width: 100% !important;
-            position: relative !important;
-            float: none !important;
-            clear: both !important;
-            flex-shrink: 0;
-        }
-
-        /* Asegurar que el contenido del login no se expanda más allá de su contenedor */
-        .login-main-content {
-            box-sizing: border-box;
-        }
-
-        /* Asegurar que el footer no use display flex o grid que lo ponga al lado */
-        .login-page-wrapper .footer-mlb .container-fluid {
-            width: 100% !important;
-            max-width: 100% !important;
-        }
-
-        .login-page-wrapper .footer-mlb .row {
-            width: 100% !important;
-            max-width: 100% !important;
-            margin: 0 !important;
-        }
-
-        .login-container {
-            width: 100%;
-            max-width: 450px;
         }
 
         .login-card {
             background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             overflow: hidden;
-            border-top: 5px solid var(--mlb-red);
+            width: 100%;
+            max-width: 420px;
+            border-top: 4px solid var(--mlb-red);
         }
 
         .login-header {
             background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
             color: white;
-            padding: 40px 30px;
+            padding: 2.5rem 2rem;
             text-align: center;
             position: relative;
-            overflow: hidden;
         }
 
-        .login-header::before {
+        .login-header::after {
             content: '';
             position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></svg>');
+            opacity: 0.3;
         }
 
-        .login-header h1 {
-            font-size: 2rem;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .login-header p {
-            font-size: 1rem;
-            opacity: 0.95;
+        .login-header-content {
             position: relative;
             z-index: 1;
         }
 
         .login-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.95;
+        }
+
+        .login-header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .login-header p {
+            font-size: 0.95rem;
             opacity: 0.9;
-            position: relative;
-            z-index: 1;
+            margin: 0;
         }
 
         .login-body {
-            padding: 40px;
+            padding: 2rem;
         }
 
         .form-label {
             font-weight: 600;
             color: var(--mlb-blue);
-            margin-bottom: 8px;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
             text-transform: uppercase;
-            font-size: 0.85rem;
             letter-spacing: 0.5px;
         }
 
         .form-control {
-            border: 2px solid #e9ecef;
+            border: 2px solid #e0e0e0;
             border-radius: 8px;
-            padding: 12px 15px;
-            transition: all 0.3s;
+            padding: 0.75rem 1rem;
             font-size: 1rem;
+            transition: all 0.3s ease;
         }
 
         .form-control:focus {
             border-color: var(--mlb-blue);
-            box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.25);
+            box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.15);
+            outline: none;
+        }
+
+        .form-control.is-invalid {
+            border-color: var(--mlb-red);
         }
 
         .form-check-input {
             width: 1.25rem;
             height: 1.25rem;
-            border: 2px solid #e9ecef;
-            margin-top: 0.3rem;
+            border: 2px solid #e0e0e0;
+            margin-top: 0.25rem;
         }
 
         .form-check-input:checked {
@@ -220,60 +144,87 @@
         .form-check-label {
             font-weight: 500;
             color: #555;
-            margin-left: 8px;
+            margin-left: 0.5rem;
+            font-size: 0.9rem;
         }
 
-        .btn-mlb {
+        .btn-login {
             background: var(--mlb-red);
             color: white;
-            padding: 15px;
+            padding: 0.875rem 1.5rem;
             font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
             border: none;
             border-radius: 8px;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(213, 0, 50, 0.3);
             width: 100%;
-            font-size: 1.1rem;
-            letter-spacing: 1px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(213, 0, 50, 0.3);
         }
 
-        .btn-mlb:hover {
+        .btn-login:hover {
             background: #b30029;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(213, 0, 50, 0.4);
+            box-shadow: 0 6px 16px rgba(213, 0, 50, 0.4);
             color: white;
         }
 
-        .error-message {
-            background: #fee;
-            border: 1px solid var(--mlb-red);
-            color: var(--mlb-red);
-            padding: 12px;
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .alert {
             border-radius: 8px;
-            margin-bottom: 20px;
-            font-weight: 600;
-            font-size: 0.9rem;
+            border: none;
+            padding: 0.875rem 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-danger {
+            background-color: #fee;
+            color: var(--mlb-red);
+            border-left: 4px solid var(--mlb-red);
+        }
+
+        .alert-success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .alert-info {
+            background-color: #e3f2fd;
+            color: #1565c0;
+            border-left: 4px solid #1565c0;
         }
 
         .field-error {
             color: var(--mlb-red);
-            font-size: 0.85rem;
-            margin-top: 5px;
-            font-weight: 600;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            font-weight: 500;
+            display: block;
         }
 
         .login-footer {
-            padding: 20px 40px;
+            padding: 1.5rem 2rem;
             background: #f8f9fa;
             text-align: center;
             border-top: 1px solid #e9ecef;
+        }
+
+        .login-footer p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #6c757d;
         }
 
         .login-footer a {
             color: var(--mlb-blue);
             font-weight: 600;
             text-decoration: none;
+            transition: color 0.3s ease;
         }
 
         .login-footer a:hover {
@@ -281,121 +232,138 @@
             text-decoration: underline;
         }
 
-        .back-home {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
-            text-decoration: none;
-            font-weight: 600;
-            z-index: 10;
-        }
+        @media (max-width: 576px) {
+            .login-content {
+                padding: 1rem;
+            }
 
-        .back-home:hover {
-            color: var(--mlb-gold);
+            .login-header {
+                padding: 2rem 1.5rem;
+            }
+
+            .login-body {
+                padding: 1.5rem;
+            }
+
+            .login-header h1 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="login-page-wrapper">
-        <!-- Top Bar and Navbar -->
+    <div class="login-wrapper">
+        <!-- Navbar -->
         {% include 'includes/navbar_mlb.html' %}
 
-        <!-- Main Content Area -->
-        <div class="login-main-content">
-            <a href="{% url 'home' %}" class="back-home">
-                <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Home" %}
-            </a>
-
-            <div class="login-container">
-        <div class="login-card">
-            <div class="login-header">
-                <div class="login-icon">
-                    <i class="fas fa-baseball-ball"></i>
+        <!-- Main Content -->
+        <div class="login-content">
+            <div class="login-card">
+                <!-- Header -->
+                <div class="login-header">
+                    <div class="login-header-content">
+                        <div class="login-icon">
+                            <i class="fas fa-baseball-ball"></i>
+                        </div>
+                        <h1>{% trans "Log In" %}</h1>
+                        <p>{% trans "Access your NCS International account" %}</p>
+                    </div>
                 </div>
-                <h1>{% trans "Log In" %}</h1>
-                <p>{% trans "Access your NCS International account" %}</p>
-            </div>
 
-            <div class="login-body">
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-
-                <form method="post">
-                    {% csrf_token %}
-                    {% if request.GET.next %}
-                        <input type="hidden" name="next" value="{{ request.GET.next }}">
+                <!-- Body -->
+                <div class="login-body">
+                    <!-- Messages -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
                     {% endif %}
 
-                    {% if form.non_field_errors %}
-                        <div class="error-message">
-                            <i class="fas fa-exclamation-circle me-2"></i>
-                            {{ form.non_field_errors.0 }}
-                        </div>
-                    {% endif %}
+                    <!-- Login Form -->
+                    <form method="post" novalidate>
+                        {% csrf_token %}
 
-                    <div class="mb-3">
-                        <label for="id_username" class="form-label">
-                            <i class="fas fa-envelope me-1"></i>{% trans "Email" %}
-                        </label>
-                        <input type="email"
-                               id="id_username"
-                               name="username"
-                               class="form-control {% if form.username.errors %}is-invalid{% endif %}"
-                               placeholder="{% trans 'your@email.com' %}"
-                               value="{{ form.username.value|default:'' }}"
-                               required
-                               autofocus>
-                        {% if form.username.errors %}
-                            <div class="field-error">{{ form.username.errors.0 }}</div>
+                        {% if request.GET.next %}
+                            <input type="hidden" name="next" value="{{ request.GET.next }}">
                         {% endif %}
-                    </div>
 
-                    <div class="mb-3">
-                        <label for="id_password" class="form-label">
-                            <i class="fas fa-lock me-1"></i>{% trans "Password" %}
-                        </label>
-                        <input type="password"
-                               id="id_password"
-                               name="password"
-                               class="form-control {% if form.password.errors %}is-invalid{% endif %}"
-                               placeholder="{% trans 'Enter your password' %}"
-                               required>
-                        {% if form.password.errors %}
-                            <div class="field-error">{{ form.password.errors.0 }}</div>
+                        <!-- Non-field errors -->
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger" role="alert">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                {{ form.non_field_errors.0 }}
+                            </div>
                         {% endif %}
-                    </div>
 
-                    <div class="mb-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me">
-                            <label class="form-check-label" for="remember_me">
-                                {% trans "Remember me" %}
+                        <!-- Email Field -->
+                        <div class="mb-3">
+                            <label for="id_username" class="form-label">
+                                <i class="fas fa-envelope me-1"></i>{% trans "Email" %}
                             </label>
+                            <input type="email"
+                                   id="id_username"
+                                   name="username"
+                                   class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                                   placeholder="{% trans 'your@email.com' %}"
+                                   value="{{ form.username.value|default:'' }}"
+                                   required
+                                   autofocus>
+                            {% if form.username.errors %}
+                                <span class="field-error">
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ form.username.errors.0 }}
+                                </span>
+                            {% endif %}
                         </div>
-                    </div>
 
-                    <button type="submit" class="btn btn-mlb">
-                        <i class="fas fa-sign-in-alt me-2"></i>{% trans "Log In" %}
-                    </button>
-                </form>
-            </div>
+                        <!-- Password Field -->
+                        <div class="mb-3">
+                            <label for="id_password" class="form-label">
+                                <i class="fas fa-lock me-1"></i>{% trans "Password" %}
+                            </label>
+                            <input type="password"
+                                   id="id_password"
+                                   name="password"
+                                   class="form-control {% if form.password.errors %}is-invalid{% endif %}"
+                                   placeholder="{% trans 'Enter your password' %}"
+                                   required>
+                            {% if form.password.errors %}
+                                <span class="field-error">
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ form.password.errors.0 }}
+                                </span>
+                            {% endif %}
+                        </div>
 
-            <div class="login-footer">
-                <p class="mb-0">
-                    {% trans "Don't have an account?" %} <a href="{% url 'accounts:register' %}">{% trans "Sign up here" %}</a>
-                </p>
+                        <!-- Remember Me -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me">
+                                <label class="form-check-label" for="remember_me">
+                                    {% trans "Remember me" %}
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-login">
+                            <i class="fas fa-sign-in-alt me-2"></i>{% trans "Log In" %}
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Footer -->
+                <div class="login-footer">
+                    <p class="mb-0">
+                        {% trans "Don't have an account?" %}
+                        <a href="{% url 'accounts:register' %}">{% trans "Sign up here" %}</a>
+                    </p>
+                </div>
             </div>
         </div>
-        </div>
 
-        <!-- Footer MLB -->
+        <!-- Footer -->
         {% include 'includes/footer_mlb.html' %}
     </div>
 
@@ -403,5 +371,3 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
-

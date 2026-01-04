@@ -1571,7 +1571,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const hotelSection = document.getElementById('hotel-stay-section' + hotelPk);
 
             if (hotelSection) {
-                console.log('Asegurando que la sección de hotel esté visible');
+                // Asegurar que la sección esté visible sin log repetitivo
                 hotelSection.style.setProperty('display', 'block', 'important');
                 hotelSection.style.setProperty('visibility', 'visible', 'important');
                 hotelSection.style.setProperty('opacity', '1', 'important');
