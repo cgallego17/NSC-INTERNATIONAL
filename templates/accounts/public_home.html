@@ -3097,10 +3097,10 @@
                                 <i class="fas fa-map-marker-alt"></i>
                                 <span id="promoLocation">-</span>
                             </span>
-                            <span class="video-promo-option-btn">
+                            <a href="{% url 'events:public_list' %}" class="video-promo-option-btn" id="promoTypeLink" style="text-decoration: none;">
                                 <i class="fas fa-baseball-ball"></i>
                                 <span id="promoType">-</span>
-                            </span>
+                            </a>
                         </div>
                         <a href="#" class="video-promo-cta-btn" id="promoEventLink">{% trans "VIEW EVENT" %}</a>
                     </div>
@@ -3122,6 +3122,7 @@
                     "video_url": {% if event.video_url %}"{{ event.video_url|escapejs }}"{% else %}null{% endif %},
                     "location": "{% if event.city %}{{ event.city.name }}{% if event.state %}, {{ event.state.name }}{% endif %}{% else %}{% if event.location %}{{ event.location }}{% else %}-{% endif %}{% endif %}",
                     "event_type": "{% if event.event_type %}{{ event.event_type.name|escapejs }}{% else %}{% trans 'Tournament / Showcase' %}{% endif %}",
+                    "event_type_id": {% if event.event_type %}{{ event.event_type.id }}{% else %}null{% endif %},
                     "divisions": "{% for division in event.divisions.all %}{{ division.name|escapejs }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans 'All Categories' %}{% endfor %}",
                     "start_date": "{{ event.start_date|date:'Y-m-d' }}",
                     "detail_url": "{% url 'events:public_detail' event.pk %}"
@@ -4143,6 +4144,7 @@
                 const descEl = document.getElementById('promoDescription');
                 const locationEl = document.getElementById('promoLocation');
                 const typeEl = document.getElementById('promoType');
+                const typeLinkEl = document.getElementById('promoTypeLink');
                 const linkEl = document.getElementById('promoEventLink');
 
                 if (titleEl) {
@@ -4156,6 +4158,12 @@
                 }
                 if (typeEl) {
                     typeEl.textContent = event.event_type || '{% trans "Tournament / Showcase" %}';
+                }
+                if (typeLinkEl && event.event_type_id) {
+                    typeLinkEl.href = '{% url "events:public_list" %}?event_type=' + event.event_type_id;
+                } else if (typeLinkEl && event.event_type) {
+                    // Si no hay ID, usar búsqueda por texto
+                    typeLinkEl.href = '{% url "events:public_list" %}?search=' + encodeURIComponent(event.event_type.toLowerCase());
                 }
                 if (linkEl) {
                     linkEl.href = event.detail_url || '#';
