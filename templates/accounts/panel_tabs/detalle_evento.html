@@ -17,11 +17,17 @@
                 <!-- Banner del Evento -->
                 {% if event.banner %}
                     <div style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 25px;">
-                        <img src="{{ event.banner|clean_localhost_url }}" alt="{{ event.title }}" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                        <img src="{{ event.banner|clean_localhost_url }}"
+                             alt="{{ event.title }}"
+                             style="width: 100%; height: 100%; object-fit: cover; object-position: center;"
+                             onerror="this.onerror=null; this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%)'; this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:white;font-size:1.5rem;\'><i class=\'fas fa-calendar-alt\' style=\'font-size:4rem;opacity:0.3;\'></i></div>';">
                     </div>
                 {% elif event.logo %}
                     <div style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 25px;">
-                        <img src="{{ event.logo|clean_localhost_url }}" alt="{{ event.title }}" style="width: 100%; height: 100%; object-fit: contain; object-position: center; background: #f8f9fa;">
+                        <img src="{{ event.logo|clean_localhost_url }}"
+                             alt="{{ event.title }}"
+                             style="width: 100%; height: 100%; object-fit: contain; object-position: center; background: #f8f9fa;"
+                             onerror="this.onerror=null; this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%)'; this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:white;font-size:1.5rem;\'><i class=\'fas fa-calendar-alt\' style=\'font-size:4rem;opacity:0.3;\'></i></div>';">
                     </div>
                 {% endif %}
 
@@ -152,7 +158,10 @@
                                 <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
                                     {% if event.primary_site.image %}
                                         <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
-                                            <img src="{{ event.primary_site.image.url }}" alt="{{ event.primary_site.site_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                            <img src="{{ event.primary_site.image.url }}"
+                                                 alt="{{ event.primary_site.site_name }}"
+                                                 style="width: 100%; height: 100%; object-fit: cover;"
+                                                 onerror="this.onerror=null; this.style.display='none'; this.parentElement.style.background='#f8f9fa'; this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#6c757d;\'><i class=\'fas fa-map-marker-alt\' style=\'font-size:2rem;opacity:0.3;\'></i></div>';">
                                         </div>
                                     {% else %}
                                         <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
