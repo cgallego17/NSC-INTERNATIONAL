@@ -1165,8 +1165,18 @@
                 const targetContent = document.getElementById('tab-content-' + tabId);
                 if (targetContent) {
                     console.log('Activating tab:', tabId, 'Content found:', targetContent);
+                    console.log('Before setting display:', targetContent.style.display);
+                    // Establecer display: block
                     targetContent.style.display = 'block';
                     targetContent.classList.add('active');
+                    // Verificar que se estableció correctamente
+                    console.log('After setting display:', targetContent.style.display);
+                    console.log('Computed style:', window.getComputedStyle(targetContent).display);
+                    // Forzar si es necesario
+                    if (window.getComputedStyle(targetContent).display === 'none') {
+                        console.warn('Display is still none, forcing with !important');
+                        targetContent.setAttribute('style', 'display: block !important;');
+                    }
 
                     // Inicializar selectores de ubicación si es el tab de registrar hijo
                     if (tabId === 'registrar-hijo') {
