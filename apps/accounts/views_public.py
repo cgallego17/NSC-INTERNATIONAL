@@ -143,8 +143,21 @@ class PublicHomeView(TemplateView):
             context["event_types"] = EventType.objects.filter(is_active=True).order_by(
                 "name"
             )
+            # Buscar tipos específicos para los botones de showcase y prospect games
+            showcase_type = EventType.objects.filter(
+                is_active=True,
+                name__icontains="showcase"
+            ).first()
+            prospect_type = EventType.objects.filter(
+                is_active=True,
+                name__icontains="prospect"
+            ).first()
+            context["showcase_event_type"] = showcase_type
+            context["prospect_event_type"] = prospect_type
         except ImportError:
             context["event_types"] = []
+            context["showcase_event_type"] = None
+            context["prospect_event_type"] = None
 
         # Instagram username y perfil
         instagram_username = getattr(

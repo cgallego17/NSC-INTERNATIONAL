@@ -3399,8 +3399,16 @@
                             {% endif %}
                         </p>
                         <div class="schedule-buttons">
-                            <a href="{% url 'events:public_list' %}?search=showcase" class="schedule-category-btn">{% trans "SHOWCASES" %}</a>
-                            <a href="{% url 'events:public_list' %}?search=prospect" class="schedule-category-btn">{% trans "PROSPECT GAMES" %}</a>
+                            {% if showcase_event_type %}
+                                <a href="{% url 'events:public_list' %}?event_type={{ showcase_event_type.id }}" class="schedule-category-btn">{% trans "SHOWCASES" %}</a>
+                            {% else %}
+                                <a href="{% url 'events:public_list' %}?search=showcase" class="schedule-category-btn">{% trans "SHOWCASES" %}</a>
+                            {% endif %}
+                            {% if prospect_event_type %}
+                                <a href="{% url 'events:public_list' %}?event_type={{ prospect_event_type.id }}" class="schedule-category-btn">{% trans "PROSPECT GAMES" %}</a>
+                            {% else %}
+                                <a href="{% url 'events:public_list' %}?search=prospect" class="schedule-category-btn">{% trans "PROSPECT GAMES" %}</a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
