@@ -408,6 +408,50 @@
                                 </div>
                             </div>
 
+                            <!-- Ubicación -->
+                            <div class="form-section">
+                                <div class="form-section-title"><i class="fas fa-globe me-2"></i>Ubicación</div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.country.id_for_label }}" class="form-label required-field">
+                                            <i class="fas fa-globe me-1"></i>{% trans "Country" %} *
+                                        </label>
+                                        {{ form.country }}
+                                        {% if form.country.errors %}
+                                            <div class="error-message mt-1">{{ form.country.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.state.id_for_label }}" class="form-label required-field">
+                                            <i class="fas fa-map-marker-alt me-1"></i>{% trans "State" %} *
+                                        </label>
+                                        <div class="position-relative">
+                                            {{ form.state }}
+                                            <div id="stateLoader" class="position-absolute" style="display: none; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none;">
+                                                <i class="fas fa-spinner fa-spin" style="color: var(--mlb-blue);"></i>
+                                            </div>
+                                        </div>
+                                        {% if form.state.errors %}
+                                            <div class="error-message mt-1">{{ form.state.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="{{ form.city.id_for_label }}" class="form-label required-field">
+                                            <i class="fas fa-city me-1"></i>{% trans "City" %} *
+                                        </label>
+                                        <div class="position-relative">
+                                            {{ form.city }}
+                                            <div id="cityLoader" class="position-absolute" style="display: none; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none;">
+                                                <i class="fas fa-spinner fa-spin" style="color: var(--mlb-blue);"></i>
+                                            </div>
+                                        </div>
+                                        {% if form.city.errors %}
+                                            <div class="error-message mt-1">{{ form.city.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Información Deportiva -->
                             <div class="form-section">
                                 <div class="form-section-title"><i class="fas fa-baseball-ball me-2"></i>Información Deportiva</div>
@@ -778,7 +822,8 @@
         }
     };
 
-    document.addEventListener('DOMContentLoaded', function() {
+        (function initParentLocationFilters() {
+            function setupFilters() {
         // Inicializar foto de perfil
         setTimeout(window.initProfilePictureRegister, 100);
 
@@ -1122,7 +1167,112 @@
             }
             updateDivisionAndGrade();
         }
-    });
+
+        // ======================================================
+        // 4. Filtros Dinámicos de Ubicación (País, Estado, Ciudad)
+        // ======================================================
+        const countrySelect = document.getElementById('id_country');
+        const stateSelect = document.getElementById('id_state');
+        const citySelect = document.getElementById('id_city');
+        const stateLoader = document.getElementById('stateLoader');
+        const cityLoader = document.getElementById('cityLoader');
+
+        if (countrySelect && stateSelect && citySelect) {
+            const initialCountry = countrySelect.value;
+
+            function updateStates(showLoader = true) {
+                const countryId = countrySelect.value;
+                const currentStateValue = stateSelect.value;
+
+                // Limpiar estados y ciudades
+                stateSelect.innerHTML = '<option value="">{% trans "Select a state"|escapejs %}</option>';
+                citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
+
+                if (countryId) {
+                    if (showLoader && stateLoader) stateLoader.style.display = 'block';
+                    if (showLoader) {
+                        stateSelect.disabled = true;
+                        citySelect.disabled = true;
+                    }
+
+                    fetch(`/locations/ajax/states/${countryId}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(state => {
+                                const option = document.createElement('option');
+                                option.value = state.id;
+                                option.textContent = state.name;
+                                if (currentStateValue == state.id) {
+                                    option.selected = true;
+                                }
+                                stateSelect.appendChild(option);
+                            });
+                            // Si había un estado seleccionado, actualizar ciudades
+                            if (stateSelect.value) {
+                                updateCities(showLoader);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading states:', error);
+                            stateSelect.innerHTML = '<option value="">{% trans "Error loading states"|escapejs %}</option>';
+                        })
+                        .finally(() => {
+                            if (stateLoader) stateLoader.style.display = 'none';
+                            stateSelect.disabled = false;
+                            citySelect.disabled = false;
+                        });
+                }
+            }
+
+            function updateCities(showLoader = true) {
+                const stateId = stateSelect.value;
+                const currentCityValue = citySelect.value;
+
+                citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
+
+                if (stateId) {
+                    if (showLoader && cityLoader) cityLoader.style.display = 'block';
+                    if (showLoader) citySelect.disabled = true;
+
+                    fetch(`/locations/ajax/cities/${stateId}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(city => {
+                                const option = document.createElement('option');
+                                option.value = city.id;
+                                option.textContent = city.name;
+                                if (currentCityValue == city.id) {
+                                    option.selected = true;
+                                }
+                                citySelect.appendChild(option);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error loading cities:', error);
+                            citySelect.innerHTML = '<option value="">{% trans "Error loading cities"|escapejs %}</option>';
+                        })
+                        .finally(() => {
+                            if (cityLoader) cityLoader.style.display = 'none';
+                            citySelect.disabled = false;
+                        });
+                }
+            }
+
+            countrySelect.addEventListener('change', () => updateStates(true));
+            stateSelect.addEventListener('change', () => updateCities(true));
+
+            // Cargar inicial si ya hay un país seleccionado
+            if (initialCountry && stateSelect.options.length <= 1) {
+                updateStates(false);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupFilters);
+        } else {
+            setupFilters();
+        }
+    })();
     </script>
 </body>
 </html>

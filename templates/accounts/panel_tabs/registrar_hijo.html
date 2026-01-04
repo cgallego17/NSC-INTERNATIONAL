@@ -584,108 +584,8 @@ Object.assign(translations, {
     pleaseCompleteFields: "{% trans 'Please complete all required fields' %}"
 });
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('✅ Formulario de registro de hijo cargado');
-
-    // ========== TEST COMPLETO DEL FORMULARIO ==========
-    function testFormulario() {
-        const tests = {
-            camposRequeridos: false,
-            calculoAutomatico: false,
-            progresoFormulario: false,
-            cargaArchivos: false,
-            validaciones: false
-        };
-
-        // Test 1: Verificar campos requeridos
-        const requiredFields = [
-            'id_relationship',
-            'id_first_name',
-            'id_last_name',
-            'id_birth_date'
-        ];
-
-        let camposEncontrados = 0;
-        requiredFields.forEach(fieldId => {
-            const field = document.getElementById(fieldId);
-            if (field) {
-                camposEncontrados++;
-                console.log(`✅ Campo requerido encontrado: ${fieldId}`);
-            } else {
-                console.error(`❌ Campo requerido NO encontrado: ${fieldId}`);
-            }
-        });
-
-        tests.camposRequeridos = camposEncontrados === requiredFields.length;
-        console.log(`📊 Campos requeridos: ${camposEncontrados}/${requiredFields.length}`);
-
-        // Test 2: Verificar cálculo automático de edad/división/grado
-        const birthDateField = document.getElementById('id_birth_date');
-        const gradeField = document.getElementById('id_grade');
-        const divisionField = document.getElementById('id_division');
-
-        if (birthDateField && gradeField && divisionField) {
-            tests.calculoAutomatico = true;
-            console.log('✅ Campos de cálculo automático encontrados');
-        } else {
-            console.error('❌ Faltan campos para cálculo automático');
-        }
-
-        // Test 3: Verificar indicador de progreso
-        const progressBar = document.getElementById('formProgressBar');
-        const progressText = document.getElementById('formProgressText');
-        const floatingProgressBar = document.getElementById('formFloatingProgressBar');
-        const floatingProgressBarInner = document.getElementById('formFloatingProgressBarInner');
-
-        if (floatingProgressBar && floatingProgressBarInner) {
-            tests.progresoFormulario = true;
-            console.log('✅ Indicador de progreso flotante encontrado');
-        } else if (progressBar && progressText) {
-            tests.progresoFormulario = true;
-            console.log('✅ Indicador de progreso encontrado (versión antigua)');
-        } else {
-            console.error('❌ Indicador de progreso NO encontrado');
-        }
-
-        // Test 4: Verificar carga de archivos
-        const fileInput = document.querySelector('#parentPlayerForm input[type="file"]');
-        const fileUploadArea = document.querySelector('.file-upload-area');
-
-        if (fileInput && fileUploadArea) {
-            tests.cargaArchivos = true;
-            console.log('✅ Área de carga de archivos encontrada');
-        } else {
-            console.error('❌ Área de carga de archivos NO encontrada');
-        }
-
-        // Test 5: Verificar validaciones HTML5
-        const form = document.getElementById('parentPlayerForm');
-        if (form && form.hasAttribute('novalidate')) {
-            tests.validaciones = true;
-            console.log('✅ Formulario configurado para validación personalizada');
-        }
-
-        // Resumen de tests
-        console.log('\n📋 RESUMEN DE TESTS:');
-        console.log('===================');
-        Object.keys(tests).forEach(test => {
-            const icon = tests[test] ? '✅' : '❌';
-            console.log(`${icon} ${test}: ${tests[test] ? 'PASADO' : 'FALLIDO'}`);
-        });
-
-        const todosPasados = Object.values(tests).every(test => test === true);
-        if (todosPasados) {
-            console.log('\n🎉 ¡TODOS LOS TESTS PASARON!');
-        } else {
-            console.log('\n⚠️ ALGUNOS TESTS FALLARON');
-        }
-
-        return tests;
-    }
-
-    // Ejecutar tests después de un breve delay para asegurar que todo esté cargado
-    setTimeout(testFormulario, 500);
-
+// Función global de inicialización del formulario de registro de hijo
+window.initParentPlayerForm = function() {
     // ========== FUNCIONALIDAD DEL FORMULARIO ==========
 
     // Calcular progreso del formulario
@@ -781,7 +681,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const month = match[2];
             const year = match[3];
             dateField.value = `${year}-${month}-${day}`;
-            console.log(`✅ Fecha convertida de ${currentValue} a ${dateField.value}`);
         }
     }
 
@@ -894,7 +793,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (!divisionField.value || divisionField.value === '') {
                         divisionField.value = suggestedDivision;
                         divisionField.dataset.autoSet = 'true';
-                        console.log(`✅ División calculada automáticamente: ${suggestedDivision}`);
                     } else if (divisionField.dataset.autoSet === 'true') {
                         divisionField.value = suggestedDivision;
                     }
@@ -909,7 +807,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             gradeField.value = suggestedGrade;
                             gradeField.dataset.autoSet = 'true';
                             gradeField.dispatchEvent(new Event('change', { bubbles: true }));
-                            console.log(`✅ Grado calculado automáticamente: ${suggestedGrade}`);
                         } else if (gradeField.dataset.autoSet === 'true') {
                             gradeField.value = suggestedGrade;
                             gradeField.dispatchEvent(new Event('change', { bubbles: true }));
@@ -1139,121 +1036,138 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Filtros dinámicos de ubicación (Country -> State -> City)
-    const countrySelect = document.getElementById('id_country');
-    const stateSelect = document.getElementById('id_state');
-    const citySelect = document.getElementById('id_city');
-    const stateLoader = document.getElementById('stateLoader');
-    const cityLoader = document.getElementById('cityLoader');
+    // Usar la referencia del formulario que ya existe (form ya está declarada arriba)
+    const locationForm = document.getElementById('parentPlayerForm');
+    if (locationForm) {
+        const countrySelect = locationForm.querySelector('[name="country"]');
+        const stateSelect = locationForm.querySelector('[name="state"]');
+        const citySelect = locationForm.querySelector('[name="city"]');
+        const stateLoader = locationForm.querySelector('#stateLoader');
+        const cityLoader = locationForm.querySelector('#cityLoader');
 
-    if (countrySelect && stateSelect && citySelect) {
-        // Guardar valores iniciales
-        const initialCountry = countrySelect.value;
-        const initialState = stateSelect.value;
-        const initialCity = citySelect.value;
-        let isInitialLoad = true;
+        if (countrySelect && stateSelect && citySelect) {
+            // Evitar inicialización duplicada
+            if (countrySelect.dataset.locationInitialized === 'true') return;
+            countrySelect.dataset.locationInitialized = 'true';
 
-        function updateStates(showLoader = true) {
-            const countryId = countrySelect.value;
-            const currentStateValue = stateSelect.value;
+            // Guardar valores iniciales
+            const initialCountry = countrySelect.value;
+            const initialState = stateSelect.dataset.initialValue || stateSelect.value;
+            const initialCity = citySelect.dataset.initialValue || citySelect.value;
 
-            // Limpiar estados y ciudades
-            stateSelect.innerHTML = '<option value="">{% trans "Select a state" %}</option>';
-            citySelect.innerHTML = '<option value="">{% trans "Select a city" %}</option>';
+            function updateStates(showLoader = true, preserveState = null) {
+                const countryId = countrySelect.value;
+                const currentStateValue = preserveState || stateSelect.value;
 
-            if (countryId) {
-                // Mostrar loader y deshabilitar select solo si no es la carga inicial
-                if (showLoader && stateLoader) stateLoader.style.display = 'block';
-                if (showLoader) {
-                    stateSelect.disabled = true;
-                    citySelect.disabled = true;
+                // Limpiar estados y ciudades
+                stateSelect.innerHTML = '<option value="">{% trans "Select a state"|escapejs %}</option>';
+                citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
+
+                if (countryId) {
+                    // Mostrar loader y deshabilitar select solo si no es la carga inicial
+                    if (showLoader && stateLoader) stateLoader.style.display = 'block';
+                    if (showLoader) {
+                        stateSelect.disabled = true;
+                        citySelect.disabled = true;
+                    }
+
+                    fetch(`/locations/ajax/states/${countryId}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(state => {
+                                const option = document.createElement('option');
+                                option.value = state.id;
+                                option.textContent = state.name;
+                                if (currentStateValue == state.id) {
+                                    option.selected = true;
+                                }
+                                stateSelect.appendChild(option);
+                            });
+                            // Si había un estado seleccionado, actualizar ciudades
+                            if (stateSelect.value) {
+                                updateCities(showLoader, preserveState ? initialCity : null);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading states:', error);
+                            stateSelect.innerHTML = '<option value="">{% trans "Error loading states"|escapejs %}</option>';
+                        })
+                        .finally(() => {
+                            // Ocultar loader y habilitar select
+                            if (stateLoader) stateLoader.style.display = 'none';
+                            stateSelect.disabled = false;
+                            citySelect.disabled = false;
+                        });
+                } else {
+                    // Si no hay país seleccionado, habilitar ambos selects
+                    stateSelect.disabled = false;
+                    citySelect.disabled = false;
                 }
-
-                fetch(`/locations/ajax/states/${countryId}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(state => {
-                            const option = document.createElement('option');
-                            option.value = state.id;
-                            option.textContent = state.name;
-                            if (currentStateValue == state.id) {
-                                option.selected = true;
-                            }
-                            stateSelect.appendChild(option);
-                        });
-                        // Si había un estado seleccionado, actualizar ciudades
-                        if (currentStateValue) {
-                            updateCities(showLoader);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error loading states:', error);
-                        stateSelect.innerHTML = '<option value="">{% trans "Error loading states" %}</option>';
-                    })
-                    .finally(() => {
-                        // Ocultar loader y habilitar select
-                        if (stateLoader) stateLoader.style.display = 'none';
-                        stateSelect.disabled = false;
-                        citySelect.disabled = false;
-                    });
-            } else {
-                // Si no hay país seleccionado, habilitar ambos selects
-                stateSelect.disabled = false;
-                citySelect.disabled = false;
             }
-        }
 
-        function updateCities(showLoader = true) {
-            const stateId = stateSelect.value;
-            const currentCityValue = citySelect.value;
+            function updateCities(showLoader = true, preserveCity = null) {
+                const stateId = stateSelect.value;
+                const currentCityValue = preserveCity || citySelect.value;
 
-            citySelect.innerHTML = '<option value="">{% trans "Select a city" %}</option>';
+                citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
 
-            if (stateId) {
-                // Mostrar loader y deshabilitar select solo si no es la carga inicial
-                if (showLoader && cityLoader) cityLoader.style.display = 'block';
-                if (showLoader) citySelect.disabled = true;
+                if (stateId) {
+                    // Mostrar loader y deshabilitar select solo si no es la carga inicial
+                    if (showLoader && cityLoader) cityLoader.style.display = 'block';
+                    if (showLoader) citySelect.disabled = true;
 
-                fetch(`/locations/ajax/cities/${stateId}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(city => {
-                            const option = document.createElement('option');
-                            option.value = city.id;
-                            option.textContent = city.name;
-                            if (currentCityValue == city.id) {
-                                option.selected = true;
-                            }
-                            citySelect.appendChild(option);
+                    fetch(`/locations/ajax/cities/${stateId}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(city => {
+                                const option = document.createElement('option');
+                                option.value = city.id;
+                                option.textContent = city.name;
+                                if (currentCityValue == city.id) {
+                                    option.selected = true;
+                                }
+                                citySelect.appendChild(option);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error loading cities:', error);
+                            citySelect.innerHTML = '<option value="">{% trans "Error loading cities"|escapejs %}</option>';
+                        })
+                        .finally(() => {
+                            // Ocultar loader y habilitar select
+                            if (cityLoader) cityLoader.style.display = 'none';
+                            citySelect.disabled = false;
                         });
-                    })
-                    .catch(error => {
-                        console.error('Error loading cities:', error);
-                        citySelect.innerHTML = '<option value="">{% trans "Error loading cities" %}</option>';
-                    })
-                    .finally(() => {
-                        // Ocultar loader y habilitar select
-                        if (cityLoader) cityLoader.style.display = 'none';
-                        citySelect.disabled = false;
-                    });
-            } else {
-                // Si no hay estado seleccionado, habilitar select
-                citySelect.disabled = false;
+                } else {
+                    // Si no hay estado seleccionado, habilitar select
+                    citySelect.disabled = false;
+                }
             }
-        }
 
-        // Event listeners para cambios manuales del usuario
-        countrySelect.addEventListener('change', function() {
-            updateStates(true); // Mostrar loader en cambios manuales
-        });
+            // Event listeners para cambios manuales del usuario
+            countrySelect.addEventListener('change', function() {
+                updateStates(true); // Mostrar loader en cambios manuales
+            });
 
-        stateSelect.addEventListener('change', function() {
-            updateCities(true); // Mostrar loader en cambios manuales
-        });
+            stateSelect.addEventListener('change', function() {
+                updateCities(true); // Mostrar loader en cambios manuales
+            });
 
-        // Cargar datos iniciales si hay un país seleccionado (sin loader ni bloqueo)
-        if (initialCountry) {
-            updateStates(false); // No mostrar loader en carga inicial
+            // Cargar datos iniciales si hay un país seleccionado (sin loader ni bloqueo)
+            if (initialCountry && stateSelect.options.length <= 1) {
+                updateStates(false, initialState); // No mostrar loader en carga inicial, preservar estado
+            }
         }
     }
+};
+
+// Inicializar cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    window.initParentPlayerForm();
 });
+
+// También inicializar inmediatamente si el DOM ya está cargado (para contenido AJAX)
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(window.initParentPlayerForm, 50);
+}
 </script>

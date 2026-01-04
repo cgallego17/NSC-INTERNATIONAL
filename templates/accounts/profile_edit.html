@@ -375,7 +375,12 @@
                                         <label for="{{ form.state.id_for_label }}" class="form-label required-field">
                                             <i class="fas fa-map me-1"></i>Estado *
                                         </label>
-                                        {{ form.state }}
+                                        <div class="position-relative">
+                                            {{ form.state }}
+                                            <div id="stateLoader" class="position-absolute" style="display: none; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none;">
+                                                <i class="fas fa-spinner fa-spin" style="color: var(--mlb-blue);"></i>
+                                            </div>
+                                        </div>
                                         {% if form.state.errors %}
                                             <div class="error-message">{{ form.state.errors }}</div>
                                         {% endif %}
@@ -384,7 +389,12 @@
                                         <label for="{{ form.city.id_for_label }}" class="form-label required-field">
                                             <i class="fas fa-city me-1"></i>Ciudad *
                                         </label>
-                                        {{ form.city }}
+                                        <div class="position-relative">
+                                            {{ form.city }}
+                                            <div id="cityLoader" class="position-absolute" style="display: none; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none;">
+                                                <i class="fas fa-spinner fa-spin" style="color: var(--mlb-blue);"></i>
+                                            </div>
+                                        </div>
                                         {% if form.city.errors %}
                                             <div class="error-message">{{ form.city.errors }}</div>
                                         {% endif %}
@@ -481,15 +491,21 @@
         const countrySelect = document.getElementById('id_country');
         const stateSelect = document.getElementById('id_state');
         const citySelect = document.getElementById('id_city');
+        const stateLoader = document.getElementById('stateLoader');
+        const cityLoader = document.getElementById('cityLoader');
 
-        if (countrySelect) {
-            countrySelect.addEventListener('change', function() {
-                const countryId = this.value;
+        if (countrySelect && stateSelect && citySelect) {
+            function updateStates() {
+                const countryId = countrySelect.value;
                 stateSelect.innerHTML = '<option value="">Selecciona un estado</option>';
                 citySelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
 
                 if (countryId) {
-                    fetch(`/locations/api/states/?country=${countryId}`)
+                    if (stateLoader) stateLoader.style.display = 'block';
+                    stateSelect.disabled = true;
+                    citySelect.disabled = true;
+
+                    fetch(`/locations/ajax/states/${countryId}/`)
                         .then(response => response.json())
                         .then(data => {
                             data.forEach(state => {
@@ -498,55 +514,63 @@
                                 option.textContent = state.name;
                                 stateSelect.appendChild(option);
                             });
-                            // Si hay un estado pre-seleccionado, cargar ciudades
+                            // Si hay un estado pre-seleccionado, establecerlo
                             if (stateSelect.dataset.initialValue) {
                                 stateSelect.value = stateSelect.dataset.initialValue;
+                                stateSelect.dataset.initialValue = ''; // Limpiar después de usar
                                 updateCities();
                             }
                         })
-                        .catch(error => console.error('Error loading states:', error));
-                }
-            });
-        }
-
-        // Cargar ciudades cuando se selecciona un estado
-        function updateCities() {
-            const stateId = stateSelect.value;
-            citySelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
-
-            if (stateId) {
-                fetch(`/locations/api/cities/?state=${stateId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(city => {
-                            const option = document.createElement('option');
-                            option.value = city.id;
-                            option.textContent = city.name;
-                            citySelect.appendChild(option);
+                        .catch(error => console.error('Error loading states:', error))
+                        .finally(() => {
+                            if (stateLoader) stateLoader.style.display = 'none';
+                            stateSelect.disabled = false;
+                            citySelect.disabled = false;
                         });
-                        // Si hay una ciudad pre-seleccionada, establecerla
-                        if (citySelect.dataset.initialValue) {
-                            citySelect.value = citySelect.dataset.initialValue;
-                        }
-                    })
-                    .catch(error => console.error('Error loading cities:', error));
+                }
             }
-        }
 
-        if (stateSelect) {
+            function updateCities() {
+                const stateId = stateSelect.value;
+                citySelect.innerHTML = '<option value="">Selecciona una ciudad</option>';
+
+                if (stateId) {
+                    if (cityLoader) cityLoader.style.display = 'block';
+                    citySelect.disabled = true;
+
+                    fetch(`/locations/ajax/cities/${stateId}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(city => {
+                                const option = document.createElement('option');
+                                option.value = city.id;
+                                option.textContent = city.name;
+                                citySelect.appendChild(option);
+                            });
+                            // Si hay una ciudad pre-seleccionada, establecerla
+                            if (citySelect.dataset.initialValue) {
+                                citySelect.value = citySelect.dataset.initialValue;
+                                citySelect.dataset.initialValue = ''; // Limpiar después de usar
+                            }
+                        })
+                        .catch(error => console.error('Error loading cities:', error))
+                        .finally(() => {
+                            if (cityLoader) cityLoader.style.display = 'none';
+                            citySelect.disabled = false;
+                        });
+                }
+            }
+
+            countrySelect.addEventListener('change', updateStates);
             stateSelect.addEventListener('change', updateCities);
 
-            // Guardar valores iniciales para re-selección en caso de error
-            if (stateSelect.value) {
-                stateSelect.dataset.initialValue = stateSelect.value;
-            }
-            if (citySelect.value) {
-                citySelect.dataset.initialValue = citySelect.value;
-            }
+            // Guardar valores iniciales
+            if (stateSelect.value) stateSelect.dataset.initialValue = stateSelect.value;
+            if (citySelect.value) citySelect.dataset.initialValue = citySelect.value;
 
-            // Cargar ciudades si hay un estado seleccionado
-            if (stateSelect.value) {
-                updateCities();
+            // Cargar inicial si ya hay valores
+            if (countrySelect.value && stateSelect.options.length <= 1) {
+                updateStates();
             }
         }
     </script>

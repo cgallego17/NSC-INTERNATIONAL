@@ -211,21 +211,21 @@ class PublicRegistrationForm(UserCreationForm):
     country = forms.ModelChoiceField(
         label=_("Country"),
         queryset=Country.objects.filter(is_active=True).order_by("name"),
-        required=False,
+        required=True,
         empty_label=_("Select a country"),
         widget=forms.Select(attrs={"class": "form-select", "id": "id_country"}),
     )
     state = forms.ModelChoiceField(
         label=_("State"),
         queryset=State.objects.none(),
-        required=False,
+        required=True,
         empty_label=_("Select a state"),
         widget=forms.Select(attrs={"class": "form-select", "id": "id_state"}),
     )
     city = forms.ModelChoiceField(
         label=_("City"),
         queryset=City.objects.none(),
-        required=False,
+        required=True,
         empty_label=_("Select a city"),
         widget=forms.Select(attrs={"class": "form-select", "id": "id_city"}),
     )
@@ -298,7 +298,29 @@ class PublicRegistrationForm(UserCreationForm):
 
     class Meta:
         model = User
-        fields = ["email", "first_name", "last_name", "password1", "password2"]
+        fields = [
+            "email",
+            "first_name",
+            "last_name",
+            "last_name2",
+            "password1",
+            "password2",
+            "user_type",
+            "phone_prefix",
+            "phone",
+            "phone_secondary",
+            "birth_date",
+            "profile_picture",
+            "country",
+            "state",
+            "city",
+            "address",
+            "address_line_2",
+            "postal_code",
+            "bio",
+            "website",
+            "social_media",
+        ]
         widgets = {
             "password1": forms.PasswordInput(
                 attrs={"class": "form-control", "placeholder": _("Password")}
@@ -328,20 +350,20 @@ class PublicRegistrationForm(UserCreationForm):
             try:
                 country_id = int(self.data.get("country"))
                 self.fields["state"].queryset = State.objects.filter(
-                    country_id=country_id, is_active=True
+                    country_id=country_id
                 ).order_by("name")
             except (ValueError, TypeError):
-                pass
+                self.fields["state"].queryset = State.objects.none()
 
         # Si hay un estado seleccionado, cargar ciudades
         if "state" in self.data:
             try:
                 state_id = int(self.data.get("state"))
                 self.fields["city"].queryset = City.objects.filter(
-                    state_id=state_id, is_active=True
+                    state_id=state_id
                 ).order_by("name")
             except (ValueError, TypeError):
-                pass
+                self.fields["city"].queryset = City.objects.none()
 
     def generate_username(self, first_name, last_name, last_name2=None):
         """Genera un username único basado en nombre y apellidos"""
@@ -602,7 +624,7 @@ class UserProfileForm(forms.ModelForm):
 
         # Campos de ubicación con ModelChoiceField
         self.fields["country"] = forms.ModelChoiceField(
-            queryset=Country.objects.filter(is_active=True).order_by("name"),
+            queryset=Country.objects.all().order_by("name"),
             required=True,
             empty_label=_("Select a country"),
             widget=forms.Select(attrs={"class": "form-select", "id": "id_country"}),
@@ -622,35 +644,37 @@ class UserProfileForm(forms.ModelForm):
             widget=forms.Select(attrs={"class": "form-select", "id": "id_city"}),
         )
 
-        # Si hay una instancia (edición), cargar estados y ciudades
-        if self.instance and self.instance.pk:
-            if self.instance.country:
-                self.fields["state"].queryset = State.objects.filter(
-                    country=self.instance.country, is_active=True
-                ).order_by("name")
-            if self.instance.state:
-                self.fields["city"].queryset = City.objects.filter(
-                    state=self.instance.state, is_active=True
-                ).order_by("name")
-
-        # Si hay datos en POST, cargar dinámicamente
+        # Determinar el país seleccionado
         if "country" in self.data:
-            try:
-                country_id = int(self.data.get("country"))
-                self.fields["state"].queryset = State.objects.filter(
-                    country_id=country_id, is_active=True
-                ).order_by("name")
-            except (ValueError, TypeError):
-                pass
+            country_id = self.data.get("country")
+        elif self.instance.pk:
+            country_id = self.instance.country_id
+        else:
+            country_id = None
 
-        if "state" in self.data:
+        if country_id:
             try:
-                state_id = int(self.data.get("state"))
-                self.fields["city"].queryset = City.objects.filter(
-                    state_id=state_id, is_active=True
+                self.fields["state"].queryset = State.objects.filter(
+                    country_id=country_id
                 ).order_by("name")
             except (ValueError, TypeError):
-                pass
+                self.fields["state"].queryset = State.objects.none()
+
+        # Determinar el estado seleccionado
+        if "state" in self.data:
+            state_id = self.data.get("state")
+        elif self.instance.pk:
+            state_id = self.instance.state_id
+        else:
+            state_id = None
+
+        if state_id:
+            try:
+                self.fields["city"].queryset = City.objects.filter(
+                    state_id=state_id
+                ).order_by("name")
+            except (ValueError, TypeError):
+                self.fields["city"].queryset = City.objects.none()
 
 
 class UserCreateForm(UserCreationForm):
@@ -1179,20 +1203,23 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         help_text=_("Upload a profile picture (optional)"),
     )
     country = forms.ModelChoiceField(
-        queryset=None,
+        queryset=Country.objects.all().order_by("name"),
         required=True,
+        empty_label=_("Select a country"),
         widget=forms.Select(attrs={"class": "form-select", "id": "id_country"}),
         label=_("Country"),
     )
     state = forms.ModelChoiceField(
-        queryset=None,
+        queryset=State.objects.none(),
         required=True,
+        empty_label=_("Select a state"),
         widget=forms.Select(attrs={"class": "form-select", "id": "id_state"}),
         label=_("State"),
     )
     city = forms.ModelChoiceField(
-        queryset=None,
+        queryset=City.objects.none(),
         required=True,
+        empty_label=_("Select a city"),
         widget=forms.Select(attrs={"class": "form-select", "id": "id_city"}),
         label=_("City"),
     )
@@ -1218,6 +1245,9 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
     class Meta:
         model = Player
         fields = [
+            "country",
+            "state",
+            "city",
             "position",
             "secondary_position",
             "is_pitcher",
@@ -1281,24 +1311,52 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         self.parent = kwargs.pop("parent", None)
         super().__init__(*args, **kwargs)
 
-        # Inicializar querysets para ubicación
-        # Optimización: No cargar todos los estados y ciudades de una vez
-        # Se cargarán dinámicamente vía AJAX
-        self.fields["country"].queryset = Country.objects.filter(is_active=True).order_by("name")
+        # Determinar el país seleccionado (prioridad: data de POST, luego instancia)
+        if "country" in self.data:
+            country_id = self.data.get("country")
+        elif self.instance.pk:
+            if hasattr(self.instance, "user") and hasattr(self.instance.user, "profile"):
+                country_id = self.instance.user.profile.country_id
+        else:
+            country_id = None
 
-        # Si hay un país seleccionado (en los datos del formulario o en la instancia), cargar sus estados
-        country_id = self.data.get("country") or (self.instance.country_id if hasattr(self.instance, "country_id") else None)
+        # Poblar estados según el país
         if country_id:
-            self.fields["state"].queryset = State.objects.filter(country_id=country_id, is_active=True).order_by("name")
+            try:
+                self.fields["state"].queryset = State.objects.filter(
+                    country_id=country_id
+                ).order_by("name")
+            except (ValueError, TypeError):
+                self.fields["state"].queryset = State.objects.none()
         else:
             self.fields["state"].queryset = State.objects.none()
 
-        # Si hay un estado seleccionado, cargar sus ciudades
-        state_id = self.data.get("state") or (self.instance.state_id if hasattr(self.instance, "state_id") else None)
+        # Determinar el estado seleccionado
+        state_id = self.data.get("state")
+        if not state_id and self.instance.pk:
+            if hasattr(self.instance, "user") and hasattr(self.instance.user, "profile"):
+                state_id = self.instance.user.profile.state_id
+
+        # Poblar ciudades según el estado
         if state_id:
-            self.fields["city"].queryset = City.objects.filter(state_id=state_id, is_active=True).order_by("name")
+            try:
+                self.fields["city"].queryset = City.objects.filter(
+                    state_id=state_id
+                ).order_by("name")
+            except (ValueError, TypeError):
+                self.fields["city"].queryset = City.objects.none()
         else:
             self.fields["city"].queryset = City.objects.none()
+
+        # Valores iniciales explícitos para edición
+        if self.instance.pk and hasattr(self.instance, "user") and hasattr(self.instance.user, "profile"):
+            profile = self.instance.user.profile
+            if profile.country_id:
+                self.fields["country"].initial = profile.country_id
+            if profile.state_id:
+                self.fields["state"].initial = profile.state_id
+            if profile.city_id:
+                self.fields["city"].initial = profile.city_id
 
         # Los padres NO pueden seleccionar equipo - será asignado por admin o manager
         # El campo 'team' no está en los fields del Meta, así que no aparecerá en el formulario
@@ -1684,20 +1742,23 @@ class PlayerUpdateForm(forms.ModelForm):
         widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}),
     )
     country = forms.ModelChoiceField(
-        queryset=None,
+        queryset=Country.objects.all().order_by("name"),
         required=True,
+        empty_label=_("Select a country"),
         widget=forms.Select(attrs={"class": "form-select", "id": "id_country"}),
         label=_("Country"),
     )
     state = forms.ModelChoiceField(
-        queryset=None,
+        queryset=State.objects.none(),
         required=True,
+        empty_label=_("Select a state"),
         widget=forms.Select(attrs={"class": "form-select", "id": "id_state"}),
         label=_("State"),
     )
     city = forms.ModelChoiceField(
-        queryset=None,
+        queryset=City.objects.none(),
         required=True,
+        empty_label=_("Select a city"),
         widget=forms.Select(attrs={"class": "form-select", "id": "id_city"}),
         label=_("City"),
     )
@@ -1705,6 +1766,9 @@ class PlayerUpdateForm(forms.ModelForm):
     class Meta:
         model = Player
         fields = [
+            "country",
+            "state",
+            "city",
             "team",
             "jersey_number",
             "position",
@@ -1778,43 +1842,53 @@ class PlayerUpdateForm(forms.ModelForm):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
-        # Importar modelos de ubicación
-        from apps.locations.models import City, Country, State
-
-        # Inicializar querysets para ubicación
-        # Optimización: No cargar todos los estados y ciudades de una vez
-        self.fields["country"].queryset = Country.objects.filter(is_active=True).order_by("name")
-
-        # Obtener país y estado del perfil si existe
+        # Obtener país, estado y ciudad del perfil si existe
         profile_country_id = None
         profile_state_id = None
+        profile_city_id = None
         if self.instance and hasattr(self.instance, "user") and hasattr(self.instance.user, "profile"):
             profile_country_id = self.instance.user.profile.country_id
             profile_state_id = self.instance.user.profile.state_id
+            profile_city_id = self.instance.user.profile.city_id
 
         # Priorizar datos de POST, luego instancia
-        country_id = self.data.get("country") or profile_country_id
+        if "country" in self.data:
+            country_id = self.data.get("country")
+        else:
+            country_id = profile_country_id
+
         if country_id:
-            self.fields["state"].queryset = State.objects.filter(country_id=country_id, is_active=True).order_by("name")
+            try:
+                self.fields["state"].queryset = State.objects.filter(
+                    country_id=country_id
+                ).order_by("name")
+            except (ValueError, TypeError):
+                self.fields["state"].queryset = State.objects.none()
         else:
             self.fields["state"].queryset = State.objects.none()
 
-        state_id = self.data.get("state") or profile_state_id
+        if "state" in self.data:
+            state_id = self.data.get("state")
+        else:
+            state_id = profile_state_id
+
         if state_id:
-            self.fields["city"].queryset = City.objects.filter(state_id=state_id, is_active=True).order_by("name")
+            try:
+                self.fields["city"].queryset = City.objects.filter(
+                    state_id=state_id
+                ).order_by("name")
+            except (ValueError, TypeError):
+                self.fields["city"].queryset = City.objects.none()
         else:
             self.fields["city"].queryset = City.objects.none()
 
-        # Valores iniciales de ubicación desde el perfil del jugador
-        if (
-            self.instance
-            and hasattr(self.instance, "user")
-            and hasattr(self.instance.user, "profile")
-        ):
-            profile = self.instance.user.profile
-            self.fields["country"].initial = profile.country
-            self.fields["state"].initial = profile.state
-            self.fields["city"].initial = profile.city
+        # Establecer valores iniciales explícitos
+        if profile_country_id:
+            self.fields["country"].initial = profile_country_id
+        if profile_state_id:
+            self.fields["state"].initial = profile_state_id
+        if profile_city_id:
+            self.fields["city"].initial = profile_city_id
 
         # Verificar si el usuario es padre/acudiente del jugador
         is_parent = False

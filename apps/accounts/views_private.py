@@ -92,10 +92,19 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
 
         # Si es padre, obtener sus jugadores (optimizado)
         if profile.is_parent:
-            player_parents = PlayerParent.objects.filter(parent=user).select_related(
-                "player", "player__team", "player__user", "player__user__profile",
-                "player__user__profile__country", "player__user__profile__state", "player__user__profile__city"
-            ).order_by("-created_at")
+            player_parents = (
+                PlayerParent.objects.filter(parent=user)
+                .select_related(
+                    "player",
+                    "player__team",
+                    "player__user",
+                    "player__user__profile",
+                    "player__user__profile__country",
+                    "player__user__profile__state",
+                    "player__user__profile__city",
+                )
+                .order_by("-created_at")
+            )
             context["children"] = player_parents
             context["total_children"] = player_parents.count()
             context["recent_children"] = player_parents[:5]
@@ -188,9 +197,11 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             context["all_teams"] = Team.objects.filter(manager=user).order_by(
                 "-created_at"
             )
-            all_players = Player.objects.filter(team__manager=user).select_related(
-                "user", "user__profile", "team"
-            ).order_by("-created_at")
+            all_players = (
+                Player.objects.filter(team__manager=user)
+                .select_related("user", "user__profile", "team")
+                .order_by("-created_at")
+            )
             # Anotar cada jugador con información sobre si es hijo del usuario actual (optimizado)
             if profile.is_parent:
                 # Obtener IDs de jugadores que son hijos del usuario (una sola consulta)
@@ -222,8 +233,12 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             context["parent_players"] = (
                 Player.objects.filter(parents__parent=user)
                 .select_related(
-                    "user", "user__profile", "user__profile__country",
-                    "user__profile__state", "user__profile__city", "team"
+                    "user",
+                    "user__profile",
+                    "user__profile__country",
+                    "user__profile__state",
+                    "user__profile__city",
+                    "team",
                 )
                 .order_by("-created_at")
             )
@@ -268,16 +283,28 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             ]
 
             # Hacer una sola consulta para todas las habitaciones
-            rooms_dict = {
-                room.id: room
-                for room in HotelRoom.objects.filter(id__in=room_ids).select_related("hotel")
-            } if room_ids else {}
+            rooms_dict = (
+                {
+                    room.id: room
+                    for room in HotelRoom.objects.filter(
+                        id__in=room_ids
+                    ).select_related("hotel")
+                }
+                if room_ids
+                else {}
+            )
 
             # Hacer una sola consulta para todos los servicios
-            services_dict = {
-                service.id: service
-                for service in HotelService.objects.filter(id__in=service_ids).select_related("hotel")
-            } if service_ids else {}
+            services_dict = (
+                {
+                    service.id: service
+                    for service in HotelService.objects.filter(
+                        id__in=service_ids
+                    ).select_related("hotel")
+                }
+                if service_ids
+                else {}
+            )
 
         for item_id, item_data in cart.items():
             try:
@@ -293,7 +320,11 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
                     for service_data in item_data.get("services", []):
                         service_id = service_data.get("service_id")
                         service = services_dict.get(service_id)
-                        if service and service.hotel_id == room.hotel_id and service.is_active:
+                        if (
+                            service
+                            and service.hotel_id == room.hotel_id
+                            and service.is_active
+                        ):
                             quantity = int(service_data.get("quantity", 1))
                             service_price = service.price * quantity
                             if service.is_per_person:
@@ -686,8 +717,12 @@ class PlayerListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         queryset = Player.objects.filter(is_active=True).select_related(
-            "user", "team", "user__profile", "user__profile__country",
-            "user__profile__state", "user__profile__city"
+            "user",
+            "team",
+            "user__profile",
+            "user__profile__country",
+            "user__profile__state",
+            "user__profile__city",
         )
 
         # Si es manager, solo mostrar jugadores de sus equipos
@@ -738,13 +773,14 @@ class PlayerListView(LoginRequiredMixin, ListView):
         # Agregar site_settings para navbar y footer
         try:
             from .models import SiteSettings
+
             site_settings = SiteSettings.load()
             context["site_settings"] = site_settings
         except (ImportError, AttributeError):
             context["site_settings"] = None
 
         # Importar modelos de locations
-        from apps.locations.models import Country, State, City
+        from apps.locations.models import City, Country, State
 
         # Agregar opciones para filtros
         context["countries"] = Country.objects.filter(is_active=True).order_by("name")
@@ -847,7 +883,7 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
             "user__profile__country",
             "user__profile__state",
             "user__profile__city",
-            "team"
+            "team",
         )
 
     def dispatch(self, request, *args, **kwargs):
@@ -855,12 +891,14 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
             # Verificar que el usuario esté autenticado y tenga sesión válida
             if not request.user.is_authenticated:
                 from django.http import JsonResponse
+
                 if request.headers.get("X-Requested-With") == "XMLHttpRequest":
                     return JsonResponse(
-                        {"error": "Session expired. Please log in again."},
-                        status=401
+                        {"error": "Session expired. Please log in again."}, status=401
                     )
-                messages.error(request, _("Your session has expired. Please log in again."))
+                messages.error(
+                    request, _("Your session has expired. Please log in again.")
+                )
                 return redirect("accounts:login")
 
             player = self.get_object()
@@ -894,19 +932,20 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
 
         except Exception as e:
             import logging
+
             logger = logging.getLogger(__name__)
             logger.error(f"Error in PlayerUpdateView.dispatch: {e}", exc_info=True)
 
             # Si es una petición AJAX, devolver error JSON
             if request.headers.get("X-Requested-With") == "XMLHttpRequest":
                 from django.http import JsonResponse
-                return JsonResponse(
-                    {"error": f"Session error: {str(e)}"},
-                    status=500
-                )
+
+                return JsonResponse({"error": f"Session error: {str(e)}"}, status=500)
 
             # Si no es AJAX, redirigir al login
-            messages.error(request, _("An error occurred. Please try logging in again."))
+            messages.error(
+                request, _("An error occurred. Please try logging in again.")
+            )
             return redirect("accounts:login")
 
     def get_form_kwargs(self):
@@ -925,9 +964,7 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
 
         # Verificar si existe la relación PlayerParent (optimizado - usar select_related si está disponible)
         # Esto permite que incluso staff que son padres vean el template de hijo
-        is_parent = PlayerParent.objects.filter(
-            parent=user, player=player
-        ).exists()
+        is_parent = PlayerParent.objects.filter(parent=user, player=player).exists()
 
         # Si el usuario es padre del jugador (existe la relación PlayerParent),
         # usar el template de hijo, independientemente de si es staff
@@ -938,8 +975,7 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
 
     def get(self, request, *args, **kwargs):
         """Sobrescribir get para manejar peticiones AJAX"""
-        # Si es una petición AJAX, renderizar el template normalmente
-        # El JavaScript del frontend extraerá solo la parte que necesita
+        # Si es una petición AJAX, devolver un fragmento HTML para mayor eficiencia
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             import logging
 
@@ -954,7 +990,9 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
                 # Obtener el contexto
                 context = self.get_context_data(object=self.object, form=form)
 
-                # Obtener el nombre del template
+                # Usar una versión parcial del template si existe, o extraer del principal
+                # Para mayor robustez, seguimos usando el mismo template pero el frontend extraerá lo que necesita
+                # Pero indicamos que es AJAX para que el template pueda omitir bloques si lo desea
                 template_names = self.get_template_names()
                 template_name = (
                     template_names[0]
@@ -963,12 +1001,12 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
                 )
 
                 # Renderizar el template
-                from django.template.loader import render_to_string
                 from django.http import HttpResponse
+                from django.template.loader import render_to_string
 
+                # Devolver el fragmento HTML - el template ahora usa base_ajax.html si es is_ajax
                 html = render_to_string(template_name, context, request=request)
 
-                # Devolver el HTML completo - el JavaScript del frontend extraerá lo que necesita
                 return HttpResponse(html)
 
             except Exception as e:
@@ -1055,8 +1093,12 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
         import logging
 
         logger = logging.getLogger(__name__)
-        logger.error(f"PlayerUpdateView.form_invalid - Errores del formulario: {form.errors}")
-        logger.error(f"PlayerUpdateView.form_invalid - Errores no de campo: {form.non_field_errors()}")
+        logger.error(
+            f"PlayerUpdateView.form_invalid - Errores del formulario: {form.errors}"
+        )
+        logger.error(
+            f"PlayerUpdateView.form_invalid - Errores no de campo: {form.non_field_errors()}"
+        )
 
         # Si es una petición AJAX, devolver JSON con los errores
         if self.request.headers.get("X-Requested-With") == "XMLHttpRequest":

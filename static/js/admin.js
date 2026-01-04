@@ -668,8 +668,6 @@ class AdminDashboard {
         toast.style.pointerEvents = 'all';
 
         toastContainer.appendChild(toast);
-        console.log(`🎉 Toast created and added to container: ${type} - ${message.substring(0, 50)}...`);
-
         // Animate in
         setTimeout(() => {
             toast.classList.add('show');
@@ -757,11 +755,9 @@ class AdminDashboard {
     createToastContainer() {
         const container = document.getElementById('toastContainer');
         if (container) {
-            console.log('✅ Toast container already exists');
             return container;
         }
 
-        console.log('📦 Creating new toast container');
         const newContainer = document.createElement('div');
         newContainer.id = 'toastContainer';
         newContainer.className = 'modern-toast-container';
@@ -778,7 +774,6 @@ class AdminDashboard {
         newContainer.style.pointerEvents = 'none';
 
         document.body.appendChild(newContainer);
-        console.log('✅ Toast container created and added to body');
         return newContainer;
     }
 
@@ -786,10 +781,7 @@ class AdminDashboard {
         try {
             // Find all Django messages and convert them to toasts
             const messages = document.querySelectorAll('.django-message');
-            console.log(`🔄 Converting ${messages.length} Django messages to toasts`);
-
             if (messages.length === 0) {
-                console.log('ℹ️ No Django messages to convert');
                 return;
             }
 

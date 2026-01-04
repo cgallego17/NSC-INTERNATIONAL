@@ -836,6 +836,9 @@
     <script src="{% static 'js/admin.js' %}"></script>
 
     <script>
+        // Borrar todos los logs al iniciar el panel
+        console.clear();
+
         // Traducciones para JavaScript
         // Verificar si ya existe para evitar redeclaración
         if (typeof translations === 'undefined') {
@@ -844,21 +847,21 @@
 
         // Agregar traducciones del panel principal
         Object.assign(translations, {
-            loading: "{% trans 'Loading...' %}",
-            loadingForm: "{% trans 'Loading edit form...' %}",
-            backToChildren: "{% trans 'Back to My Children/Players' %}",
-            backToPlayers: "{% trans 'Back to View Players' %}",
-            saving: "{% trans 'Saving...' %}",
-            errorLoadingForm: "{% trans 'Error loading form' %}",
-            errorSaving: "{% trans 'Error saving. Please try again.' %}",
-            errorExtractingForm: "{% trans 'Could not extract edit form. Please reload the page and try again.' %}",
-            pleaseReload: "{% trans 'Please try again.' %}",
-            playerUpdated: "{% trans 'Player updated successfully' %}",
-            pleaseCompleteFields: "{% trans 'Please complete all required fields' %}",
-            editChildPlayer: "{% trans 'Edit Child/Player' %}",
-            editPlayer: "{% trans 'Edit Player' %}",
-            modifyChildInfo: "{% trans 'Modify your child information' %}",
-            modifyPlayerInfo: "{% trans 'Modify player information' %}"
+            loading: "{% trans 'Loading...'|escapejs %}",
+            loadingForm: "{% trans 'Loading edit form...'|escapejs %}",
+            backToChildren: "{% trans 'Back to My Children/Players'|escapejs %}",
+            backToPlayers: "{% trans 'Back to View Players'|escapejs %}",
+            saving: "{% trans 'Saving...'|escapejs %}",
+            errorLoadingForm: "{% trans 'Error loading form'|escapejs %}",
+            errorSaving: "{% trans 'Error saving. Please try again.'|escapejs %}",
+            errorExtractingForm: "{% trans 'Could not extract edit form. Please reload the page and try again.'|escapejs %}",
+            pleaseReload: "{% trans 'Please try again.'|escapejs %}",
+            playerUpdated: "{% trans 'Player updated successfully'|escapejs %}",
+            pleaseCompleteFields: "{% trans 'Please complete all required fields'|escapejs %}",
+            editChildPlayer: "{% trans 'Edit Child/Player'|escapejs %}",
+            editPlayer: "{% trans 'Edit Player'|escapejs %}",
+            modifyChildInfo: "{% trans 'Modify your child information'|escapejs %}",
+            modifyPlayerInfo: "{% trans 'Modify player information'|escapejs %}"
         });
 
         // Language Selector Dropdown
@@ -889,7 +892,6 @@
             // Asegurar que la barra flotante sea visible SIEMPRE
             if (floatingProgressBar) {
                 floatingProgressBar.style.cssText = 'position: fixed !important; bottom: 0 !important; left: 0 !important; width: 100% !important; height: 6px !important; background: rgba(0, 0, 0, 0.3) !important; z-index: 99999 !important; display: block !important; visibility: visible !important; opacity: 1 !important; margin: 0 !important; padding: 0 !important; overflow: visible !important;';
-                console.log('✅ Barra flotante encontrada y configurada:', floatingProgressBar);
             } else {
                 console.error('❌ Barra flotante NO encontrada en el DOM');
             }
@@ -975,7 +977,6 @@
                 }, 100);
             } else if (floatingProgressBar && !dashboardBannerSlider) {
                 // Si no hay carousel, mostrar la barra pero sin animación
-                console.log('⚠️ No hay carousel, pero la barra se mantiene visible');
                 const progressBar = floatingProgressBar.querySelector('.carousel-progress-bar');
                 if (progressBar) {
                     progressBar.style.width = '0%';
@@ -1019,7 +1020,6 @@
         function initializeToasts() {
             // Evitar inicialización múltiple
             if (toastsInitialized) {
-                console.log('ℹ️ Toasts already initialized, skipping...');
                 return;
             }
 
@@ -1033,8 +1033,6 @@
 
             try {
                 if (window.adminDashboard && typeof window.adminDashboard.convertDjangoMessagesToToasts === 'function') {
-                    console.log('✅ adminDashboard found, converting messages to toasts');
-
                     // Usar requestAnimationFrame para asegurar que el DOM esté completamente listo
                     requestAnimationFrame(() => {
                         try {
@@ -1183,6 +1181,15 @@
                     targetContent.style.display = 'block';
                     targetContent.classList.add('active');
 
+                    // Inicializar selectores de ubicación si es el tab de registrar hijo
+                    if (tabId === 'registrar-hijo') {
+                        setTimeout(function() {
+                            if (typeof window.initParentPlayerForm === 'function') {
+                                window.initParentPlayerForm();
+                            }
+                        }, 100);
+                    }
+
                     // Hacer scroll suave hacia el contenido del tab
                     if (tabId === 'detalle-eventos') {
                         // Para el tab de detalle de eventos, hacer scroll a la sección Event Details
@@ -1293,13 +1300,6 @@
             const isParent = editButton.getAttribute('data-is-parent') === 'true';
             const editType = editButton.getAttribute('data-edit-type') || (isParent ? 'hijo' : 'jugador');
 
-            console.log('=== EDIT BUTTON CLICKED ===');
-            console.log('URL:', url);
-            console.log('Player ID:', playerId);
-            console.log('Is Parent:', isParent);
-            console.log('Edit Type:', editType);
-            console.log('Expected Template:', editType === 'hijo' ? 'player_edit_hijo.html' : 'player_edit.html');
-
             if (!url) {
                 console.error('No se encontró la URL del formulario de edición');
                 return;
@@ -1354,10 +1354,6 @@
             // Mostrar indicador de carga
             editTab.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">' + translations.loading + '</span></div><p class="mt-3">' + translations.loadingForm + '</p></div>';
 
-            console.log('Tab encontrado:', editTab);
-            console.log('Tab display antes:', editTab.style.display);
-            console.log('Tab classes antes:', editTab.className);
-
             // Ocultar otros tabs primero
             const allTabs = document.querySelectorAll('.tab-content');
             allTabs.forEach(tab => {
@@ -1389,10 +1385,6 @@
                 });
             }, 100);
 
-            console.log('Tab display después:', editTab.style.display);
-            console.log('Tab classes después:', editTab.className);
-            console.log('Tab activado, cargando formulario desde:', url);
-
             // Activar el tab usando la función local
             activateTabLocal('editar-jugador', null);
 
@@ -1400,8 +1392,6 @@
             setTimeout(() => {
                 const checkTab = document.getElementById('tab-content-editar-jugador');
                 if (checkTab) {
-                    console.log('Verificación - Tab display:', checkTab.style.display);
-                    console.log('Verificación - Tab visible:', checkTab.offsetParent !== null);
                     if (checkTab.style.display === 'none' || checkTab.offsetParent === null) {
                         console.warn('Tab no es visible, forzando visibilidad...');
                         checkTab.style.display = 'block';
@@ -1412,8 +1402,6 @@
             }, 100);
 
             // Cargar el contenido mediante AJAX con timeout
-            console.log('🔵 Iniciando petición AJAX a:', url);
-
             // Mostrar indicador de carga
             editTab.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3 text-muted">Cargando formulario de edición...</p></div>';
 
@@ -1434,11 +1422,6 @@
             })
             .then(response => {
                 clearTimeout(timeoutId);
-                console.log('✅ Respuesta recibida, status:', response.status);
-                console.log('✅ Response headers:', {
-                    contentType: response.headers.get('content-type'),
-                    contentLength: response.headers.get('content-length')
-                });
 
                 // Manejar sesión expirada (401) - puede ser JSON o HTML
                 if (response.status === 401) {
@@ -1472,19 +1455,6 @@
                 return response.text();
             })
             .then(html => {
-                console.log('=== FORMULARIO CARGADO ===');
-                console.log('HTML recibido, longitud:', html.length);
-                console.log('Primeros 500 caracteres:', html.substring(0, 500));
-
-                // Verificar qué template se cargó
-                if (html.includes('Edit Child/Player') || html.includes('Editar Hijo/Jugador')) {
-                    console.log('✅ Template detectado: player_edit_hijo.html (Editar Hijo)');
-                } else if (html.includes('Edit Player') || html.includes('Editar Jugador')) {
-                    console.log('✅ Template detectado: player_edit.html (Editar Jugador)');
-                } else {
-                    console.warn('⚠️ No se pudo detectar el template cargado');
-                }
-
                 // Crear un contenedor temporal para parsear el HTML
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = html;
@@ -1496,38 +1466,25 @@
                 const existingFormContainer = tempDiv.querySelector('.form-container');
                 const form = tempDiv.querySelector('form[method="post"]') || tempDiv.querySelector('form');
 
-                console.log('=== ELEMENTOS ENCONTRADOS ===');
-                console.log('Formulario encontrado:', form ? '✅ SÍ' : '❌ NO');
-                console.log('Header encontrado:', existingHeader ? '✅ SÍ' : '❌ NO');
-                console.log('FormContainer encontrado:', existingFormContainer ? '✅ SÍ' : '❌ NO');
-
                 // Verificar campos del formulario
                 if (form) {
                     const hasEmail = form.querySelector('input[name="email"]');
                     const hasBirthDate = form.querySelector('input[name="birth_date"]');
                     // Buscar team como select o como input hidden (para formularios de hijo)
                     const hasTeam = form.querySelector('select[name="team"]') || form.querySelector('input[name="team"][type="hidden"]') || form.querySelector('input[name="team_hidden"]');
-                    console.log('Campos del formulario:');
-                    console.log('  - Email:', hasEmail ? '✅ Presente' : '❌ No presente');
-                    console.log('  - Birth Date:', hasBirthDate ? '✅ Presente' : '❌ No presente');
-                    console.log('  - Team:', hasTeam ? '✅ Presente' : '❌ No presente');
                     if (hasTeam) {
                         const teamType = hasTeam.tagName.toLowerCase();
                         const teamDisabled = hasTeam.hasAttribute('disabled');
-                        console.log('  - Team type:', teamType === 'select' ? 'Select' : teamType === 'input' ? 'Hidden Input' : 'Unknown');
-                        console.log('  - Team disabled:', teamDisabled ? '✅ Sí (correcto para hijo)' : '❌ No');
                     }
                 }
 
                 // Si no encontramos los elementos, buscar dentro de main.page-content
                 if (!existingHeader || !existingFormContainer) {
-                    console.log('Buscando dentro de main.page-content...');
                     const mainContent = tempDiv.querySelector('main.page-content') || tempDiv.querySelector('main');
                     if (mainContent) {
                         const headerInMain = mainContent.querySelector('.tab-content-header');
                         const containerInMain = mainContent.querySelector('.form-container');
                         if (headerInMain && containerInMain) {
-                            console.log('Elementos encontrados dentro de main');
                         }
                     }
                 }
@@ -1582,8 +1539,6 @@
 
                 if (finalHeader && finalFormContainer && finalForm) {
                     // Si el template ya tiene la estructura completa, copiarla directamente
-                    console.log('Template tiene estructura completa (tab-content-header + form-container), copiando directamente');
-
                     // Clonar el header con todos sus estilos y contenido
                     const headerClone = finalHeader.cloneNode(true);
                     editTab.appendChild(headerClone);
@@ -1596,7 +1551,6 @@
                     if (formInContainer) {
                         formInContainer.action = url;
                         formInContainer.id = 'playerEditForm';
-                        console.log('Action del formulario actualizado:', formInContainer.action);
                     }
 
                     // Actualizar el botón cancelar
@@ -1613,13 +1567,8 @@
                     }
 
                     editTab.appendChild(formContainerClone);
-                    console.log('Template completo copiado correctamente');
-                    console.log('Header clonado:', headerClone.outerHTML.substring(0, 200));
-                    console.log('FormContainer clonado:', formContainerClone.outerHTML.substring(0, 200));
                 } else if (form) {
                     // Si no tiene la estructura completa, crearla manualmente
-                    console.log('Template no tiene estructura completa, creando manualmente');
-
                     // Determinar el título según el tipo de edición
                     const titleText = editType === 'hijo' ? translations.editChildPlayer : translations.editPlayer;
                     const subtitleText = editType === 'hijo' ? translations.modifyChildInfo : translations.modifyPlayerInfo;
@@ -1659,7 +1608,6 @@
 
                     formContainer.appendChild(formClone);
                     editTab.appendChild(formContainer);
-                    console.log('Estructura creada manualmente');
                 } else {
                     // Si no encontramos contenido, intentar extraer solo el form del HTML usando regex
                     console.warn('No se encontró formulario, intentando extraer con regex');
@@ -1693,36 +1641,60 @@
 
                 // EXTRAER Y EJECUTAR SCRIPTS DEL HTML CARGADO
                 function executeScripts(container) {
-                    console.log('🔍 Ejecutando scripts del contenedor...');
                     try {
                         const scripts = container.querySelectorAll('script');
+                        let scriptCount = 0;
                         scripts.forEach(oldScript => {
+                            // 1. Omitir scripts globales que ya están cargados para evitar SyntaxErrors (ej: redeclaración de clases)
+                            if (oldScript.src && (
+                                oldScript.src.includes('bootstrap') ||
+                                oldScript.src.includes('admin.js') ||
+                                oldScript.src.includes('jsi18n') ||
+                                oldScript.src.includes('fontawesome')
+                            )) {
+                                return;
+                            }
+
+                            // 2. Crear el nuevo elemento script
                             const newScript = document.createElement('script');
+
+                            // Copiar atributos
                             Array.from(oldScript.attributes).forEach(attr => {
                                 newScript.setAttribute(attr.name, attr.value);
                             });
+
+                            // 3. Manejar contenido o fuente
                             if (oldScript.src) {
                                 newScript.src = oldScript.src;
                             } else {
-                                newScript.textContent = oldScript.innerHTML;
-                            }
-                            document.body.appendChild(newScript);
-                            setTimeout(() => {
-                                if (newScript.parentNode) {
-                                    newScript.parentNode.removeChild(newScript);
+                                // Usar un try-catch interno para cada script inline
+                                try {
+                                    newScript.textContent = oldScript.innerHTML;
+                                } catch (e) {
+                                    console.error('❌ Error asignando contenido al script:', e);
+                                    return;
                                 }
-                            }, 1000);
+                            }
+
+                            // 4. Insertar en el DOM para ejecución
+                            document.body.appendChild(newScript);
+                            scriptCount++;
+
+                            // 5. Limpiar el DOM después de la ejecución si es inline
+                            if (!oldScript.src) {
+                                setTimeout(() => {
+                                    if (newScript.parentNode) {
+                                        newScript.parentNode.removeChild(newScript);
+                                    }
+                                }, 500);
+                            }
                         });
-                        console.log(`✅ ${scripts.length} scripts ejecutados`);
                     } catch (scriptError) {
-                        console.error('❌ Error al ejecutar scripts:', scriptError);
+                        console.error('❌ Error crítico al filtrar/ejecutar scripts:', scriptError);
                     }
                 }
 
                 executeScripts(tempDiv);
-
-                console.log('Contenido agregado al tab, buscando formulario...');
-                console.log('HTML del tab después de agregar contenido:', editTab.innerHTML.substring(0, 500));
 
                 // Hacer scroll hacia el tab después de cargar el contenido
                 setTimeout(() => {
@@ -1737,32 +1709,16 @@
                 setTimeout(() => {
                     // Interceptar el envío del formulario para mantenerlo en el panel
                     const form = editTab.querySelector('form');
-                    console.log('Formulario encontrado:', form);
-
                     if (form) {
-                        console.log('Formulario encontrado, agregando listener de submit');
-                        console.log('Form action antes:', form.action);
-                        // Siempre actualizar la acción del formulario con la URL correcta
-                        form.action = url;
-                        console.log('Form action después:', form.action);
-                        console.log('Form method:', form.method);
-
                         // Asegurarse de que el formulario sea visible
                         form.style.display = 'block';
 
                         // Inicializar el campo de foto de perfil directamente
                         setTimeout(function() {
-                            console.log('📸 Inicializando campo de foto de perfil...');
-
                             const profilePictureInput = document.getElementById('id_profile_picture');
                             const profilePictureUploadArea = document.getElementById('profilePictureUploadArea');
 
-                            console.log('🎨 Profile Picture Input:', profilePictureInput);
-                            console.log('🎨 Profile Picture Upload Area:', profilePictureUploadArea);
-
                             if (profilePictureInput && profilePictureUploadArea) {
-                                console.log('✅ Ambos elementos encontrados, configurando event listeners');
-
                                 // Limpiar listeners previos si existen (clonar y reemplazar)
                                 const newUploadArea = profilePictureUploadArea.cloneNode(true);
                                 profilePictureUploadArea.parentNode.replaceChild(newUploadArea, profilePictureUploadArea);
@@ -1770,28 +1726,20 @@
 
                                 // Hacer clic en el área activa el input de archivo
                                 uploadArea.addEventListener('click', function(e) {
-                                    console.log('🖱️ Upload area clicked!');
                                     e.preventDefault();
                                     e.stopPropagation();
 
                                     if (profilePictureInput.disabled) {
-                                        console.warn('⚠️ Input está deshabilitado');
                                         return;
                                     }
 
-                                    console.log('🚀 Triggering file input click');
                                     profilePictureInput.click();
                                 }, true);
 
-                                console.log('✅ Event listener para click agregado');
-
                                 // Preview de la imagen seleccionada
                                 profilePictureInput.addEventListener('change', function(e) {
-                                    console.log('📸 Archivo seleccionado');
                                     const file = e.target.files[0];
                                     if (file) {
-                                        console.log('📄 Archivo:', file.name, file.type, file.size);
-
                                         // Validar tamaño (5MB máximo)
                                         const maxSize = 5 * 1024 * 1024;
                                         if (file.size > maxSize) {
@@ -1844,35 +1792,29 @@
                                     }
                                     this.style.transform = 'scale(1)';
                                 });
+                            }
 
-                                console.log('✅ Todos los event listeners agregados correctamente');
-                            } else {
-                                console.error('❌ No se encontraron los elementos:', {
-                                    input: profilePictureInput,
-                                    area: profilePictureUploadArea
-                                });
+                            // Inicializar selectores de ubicación del formulario de edición de hijo
+                            if (typeof window.initPlayerEditLocationSelectors === 'function') {
+                                window.initPlayerEditLocationSelectors();
+                            } else if (typeof window.initPlayerEditHijoForm === 'function') {
+                                window.initPlayerEditHijoForm();
                             }
                         }, 300);
 
                         // Verificar si ya tiene un listener de submit (usando una marca)
                         if (form.dataset.submitListenerAdded === 'true') {
-                            console.log('Listener de submit ya agregado al formulario, omitiendo...');
                         } else {
                             // Marcar que el listener fue agregado
                             form.dataset.submitListenerAdded = 'true';
 
                             form.addEventListener('submit', function(e) {
-                                console.log('🔵 SUBMIT EVENT TRIGGERED!');
                                 e.preventDefault();
                                 e.stopPropagation();
 
-                                console.log('🔵 Preparando campos del formulario...');
                                 // Preparar campos del formulario si existe la función (desde player_edit_hijo.html)
                                 if (typeof window.preparePlayerEditFormFields === 'function') {
-                                    console.log('✅ preparePlayerEditFormFields encontrada, ejecutándola...');
                                     window.preparePlayerEditFormFields();
-                                } else {
-                                    console.warn('⚠️ preparePlayerEditFormFields NO encontrada');
                                 }
 
                                 const formData = new FormData(form);
@@ -1919,7 +1861,6 @@
                                     submitButton.style.cursor = 'not-allowed';
                                 }
 
-                                console.log('🔵 Enviando fetch...');
                                 fetch(form.action || url, {
                                     method: 'POST',
                                     body: formData,
@@ -1929,24 +1870,16 @@
                                     credentials: 'same-origin'
                                 })
                                 .then(response => {
-                                    console.log('🔵 Respuesta recibida, status:', response.status);
-                                    console.log('🔵 Response headers:', response.headers);
-                                    // Verificar si la respuesta es JSON (éxito) o HTML (error)
                                     const contentType = response.headers.get('content-type');
-                                    console.log('🔵 Content-Type:', contentType);
                                     if (contentType && contentType.includes('application/json')) {
-                                        console.log('🔵 Parseando como JSON...');
                                         return response.json();
                                     } else {
-                                        console.log('🔵 Parseando como HTML/text...');
                                         return response.text().then(text => {
-                                            console.log('🔵 HTML length:', text.length);
                                             return { html: text };
                                         });
                                     }
                                 })
                                 .then(data => {
-                                    console.log('🔵 Data recibida:', data);
                                     if (data.success === true) {
                                         // Éxito - mostrar toast usando adminDashboard
                                         const successMessage = data.message || translations.playerUpdated;
@@ -1956,7 +1889,7 @@
                                             window.adminDashboard.showToast(
                                                 successMessage,
                                                 'success',
-                                                '{% trans "Success" %}',
+                                                '{% trans "Success"|escapejs %}',
                                                 3000
                                             );
                                         } else {
@@ -1980,7 +1913,7 @@
                                                 toastEl.innerHTML = `
                                                     <div class="toast-header bg-success text-white">
                                                         <i class="fas fa-check-circle me-2"></i>
-                                                        <strong class="me-auto">{% trans "Success" %}</strong>
+                                                        <strong class="me-auto">{% trans "Success"|escapejs %}</strong>
                                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
                                                     </div>
                                                     <div class="toast-body">
@@ -2021,14 +1954,11 @@
                                         }, 2000);
                                     } else if (data.success === false && data.errors) {
                                         // Hay errores de validación JSON
-                                        console.log('🔴 Errores de validación:', data.errors);
-                                        console.log('🔴 Detalle de errores:', JSON.stringify(data.errors, null, 2));
                                         const errorContainer = document.createElement('div');
                                         errorContainer.className = 'alert alert-danger mt-3';
                                         let errorHtml = '<i class="fas fa-exclamation-triangle me-2"></i><strong>' + (data.message || 'Hay errores en el formulario') + '</strong><ul class="mb-0 mt-2">';
 
                                         for (let [field, errors] of Object.entries(data.errors)) {
-                                            console.log('🔴 Campo:', field, 'Errores:', errors);
                                             for (let error of errors) {
                                                 errorHtml += '<li><strong>' + field + '</strong>: ' + error + '</li>';
                                             }
@@ -2082,7 +2012,6 @@
                         }
                     } else {
                         console.error('Formulario NO encontrado después de agregar contenido');
-                        console.log('Contenido del tab:', editTab.innerHTML.substring(0, 1000));
                     }
                 }, 100); // Esperar 100ms para que el DOM se actualice
 
@@ -2154,7 +2083,6 @@
                     const month = match[2];
                     const year = match[3];
                     dateField.value = `${year}-${month}-${day}`;
-                    console.log(`✅ Fecha convertida de ${currentValue} a ${dateField.value}`);
                 }
             }
 

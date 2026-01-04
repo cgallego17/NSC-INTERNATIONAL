@@ -2,6 +2,8 @@
 Vistas front para reservas de hoteles - Requieren autenticación, para usuarios del front
 """
 
+from decimal import Decimal
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
@@ -10,7 +12,6 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, DetailView, ListView, TemplateView
-from decimal import Decimal
 
 from .models import (
     Hotel,
@@ -392,8 +393,13 @@ def get_room_detail(request, room_id):
                     # Keep both keys for backward-compat with older JS
                     "url": url,
                     "image_url": request.build_absolute_uri(url),
-                    "title": img.title or getattr(getattr(img, "media_file", None), "title", "") or "",
-                    "alt": img.alt_text or getattr(getattr(img, "media_file", None), "alt_text", "") or img.title or room.get_room_type_display(),
+                    "title": img.title
+                    or getattr(getattr(img, "media_file", None), "title", "")
+                    or "",
+                    "alt": img.alt_text
+                    or getattr(getattr(img, "media_file", None), "alt_text", "")
+                    or img.title
+                    or room.get_room_type_display(),
                 }
             )
 
@@ -416,7 +422,9 @@ def get_room_detail(request, room_id):
             )
     else:
         # Fallback: usar amenidades del hotel con categoría 'room' o 'bathroom'
-        for amenity in room.hotel.amenities.filter(is_available=True, category__in=['room', 'bathroom']).order_by("name"):
+        for amenity in room.hotel.amenities.filter(
+            is_available=True, category__in=["room", "bathroom"]
+        ).order_by("name"):
             amenities.append(
                 {
                     "name": amenity.name,
@@ -445,7 +453,9 @@ def get_room_detail(request, room_id):
 
     # Reglas de ocupación
     rules = []
-    for rule in room.rules.filter(is_active=True).order_by("order", "min_adults", "min_children"):
+    for rule in room.rules.filter(is_active=True).order_by(
+        "order", "min_adults", "min_children"
+    ):
         rules.append(
             {
                 "id": rule.id,
@@ -540,7 +550,10 @@ def calculate_reservation_total(request):
         room = HotelRoom.objects.get(id=room_id, is_available=True)
         includes = int(room.price_includes_guests or 1)
         extra_guests = max(0, number_of_guests - includes)
-        per_night_total = room.price_per_night + (room.additional_guest_price or Decimal("0.00")) * extra_guests
+        per_night_total = (
+            room.price_per_night
+            + (room.additional_guest_price or Decimal("0.00")) * extra_guests
+        )
         room_total = per_night_total * nights
 
         # Calcular servicios
@@ -585,12 +598,3 @@ def calculate_reservation_total(request):
         )
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
-
-
-
-
-
-
-
-
-

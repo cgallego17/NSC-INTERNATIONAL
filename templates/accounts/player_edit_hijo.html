@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends is_ajax|yesno:"accounts/base_ajax.html,base.html" %}
 {% load static %}
 {% load i18n %}
 
@@ -584,110 +584,44 @@
 </style>
 
 <script>
-console.log('🔄 PLAYER EDIT HIJO SCRIPT v3.0 - CARGADO');
 (function() {
-    // Función que se ejecuta inmediatamente, sin esperar DOMContentLoaded
-    // Esto asegura que funcione tanto cuando se carga la página completa como cuando se carga vía AJAX
     function initPlayerEditForm() {
-        console.log('✅ Inicializando formulario de edición de hijo v3.0');
-
-        // Asegurar que is_pitcher siempre se envíe en el formulario
-        // Si el checkbox no está marcado, agregar un hidden antes de enviar
         const isPitcherCheckbox = document.getElementById('{{ form.is_pitcher.id_for_label }}');
         const playerEditForm = document.getElementById('playerEditForm');
 
         if (isPitcherCheckbox && playerEditForm) {
-            // Verificar si ya tiene un listener (usando una marca)
             if (playerEditForm.dataset.pitcherListenerAdded === 'true') {
-                console.log('Listener de is_pitcher ya agregado, omitiendo...');
                 return;
             }
 
-            // Función para preparar los campos antes del submit
             function prepareFormFields() {
-                console.log('🟢 === PREPARANDO CAMPOS DEL FORMULARIO ===');
-                console.log('🟢 Formulario:', playerEditForm);
-                console.log('🟢 isPitcherCheckbox:', isPitcherCheckbox);
-                console.log('🟢 is_pitcher checkbox checked:', isPitcherCheckbox ? isPitcherCheckbox.checked : 'N/A');
-
-                // Verificar que secondary_position esté presente
                 const secondaryPositionField = playerEditForm.querySelector('[name="secondary_position"]');
-                if (secondaryPositionField) {
-                    console.log('✅ secondary_position encontrado:', secondaryPositionField.value);
-                } else {
-                    console.warn('⚠️ secondary_position NO encontrado en el formulario');
-                }
 
-                // Asegurar que is_pitcher siempre se envíe correctamente
-                // Remover cualquier hidden anterior
                 const existingHidden = playerEditForm.querySelector('input[name="is_pitcher"][type="hidden"]');
                 if (existingHidden) {
                     existingHidden.remove();
                 }
 
-                // Si el checkbox no está marcado, agregar un campo hidden para asegurar que se envíe False
-                // Django necesita recibir explícitamente el valor, incluso si es False
                 if (!isPitcherCheckbox.checked) {
-                    // Crear un nuevo hidden con valor 'False' (Django lo interpretará como False)
                     const hiddenInput = document.createElement('input');
                     hiddenInput.type = 'hidden';
                     hiddenInput.name = 'is_pitcher';
-                    hiddenInput.value = 'False'; // Valor explícito para que Django lo interprete como False
+                    hiddenInput.value = 'False';
                     playerEditForm.appendChild(hiddenInput);
-                    console.log('✅ is_pitcher checkbox no marcado - agregado hidden con valor False');
-                } else {
-                    console.log('✅ is_pitcher checkbox marcado - valor será True');
-                }
-
-                // Asegurar que secondary_position siempre tenga un valor (incluso si está vacío)
-                if (secondaryPositionField) {
-                    // El campo siempre se enviará, incluso si está vacío (Django lo manejará correctamente)
-                    if (secondaryPositionField.value) {
-                        console.log('✅ secondary_position tiene valor:', secondaryPositionField.value);
-                    } else {
-                        console.log('✅ secondary_position vacío - se enviará como cadena vacía');
-                    }
-                } else {
-                    console.warn('⚠️ secondary_position NO encontrado en el formulario');
-                }
-
-                // Verificar todos los campos antes de enviar
-                const formData = new FormData(playerEditForm);
-                console.log('=== CAMPOS DEL FORMULARIO ===');
-                for (let [key, value] of formData.entries()) {
-                    if (key === 'secondary_position' || key === 'is_pitcher' || key === 'email' || key === 'team') {
-                        console.log(`✅ ${key}:`, value);
-                    }
                 }
             }
 
-            // SIEMPRE exponer la función globalmente para que el panel pueda usarla
             window.preparePlayerEditFormFields = prepareFormFields;
-            console.log('✅ Función prepareFormFields expuesta globalmente v3.0');
-            console.log('✅ window.preparePlayerEditFormFields:', typeof window.preparePlayerEditFormFields);
-            console.log('✅ TEST - Ejecutando prepareFormFields ahora...');
-            // Ejecutar una vez para verificar
-            if (typeof window.preparePlayerEditFormFields === 'function') {
-                console.log('✅✅✅ preparePlayerEditFormFields ES UNA FUNCIÓN Y ESTÁ DISPONIBLE');
-            }
 
-            // Verificar si estamos en el panel (cuando se carga vía AJAX)
-            // Si el formulario tiene el atributo data-submit-listener-added, significa que el panel ya maneja el submit
             const isInPanel = playerEditForm.hasAttribute('data-submit-listener-added') ||
                                 document.getElementById('tab-content-editar-jugador') !== null;
 
-            console.log('✅ isInPanel:', isInPanel);
-            console.log('✅ tab-content-editar-jugador:', document.getElementById('tab-content-editar-jugador'));
-
             if (!isInPanel) {
-                // Si NO está en el panel, agregar listener normal
-                // Marcar que el listener fue agregado
                 playerEditForm.dataset.pitcherListenerAdded = 'true';
 
                 playerEditForm.addEventListener('submit', function(e) {
                     prepareFormFields();
 
-                    // Mostrar spinner
                     const btn = document.getElementById('btnSubmitPlayerEdit');
                     if (btn) {
                         const text = btn.querySelector('.button-text');
@@ -698,113 +632,81 @@ console.log('🔄 PLAYER EDIT HIJO SCRIPT v3.0 - CARGADO');
                             btn.disabled = true;
                         }
                     }
-                    // No prevenir el submit aquí, dejar que se envíe normalmente
                 });
-                console.log('✅ Listener de submit agregado al formulario (NO está en panel)');
-            } else {
-                console.log('✅ Formulario en panel detectado - el panel manejará el submit');
             }
         }
     }
 
-    // Ejecutar inmediatamente
     initPlayerEditForm();
 
-    // También ejecutar cuando el DOM esté listo (por si se carga la página completa)
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initPlayerEditForm);
     }
 
-    // También ejecutar después de un pequeño delay para asegurar que funcione con AJAX
     setTimeout(initPlayerEditForm, 100);
     setTimeout(initPlayerEditForm, 500);
 })();
 
-// Función global para inicializar el campo de foto de perfil
 window.initProfilePictureUpload = function() {
-    console.log('🔄 Inicializando campo de foto de perfil...');
-
     const profilePictureInput = document.getElementById('id_profile_picture');
     const profilePictureUploadArea = document.getElementById('profilePictureUploadArea');
 
-    console.log('🎨 Profile Picture Input:', profilePictureInput);
-    console.log('🎨 Profile Picture Upload Area:', profilePictureUploadArea);
-
     if (profilePictureInput && profilePictureUploadArea) {
-        console.log('✅ Ambos elementos encontrados, configurando event listeners');
-
-        // Limpiar listeners previos si existen
         const newUploadArea = profilePictureUploadArea.cloneNode(true);
         profilePictureUploadArea.parentNode.replaceChild(newUploadArea, profilePictureUploadArea);
         const uploadArea = document.getElementById('profilePictureUploadArea');
 
-        // Hacer clic en el área activa el input de archivo
-        // Usar capturing phase para capturar el evento antes que los hijos
         uploadArea.addEventListener('click', function(e) {
-            console.log('🖱️ Upload area clicked!');
             e.preventDefault();
             e.stopPropagation();
 
-            // Verificar que el input esté habilitado
             if (profilePictureInput.disabled) {
-                console.warn('⚠️ Input está deshabilitado');
                 return;
             }
 
-            console.log('🚀 Triggering file input click');
             profilePictureInput.click();
-        }, true); // true = usar capturing phase
+        }, true);
 
-        console.log('✅ Event listener agregado');
-
-            // Preview de la imagen seleccionada
-            profilePictureInput.addEventListener('change', function(e) {
-                console.log('📸 Archivo seleccionado');
-                const file = e.target.files[0];
-                if (file) {
-                    console.log('📄 Archivo:', file.name, file.type, file.size);
-
-                    // Validar tamaño (5MB máximo)
-                    const maxSize = 5 * 1024 * 1024; // 5MB
-                    if (file.size > maxSize) {
-                        alert('{% trans "The file is too large. Maximum size is 5MB." %}');
-                        profilePictureInput.value = '';
-                        return;
-                    }
-
-                    // Validar tipo de archivo
-                    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-                    if (!allowedTypes.includes(file.type)) {
-                        alert('{% trans "Invalid file type. Only JPG, PNG and GIF are allowed." %}');
-                        profilePictureInput.value = '';
-                        return;
-                    }
-
-                    // Mostrar preview
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        profilePictureUploadArea.innerHTML = `
-                            <div style="position: relative;">
-                                <img src="${e.target.result}" alt="Profile Picture Preview" style="max-width: 200px; max-height: 200px; border-radius: 12px; object-fit: cover; margin-bottom: 15px;">
-                                <div>
-                                    <i class="fas fa-check-circle fa-2x mb-2" style="color: #28a745;"></i>
-                                    <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue);">
-                                        {% trans "Photo Selected" %}
-                                    </p>
-                                    <small class="text-success">${file.name} (${(file.size / 1024).toFixed(2)} KB)</small>
-                                    <br>
-                                    <small class="text-muted">{% trans "Click to change photo" %}</small>
-                                </div>
-                            </div>
-                        `;
-                        profilePictureUploadArea.style.borderColor = '#28a745';
-                        profilePictureUploadArea.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
-                    };
-                    reader.readAsDataURL(file);
+        profilePictureInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const maxSize = 5 * 1024 * 1024; // 5MB
+                if (file.size > maxSize) {
+                    alert('{% trans "The file is too large. Maximum size is 5MB."|escapejs %}');
+                    profilePictureInput.value = '';
+                    return;
                 }
-            });
 
-        // Hover effect
+                const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                if (!allowedTypes.includes(file.type)) {
+                    alert('{% trans "Invalid file type. Only JPG, PNG and GIF are allowed."|escapejs %}');
+                    profilePictureInput.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    profilePictureUploadArea.innerHTML = `
+                        <div style="position: relative;">
+                            <img src="${e.target.result}" alt="Profile Picture Preview" style="max-width: 200px; max-height: 200px; border-radius: 12px; object-fit: cover; margin-bottom: 15px;">
+                            <div>
+                                <i class="fas fa-check-circle fa-2x mb-2" style="color: #28a745;"></i>
+                                <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue);">
+                                    {% trans "Photo Selected" %}
+                                </p>
+                                <small class="text-success">${file.name} (${(file.size / 1024).toFixed(2)} KB)</small>
+                                <br>
+                                <small class="text-muted">{% trans "Click to change photo" %}</small>
+                            </div>
+                        </div>
+                    `;
+                    profilePictureUploadArea.style.borderColor = '#28a745';
+                    profilePictureUploadArea.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
         uploadArea.addEventListener('mouseenter', function() {
             this.style.borderColor = 'var(--mlb-red)';
             this.style.transform = 'scale(1.02)';
@@ -816,214 +718,210 @@ window.initProfilePictureUpload = function() {
             }
             this.style.transform = 'scale(1)';
         });
-    } else {
-        console.error('❌ No se encontraron los elementos:', {
-            input: profilePictureInput,
-            area: profilePictureUploadArea
-        });
     }
 };
 
-// Ejecutar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('✅ Formulario de edición de hijo cargado');
-    // Intentar inicializar inmediatamente
-    setTimeout(window.initProfilePictureUpload, 100);
-});
+    // Función global para inicializar los selectores de ubicación del formulario de edición de hijo
+    window.initPlayerEditLocationSelectors = function() {
+        const form = document.getElementById('playerEditForm');
+        if (!form) return;
 
-    // Traducciones para evitar problemas con tags de traducción dentro de template literals
-    const fileUploadTranslations = {
-        documentUploaded: "{% trans 'Document Uploaded' %}",
-        clickToChangeFile: "{% trans 'Click to change file' %}",
-        fileTooLarge: "{% trans 'The file is too large. Maximum allowed size is 10MB.' %}",
-        fileTypeNotAllowed: "{% trans 'File type not allowed. Only PDF, JPG or PNG are accepted.' %}"
+        const countrySelect = form.querySelector('[name="country"]');
+        const stateSelect = form.querySelector('[name="state"]');
+        const citySelect = form.querySelector('[name="city"]');
+        const stateLoader = form.querySelector('#stateLoader');
+        const cityLoader = form.querySelector('#cityLoader');
+
+        if (countrySelect && stateSelect && citySelect) {
+            // Evitar inicialización duplicada
+            if (countrySelect.dataset.locationInitialized === 'true') return;
+            countrySelect.dataset.locationInitialized = 'true';
+
+            const initialCountry = countrySelect.value;
+            const initialState = stateSelect.dataset.initialValue || stateSelect.value;
+            const initialCity = citySelect.dataset.initialValue || citySelect.value;
+
+            function updateStates(showLoader = true, preserveState = null) {
+                const countryId = countrySelect.value;
+                const currentStateValue = preserveState || stateSelect.value;
+
+                stateSelect.innerHTML = '<option value="">{% trans "Select a state"|escapejs %}</option>';
+                citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
+
+                if (countryId) {
+                    if (showLoader && stateLoader) stateLoader.style.display = 'block';
+                    if (showLoader) {
+                        stateSelect.disabled = true;
+                        citySelect.disabled = true;
+                    }
+
+                    fetch(`/locations/ajax/states/${countryId}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(state => {
+                                const option = document.createElement('option');
+                                option.value = state.id;
+                                option.textContent = state.name;
+                                if (currentStateValue == state.id) {
+                                    option.selected = true;
+                                }
+                                stateSelect.appendChild(option);
+                            });
+                            if (stateSelect.value) {
+                                updateCities(showLoader, preserveState ? initialCity : null);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading states:', error);
+                            stateSelect.innerHTML = '<option value="">{% trans "Error loading states"|escapejs %}</option>';
+                        })
+                        .finally(() => {
+                            if (stateLoader) stateLoader.style.display = 'none';
+                            stateSelect.disabled = false;
+                            citySelect.disabled = false;
+                        });
+                } else {
+                    stateSelect.disabled = false;
+                    citySelect.disabled = false;
+                }
+            }
+
+            function updateCities(showLoader = true, preserveCity = null) {
+                const stateId = stateSelect.value;
+                const currentCityValue = preserveCity || citySelect.value;
+
+                citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
+
+                if (stateId) {
+                    if (showLoader && cityLoader) cityLoader.style.display = 'block';
+                    if (showLoader) citySelect.disabled = true;
+
+                    fetch(`/locations/ajax/cities/${stateId}/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            data.forEach(city => {
+                                const option = document.createElement('option');
+                                option.value = city.id;
+                                option.textContent = city.name;
+                                if (currentCityValue == city.id) {
+                                    option.selected = true;
+                                }
+                                citySelect.appendChild(option);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error loading cities:', error);
+                            citySelect.innerHTML = '<option value="">{% trans "Error loading cities"|escapejs %}</option>';
+                        })
+                        .finally(() => {
+                            if (cityLoader) cityLoader.style.display = 'none';
+                            citySelect.disabled = false;
+                        });
+                } else {
+                    citySelect.disabled = false;
+                }
+            }
+
+            countrySelect.addEventListener('change', function() {
+                updateStates(true);
+            });
+
+            stateSelect.addEventListener('change', function() {
+                updateCities(true);
+            });
+
+            // Cargar datos iniciales si hay un país seleccionado pero la lista de estados está vacía
+            if (initialCountry && stateSelect.options.length <= 1) {
+                updateStates(false, initialState);
+            }
+        }
     };
 
-    // Mejorar el área de carga de archivos
-    const fileInput = document.querySelector('#playerEditForm input[type="file"][name*="age_verification"]');
-    const fileUploadArea = document.getElementById('ageVerificationUploadArea');
+    // Función para inicializar el formulario completo
+    window.initPlayerEditHijoForm = function() {
+        setTimeout(window.initProfilePictureUpload, 100);
 
-    if (fileInput && fileUploadArea) {
-        // Asegurar que el campo no sea requerido
-        fileInput.removeAttribute('required');
-        fileInput.required = false;
+        const fileUploadTranslations = {
+            documentUploaded: "{% trans 'Document Uploaded'|escapejs %}",
+            clickToChangeFile: "{% trans 'Click to change file'|escapejs %}",
+            fileTooLarge: "{% trans 'The file is too large. Maximum allowed size is 10MB.'|escapejs %}",
+            fileTypeNotAllowed: "{% trans 'File type not allowed. Only PDF, JPG or PNG are accepted.'|escapejs %}"
+        };
 
-        fileUploadArea.addEventListener('click', function(e) {
-            if (e.target !== fileInput) {
-                fileInput.click();
+        const fileInput = document.querySelector('#playerEditForm input[type="file"][name*="age_verification"]');
+        const fileUploadArea = document.getElementById('ageVerificationUploadArea');
+
+        if (fileInput && fileUploadArea) {
+            fileInput.removeAttribute('required');
+            fileInput.required = false;
+
+            fileUploadArea.addEventListener('click', function(e) {
+                if (e.target !== fileInput) {
+                    fileInput.click();
+                }
+            });
+
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const fileName = file.name;
+                    const fileSize = (file.size / 1024 / 1024).toFixed(2);
+
+                    if (file.size > 10 * 1024 * 1024) {
+                        alert(fileUploadTranslations.fileTooLarge);
+                        fileInput.value = '';
+                        return;
+                    }
+
+                    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+                    if (!allowedTypes.includes(file.type)) {
+                        alert(fileUploadTranslations.fileTypeNotAllowed);
+                        fileInput.value = '';
+                        return;
+                    }
+
+                    const contentDiv = fileUploadArea.querySelector('div[style*="position: relative"]');
+                    if (contentDiv) {
+                        contentDiv.innerHTML = `
+                            <i class="fas fa-check-circle fa-3x mb-3" style="color: #28a745; animation: none;"></i>
+                            <p class="mb-2" style="font-weight: 700; color: #28a745; font-size: 1.1rem;">
+                                <i class="fas fa-file-check me-2"></i>${fileUploadTranslations.documentUploaded}
+                            </p>
+                            <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.95rem; word-break: break-word;">${fileName}</p>
+                            <small class="text-muted d-block mt-2" style="font-size: 0.9rem;">${fileSize} MB</small>
+                            <small class="text-success d-block mt-1" style="font-size: 0.85rem;">
+                                <i class="fas fa-check me-1"></i>${fileUploadTranslations.clickToChangeFile}
+                            </small>
+                        `;
+                    }
+
+                    fileUploadArea.style.borderColor = '#28a745';
+                    fileUploadArea.style.borderWidth = '3px';
+                    fileUploadArea.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
+                    fileUploadArea.style.boxShadow = '0 4px 12px rgba(40, 167, 69, 0.2)';
+                }
+            });
+        }
+
+        setTimeout(function() {
+            if (window.adminDashboard) {
+                window.adminDashboard.convertDjangoMessagesToToasts();
             }
-        });
+        }, 100);
 
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const fileName = file.name;
-                const fileSize = (file.size / 1024 / 1024).toFixed(2);
+        // Inicializar selectores de ubicación
+        window.initPlayerEditLocationSelectors();
+    };
 
-                // Validar tamaño (máx 10MB)
-                if (file.size > 10 * 1024 * 1024) {
-                    alert(fileUploadTranslations.fileTooLarge);
-                    fileInput.value = '';
-                    return;
-                }
+    // Inicializar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+        window.initPlayerEditHijoForm();
+    });
 
-                // Validar tipo de archivo
-                const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-                if (!allowedTypes.includes(file.type)) {
-                    alert(fileUploadTranslations.fileTypeNotAllowed);
-                    fileInput.value = '';
-                    return;
-                }
-
-                // Actualizar el área con el archivo cargado
-                const contentDiv = fileUploadArea.querySelector('div[style*="position: relative"]');
-                if (contentDiv) {
-                    contentDiv.innerHTML = `
-                        <i class="fas fa-check-circle fa-3x mb-3" style="color: #28a745; animation: none;"></i>
-                        <p class="mb-2" style="font-weight: 700; color: #28a745; font-size: 1.1rem;">
-                            <i class="fas fa-file-check me-2"></i>${fileUploadTranslations.documentUploaded}
-                        </p>
-                        <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.95rem; word-break: break-word;">${fileName}</p>
-                        <small class="text-muted d-block mt-2" style="font-size: 0.9rem;">${fileSize} MB</small>
-                        <small class="text-success d-block mt-1" style="font-size: 0.85rem;">
-                            <i class="fas fa-check me-1"></i>${fileUploadTranslations.clickToChangeFile}
-                        </small>
-                    `;
-                }
-
-                fileUploadArea.style.borderColor = '#28a745';
-                fileUploadArea.style.borderWidth = '3px';
-                fileUploadArea.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
-                fileUploadArea.style.boxShadow = '0 4px 12px rgba(40, 167, 69, 0.2)';
-            }
-        });
+    // También inicializar inmediatamente si el DOM ya está cargado (para contenido AJAX)
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        setTimeout(window.initPlayerEditHijoForm, 50);
     }
-
-    // Convert Django messages to toasts
-    setTimeout(function() {
-        if (window.adminDashboard) {
-            window.adminDashboard.convertDjangoMessagesToToasts();
-        }
-    }, 100);
-
-    // Filtros dinámicos de ubicación (Country -> State -> City)
-    const countrySelect = document.getElementById('id_country');
-    const stateSelect = document.getElementById('id_state');
-    const citySelect = document.getElementById('id_city');
-    const stateLoader = document.getElementById('stateLoader');
-    const cityLoader = document.getElementById('cityLoader');
-
-    if (countrySelect && stateSelect && citySelect) {
-        // Guardar valores iniciales
-        const initialCountry = countrySelect.value;
-        const initialState = stateSelect.value;
-        const initialCity = citySelect.value;
-        let isInitialLoad = true;
-
-        function updateStates(showLoader = true) {
-            const countryId = countrySelect.value;
-            const currentStateValue = stateSelect.value;
-
-            // Limpiar estados y ciudades
-            stateSelect.innerHTML = '<option value="">{% trans "Select a state" %}</option>';
-            citySelect.innerHTML = '<option value="">{% trans "Select a city" %}</option>';
-
-            if (countryId) {
-                // Mostrar loader y deshabilitar select solo si no es la carga inicial
-                if (showLoader && stateLoader) stateLoader.style.display = 'block';
-                if (showLoader) {
-                    stateSelect.disabled = true;
-                    citySelect.disabled = true;
-                }
-
-                fetch(`/locations/ajax/states/${countryId}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(state => {
-                            const option = document.createElement('option');
-                            option.value = state.id;
-                            option.textContent = state.name;
-                            if (currentStateValue == state.id) {
-                                option.selected = true;
-                            }
-                            stateSelect.appendChild(option);
-                        });
-                        // Si había un estado seleccionado, actualizar ciudades
-                        if (currentStateValue) {
-                            updateCities(showLoader);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error loading states:', error);
-                        stateSelect.innerHTML = '<option value="">{% trans "Error loading states" %}</option>';
-                    })
-                    .finally(() => {
-                        // Ocultar loader y habilitar select
-                        if (stateLoader) stateLoader.style.display = 'none';
-                        stateSelect.disabled = false;
-                        citySelect.disabled = false;
-                    });
-            } else {
-                // Si no hay país seleccionado, habilitar ambos selects
-                stateSelect.disabled = false;
-                citySelect.disabled = false;
-            }
-        }
-
-        function updateCities(showLoader = true) {
-            const stateId = stateSelect.value;
-            const currentCityValue = citySelect.value;
-
-            citySelect.innerHTML = '<option value="">{% trans "Select a city" %}</option>';
-
-            if (stateId) {
-                // Mostrar loader y deshabilitar select solo si no es la carga inicial
-                if (showLoader && cityLoader) cityLoader.style.display = 'block';
-                if (showLoader) citySelect.disabled = true;
-
-                fetch(`/locations/ajax/cities/${stateId}/`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(city => {
-                            const option = document.createElement('option');
-                            option.value = city.id;
-                            option.textContent = city.name;
-                            if (currentCityValue == city.id) {
-                                option.selected = true;
-                            }
-                            citySelect.appendChild(option);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error loading cities:', error);
-                        citySelect.innerHTML = '<option value="">{% trans "Error loading cities" %}</option>';
-                    })
-                    .finally(() => {
-                        // Ocultar loader y habilitar select
-                        if (cityLoader) cityLoader.style.display = 'none';
-                        citySelect.disabled = false;
-                    });
-            } else {
-                // Si no hay estado seleccionado, habilitar select
-                citySelect.disabled = false;
-            }
-        }
-
-        // Event listeners para cambios manuales del usuario
-        countrySelect.addEventListener('change', function() {
-            updateStates(true); // Mostrar loader en cambios manuales
-        });
-
-        stateSelect.addEventListener('change', function() {
-            updateCities(true); // Mostrar loader en cambios manuales
-        });
-
-        // Cargar datos iniciales si hay un país seleccionado (sin loader ni bloqueo)
-        if (initialCountry) {
-            updateStates(false); // No mostrar loader en carga inicial
-        }
-    }
-});
 </script>
 {% endblock %}
 

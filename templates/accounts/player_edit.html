@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends is_ajax|yesno:"accounts/base_ajax.html,base.html" %}
 {% load static %}
 {% load i18n %}
 
@@ -769,11 +769,11 @@
         }
 
         // 4. Filtros Dinámicos de Ubicación
-        const countrySelect = document.getElementById('id_country');
-        const stateSelect = document.getElementById('id_state');
-        const citySelect = document.getElementById('id_city');
-        const stateLoader = document.getElementById('stateLoader');
-        const cityLoader = document.getElementById('cityLoader');
+        const countrySelect = playerEditForm.querySelector('[name="country"]');
+        const stateSelect = playerEditForm.querySelector('[name="state"]');
+        const citySelect = playerEditForm.querySelector('[name="city"]');
+        const stateLoader = playerEditForm.querySelector('#stateLoader');
+        const cityLoader = playerEditForm.querySelector('#cityLoader');
 
         if (countrySelect && stateSelect && citySelect) {
             const initialCountry = countrySelect.value;
@@ -782,8 +782,8 @@
                 const countryId = countrySelect.value;
                 const currentStateValue = stateSelect.value;
 
-                stateSelect.innerHTML = '<option value="">{% trans "Select a state" %}</option>';
-                citySelect.innerHTML = '<option value="">{% trans "Select a city" %}</option>';
+                stateSelect.innerHTML = '<option value="">{% trans "Select a state"|escapejs %}</option>';
+                citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
 
                 if (countryId) {
                     if (showLoader && stateLoader) stateLoader.style.display = 'block';
@@ -816,7 +816,7 @@
                 const stateId = stateSelect.value;
                 const currentCityValue = citySelect.value;
 
-                citySelect.innerHTML = '<option value="">{% trans "Select a city" %}</option>';
+                citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
 
                 if (stateId) {
                     if (showLoader && cityLoader) cityLoader.style.display = 'block';
@@ -843,7 +843,7 @@
             countrySelect.addEventListener('change', () => updateStates(true));
             stateSelect.addEventListener('change', () => updateCities(true));
 
-            if (initialCountry) updateStates(false);
+            if (initialCountry && stateSelect.options.length <= 1) updateStates(false);
         }
     }
 
