@@ -1334,7 +1334,7 @@ def register_children_to_event(request, pk):
             messages.warning(
                 request, _("Please select at least one child/player to register.")
             )
-            return redirect("panel_event_detail", pk=pk)
+            return redirect("accounts:panel_event_detail", pk=pk)
 
         # Obtener los jugadores relacionados al usuario
         from .models import Player, PlayerParent
@@ -1371,7 +1371,7 @@ def register_children_to_event(request, pk):
                 _("The selected children are already registered to this event."),
             )
 
-        return redirect("panel_event_detail", pk=pk)
+        return redirect("accounts:panel_event_detail", pk=pk)
 
     except ImportError:
         messages.error(request, _("Events app is not available."))
@@ -1908,11 +1908,11 @@ def stripe_event_checkout_success(request, pk):
     session_id = request.GET.get("session_id")
     if not session_id:
         messages.error(request, _("Stripe did not return session_id."))
-        return redirect("panel_event_detail", pk=pk)
+        return redirect("accounts:panel_event_detail", pk=pk)
 
     if not settings.STRIPE_SECRET_KEY:
         messages.error(request, _("Stripe is not configured."))
-        return redirect("panel_event_detail", pk=pk)
+        return redirect("accounts:panel_event_detail", pk=pk)
 
     try:
         import stripe  # type: ignore
@@ -1920,7 +1920,7 @@ def stripe_event_checkout_success(request, pk):
         stripe.api_key = settings.STRIPE_SECRET_KEY
     except Exception:
         messages.error(request, _("Stripe SDK is not installed."))
-        return redirect("panel_event_detail", pk=pk)
+        return redirect("accounts:panel_event_detail", pk=pk)
 
     from apps.events.models import Event
 
@@ -1939,17 +1939,17 @@ def stripe_event_checkout_success(request, pk):
         messages.error(
             request, _("Could not verify payment: %(error)s") % {"error": str(e)}
         )
-        return redirect("panel_event_detail", pk=pk)
+        return redirect("accounts:panel_event_detail", pk=pk)
 
     if getattr(session, "payment_status", "") != "paid":
         messages.warning(request, _("Payment is not yet confirmed."))
-        return redirect("panel_event_detail", pk=pk)
+        return redirect("accounts:panel_event_detail", pk=pk)
 
     try:
         checkout = StripeEventCheckout.objects.get(stripe_session_id=session_id)
     except StripeEventCheckout.DoesNotExist:
         messages.error(request, _("Checkout not found in the system."))
-        return redirect("panel_event_detail", pk=pk)
+        return redirect("accounts:panel_event_detail", pk=pk)
 
     # Store subscription id (plan payments)
     subscription_id = getattr(session, "subscription", "") or ""
@@ -1979,13 +1979,13 @@ def stripe_event_checkout_success(request, pk):
     request.session.modified = True
 
     messages.success(request, _("Payment completed. Registration confirmed."))
-    return redirect("panel_event_detail", pk=pk)
+    return redirect("accounts:panel_event_detail", pk=pk)
 
 
 @login_required
 def stripe_event_checkout_cancel(request, pk):
     messages.info(request, _("Payment cancelled."))
-    return redirect("panel_event_detail", pk=pk)
+    return redirect("accounts:panel_event_detail", pk=pk)
 
 
 @csrf_exempt
