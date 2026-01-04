@@ -32,10 +32,25 @@
             font-family: 'Arial', 'Helvetica', sans-serif;
             background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
             min-height: 100vh;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* Contenedor principal que envuelve todo */
+        .login-page-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Área de contenido principal (login) */
+        .login-main-content {
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
+            position: relative;
         }
 
         .login-container {
@@ -213,14 +228,17 @@
     </style>
 </head>
 <body>
-    <!-- Top Bar and Navbar -->
-    {% include 'includes/navbar_mlb.html' %}
+    <div class="login-page-wrapper">
+        <!-- Top Bar and Navbar -->
+        {% include 'includes/navbar_mlb.html' %}
 
-    <a href="/" class="back-home">
-        <i class="fas fa-arrow-left me-2"></i>Volver al Inicio
-    </a>
+        <!-- Main Content Area -->
+        <div class="login-main-content">
+            <a href="/" class="back-home">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Inicio
+            </a>
 
-    <div class="login-container">
+            <div class="login-container">
         <div class="login-card">
             <div class="login-header">
                 <div class="login-icon">
@@ -294,10 +312,11 @@
                 </p>
             </div>
         </div>
-    </div>
+        </div>
 
-    <!-- Footer MLB -->
-    {% include 'includes/footer_mlb.html' %}
+        <!-- Footer MLB -->
+        {% include 'includes/footer_mlb.html' %}
+    </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
