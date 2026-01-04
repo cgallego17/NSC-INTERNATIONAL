@@ -4,8 +4,8 @@
     .top-bar {
         background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
         color: #ffffff;
-        padding: 10px 0;
-        font-size: 0.875rem;
+        padding: 6px 0;
+        font-size: 0.8rem;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
         position: relative;
@@ -53,21 +53,21 @@
     .top-bar-left {
         display: flex;
         align-items: center;
-        gap: 1.5rem;
+        gap: 1.25rem;
         flex-wrap: nowrap;
     }
 
     .top-bar-left span {
         display: inline-flex;
         align-items: center;
-        color: #f0f0f0;
-        font-weight: 500;
+        color: #e0e0e0;
+        font-weight: 400;
         white-space: nowrap;
         flex-shrink: 0;
-        padding: 2px 0;
+        padding: 0;
         transition: all 0.3s ease;
         position: relative;
-        font-size: 0.875rem;
+        font-size: 0.8rem;
     }
 
     .top-bar-left span:hover {
@@ -75,22 +75,22 @@
     }
 
     .top-bar-left span i {
-        color: #ffd700;
-        font-size: 0.9rem;
-        margin-right: 0.5rem;
-        opacity: 1;
+        color: #ffffff;
+        font-size: 0.8rem;
+        margin-right: 0.4rem;
+        opacity: 0.9;
         transition: all 0.3s ease;
     }
 
     .top-bar-left span:hover i {
-        color: #ffffff;
+        opacity: 1;
     }
 
     .top-bar-right {
         display: flex;
         align-items: center;
         justify-content: flex-end;
-        gap: 1rem;
+        gap: 0.75rem;
         flex-wrap: nowrap;
     }
 
@@ -104,18 +104,18 @@
         background: rgba(255, 255, 255, 0.1);
         border: 1px solid rgba(255, 255, 255, 0.2);
         color: #ffffff;
-        padding: 6px 10px;
-        border-radius: 6px;
-        font-size: 0.875rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
         cursor: pointer;
         transition: all 0.3s ease;
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        min-width: 85px;
+        gap: 6px;
+        min-width: 75px;
         justify-content: flex-start;
-        font-weight: 500;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        font-weight: 400;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
     .language-selector-btn .language-text {
@@ -125,27 +125,24 @@
     }
 
     .language-selector-btn:hover {
-        background: rgba(255, 255, 255, 0.2);
-        border-color: rgba(255, 255, 255, 0.4);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.3);
     }
 
     .language-selector-btn.active {
-        background: rgba(255, 215, 0, 0.25);
-        border-color: rgba(255, 215, 0, 0.6);
-        box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
     }
 
     .language-selector-btn .flag-icon {
-        width: 20px;
-        height: 15px;
+        width: 18px;
+        height: 13px;
         display: inline-block;
         background-size: cover;
         background-position: center;
-        border-radius: 3px;
+        border-radius: 2px;
         flex-shrink: 0;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
     .flag-icon.flag-us {
@@ -157,9 +154,9 @@
     }
 
     .language-selector-btn .arrow-icon {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         transition: transform 0.3s ease;
-        opacity: 0.9;
+        opacity: 0.8;
         margin-left: auto;
         color: #ffffff;
     }
@@ -194,22 +191,22 @@
     .language-option {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 10px 14px;
-        color: #f0f0f0;
+        gap: 10px;
+        padding: 8px 12px;
+        color: #e0e0e0;
         text-decoration: none;
         transition: all 0.2s ease;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         cursor: pointer;
         font-family: inherit;
-        font-size: 0.875rem;
+        font-size: 0.8rem;
         width: 100%;
         text-align: left;
         background: none;
         border-left: none;
         border-right: none;
         border-top: none;
-        font-weight: 500;
+        font-weight: 400;
     }
 
     .language-option:last-child {
@@ -222,55 +219,54 @@
     }
 
     .language-option.active {
-        background: rgba(255, 215, 0, 0.15);
-        color: #ffd700;
+        background: rgba(255, 255, 255, 0.15);
+        color: #ffffff;
     }
 
     .language-option .flag-icon {
-        width: 22px;
-        height: 16px;
-        border-radius: 3px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        width: 20px;
+        height: 14px;
+        border-radius: 2px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
     /* Top Bar Links - Desktop */
     .top-bar-separator {
         width: 1px;
-        height: 16px;
+        height: 14px;
         background: rgba(255, 255, 255, 0.3);
         display: inline-block;
-        margin: 0 0.75rem;
+        margin: 0 0.6rem;
         vertical-align: middle;
         flex-shrink: 0;
     }
 
     .top-bar a {
-        color: #f0f0f0;
+        color: #e0e0e0;
         text-decoration: none;
         transition: all 0.3s ease;
-        font-weight: 500;
-        padding: 2px 0;
+        font-weight: 400;
+        padding: 0;
         display: inline-flex;
         align-items: center;
         white-space: nowrap;
         position: relative;
-        font-size: 0.875rem;
+        font-size: 0.8rem;
     }
 
     .top-bar a::after {
         content: '';
         position: absolute;
-        bottom: 2px;
+        bottom: -2px;
         left: 0;
         width: 0;
-        height: 2px;
-        background: linear-gradient(90deg, #ffd700, #ffffff);
+        height: 1px;
+        background: #ffffff;
         transition: width 0.3s ease;
     }
 
     .top-bar a:hover {
         color: #ffffff;
-        transform: translateY(-1px);
     }
 
     .top-bar a:hover::after {
@@ -278,13 +274,14 @@
     }
 
     .top-bar a i {
-        margin-right: 0.4rem;
-        font-size: 0.85rem;
+        margin-right: 0.35rem;
+        font-size: 0.75rem;
         transition: all 0.3s ease;
+        opacity: 0.9;
     }
 
     .top-bar a:hover i {
-        color: #ffd700;
+        opacity: 1;
     }
 
     /* Desktop optimizations - Compact design */
