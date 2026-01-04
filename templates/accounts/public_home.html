@@ -2999,7 +2999,7 @@
                                     {% if banner.mobile_image %}
                                         <source media="(max-width: 768px)" srcset="{{ banner.mobile_image.url }}" onerror="this.remove();">
                                     {% endif %}
-                                    <img src="{{ banner.image.url }}" alt="{{ banner.title|default:'Banner' }}" onerror="this.onerror=null; this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%)'; this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:white;font-size:1.5rem;\'>{{ banner.title|default:\"Banner\" }}</div>';">
+                                    <img src="{{ banner.image.url }}" alt="{% if banner.title %}{{ banner.title }}{% else %}Banner{% endif %}" onerror="this.onerror=null; this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%)'; this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:white;font-size:1.5rem;\'>{% if banner.title %}{{ banner.title }}{% else %}Banner{% endif %}</div>';">
                                 </picture>
                             {% else %}
                                 <div style="width: 100%; height: 100%; background: linear-gradient(135deg, {{ banner.gradient_color_1 }} 0%, {{ banner.gradient_color_2 }} 50%, {{ banner.gradient_color_3|default:banner.gradient_color_2 }} 100%); display: flex; align-items: center; justify-content: center;">
@@ -3120,7 +3120,7 @@
                     "title": "{{ event.title|escapejs }}",
                     "description": "{{ event.description|striptags|escapejs|truncatewords:80 }}",
                     "video_url": {% if event.video_url %}"{{ event.video_url|escapejs }}"{% else %}null{% endif %},
-                    "location": "{% if event.city %}{{ event.city.name }}{% if event.state %}, {{ event.state.name }}{% endif %}{% else %}{{ event.location|default:"-" }}{% endif %}",
+                    "location": "{% if event.city %}{{ event.city.name }}{% if event.state %}, {{ event.state.name }}{% endif %}{% else %}{% if event.location %}{{ event.location }}{% else %}-{% endif %}{% endif %}",
                     "event_type": "{% if event.event_type %}{{ event.event_type.name|escapejs }}{% else %}{% trans 'Tournament / Showcase' %}{% endif %}",
                     "divisions": "{% for division in event.divisions.all %}{{ division.name|escapejs }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans 'All Categories' %}{% endfor %}",
                     "start_date": "{{ event.start_date|date:'Y-m-d' }}",
@@ -3186,7 +3186,7 @@
                                 {% if CURRENT_LANG == 'es' %}
                                     {{ site_settings.schedule_description_es|default:site_settings.schedule_description_en }}
                                 {% else %}
-                                    {{ site_settings.schedule_description_en|default:"" }}
+                                    {% if site_settings.schedule_description_en %}{{ site_settings.schedule_description_en }}{% endif %}
                                 {% endif %}
                             {% else %}
                                 {% blocktrans %}As we move forward into 2026, NCS International continues to elevate its tournament and showcase platform. With a regional presence expansion for ages 7U-18U, new and improved National and Regional Championship events, and an even broader showcase schedule across the country, NCS remains dedicated to providing the highest standard of competition and experience for players, coaches and families alike.{% endblocktrans %}
@@ -3374,7 +3374,7 @@
                             {% if showcase_title %}
                                 {{ showcase_title }}
                             {% elif site_settings %}
-                                {{ site_settings.get_showcase_title|default:"SHOWCASES AND PROSPECT GATEWAYS" }}
+                                {% if site_settings.get_showcase_title %}{{ site_settings.get_showcase_title }}{% else %}SHOWCASES AND PROSPECT GATEWAYS{% endif %}
                             {% else %}
                                 {% trans "SHOWCASES AND PROSPECT GATEWAYS" %}
                             {% endif %}
@@ -3383,7 +3383,7 @@
                             {% if showcase_subtitle %}
                                 {{ showcase_subtitle }}
                             {% elif site_settings %}
-                                {{ site_settings.get_showcase_subtitle|default:"REGIONAL AND NATIONAL SHOWCASES" }}
+                                {% if site_settings.get_showcase_subtitle %}{{ site_settings.get_showcase_subtitle }}{% else %}REGIONAL AND NATIONAL SHOWCASES{% endif %}
                             {% else %}
                                 {% trans "REGIONAL AND NATIONAL SHOWCASES" %}
                             {% endif %}
@@ -3392,7 +3392,7 @@
                             {% if showcase_description %}
                                 {{ showcase_description }}
                             {% elif site_settings %}
-                                {{ site_settings.get_showcase_description|default:"" }}
+                                {% if site_settings.get_showcase_description %}{{ site_settings.get_showcase_description }}{% endif %}
                             {% else %}
                                 {% blocktrans %}Perfect Game is thrilled to offer showcases (HS) and Prospect Gateways (13U/14U) across the country for the 2025 calendar. This includes regional events for all ages and new invite only events! PG strives to delivery the very best events and experience for all players, coaches and families across the country.{% endblocktrans %}
                             {% endif %}
@@ -3616,7 +3616,7 @@
 
                     <form method="post" action="{% url 'accounts:login' %}">
                         {% csrf_token %}
-                        <input type="hidden" name="next" value="{{ request.GET.next|default:request.path }}">
+                        <input type="hidden" name="next" value="{% if request.GET.next %}{{ request.GET.next }}{% else %}{{ request.path }}{% endif %}">
 
                         {% if form.non_field_errors %}
                             <div class="error-message">
