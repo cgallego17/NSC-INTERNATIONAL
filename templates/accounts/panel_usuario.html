@@ -1178,13 +1178,33 @@
                     console.log('- Has content:', hasContent, '(length:', targetContent.innerHTML.length, ')');
                     console.log('- Has height:', hasHeight, '(height:', targetContent.offsetHeight, ')');
 
-                    // Si no tiene altura pero tiene contenido, forzar visibilidad
+                    // Si no tiene altura pero tiene contenido, forzar visibilidad del contenedor padre
                     if (hasContent && !hasHeight) {
-                        console.warn('Content exists but no height, checking parent...');
+                        console.warn('Content exists but no height, fixing parent...');
                         const parent = targetContent.parentElement;
                         if (parent) {
-                            console.log('Parent display:', window.getComputedStyle(parent).display);
-                            console.log('Parent height:', parent.offsetHeight);
+                            const parentDisplay = window.getComputedStyle(parent).display;
+                            console.log('Parent display:', parentDisplay, 'Parent height:', parent.offsetHeight);
+
+                            // Si el padre tiene display inline, cambiarlo a block
+                            if (parentDisplay === 'inline' || parentDisplay === 'inline-block') {
+                                parent.style.setProperty('display', 'block', 'important');
+                                console.log('Fixed parent display to block');
+
+                                // Verificar nuevamente la altura del contenido
+                                setTimeout(() => {
+                                    const newHeight = targetContent.offsetHeight;
+                                    console.log('After fixing parent - Content height:', newHeight);
+                                    if (newHeight > 0) {
+                                        // Ahora hacer scroll si es necesario
+                                        targetContent.scrollIntoView({
+                                            behavior: 'smooth',
+                                            block: 'start',
+                                            inline: 'nearest'
+                                        });
+                                    }
+                                }, 50);
+                            }
                         }
                     }
 
