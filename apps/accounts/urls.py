@@ -78,6 +78,12 @@ urlpatterns = [
         views_private.approve_age_verification,
         name="approve_age_verification",
     ),
+    # Verificaciones de edad (solo staff y managers)
+    path(
+        "age-verifications/",
+        views_private.AgeVerificationListView.as_view(),
+        name="age_verification_list",
+    ),
     # Eventos en el panel - BLOQUEADO TEMPORALMENTE
     path(
         "events/",

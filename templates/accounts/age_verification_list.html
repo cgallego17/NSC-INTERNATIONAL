@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Age Verifications" %} - NCS International{% endblock %}
+
+{% block breadcrumb %}
+    <span>{% trans "Age Verifications" %}</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .events-list-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        padding: 2rem 2rem 2rem 3rem;
+        min-height: 100vh;
+    }
+
+    @media (max-width: 992px) {
+        .events-list-container {
+            padding: 2rem 1.5rem;
+        }
+    }
+
+    .text-gray-300 {
+        color: #dddfeb !important;
+    }
+
+    .text-gray-400 {
+        color: #858796 !important;
+    }
+
+    .text-gray-500 {
+        color: #6c757d !important;
+    }
+
+    .text-gray-800 {
+        color: #5a5c69 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="events-list-container">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 mb-0 text-gray-800">
+                            <i class="bi bi-file-check me-2" style="color: var(--mlb-red);"></i>
+                            {% trans "Pending Age Verifications" %}
+                        </h1>
+                    </div>
+                    <span class="badge bg-danger" style="font-size: 0.9rem; padding: 6px 12px;">
+                        {{ pending_verifications_count }} {% trans "Pending" %}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="card shadow mb-4">
+            <div class="card-body">
+            {% if pending_verifications %}
+                <div class="row">
+                    {% for player in pending_verifications %}
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card" style="border: 2px solid #e9ecef; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h5 class="card-title mb-1" style="color: var(--mlb-blue); font-weight: 700;">
+                                                {{ player.user.get_full_name|default:player.user.username }}
+                                            </h5>
+                                            {% if player.team %}
+                                                <p class="text-muted mb-0" style="font-size: 0.9rem;">
+                                                    <i class="fas fa-users me-1"></i>{{ player.team.name }}
+                                                </p>
+                                            {% endif %}
+                                        </div>
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-clock me-1"></i>{% trans "Pending" %}
+                                        </span>
+                                    </div>
+
+                                    {% if player.age_verification_document %}
+                                        <div class="mb-3">
+                                            <a href="{{ player.age_verification_document.url }}" target="_blank" class="btn btn-outline-primary btn-sm w-100">
+                                                <i class="fas fa-file-pdf me-2"></i>{% trans "View Document" %}
+                                            </a>
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="mb-3">
+                                        <small class="text-muted d-block mb-1">
+                                            <i class="fas fa-calendar me-1"></i>{% trans "Uploaded" %}: {{ player.updated_at|date:"M d, Y" }}
+                                        </small>
+                                        {% if player.user.profile.birth_date %}
+                                            <small class="text-muted d-block mb-1">
+                                                <i class="fas fa-birthday-cake me-1"></i>{% trans "Birth Date" %}: {{ player.user.profile.birth_date|date:"M d, Y" }}
+                                            </small>
+                                        {% endif %}
+                                    </div>
+
+                                    <form method="post" action="{% url 'accounts:approve_age_verification' player.pk %}" class="approve-form">
+                                        {% csrf_token %}
+                                        <div class="mb-3">
+                                            <label for="notes_{{ player.pk }}" class="form-label small">
+                                                <i class="fas fa-sticky-note me-1"></i>{% trans "Notes (optional)" %}
+                                            </label>
+                                            <textarea
+                                                name="notes"
+                                                id="notes_{{ player.pk }}"
+                                                class="form-control form-control-sm"
+                                                rows="2"
+                                                placeholder="{% trans 'Add notes about the verification...' %}"
+                                            ></textarea>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="submit" name="action" value="approve" class="btn btn-success btn-sm flex-fill">
+                                                <i class="fas fa-check-circle me-1"></i>{% trans "Approve" %}
+                                            </button>
+                                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm flex-fill">
+                                                <i class="fas fa-times-circle me-1"></i>{% trans "Reject" %}
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Paginación -->
+                {% if is_paginated %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1">{% trans "First" %}</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item active">
+                                <span class="page-link">
+                                    {% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+                                </span>
+                            </li>
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "Next" %}</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">{% trans "Last" %}</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-info" style="background: #e7f3ff; border-left: 4px solid var(--mlb-blue); border-radius: 8px; padding: 20px;">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-info-circle fa-2x me-3" style="color: var(--mlb-blue);"></i>
+                        <div>
+                            <h5 class="mb-1">{% trans "No Pending Verifications" %}</h5>
+                            <p class="mb-0">{% trans "There are no age verification documents pending review at this time." %}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Confirmación antes de aprobar/rechazar
+    const forms = document.querySelectorAll('.approve-form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const action = e.submitter.value;
+            const playerName = form.closest('.card').querySelector('.card-title').textContent.trim();
+
+            if (action === 'approve') {
+                if (!confirm('{% trans "Are you sure you want to approve the age verification for" %} ' + playerName + '?')) {
+                    e.preventDefault();
+                }
+            } else if (action === 'reject') {
+                if (!confirm('{% trans "Are you sure you want to reject the age verification for" %} ' + playerName + '?')) {
+                    e.preventDefault();
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+

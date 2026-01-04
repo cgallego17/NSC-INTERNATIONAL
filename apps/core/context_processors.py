@@ -155,6 +155,10 @@ def sidebar_context(request):
         "accounts:player_register": {"section": "players", "subsection": "player_list"},
         "accounts:player_edit": {"section": "players", "subsection": "player_list"},
         "accounts:user_list": {"section": "users", "subsection": "user_list"},
+        "accounts:age_verification_list": {
+            "section": "age_verifications",
+            "subsection": "pending_verifications",
+        },
         "accounts:home_content_admin": {
             "section": "home_content",
             "subsection": "home_content_admin",
@@ -271,7 +275,7 @@ def sidebar_context(request):
             if "/users" in current_path:
                 active_section = "users"
                 active_subsection = "user_list"
-            elif "verificaciones-pendientes" in current_path or "tab=verificaciones-pendientes" in current_path:
+            elif "/age-verifications" in current_path or "verificaciones-pendientes" in current_path or "tab=verificaciones-pendientes" in current_path:
                 active_section = "age_verifications"
                 active_subsection = "pending_verifications"
             elif "/players" in current_path:

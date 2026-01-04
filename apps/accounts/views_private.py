@@ -81,18 +81,18 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
         # Si es manager, obtener sus equipos (optimizado)
         if profile.is_team_manager:
             teams_qs = Team.objects.filter(manager=user).order_by("-created_at")
-            context["teams"] = teams_qs[:5]
-            context["total_teams"] = teams_qs.count()
+            context["total_teams"] = teams_qs.count()  # Contar antes del slice
+            context["teams"] = teams_qs[:5]  # Solo los primeros 5
 
             players_qs = Player.objects.filter(team__manager=user).select_related(
                 "user", "team", "user__profile"
             )
-            context["total_players"] = players_qs.count()
-            context["recent_players"] = players_qs.order_by("-created_at")[:5]
+            context["total_players"] = players_qs.count()  # Contar antes del slice
+            context["recent_players"] = players_qs.order_by("-created_at")[:5]  # Solo los primeros 5
 
         # Si es padre, obtener sus jugadores (optimizado)
         if profile.is_parent:
-            player_parents = (
+            player_parents_qs = (
                 PlayerParent.objects.filter(parent=user)
                 .select_related(
                     "player",
@@ -105,9 +105,9 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
                 )
                 .order_by("-created_at")
             )
-            context["children"] = player_parents
-            context["total_children"] = player_parents.count()
-            context["recent_children"] = player_parents[:5]
+            context["total_children"] = player_parents_qs.count()  # Contar antes de evaluar
+            context["children"] = player_parents_qs  # QuerySet lazy
+            context["recent_children"] = player_parents_qs[:5]  # Solo los primeros 5
 
         # Obtener banners activos del dashboard (siempre devolver al menos uno para el bucle)
         try:
@@ -115,25 +115,25 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
 
             banners = DashboardBanner.objects.filter(is_active=True).order_by(
                 "order", "-created_at"
-            )
+            )[:10]  # Limitar a 10 banners
             # Si no hay banners, crear una lista vacía (el template mostrará el banner por defecto)
             context["dashboard_banners"] = list(banners) if banners.exists() else []
         except ImportError:
             context["dashboard_banners"] = []
 
-        # Obtener eventos para la pestaña de eventos (optimizado - limitar a 50)
+        # Obtener eventos para la pestaña de eventos (optimizado - limitar a 20)
         try:
             from apps.events.models import Event
 
             now = timezone.now()
-            # Obtener eventos (excepto cancelados) - limitar a 50 para mejor rendimiento
+            # Obtener eventos (excepto cancelados) - limitar a 20 para mejor rendimiento
             context["upcoming_events"] = (
                 Event.objects.exclude(status="cancelled")
                 .select_related(
                     "category", "event_type", "city", "state", "primary_site"
                 )
                 .prefetch_related("divisions")
-                .order_by("start_date")[:50]  # Limitar a 50 eventos
+                .order_by("start_date")[:20]  # Reducido de 50 a 20 eventos
             )
         except ImportError:
             context["upcoming_events"] = []
@@ -143,14 +143,14 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
         dashboard_content = (
             DashboardContent.objects.filter(is_active=True)
             .filter(Q(user_type=user_type) | Q(user_type="all"))
-            .order_by("order", "-created_at")
+            .order_by("order", "-created_at")[:20]  # Limitar a 20 contenidos
         )
         context["dashboard_content"] = dashboard_content
 
-        # Obtener mensajes activos del marquee
+        # Obtener mensajes activos del marquee (limitar a 10)
         marquee_messages = MarqueeMessage.objects.filter(is_active=True).order_by(
             "order", "-created_at"
-        )
+        )[:10]  # Limitar a 10 mensajes[:10]  # Limitar a 10 mensajes
         context["marquee_messages"] = marquee_messages
 
         # Inicializar contadores de verificaciones pendientes
@@ -159,34 +159,21 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
 
         # Si es staff/admin, obtener todos los documentos pendientes (no solo de sus equipos)
         if user.is_staff or user.is_superuser:
-            context["pending_verifications"] = (
-                Player.objects.filter(
-                    age_verification_status="pending",
-                    age_verification_document__isnull=False,
-                )
-                .select_related("user", "team", "user__profile")
-                .order_by("-updated_at")[:20]
-            )
-            context["pending_verifications_count"] = Player.objects.filter(
+            pending_qs = Player.objects.filter(
                 age_verification_status="pending",
                 age_verification_document__isnull=False,
-            ).count()
+            ).select_related("user", "team", "user__profile")
+            context["pending_verifications"] = pending_qs.order_by("-updated_at")[:20]
+            context["pending_verifications_count"] = pending_qs.count()  # Una sola consulta
         # Si es manager (pero no staff), obtener solo documentos de sus equipos
         elif profile.is_team_manager:
-            context["pending_verifications"] = (
-                Player.objects.filter(
-                    team__manager=user,
-                    age_verification_status="pending",
-                    age_verification_document__isnull=False,
-                )
-                .select_related("user", "team", "user__profile")
-                .order_by("-updated_at")[:10]
-            )
-            context["pending_verifications_count"] = Player.objects.filter(
+            pending_qs = Player.objects.filter(
                 team__manager=user,
                 age_verification_status="pending",
                 age_verification_document__isnull=False,
-            ).count()
+            ).select_related("user", "team", "user__profile")
+            context["pending_verifications"] = pending_qs.order_by("-updated_at")[:10]
+            context["pending_verifications_count"] = pending_qs.count()  # Una sola consulta
 
         # Contexto adicional para los includes de los tabs
         # Formulario de equipo (para managers)
@@ -194,14 +181,18 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             from .forms import TeamForm
 
             context["team_form"] = TeamForm()
+            # Limitar equipos a los más recientes (lazy evaluation)
             context["all_teams"] = Team.objects.filter(manager=user).order_by(
                 "-created_at"
-            )
-            all_players = (
+            )[:100]  # Limitar a 100 equipos más recientes
+
+            # Limitar jugadores y usar prefetch para optimizar
+            all_players_qs = (
                 Player.objects.filter(team__manager=user)
                 .select_related("user", "user__profile", "team")
-                .order_by("-created_at")
+                .order_by("-created_at")[:200]  # Limitar a 200 jugadores más recientes
             )
+
             # Anotar cada jugador con información sobre si es hijo del usuario actual (optimizado)
             if profile.is_parent:
                 # Obtener IDs de jugadores que son hijos del usuario (una sola consulta)
@@ -210,14 +201,14 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
                         "player_id", flat=True
                     )
                 )
-                # Agregar atributo is_child a cada jugador
-                for player in all_players:
+                # Evaluar el QuerySet una sola vez y agregar atributo is_child
+                all_players_list = list(all_players_qs)
+                for player in all_players_list:
                     player.is_child = player.pk in child_player_ids
+                context["all_players"] = all_players_list
             else:
-                # Si no es padre, ningún jugador es hijo
-                for player in all_players:
-                    player.is_child = False
-            context["all_players"] = all_players
+                # Si no es padre, ningún jugador es hijo - mantener como QuerySet lazy
+                context["all_players"] = all_players_qs
 
         # Formulario de jugador (para managers)
         if profile.is_team_manager:
@@ -230,6 +221,7 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             from .forms import ParentPlayerRegistrationForm
 
             context["parent_player_form"] = ParentPlayerRegistrationForm(parent=user)
+            # Limitar jugadores de padres para mejor rendimiento
             context["parent_players"] = (
                 Player.objects.filter(parents__parent=user)
                 .select_related(
@@ -240,7 +232,7 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
                     "user__profile__city",
                     "team",
                 )
-                .order_by("-created_at")
+                .order_by("-created_at")[:100]  # Limitar a 100 jugadores más recientes
             )
 
         # Formulario de perfil
@@ -1119,6 +1111,49 @@ class PlayerUpdateView(LoginRequiredMixin, UpdateView):
             )
 
         return super().form_invalid(form)
+
+
+class AgeVerificationListView(UserPassesTestMixin, LoginRequiredMixin, ListView):
+    """Lista de verificaciones de edad pendientes (solo staff y managers)"""
+
+    model = Player
+    template_name = "accounts/age_verification_list.html"
+    context_object_name = "pending_verifications"
+    paginate_by = 20
+
+    def test_func(self):
+        """Solo staff, superuser o managers pueden ver las verificaciones"""
+        user = self.request.user
+        if user.is_staff or user.is_superuser:
+            return True
+        if hasattr(user, "profile") and user.profile.is_team_manager:
+            return True
+        return False
+
+    def get_queryset(self):
+        """Obtener verificaciones pendientes según el tipo de usuario"""
+        user = self.request.user
+        queryset = Player.objects.filter(
+            age_verification_status="pending",
+            age_verification_document__isnull=False,
+        ).select_related("user", "team", "user__profile")
+
+        # Si es staff/admin, obtener todos
+        if user.is_staff or user.is_superuser:
+            return queryset.order_by("-updated_at")
+
+        # Si es manager, solo de sus equipos
+        if hasattr(user, "profile") and user.profile.is_team_manager:
+            return queryset.filter(team__manager=user).order_by("-updated_at")
+
+        return queryset.none()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["pending_verifications_count"] = self.get_queryset().count()
+        # Marcar la sección activa en el sidebar
+        context["active_section"] = "age_verifications"
+        return context
 
 
 class UserListView(UserPassesTestMixin, LoginRequiredMixin, ListView):
@@ -2052,7 +2087,7 @@ def approve_age_verification(request, pk):
         messages.error(
             request, _("You do not have permission to approve age verifications.")
         )
-        return redirect("accounts:panel")
+        return redirect("accounts:age_verification_list")
 
     action = request.POST.get("action")  # "approve" or "reject"
     notes = request.POST.get("notes", "")
@@ -2081,7 +2116,8 @@ def approve_age_verification(request, pk):
     else:
         messages.error(request, _("Invalid action."))
 
-    return redirect("accounts:panel")
+    # Redirigir a la lista de verificaciones en el dashboard admin
+    return redirect("accounts:age_verification_list")
 
 
 @login_required
