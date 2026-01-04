@@ -41,6 +41,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            width: 100%;
         }
 
         /* Área de contenido principal (login) */
@@ -49,8 +50,52 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 80px 20px 40px;
             position: relative;
+            min-height: calc(100vh - 200px);
+            width: 100%;
+            max-width: 100%;
+        }
+
+        /* Asegurar que el footer esté abajo y no al lado */
+        .login-page-wrapper .footer-mlb {
+            width: 100% !important;
+            flex-shrink: 0;
+            display: block !important;
+            position: relative !important;
+            float: none !important;
+            clear: both !important;
+        }
+
+        /* Asegurar que el navbar no interfiera */
+        .login-page-wrapper .navbar-mlb {
+            width: 100% !important;
+            flex-shrink: 0;
+        }
+
+        /* Forzar layout de una columna - evitar que elementos se posicionen al lado */
+        .login-page-wrapper > * {
+            width: 100% !important;
+            max-width: 100% !important;
+            display: block !important;
+            float: none !important;
+        }
+
+        /* Asegurar que el contenido del login no se expanda más allá de su contenedor */
+        .login-main-content {
+            box-sizing: border-box;
+        }
+
+        /* Asegurar que el footer no use display flex o grid que lo ponga al lado */
+        .login-page-wrapper .footer-mlb .container-fluid {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .login-page-wrapper .footer-mlb .row {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
         }
 
         .login-container {
