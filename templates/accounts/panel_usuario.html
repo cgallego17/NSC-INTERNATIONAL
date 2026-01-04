@@ -519,7 +519,7 @@
                         <div class="language-dropdown" id="languageDropdown">
                             <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-en">
                                 {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/panel/' }}">
+                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/accounts/panel/' }}">
                                 <input type="hidden" name="language" value="en">
                                 <button type="submit" class="language-option {% if CURRENT_LANGUAGE != 'es' and CURRENT_LANGUAGE|slice:":2" != 'es' %}active{% endif %}" style="background: none; border: none; width: 100%; text-align: left; padding: 10px; cursor: pointer;">
                                     <span class="flag-icon flag-us"></span>
@@ -528,7 +528,7 @@
                             </form>
                             <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-es">
                                 {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/panel/' }}">
+                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/accounts/panel/' }}">
                                 <input type="hidden" name="language" value="es">
                                 <button type="submit" class="language-option {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}active{% endif %}" style="background: none; border: none; width: 100%; text-align: left; padding: 10px; cursor: pointer;">
                                     <span class="flag-icon flag-es"></span>
@@ -539,7 +539,7 @@
                     </div>
                     <span class="mx-2">|</span>
                     {% if user.is_authenticated %}
-                        <a href="{% url 'panel' %}" title="{% trans 'My Account' %}"><i class="fas fa-user me-1"></i>{% trans "My Account" %}</a>
+                        <a href="{% url 'accounts:panel' %}" title="{% trans 'My Account' %}"><i class="fas fa-user me-1"></i>{% trans "My Account" %}</a>
                         {% if user.is_staff or user.is_superuser %}
                             <span class="mx-2">|</span>
                             <a href="{% url 'dashboard' %}" title="{% trans 'Admin Dashboard' %}" style="color: var(--mlb-gold, #ffd700); font-weight: 600;"><i class="fas fa-tachometer-alt me-1"></i>{% trans 'Dashboard' %}</a>
@@ -577,11 +577,11 @@
                         <a class="nav-link" href="/accounts/teams/">{% trans "Teams" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'public_player_list' %}">{% trans "Players" %}</a>
+                        <a class="nav-link" href="{% url 'accounts:public_player_list' %}">{% trans "Players" %}</a>
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'panel' %}">{% trans "My Account" %}</a>
+                            <a class="nav-link active" href="{% url 'accounts:panel' %}">{% trans "My Account" %}</a>
                         </li>
                     {% else %}
                         <li class="nav-item">
@@ -612,7 +612,7 @@
                         <div class="carousel-item {% if forloop.first %}active{% endif %}">
                             {% if banner.banner_type == 'image' and banner.image %}
                                 <div class="welcome-banner" style="background: #0d2c54;">
-                                    <img src="{{ banner.image.url }}" alt="{{ banner.title|default:'Banner' }}" onerror="this.onerror=null; this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%)';">
+                                    <img src="{{ banner.image.url }}" alt="{{ banner.title|default:'Banner' }}">
                                 </div>
                             {% else %}
                                 <div class="welcome-banner" style="background: linear-gradient(135deg, {{ banner.gradient_color_1 }} 0%, {{ banner.gradient_color_2 }} 50%, {{ banner.gradient_color_3|default:banner.gradient_color_2 }} 100%);">
@@ -692,6 +692,15 @@
                         <i class="fas fa-users"></i>
                         <span>{% trans "View Players" %}</span>
                     </button>
+                {% endif %}
+                {% if pending_verifications_count %}
+                    {% if profile.is_team_manager or user.is_staff or user.is_superuser %}
+                        <button type="button" class="quick-action-btn tab-btn" data-tab="verificaciones-pendientes">
+                            <i class="fas fa-file-check"></i>
+                            <span>{% trans "Pending Verifications" %}</span>
+                            <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ pending_verifications_count }}</span>
+                        </button>
+                    {% endif %}
                 {% endif %}
                 {% if profile.is_parent %}
                     <button type="button" class="quick-action-btn tab-btn" data-tab="registrar-hijo" data-url="{% url 'accounts:parent_player_register' %}">
@@ -775,6 +784,11 @@
                 </div>
                 <div id="tab-content-editar-jugador" class="tab-content" style="display: none;">
                     <!-- Contenido se carga dinámicamente -->
+                </div>
+            {% endif %}
+            {% if pending_verifications_count or user.is_staff or user.is_superuser %}
+                <div id="tab-content-verificaciones-pendientes" class="tab-content" style="display: none;">
+                    {% include 'accounts/panel_tabs/verificaciones_pendientes.html' %}
                 </div>
             {% endif %}
             {% if not profile.is_team_manager and not profile.is_parent %}
@@ -1146,122 +1160,6 @@
                 }
             {% endif %}
 
-            // Track which tabs have been loaded dynamically
-            const loadedTabs = new Set();
-
-            // Función para cargar contenido dinámicamente vía AJAX
-            function loadContentAjax(tabContent, url, tabId) {
-                // Si ya se cargó este tab, no recargar
-                if (loadedTabs.has(tabId)) {
-                    return;
-                }
-
-                // Mostrar indicador de carga
-                const loadingDiv = document.createElement('div');
-                loadingDiv.className = 'text-center p-5';
-                loadingDiv.innerHTML = '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3">Cargando contenido...</p>';
-
-                // Guardar el header estático si existe (para mantenerlo después)
-                const staticHeader = tabContent.querySelector('.tab-content-header');
-                let staticHeaderClone = null;
-                if (staticHeader) {
-                    staticHeaderClone = staticHeader.cloneNode(true);
-                }
-
-                // Mostrar loading (mantener header si existe)
-                if (staticHeaderClone) {
-                    tabContent.innerHTML = '';
-                    tabContent.appendChild(staticHeaderClone);
-                    tabContent.appendChild(loadingDiv);
-                } else {
-                    tabContent.innerHTML = '';
-                    tabContent.appendChild(loadingDiv);
-                }
-
-                // Cargar contenido desde la URL
-                fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                    },
-                    credentials: 'same-origin'
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Error ${response.status}: ${response.statusText}`);
-                    }
-                    return response.text();
-                })
-                .then(html => {
-                    // Extraer solo el contenido relevante del HTML
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-
-                    let contentToInsert = '';
-
-                    // Buscar el contenido principal - intentar encontrar el contenido del tab específico
-                    const tabContentInResponse = doc.getElementById('tab-content-' + tabId);
-                    if (tabContentInResponse) {
-                        contentToInsert = tabContentInResponse.innerHTML;
-                    } else {
-                        // Buscar en el body o en un contenedor principal
-                        const bodyContent = doc.body;
-                        if (bodyContent) {
-                            // Intentar encontrar el contenido dentro de un contenedor específico
-                            const mainContent = bodyContent.querySelector('.tab-content-container') ||
-                                              bodyContent.querySelector('.container-fluid') ||
-                                              bodyContent.querySelector('.container') ||
-                                              bodyContent.querySelector('main') ||
-                                              bodyContent.querySelector('article') ||
-                                              bodyContent;
-                            contentToInsert = mainContent.innerHTML;
-                        } else {
-                            // Si no hay body, usar el HTML directamente (puede ser un fragmento)
-                            contentToInsert = html;
-                        }
-                    }
-
-                    // Si había header estático, mantenerlo y agregar el contenido después
-                    if (staticHeaderClone) {
-                        tabContent.innerHTML = '';
-                        tabContent.appendChild(staticHeaderClone);
-                        const contentWrapper = document.createElement('div');
-                        contentWrapper.innerHTML = contentToInsert;
-                        // Remover header duplicado del contenido cargado si existe
-                        const loadedHeader = contentWrapper.querySelector('.tab-content-header');
-                        if (loadedHeader) {
-                            loadedHeader.remove();
-                        }
-                        tabContent.appendChild(contentWrapper);
-                    } else {
-                        tabContent.innerHTML = contentToInsert;
-                    }
-
-                    loadedTabs.add(tabId);
-
-                    // Hacer scroll después de cargar
-                    setTimeout(() => {
-                        tabContent.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start',
-                            inline: 'nearest'
-                        });
-                    }, 100);
-                })
-                .catch(error => {
-                    console.error('Error cargando contenido del tab:', error);
-                    tabContent.innerHTML = `
-                        <div class="alert alert-danger m-3" role="alert">
-                            <h5 class="alert-heading">Error al cargar contenido</h5>
-                            <p>No se pudo cargar el contenido. Por favor, intenta recargar la página.</p>
-                            <hr>
-                            <p class="mb-0"><small>Error: ${error.message}</small></p>
-                            <button class="btn btn-sm btn-outline-danger mt-2" onclick="location.reload()">Recargar página</button>
-                        </div>
-                    `;
-                });
-            }
-
             function activateTab(tabId, button) {
                 // Remover clase active de todos los botones
                 tabButtons.forEach(btn => btn.classList.remove('active'));
@@ -1283,17 +1181,6 @@
                     targetContent.style.display = 'block';
                     targetContent.classList.add('active');
 
-                    // Obtener la URL del botón
-                    const url = button ? button.getAttribute('data-url') : null;
-
-                    // Si hay una URL, cargar contenido dinámicamente vía AJAX
-                    if (url) {
-                        // Verificar si el contenido ya fue cargado dinámicamente
-                        if (!loadedTabs.has(tabId)) {
-                            loadContentAjax(targetContent, url, tabId);
-                        }
-                    }
-
                     // Inicializar selectores de ubicación si es el tab de registrar hijo
                     if (tabId === 'registrar-hijo') {
                         setTimeout(function() {
@@ -1306,16 +1193,23 @@
                     // Hacer scroll suave hacia el contenido del tab
                     if (tabId === 'detalle-eventos') {
                         // Para el tab de detalle de eventos, hacer scroll a la sección Event Details
-                        setTimeout(() => {
-                            const eventDetailsSection = document.getElementById('event-details-section');
-                            if (eventDetailsSection) {
-                                eventDetailsSection.scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'start',
-                                    inline: 'nearest'
-                                });
-                            }
-                        }, 300);
+                        // Usar múltiples intentos para asegurar que el contenido esté renderizado
+                        const scrollAttempts = [200, 400, 600, 800];
+                        scrollAttempts.forEach((delay) => {
+                            setTimeout(() => {
+                                const eventDetailsSection = document.getElementById('event-details-section');
+                                if (eventDetailsSection) {
+                                    const rect = eventDetailsSection.getBoundingClientRect();
+                                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                                    const targetPosition = rect.top + scrollTop - 120; // 120px de offset
+
+                                    window.scrollTo({
+                                        top: targetPosition,
+                                        behavior: delay === scrollAttempts[0] ? 'smooth' : 'auto' // Solo smooth en el primer intento
+                                    });
+                                }
+                            }, delay);
+                        });
                     } else {
                         // Para otros tabs, hacer scroll normal
                         setTimeout(() => {
@@ -1326,8 +1220,6 @@
                             });
                         }, 100);
                     }
-                } else {
-                    console.warn('Tab content not found:', 'tab-content-' + tabId);
                 }
             }
 
