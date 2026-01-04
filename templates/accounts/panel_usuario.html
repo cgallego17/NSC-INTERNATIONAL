@@ -802,18 +802,11 @@
             <div id="tab-content-eventos" class="tab-content" style="display: none;">
                 {% include 'accounts/panel_tabs/eventos.html' %}
             </div>
-            <div id="tab-content-detalle-eventos" class="tab-content" style="display: {% if active_tab == 'detalle-eventos' %}block{% else %}none{% endif %};">
-                {% if event %}
-                    {% if event_detail_template %}
-                        {% include event_detail_template %}
-                    {% else %}
-                        {% include 'accounts/panel_tabs/detalle_evento.html' %}
-                    {% endif %}
+            <div id="tab-content-detalle-eventos" class="tab-content" style="display: none;">
+                {% if event_detail_template %}
+                    {% include event_detail_template %}
                 {% else %}
-                    <div class="alert alert-warning m-4">
-                        <i class="fas fa-exclamation-triangle me-2"></i>
-                        {% trans "Event not found or not available." %}
-                    </div>
+                    {% include 'accounts/panel_tabs/detalle_evento.html' %}
                 {% endif %}
             </div>
             <div id="tab-content-calendario" class="tab-content" style="display: none;">
@@ -1275,32 +1268,14 @@
                             activeTabButton.classList.add('active');
                         }
 
-                        // Hacer scroll al contenido después de un delay para asegurar que esté renderizado
+                        // Hacer scroll al contenido
                         setTimeout(() => {
-                            if (activeTabId === 'detalle-eventos') {
-                                // Para detalle de eventos, buscar la sección específica
-                                const eventDetailsSection = document.getElementById('event-details-section');
-                                if (eventDetailsSection) {
-                                    eventDetailsSection.scrollIntoView({
-                                        behavior: 'smooth',
-                                        block: 'start',
-                                        inline: 'nearest'
-                                    });
-                                } else {
-                                    activeTabContent.scrollIntoView({
-                                        behavior: 'smooth',
-                                        block: 'start',
-                                        inline: 'nearest'
-                                    });
-                                }
-                            } else {
-                                activeTabContent.scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'start',
-                                    inline: 'nearest'
-                                });
-                            }
-                        }, 300);
+                            activeTabContent.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start',
+                                inline: 'nearest'
+                            });
+                        }, 100);
                     } else {
                         console.warn('Tab content no encontrado:', 'tab-content-' + activeTabId);
                     }
@@ -1309,15 +1284,29 @@
                 // Intentar activar inmediatamente
                 activateActiveTab();
 
-                // También intentar después de delays adicionales para asegurar que funcione
+                // También intentar después de un pequeño delay por si acaso
                 setTimeout(activateActiveTab, 200);
-                setTimeout(activateActiveTab, 500);
             {% else %}
                 const inicioButton = document.querySelector('.tab-btn[data-tab="inicio"]');
                 if (inicioButton) {
                     activateTab('inicio', inicioButton);
                 }
             {% endif %}
+
+            // Agregar event listeners a todos los botones
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const tabId = this.getAttribute('data-tab');
+                    if (tabId) {
+                        activateTab(tabId, this);
+                    } else {
+                        console.warn('Botón sin data-tab:', this);
+                    }
+                });
+            });
         });
 
         // Usar delegación de eventos para los botones de editar (funciona incluso si se agregan dinámicamente)
