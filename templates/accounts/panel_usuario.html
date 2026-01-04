@@ -539,7 +539,7 @@
                     </div>
                     <span class="mx-2">|</span>
                     {% if user.is_authenticated %}
-                        <a href="{% url 'panel' %}" title="{% trans 'My Account' %}"><i class="fas fa-user me-1"></i>{% trans "My Account" %}</a>
+                        <a href="{% url 'accounts:panel' %}" title="{% trans 'My Account' %}"><i class="fas fa-user me-1"></i>{% trans "My Account" %}</a>
                         {% if user.is_staff or user.is_superuser %}
                             <span class="mx-2">|</span>
                             <a href="{% url 'dashboard' %}" title="{% trans 'Admin Dashboard' %}" style="color: var(--mlb-gold, #ffd700); font-weight: 600;"><i class="fas fa-tachometer-alt me-1"></i>{% trans 'Dashboard' %}</a>
@@ -577,11 +577,11 @@
                         <a class="nav-link" href="/accounts/teams/">{% trans "Teams" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'public_player_list' %}">{% trans "Players" %}</a>
+                        <a class="nav-link" href="{% url 'accounts:public_player_list' %}">{% trans "Players" %}</a>
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'panel' %}">{% trans "My Account" %}</a>
+                            <a class="nav-link active" href="{% url 'accounts:panel' %}">{% trans "My Account" %}</a>
                         </li>
                     {% else %}
                         <li class="nav-item">
@@ -693,6 +693,15 @@
                         <span>{% trans "View Players" %}</span>
                     </button>
                 {% endif %}
+                {% if pending_verifications_count %}
+                    {% if profile.is_team_manager or user.is_staff or user.is_superuser %}
+                        <button type="button" class="quick-action-btn tab-btn" data-tab="verificaciones-pendientes">
+                            <i class="fas fa-file-check"></i>
+                            <span>{% trans "Pending Verifications" %}</span>
+                            <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ pending_verifications_count }}</span>
+                        </button>
+                    {% endif %}
+                {% endif %}
                 {% if profile.is_parent %}
                     <button type="button" class="quick-action-btn tab-btn" data-tab="registrar-hijo" data-url="{% url 'accounts:parent_player_register' %}">
                         <i class="fas fa-user-plus"></i>
@@ -775,6 +784,11 @@
                 </div>
                 <div id="tab-content-editar-jugador" class="tab-content" style="display: none;">
                     <!-- Contenido se carga dinámicamente -->
+                </div>
+            {% endif %}
+            {% if pending_verifications_count or user.is_staff or user.is_superuser %}
+                <div id="tab-content-verificaciones-pendientes" class="tab-content" style="display: none;">
+                    {% include 'accounts/panel_tabs/verificaciones_pendientes.html' %}
                 </div>
             {% endif %}
             {% if not profile.is_team_manager and not profile.is_parent %}
@@ -1164,141 +1178,8 @@
                 // Mostrar el contenido correspondiente
                 const targetContent = document.getElementById('tab-content-' + tabId);
                 if (targetContent) {
-                    // Verificar si el botón tiene data-url para cargar contenido dinámicamente
-                    const dataUrl = button ? button.getAttribute('data-url') : null;
-
-                    if (dataUrl) {
-                        // Cargar contenido dinámicamente desde la URL
-                        loadTabContentAjax(tabId, dataUrl, targetContent);
-                    } else {
-                        // Mostrar contenido estático
-                        targetContent.style.display = 'block';
-                        targetContent.classList.add('active');
-
-                        // Inicializar selectores de ubicación si es el tab de registrar hijo
-                        if (tabId === 'registrar-hijo') {
-                            setTimeout(function() {
-                                if (typeof window.initParentPlayerForm === 'function') {
-                                    window.initParentPlayerForm();
-                                }
-                            }, 100);
-                        }
-
-                        // Hacer scroll suave hacia el contenido del tab
-                        if (tabId === 'detalle-eventos') {
-                            // Para el tab de detalle de eventos, hacer scroll a la sección Event Details
-                            // Usar múltiples intentos para asegurar que el contenido esté renderizado
-                            const scrollAttempts = [200, 400, 600, 800];
-                            scrollAttempts.forEach((delay) => {
-                                setTimeout(() => {
-                                    const eventDetailsSection = document.getElementById('event-details-section');
-                                    if (eventDetailsSection) {
-                                        const rect = eventDetailsSection.getBoundingClientRect();
-                                        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                                        const targetPosition = rect.top + scrollTop - 120; // 120px de offset
-
-                                        window.scrollTo({
-                                            top: targetPosition,
-                                            behavior: delay === scrollAttempts[0] ? 'smooth' : 'auto' // Solo smooth en el primer intento
-                                        });
-                                    }
-                                }, delay);
-                            });
-                        } else {
-                            // Para otros tabs, hacer scroll normal
-                            setTimeout(() => {
-                                targetContent.scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'start',
-                                    inline: 'nearest'
-                                });
-                            }, 100);
-                        }
-                    }
-                }
-            }
-
-            // Función para cargar contenido de tab dinámicamente vía AJAX
-            function loadTabContentAjax(tabId, url, targetContent) {
-                // Validar que la URL sea válida
-                if (!url || typeof url !== 'string') {
-                    console.error('URL inválida para tab:', tabId, url);
-                    targetContent.innerHTML = '<div class="alert alert-danger m-4">Error: URL inválida</div>';
-                    return;
-                }
-
-                // Mostrar indicador de carga
-                targetContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3 text-muted">Cargando contenido...</p></div>';
-                targetContent.style.display = 'block';
-                targetContent.classList.add('active');
-
-                // Hacer la petición AJAX
-                fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'text/html'
-                    },
-                    credentials: 'same-origin'
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Error ${response.status}: ${response.statusText}`);
-                    }
-                    return response.text();
-                })
-                .then(html => {
-                    // Parsear el HTML recibido
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-
-                    // Intentar extraer el contenido principal
-                    let content = null;
-
-                    // Buscar el contenido según el tipo de tab
-                    if (tabId === 'calendario') {
-                        content = doc.querySelector('.calendar-container') ||
-                                 doc.querySelector('main.page-content') ||
-                                 doc.querySelector('.container-fluid');
-                    } else if (tabId === 'reservas') {
-                        content = doc.querySelector('.container-fluid') ||
-                                 doc.querySelector('main.page-content');
-                    } else if (tabId === 'perfil') {
-                        content = doc.querySelector('.profile-container') ||
-                                 doc.querySelector('.container-fluid') ||
-                                 doc.querySelector('main.page-content');
-                    } else if (tabId === 'plan-pagos') {
-                        content = doc.querySelector('.container-fluid') ||
-                                 doc.querySelector('main.page-content');
-                    } else {
-                        // Para otros tabs, buscar contenido común
-                        content = doc.querySelector('main.page-content .container-fluid') ||
-                                 doc.querySelector('.container-fluid') ||
-                                 doc.querySelector('main.page-content') ||
-                                 doc.body;
-                    }
-
-                    if (content) {
-                        targetContent.innerHTML = content.innerHTML;
-                    } else {
-                        // Si no se encuentra contenido específico, usar el body completo
-                        targetContent.innerHTML = doc.body.innerHTML;
-                    }
-
-                    // Reinicializar scripts dentro del contenido cargado
-                    const scripts = targetContent.querySelectorAll('script');
-                    scripts.forEach(oldScript => {
-                        const newScript = document.createElement('script');
-                        Array.from(oldScript.attributes).forEach(attr => {
-                            newScript.setAttribute(attr.name, attr.value);
-                        });
-                        if (oldScript.src) {
-                            newScript.src = oldScript.src;
-                        } else {
-                            newScript.textContent = oldScript.textContent;
-                        }
-                        oldScript.parentNode.replaceChild(newScript, oldScript);
-                    });
+                    targetContent.style.display = 'block';
+                    targetContent.classList.add('active');
 
                     // Inicializar selectores de ubicación si es el tab de registrar hijo
                     if (tabId === 'registrar-hijo') {
@@ -1309,27 +1190,37 @@
                         }, 100);
                     }
 
-                    // Hacer scroll suave hacia el contenido
-                    setTimeout(() => {
-                        targetContent.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start',
-                            inline: 'nearest'
+                    // Hacer scroll suave hacia el contenido del tab
+                    if (tabId === 'detalle-eventos') {
+                        // Para el tab de detalle de eventos, hacer scroll a la sección Event Details
+                        // Usar múltiples intentos para asegurar que el contenido esté renderizado
+                        const scrollAttempts = [200, 400, 600, 800];
+                        scrollAttempts.forEach((delay) => {
+                            setTimeout(() => {
+                                const eventDetailsSection = document.getElementById('event-details-section');
+                                if (eventDetailsSection) {
+                                    const rect = eventDetailsSection.getBoundingClientRect();
+                                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                                    const targetPosition = rect.top + scrollTop - 120; // 120px de offset
+
+                                    window.scrollTo({
+                                        top: targetPosition,
+                                        behavior: delay === scrollAttempts[0] ? 'smooth' : 'auto' // Solo smooth en el primer intento
+                                    });
+                                }
+                            }, delay);
                         });
-                    }, 100);
-                })
-                .catch(error => {
-                    console.error('Error cargando contenido del tab:', error);
-                    targetContent.innerHTML = `
-                        <div class="alert alert-danger m-4" role="alert">
-                            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar contenido</h5>
-                            <p>No se pudo cargar el contenido del tab. Por favor, intenta recargar la página.</p>
-                            <hr>
-                            <p class="mb-0"><small>Error: ${error.message}</small></p>
-                            <button class="btn btn-primary mt-3" onclick="location.reload()">Recargar página</button>
-                        </div>
-                    `;
-                });
+                    } else {
+                        // Para otros tabs, hacer scroll normal
+                        setTimeout(() => {
+                            targetContent.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'start',
+                                inline: 'nearest'
+                            });
+                        }, 100);
+                    }
+                }
             }
 
             // Interceptar clics en enlaces de "Detail Event"
