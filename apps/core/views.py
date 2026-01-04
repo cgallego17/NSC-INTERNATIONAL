@@ -13,30 +13,46 @@ from django.shortcuts import redirect
 import json
 
 
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
 def set_language(request):
     """
     Vista personalizada para cambiar el idioma
     """
     from django.shortcuts import redirect
     from django.utils import translation
+    from django.conf import settings
 
+    # Obtener el idioma del request
     if request.method == "POST":
         language = request.POST.get("language")
+        next_url = request.POST.get("next", "/")
     else:
         language = request.GET.get("language")
+        next_url = request.GET.get("next", "/")
 
-    if language and language in dict(translation.get_language()):
+    # Validar que el idioma esté en los idiomas soportados
+    valid_languages = [lang[0] for lang in settings.LANGUAGES]
+
+    if language and language in valid_languages:
+        # Activar el idioma
         translation.activate(language)
-        request.session[translation.LANGUAGE_SESSION_KEY] = language
+
+        # Guardar en sesión (usar la clave correcta para Django 4.2)
+        language_session_key = getattr(translation, "LANGUAGE_SESSION_KEY", "_language")
+        request.session[language_session_key] = language
         request.session["user_selected_language"] = True
         request.session.modified = True
 
-    # Redirigir a la página anterior o al home
-    next_url = request.GET.get("next") or request.POST.get("next") or "/"
-    response = redirect(next_url)
-    response.set_cookie(translation.LANGUAGE_COOKIE_NAME, language)
-    return response
+        # Guardar en cookie
+        language_cookie_name = getattr(translation, "LANGUAGE_COOKIE_NAME", "django_language")
+
+        # Redirigir a la página anterior o al home
+        response = redirect(next_url)
+        response.set_cookie(language_cookie_name, language, max_age=365 * 24 * 60 * 60)  # 1 año
+        return response
+    else:
+        # Si el idioma no es válido, redirigir sin cambiar
+        return redirect(next_url or "/")
 
 
 class CachedJavaScriptCatalog(JavaScriptCatalog):
