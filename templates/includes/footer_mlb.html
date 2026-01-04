@@ -91,7 +91,24 @@
 
     .footer-mlb .quick-links {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .footer-mlb .quick-links a {
+        margin-bottom: 0;
+        padding: 8px 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 6px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    .footer-mlb .quick-links a:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: var(--mlb-gold);
+        transform: translateY(-2px);
     }
 
     .footer-mlb .contact-info p {
@@ -133,6 +150,15 @@
 
         .footer-mlb h5 {
             font-size: 1rem;
+        }
+
+        .footer-mlb .quick-links {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .footer-mlb .quick-links a {
+            padding: 10px 15px;
         }
     }
 </style>
