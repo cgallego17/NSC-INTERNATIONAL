@@ -24,18 +24,6 @@ urlpatterns = [
     # Login y registro público
     path("login/", views_public.PublicLoginView.as_view(), name="login"),
     path("register/", views_public.PublicRegistrationView.as_view(), name="register"),
-    # Perfil público de jugador
-    path(
-        "player/<int:pk>/",
-        views_public.PublicPlayerProfileView.as_view(),
-        name="public_player_profile",
-    ),
-    # Lista pública de jugadores
-    path(
-        "players/",
-        views_public.PublicPlayerListView.as_view(),
-        name="public_player_list",
-    ),
     # Perfil de jugador para front (requiere login)
     path(
         "players/<int:pk>/",
@@ -61,15 +49,15 @@ urlpatterns = [
         views_private.UserInfoUpdateView.as_view(),
         name="user_edit",
     ),
-    # Equipos
+    # Equipos (gestión privada - requiere login)
     path("teams/", views_private.TeamListView.as_view(), name="team_list"),
     path("teams/<int:pk>/", views_private.TeamDetailView.as_view(), name="team_detail"),
     path("teams/create/", views_private.TeamCreateView.as_view(), name="team_create"),
     path(
         "teams/<int:pk>/edit/", views_private.TeamUpdateView.as_view(), name="team_edit"
     ),
-    # Jugadores
-    path("players/", views_private.PlayerListView.as_view(), name="player_list"),
+    # Jugadores (gestión privada - requiere login)
+    path("players/manage/", views_private.PlayerListView.as_view(), name="player_list"),
     path(
         "players/<int:pk>/",
         views_private.PlayerDetailView.as_view(),

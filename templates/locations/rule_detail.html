@@ -36,12 +36,12 @@
                     <dl class="row">
                         <dt class="col-sm-3">Name:</dt>
                         <dd class="col-sm-9">{{ rule.name }}</dd>
-                        
+
                         <dt class="col-sm-3">Type:</dt>
                         <dd class="col-sm-9">
                             <span class="badge bg-info">{{ rule.get_rule_type_display }}</span>
                         </dd>
-                        
+
                         <dt class="col-sm-3">Status:</dt>
                         <dd class="col-sm-9">
                             {% if rule.is_active %}
@@ -50,7 +50,7 @@
                                 <span class="badge bg-secondary">Inactive</span>
                             {% endif %}
                         </dd>
-                        
+
                         <dt class="col-sm-3">Description:</dt>
                         <dd class="col-sm-9">
                             {% if rule.description %}
@@ -59,17 +59,17 @@
                                 <span class="text-muted">No description provided</span>
                             {% endif %}
                         </dd>
-                        
+
                         <dt class="col-sm-3">Created:</dt>
                         <dd class="col-sm-9">{{ rule.created_at|date:"F d, Y \a\t g:i A" }}</dd>
-                        
+
                         <dt class="col-sm-3">Last Updated:</dt>
                         <dd class="col-sm-9">{{ rule.updated_at|date:"F d, Y \a\t g:i A" }}</dd>
                     </dl>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-md-4">
             <div class="card">
                 <div class="card-header">
@@ -85,7 +85,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="card mt-3">
                 <div class="card-header">
                     <h5 class="card-title mb-0">Quick Actions</h5>
@@ -132,7 +132,7 @@
                                                 <span class="badge bg-{{ event.status|lower }}">{{ event.get_status_display }}</span>
                                             </td>
                                             <td>
-                                                <a href="{% url 'events:detail' event.pk %}" class="btn btn-sm btn-outline-primary">
+                                                <a href="{% url 'events:admin_detail' event.pk %}" class="btn btn-sm btn-outline-primary">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
                                             </td>

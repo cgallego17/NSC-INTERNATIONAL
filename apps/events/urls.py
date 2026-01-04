@@ -5,17 +5,17 @@ from . import views, views_data_management, views_public
 app_name = "events"
 
 urlpatterns = [
-    path("", views.DashboardView.as_view(), name="dashboard"),
+    path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
     path("list/", views.EventListView.as_view(), name="list"),
     # URLs públicas (no requieren autenticación)
-    path("public/", views_public.PublicEventListView.as_view(), name="public_list"),
+    path("", views_public.PublicEventListView.as_view(), name="public_list"),
     path(
-        "public/<int:pk>/",
+        "<int:pk>/",
         views_public.PublicEventDetailView.as_view(),
         name="public_detail",
     ),
     path("create/", views.EventCreateView.as_view(), name="create"),
-    path("<int:pk>/", views.EventDetailView.as_view(), name="detail"),
+    path("admin/<int:pk>/", views.EventDetailView.as_view(), name="admin_detail"),
     path("<int:pk>/edit/", views.EventUpdateView.as_view(), name="update"),
     path("<int:pk>/delete/", views.EventDeleteView.as_view(), name="delete"),
     path(

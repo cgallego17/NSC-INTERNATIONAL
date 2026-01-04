@@ -3196,7 +3196,7 @@
         </div>
         <div class="events-news-grid">
             {% for event in upcoming_events|slice:":4" %}
-                <a href="{% url 'events:detail' event.pk %}" class="event-news-card">
+                <a href="{% url 'events:public_detail' event.pk %}" class="event-news-card">
                     <div class="event-news-image">
                         {% if event.logo %}
                             <img src="{{ event.logo }}" alt="{{ event.title }}">

@@ -236,6 +236,26 @@ class PublicHomeView(TemplateView):
         return context
 
 
+class PublicTeamListView(ListView):
+    """Vista pública de lista de equipos - No requiere autenticación"""
+
+    model = Team
+    template_name = "accounts/public_team_list.html"
+    context_object_name = "teams"
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = Team.objects.filter(is_active=True).select_related("city", "state", "country", "manager")
+        search = self.request.GET.get("search")
+        if search:
+            queryset = queryset.filter(
+                Q(name__icontains=search)
+                | Q(city__name__icontains=search)
+                | Q(state__name__icontains=search)
+            )
+        return queryset.order_by("name")
+
+
 class PublicPlayerListView(ListView):
     """Vista pública de lista de jugadores - No requiere autenticación"""
 
@@ -248,6 +268,22 @@ class PublicPlayerListView(ListView):
         queryset = (
             Player.objects.filter(is_active=True)
             .select_related("user", "user__profile", "team", "user__profile__country", "user__profile__state", "user__profile__city")
+            .only(
+                "id",
+                "jersey_number",
+                "position",
+                "division",
+                "height",
+                "user__first_name",
+                "user__last_name",
+                "user__email",
+                "user__profile__profile_picture",
+                "user__profile__birth_date",
+                "user__profile__country__name",
+                "user__profile__state__name",
+                "user__profile__city__name",
+                "team__name",
+            )
             .order_by("user__last_name", "user__first_name")
         )
 
@@ -288,11 +324,49 @@ class PublicPlayerListView(ListView):
 
         # Importar modelos de locations
         from apps.locations.models import Country, State, City
+        from django.db.models import Count
 
-        # Agregar opciones para filtros
-        context["countries"] = Country.objects.filter(is_active=True).order_by("name")
-        context["states"] = State.objects.filter(is_active=True).order_by("name")
-        context["cities"] = City.objects.filter(is_active=True).order_by("name")
+        # Optimizar: Solo cargar países/estados/ciudades que tienen jugadores activos
+        # Esto reduce significativamente la carga si hay muchos países/estados/ciudades
+        active_players = Player.objects.filter(is_active=True).select_related(
+            "user__profile__country", "user__profile__state", "user__profile__city"
+        )
+
+        # Países que tienen jugadores activos
+        country_ids = active_players.exclude(
+            user__profile__country__isnull=True
+        ).values_list("user__profile__country_id", flat=True).distinct()
+        context["countries"] = Country.objects.filter(
+            id__in=country_ids, is_active=True
+        ).order_by("name")[:100]  # Limitar a 100 para evitar cargar demasiados
+
+        # Estados que tienen jugadores activos (solo si hay filtro de país)
+        country_filter = self.request.GET.get("country")
+        if country_filter:
+            state_ids = active_players.filter(
+                user__profile__country_id=country_filter
+            ).exclude(
+                user__profile__state__isnull=True
+            ).values_list("user__profile__state_id", flat=True).distinct()
+            context["states"] = State.objects.filter(
+                id__in=state_ids, is_active=True
+            ).order_by("name")[:100]
+        else:
+            context["states"] = State.objects.none()
+
+        # Ciudades que tienen jugadores activos (solo si hay filtro de estado)
+        state_filter = self.request.GET.get("state")
+        if state_filter:
+            city_ids = active_players.filter(
+                user__profile__state_id=state_filter
+            ).exclude(
+                user__profile__city__isnull=True
+            ).values_list("user__profile__city_id", flat=True).distinct()
+            context["cities"] = City.objects.filter(
+                id__in=city_ids, is_active=True
+            ).order_by("name")[:100]
+        else:
+            context["cities"] = City.objects.none()
 
         # Divisiones desde el modelo Player
         context["divisions"] = Player.DIVISION_CHOICES

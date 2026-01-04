@@ -354,6 +354,66 @@
             flex-wrap: wrap;
         }
     }
+
+    /* Navbar MLB Styles */
+    :root {
+        --mlb-blue: #0d2c54;
+        --mlb-red: #d50032;
+        --mlb-light-blue: #132448;
+        --mlb-gold: #ffd700;
+        --mlb-dark: #1a1a1a;
+    }
+
+    .navbar-mlb {
+        background: var(--mlb-blue) !important;
+        padding: 0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .navbar-mlb .navbar-brand {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: white !important;
+        padding: 15px 20px;
+        background: var(--mlb-red);
+        display: flex;
+        align-items: center;
+    }
+
+    .navbar-logo {
+        height: 40px;
+        width: auto;
+        max-width: 180px;
+        object-fit: contain;
+    }
+
+    .navbar-mlb .nav-link {
+        color: white !important;
+        font-weight: 600;
+        padding: 20px 15px !important;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+        transition: background 0.3s;
+    }
+
+    .navbar-mlb .nav-link:hover {
+        background: var(--mlb-light-blue);
+    }
+
+    .navbar-mlb .nav-link.active {
+        background: var(--mlb-red);
+    }
+
+    .badge-mlb {
+        background: var(--mlb-red);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
 </style>
 
 <!-- Top Bar -->
@@ -447,10 +507,10 @@
                     <a class="nav-link {% if 'events' in request.resolver_match.namespace %}active{% endif %}" href="{% url 'events:public_list' %}">{% trans "Events" %}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'accounts' in request.resolver_match.namespace and 'team' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'accounts:team_list' %}">{% trans "Teams" %}</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'public_team_list' or 'team' in request.resolver_match.url_name and 'accounts' in request.resolver_match.namespace %}active{% endif %}" href="{% url 'public_team_list' %}">{% trans "Teams" %}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'accounts' in request.resolver_match.namespace and 'player' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'accounts:public_player_list' %}">{% trans "Players" %}</a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'public_player_list' or request.resolver_match.url_name == 'public_player_profile' or 'player' in request.resolver_match.url_name and 'accounts' in request.resolver_match.namespace %}active{% endif %}" href="{% url 'public_player_list' %}">{% trans "Players" %}</a>
                 </li>
                 {% if user.is_authenticated %}
                     <li class="nav-item">

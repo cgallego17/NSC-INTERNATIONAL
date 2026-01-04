@@ -14,24 +14,24 @@
         padding: 2rem 2rem 2rem 3rem;
         min-height: 100vh;
     }
-    
+
     @media (max-width: 992px) {
         .events-dashboard-container {
             padding: 2rem 1.5rem;
         }
     }
-    
+
     .btn-outline-purple {
         color: #6f42c1;
         border-color: #6f42c1;
     }
-    
+
     .btn-outline-purple:hover {
         color: #fff;
         background-color: #6f42c1;
         border-color: #6f42c1;
     }
-    
+
     .text-purple {
         color: #6f42c1;
     }
@@ -186,7 +186,7 @@
                                                 <i class="fas fa-ellipsis-v"></i>
                                             </button>
                                             <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="{% url 'events:detail' event.pk %}">Ver Detalles</a></li>
+                                                <li><a class="dropdown-item" href="{% url 'events:admin_detail' event.pk %}">Ver Detalles</a></li>
                                                 <li><a class="dropdown-item" href="{% url 'events:update' event.pk %}">Editar</a></li>
                                             </ul>
                                         </div>

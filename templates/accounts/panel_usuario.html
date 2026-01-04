@@ -577,7 +577,7 @@
                         <a class="nav-link" href="/accounts/teams/">{% trans "Teams" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:public_player_list' %}">{% trans "Players" %}</a>
+                        <a class="nav-link" href="{% url 'public_player_list' %}">{% trans "Players" %}</a>
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">

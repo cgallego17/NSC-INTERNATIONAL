@@ -1,4 +1,142 @@
 {% load i18n %}
+<style>
+    /* Footer MLB Style */
+    .footer-mlb {
+        background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+        color: #ccc;
+        padding: 60px 0 0;
+        position: relative;
+        overflow: hidden;
+        margin-top: 60px;
+    }
+
+    .footer-mlb::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--mlb-red) 0%, var(--mlb-blue) 50%, var(--mlb-red) 100%);
+    }
+
+    .footer-mlb .container-fluid {
+        position: relative;
+        z-index: 1;
+    }
+
+    .footer-mlb h5 {
+        color: white;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 25px;
+        font-size: 1.1rem;
+        letter-spacing: 1px;
+        position: relative;
+        padding-bottom: 12px;
+    }
+
+    .footer-mlb h5::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 40px;
+        height: 3px;
+        background: var(--mlb-red);
+        border-radius: 2px;
+    }
+
+    .footer-mlb .footer-col {
+        padding: 0 20px;
+    }
+
+    .footer-mlb .footer-logo-section {
+        margin-bottom: 20px;
+    }
+
+    .footer-mlb .footer-logo-section img {
+        filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.1));
+        transition: transform 0.3s ease;
+    }
+
+    .footer-mlb .footer-logo-section:hover img {
+        transform: scale(1.05);
+    }
+
+    .footer-mlb p {
+        color: #ccc;
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
+
+    .footer-mlb a {
+        color: #ccc;
+        text-decoration: none;
+        transition: color 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .footer-mlb a:hover {
+        color: var(--mlb-gold);
+    }
+
+    .footer-mlb a i {
+        width: 20px;
+        text-align: center;
+    }
+
+    .footer-mlb .quick-links {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .footer-mlb .contact-info p {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .footer-mlb .contact-info i {
+        width: 20px;
+        text-align: center;
+        color: var(--mlb-red);
+    }
+
+    .footer-bottom {
+        border-top: 1px solid #333;
+        padding: 20px 0;
+        margin-top: 30px;
+        text-align: center;
+    }
+
+    .footer-bottom p {
+        margin: 0;
+        color: #888;
+        font-size: 0.9rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .footer-mlb {
+            padding: 40px 0 0;
+        }
+
+        .footer-mlb .footer-col {
+            margin-bottom: 30px;
+            padding: 0 15px;
+        }
+
+        .footer-mlb h5 {
+            font-size: 1rem;
+        }
+    }
+</style>
+
 <!-- Footer MLB Style -->
 <footer class="footer-mlb">
     <div class="container-fluid px-4">
@@ -22,7 +160,7 @@
                         <i class="fas fa-calendar-alt"></i>
                         <span>{% trans "Events" %}</span>
                     </a>
-                    <a href="/accounts/teams/">
+                    <a href="{% url 'public_team_list' %}">
                         <i class="fas fa-users"></i>
                         <span>{% trans "Teams" %}</span>
                     </a>

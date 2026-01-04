@@ -648,7 +648,7 @@
                         <a class="nav-link" href="{% url 'events:list' %}">Eventos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="{% url 'accounts:public_player_list' %}">Jugadores</a>
+                        <a class="nav-link active" href="{% url 'public_player_list' %}">Jugadores</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'accounts:team_list' %}">Equipos</a>
@@ -667,7 +667,7 @@
     <div class="profile-container">
         <!-- Action Buttons -->
         <div class="action-buttons-bar">
-            <a href="{% url 'accounts:public_player_list' %}" class="btn-mlb-action">
+            <a href="{% url 'public_player_list' %}" class="btn-mlb-action">
                 <i class="fas fa-arrow-left me-2"></i>Volver a Jugadores
             </a>
             {% if user.is_authenticated %}
@@ -1008,7 +1008,7 @@
                     <ul class="list-unstyled">
                         <li><a href="/">Inicio</a></li>
                         <li><a href="{% url 'events:list' %}">Eventos</a></li>
-                        <li><a href="{% url 'accounts:public_player_list' %}">Jugadores</a></li>
+                        <li><a href="{% url 'public_player_list' %}">Jugadores</a></li>
                         <li><a href="{% url 'accounts:team_list' %}">Equipos</a></li>
                     </ul>
                 </div>
