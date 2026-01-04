@@ -182,7 +182,7 @@ class EventUpdateView(LoginRequiredMixin, UpdateView):
     template_name = "events/event_form.html"
 
     def get_success_url(self):
-        return reverse_lazy("events:detail", kwargs={"pk": self.object.pk})
+        return reverse_lazy("events:admin_detail", kwargs={"pk": self.object.pk})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -437,7 +437,7 @@ class EventAttendanceView(LoginRequiredMixin, CreateView):
     template_name = "events/attendance_form.html"
 
     def get_success_url(self):
-        return reverse_lazy("events:detail", kwargs={"pk": self.kwargs["event_id"]})
+        return reverse_lazy("events:admin_detail", kwargs={"pk": self.kwargs["event_id"]})
 
     def form_valid(self, form):
         event = get_object_or_404(Event, pk=self.kwargs["event_id"])

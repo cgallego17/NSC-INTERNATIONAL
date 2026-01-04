@@ -146,7 +146,7 @@ class EventViewTest(TestCase):
         )
 
         self.client.login(username="testuser", password="testpass123")
-        response = self.client.get(reverse("events:detail", args=[event.pk]))
+        response = self.client.get(reverse("events:admin_detail", args=[event.pk]))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Event")
 
