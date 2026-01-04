@@ -1,7 +1,8 @@
 {% load static %}
 {% load i18n %}
+{% get_current_language as CURRENT_LANGUAGE %}
 <!DOCTYPE html>
-<html lang="{% get_current_language %}">
+<html lang="{% if CURRENT_LANGUAGE %}{{ CURRENT_LANGUAGE|slice:":2" }}{% else %}en{% endif %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
