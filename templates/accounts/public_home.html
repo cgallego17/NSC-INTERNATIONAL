@@ -3195,7 +3195,7 @@
                         <div class="schedule-buttons">
                             {% if event_types %}
                                 {% for event_type in event_types %}
-                                    <a href="{% url 'events:list' %}?event_type={{ event_type.id }}" class="schedule-category-btn">
+                                    <a href="{% url 'events:public_list' %}?event_type={{ event_type.id }}" class="schedule-category-btn">
                                         {% if event_type.icon %}<i class="{{ event_type.icon }} me-2"></i>{% endif %}
                                         {{ event_type.name }}
                                     </a>
@@ -3398,8 +3398,8 @@
                             {% endif %}
                         </p>
                         <div class="schedule-buttons">
-                            <a href="#" class="schedule-category-btn">{% trans "SHOWCASE SCHEDULE" %}</a>
-                            <a href="#" class="schedule-category-btn">{% trans "GATEWAY SCHEDULE" %}</a>
+                            <a href="{% url 'events:public_list' %}?search=showcase" class="schedule-category-btn">{% trans "SHOWCASE SCHEDULE" %}</a>
+                            <a href="{% url 'events:public_list' %}?search=gateway" class="schedule-category-btn">{% trans "GATEWAY SCHEDULE" %}</a>
                         </div>
                     </div>
                 </div>
