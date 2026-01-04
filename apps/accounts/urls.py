@@ -83,36 +83,31 @@ urlpatterns = [
         views_private.AgeVerificationListView.as_view(),
         name="age_verification_list",
     ),
-    # Eventos en el panel - BLOQUEADO TEMPORALMENTE
-    path(
-        "events/",
-        views_private.events_blocked_view,
-        name="events_blocked",
-    ),
+    # Eventos en el panel
     path(
         "events/<int:pk>/",
-        views_private.events_blocked_view,
+        views_private.PanelEventDetailView.as_view(),
         name="panel_event_detail",
     ),
     path(
         "events/<int:pk>/register/",
-        views_private.events_blocked_view,
+        views_private.register_children_to_event,
         name="register_children_to_event",
     ),
-    # Stripe checkout (evento) - BLOQUEADO TEMPORALMENTE
+    # Stripe checkout (evento)
     path(
         "events/<int:pk>/stripe/create-checkout-session/",
-        views_private.events_blocked_view,
+        views_private.create_stripe_event_checkout_session,
         name="create_stripe_event_checkout_session",
     ),
     path(
         "events/<int:pk>/stripe/success/",
-        views_private.events_blocked_view,
+        views_private.stripe_event_checkout_success,
         name="stripe_event_checkout_success",
     ),
     path(
         "events/<int:pk>/stripe/cancel/",
-        views_private.events_blocked_view,
+        views_private.stripe_event_checkout_cancel,
         name="stripe_event_checkout_cancel",
     ),
     path("stripe/webhook/", views_private.stripe_webhook, name="stripe_webhook"),
