@@ -1004,7 +1004,7 @@ document.addEventListener('DOMContentLoaded', function() {
             };
 
             // Enviar actualización
-            const updateUrl = `/media/${mediaId}/update-ajax/`;
+            const updateUrl = `/files/${mediaId}/update-ajax/`;
             fetch(updateUrl, {
                 method: 'POST',
                 headers: {
@@ -1203,8 +1203,48 @@ document.addEventListener('DOMContentLoaded', function() {
         let completed = 0;
         const total = filesArray.length;
 
-        // Crear barra de progreso con información
+        // Crear previews y barra de progreso con información
+        let previewsHTML = '<div class="row g-2 mb-3" id="filePreviewsContainer">';
+
+        filesArray.forEach((file, index) => {
+            const fileType = file.type.split('/')[0];
+            const fileName = file.name.length > 20 ? file.name.substring(0, 17) + '...' : file.name;
+            const fileSize = (file.size / 1024 / 1024).toFixed(2);
+
+            previewsHTML += `
+                <div class="col-6 col-md-3" id="preview-${index}">
+                    <div class="card h-100" style="border-radius: 8px; overflow: hidden;">
+                        <div class="preview-thumbnail" id="thumb-${index}" style="height: 80px; background: #f0f0f0; display: flex; align-items: center; justify-content: center;">
+                            ${fileType === 'image' ?
+                                '<i class="fas fa-spinner fa-spin text-muted"></i>' :
+                                fileType === 'video' ?
+                                    '<i class="fas fa-video text-primary" style="font-size: 2rem;"></i>' :
+                                    fileType === 'audio' ?
+                                        '<i class="fas fa-music text-info" style="font-size: 2rem;"></i>' :
+                                        '<i class="fas fa-file text-secondary" style="font-size: 2rem;"></i>'
+                            }
+                        </div>
+                        <div class="card-body p-2" style="font-size: 0.75rem;">
+                            <div class="text-truncate" title="${file.name}">${fileName}</div>
+                            <div class="text-muted">${fileSize} MB</div>
+                            <div class="progress mt-1" style="height: 4px;">
+                                <div class="progress-bar" id="progress-${index}" style="width: 0%;"></div>
+                            </div>
+                            <div class="status-icon mt-1" id="status-${index}">
+                                <span class="badge bg-warning text-dark" style="font-size: 0.65rem;">
+                                    <i class="fas fa-clock"></i> Pendiente
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        previewsHTML += '</div>';
+
         uploadProgress.innerHTML = `
+            ${previewsHTML}
             <div class="mb-2">
                 <small class="text-muted">Subiendo ${total} archivo(s)...</small>
             </div>
@@ -1222,6 +1262,20 @@ document.addEventListener('DOMContentLoaded', function() {
             <div id="uploadStatus" class="small text-muted"></div>
         `;
 
+        // Generar thumbnails para imágenes
+        filesArray.forEach((file, index) => {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const thumbEl = document.getElementById(`thumb-${index}`);
+                    if (thumbEl) {
+                        thumbEl.innerHTML = `<img src="${e.target.result}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">`;
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
         const progressBar = document.getElementById('uploadProgressBar');
         const uploadStatus = document.getElementById('uploadStatus');
 
@@ -1234,6 +1288,14 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('title', fileName);
 
             const xhr = new XMLHttpRequest();
+            const statusEl = document.getElementById(`status-${index}`);
+            const progressEl = document.getElementById(`progress-${index}`);
+            const previewCard = document.getElementById(`preview-${index}`);
+
+            // Marcar como subiendo
+            if (statusEl) {
+                statusEl.innerHTML = '<span class="badge bg-primary" style="font-size: 0.65rem;"><i class="fas fa-spinner fa-spin"></i> Subiendo</span>';
+            }
 
             // Actualizar progreso de subida del archivo individual
             xhr.upload.addEventListener('progress', (e) => {
@@ -1244,6 +1306,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     progressBar.setAttribute('aria-valuenow', overallProgress);
                     progressBar.textContent = Math.round(overallProgress) + '%';
                     uploadStatus.textContent = `Subiendo: ${file.name} (${Math.round(fileProgress)}%)`;
+
+                    // Actualizar progreso individual
+                    if (progressEl) {
+                        progressEl.style.width = fileProgress + '%';
+                        progressEl.classList.add('bg-primary');
+                    }
                 }
             });
 
@@ -1259,33 +1327,70 @@ document.addEventListener('DOMContentLoaded', function() {
                             progressBar.textContent = Math.round(overallProgress) + '%';
                             uploadStatus.textContent = `Completado: ${file.name}`;
 
+                            // Marcar como completado
+                            if (statusEl) {
+                                statusEl.innerHTML = '<span class="badge bg-success" style="font-size: 0.65rem;"><i class="fas fa-check"></i> Listo</span>';
+                            }
+                            if (progressEl) {
+                                progressEl.style.width = '100%';
+                                progressEl.classList.remove('bg-primary');
+                                progressEl.classList.add('bg-success');
+                            }
+                            if (previewCard) {
+                                previewCard.querySelector('.card').style.borderColor = '#28a745';
+                            }
+
                             if (completed === total) {
                                 progressBar.classList.remove('progress-bar-animated');
                                 progressBar.classList.add('bg-success');
                                 uploadStatus.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> Todos los archivos subidos exitosamente. Recargando...</span>';
                                 setTimeout(() => {
                                     location.reload();
-                                }, 1000);
+                                }, 1500);
                             }
                         } else {
                             throw new Error(data.error || 'Error desconocido');
                         }
                     } catch (error) {
                         console.error('Error al procesar respuesta:', error);
-                        alert('Error al subir ' + file.name + ': ' + error.message);
+                        // Marcar como error
+                        if (statusEl) {
+                            statusEl.innerHTML = '<span class="badge bg-danger" style="font-size: 0.65rem;"><i class="fas fa-times"></i> Error</span>';
+                        }
+                        if (progressEl) {
+                            progressEl.classList.remove('bg-primary');
+                            progressEl.classList.add('bg-danger');
+                        }
+                        if (previewCard) {
+                            previewCard.querySelector('.card').style.borderColor = '#dc3545';
+                        }
                     }
                 } else {
                     try {
                         const data = JSON.parse(xhr.responseText);
-                        throw new Error(data.error || 'Error al subir archivo');
+                        // Marcar como error
+                        if (statusEl) {
+                            statusEl.innerHTML = '<span class="badge bg-danger" style="font-size: 0.65rem;"><i class="fas fa-times"></i> Error</span>';
+                        }
+                        if (progressEl) {
+                            progressEl.classList.remove('bg-primary');
+                            progressEl.classList.add('bg-danger');
+                        }
                     } catch (error) {
-                        alert('Error al subir ' + file.name + ': ' + (error.message || 'Error desconocido'));
+                        console.error('Error al subir archivo:', error);
                     }
                 }
             });
 
             xhr.addEventListener('error', () => {
-                alert('Error de red al subir ' + file.name);
+                // Marcar como error
+                if (statusEl) {
+                    statusEl.innerHTML = '<span class="badge bg-danger" style="font-size: 0.65rem;"><i class="fas fa-times"></i> Error de red</span>';
+                }
+                if (progressEl) {
+                    progressEl.classList.remove('bg-primary');
+                    progressEl.classList.add('bg-danger');
+                }
             });
 
             xhr.open('POST', '{% url "media:upload_ajax" %}');
