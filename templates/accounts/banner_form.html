@@ -197,6 +197,16 @@
                                 </label>
                             </div>
                             <p class="text-muted small mb-2">Tamaño recomendado: 1905x500px</p>
+
+                            <div class="d-flex gap-2 mb-2 flex-wrap">
+                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#mediaSelectorModalDesktop">
+                                    <i class="bi bi-folder-open me-2"></i>Elegir de Multimedia
+                                </button>
+                                <a href="{% url 'media:list' %}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">
+                                    <i class="bi bi-box-arrow-up-right me-2"></i>Abrir Biblioteca
+                                </a>
+                            </div>
+
                             {{ form.image }}
                             {% if form.image.errors %}
                                 <div class="text-danger small mt-1">{{ form.image.errors }}</div>
@@ -223,6 +233,16 @@
                                 </label>
                             </div>
                             <p class="text-muted small mb-2">Si no subes una imagen móvil, se usará la imagen desktop en dispositivos móviles.</p>
+
+                            <div class="d-flex gap-2 mb-2 flex-wrap">
+                                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#mediaSelectorModalMobile">
+                                    <i class="bi bi-folder-open me-2"></i>Elegir de Multimedia
+                                </button>
+                                <a href="{% url 'media:list' %}" class="btn btn-outline-secondary btn-sm" target="_blank" rel="noopener">
+                                    <i class="bi bi-box-arrow-up-right me-2"></i>Abrir Biblioteca
+                                </a>
+                            </div>
+
                             {{ form.mobile_image }}
                             {% if form.mobile_image.errors %}
                                 <div class="text-danger small mt-1">{{ form.mobile_image.errors }}</div>
@@ -377,6 +397,86 @@
     </div>
 </div>
 
+<!-- Modal: Selector Multimedia Desktop -->
+<div class="modal fade" id="mediaSelectorModalDesktop" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #0d2c54 0%, #132448 100%); color: white;">
+                <div>
+                    <div style="font-weight:800; font-size:0.82rem; opacity:0.9;">Multimedia • Imágenes</div>
+                    <h5 class="modal-title mb-0"><i class="bi bi-laptop me-2"></i>Seleccionar imagen Desktop</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background:#f8f9fa;">
+                <div class="d-flex gap-2 align-items-center mb-3 flex-wrap">
+                    <div class="input-group" style="max-width: 520px;">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="desktopMediaSearch" placeholder="Buscar en multimedia...">
+                        <button class="btn btn-outline-secondary" type="button" id="desktopMediaSearchClear" style="display:none;"><i class="bi bi-x"></i></button>
+                    </div>
+                    <div class="ms-auto d-flex gap-2">
+                        <input type="file" id="desktopMediaUploadInput" accept="image/*" multiple style="display:none;">
+                        <button type="button" class="btn btn-primary" id="desktopMediaUploadBtn">
+                            <i class="bi bi-upload me-2"></i>Subir
+                        </button>
+                    </div>
+                </div>
+                <div id="desktopMediaGrid" class="row g-3" style="max-height: 500px; overflow-y: auto;"></div>
+                <div id="desktopMediaEmpty" class="text-center py-5" style="display:none;">
+                    <i class="bi bi-folder-x" style="font-size: 3rem; color: #dee2e6;"></i>
+                    <p class="text-muted mt-3">No se encontraron imágenes</p>
+                </div>
+                <div id="desktopMediaProgress" style="display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmDesktopMediaSelection" disabled>Seleccionar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Selector Multimedia Mobile -->
+<div class="modal fade" id="mediaSelectorModalMobile" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #198754 0%, #146c43 100%); color: white;">
+                <div>
+                    <div style="font-weight:800; font-size:0.82rem; opacity:0.9;">Multimedia • Imágenes</div>
+                    <h5 class="modal-title mb-0"><i class="bi bi-phone me-2"></i>Seleccionar imagen Móvil</h5>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="background:#f8f9fa;">
+                <div class="d-flex gap-2 align-items-center mb-3 flex-wrap">
+                    <div class="input-group" style="max-width: 520px;">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="mobileMediaSearch" placeholder="Buscar en multimedia...">
+                        <button class="btn btn-outline-secondary" type="button" id="mobileMediaSearchClear" style="display:none;"><i class="bi bi-x"></i></button>
+                    </div>
+                    <div class="ms-auto d-flex gap-2">
+                        <input type="file" id="mobileMediaUploadInput" accept="image/*" multiple style="display:none;">
+                        <button type="button" class="btn btn-primary" id="mobileMediaUploadBtn">
+                            <i class="bi bi-upload me-2"></i>Subir
+                        </button>
+                    </div>
+                </div>
+                <div id="mobileMediaGrid" class="row g-3" style="max-height: 500px; overflow-y: auto;"></div>
+                <div id="mobileMediaEmpty" class="text-center py-5" style="display:none;">
+                    <i class="bi bi-folder-x" style="font-size: 3rem; color: #dee2e6;"></i>
+                    <p class="text-muted mt-3">No se encontraron imágenes</p>
+                </div>
+                <div id="mobileMediaProgress" style="display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" id="confirmMobileMediaSelection" disabled>Seleccionar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     // Mostrar/ocultar secciones según el tipo de banner
     const bannerTypeSelect = document.getElementById('{{ form.banner_type.id_for_label }}');
@@ -489,6 +589,314 @@
     }
 
     updateGradientPreview(); // Inicializar preview
+
+    // ============================================
+    // SELECTOR DE MEDIOS PARA DESKTOP
+    // ============================================
+    (function() {
+        const modalEl = document.getElementById('mediaSelectorModalDesktop');
+        if (!modalEl) return;
+
+        const gridEl = document.getElementById('desktopMediaGrid');
+        const emptyEl = document.getElementById('desktopMediaEmpty');
+        const searchEl = document.getElementById('desktopMediaSearch');
+        const searchClearBtn = document.getElementById('desktopMediaSearchClear');
+        const uploadInput = document.getElementById('desktopMediaUploadInput');
+        const uploadBtn = document.getElementById('desktopMediaUploadBtn');
+        const progressEl = document.getElementById('desktopMediaProgress');
+        const confirmBtn = document.getElementById('confirmDesktopMediaSelection');
+        let selectedMedia = null;
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        async function loadMedia(search = '') {
+            if (!gridEl || !emptyEl) return;
+            gridEl.innerHTML = '';
+            emptyEl.style.display = 'none';
+
+            const qs = new URLSearchParams({ type: 'image', search: search || '', limit: '60' });
+            const res = await fetch(`/files/list-ajax/?${qs.toString()}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await res.json();
+            const results = (data && data.results) ? data.results : [];
+
+            if (!results.length) {
+                emptyEl.style.display = '';
+                return;
+            }
+
+            results.forEach(item => {
+                const col = document.createElement('div');
+                col.className = 'col-md-3 col-sm-4 col-6';
+                col.innerHTML = `
+                    <div class="card h-100 media-item" data-media-id="${item.id}" data-media-url="${item.url || ''}" style="cursor: pointer; transition: all 0.3s;">
+                        <img src="${item.thumbnail || item.url || ''}" class="card-img-top" style="height: 150px; object-fit: cover;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'150\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'150\'/%3E%3Ctext fill=\'%23999\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\'%3ESin imagen%3C/text%3E%3C/svg%3E';">
+                        <div class="card-body p-2">
+                            <h6 class="card-title mb-0" style="font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${item.title || 'Sin título'}">${item.title || 'Sin título'}</h6>
+                        </div>
+                    </div>
+                `;
+                col.querySelector('.media-item').addEventListener('click', function() {
+                    document.querySelectorAll('#desktopMediaGrid .media-item').forEach(el => el.classList.remove('border-primary', 'border-3'));
+                    this.classList.add('border-primary', 'border-3');
+                    selectedMedia = { id: item.id, url: item.url || '', title: item.title || '' };
+                    if (confirmBtn) confirmBtn.disabled = false;
+                });
+                gridEl.appendChild(col);
+            });
+        }
+
+        async function uploadFiles(files) {
+            if (!files || !files.length) return;
+            const csrftoken = getCookie('csrftoken');
+            progressEl.style.display = 'block';
+            progressEl.innerHTML = `<div class="progress"><div class="progress-bar" id="desktopUploadBar" style="width:0%">0%</div></div>`;
+            const bar = document.getElementById('desktopUploadBar');
+
+            let done = 0;
+            for (const file of files) {
+                const fd = new FormData();
+                fd.append('title', file.name);
+                fd.append('file_type', 'image');
+                fd.append('original_file', file);
+                const res = await fetch('/files/upload/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' },
+                    body: fd
+                });
+                const data = await res.json();
+                done++;
+                const pct = Math.round((done / files.length) * 100);
+                if (bar) { bar.style.width = pct + '%'; bar.textContent = pct + '%'; }
+            }
+
+            setTimeout(() => { progressEl.style.display = 'none'; }, 800);
+            await loadMedia(searchEl ? searchEl.value : '');
+        }
+
+        modalEl.addEventListener('shown.bs.modal', () => {
+            loadMedia(searchEl ? searchEl.value : '');
+            selectedMedia = null;
+            if (confirmBtn) confirmBtn.disabled = true;
+        });
+
+        if (searchEl) {
+            let t = null;
+            searchEl.addEventListener('input', () => {
+                clearTimeout(t);
+                t = setTimeout(() => loadMedia(searchEl.value), 300);
+                if (searchClearBtn) searchClearBtn.style.display = searchEl.value ? 'block' : 'none';
+            });
+        }
+
+        if (searchClearBtn) {
+            searchClearBtn.addEventListener('click', () => {
+                if (searchEl) searchEl.value = '';
+                loadMedia('');
+                searchClearBtn.style.display = 'none';
+            });
+        }
+
+        if (uploadBtn && uploadInput) {
+            uploadBtn.addEventListener('click', () => uploadInput.click());
+            uploadInput.addEventListener('change', (e) => uploadFiles(Array.from(e.target.files)));
+        }
+
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', async () => {
+                if (selectedMedia && imageInput) {
+                    try {
+                        // Descargar la imagen y crear un File object
+                        const response = await fetch(selectedMedia.url);
+                        const blob = await response.blob();
+                        const fileName = selectedMedia.title || selectedMedia.url.split('/').pop() || 'image.jpg';
+                        const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
+
+                        // Crear un DataTransfer para asignar el archivo al input
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        imageInput.files = dataTransfer.files;
+
+                        // Disparar evento change para actualizar el preview
+                        imageInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+                        // Cerrar el modal
+                        const bsModal = bootstrap.Modal.getInstance(modalEl);
+                        if (bsModal) bsModal.hide();
+                    } catch (error) {
+                        console.error('Error al seleccionar imagen:', error);
+                        alert('Error al seleccionar la imagen. Por favor, intenta subirla directamente.');
+                    }
+                }
+            });
+        }
+    })();
+
+    // ============================================
+    // SELECTOR DE MEDIOS PARA MÓVIL
+    // ============================================
+    (function() {
+        const modalEl = document.getElementById('mediaSelectorModalMobile');
+        if (!modalEl) return;
+
+        const gridEl = document.getElementById('mobileMediaGrid');
+        const emptyEl = document.getElementById('mobileMediaEmpty');
+        const searchEl = document.getElementById('mobileMediaSearch');
+        const searchClearBtn = document.getElementById('mobileMediaSearchClear');
+        const uploadInput = document.getElementById('mobileMediaUploadInput');
+        const uploadBtn = document.getElementById('mobileMediaUploadBtn');
+        const progressEl = document.getElementById('mobileMediaProgress');
+        const confirmBtn = document.getElementById('confirmMobileMediaSelection');
+        let selectedMedia = null;
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        async function loadMedia(search = '') {
+            if (!gridEl || !emptyEl) return;
+            gridEl.innerHTML = '';
+            emptyEl.style.display = 'none';
+
+            const qs = new URLSearchParams({ type: 'image', search: search || '', limit: '60' });
+            const res = await fetch(`/files/list-ajax/?${qs.toString()}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await res.json();
+            const results = (data && data.results) ? data.results : [];
+
+            if (!results.length) {
+                emptyEl.style.display = '';
+                return;
+            }
+
+            results.forEach(item => {
+                const col = document.createElement('div');
+                col.className = 'col-md-3 col-sm-4 col-6';
+                col.innerHTML = `
+                    <div class="card h-100 media-item" data-media-id="${item.id}" data-media-url="${item.url || ''}" style="cursor: pointer; transition: all 0.3s;">
+                        <img src="${item.thumbnail || item.url || ''}" class="card-img-top" style="height: 150px; object-fit: cover;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'150\'%3E%3Crect fill=\'%23ddd\' width=\'200\' height=\'150\'/%3E%3Ctext fill=\'%23999\' x=\'50%25\' y=\'50%25\' text-anchor=\'middle\' dy=\'.3em\'%3ESin imagen%3C/text%3E%3C/svg%3E';">
+                        <div class="card-body p-2">
+                            <h6 class="card-title mb-0" style="font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${item.title || 'Sin título'}">${item.title || 'Sin título'}</h6>
+                        </div>
+                    </div>
+                `;
+                col.querySelector('.media-item').addEventListener('click', function() {
+                    document.querySelectorAll('#mobileMediaGrid .media-item').forEach(el => el.classList.remove('border-success', 'border-3'));
+                    this.classList.add('border-success', 'border-3');
+                    selectedMedia = { id: item.id, url: item.url || '', title: item.title || '' };
+                    if (confirmBtn) confirmBtn.disabled = false;
+                });
+                gridEl.appendChild(col);
+            });
+        }
+
+        async function uploadFiles(files) {
+            if (!files || !files.length) return;
+            const csrftoken = getCookie('csrftoken');
+            progressEl.style.display = 'block';
+            progressEl.innerHTML = `<div class="progress"><div class="progress-bar" id="mobileUploadBar" style="width:0%">0%</div></div>`;
+            const bar = document.getElementById('mobileUploadBar');
+
+            let done = 0;
+            for (const file of files) {
+                const fd = new FormData();
+                fd.append('title', file.name);
+                fd.append('file_type', 'image');
+                fd.append('original_file', file);
+                const res = await fetch('/files/upload/', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrftoken, 'X-Requested-With': 'XMLHttpRequest' },
+                    body: fd
+                });
+                const data = await res.json();
+                done++;
+                const pct = Math.round((done / files.length) * 100);
+                if (bar) { bar.style.width = pct + '%'; bar.textContent = pct + '%'; }
+            }
+
+            setTimeout(() => { progressEl.style.display = 'none'; }, 800);
+            await loadMedia(searchEl ? searchEl.value : '');
+        }
+
+        modalEl.addEventListener('shown.bs.modal', () => {
+            loadMedia(searchEl ? searchEl.value : '');
+            selectedMedia = null;
+            if (confirmBtn) confirmBtn.disabled = true;
+        });
+
+        if (searchEl) {
+            let t = null;
+            searchEl.addEventListener('input', () => {
+                clearTimeout(t);
+                t = setTimeout(() => loadMedia(searchEl.value), 300);
+                if (searchClearBtn) searchClearBtn.style.display = searchEl.value ? 'block' : 'none';
+            });
+        }
+
+        if (searchClearBtn) {
+            searchClearBtn.addEventListener('click', () => {
+                if (searchEl) searchEl.value = '';
+                loadMedia('');
+                searchClearBtn.style.display = 'none';
+            });
+        }
+
+        if (uploadBtn && uploadInput) {
+            uploadBtn.addEventListener('click', () => uploadInput.click());
+            uploadInput.addEventListener('change', (e) => uploadFiles(Array.from(e.target.files)));
+        }
+
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', async () => {
+                if (selectedMedia && mobileImageInput) {
+                    try {
+                        // Descargar la imagen y crear un File object
+                        const response = await fetch(selectedMedia.url);
+                        const blob = await response.blob();
+                        const fileName = selectedMedia.title || selectedMedia.url.split('/').pop() || 'image.jpg';
+                        const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
+
+                        // Crear un DataTransfer para asignar el archivo al input
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        mobileImageInput.files = dataTransfer.files;
+
+                        // Disparar evento change para actualizar el preview
+                        mobileImageInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+                        // Cerrar el modal
+                        const bsModal = bootstrap.Modal.getInstance(modalEl);
+                        if (bsModal) bsModal.hide();
+                    } catch (error) {
+                        console.error('Error al seleccionar imagen:', error);
+                        alert('Error al seleccionar la imagen. Por favor, intenta subirla directamente.');
+                    }
+                }
+            });
+        }
+    })();
 </script>
 {% endblock %}
 
