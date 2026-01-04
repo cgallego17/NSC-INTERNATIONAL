@@ -612,7 +612,7 @@
                         <div class="carousel-item {% if forloop.first %}active{% endif %}">
                             {% if banner.banner_type == 'image' and banner.image %}
                                 <div class="welcome-banner" style="background: #0d2c54;">
-                                    <img src="{{ banner.image.url }}" alt="{{ banner.title|default:'Banner' }}">
+                                    <img src="{{ banner.image.url }}" alt="{{ banner.title|default:'Banner' }}" onerror="this.onerror=null; this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%)';">
                                 </div>
                             {% else %}
                                 <div class="welcome-banner" style="background: linear-gradient(135deg, {{ banner.gradient_color_1 }} 0%, {{ banner.gradient_color_2 }} 50%, {{ banner.gradient_color_3|default:banner.gradient_color_2 }} 100%);">

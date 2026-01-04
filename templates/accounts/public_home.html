@@ -2997,9 +2997,9 @@
                             {% if banner.banner_type == 'image' and banner.image %}
                                 <picture>
                                     {% if banner.mobile_image %}
-                                        <source media="(max-width: 768px)" srcset="{{ banner.mobile_image.url }}">
+                                        <source media="(max-width: 768px)" srcset="{{ banner.mobile_image.url }}" onerror="this.remove();">
                                     {% endif %}
-                                    <img src="{{ banner.image.url }}" alt="{{ banner.title|default:'Banner' }}">
+                                    <img src="{{ banner.image.url }}" alt="{{ banner.title|default:'Banner' }}" onerror="this.onerror=null; this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%)'; this.parentElement.innerHTML='<div style=\'width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:white;font-size:1.5rem;\'>{{ banner.title|default:\"Banner\" }}</div>';">
                                 </picture>
                             {% else %}
                                 <div style="width: 100%; height: 100%; background: linear-gradient(135deg, {{ banner.gradient_color_1 }} 0%, {{ banner.gradient_color_2 }} 50%, {{ banner.gradient_color_3|default:banner.gradient_color_2 }} 100%); display: flex; align-items: center; justify-content: center;">
@@ -3221,7 +3221,7 @@
                 <a href="{% url 'events:public_detail' event.pk %}" class="event-news-card">
                     <div class="event-news-image">
                         {% if event.logo %}
-                            <img src="{{ event.logo }}" alt="{{ event.title }}">
+                            <img src="{{ event.logo }}" alt="{{ event.title }}" onerror="this.onerror=null; this.style.display='none'; this.parentElement.innerHTML='<div class=\'event-news-placeholder\'><i class=\'fas fa-baseball-ball\'></i></div>';">
                         {% else %}
                             <div class="event-news-placeholder">
                                 <i class="fas fa-baseball-ball"></i>
