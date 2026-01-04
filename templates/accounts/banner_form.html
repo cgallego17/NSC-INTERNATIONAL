@@ -721,8 +721,80 @@
                         // Descargar la imagen y crear un File object
                         const response = await fetch(selectedMedia.url);
                         const blob = await response.blob();
-                        const fileName = selectedMedia.title || selectedMedia.url.split('/').pop() || 'image.jpg';
-                        const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
+
+                        // Detectar extensión y tipo MIME
+                        const contentType = blob.type || response.headers.get('content-type') || 'image/jpeg';
+                        const urlPath = selectedMedia.url.split('/').pop() || '';
+                        const urlExtension = urlPath.includes('.') ? urlPath.split('.').pop().toLowerCase().split('?')[0] : '';
+
+                        // Detectar webp específicamente
+                        const isWebP = contentType === 'image/webp' ||
+                                      contentType.includes('webp') ||
+                                      urlExtension === 'webp' ||
+                                      selectedMedia.url.toLowerCase().includes('.webp');
+
+                        // Mapeo de tipos MIME a extensiones (incluyendo webp)
+                        const mimeToExt = {
+                            'image/jpeg': 'jpg',
+                            'image/jpg': 'jpg',
+                            'image/png': 'png',
+                            'image/gif': 'gif',
+                            'image/webp': 'webp',
+                            'image/bmp': 'bmp',
+                            'image/tiff': 'tiff',
+                            'image/svg+xml': 'svg'
+                        };
+
+                        // Determinar extensión
+                        let extension = urlExtension;
+                        // Lista completa de extensiones válidas incluyendo webp
+                        const allValidExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'svg'];
+
+                        // Priorizar detección de webp
+                        if (isWebP) {
+                            extension = 'webp';
+                        } else if (!extension || !allValidExtensions.includes(extension)) {
+                            // Intentar obtener desde el tipo MIME
+                            extension = mimeToExt[contentType] || 'jpg';
+                        }
+
+                        // Asegurar que la extensión sea válida (webp está incluido)
+                        const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff'];
+                        if (!validExtensions.includes(extension)) {
+                            // Si es webp, usar webp
+                            if (isWebP) {
+                                extension = 'webp';
+                            } else {
+                                extension = 'jpg';
+                            }
+                        }
+
+                        // Crear nombre de archivo con extensión válida
+                        let fileName = selectedMedia.title || urlPath || 'image';
+                        // Remover extensión existente si no es válida
+                        if (fileName.includes('.')) {
+                            const parts = fileName.split('.');
+                            const lastExt = parts[parts.length - 1].toLowerCase();
+                            if (!validExtensions.includes(lastExt)) {
+                                fileName = parts.slice(0, -1).join('.');
+                            }
+                        }
+                        // Agregar extensión si no tiene
+                        if (!fileName.endsWith('.' + extension)) {
+                            fileName = fileName + '.' + extension;
+                        }
+
+                        // Asegurar tipo MIME correcto (incluyendo webp)
+                        let mimeType;
+                        if (extension === 'webp' || isWebP) {
+                            mimeType = 'image/webp';
+                        } else if (contentType.startsWith('image/')) {
+                            mimeType = contentType;
+                        } else {
+                            mimeType = `image/${extension === 'jpg' ? 'jpeg' : extension}`;
+                        }
+
+                        const file = new File([blob], fileName, { type: mimeType });
 
                         // Crear un DataTransfer para asignar el archivo al input
                         const dataTransfer = new DataTransfer();
@@ -875,8 +947,55 @@
                         // Descargar la imagen y crear un File object
                         const response = await fetch(selectedMedia.url);
                         const blob = await response.blob();
-                        const fileName = selectedMedia.title || selectedMedia.url.split('/').pop() || 'image.jpg';
-                        const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
+
+                        // Detectar extensión y tipo MIME
+                        const contentType = blob.type || response.headers.get('content-type') || 'image/jpeg';
+                        const urlPath = selectedMedia.url.split('/').pop() || '';
+                        const urlExtension = urlPath.includes('.') ? urlPath.split('.').pop().toLowerCase() : '';
+
+                        // Mapeo de tipos MIME a extensiones
+                        const mimeToExt = {
+                            'image/jpeg': 'jpg',
+                            'image/jpg': 'jpg',
+                            'image/png': 'png',
+                            'image/gif': 'gif',
+                            'image/webp': 'webp',
+                            'image/bmp': 'bmp',
+                            'image/tiff': 'tiff',
+                            'image/svg+xml': 'svg'
+                        };
+
+                        // Determinar extensión
+                        let extension = urlExtension;
+                        if (!extension || !['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff', 'svg'].includes(extension)) {
+                            extension = mimeToExt[contentType] || 'jpg';
+                        }
+
+                        // Asegurar que la extensión sea válida
+                        const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'tiff'];
+                        if (!validExtensions.includes(extension)) {
+                            extension = 'jpg';
+                        }
+
+                        // Crear nombre de archivo con extensión válida
+                        let fileName = selectedMedia.title || urlPath || 'image';
+                        // Remover extensión existente si no es válida
+                        if (fileName.includes('.')) {
+                            const parts = fileName.split('.');
+                            const lastExt = parts[parts.length - 1].toLowerCase();
+                            if (!validExtensions.includes(lastExt)) {
+                                fileName = parts.slice(0, -1).join('.');
+                            }
+                        }
+                        // Agregar extensión si no tiene
+                        if (!fileName.endsWith('.' + extension)) {
+                            fileName = fileName + '.' + extension;
+                        }
+
+                        // Asegurar tipo MIME correcto
+                        const mimeType = contentType.startsWith('image/') ? contentType : `image/${extension === 'jpg' ? 'jpeg' : extension}`;
+
+                        const file = new File([blob], fileName, { type: mimeType });
 
                         // Crear un DataTransfer para asignar el archivo al input
                         const dataTransfer = new DataTransfer();

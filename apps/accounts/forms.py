@@ -1315,7 +1315,9 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         if "country" in self.data:
             country_id = self.data.get("country")
         elif self.instance.pk:
-            if hasattr(self.instance, "user") and hasattr(self.instance.user, "profile"):
+            if hasattr(self.instance, "user") and hasattr(
+                self.instance.user, "profile"
+            ):
                 country_id = self.instance.user.profile.country_id
         else:
             country_id = None
@@ -1334,7 +1336,9 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         # Determinar el estado seleccionado
         state_id = self.data.get("state")
         if not state_id and self.instance.pk:
-            if hasattr(self.instance, "user") and hasattr(self.instance.user, "profile"):
+            if hasattr(self.instance, "user") and hasattr(
+                self.instance.user, "profile"
+            ):
                 state_id = self.instance.user.profile.state_id
 
         # Poblar ciudades según el estado
@@ -1349,7 +1353,11 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
             self.fields["city"].queryset = City.objects.none()
 
         # Valores iniciales explícitos para edición
-        if self.instance.pk and hasattr(self.instance, "user") and hasattr(self.instance.user, "profile"):
+        if (
+            self.instance.pk
+            and hasattr(self.instance, "user")
+            and hasattr(self.instance.user, "profile")
+        ):
             profile = self.instance.user.profile
             if profile.country_id:
                 self.fields["country"].initial = profile.country_id
@@ -1846,7 +1854,11 @@ class PlayerUpdateForm(forms.ModelForm):
         profile_country_id = None
         profile_state_id = None
         profile_city_id = None
-        if self.instance and hasattr(self.instance, "user") and hasattr(self.instance.user, "profile"):
+        if (
+            self.instance
+            and hasattr(self.instance, "user")
+            and hasattr(self.instance.user, "profile")
+        ):
             profile_country_id = self.instance.user.profile.country_id
             profile_state_id = self.instance.user.profile.state_id
             profile_city_id = self.instance.user.profile.city_id
@@ -2258,6 +2270,9 @@ class HomeBannerForm(forms.ModelForm):
             ),
             "banner_type": forms.Select(attrs={"class": "form-select"}),
             "image": forms.FileInput(
+                attrs={"class": "form-control", "accept": "image/*"}
+            ),
+            "mobile_image": forms.FileInput(
                 attrs={"class": "form-control", "accept": "image/*"}
             ),
             "gradient_color_1": forms.TextInput(
