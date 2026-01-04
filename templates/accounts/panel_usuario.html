@@ -539,7 +539,7 @@
                     </div>
                     <span class="mx-2">|</span>
                     {% if user.is_authenticated %}
-                        <a href="{% url 'accounts:panel' %}" title="{% trans 'My Account' %}"><i class="fas fa-user me-1"></i>{% trans "My Account" %}</a>
+                        <a href="{% url 'panel' %}" title="{% trans 'My Account' %}"><i class="fas fa-user me-1"></i>{% trans "My Account" %}</a>
                         {% if user.is_staff or user.is_superuser %}
                             <span class="mx-2">|</span>
                             <a href="{% url 'dashboard' %}" title="{% trans 'Admin Dashboard' %}" style="color: var(--mlb-gold, #ffd700); font-weight: 600;"><i class="fas fa-tachometer-alt me-1"></i>{% trans 'Dashboard' %}</a>
@@ -577,11 +577,11 @@
                         <a class="nav-link" href="/accounts/teams/">{% trans "Teams" %}</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'accounts:public_player_list' %}">{% trans "Players" %}</a>
+                        <a class="nav-link" href="{% url 'public_player_list' %}">{% trans "Players" %}</a>
                     </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'accounts:panel' %}">{% trans "My Account" %}</a>
+                            <a class="nav-link active" href="{% url 'panel' %}">{% trans "My Account" %}</a>
                         </li>
                     {% else %}
                         <li class="nav-item">
@@ -693,15 +693,6 @@
                         <span>{% trans "View Players" %}</span>
                     </button>
                 {% endif %}
-                {% if pending_verifications_count %}
-                    {% if profile.is_team_manager or user.is_staff or user.is_superuser %}
-                        <button type="button" class="quick-action-btn tab-btn" data-tab="verificaciones-pendientes">
-                            <i class="fas fa-file-check"></i>
-                            <span>{% trans "Pending Verifications" %}</span>
-                            <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ pending_verifications_count }}</span>
-                        </button>
-                    {% endif %}
-                {% endif %}
                 {% if profile.is_parent %}
                     <button type="button" class="quick-action-btn tab-btn" data-tab="registrar-hijo" data-url="{% url 'accounts:parent_player_register' %}">
                         <i class="fas fa-user-plus"></i>
@@ -784,11 +775,6 @@
                 </div>
                 <div id="tab-content-editar-jugador" class="tab-content" style="display: none;">
                     <!-- Contenido se carga dinámicamente -->
-                </div>
-            {% endif %}
-            {% if pending_verifications_count or user.is_staff or user.is_superuser %}
-                <div id="tab-content-verificaciones-pendientes" class="tab-content" style="display: none;">
-                    {% include 'accounts/panel_tabs/verificaciones_pendientes.html' %}
                 </div>
             {% endif %}
             {% if not profile.is_team_manager and not profile.is_parent %}
