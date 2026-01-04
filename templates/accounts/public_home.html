@@ -243,28 +243,268 @@
             background: var(--mlb-red);
         }
 
-        /* Hero Section MLB Style - Slider */
+        /* ============================================
+           HERO SLIDER - NUEVO DESDE CERO
+           ============================================ */
         .hero-mlb {
             position: relative;
-            overflow: hidden;
             width: 100%;
+            max-width: 1905px;
+            margin: 0 auto;
+            padding: 0;
+            background-color: #000;
+            overflow: hidden;
         }
 
-        .hero-mlb .carousel {
+        .hero-slider-container {
             position: relative;
             width: 100%;
+            max-width: 1905px;
+            margin: 0 auto;
+            overflow: hidden;
+            background-color: #000;
+            /* La altura se calculará dinámicamente con JavaScript */
+            min-height: 300px;
         }
 
+        .hero-slider-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+        }
+
+        .hero-slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #000;
+        }
+
+        .hero-slide.active {
+            opacity: 1;
+            z-index: 1;
+        }
+
+        .hero-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center center;
+            display: block;
+        }
+
+        /* Barra de progreso roja */
+        .hero-progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background-color: rgba(213, 0, 50, 0.2);
+            z-index: 10;
+        }
+
+        .hero-progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #d50032 0%, #ff1744 50%, #d50032 100%);
+            transition: width 5s linear !important;
+            box-shadow: 0 0 10px rgba(213, 0, 50, 0.5);
+            will-change: width;
+        }
+
+        /* Controles de navegación */
+        .hero-slider-controls {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .hero-slider-controls:hover {
+            background: rgba(255, 255, 255, 0.4);
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .hero-slider-controls.prev {
+            left: 20px;
+        }
+
+        .hero-slider-controls.next {
+            right: 20px;
+        }
+
+        .hero-slider-controls i {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        /* Media Queries Responsive - El aspect ratio se mantiene automáticamente con padding-bottom */
+        @media (max-width: 992px) {
+            .hero-slider-controls {
+                width: 40px;
+                height: 40px;
+            }
+
+            .hero-slider-controls.prev {
+                left: 10px;
+            }
+
+            .hero-slider-controls.next {
+                right: 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-slider-controls {
+                width: 35px;
+                height: 35px;
+            }
+
+            .hero-slider-controls.prev {
+                left: 5px;
+            }
+
+            .hero-slider-controls.next {
+                right: 5px;
+            }
+
+            .hero-slider-controls i {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-progress-bar {
+                height: 4px;
+            }
+        }
+
+
         /* ============================================
-           HERO MLB - ESTRUCTURA BASE
+           CSS ANTIGUO - ELIMINAR DESPUÉS
            ============================================ */
         .hero-mlb .carousel-inner {
             width: 100%;
-            height: 100%;
-            min-height: 600px;
-            max-height: 100vh;
+            height: 600px;
+            max-width: 1905px;
+            margin: 0;
+            padding: 0;
             position: relative;
             overflow: hidden;
+            background-color: transparent;
+            border: none;
+            line-height: 0;
+        }
+
+        /* Eliminar espacios en blanco y padding de Bootstrap */
+        .hero-mlb .carousel-inner > * {
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Desktop grande (1400px - 1905px) */
+        @media (min-width: 1400px) and (max-width: 1905px) {
+            .hero-mlb .carousel-inner {
+                height: 650px;
+            }
+
+            .hero-mlb .carousel-item {
+                height: 650px;
+            }
+
+            .hero-slide-item.banner-image {
+                height: 650px;
+                background-color: transparent;
+            }
+
+            .hero-slide-item.banner-image img {
+                width: auto;
+                height: auto;
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+                object-position: center center;
+            }
+        }
+
+        /* Para pantallas muy grandes (>1905px) */
+        @media (min-width: 1906px) {
+            .hero-mlb {
+                display: flex;
+                justify-content: center;
+            }
+
+            .hero-mlb .carousel-inner {
+                width: 1905px;
+                height: 700px;
+                background-color: transparent;
+            }
+
+            .hero-mlb .carousel-item {
+                height: 700px;
+                background-color: transparent;
+            }
+
+            .hero-slide-item.banner-image {
+                height: 700px;
+                background-color: transparent;
+            }
+
+            .hero-slide-item.banner-image img {
+                width: auto;
+                height: auto;
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+                object-position: center center;
+            }
+        }
+
+        /* Desktop mediano (1201px - 1399px) */
+        @media (min-width: 1201px) and (max-width: 1399px) {
+            .hero-mlb .carousel-inner {
+                height: 600px;
+                background-color: transparent;
+            }
+
+            .hero-mlb .carousel-item {
+                height: 600px;
+                background-color: transparent;
+            }
+
+            .hero-slide-item.banner-image {
+                height: 600px;
+                background-color: transparent;
+            }
+
+            .hero-slide-item.banner-image img {
+                width: auto;
+                height: auto;
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+                object-position: center center;
+            }
         }
 
         /* Asegurar que carousel-item y hero-slide-item tengan la misma altura */
@@ -273,13 +513,22 @@
         }
 
         .hero-mlb .carousel-item {
-            height: auto;
-            min-height: 600px;
-            max-height: 100vh;
+            height: 600px;
+            margin: 0;
+            padding: 0;
+            border: none;
+            background-color: transparent;
+            line-height: 0;
         }
 
         .hero-mlb .carousel-item.active {
             display: block;
+        }
+
+        /* Eliminar espacios en blanco de los elementos hijos */
+        .hero-mlb .carousel-item > * {
+            margin: 0;
+            padding: 0;
         }
 
         .hero-slide-item {
@@ -295,47 +544,91 @@
         .hero-slide-item img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            object-position: center;
+            object-fit: contain;
+            object-position: center center;
             position: absolute;
             top: 0;
             left: 0;
             z-index: 0;
+            display: block;
+            /* Suavizado de la imagen para mejor calidad */
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            max-width: 100%;
+            max-height: 100%;
         }
 
-        /* Ajuste para banners de tipo imagen - mostrar completo sin recortes si es necesario */
+        /* Ajuste para banners de tipo imagen - adaptarse sin expandirse */
         .hero-slide-item.banner-image {
-            background-color: #0d2c54;
+            background-color: transparent;
             width: 100%;
-            height: 100%;
-            min-height: 600px;
+            height: 600px;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 0;
+            margin: 0;
         }
 
         .hero-slide-item.banner-image img {
             position: relative;
-            width: 100%;
-            height: 100%;
+            width: auto;
+            height: auto;
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
-            object-position: center;
-            background-color: #0d2c54;
+            object-position: center center;
+            background-color: transparent;
+            display: block;
+            z-index: 0;
         }
 
-        /* Ajuste para banner de World Series - mostrar completo sin recortes */
+        /* Ajuste para banner de World Series - adaptarse sin expandirse */
         .hero-slide-item img[alt*="World Series"] {
             object-fit: contain;
-            object-position: center;
+            object-position: center center;
+            max-width: 100%;
+            max-height: 100%;
         }
 
         /* Mejorar el responsive de las imágenes en diferentes tamaños */
         @media (max-width: 992px) {
             .hero-slide-item.banner-image img {
-                object-fit: cover;
+                width: auto;
+                height: auto;
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+                object-position: center center;
             }
+        }
+
+        /* Eliminar cualquier fondo azul o blanco en todos los breakpoints */
+        .hero-mlb .carousel-inner {
+            background-color: transparent !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .hero-mlb .carousel-item {
+            background-color: transparent !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .hero-slide-item {
+            background-color: transparent !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        /* Eliminar espacios en blanco del HTML sin afectar el contenido */
+        .hero-mlb .carousel-inner {
+            white-space: nowrap;
+        }
+
+        .hero-mlb .carousel-item {
+            white-space: normal;
         }
 
         .hero-slide-overlay {
@@ -417,25 +710,23 @@
             opacity: 1;
         }
 
+        /* Ocultar indicadores del carousel */
         .carousel-indicators {
-            margin-bottom: 20px;
+            display: none !important;
+        }
+
+        /* Barra roja decorativa en la parte inferior del hero */
+        .hero-mlb::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background-color: var(--mlb-red, #d50032);
+            background: linear-gradient(90deg, #d50032 0%, #ff1744 50%, #d50032 100%);
             z-index: 10;
-        }
-
-        .carousel-indicators button {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.5);
-            border: 2px solid rgba(255, 255, 255, 0.8);
-            margin: 0 5px;
-            transition: all 0.3s ease;
-        }
-
-        .carousel-indicators button.active {
-            background-color: rgba(255, 255, 255, 1);
-            width: 30px;
-            border-radius: 6px;
+            box-shadow: 0 -2px 8px rgba(213, 0, 50, 0.3);
         }
 
         .carousel-item {
@@ -543,22 +834,76 @@
            Organizados por breakpoints
            ============================================ */
 
-        /* Tablet Large (≤1200px) */
-        @media (max-width: 1200px) {
+        /* Desktop pequeño / Tablet XL (993px - 1200px) */
+        @media (min-width: 993px) and (max-width: 1200px) {
+            .hero-mlb .carousel-inner {
+                height: 580px;
+            }
+
             .hero-mlb .carousel-item {
-                height: auto;
-                min-height: 550px;
-                max-height: 90vh;
+                height: 580px;
             }
 
             .hero-mlb .carousel-item.active {
+                height: 580px;
+            }
+
+            .hero-slide-item.banner-image {
+                height: 580px;
+                background-color: transparent;
+            }
+
+            .hero-slide-item.banner-image img {
+                width: auto;
                 height: auto;
-                min-height: 550px;
-                max-height: 90vh;
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+                object-position: center center;
+            }
+        }
+
+        /* Tablet Large (≤1200px) */
+        @media (max-width: 1200px) {
+            .hero-mlb .carousel-inner {
+                height: 550px;
+                background-color: transparent;
+            }
+
+            .hero-mlb .carousel-item {
+                height: 550px;
+                background-color: transparent;
+            }
+
+            .hero-mlb .carousel-item.active {
+                height: 550px;
+                background-color: transparent;
             }
 
             .hero-slide-item {
                 min-height: 100%;
+                background-color: transparent;
+            }
+
+            .hero-slide-item img {
+                object-fit: contain;
+                object-position: center center;
+                max-width: 100%;
+                max-height: 100%;
+            }
+
+            .hero-slide-item.banner-image {
+                height: 550px;
+                background-color: transparent;
+            }
+
+            .hero-slide-item.banner-image img {
+                width: auto;
+                height: auto;
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+                object-position: center center;
             }
 
             .hero-title {
@@ -572,20 +917,45 @@
 
         /* Tablet (≤992px) */
         @media (max-width: 992px) {
+            .hero-mlb .carousel-inner {
+                height: 500px;
+                background-color: transparent;
+            }
+
             .hero-mlb .carousel-item {
-                height: auto;
-                min-height: 500px;
-                max-height: 85vh;
+                height: 500px;
+                background-color: transparent;
             }
 
             .hero-mlb .carousel-item.active {
-                height: auto;
-                min-height: 500px;
-                max-height: 85vh;
+                height: 500px;
+                background-color: transparent;
             }
 
             .hero-slide-item {
                 min-height: 100%;
+                background-color: transparent;
+            }
+
+            .hero-slide-item img {
+                object-fit: contain;
+                object-position: center center;
+                max-width: 100%;
+                max-height: 100%;
+            }
+
+            .hero-slide-item.banner-image {
+                height: 500px;
+                background-color: transparent;
+            }
+
+            .hero-slide-item.banner-image img {
+                width: auto;
+                height: auto;
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+                object-position: center center;
             }
 
             .hero-title {
@@ -616,40 +986,51 @@
         /* Mobile Large (≤768px) */
         @media (max-width: 768px) {
             .hero-mlb .carousel-inner {
-                min-height: 450px;
-                max-height: 80vh;
+                height: 400px;
+                background-color: transparent;
             }
 
             .hero-mlb .carousel-item {
-                height: auto;
-                min-height: 450px;
-                max-height: 80vh;
+                height: 400px;
+                background-color: transparent;
             }
 
             .hero-mlb .carousel-item.active {
-                height: auto;
-                min-height: 450px;
-                max-height: 80vh;
+                height: 400px;
+                background-color: transparent;
             }
 
             .hero-slide-item {
                 min-height: 100%;
+                background-color: transparent;
             }
 
             .hero-slide-item img {
+                object-fit: contain;
                 object-position: center center;
+                max-width: 100%;
+                max-height: 100%;
+            }
+
+            .hero-slide-item.banner-image {
+                height: 400px;
+                background-color: transparent;
             }
 
             .hero-slide-item.banner-image img {
-                object-fit: cover;
-                width: 100%;
-                height: 100%;
+                width: auto;
+                height: auto;
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+                object-position: center center;
             }
 
             .hero-slide-item img[alt*="World Series"] {
-                object-fit: cover;
-                width: 100%;
-                height: 100%;
+                object-fit: contain;
+                object-position: center center;
+                max-width: 100%;
+                max-height: 100%;
             }
 
             .hero-title {
@@ -687,7 +1068,7 @@
             }
 
             .carousel-indicators {
-                margin-bottom: 15px;
+                display: none !important;
             }
 
             .btn-mlb {
@@ -699,32 +1080,51 @@
         /* Mobile (≤576px) */
         @media (max-width: 576px) {
             .hero-mlb .carousel-inner {
-                min-height: 400px;
-                max-height: 75vh;
+                height: 350px;
+                background-color: transparent;
             }
 
             .hero-mlb .carousel-item {
-                height: auto;
-                min-height: 400px;
-                max-height: 75vh;
+                height: 350px;
+                background-color: transparent;
             }
 
             .hero-mlb .carousel-item.active {
-                height: auto;
-                min-height: 400px;
-                max-height: 75vh;
+                height: 350px;
+                background-color: transparent;
             }
 
             .hero-slide-item {
                 min-height: 100%;
+                background-color: transparent;
             }
 
-            .hero-slide-item.banner-image img,
+            .hero-slide-item img {
+                object-fit: contain;
+                object-position: center center;
+                max-width: 100%;
+                max-height: 100%;
+            }
+
+            .hero-slide-item.banner-image {
+                height: 350px;
+                background-color: transparent;
+            }
+
+            .hero-slide-item.banner-image img {
+                width: auto;
+                height: auto;
+                max-width: 100%;
+                max-height: 100%;
+                object-fit: contain;
+                object-position: center center;
+            }
+
             .hero-slide-item img[alt*="World Series"] {
-                object-fit: cover;
-                width: 100%;
-                height: 100%;
->>>>>>> Stashed changes
+                object-fit: contain;
+                object-position: center center;
+                max-width: 100%;
+                max-height: 100%;
             }
 
             .hero-title {
@@ -763,17 +1163,7 @@
             }
 
             .carousel-indicators {
-                margin-bottom: 10px;
-            }
-
-            .carousel-indicators button {
-                width: 10px;
-                height: 10px;
-                margin: 0 3px;
-            }
-
-            .carousel-indicators button.active {
-                width: 25px;
+                display: none !important;
             }
 
             .btn-mlb {
@@ -2825,91 +3215,49 @@
         </div>
     </nav>
 
-    <!-- Hero Section MLB Style - Slider -->
+    <!-- Hero Section - Nuevo Slider -->
     <section class="hero-mlb">
-        <div id="heroSlider" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000" data-bs-pause="hover">
-            <!-- Indicadores -->
-            <div class="carousel-indicators">
-                {% for banner in home_banners %}
-                    <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="{{ forloop.counter0 }}"
-                            {% if forloop.first %}class="active" aria-current="true"{% endif %}
-                            aria-label="Slide {{ forloop.counter }}"></button>
-                {% empty %}
-                    <button type="button" data-bs-target="#heroSlider" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-                {% endfor %}
-            </div>
-
-            <!-- Slides -->
-            <div class="carousel-inner">
+        <div class="hero-slider-container" id="heroSlider">
+            <div class="hero-slider-wrapper">
                 {% if home_banners %}
                     {% for banner in home_banners %}
-                        <div class="carousel-item {% if forloop.first %}active{% endif %}">
-                            {% if banner.banner_type == 'image' %}
-                                <!-- Banner tipo Imagen -->
-                                <div class="hero-slide-item banner-image" style="background: #0d2c54;">
-                                    {% if banner.image %}
-                                        <img src="{{ banner.image.url }}" alt="{{ banner.title|default:'Banner' }}">
+                        <div class="hero-slide {% if forloop.first %}active{% endif %}" data-slide-index="{{ forloop.counter0 }}">
+                            {% if banner.banner_type == 'image' and banner.image %}
+                                <picture>
+                                    {% if banner.mobile_image %}
+                                        <source media="(max-width: 768px)" srcset="{{ banner.mobile_image.url }}">
                                     {% endif %}
-                                </div>
+                                    <img src="{{ banner.image.url }}" alt="{{ banner.title|default:'Banner' }}">
+                                </picture>
                             {% else %}
-                                <!-- Banner tipo Gradiente -->
-                                <div class="hero-slide-item"
-                                     style="background: linear-gradient(135deg, {{ banner.gradient_color_1 }} 0%, {{ banner.gradient_color_2 }} 50%, {{ banner.gradient_color_3|default:banner.gradient_color_2 }} 100%);">
-                                    <div class="hero-slide-overlay"></div>
-                                    <div class="container-fluid px-4 position-relative" style="z-index: 2; height: 100%;">
-                                        <div class="row align-items-center h-100">
-                                            <div class="col-lg-8 hero-content">
-                                                {% if banner.title %}
-                                                    <h1 class="hero-title">{{ banner.title }}</h1>
-                                                {% endif %}
-                                                {% if banner.description %}
-                                                    <p class="hero-subtitle">{{ banner.description }}</p>
-                                                {% endif %}
-                                                {% if banner.button_text or banner.button_text_2 %}
-                                                    <div class="d-flex gap-3 flex-wrap">
-                                                        {% if banner.button_text and banner.button_url %}
-                                                            <a href="{{ banner.button_url }}" class="btn btn-mlb">
-                                                                {% if banner.button_text %}{{ banner.button_text }}{% endif %}
-                                                            </a>
-                                                        {% endif %}
-                                                        {% if banner.button_text_2 and banner.button_url_2 %}
-                                                            <a href="{{ banner.button_url_2 }}" class="btn btn-mlb-outline">
-                                                                {{ banner.button_text_2 }}
-                                                            </a>
-                                                        {% endif %}
-                                                    </div>
-                                                {% endif %}
-                                            </div>
-                                            {% if banner.icon_class %}
-                                                <div class="col-lg-4 text-center mt-4 mt-lg-0">
-                                                    <i class="{{ banner.icon_class }}" style="font-size: 12rem; opacity: 0.2;"></i>
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                    </div>
+                                <div style="width: 100%; height: 100%; background: linear-gradient(135deg, {{ banner.gradient_color_1 }} 0%, {{ banner.gradient_color_2 }} 50%, {{ banner.gradient_color_3|default:banner.gradient_color_2 }} 100%); display: flex; align-items: center; justify-content: center;">
+                                    {% if banner.title %}
+                                        <h1 style="color: white; font-size: 3rem; text-align: center;">{{ banner.title }}</h1>
+                                    {% endif %}
                                 </div>
                             {% endif %}
                         </div>
                     {% endfor %}
                 {% else %}
-                    <!-- Fallback: Banner por defecto si no hay banners -->
-                    <div class="carousel-item active">
-                        <div class="hero-slide-item banner-image" style="background: #0d2c54;">
-                            <img src="{% static 'images/world-series-2026-banner.png' %}" alt="NCS World Series 2026">
-                        </div>
+                    <!-- Fallback: Banner por defecto -->
+                    <div class="hero-slide active" data-slide-index="0">
+                        <img src="{% static 'images/world-series-2026-banner.png' %}" alt="NCS World Series 2026">
                     </div>
                 {% endif %}
             </div>
 
-            <!-- Controles -->
-            <button class="carousel-control-prev" type="button" data-bs-target="#heroSlider" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">{% trans "Previous" %}</span>
+            <!-- Controles de navegación -->
+            <button class="hero-slider-controls prev" id="heroPrevBtn">
+                <i class="fas fa-chevron-left"></i>
             </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#heroSlider" data-bs-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">{% trans "Next" %}</span>
+            <button class="hero-slider-controls next" id="heroNextBtn">
+                <i class="fas fa-chevron-right"></i>
             </button>
+
+            <!-- Barra de progreso roja -->
+            <div class="hero-progress-bar">
+                <div class="hero-progress-bar-fill" id="heroProgressBar"></div>
+            </div>
         </div>
     </section>
 
@@ -4397,6 +4745,259 @@
                 showNextMessage();
             }
         });
+
+        // ============================================
+        // HERO SLIDER - JavaScript
+        // ============================================
+        function initHeroSlider() {
+            const slider = document.getElementById('heroSlider');
+            if (!slider) {
+                console.warn('Hero slider no encontrado');
+                return;
+            }
+
+            const slides = slider.querySelectorAll('.hero-slide');
+            const prevBtn = document.getElementById('heroPrevBtn');
+            const nextBtn = document.getElementById('heroNextBtn');
+            const progressBar = document.getElementById('heroProgressBar');
+
+            if (slides.length === 0) {
+                console.warn('No hay slides en el hero slider');
+                return;
+            }
+
+            // Aspect ratio por defecto de las imágenes desktop: 1905x500 = 3.81:1
+            const DESKTOP_ASPECT_RATIO = 500 / 1905; // 0.2625
+            // Aspect ratio por defecto para móviles (ajustar según tus imágenes móviles)
+            const MOBILE_ASPECT_RATIO = 500 / 1905; // Por defecto igual, se ajustará dinámicamente
+
+            // Función para obtener el aspect ratio de la imagen visible
+            function getImageAspectRatio() {
+                const activeSlide = slider.querySelector('.hero-slide.active');
+                if (!activeSlide) return DESKTOP_ASPECT_RATIO;
+
+                const img = activeSlide.querySelector('img');
+                if (!img) return DESKTOP_ASPECT_RATIO;
+
+                // Si la imagen ya está cargada, usar sus dimensiones reales
+                if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                    return img.naturalHeight / img.naturalWidth;
+                }
+
+                // Si es móvil (ancho <= 768px), usar aspect ratio móvil
+                const isMobile = window.innerWidth <= 768;
+                return isMobile ? MOBILE_ASPECT_RATIO : DESKTOP_ASPECT_RATIO;
+            }
+
+            // Función para ajustar la altura del contenedor según el ancho
+            function adjustContainerHeight() {
+                const container = slider;
+                if (!container) return;
+
+                const containerWidth = container.offsetWidth || container.clientWidth;
+                if (containerWidth > 0) {
+                    // Calcular altura basada en el aspect ratio de la imagen visible
+                    const aspectRatio = getImageAspectRatio();
+                    const calculatedHeight = containerWidth * aspectRatio;
+                    container.style.height = calculatedHeight + 'px';
+                }
+            }
+
+            // Ajustar altura inicial
+            adjustContainerHeight();
+
+            // Ajustar altura cuando las imágenes se carguen
+            const images = slider.querySelectorAll('.hero-slide img');
+            let imagesLoaded = 0;
+            images.forEach(function(img) {
+                if (img.complete) {
+                    imagesLoaded++;
+                } else {
+                    img.addEventListener('load', function() {
+                        imagesLoaded++;
+                        if (imagesLoaded === images.length) {
+                            adjustContainerHeight();
+                        }
+                    });
+                }
+            });
+            if (imagesLoaded === images.length) {
+                adjustContainerHeight();
+            }
+
+            // Ajustar altura cuando cambie el tamaño de la ventana
+            let resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(adjustContainerHeight, 100);
+            });
+
+            let currentSlide = 0;
+            let slideInterval = null;
+            const slideDuration = 5000; // 5 segundos
+
+            // Función para mostrar un slide específico
+            function showSlide(index) {
+                // Asegurar que el índice esté dentro del rango
+                if (index < 0) {
+                    currentSlide = slides.length - 1;
+                } else if (index >= slides.length) {
+                    currentSlide = 0;
+                } else {
+                    currentSlide = index;
+                }
+
+                // Remover clase active de todos los slides
+                slides.forEach((slide) => {
+                    slide.classList.remove('active');
+                });
+
+                // Agregar clase active al slide actual
+                if (slides[currentSlide]) {
+                    slides[currentSlide].classList.add('active');
+                    // Recalcular altura después de cambiar de slide (puede tener diferente aspect ratio)
+                    setTimeout(function() {
+                        adjustContainerHeight();
+                    }, 50);
+                }
+            }
+
+            // Función para avanzar al siguiente slide
+            function nextSlide() {
+                showSlide(currentSlide + 1);
+            }
+
+            // Función para retroceder al slide anterior
+            function prevSlide() {
+                showSlide(currentSlide - 1);
+            }
+
+            // Función para reiniciar la barra de progreso
+            function resetProgress() {
+                if (!progressBar) return;
+
+                // Cancelar cualquier animación anterior
+                progressBar.style.transition = 'none';
+                progressBar.style.width = '0%';
+            }
+
+            // Función para iniciar la animación de la barra de progreso
+            function startProgress() {
+                if (!progressBar) return;
+
+                // Primero resetear completamente
+                progressBar.style.transition = 'none';
+                progressBar.style.width = '0%';
+
+                // Forzar reflow
+                progressBar.offsetWidth;
+
+                // Luego iniciar la animación
+                setTimeout(() => {
+                    if (progressBar) {
+                        progressBar.style.transition = `width ${slideDuration}ms linear`;
+                        progressBar.style.width = '100%';
+                    }
+                }, 50);
+            }
+
+            // Función para iniciar el autoplay
+            function startAutoplay() {
+                // Limpiar intervalos anteriores
+                if (slideInterval) {
+                    clearInterval(slideInterval);
+                    slideInterval = null;
+                }
+
+                // Iniciar barra de progreso
+                startProgress();
+
+                // Cambiar slide cada slideDuration
+                slideInterval = setInterval(() => {
+                    nextSlide();
+                    // Reiniciar progreso inmediatamente después de cambiar de slide
+                    startProgress();
+                }, slideDuration);
+            }
+
+            // Función para pausar el autoplay
+            function pauseAutoplay() {
+                if (slideInterval) {
+                    clearInterval(slideInterval);
+                    slideInterval = null;
+                }
+
+                if (progressBar) {
+                    // Pausar la animación manteniendo el ancho actual
+                    try {
+                        const computedStyle = window.getComputedStyle(progressBar);
+                        const currentWidth = computedStyle.width;
+                        progressBar.style.transition = 'none';
+                        progressBar.style.width = currentWidth;
+                    } catch (e) {
+                        console.warn('Error al pausar progreso:', e);
+                    }
+                }
+            }
+
+            // Event listeners para los botones
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    prevSlide();
+                    startAutoplay();
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    nextSlide();
+                    startAutoplay();
+                });
+            }
+
+            // Pausar cuando el mouse está sobre el slider
+            if (slider) {
+                slider.addEventListener('mouseenter', pauseAutoplay);
+                slider.addEventListener('mouseleave', startAutoplay);
+            }
+
+            // Inicializar
+            showSlide(0);
+
+            // Ajustar altura después de un pequeño delay para asegurar que el DOM esté listo
+            setTimeout(function() {
+                adjustContainerHeight();
+                startAutoplay();
+            }, 100);
+
+            // Limpiar intervalos cuando la página se oculta
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    pauseAutoplay();
+                } else {
+                    startAutoplay();
+                }
+            });
+
+            // Limpiar al salir de la página
+            window.addEventListener('beforeunload', function() {
+                if (slideInterval) {
+                    clearInterval(slideInterval);
+                }
+            });
+        }
+
+        // Inicializar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initHeroSlider);
+        } else {
+            // DOM ya está listo
+            initHeroSlider();
+        }
     </script>
 </body>
 </html>

@@ -2230,6 +2230,7 @@ class HomeBannerForm(forms.ModelForm):
             "description",
             "banner_type",
             "image",
+            "mobile_image",
             "gradient_color_1",
             "gradient_color_2",
             "gradient_color_3",

@@ -786,7 +786,14 @@ class HomeBanner(models.Model):
         blank=True,
         null=True,
         verbose_name="Imagen",
-        help_text='Imagen del banner (requerido si tipo es "Imagen")',
+        help_text='Imagen del banner para desktop (requerido si tipo es "Imagen")',
+    )
+    mobile_image = models.ImageField(
+        upload_to="banners/mobile/",
+        blank=True,
+        null=True,
+        verbose_name="Imagen Móvil",
+        help_text='Imagen del banner para dispositivos móviles (opcional, si no se proporciona se usará la imagen principal)',
     )
     gradient_color_1 = models.CharField(
         max_length=7,

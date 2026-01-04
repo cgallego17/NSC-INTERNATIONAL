@@ -185,7 +185,7 @@ class HomeBannerAdmin(admin.ModelAdmin):
         ),
         (
             "Imagen",
-            {"fields": ("image",), "description": 'Usar si el tipo es "Imagen"'},
+            {"fields": ("image", "mobile_image"), "description": 'Usar si el tipo es "Imagen". La imagen móvil es opcional y se usará en dispositivos móviles.'},
         ),
         (
             "Gradiente",
