@@ -37,11 +37,25 @@ class PublicEventListView(ListView):
         time_filter = self.request.GET.get("time_filter")
 
         if search:
+            # Buscar en título, descripción, ubicación y nombre del tipo de evento
+            search_lower = search.lower()
             queryset = queryset.filter(
                 Q(title__icontains=search)
                 | Q(description__icontains=search)
                 | Q(location__icontains=search)
+                | Q(event_type__name__icontains=search)
             )
+
+            # Si la búsqueda es "showcase" o "gateway", también intentar filtrar por tipo de evento
+            if search_lower in ["showcase", "gateway"]:
+                # Buscar tipos de eventos que contengan la palabra en su nombre
+                matching_types = EventType.objects.filter(
+                    name__icontains=search,
+                    is_active=True
+                )
+                if matching_types.exists():
+                    # Si hay tipos que coinciden, filtrar por esos tipos
+                    queryset = queryset.filter(event_type__in=matching_types)
 
         if category:
             queryset = queryset.filter(category__id=category)
