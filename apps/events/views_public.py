@@ -34,6 +34,7 @@ class PublicEventListView(ListView):
         search = self.request.GET.get("search")
         category = self.request.GET.get("category")
         event_type = self.request.GET.get("event_type")
+        country = self.request.GET.get("country")
         time_filter = self.request.GET.get("time_filter")
 
         if search:
@@ -48,6 +49,9 @@ class PublicEventListView(ListView):
 
         if event_type:
             queryset = queryset.filter(event_type__id=event_type)
+
+        if country:
+            queryset = queryset.filter(country__id=country)
 
         if time_filter:
             if time_filter == "upcoming":
@@ -80,6 +84,18 @@ class PublicEventListView(ListView):
             ("past", _("Past")),
             ("today", _("Today")),
         ]
+        # Obtener países que tienen eventos publicados
+        try:
+            from apps.locations.models import Country
+            # Obtener países únicos que tienen eventos publicados y no cancelados
+            countries_with_events = Country.objects.filter(
+                events__status="published"
+            ).exclude(
+                events__status="cancelled"
+            ).distinct().order_by("name")
+            context["countries"] = countries_with_events
+        except ImportError:
+            context["countries"] = []
         return context
 
 
