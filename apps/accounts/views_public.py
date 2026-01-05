@@ -577,12 +577,40 @@ class PublicPlayerProfileView(DetailView):
                 current_age -= 1
         context["current_age"] = current_age
 
-        # Obtener URL completa del perfil para el código QR
-        player_url = player.get_absolute_url()
-        if player_url and player_url != "#":
-            context["player_qr_url"] = self.request.build_absolute_uri(player_url)
-        else:
-            context["player_qr_url"] = self.request.build_absolute_uri(self.request.path)
+        # Generar código QR para el perfil del jugador
+        try:
+            import qrcode
+            from io import BytesIO
+            import base64
+
+            player_url = player.get_absolute_url()
+            if player_url and player_url != "#":
+                qr_url = self.request.build_absolute_uri(player_url)
+            else:
+                qr_url = self.request.build_absolute_uri(self.request.path)
+
+            # Crear código QR
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=1,
+            )
+            qr.add_data(qr_url)
+            qr.make(fit=True)
+
+            # Crear imagen del QR
+            img = qr.make_image(fill_color="black", back_color="white")
+
+            # Convertir a base64 para incluir en el HTML
+            buffer = BytesIO()
+            img.save(buffer, format='PNG')
+            img_str = base64.b64encode(buffer.getvalue()).decode()
+            context["player_qr_code"] = f"data:image/png;base64,{img_str}"
+        except ImportError:
+            context["player_qr_code"] = None
+        except Exception as e:
+            context["player_qr_code"] = None
 
         # Obtener eventos relacionados si existe la app events
         try:
