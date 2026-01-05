@@ -839,9 +839,16 @@
                     </div>
 
                     <div class="player-card-footer">
-                        <a href="{% url 'public_player_profile' player.slug %}" class="btn-view-profile">
-                            <i class="fas fa-eye me-2"></i>{% trans "View Profile" %}
-                        </a>
+                        {% if player.slug %}
+                            <a href="{% url 'public_player_profile' player.slug %}" class="btn-view-profile">
+                                <i class="fas fa-eye me-2"></i>{% trans "View Profile" %}
+                            </a>
+                        {% else %}
+                            {# Fallback a pk si no hay slug #}
+                            <a href="{% url 'public_player_profile_pk' player.pk %}" class="btn-view-profile">
+                                <i class="fas fa-eye me-2"></i>{% trans "View Profile" %}
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
