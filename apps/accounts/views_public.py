@@ -565,6 +565,18 @@ class PublicPlayerProfileView(DetailView):
         context = super().get_context_data(**kwargs)
         player = context["player"]
 
+        # Calcular edad actual basada en fecha de nacimiento
+        from datetime import date
+        current_age = None
+        if player.user.profile.birth_date:
+            today = date.today()
+            birth_date = player.user.profile.birth_date
+            current_age = today.year - birth_date.year
+            # Ajustar si aún no ha cumplido años este año
+            if (today.month, today.day) < (birth_date.month, birth_date.day):
+                current_age -= 1
+        context["current_age"] = current_age
+
         # Obtener eventos relacionados si existe la app events
         try:
             from django.utils import timezone

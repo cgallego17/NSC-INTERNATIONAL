@@ -278,66 +278,33 @@
                 <div class="info-grid">
                     <div>
                         <p><strong>{{ player.user.get_full_name|default:player.user.username|default:"Jordan Smith" }}</strong></p>
-                        <p>{% if player.user.profile.phone %}({{ player.user.profile.phone }}){% else %}(555) 123-4567{% endif %}</p>
-                        <p>{% if player.user.email and '@nsc-temp.local' not in player.user.email %}{{ player.user.email }}{% else %}jordansmith@abc.com{% endif %}</p>
+                        <p>{% if player.grade %}{{ player.get_grade_display }}{% else %}N/A{% endif %}</p>
+                        <p>Grad Year: {% if player.grade %}{% if player.grade == "12th" %}2025{% elif player.grade == "11th" %}2026{% elif player.grade == "10th" %}2027{% elif player.grade == "9th" %}2028{% else %}TBD{% endif %}{% else %}TBD{% endif %}</p>
+                        <p>{% if player.user.profile.country or player.user.profile.state or player.user.profile.city %}{% if player.user.profile.country %}{{ player.user.profile.country.name }}{% endif %}{% if player.user.profile.state %}{% if player.user.profile.country %}, {% endif %}{{ player.user.profile.state.name }}{% endif %}{% if player.user.profile.city %}{% if player.user.profile.country or player.user.profile.state %}, {% endif %}{{ player.user.profile.city.name }}{% endif %}{% else %}N/A{% endif %}</p>
 
-                        <h4>PARENTS:</h4>
-                        {% if player.parents.all %}
-                            {% for parent_rel in player.parents.all %}
-                            <p>{{ parent_rel.parent.get_full_name }}{% if parent_rel.parent.profile.phone %} – ({{ parent_rel.parent.profile.phone }}){% endif %}</p>
-                            {% endfor %}
-                        {% else %}
-                            <p>Emily Smith – (555) 234-5678</p>
-                            <p>Michael Smith – (555) 345-6789</p>
-                        {% endif %}
-
-                        <h4>CLUB COACH:</h4>
-                        {% if player.team and player.team.manager %}
-                        <p>{{ player.team.manager.get_full_name }}{% if player.team.manager.profile.phone %} – ({{ player.team.manager.profile.phone }}){% endif %}</p>
-                        {% else %}
-                        <p>Alex Johnson – (555) 456-7890</p>
-                        {% endif %}
+                        <p>Best NCSI Grade Showcase</p>
+                        <p>Best NCSI Grade Prospect Games</p>
+                        <p>Team: {% if player.team %}{{ player.team.name }}{% else %}N/A{% endif %}</p>
                     </div>
 
                     <div>
                         <p><strong>DOB:</strong> {% if player.user.profile.birth_date %}{{ player.user.profile.birth_date|date:"m/d/Y" }}{% else %}01/01/2006{% endif %}</p>
-                        <p><strong>HT:</strong> {% if player.height %}{{ player.height }}{% else %}5'10"{% endif %}</p>
+                        <p><strong>HEIGHT:</strong> {% if player.height %}{{ player.height }}{% else %}N/A{% endif %}</p>
+                        <p><strong>WEIGHT:</strong> {% if player.weight %}{{ player.weight }} lbs{% else %}N/A{% endif %}</p>
                         <p><strong>POSITION:</strong> {% if player.position %}{{ player.get_position_display }}{% if player.secondary_position %} / {{ player.get_secondary_position_display }}{% endif %}{% else %}C / Utility{% endif %}</p>
                         <p><strong>BATS:</strong> {% if player.batting_hand %}{{ player.get_batting_hand_display }}{% else %}Switch{% endif %}</p>
                         <p><strong>THROWS:</strong> {% if player.throwing_hand %}{{ player.get_throwing_hand_display }}{% else %}Left / Right{% endif %}</p>
-                        <p><strong>HOME RUNS:</strong> 4</p>
-                        <p><strong>POP UP TIME:</strong> 1.9–2.1</p>
+                        <p><strong>DATE OF BIRTH:</strong> {% if player.user.profile.birth_date %}{{ player.user.profile.birth_date|date:"m/d/Y" }}{% else %}N/A{% endif %}</p>
+                        <p><strong>AGE:</strong> {% if current_age %}{{ current_age }}{% else %}N/A{% endif %}</p>
 
-                        <h4>OFFENSIVE STATS</h4>
-                        <p>AB: 39 | BA: .436 | OBP: .500</p>
-                        <p>SLG: .615 | RBI: 19 | SB: 0</p>
-
-                        <h4>DEFENSIVE STATS</h4>
-                        <p>TC: 78 | Assists: 2</p>
-                        <p>PO: 76 | FPCT: 1.000</p>
-                    </div>
-                </div>
-
-                <div class="bottom-grid">
-                    <div>
-                        <h4>HIGH SCHOOL:</h4>
-                        <p>Evergreen High School</p>
-
-                        <h4>HIGH SCHOOL COACH:</h4>
-                        <p>David Williams – (555) 567-8901</p>
-
-                        <h4>ACADEMICS:</h4>
-                        <p>GPA: 4.0 | SAT: 1600 | ACT: 36</p>
-                    </div>
-
-                    <div>
-                        <h4>EXTRACURRICULAR ACHIEVEMENTS:</h4>
-                        <p>Student Council President</p>
-                        <p>1st Chair Orchestra / 3–4 Bass</p>
-
-                        <h4>HIGH SCHOOL ACCOMPLISHMENTS:</h4>
-                        <p>2021 & 2022 1st Team All District</p>
-                        <p>2022 Academic All District</p>
+                        <h4>NCS EVENT RESULTS</h4>
+                        <p>Get Your Player Metrics Updated-Register for an NCSI Event !</p>
+                        <p>Track Your Progess: Metrics Updated After Every NCSI Prospect Game & Showcase</p>
+                        <p><strong>FB Velo:</strong></p>
+                        <p><strong>60 Yard Dash:</strong></p>
+                        <p><strong>INF Velo:</strong></p>
+                        <p><strong>OF Velo:</strong></p>
+                        <p><strong>Exit Velo:</strong></p>
                     </div>
                 </div>
 
@@ -347,7 +314,7 @@
 
     <!-- FOOTER -->
     <footer class="footer">
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit</p>
+        <p>Latest NCS Showcase / Prospect Game Report</p>
         <div class="qr">QR</div>
     </footer>
 
