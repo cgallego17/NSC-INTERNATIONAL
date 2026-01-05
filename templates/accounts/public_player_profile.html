@@ -229,6 +229,133 @@
             width: 100%;
             height: 100%;
         }
+
+        /* RESPONSIVE - MOBILE */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                padding: 10px;
+            }
+
+            /* HEADER - Mobile */
+            .player-profile-card .header {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px 15px;
+            }
+
+            .player-profile-card .header h1 {
+                font-size: 32px;
+                letter-spacing: 1px;
+                margin-bottom: 10px;
+            }
+
+            .player-profile-card .header h2 {
+                font-size: 16px;
+                margin-bottom: 15px;
+            }
+
+            .player-profile-card .team {
+                margin-top: 10px;
+            }
+
+            .player-profile-card .team-logo {
+                height: 40px;
+                max-width: 120px;
+            }
+
+            /* MAIN - Mobile */
+            .player-profile-card .main {
+                grid-template-columns: 1fr;
+                gap: 15px;
+                padding: 15px;
+            }
+
+            .player-profile-card .left {
+                order: 1;
+            }
+
+            .player-profile-card .right {
+                order: 2;
+            }
+
+            .player-profile-card .schedule {
+                margin-top: 15px;
+                padding: 12px;
+            }
+
+            .player-profile-card .schedule .team-logo {
+                max-width: 100%;
+                height: auto;
+            }
+
+            /* INFO GRID - Mobile */
+            .player-profile-card .info-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .player-profile-card .section-title {
+                padding: 8px;
+                font-size: 16px;
+            }
+
+            /* FOOTER - Mobile */
+            .player-profile-card .footer {
+                flex-direction: column;
+                text-align: center;
+                padding: 15px;
+                gap: 15px;
+            }
+
+            .player-profile-card .footer p {
+                margin: 0;
+                font-size: 14px;
+            }
+
+            .player-profile-card .qr {
+                width: 70px;
+                height: 70px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .content-wrapper {
+                padding: 5px;
+            }
+
+            .player-profile-card .header {
+                padding: 15px 10px;
+            }
+
+            .player-profile-card .header h1 {
+                font-size: 28px;
+            }
+
+            .player-profile-card .header h2 {
+                font-size: 14px;
+            }
+
+            .player-profile-card .main {
+                padding: 10px;
+            }
+
+            .player-profile-card .info-grid {
+                gap: 10px;
+            }
+
+            .player-profile-card p {
+                font-size: 13px;
+            }
+
+            .player-profile-card .footer {
+                padding: 12px;
+            }
+
+            .player-profile-card .qr {
+                width: 60px;
+                height: 60px;
+            }
+        }
     </style>
 </head>
 <body>
