@@ -126,15 +126,17 @@
         }
 
         .player-profile-card .player-image-placeholder i {
-            font-size: 4rem;
-            margin-bottom: 10px;
+            font-size: 5rem;
+            margin-bottom: 15px;
+            color: #bbb;
         }
 
         .player-profile-card .player-image-placeholder .no-photo-text {
-            font-size: 14px;
+            font-size: 16px;
             text-transform: uppercase;
             font-weight: bold;
             color: #999;
+            text-align: center;
         }
 
         .player-profile-card .schedule {
@@ -231,8 +233,8 @@
                 <img src="{{ player.user.profile.profile_picture.url }}" alt="Player Photo">
             {% else %}
                 <div class="player-image-placeholder">
-                    <i class="fas fa-user"></i>
-                    <span class="no-photo-text">Foto no disponible</span>
+                    <i class="fas fa-image"></i>
+                    <span class="no-photo-text">Perfil sin foto</span>
                 </div>
             {% endif %}
 
