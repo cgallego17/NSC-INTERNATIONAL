@@ -6,13 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0036_add_slug_to_player'),
+        ("accounts", "0035_homebanner_mobile_image_alter_homebanner_image"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='sitesettings',
-            name='dashboard_welcome_banner',
-            field=models.ImageField(blank=True, help_text='Imagen que se muestra en el welcome banner del panel de usuario (/panel/)', null=True, upload_to='site_settings/', verbose_name='Banner de Bienvenida del Panel'),
+            model_name="sitesettings",
+            name="dashboard_welcome_banner",
+            field=models.ImageField(
+                blank=True,
+                help_text="Imagen que se muestra en el welcome banner del panel de usuario (/panel/)",
+                null=True,
+                upload_to="site_settings/",
+                verbose_name="Banner de Bienvenida del Panel",
+            ),
         ),
     ]

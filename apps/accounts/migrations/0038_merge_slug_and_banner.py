@@ -17,10 +17,15 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0036_add_slug_to_player'),
-        ('accounts', '0037_alter_sitesettings_dashboard_welcome_banner'),
+        ("accounts", "0036_add_slug_to_player"),
+        ("accounts", "0037_alter_sitesettings_dashboard_welcome_banner"),
     ]
 
-    operations = [
-    ]
+    # Note: On the server, if 0038_alter_sitesettings_dashboard_welcome_banner exists instead of 0037,
+    # you may need to manually update this migration's dependencies to:
+    # dependencies = [
+    #     ('accounts', '0036_add_slug_to_player'),
+    #     ('accounts', '0038_alter_sitesettings_dashboard_welcome_banner'),
+    # ]
 
+    operations = []
