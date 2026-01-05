@@ -204,11 +204,11 @@
 
             .hero-slider-controls.prev {
                 left: 10px;
-            }
+        }
 
             .hero-slider-controls.next {
                 right: 10px;
-            }
+        }
         }
 
         @media (max-width: 768px) {
@@ -267,7 +267,7 @@
 
             .hero-mlb .carousel-item {
                 height: 650px;
-            }
+        }
 
             .hero-slide-item.banner-image {
                 height: 650px;
@@ -275,11 +275,11 @@
             }
 
             .hero-slide-item.banner-image img {
-                width: auto;
+            width: auto;
                 height: auto;
                 max-width: 100%;
                 max-height: 100%;
-                object-fit: contain;
+            object-fit: contain;
                 object-position: center center;
             }
         }
@@ -295,17 +295,17 @@
                 width: 1905px;
                 height: 700px;
                 background-color: transparent;
-            }
+        }
 
             .hero-mlb .carousel-item {
                 height: 700px;
                 background-color: transparent;
-            }
+        }
 
             .hero-slide-item.banner-image {
                 height: 700px;
                 background-color: transparent;
-            }
+        }
 
             .hero-slide-item.banner-image img {
                 width: auto;
@@ -319,7 +319,7 @@
 
         /* Desktop mediano (1201px - 1399px) */
         @media (min-width: 1201px) and (max-width: 1399px) {
-            .hero-mlb .carousel-inner {
+        .hero-mlb .carousel-inner {
                 height: 600px;
                 background-color: transparent;
             }
@@ -3003,9 +3003,9 @@
                                 </picture>
                             {% else %}
                                 <div style="width: 100%; height: 100%; background: linear-gradient(135deg, {{ banner.gradient_color_1 }} 0%, {{ banner.gradient_color_2 }} 50%, {{ banner.gradient_color_3|default:banner.gradient_color_2 }} 100%); display: flex; align-items: center; justify-content: center;">
-                                    {% if banner.title %}
+                                                {% if banner.title %}
                                         <h1 style="color: white; font-size: 3rem; text-align: center;">{{ banner.title }}</h1>
-                                    {% endif %}
+                                                        {% endif %}
                                 </div>
                             {% endif %}
                         </div>
@@ -3013,7 +3013,7 @@
                 {% else %}
                     <!-- Fallback: Banner por defecto -->
                     <div class="hero-slide active" data-slide-index="0">
-                        <img src="{% static 'images/world-series-2026-banner.png' %}" alt="NCS World Series 2026">
+                            <img src="{% static 'images/world-series-2026-banner.png' %}" alt="NCS World Series 2026">
                     </div>
                 {% endif %}
             </div>

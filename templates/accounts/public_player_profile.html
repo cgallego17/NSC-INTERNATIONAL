@@ -6,7 +6,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ player.user.get_full_name|default:player.user.username }} - NCS International</title>
+    <title>{{ player.user.get_full_name|default:player.user.username }} - Player Profile</title>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -14,954 +14,318 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
     <style>
-        :root {
-            --mlb-blue: #0d2c54;
-            --mlb-red: #d50032;
-            --mlb-light-blue: #132448;
-            --mlb-gold: #ffd700;
-            --mlb-dark: #1a1a1a;
-        }
-
         * {
-            margin: 0;
-            padding: 0;
             box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
         }
 
         body {
-            font-family: 'Arial', 'Helvetica', sans-serif;
-            background: #f5f5f5;
-            color: #333;
-        }
-
-        /* Top Bar */
-        .top-bar {
-            background: var(--mlb-dark);
-            color: white;
-            padding: 8px 0;
-            font-size: 0.85rem;
-        }
-
-        .top-bar a {
-            color: #ccc;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .top-bar a:hover {
-            color: white;
-        }
-
-        /* Language Selector with Flags Dropdown */
-        .language-selector-wrapper {
-            position: relative;
-            display: inline-block;
-            margin-right: 0;
-        }
-
-        .language-selector-btn {
-            background: transparent;
-            border: 1px solid #555;
-            color: #ccc;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            min-width: 80px;
-            justify-content: space-between;
-        }
-
-        .language-selector-btn:hover {
-            border-color: var(--mlb-gold);
-            background: rgba(255, 215, 0, 0.1);
-            color: white;
-        }
-
-        .language-selector-btn .flag-icon {
-            width: 20px;
-            height: 15px;
-            display: inline-block;
-            background-size: cover;
-            background-position: center;
-            border-radius: 2px;
-            flex-shrink: 0;
-        }
-
-        .flag-icon.flag-us {
-            background-image: url('https://flagcdn.com/w20/us.png');
-        }
-
-        .flag-icon.flag-es {
-            background-image: url('https://flagcdn.com/w20/es.png');
-        }
-
-        .language-selector-btn .arrow-icon {
-            font-size: 0.7rem;
-            transition: transform 0.3s;
-        }
-
-        .language-selector-btn.active {
-            border-color: var(--mlb-gold);
-            background: rgba(255, 215, 0, 0.15);
-        }
-
-        .language-selector-btn.active .arrow-icon {
-            transform: rotate(180deg);
-        }
-
-        .language-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 5px;
-            background: var(--mlb-dark);
-            border: 1px solid #555;
-            border-radius: 4px;
-            min-width: 150px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.3s;
-            z-index: 1000;
-            overflow: hidden;
-        }
-
-        .language-dropdown.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .language-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 15px;
-            color: #ccc;
-            text-decoration: none;
-            transition: all 0.2s;
-            border-bottom: 1px solid #333;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: inherit;
-        }
-
-        .language-option:last-child {
-            border-bottom: none;
-        }
-
-        .language-option:hover {
-            background: rgba(255, 215, 0, 0.15);
-            color: white;
-        }
-
-        .language-option.active {
-            background: rgba(255, 215, 0, 0.2);
-            color: var(--mlb-gold);
-        }
-
-        .language-option .flag-icon {
-            width: 24px;
-            height: 18px;
-            display: inline-block;
-            background-size: cover;
-            background-position: center;
-            border-radius: 2px;
-            flex-shrink: 0;
-        }
-
-        .language-option .language-name {
-            flex: 1;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        /* Navbar */
-        .navbar-mlb {
-            background: var(--mlb-blue) !important;
+            background: #eee;
             padding: 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-
-        .navbar-mlb .navbar-brand {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: white !important;
-            padding: 15px 20px;
-            background: var(--mlb-red);
-            display: flex;
-            align-items: center;
-        }
-
-        .navbar-logo {
-            height: 40px;
-            width: auto;
-            max-width: 180px;
-            object-fit: contain;
-        }
-
-        .navbar-mlb .nav-link {
-            color: white !important;
-            font-weight: 600;
-            padding: 20px 15px !important;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            letter-spacing: 0.5px;
-            transition: background 0.3s;
-        }
-
-        .navbar-mlb .nav-link:hover,
-        .navbar-mlb .nav-link.active {
-            background: var(--mlb-red);
-        }
-
-        /* Profile Container */
-        .profile-container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
-        }
-
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--mlb-blue);
-            text-decoration: none;
-            font-weight: 600;
-            margin-bottom: 20px;
-            transition: all 0.3s;
-        }
-
-        .back-button:hover {
-            color: var(--mlb-red);
-            transform: translateX(-5px);
-        }
-
-        /* Profile Header Card */
-        .profile-header-card {
-            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
-            border-radius: 20px;
-            padding: 40px;
-            color: white;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .profile-header-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 400px;
-            height: 400px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 50%;
-        }
-
-        .profile-header-content {
-            display: flex;
-            align-items: center;
-            gap: 40px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .player-photo-large {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 6px solid white;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-        }
-
-        .player-photo-placeholder-large {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            border: 6px solid white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 5rem;
-            color: white;
-        }
-
-        .player-info-header {
-            flex: 1;
-        }
-
-        .player-name-large {
-            font-size: 3rem;
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .player-position-badge {
-            display: inline-block;
-            background: var(--mlb-red);
-            color: white;
-            padding: 8px 20px;
-            border-radius: 25px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-right: 10px;
-        }
-
-        .player-number-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--mlb-gold);
-            color: var(--mlb-dark);
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            font-size: 2.5rem;
-            font-weight: 900;
-            border: 5px solid white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-
-        /* Info Cards Grid */
-        .info-cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .info-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border-left: 5px solid var(--mlb-blue);
-            transition: all 0.3s;
-        }
-
-        .info-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-        }
-
-        .info-card-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--mlb-blue);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .info-card-title i {
-            color: var(--mlb-red);
-            font-size: 1.3rem;
-        }
-
-        .info-item {
-            margin-bottom: 15px;
-        }
-
-        .info-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .info-label {
-            font-size: 0.75rem;
-            color: #666;
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 5px;
-            letter-spacing: 0.5px;
-        }
-
-        .info-value {
-            font-size: 1rem;
-            color: #333;
-            font-weight: 500;
-        }
-
-        /* Stats Section */
-        .stats-section {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-
-        .stats-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: var(--mlb-blue);
-            text-transform: uppercase;
-            margin-bottom: 20px;
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .stats-title i {
-            color: var(--mlb-red);
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-        }
-
-        .stat-item {
-            text-align: center;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border: 2px solid #e9ecef;
-            transition: all 0.3s;
-        }
-
-        .stat-item:hover {
-            border-color: var(--mlb-blue);
-            background: white;
-        }
-
-        .stat-label {
-            font-size: 0.85rem;
-            color: #666;
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            color: var(--mlb-blue);
-            font-weight: 900;
-        }
-
-        /* Events Section */
-        .events-section {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-
-        .event-item {
-            padding: 20px;
-            border-left: 4px solid var(--mlb-red);
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            transition: all 0.3s;
-        }
-
-        .event-item:hover {
-            background: white;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-
-        .event-date {
-            font-weight: 700;
-            color: var(--mlb-red);
-            font-size: 0.9rem;
-            margin-bottom: 5px;
-        }
-
-        .event-title {
-            font-weight: 600;
-            color: var(--mlb-blue);
-            margin-bottom: 5px;
-        }
-
-        .event-location {
-            font-size: 0.85rem;
-            color: #666;
-        }
-
-        /* Footer MLB Style */
-        .footer-mlb {
-            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
-            color: #ccc;
-            padding: 60px 0 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .footer-mlb::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--mlb-red) 0%, var(--mlb-blue) 50%, var(--mlb-red) 100%);
-        }
-
-        .footer-mlb .container-fluid {
-            position: relative;
-            z-index: 1;
-        }
-
-        .footer-mlb h5 {
-            color: white;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-bottom: 25px;
-            font-size: 1.1rem;
-            letter-spacing: 1px;
-            position: relative;
-            padding-bottom: 12px;
-        }
-
-        .footer-mlb h5::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 40px;
-            height: 3px;
-            background: var(--mlb-red);
-            border-radius: 2px;
-        }
-
-        .footer-mlb .footer-col {
-            padding: 0 20px;
-        }
-
-        .footer-mlb .footer-logo-section {
-            margin-bottom: 20px;
-        }
-
-        .footer-mlb .footer-logo-section img {
-            filter: drop-shadow(0 2px 8px rgba(255, 255, 255, 0.1));
-            transition: transform 0.3s ease;
-        }
-
-        .footer-mlb .footer-logo-section:hover img {
-            transform: scale(1.05);
-        }
-
-        .footer-mlb p {
-            color: #b0b0b0;
-            line-height: 1.8;
-            font-size: 0.95rem;
-            margin-bottom: 0;
-        }
-
-        .footer-mlb a {
-            color: #ccc;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            padding: 8px 12px;
-            border-radius: 6px;
-            margin: 4px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .footer-mlb a i {
-            margin-right: 8px;
-            width: 18px;
-            text-align: center;
-            font-size: 0.9rem;
-            opacity: 0.8;
-            transition: all 0.3s ease;
-        }
-
-        .footer-mlb a:hover {
-            color: white;
-            background: rgba(213, 0, 50, 0.15);
-            border-color: var(--mlb-red);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(213, 0, 50, 0.2);
-        }
-
-        .footer-mlb a:hover i {
-            opacity: 1;
-            color: var(--mlb-red);
-            transform: scale(1.1);
-        }
-
-        .footer-mlb .quick-links {
-            display: flex !important;
-            flex-direction: row;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .footer-mlb .quick-links a {
-            display: inline-flex !important;
-            align-items: center;
-            min-width: auto;
-            white-space: nowrap;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-
-        .footer-mlb .contact-info {
-            color: #b0b0b0;
-        }
-
-        .footer-mlb .contact-info p {
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            font-size: 0.95rem;
-        }
-
-        .footer-mlb .contact-info i {
-            margin-right: 12px;
-            width: 20px;
-            color: var(--mlb-red);
-            font-size: 1rem;
-            opacity: 0.9;
-        }
-
-        .footer-bottom {
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 25px 0;
-            margin-top: 50px;
-            text-align: center;
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        .footer-bottom p {
-            color: #888;
-            font-size: 0.9rem;
             margin: 0;
         }
 
-        @media (max-width: 768px) {
-            .profile-header-content {
-                flex-direction: column;
-                text-align: center;
-            }
+        .content-wrapper {
+            padding: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
 
-            .player-name-large {
-                font-size: 2rem;
-            }
+        .player-profile-card {
+            width: 100%;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            font-family: 'Arial', sans-serif !important;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #333;
+        }
 
-            .info-cards-grid {
-                grid-template-columns: 1fr;
-            }
+        .player-profile-card * {
+            font-family: 'Arial', sans-serif !important;
+        }
 
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .player-profile-card h1,
+        .player-profile-card h2,
+        .player-profile-card h3,
+        .player-profile-card h4 {
+            font-family: 'Arial', sans-serif !important;
+            font-weight: bold;
+        }
 
-            .footer-mlb {
-                padding: 40px 0 0;
-            }
+        .player-profile-card p {
+            font-family: 'Arial', sans-serif !important;
+            margin: 5px 0;
+        }
 
-            .footer-mlb .footer-col {
-                padding: 0 15px;
-                margin-bottom: 40px;
-            }
+        /* HEADER */
+        .player-profile-card .header {
+            background: #0b3c6d;
+            color: white;
+            padding: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-            .footer-mlb .quick-links {
-                flex-direction: column;
-                gap: 8px;
-            }
+        .player-profile-card .header h1 {
+            margin: 0;
+            font-size: 42px;
+            letter-spacing: 2px;
+        }
 
-            .footer-mlb a {
-                width: 100%;
-                justify-content: flex-start;
-            }
+        .player-profile-card .header h1 span {
+            border: 2px solid white;
+            padding: 5px 10px;
+            margin-left: 10px;
+        }
+
+        .player-profile-card .header h2 {
+            margin: 5px 0 0;
+            font-size: 20px;
+        }
+
+        .player-profile-card .team {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .player-profile-card .team-logo {
+            height: 50px;
+            width: auto;
+            max-width: 150px;
+            object-fit: contain;
+        }
+
+        /* MAIN */
+        .player-profile-card .main {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .player-profile-card .left img {
+            width: 100%;
+            border: 6px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,.15);
+        }
+
+        .player-profile-card .player-image-placeholder {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #f0f0f0;
+            border: 6px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: #999;
+        }
+
+        .player-profile-card .schedule {
+            background: #0b3c6d;
+            color: white;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 8px;
+        }
+
+        .player-profile-card .schedule h3 {
+            margin-top: 0;
+        }
+
+        .player-profile-card .schedule ul {
+            padding-left: 18px;
+        }
+
+        /* RIGHT */
+        .player-profile-card .section-title {
+            background: #0b3c6d;
+            color: white;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+
+        .player-profile-card .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            font-size: 14px;
+        }
+
+        .player-profile-card .info-grid h4 {
+            margin-top: 15px;
+            color: #0b3c6d;
+        }
+
+        .player-profile-card .bottom-grid {
+            margin-top: 25px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            font-size: 14px;
+        }
+
+        /* FOOTER */
+        .player-profile-card .footer {
+            background: #0b3c6d;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-profile-card .qr {
+            width: 80px;
+            height: 80px;
+            background: white;
+            color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <!-- Navbar MLB -->
+    <!-- Navbar MLB (incluye topbar) -->
     {% include 'includes/navbar_mlb.html' %}
 
-    <div class="profile-container">
-        <!-- Back Button -->
-        <a href="{% url 'public_player_list' %}" class="back-button">
-            <i class="fas fa-arrow-left"></i>
-            {% trans "Back to Players" %}
-        </a>
+    <!-- Content Wrapper -->
+    <div class="content-wrapper">
+        <div class="player-profile-card">
 
-        <!-- Profile Header -->
-        <div class="profile-header-card">
-            <div class="profile-header-content">
-                <div>
-                    {% if player.user.profile.profile_picture %}
-                        <img src="{{ player.user.profile.profile_picture.url }}"
-                             alt="{{ player.user.get_full_name }}"
-                             class="player-photo-large">
-                    {% else %}
-                        <div class="player-photo-placeholder-large">
-                            <i class="fas fa-user"></i>
-                        </div>
-                    {% endif %}
-                </div>
-
-                <div class="player-info-header">
-                    <div class="player-name-large">
-                        {{ player.user.get_full_name|default:player.user.username }}
-                    </div>
-                    <div class="mb-3">
-                        {% if player.position %}
-                            <span class="player-position-badge">
-                                <i class="fas fa-map-marker-alt me-1"></i>
-                                {{ player.get_position_display }}
-                            </span>
-                        {% endif %}
-                        {% if player.team %}
-                            <span class="player-position-badge" style="background: var(--mlb-gold); color: var(--mlb-dark);">
-                                <i class="fas fa-users me-1"></i>
-                                {{ player.team.name }}
-                            </span>
-                        {% endif %}
-                    </div>
-                    <div style="font-size: 1.1rem; opacity: 0.9;">
-                        {% if player.division %}
-                            <i class="fas fa-trophy me-2"></i>{% trans "Division" %}: {{ player.division }}
-                        {% endif %}
-                    </div>
-                </div>
-
-                {% if player.jersey_number %}
-                <div class="player-number-badge">
-                    #{{ player.jersey_number }}
-                </div>
-                {% endif %}
+    <!-- HEADER -->
+    <header class="header">
+            <div>
+                <h1>{{ player.user.get_full_name|default:player.user.username|default:"JORDAN SMITH"|upper }}{% if player.jersey_number %} <span>{{ player.jersey_number }}</span>{% else %} <span>17</span>{% endif %}</h1>
+                <h2>CLASS OF {% if player.grade %}{% if player.grade == "12th" %}2025{% elif player.grade == "11th" %}2026{% elif player.grade == "10th" %}2027{% elif player.grade == "9th" %}2028{% else %}TBD{% endif %}{% else %}2025{% endif %}</h2>
             </div>
-        </div>
+            <div class="team">
+                <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" class="team-logo">
+            </div>
+    </header>
 
-        <!-- Info Cards Grid -->
-        <div class="info-cards-grid">
-            <!-- Personal Information -->
-            <div class="info-card">
-                <div class="info-card-title">
+    <!-- MAIN -->
+    <main class="main">
+
+        <!-- LEFT -->
+        <section class="left">
+            {% if player.user.profile.profile_picture %}
+                <img src="{{ player.user.profile.profile_picture.url }}" alt="Player Photo">
+            {% else %}
+                <div class="player-image-placeholder">
                     <i class="fas fa-user"></i>
-                    {% trans "Personal Information" %}
                 </div>
+            {% endif %}
 
-                {% if player.user.profile.birth_date %}
-                <div class="info-item">
-                    <div class="info-label">{% trans "Date of Birth" %}</div>
-                    <div class="info-value">{{ player.user.profile.birth_date|date:"F d, Y" }}</div>
-                </div>
-                {% endif %}
-
-                {% if player.user.profile.birth_date %}
-                    {% with age=player.calculate_age_as_of_april_30 %}
-                        {% if age %}
-                        <div class="info-item">
-                            <div class="info-label">{% trans "Age" %}</div>
-                            <div class="info-value">{{ age }} {% trans "years" %}</div>
-                        </div>
-                        {% endif %}
-                    {% endwith %}
-                {% endif %}
-
-                {% if player.height %}
-                <div class="info-item">
-                    <div class="info-label">{% trans "Height" %}</div>
-                    <div class="info-value">{{ player.height }}</div>
-                </div>
-                {% endif %}
-
-                {% if player.weight %}
-                <div class="info-item">
-                    <div class="info-label">{% trans "Weight" %}</div>
-                    <div class="info-value">{{ player.weight }} lbs</div>
-                </div>
-                {% endif %}
-
-                {% if player.grade %}
-                <div class="info-item">
-                    <div class="info-label">{% trans "Grade" %}</div>
-                    <div class="info-value">{{ player.get_grade_display }}</div>
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Contact Information -->
-            <div class="info-card">
-                <div class="info-card-title">
-                    <i class="fas fa-address-book"></i>
-                    {% trans "Contact Information" %}
-                </div>
-
-                {% if player.user.email and '@nsc-temp.local' not in player.user.email %}
-                <div class="info-item">
-                    <div class="info-label">{% trans "Email" %}</div>
-                    <div class="info-value">{{ player.user.email }}</div>
-                </div>
-                {% endif %}
-
-                {% if player.user.profile.phone %}
-                <div class="info-item">
-                    <div class="info-label">{% trans "Phone" %}</div>
-                    <div class="info-value">{{ player.user.profile.phone }}</div>
-                </div>
-                {% endif %}
-
-                {% if player.user.profile.city or player.user.profile.state or player.user.profile.country %}
-                <div class="info-item">
-                    <div class="info-label">{% trans "Location" %}</div>
-                    <div class="info-value">
-                        {% if player.user.profile.city %}{{ player.user.profile.city.name }}{% endif %}
-                        {% if player.user.profile.state %}, {{ player.user.profile.state.name }}{% endif %}
-                        {% if player.user.profile.country %}<br>{{ player.user.profile.country.name }}{% endif %}
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if player.parents.all %}
-                <div class="info-item">
-                    <div class="info-label">{% trans "Parents" %}</div>
-                    {% for parent_rel in player.parents.all %}
-                        <div class="info-value">
-                            {{ parent_rel.parent.get_full_name }}
-                            {% if parent_rel.parent.profile.phone %}
-                                <br><small>{{ parent_rel.parent.profile.phone }}</small>
-                            {% endif %}
-                        </div>
-                    {% endfor %}
-                </div>
-                {% endif %}
-            </div>
-
-            <!-- Team & Coach -->
-            <div class="info-card">
-                <div class="info-card-title">
-                    <i class="fas fa-users"></i>
-                    {% trans "Team & Coach" %}
-                </div>
-
-                {% if player.team %}
-                <div class="info-item">
-                    <div class="info-label">{% trans "Team" %}</div>
-                    <div class="info-value">{{ player.team.name }}</div>
-                </div>
-                {% endif %}
-
-                {% if player.team and player.team.manager %}
-                <div class="info-item">
-                    <div class="info-label">{% trans "Coach" %}</div>
-                    <div class="info-value">
-                        {{ player.team.manager.get_full_name }}
-                        {% if player.team.manager.profile.phone %}
-                            <br><small>{{ player.team.manager.profile.phone }}</small>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
-
-                {% if player.division %}
-                <div class="info-item">
-                    <div class="info-label">{% trans "Division" %}</div>
-                    <div class="info-value">{{ player.division }}</div>
-                </div>
-                {% endif %}
-
-                {% if player.user.profile.birth_date %}
-                    {% with eligible=player.get_eligible_divisions %}
-                        {% if eligible %}
-                        <div class="info-item">
-                            <div class="info-label">{% trans "Eligible Divisions" %}</div>
-                            <div class="info-value">
-                                {% for div in eligible %}
-                                    <span class="badge bg-primary me-1">{{ div }}</span>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-                    {% endwith %}
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Player Stats -->
-        <div class="stats-section">
-            <div class="stats-title">
-                <i class="fas fa-chart-bar"></i>
-                {% trans "Player Statistics" %}
-            </div>
-            <div class="stats-grid">
-                {% if player.position %}
-                <div class="stat-item">
-                    <div class="stat-label">{% trans "Position" %}</div>
-                    <div class="stat-value">{{ player.get_position_display }}</div>
-                </div>
-                {% endif %}
-
-                {% if player.batting_hand %}
-                <div class="stat-item">
-                    <div class="stat-label">{% trans "Bats" %}</div>
-                    <div class="stat-value">{{ player.get_batting_hand_display }}</div>
-                </div>
-                {% endif %}
-
-                {% if player.throwing_hand %}
-                <div class="stat-item">
-                    <div class="stat-label">{% trans "Throws" %}</div>
-                    <div class="stat-value">{{ player.get_throwing_hand_display }}</div>
-                </div>
-                {% endif %}
-
-                {% if player.jersey_number %}
-                <div class="stat-item">
-                    <div class="stat-label">{% trans "Jersey Number" %}</div>
-                    <div class="stat-value">#{{ player.jersey_number }}</div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- Upcoming Events -->
-        {% if upcoming_events %}
-        <div class="events-section">
-            <div class="stats-title">
-                <i class="fas fa-calendar-alt"></i>
-                {% trans "Upcoming Events" %}
-            </div>
-            {% for event in upcoming_events %}
-            <div class="event-item">
-                <div class="event-date">
-                    <i class="far fa-calendar me-2"></i>
-                    {{ event.start_date|date:"F d, Y" }}
-                </div>
-                <div class="event-title">{{ event.title }}</div>
-                <div class="event-location">
-                    <i class="fas fa-map-marker-alt me-2"></i>
-                    {% if event.location %}
-                        {{ event.location }}
+            <div class="schedule">
+                <h3>MATCH SCHEDULE</h3>
+                <ul>
+                    {% if upcoming_events %}
+                        {% for event in upcoming_events|slice:":8" %}
+                        <li>{{ event.start_date|date:"F d" }} – Opponent, Location</li>
+                        {% endfor %}
                     {% else %}
-                        {% trans "Location TBD" %}
+                        <li>September 24 – Opponent, Location</li>
+                        <li>September 26 – Opponent, Location</li>
+                        <li>September 30 – Opponent, Location</li>
+                        <li>October 4 – Opponent, Location</li>
+                        <li>October 15 – Opponent, Location</li>
+                        <li>October 19 – Opponent, Location</li>
+                        <li>October 23 – Opponent, Location</li>
+                        <li>October 24 – Opponent, Location</li>
                     {% endif %}
-                </div>
+                </ul>
             </div>
-            {% endfor %}
+        </section>
+
+        <!-- RIGHT -->
+        <section class="right">
+
+            <h3 class="section-title">PLAYER INFORMATION</h3>
+
+                <div class="info-grid">
+                    <div>
+                        <p><strong>{{ player.user.get_full_name|default:player.user.username|default:"Jordan Smith" }}</strong></p>
+                        <p>{% if player.user.profile.phone %}({{ player.user.profile.phone }}){% else %}(555) 123-4567{% endif %}</p>
+                        <p>{% if player.user.email and '@nsc-temp.local' not in player.user.email %}{{ player.user.email }}{% else %}jordansmith@abc.com{% endif %}</p>
+
+                        <h4>PARENTS:</h4>
+                        {% if player.parents.all %}
+                            {% for parent_rel in player.parents.all %}
+                            <p>{{ parent_rel.parent.get_full_name }}{% if parent_rel.parent.profile.phone %} – ({{ parent_rel.parent.profile.phone }}){% endif %}</p>
+                            {% endfor %}
+                        {% else %}
+                            <p>Emily Smith – (555) 234-5678</p>
+                            <p>Michael Smith – (555) 345-6789</p>
+                        {% endif %}
+
+                        <h4>CLUB COACH:</h4>
+                        {% if player.team and player.team.manager %}
+                        <p>{{ player.team.manager.get_full_name }}{% if player.team.manager.profile.phone %} – ({{ player.team.manager.profile.phone }}){% endif %}</p>
+                        {% else %}
+                        <p>Alex Johnson – (555) 456-7890</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <p><strong>DOB:</strong> {% if player.user.profile.birth_date %}{{ player.user.profile.birth_date|date:"m/d/Y" }}{% else %}01/01/2006{% endif %}</p>
+                        <p><strong>HT:</strong> {% if player.height %}{{ player.height }}{% else %}5'10"{% endif %}</p>
+                        <p><strong>POSITION:</strong> {% if player.position %}{{ player.get_position_display }}{% if player.secondary_position %} / {{ player.get_secondary_position_display }}{% endif %}{% else %}C / Utility{% endif %}</p>
+                        <p><strong>BATS:</strong> {% if player.batting_hand %}{{ player.get_batting_hand_display }}{% else %}Switch{% endif %}</p>
+                        <p><strong>THROWS:</strong> {% if player.throwing_hand %}{{ player.get_throwing_hand_display }}{% else %}Left / Right{% endif %}</p>
+                        <p><strong>HOME RUNS:</strong> 4</p>
+                        <p><strong>POP UP TIME:</strong> 1.9–2.1</p>
+
+                        <h4>OFFENSIVE STATS</h4>
+                        <p>AB: 39 | BA: .436 | OBP: .500</p>
+                        <p>SLG: .615 | RBI: 19 | SB: 0</p>
+
+                        <h4>DEFENSIVE STATS</h4>
+                        <p>TC: 78 | Assists: 2</p>
+                        <p>PO: 76 | FPCT: 1.000</p>
+                    </div>
+                </div>
+
+                <div class="bottom-grid">
+                    <div>
+                        <h4>HIGH SCHOOL:</h4>
+                        <p>Evergreen High School</p>
+
+                        <h4>HIGH SCHOOL COACH:</h4>
+                        <p>David Williams – (555) 567-8901</p>
+
+                        <h4>ACADEMICS:</h4>
+                        <p>GPA: 4.0 | SAT: 1600 | ACT: 36</p>
+                    </div>
+
+                    <div>
+                        <h4>EXTRACURRICULAR ACHIEVEMENTS:</h4>
+                        <p>Student Council President</p>
+                        <p>1st Chair Orchestra / 3–4 Bass</p>
+
+                        <h4>HIGH SCHOOL ACCOMPLISHMENTS:</h4>
+                        <p>2021 & 2022 1st Team All District</p>
+                        <p>2022 Academic All District</p>
+                    </div>
+                </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit</p>
+        <div class="qr">QR</div>
+    </footer>
+
         </div>
-        {% endif %}
     </div>
 
     <!-- Footer MLB -->
