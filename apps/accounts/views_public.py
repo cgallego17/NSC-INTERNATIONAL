@@ -522,6 +522,8 @@ class PublicPlayerProfileView(DetailView):
     model = Player
     template_name = "accounts/public_player_profile.html"
     context_object_name = "player"
+    slug_field = "slug"
+    slug_url_kwarg = "slug"
 
     def get_queryset(self):
         # Solo mostrar jugadores activos públicamente

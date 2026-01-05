@@ -91,12 +91,6 @@
             letter-spacing: 2px;
         }
 
-        .player-profile-card .header h1 span {
-            border: 2px solid white;
-            padding: 5px 10px;
-            margin-left: 10px;
-        }
-
         .player-profile-card .header h2 {
             margin: 5px 0 0;
             font-size: 20px;
@@ -233,7 +227,7 @@
     <!-- HEADER -->
     <header class="header">
             <div>
-                <h1>{{ player.user.get_full_name|default:player.user.username|default:"JORDAN SMITH"|upper }}{% if player.jersey_number %} <span>{{ player.jersey_number }}</span>{% else %} <span>17</span>{% endif %}</h1>
+                <h1>{{ player.user.get_full_name|default:player.user.username|default:"JORDAN SMITH"|upper }}</h1>
                 <h2>CLASS OF {% if player.grade %}{% if player.grade == "12th" %}2025{% elif player.grade == "11th" %}2026{% elif player.grade == "10th" %}2027{% elif player.grade == "9th" %}2028{% else %}TBD{% endif %}{% else %}2025{% endif %}</h2>
             </div>
             <div class="team">

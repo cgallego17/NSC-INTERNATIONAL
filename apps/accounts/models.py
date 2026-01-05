@@ -237,6 +237,14 @@ class Player(models.Model):
     jersey_number = models.PositiveIntegerField(
         null=True, blank=True, verbose_name="Número de Jersey"
     )
+    slug = models.SlugField(
+        max_length=200,
+        unique=True,
+        blank=True,
+        null=True,
+        verbose_name="Slug",
+        help_text="URL amigable basada en el nombre del jugador",
+    )
     position = models.CharField(
         max_length=20, choices=POSITION_CHOICES, blank=True, verbose_name=_("Primary Position")
     )
@@ -454,8 +462,24 @@ class Player(models.Model):
     def __str__(self):
         return f"{self.user.get_full_name()} - {self.team.name if self.team else 'Sin Equipo'}"
 
+    def save(self, *args, **kwargs):
+        """Genera automáticamente el slug si no existe"""
+        if not self.slug:
+            full_name = self.user.get_full_name() or self.user.username
+            base_slug = slugify(full_name)
+            slug = base_slug
+            counter = 1
+            # Asegurar que el slug sea único
+            while Player.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            self.slug = slug
+        super().save(*args, **kwargs)
+
     def get_absolute_url(self):
-        if self.pk:
+        if self.slug:
+            return reverse("public_player_profile", kwargs={"slug": self.slug})
+        elif self.pk:
             return reverse("accounts:player_detail", kwargs={"pk": self.pk})
         return "#"
 

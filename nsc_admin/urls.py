@@ -48,7 +48,7 @@ urlpatterns = [
         "players/", PublicPlayerListView.as_view(), name="public_player_list"
     ),  # Players público
     path(
-        "players/<int:pk>/",
+        "players/<slug:slug>/",
         PublicPlayerProfileView.as_view(),
         name="public_player_profile",
     ),  # Perfil público de jugador
