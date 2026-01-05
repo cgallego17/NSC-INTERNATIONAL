@@ -250,60 +250,6 @@ class PublicRegistrationView(CreateView):
         return response
 
 
-class UserDashboardView(LoginRequiredMixin, TemplateView):
-    """Panel de usuario frontal"""
-
-    template_name = "accounts/user_dashboard.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-
-        try:
-            profile = user.profile
-        except UserProfile.DoesNotExist:
-            # Crear perfil si no existe
-            profile = UserProfile.objects.create(user=user, user_type="player")
-
-        context["profile"] = profile
-
-        # Si es jugador, obtener información del jugador
-        if profile.is_player:
-            try:
-                context["player"] = user.player_profile
-            except Player.DoesNotExist:
-                context["player"] = None
-
-        # Si es manager, obtener sus equipos
-        if profile.is_team_manager:
-            context["teams"] = Team.objects.filter(manager=user).order_by(
-                "-created_at"
-            )[:5]
-            context["total_teams"] = Team.objects.filter(manager=user).count()
-            context["total_players"] = Player.objects.filter(team__manager=user).count()
-            context["recent_players"] = Player.objects.filter(
-                team__manager=user
-            ).order_by("-created_at")[:5]
-
-        # Obtener eventos próximos si existe la app events
-        try:
-            from apps.events.models import Event
-
-            now = timezone.now()
-            context["upcoming_events"] = (
-                Event.objects.filter(start_date__gte=now.date(), status="published")
-                .select_related("category")
-                .prefetch_related("divisions")[:5]
-            )
-        except ImportError:
-            context["upcoming_events"] = []
-
-        # Obtener mensajes activos del marquee
-        from .models import MarqueeMessage
-        marquee_messages = MarqueeMessage.objects.filter(is_active=True).order_by("order", "-created_at")
-        context["marquee_messages"] = marquee_messages
-
-        return context
 
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
