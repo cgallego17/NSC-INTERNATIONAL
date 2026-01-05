@@ -577,6 +577,13 @@ class PublicPlayerProfileView(DetailView):
                 current_age -= 1
         context["current_age"] = current_age
 
+        # Obtener URL completa del perfil para el código QR
+        player_url = player.get_absolute_url()
+        if player_url and player_url != "#":
+            context["player_qr_url"] = self.request.build_absolute_uri(player_url)
+        else:
+            context["player_qr_url"] = self.request.build_absolute_uri(self.request.path)
+
         # Obtener eventos relacionados si existe la app events
         try:
             from django.utils import timezone

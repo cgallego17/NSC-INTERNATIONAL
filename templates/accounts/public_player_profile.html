@@ -213,6 +213,15 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
+            padding: 5px;
+        }
+
+        .player-profile-card .qr canvas,
+        .player-profile-card .qr img {
+            max-width: 100%;
+            max-height: 100%;
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
@@ -228,7 +237,7 @@
     <header class="header">
             <div>
                 <h1>{{ player.user.get_full_name|default:player.user.username|default:"JORDAN SMITH"|upper }}</h1>
-                <h2>CLASS OF {% if player.grade %}{% if player.grade == "12th" %}2025{% elif player.grade == "11th" %}2026{% elif player.grade == "10th" %}2027{% elif player.grade == "9th" %}2028{% else %}TBD{% endif %}{% else %}2025{% endif %}</h2>
+                <h2>{% if player.user.profile.country or player.user.profile.state or player.user.profile.city %}{% if player.user.profile.country %}{{ player.user.profile.country.name }}{% endif %}{% if player.user.profile.state %}{% if player.user.profile.country %}, {% endif %}{{ player.user.profile.state.name }}{% endif %}{% if player.user.profile.city %}{% if player.user.profile.country or player.user.profile.state %}, {% endif %}{{ player.user.profile.city.name }}{% endif %}{% else %}N/A{% endif %}</h2>
             </div>
             <div class="team">
                 <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" class="team-logo">
@@ -249,24 +258,8 @@
                 </div>
             {% endif %}
 
-            <div class="schedule">
-                <h3>MATCH SCHEDULE</h3>
-                <ul>
-                    {% if upcoming_events %}
-                        {% for event in upcoming_events|slice:":8" %}
-                        <li>{{ event.start_date|date:"F d" }} – Opponent, Location</li>
-                        {% endfor %}
-                    {% else %}
-                        <li>September 24 – Opponent, Location</li>
-                        <li>September 26 – Opponent, Location</li>
-                        <li>September 30 – Opponent, Location</li>
-                        <li>October 4 – Opponent, Location</li>
-                        <li>October 15 – Opponent, Location</li>
-                        <li>October 19 – Opponent, Location</li>
-                        <li>October 23 – Opponent, Location</li>
-                        <li>October 24 – Opponent, Location</li>
-                    {% endif %}
-                </ul>
+            <div class="schedule" style="display: flex; justify-content: center; align-items: center; padding: 20px;">
+                <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" class="team-logo" style="max-width: 100%; height: auto;">
             </div>
         </section>
 
@@ -315,7 +308,7 @@
     <!-- FOOTER -->
     <footer class="footer">
         <p>Latest NCS Showcase / Prospect Game Report</p>
-        <div class="qr">QR</div>
+        <div class="qr" id="player-qr-code"></div>
     </footer>
 
         </div>
@@ -326,5 +319,45 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
+    <!-- Generate QR Code -->
+    <script>
+        {% if player_qr_url %}
+        document.addEventListener('DOMContentLoaded', function() {
+            const qrElement = document.getElementById('player-qr-code');
+            if (qrElement) {
+                // Crear un canvas para el QR
+                const canvas = document.createElement('canvas');
+                qrElement.innerHTML = ''; // Limpiar el contenido
+                qrElement.appendChild(canvas);
+
+                QRCode.toCanvas(canvas, '{{ player_qr_url|escapejs }}', {
+                    width: 80,
+                    height: 80,
+                    margin: 1,
+                    color: {
+                        dark: '#000000',
+                        light: '#FFFFFF'
+                    }
+                }, function (error) {
+                    if (error) {
+                        console.error('Error generating QR code:', error);
+                        qrElement.innerHTML = 'QR';
+                    }
+                });
+            }
+        });
+        {% else %}
+        document.addEventListener('DOMContentLoaded', function() {
+            const qrElement = document.getElementById('player-qr-code');
+            if (qrElement) {
+                qrElement.textContent = 'QR';
+            }
+        });
+        {% endif %}
+    </script>
 </body>
 </html>
