@@ -60,12 +60,29 @@
 
         /* HEADER */
         .player-profile-card .header {
-            background: #0b3c6d;
+            background: #0b3c6d url('/multimedia/image/2026/01/banner-baseball-icons-web.webp') center center / cover no-repeat;
             color: white;
             padding: 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
+        }
+
+        .player-profile-card .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(11, 60, 109, 0.85);
+            z-index: 1;
+        }
+
+        .player-profile-card .header > * {
+            position: relative;
+            z-index: 2;
         }
 
         .player-profile-card .header h1 {
