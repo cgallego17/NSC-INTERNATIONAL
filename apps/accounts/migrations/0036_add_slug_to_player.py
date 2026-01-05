@@ -15,9 +15,4 @@ class Migration(migrations.Migration):
             name='slug',
             field=models.SlugField(blank=True, help_text='URL amigable basada en el nombre del jugador', max_length=200, null=True, unique=True, verbose_name='Slug'),
         ),
-        migrations.AlterField(
-            model_name='sitesettings',
-            name='dashboard_welcome_banner',
-            field=models.ImageField(blank=True, help_text='Imagen que se muestra en el welcome banner del panel de usuario (/panel/)', null=True, upload_to='site_settings/', verbose_name='Banner de Bienvenida del Panel'),
-        ),
     ]
