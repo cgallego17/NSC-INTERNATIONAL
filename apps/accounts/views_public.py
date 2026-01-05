@@ -578,6 +578,7 @@ class PublicPlayerProfileView(DetailView):
         context["current_age"] = current_age
 
         # Generar código QR para el perfil del jugador
+        context["player_qr_code"] = None
         try:
             import qrcode
             from io import BytesIO
@@ -607,9 +608,17 @@ class PublicPlayerProfileView(DetailView):
             img.save(buffer, format='PNG')
             img_str = base64.b64encode(buffer.getvalue()).decode()
             context["player_qr_code"] = f"data:image/png;base64,{img_str}"
-        except ImportError:
+        except ImportError as e:
+            # Si no está instalada la librería, usar fallback
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.warning(f"qrcode library not installed: {e}")
             context["player_qr_code"] = None
         except Exception as e:
+            # Log del error pero continuar
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Error generating QR code: {e}")
             context["player_qr_code"] = None
 
         # Obtener eventos relacionados si existe la app events

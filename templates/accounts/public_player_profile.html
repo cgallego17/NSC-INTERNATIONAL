@@ -276,14 +276,14 @@
 
                 <div class="info-grid">
                     <div>
-                        <p><strong>{{ player.user.get_full_name|default:player.user.username|default:"Jordan Smith" }}</strong></p>
+                        <p style="font-size: 18px;"><strong>{{ player.user.get_full_name|default:player.user.username|default:"Jordan Smith" }}</strong></p>
                         <p>{% if player.grade %}{{ player.get_grade_display }}{% else %}N/A{% endif %}</p>
                         <p>Grad Year: {% if player.grade %}{% if player.grade == "12th" %}2025{% elif player.grade == "11th" %}2026{% elif player.grade == "10th" %}2027{% elif player.grade == "9th" %}2028{% else %}TBD{% endif %}{% else %}TBD{% endif %}</p>
                         <p>{% if player.user.profile.country or player.user.profile.state or player.user.profile.city %}{% if player.user.profile.country %}{{ player.user.profile.country.name }}{% endif %}{% if player.user.profile.state %}{% if player.user.profile.country %}, {% endif %}{{ player.user.profile.state.name }}{% endif %}{% if player.user.profile.city %}{% if player.user.profile.country or player.user.profile.state %}, {% endif %}{{ player.user.profile.city.name }}{% endif %}{% else %}N/A{% endif %}</p>
 
                         <p>Best NCSI Grade Showcase</p>
                         <p>Best NCSI Grade Prospect Games</p>
-                        <p>Team: {% if player.team %}{{ player.team.name }}{% else %}N/A{% endif %}</p>
+                        <p>Current Team: {% if player.team %}{{ player.team.name }}{% else %}N/A{% endif %}</p>
                     </div>
 
                     <div>
