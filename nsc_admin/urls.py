@@ -47,17 +47,17 @@ urlpatterns = [
     path(
         "players/", PublicPlayerListView.as_view(), name="public_player_list"
     ),  # Players público
-    # URL con slug (preferida para SEO)
-    path(
-        "players/<slug:slug>/",
-        PublicPlayerProfileView.as_view(),
-        name="public_player_profile",
-    ),
-    # URL con pk (fallback para compatibilidad)
+    # URL con pk (debe ir primero para evitar conflictos)
     path(
         "players/<int:pk>/",
         PublicPlayerProfileView.as_view(),
         name="public_player_profile_pk",
+    ),
+    # URL con slug (preferida para SEO, debe ir después de pk)
+    path(
+        "players/<slug:slug>/",
+        PublicPlayerProfileView.as_view(),
+        name="public_player_profile",
     ),  # Perfil público de jugador
     path("events/", include("apps.events.urls")),
     path("locations/", include("apps.locations.urls")),

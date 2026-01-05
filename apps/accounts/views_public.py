@@ -536,17 +536,9 @@ class PublicPlayerProfileView(DetailView):
         if queryset is None:
             queryset = self.get_queryset()
 
-        # Intentar obtener por slug primero
-        slug = self.kwargs.get(self.slug_url_kwarg)
-        if slug:
-            try:
-                return queryset.get(slug=slug)
-            except Player.DoesNotExist:
-                pass
-
-        # Fallback: intentar por pk si está disponible
+        # Verificar si viene pk primero (URL con int tiene prioridad)
         pk = self.kwargs.get('pk')
-        if pk:
+        if pk is not None:
             try:
                 player = queryset.get(pk=pk)
                 # Si el jugador no tiene slug, generarlo
@@ -554,11 +546,20 @@ class PublicPlayerProfileView(DetailView):
                     player.save()  # Esto generará el slug automáticamente
                 return player
             except Player.DoesNotExist:
-                pass
+                from django.http import Http404
+                raise Http404("No se encontró el jugador con ese ID")
 
-        # Si no se encuentra, lanzar 404
-        from django.http import Http404
-        raise Http404("No se encontró el jugador")
+        # Si no hay pk, buscar por slug
+        slug = self.kwargs.get(self.slug_url_kwarg)
+        if slug:
+            try:
+                return queryset.get(slug=slug)
+            except Player.DoesNotExist:
+                from django.http import Http404
+                raise Http404("No se encontró el jugador con ese slug")
+
+        # Si no hay ni pk ni slug, usar el método por defecto
+        return super().get_object(queryset)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
