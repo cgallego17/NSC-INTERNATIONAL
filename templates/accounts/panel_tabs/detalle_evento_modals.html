@@ -726,6 +726,353 @@
         border: 2px solid #f97316 !important;
         box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
     }
+
+    /* Estilos específicos para móvil - Modal de Hotel */
+    @media (max-width: 768px) {
+        /* Modal Dialog - Full width en móvil */
+        #hotelReservationModal{{ event.hotel.pk }} .modal-dialog {
+            max-width: 100% !important;
+            margin: 0 !important;
+            height: 100vh !important;
+            display: flex !important;
+            align-items: stretch !important;
+        }
+
+        #hotelReservationModal{{ event.hotel.pk }} .modal-content {
+            border-radius: 0 !important;
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            max-height: 100vh !important;
+        }
+
+        /* Header de la modal - Más compacto */
+        #hotelReservationModal{{ event.hotel.pk }} .modal-header {
+            padding: 12px 16px !important;
+            flex-wrap: wrap !important;
+            gap: 8px !important;
+        }
+
+        #hotelReservationModal{{ event.hotel.pk }} .modal-header > div:first-child {
+            flex: 1;
+            min-width: 0;
+        }
+
+        #hotelReservationModal{{ event.hotel.pk }} .modal-header .nsc-step {
+            font-size: 0.75rem !important;
+            margin-bottom: 4px !important;
+        }
+
+        #hotelReservationModal{{ event.hotel.pk }} .modal-title {
+            font-size: 1rem !important;
+            margin-top: 0 !important;
+        }
+
+        #hotelReservationModal{{ event.hotel.pk }} .modal-header > div:last-child {
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        #hotelReservationModal{{ event.hotel.pk }} .modal-header [style*="font-weight: 700"][style*="color: #1e3a5f"] {
+            font-size: 0.8rem !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 4px !important;
+        }
+
+        #hotelReservationModal{{ event.hotel.pk }} .modal-header [style*="font-weight: 700"][style*="color: #1e3a5f"] span {
+            font-size: 0.75rem !important;
+            line-height: 1.3 !important;
+        }
+
+        /* Body de la modal - Scroll mejorado */
+        #hotelReservationModal{{ event.hotel.pk }} .modal-body {
+            flex: 1 !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            padding: 12px 16px !important;
+        }
+
+        /* Información del hotel - Stack vertical */
+        #hotelReservationModal{{ event.hotel.pk }} [style*="background: #ffffff"][style*="padding: 12px 16px"] {
+            padding: 12px !important;
+        }
+
+        #hotelReservationModal{{ event.hotel.pk }} [style*="display: flex"][style*="align-items: center"][style*="gap: 12px"] {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 10px !important;
+        }
+
+        #hotelReservationModal{{ event.hotel.pk }} [style*="width: 60px"][style*="height: 60px"] {
+            width: 80px !important;
+            height: 80px !important;
+        }
+
+        /* Cards y secciones - Padding reducido */
+        #hotelReservationModal{{ event.hotel.pk }} .nsc-card {
+            padding: 12px !important;
+            margin-bottom: 12px !important;
+        }
+
+        /* Botones - Full width en móvil */
+        #hotelReservationModal{{ event.hotel.pk }} .modal-footer {
+            padding: 12px 16px !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+        }
+
+        #hotelReservationModal{{ event.hotel.pk }} .modal-footer .btn {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 12px 20px !important;
+            font-size: 0.95rem !important;
+        }
+
+        /* Grid de habitaciones - 1 columna en móvil */
+        #hotelReservationModal{{ event.hotel.pk }} .rooms-grid-container {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+        }
+
+        /* Rooms List Zone - Optimización móvil */
+        #hotelRoomsModal{{ event.hotel.pk }} .rooms-list-zone {
+            padding: 0 !important;
+        }
+
+        /* Selector de ordenamiento - Stack vertical en móvil */
+        #hotelRoomsModal{{ event.hotel.pk }} .rooms-list-zone > div:first-child {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 10px !important;
+            padding: 12px !important;
+        }
+
+        #hotelRoomsModal{{ event.hotel.pk }} .rooms-list-zone > div:first-child > div:first-child {
+            width: 100% !important;
+            justify-content: flex-start !important;
+        }
+
+        #hotelRoomsModal{{ event.hotel.pk }} #room-sort-selector{{ event.hotel.pk }} {
+            width: 100% !important;
+            min-width: auto !important;
+            padding: 10px 12px !important;
+            font-size: 16px !important; /* Evita zoom en iOS */
+        }
+
+        /* Contenedor de scroll - Mejor altura en móvil */
+        #hotelRoomsModal{{ event.hotel.pk }} .rooms-list-zone > div:last-child {
+            max-height: calc(100vh - 300px) !important;
+            padding-right: 8px !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+
+        /* Grid de habitaciones dentro de rooms-list-zone */
+        #hotelRoomsModal{{ event.hotel.pk }} .rooms-list-zone .rooms-grid-container {
+            grid-template-columns: 1fr !important;
+            gap: 14px !important;
+            padding: 0 !important;
+        }
+
+        /* Cards de habitaciones dentro de rooms-list-zone - Mejoras móvil */
+        #hotelRoomsModal{{ event.hotel.pk }} .rooms-list-zone .room-listing-inline {
+            margin-bottom: 0 !important;
+            border-radius: 12px !important;
+        }
+
+        #hotelRoomsModal{{ event.hotel.pk }} .rooms-list-zone .room-listing-inline .room-info {
+            padding: 14px 16px !important;
+        }
+
+        #hotelRoomsModal{{ event.hotel.pk }} .rooms-list-zone .room-listing-inline .room-name {
+            font-size: 1.1rem !important;
+        }
+
+        #hotelRoomsModal{{ event.hotel.pk }} .rooms-list-zone .room-listing-inline .room-features {
+            font-size: 0.75rem !important;
+            gap: 6px !important;
+        }
+
+        #hotelRoomsModal{{ event.hotel.pk }} .rooms-list-zone .room-listing-inline .room-features span {
+            padding: 3px 6px !important;
+            font-size: 0.7rem !important;
+        }
+
+        #hotelRoomsModal{{ event.hotel.pk }} .rooms-list-zone .room-listing-inline .room-price {
+            font-size: 1.4rem !important;
+        }
+
+        #hotelRoomsModal{{ event.hotel.pk }} .rooms-list-zone .room-listing-inline .room-actions {
+            flex-direction: column !important;
+            width: 100% !important;
+            gap: 8px !important;
+        }
+
+        #hotelRoomsModal{{ event.hotel.pk }} .rooms-list-zone .room-listing-inline .room-actions button {
+            width: 100% !important;
+            padding: 10px 16px !important;
+            font-size: 0.9rem !important;
+            min-height: 44px !important;
+        }
+
+        /* Scrollbar personalizado para móvil */
+        #hotelRoomsModal{{ event.hotel.pk }} .rooms-list-zone > div:last-child::-webkit-scrollbar {
+            width: 4px !important;
+        }
+
+        #hotelRoomsModal{{ event.hotel.pk }} .rooms-list-zone > div:last-child::-webkit-scrollbar-thumb {
+            background: #cbd5e1 !important;
+            border-radius: 2px !important;
+        }
+
+        /* Selector de ordenamiento - Stack vertical */
+        #hotelReservationModal{{ event.hotel.pk }} [style*="display: flex"][style*="align-items: center"][style*="justify-content: space-between"][style*="margin-bottom: 12px"] {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 10px !important;
+        }
+
+        #hotelReservationModal{{ event.hotel.pk }} #room-sort-selector{{ event.hotel.pk }} {
+            width: 100% !important;
+            min-width: auto !important;
+        }
+
+        /* Formularios - Mejor espaciado */
+        #hotelReservationModal{{ event.hotel.pk }} .form-control,
+        #hotelReservationModal{{ event.hotel.pk }} .form-select {
+            font-size: 16px !important; /* Evita zoom en iOS */
+            padding: 10px 12px !important;
+        }
+
+        /* Lista de niños/jugadores - Mejor visualización */
+        #hotelReservationModal{{ event.hotel.pk }} #children-list{{ event.hotel.pk }} {
+            flex-direction: column !important;
+            gap: 8px !important;
+        }
+
+        /* Botones de acción - Tamaño táctil */
+        #hotelReservationModal{{ event.hotel.pk }} .btn-sm {
+            padding: 10px 16px !important;
+            font-size: 0.9rem !important;
+            min-height: 44px !important; /* Tamaño mínimo táctil */
+        }
+
+        /* Alerts - Mejor legibilidad */
+        #hotelReservationModal{{ event.hotel.pk }} .alert {
+            padding: 12px 14px !important;
+            font-size: 0.85rem !important;
+            line-height: 1.5 !important;
+        }
+
+        /* Scroll suave */
+        #hotelReservationModal{{ event.hotel.pk }} .modal-body {
+            scroll-behavior: smooth !important;
+        }
+
+        /* Modal de Habitaciones (hotelRoomsModal) - Móvil */
+        #hotelRoomsModal{{ event.hotel.pk }} .modal-dialog {
+            max-width: 100% !important;
+            margin: 0 !important;
+            height: 100vh !important;
+            display: flex !important;
+            align-items: stretch !important;
+        }
+
+        #hotelRoomsModal{{ event.hotel.pk }} .modal-content {
+            border-radius: 0 !important;
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            max-height: 100vh !important;
+        }
+
+        #hotelRoomsModal{{ event.hotel.pk }} .modal-header {
+            padding: 12px 16px !important;
+        }
+
+        #hotelRoomsModal{{ event.hotel.pk }} .modal-title {
+            font-size: 1rem !important;
+            margin-top: 0 !important;
+        }
+
+        #hotelRoomsModal{{ event.hotel.pk }} .modal-body {
+            flex: 1 !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            padding: 12px 16px !important;
+        }
+
+        /* Grid de dos columnas -> una columna en móvil */
+        #hotelRoomsModal{{ event.hotel.pk }} [style*="grid-template-columns: 1fr 1fr"] {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+        }
+
+        /* Botones de acción */
+        #hotelRoomsModal{{ event.hotel.pk }} .modal-footer {
+            padding: 12px 16px !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+        }
+
+        #hotelRoomsModal{{ event.hotel.pk }} .modal-footer .btn {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 12px 20px !important;
+            font-size: 0.95rem !important;
+        }
+
+        /* Modal de Detalles de Habitación (roomDetailModal) - Móvil */
+        #roomDetailModal{{ event.hotel.pk }} .modal-dialog {
+            max-width: 100% !important;
+            margin: 0 !important;
+            height: 100vh !important;
+            display: flex !important;
+            align-items: stretch !important;
+        }
+
+        #roomDetailModal{{ event.hotel.pk }} .modal-content {
+            border-radius: 0 !important;
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            max-height: 100vh !important;
+        }
+
+        #roomDetailModal{{ event.hotel.pk }} .modal-header {
+            padding: 12px 16px !important;
+        }
+
+        #roomDetailModal{{ event.hotel.pk }} .modal-title {
+            font-size: 1rem !important;
+        }
+
+        #roomDetailModal{{ event.hotel.pk }} .modal-body {
+            flex: 1 !important;
+            overflow-y: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            padding: 12px 16px !important;
+        }
+
+        /* Galería de imágenes - Stack vertical */
+        #roomDetailModal{{ event.hotel.pk }} [style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+        }
+
+        /* Botones */
+        #roomDetailModal{{ event.hotel.pk }} .modal-footer {
+            padding: 12px 16px !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+        }
+
+        #roomDetailModal{{ event.hotel.pk }} .modal-footer .btn {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 12px 20px !important;
+            font-size: 0.95rem !important;
+        }
+    }
 </style>
 
 <!-- Modal para Reserva de Hotel -->

@@ -1235,10 +1235,12 @@ class PanelEventDetailView(UserDashboardView):
         event_id = self.kwargs.get("pk")
 
         try:
-            from apps.events.models import Event, EventAttendance
+            from apps.events.models import Event, EventAttendance, Division
 
             # Obtener el evento
             from apps.locations.models import HotelRoom
+
+            from django.db.models import Prefetch
 
             event = (
                 Event.objects.select_related(
@@ -1254,7 +1256,8 @@ class PanelEventDetailView(UserDashboardView):
                     "primary_site",
                 )
                 .prefetch_related(
-                    "divisions", "hotel__rooms", "hotel__images", "hotel__amenities"
+                    Prefetch("divisions", queryset=Division.objects.order_by("name")),
+                    "hotel__rooms", "hotel__images", "hotel__amenities"
                 )
                 .get(pk=event_id)
             )
