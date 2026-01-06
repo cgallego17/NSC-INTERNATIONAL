@@ -1396,7 +1396,7 @@
                             {% if has_ineligible_children %}
                                 {% trans "None of your players are eligible for this event based on their divisions." %}
                             {% else %}
-                                {% trans "You don't have any children/players registered. Please register a child/player first." %}
+                            {% trans "You don't have any children/players registered. Please register a child/player first." %}
                             {% endif %}
                         </p>
                         {% if has_ineligible_children %}
@@ -2337,10 +2337,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listeners para checkboxes de jugadores (solo los habilitados)
     checkboxes.forEach(checkbox => {
         if (!checkbox.disabled) {
-            checkbox.addEventListener('change', function() {
-                persistSelectedPlayers();
-                updateCheckoutSummary();
-            });
+        checkbox.addEventListener('change', function() {
+            persistSelectedPlayers();
+            updateCheckoutSummary();
+        });
         }
     });
 

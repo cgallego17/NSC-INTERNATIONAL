@@ -1390,11 +1390,11 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
     // Helper function to show toast notifications
     function showToast(message, type = 'warning', duration = 6000, imageUrl = null) {
-        if (window.adminDashboard && window.adminDashboard.showToast) {
+            if (window.adminDashboard && window.adminDashboard.showToast) {
             // La firma de adminDashboard.showToast es (message, type, title, duration, imageUrl)
-            window.adminDashboard.showToast(message, type, null, duration, imageUrl);
+                window.adminDashboard.showToast(message, type, null, duration, imageUrl);
         } else if (window.AdminUtils && window.AdminUtils.showToast) {
-            window.AdminUtils.showToast(message, type);
+                window.AdminUtils.showToast(message, type);
         } else {
             alert(message);
         }
@@ -1885,9 +1885,9 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         roomsModalEl.addEventListener('shown.bs.modal', () => {
             filterAndRecommendRooms(roomsModalEl, total);
             // Focus something inside rooms modal to avoid aria-hidden/focus warnings
-            const closeBtn = roomsModalEl.querySelector('button.btn-close');
-            if (closeBtn && typeof closeBtn.focus === 'function') closeBtn.focus();
-        }, { once: true });
+                const closeBtn = roomsModalEl.querySelector('button.btn-close');
+                if (closeBtn && typeof closeBtn.focus === 'function') closeBtn.focus();
+            }, { once: true });
 
         closeAndOpenModal(reservationModalEl, roomsModalEl);
     }
@@ -2429,10 +2429,10 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                 // Use helper to get image URL
                 getRoomImageUrl(pk, roomDetailUrl).then(imgUrl => {
                     if (imgUrl) {
-                        showToast(t('addRoomStillInsufficient', { cap: newTotalCapacity, guests: totalGuests }), 'warning', 6000, imgUrl);
-                    } else {
-                        showToast(t('addRoomStillInsufficientAlt', { cap: newTotalCapacity, guests: totalGuests }), 'warning');
-                    }
+                            showToast(t('addRoomStillInsufficient', { cap: newTotalCapacity, guests: totalGuests }), 'warning', 6000, imgUrl);
+                } else {
+                    showToast(t('addRoomStillInsufficientAlt', { cap: newTotalCapacity, guests: totalGuests }), 'warning');
+                }
                 });
                 // Don't return - allow selection but show warning
             }
@@ -2541,7 +2541,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         if (!guestModalEl || !roomsModalEl || !window.bootstrap?.Modal) return;
 
         // Use helper function to close guest modal and open rooms modal
-        const actualRoomsModal = setupModalFocusHandling(roomsModalEl) || roomsModalEl;
+            const actualRoomsModal = setupModalFocusHandling(roomsModalEl) || roomsModalEl;
         closeAndOpenModal(guestModalEl, actualRoomsModal);
     }
 
@@ -3287,7 +3287,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         if (!registrantName) {
             const mainContent = document.querySelector('[data-user-name]');
             if (mainContent) registrantName = mainContent.getAttribute('data-user-name');
-        }
+            }
         if (!registrantName) registrantName = 'You';
 
         // Calculate age

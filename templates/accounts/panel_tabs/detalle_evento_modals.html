@@ -513,13 +513,6 @@
         margin: 0 2px;
     }
 
-    .room-listing-inline .room-actions {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        flex-shrink: 0;
-    }
-
     /* Estado Seleccionado */
     .room-listing-inline[data-selected="true"] {
         border-color: var(--mlb-red) !important;
@@ -595,27 +588,19 @@
             gap: 12px;
         }
 
+        /* Estilos generales para room-listing-inline (solo si NO está dentro de rooms-list-zone) */
+        /* Los estilos específicos de rooms-list-zone están más abajo con !important */
         .room-listing-inline {
             flex-direction: column;
             margin-bottom: 0;
             border-radius: 14px;
         }
 
-        .room-listing-inline .room-image-container {
-            width: 100%;
-            height: 200px;
-            min-width: 100%;
-        }
+        /* room-image-container y room-footer ya están definidos en estilos generales (líneas 267 y 432) */
+        /* No necesitan duplicarse aquí ya que tienen los mismos valores */
 
         .room-listing-inline .room-name {
             font-size: 1.15rem;
-        }
-
-        .room-listing-inline .room-footer {
-            flex-direction: column;
-            align-items: stretch;
-            gap: 12px;
-            padding-top: 14px;
         }
 
         .room-listing-inline .room-price-zone {
@@ -823,10 +808,8 @@
         }
 
         /* Grid de habitaciones - 1 columna en móvil */
-        #hotelReservationModal{{ event.hotel.pk }} .rooms-grid-container {
-            grid-template-columns: 1fr !important;
-            gap: 12px !important;
-        }
+        /* Ya está definido arriba en .rooms-grid-container (línea 586), no necesita duplicarse */
+        /* #hotelReservationModal{{ event.hotel.pk }} .rooms-grid-container - duplicado eliminado */
 
         /* Rooms List Zone - Optimización móvil */
         #hotelRoomsModal{{ event.hotel.pk }} .rooms-list-zone {
