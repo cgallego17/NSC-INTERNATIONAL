@@ -229,7 +229,13 @@
                     {% if payment_history %}
                         {% for checkout in payment_history %}
                             <tr>
-                                <td>{{ checkout.paid_at|date:"d/m/Y H:i"|default:checkout.created_at|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    {% if checkout.paid_at %}
+                                        {{ checkout.paid_at|date:"d/m/Y H:i" }}
+                                    {% else %}
+                                        {{ checkout.created_at|date:"d/m/Y H:i" }}
+                                    {% endif %}
+                                </td>
                                 <td>
                                     <strong>
                                         {{ checkout.event.title }}

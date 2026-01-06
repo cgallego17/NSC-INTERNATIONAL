@@ -18,6 +18,184 @@
             --mlb-red: #d50032;
         }
 
+        /* Modern Toast Styles */
+        .modern-toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 400px;
+            pointer-events: none;
+        }
+
+        .modern-toast {
+            position: relative;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(13, 44, 84, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            opacity: 0;
+            transform: translateX(400px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            pointer-events: all;
+            min-width: 320px;
+            max-width: 400px;
+            border: 1px solid rgba(13, 44, 84, 0.1);
+        }
+
+        .modern-toast.show {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+
+        .modern-toast.hide {
+            opacity: 0;
+            transform: translateX(400px) scale(0.95);
+        }
+
+        .toast-content {
+            display: flex;
+            align-items: flex-start;
+            padding: 16px 20px;
+            gap: 14px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .toast-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 18px;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .toast-icon.toast-image {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #f8f9fa;
+        }
+
+        .toast-icon.toast-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .toast-body-wrapper {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .toast-title {
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: #0d2c54;
+            line-height: 1.4;
+        }
+
+        .toast-message {
+            font-size: 14px;
+            color: #2c3e50;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: #a0aec0;
+            cursor: pointer;
+            padding: 4px;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+            font-size: 12px;
+        }
+
+        .toast-close:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: #2d3748;
+            transform: rotate(90deg);
+        }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .toast-progress-bar {
+            height: 100%;
+            width: 100%;
+            transform-origin: left;
+            animation: progressShrink linear forwards;
+            animation-play-state: paused;
+        }
+
+        @keyframes progressShrink {
+            from {
+                transform: scaleX(1);
+            }
+            to {
+                transform: scaleX(0);
+            }
+        }
+
+        .toast-success .toast-icon {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .toast-error .toast-icon {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        }
+
+        .toast-warning .toast-icon {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+        }
+
+        .toast-info .toast-icon {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        }
+
+        .toast-primary .toast-icon {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, #1a4a7a 100%);
+        }
+
+        @media (max-width: 768px) {
+            .modern-toast-container {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+
+            .modern-toast {
+                min-width: auto;
+                max-width: none;
+            }
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -687,5 +865,55 @@
             </p>
         </div>
     </div>
+
+    <!-- Messages (hidden, converted to toasts) -->
+    <div class="messages-container" style="display: none;">
+        {% for message in messages %}
+            <div class="django-message" data-tag="{{ message.tags }}" data-message="{{ message|escapejs }}" data-extra-tags="{{ message.extra_tags|default:'' }}">
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="modern-toast-container"></div>
+
+    <!-- Include admin.js for toast functionality -->
+    <script src="{% static 'js/admin.js' %}"></script>
+
+    <script>
+        // Convert Django messages to toasts on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Wait for adminDashboard to be available
+            function convertMessages() {
+                if (!window.adminDashboard || !window.adminDashboard.showToast) {
+                    setTimeout(convertMessages, 100);
+                    return;
+                }
+
+                // Check if there are Django messages
+                const messagesContainer = document.querySelector('.messages-container');
+                if (messagesContainer) {
+                    const messages = messagesContainer.querySelectorAll('.django-message');
+                    messages.forEach(function(msgEl) {
+                        const tag = msgEl.getAttribute('data-tag') || 'info';
+                        const message = msgEl.getAttribute('data-message') || '';
+
+                        if (message) {
+                            // Map Django message tags to toast types
+                            let toastType = 'info';
+                            if (tag.includes('success')) toastType = 'success';
+                            else if (tag.includes('error') || tag.includes('danger')) toastType = 'error';
+                            else if (tag.includes('warning')) toastType = 'warning';
+                            else if (tag.includes('info')) toastType = 'info';
+
+                            window.adminDashboard.showToast(message, toastType, null, 5000);
+                        }
+                    });
+                }
+            }
+
+            convertMessages();
+        });
+    </script>
 </body>
 </html>
