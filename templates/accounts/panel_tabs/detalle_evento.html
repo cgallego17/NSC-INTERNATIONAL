@@ -2270,10 +2270,23 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function startStripeCheckout(mode) {
-        if (!registrationForm) return;
+        console.log('startStripeCheckout called with mode:', mode);
+
+        if (!registrationForm) {
+            console.error('registrationForm not found');
+            return;
+        }
+
         if (!stripeCreateSessionUrl) {
             console.warn('Stripe checkout URL not available (missing event in template context).');
             alert('{% trans "Could not start payment: missing event information." %}');
+            return;
+        }
+
+        // Verificar que hay jugadores seleccionados
+        const playersCount = document.querySelectorAll('.child-checkbox:checked').length;
+        if (playersCount === 0) {
+            alert('{% trans "Please select at least one player to register." %}');
             return;
         }
 
@@ -2307,6 +2320,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const formData = new FormData(registrationForm);
+
+            // Debug: Log para verificar que se está enviando la petición
+            console.log('Iniciando checkout de Stripe, modo:', mode);
+            console.log('URL:', stripeCreateSessionUrl);
+
             const resp = await fetch(stripeCreateSessionUrl, {
                 method: 'POST',
                 headers: {
@@ -2315,31 +2333,86 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: formData
             });
 
-            const data = await resp.json();
+            // Verificar si la respuesta es JSON
+            let data;
+            const contentType = resp.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+                data = await resp.json();
+            } else {
+                const text = await resp.text();
+                console.error('Respuesta no es JSON:', text);
+                alert('{% trans "Error: Invalid response from server." %}');
+                return;
+            }
+
+            console.log('Respuesta del servidor:', data);
+
             if (!resp.ok || !data || !data.success) {
                 const msg = (data && (data.error || data.message)) ? (data.error || data.message) : '{% trans "Could not start payment." %}';
+                console.error('Error en la respuesta:', msg, data);
                 alert(msg);
                 return;
             }
 
             if (data.checkout_url) {
+                console.log('Redirigiendo a Stripe:', data.checkout_url);
                 didRedirect = true;
-                window.location.href = data.checkout_url;
+
+                // Stripe no puede abrirse en un iframe, redirigir la ventana principal
+                try {
+                    // Intentar redirigir la ventana principal (top level)
+                    if (window.top && window.top !== window) {
+                        window.top.location.href = data.checkout_url;
+                    } else {
+                        // Si no estamos en un iframe, redirigir normalmente
+                        window.location.href = data.checkout_url;
+                    }
+                } catch (e) {
+                    // Si hay error de seguridad (cross-origin), intentar con parent
+                    try {
+                        if (window.parent && window.parent !== window) {
+                            window.parent.location.href = data.checkout_url;
+                        } else {
+                            window.location.href = data.checkout_url;
+                        }
+                    } catch (e2) {
+                        // Último recurso: abrir en nueva ventana
+                        console.warn('No se pudo redirigir la ventana principal, abriendo en nueva ventana');
+                        window.open(data.checkout_url, '_blank');
+                    }
+                }
             } else {
+                console.error('No se recibió checkout_url en la respuesta:', data);
                 alert('{% trans "Stripe did not return a checkout link." %}');
             }
         } catch (e) {
-            console.error(e);
+            console.error('Error al iniciar checkout:', e);
             alert('{% trans "Error starting payment. Please try again." %}');
         } finally {
-            if (!didRedirect) hideStripeCheckoutLoader();
-            // Re-enable based on current state
-            updateCheckoutSummary();
+            if (!didRedirect) {
+                hideStripeCheckoutLoader();
+                // Re-enable based on current state
+                updateCheckoutSummary();
+            }
         }
     }
 
-    if (payPlanBtn) payPlanBtn.addEventListener('click', () => startStripeCheckout('plan'));
-    if (payNowBtn) payNowBtn.addEventListener('click', () => startStripeCheckout('now'));
+    if (payPlanBtn) {
+        payPlanBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Pay plan button clicked');
+            startStripeCheckout('plan');
+        });
+    }
+    if (payNowBtn) {
+        payNowBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Pay now button clicked');
+            startStripeCheckout('now');
+        });
+    }
 
     // Función global para actualizar el hotel en el checkout (llamada desde el modal)
     window.updateCheckoutHotel = function(hotelData) {
