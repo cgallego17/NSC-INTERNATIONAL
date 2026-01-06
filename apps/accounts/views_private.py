@@ -2262,6 +2262,7 @@ def wallet_add_funds(request):
     return redirect("panel")
 
 
+@method_decorator(xframe_options_exempt, name="dispatch")
 class StripeInvoiceView(LoginRequiredMixin, DetailView):
     """Vista para mostrar el invoice/factura de un pago de Stripe."""
 
@@ -2311,6 +2312,7 @@ class StripeInvoiceView(LoginRequiredMixin, DetailView):
         return context
 
 
+@method_decorator(xframe_options_exempt, name="dispatch")
 class PaymentConfirmationView(LoginRequiredMixin, DetailView):
     """Vista para mostrar la confirmación de pago exitoso."""
 

@@ -859,9 +859,9 @@
                                                                         {{ division.name }}
                                                                     </span>
                                                                 {% endfor %}
-                                                            </div>
+                            </div>
                                                         </details>
-                                                    {% endif %}
+                        {% endif %}
                                                 </div>
                                             </div>
                                         </div>
@@ -1150,7 +1150,7 @@
                         <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 12px;">
                             <div style="font-size: 0.8rem; color: #6c757d; font-weight: 600; line-height: 1.25; margin-bottom: 10px;">
                                 {% trans "If you don't add a hotel stay, a Hotel buy out fee will apply." %}
-                            </div>
+                                                </div>
                         </div>
                         {% endif %}
 
@@ -2364,14 +2364,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.top.location.href = data.checkout_url;
                     } else {
                         // Si no estamos en un iframe, redirigir normalmente
-                        window.location.href = data.checkout_url;
+                window.location.href = data.checkout_url;
                     }
                 } catch (e) {
                     // Si hay error de seguridad (cross-origin), intentar con parent
                     try {
                         if (window.parent && window.parent !== window) {
                             window.parent.location.href = data.checkout_url;
-                        } else {
+            } else {
                             window.location.href = data.checkout_url;
                         }
                     } catch (e2) {
@@ -2390,9 +2390,9 @@ document.addEventListener('DOMContentLoaded', function() {
         } finally {
             if (!didRedirect) {
                 hideStripeCheckoutLoader();
-                // Re-enable based on current state
-                updateCheckoutSummary();
-            }
+            // Re-enable based on current state
+            updateCheckoutSummary();
+        }
         }
     }
 
