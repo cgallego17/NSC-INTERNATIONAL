@@ -2228,248 +2228,34 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
         // Get current state or initialize
         if (!stateByPk.has(pk)) {
-            stateByPk.set(pk, { rooms: [], guests: [], guestAssignments: {} }); // guestAssignments: { roomId: [guestIndex1, guestIndex2, ...] }
+            stateByPk.set(pk, { rooms: [], guests: [], guestAssignments: {} });
         }
         const state = stateByPk.get(pk);
-        // Ensure state arrays/objects exist
         if (!state.rooms) state.rooms = [];
         if (!state.guestAssignments) state.guestAssignments = {};
 
         // Find the actual room listing element
         let roomListing = btnEl.closest('.room-listing-inline');
         if (!roomListing) {
-            // If not found via closest, search in the rooms modal
             roomListing = findRoomInModal(pk, roomId);
         }
 
         const capacity = parseInt(btnEl.getAttribute('data-room-capacity') || roomListing?.getAttribute('data-room-capacity') || '0', 10);
 
-        // VALIDATE ROOM CONDITIONS BEFORE ALLOWING SELECTION
-        // Check if guests are defined
-        const totalGuests = state.guests ? state.guests.length : totalPeople(pk);
-        if (!state.guests || state.guests.length === 0) {
-            showToast(t('pleaseAddGuestsFirst'), 'warning', 4000);
-            return;
-        }
-
-        // Validate room capacity
-        if (!Number.isFinite(capacity) || capacity <= 0) {
-            showToast(t('invalidRoomCapacity'), 'error', 4000);
-            return;
-        }
-
-        // Validate occupancy rules BEFORE allowing selection
-        const rulesJson = roomListing?.getAttribute('data-room-rules');
-        if (rulesJson) {
-            try {
-                const rules = JSON.parse(rulesJson) || [];
-                const activeRules = Array.isArray(rules)
-                    ? rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active)
-                    : [];
-
-                if (activeRules.length > 0) {
-                    const adults = state.guests.filter(g => g.type === 'adult').length;
-                    const children = state.guests.filter(g => g.type === 'child').length;
-
-                    // Check if current guests match any active rule
-                    const validRule = activeRules.some(rule => {
-                        const minAdults = parseInt(rule.min_adults) || 0;
-                        const maxAdults = parseInt(rule.max_adults) || 999;
-                        const minChildren = parseInt(rule.min_children) || 0;
-                        const maxChildren = parseInt(rule.max_children) || 999;
-                        return adults >= minAdults && adults <= maxAdults &&
-                               children >= minChildren && children <= maxChildren;
-                    });
-
-                    if (!validRule) {
-                        // Find the first rule to show requirements
-                        const firstRule = activeRules[0];
-                        const minA = parseInt(firstRule.min_adults) || 0;
-                        const maxA = parseInt(firstRule.max_adults) || 999;
-                        const minC = parseInt(firstRule.min_children) || 0;
-                        const maxC = parseInt(firstRule.max_children) || 999;
-
-                        let ruleDesc = '';
-                        if (minA === maxA && minC === maxC) {
-                            ruleDesc = `${minA} ${minA === 1 ? gettext('adult') : gettext('adults')}, ${minC} ${minC === 1 ? gettext('child') : gettext('children')}`;
-                        } else {
-                            ruleDesc = `${minA}-${maxA} ${gettext('adults')}, ${minC}-${maxC} ${gettext('children')}`;
-                        }
-
-                        showToast(t('roomRulesNotMetBeforeSelect', {
-                            adults: adults,
-                            children: children,
-                            requirements: ruleDesc
-                        }), 'error', 6000);
-                        return;
-                    }
-                }
-            } catch (e) {
-                console.warn('selectRoom: Error parsing room rules:', e);
-                // Continue if rules can't be parsed (fail-open)
-            }
-        }
-
         // Check if room is already selected
         const roomIndex = state.rooms.findIndex(r => r.roomId === String(roomId));
         const isCurrentlySelected = roomIndex !== -1;
 
-        // Calculate total capacity of all selected rooms
-        // (totalGuests already calculated above in validation)
-        let totalCapacity = 0;
-        state.rooms.forEach(r => {
-            const roomEl = findRoomInModal(pk, r.roomId);
-            if (roomEl) {
-                totalCapacity += parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10);
-            }
-        });
-
-        // Smart logic: Only suggest multiple rooms if single room can't accommodate
-        // If removing a room, check if remaining capacity is still sufficient
-        if (isCurrentlySelected) {
-            // Check if removing this room would leave enough capacity
-            const remainingCapacity = totalCapacity - capacity;
-            if (remainingCapacity >= totalGuests && state.rooms.length > 1) {
-                // Can remove this room, remaining rooms have enough capacity
-            } else if (remainingCapacity < totalGuests) {
-                // Can't remove, would exceed capacity
-                showToast(t('cannotRemoveRoomCapacity', { remaining: remainingCapacity, guests: totalGuests }), 'warning', 4000);
-                return;
-            }
-        } else {
-            // If user is trying to add a second room because current capacity is insufficient,
-            // but there exists a SINGLE available room that can fit ALL guests,
-            // guide them to replace (1 bigger room) instead of adding multiple rooms.
-            try {
-                const currentCapacityInsufficient = state.rooms.length >= 1 && totalGuests > totalCapacity;
-                if (currentCapacityInsufficient) {
-                    const roomsModalEl = q(`hotelRoomsModal${pk}`);
-                    if (!roomsModalEl) return;
-                    const listings = Array.from(roomsModalEl.querySelectorAll('.room-listing-inline') || []);
-                    const candidates = listings
-                        .map((el) => {
-                            const cap = parseInt(el.getAttribute('data-room-capacity') || '0', 10) || 0;
-                            const rid = el.getAttribute('data-room-id') || '';
-                            const name = el.querySelector('.room-name')?.textContent?.trim() || gettext('Room');
-                            const feats = el.querySelector('.room-features')?.textContent?.trim() || '';
-                            const label = `${name}${feats ? ` • ${feats}` : ''}`;
-                            // Only consider rooms that also satisfy occupancy rules for ALL guests in one room (if rules exist)
-                            // IMPORTANT: if rules are not loaded yet, treat as UNKNOWN and don't recommend switching.
-                            // We'll re-evaluate once rules arrive via background fetch.
-                            let rulesOk = null;
-                            const rulesJson = el.getAttribute('data-room-rules');
-                            if (!rulesJson) {
-                                rulesOk = null;
-                            } else {
-                                try {
-                                    const rules = JSON.parse(rulesJson) || [];
-                                    const activeRules = Array.isArray(rules)
-                                        ? rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active)
-                                        : [];
-                                    if (activeRules.length > 0) {
-                                        const a = state.guests ? state.guests.filter(g => g.type === 'adult').length : 0;
-                                        const c = state.guests ? state.guests.filter(g => g.type === 'child').length : 0;
-                                        rulesOk = activeRules.some(rule => {
-                                            const minAdults = parseInt(rule.min_adults) || 0;
-                                            const maxAdults = parseInt(rule.max_adults) || 999;
-                                            const minChildren = parseInt(rule.min_children) || 0;
-                                            const maxChildren = parseInt(rule.max_children) || 999;
-                                            return a >= minAdults && a <= maxAdults && c >= minChildren && c <= maxChildren;
-                                        });
-                                    } else {
-                                        // rules loaded but none active => allowed
-                                        rulesOk = true;
-                                    }
-                                } catch (e) {
-                                    rulesOk = null;
-                                }
-                            }
-                            return { el, rid, cap, label, rulesOk };
-                        })
-                        // Only recommend a single-room replacement if we KNOW it satisfies rules (or has no active rules)
-                        .filter((c) => c.rid && c.cap >= totalGuests && c.rulesOk === true)
-                        .sort((a, b) => (a.cap - b.cap));
-
-                    const best = candidates[0] || null;
-                    if (best && best.rid) {
-                        // If clicked room is not a good single fit, still propose best.
-                        const clickedCap = capacity || 0;
-                        const clickedIsSingleFit = clickedCap >= totalGuests;
-                        const proposeRid = clickedIsSingleFit ? String(roomId) : String(best.rid);
-
-                        // Only prompt if replacing would reduce room count (avoid spam)
-                        const shouldPrompt = true;
-                        if (shouldPrompt) {
-                            const proposedEl =
-                                listings.find(el => String(el.getAttribute('data-room-id') || '') === proposeRid) || best.el;
-                            const proposedName = proposedEl?.querySelector('.room-name')?.textContent?.trim() || gettext('Room');
-                            const proposedFeats = proposedEl?.querySelector('.room-features')?.textContent?.trim() || '';
-                            const proposedLabel = `${proposedName}${proposedFeats ? ` • ${proposedFeats}` : ''}`;
-                            const proposedCap = parseInt(proposedEl?.getAttribute('data-room-capacity') || String(best.cap || 0), 10) || (best.cap || 0);
-
-                            const ok = confirm(t('confirmReplaceWithBiggerRoom', { guests: totalGuests, label: proposedLabel, cap: proposedCap }));
-                            if (ok) {
-                                // Clear existing selection
-                                clearAllRoomSelections(pk, state, listings);
-
-                                // Select proposed room
-                                const finalRoomId = String(proposeRid);
-                                const finalEl = proposedEl || best.el;
-                                const finalCap = parseInt(finalEl?.getAttribute('data-room-capacity') || String(proposedCap || 0), 10) || proposedCap || 0;
-                                const finalLabel = proposedLabel || interpolate(gettext('Room %(id)s'), { id: finalRoomId }, true);
-
-                                addRoomToState(pk, state, finalRoomId, finalLabel, finalCap);
-                                updateRoomSelectionState(pk);
-                                showToast(t('switchedToRoomOne', { label: finalLabel }), 'success', 4500);
-                                return;
-                            }
-                        }
-                    }
-                }
-            } catch (e) {
-                // ignore
-            }
-
-            // Adding a new room - check if it's actually needed
-            // Only warn if total capacity would still be insufficient, but allow selection
-            const newTotalCapacity = totalCapacity + capacity;
-            if (totalGuests > newTotalCapacity) {
-                // Still not enough capacity even with this room
-                const roomDetailUrl = btnEl.getAttribute('data-room-detail-url') || roomListing?.getAttribute('data-room-detail-url');
-
-                // Use helper to get image URL
-                getRoomImageUrl(pk, roomDetailUrl).then(imgUrl => {
-                    if (imgUrl) {
-                            showToast(t('addRoomStillInsufficient', { cap: newTotalCapacity, guests: totalGuests }), 'warning', 6000, imgUrl);
-                } else {
-                    showToast(t('addRoomStillInsufficientAlt', { cap: newTotalCapacity, guests: totalGuests }), 'warning');
-                }
-                });
-                // Don't return - allow selection but show warning
-            }
-        }
-
-        // Old single-room validation code removed - now we allow multiple rooms
         const roomName = roomListing?.querySelector('.room-name')?.textContent?.trim() || gettext('Room');
         const roomFeatures = roomListing?.querySelector('.room-features')?.textContent?.trim() || '';
         const roomLabel = `${roomName}${roomFeatures ? ` • ${roomFeatures}` : ''}`;
 
-        // Toggle room selection (add or remove from array)
-        // Note: Capacity validation for removal already done above (lines 2244-2253)
+        // Toggle room selection (add or remove from array) - NO VALIDATIONS
         if (isCurrentlySelected) {
             // Remove room from selection
             removeRoomFromState(pk, state, roomId);
             showToast(t('roomRemoved', { label: roomLabel }), 'info', 3000);
         } else {
-            // Smart check: Only add if actually needed or user explicitly wants multiple rooms
-            // If a single room can already accommodate all guests, warn but allow
-            if (state.rooms.length > 0 && totalGuests <= totalCapacity) {
-                const confirmAdd = confirm(t('alreadyEnoughCapacityConfirm', { count: state.rooms.length, cap: totalCapacity }));
-                if (!confirmAdd) {
-                    return;
-                }
-            }
-
             // Add room to selection
             addRoomToState(pk, state, roomId, roomLabel, capacity);
             showToast(t('roomAdded', { label: roomLabel, count: state.rooms.length }), 'success', 3000);
@@ -2509,7 +2295,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             }
         }
 
-        // Update hidden input for form submission (ensure it's set when room is selected)
+        // Update hidden input for form submission
         const roomInput = q(`guest-room${pk}`);
         if (roomInput && state.rooms.length > 0) {
             roomInput.value = String(state.rooms[0].roomId);
@@ -4534,32 +4320,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                 }
             }
 
-            if (continueBtn) {
-                continueBtn.disabled = !canContinue;
-                if (canContinue) {
-                    continueBtn.style.opacity = '1';
-                    continueBtn.style.cursor = 'pointer';
-                    continueBtn.removeAttribute('title');
-                } else {
-                    continueBtn.style.opacity = '0.5';
-                    continueBtn.style.cursor = 'not-allowed';
-                    const errors = [];
-                    if (total < 1 || adults < 1) {
-                        errors.push(t('youMustHaveAdult'));
-                    }
-                    if (!allRoomsHaveGuests) {
-                        errors.push(t('guestsMustBeAssignedEveryRoom'));
-                    }
-                    if (!perRoomRulesValid) {
-                        errors.push(t('perRoomRulesNotMetShort'));
-                    }
-                    if (!capacityValid) {
-                        errors.push(t('guestsExceedCapacityBy', { guests: total, cap: totalCapacity, diff: Math.max(0, total - totalCapacity) }));
-                    }
-                    // NOTE: global rulesValid check removed; per-room rule validation is authoritative.
-                    continueBtn.setAttribute('title', `${t('cannotContinuePrefix')}: ${errors.join('. ')}. ${t('pleaseFixErrors')}.`);
-                }
-            }
+            // Continue button is always enabled - no validation
         } else {
             if (statusEl) {
                 statusEl.style.display = 'block';
@@ -4572,12 +4333,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                 footerMsgEl.innerHTML = `<i class="fas fa-info-circle me-1"></i>${escapeHtml(t('selectRoomToContinue'))}`;
                 footerMsgEl.style.color = '#6c757d';
             }
-            if (continueBtn) {
-                continueBtn.disabled = true;
-                continueBtn.style.opacity = '0.5';
-                continueBtn.style.cursor = 'not-allowed';
-                continueBtn.setAttribute('title', t('selectAtLeastOneRoomToContinue'));
-            }
+            // Continue button is always enabled - no validation
 
             // Hide Add room button until at least one room is selected
             try {
