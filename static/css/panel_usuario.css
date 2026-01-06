@@ -560,14 +560,6 @@ button.quick-action-btn.active span,
     min-height: 400px;
     position: relative;
     z-index: 1;
-    overflow: visible !important;
-}
-
-/* En desktop: asegurar que no haya scroll en el contenedor cuando está detalle-eventos */
-@media (min-width: 992px) {
-    .tab-content-container:has(#tab-content-detalle-eventos.active) {
-        overflow: visible !important;
-    }
 }
 
 /* Asegurar que el tab detalle-eventos sea visible cuando está activo */
@@ -581,18 +573,6 @@ button.quick-action-btn.active span,
     background: #ffffff !important;
     position: relative !important;
     z-index: 10 !important;
-}
-
-/* En desktop: detalle-eventos sin padding para evitar doble scroll */
-@media (min-width: 992px) {
-    #tab-content-detalle-eventos {
-        padding: 0 !important;
-        overflow: visible !important;
-    }
-
-    #tab-content-detalle-eventos #iframe-detalle-eventos {
-        border-radius: 0 !important;
-    }
 }
 
 /* Asegurar que los elementos dentro del tab detalle-eventos sean visibles */

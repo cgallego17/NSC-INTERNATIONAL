@@ -20,14 +20,6 @@
     <link href="{% static 'css/panel_usuario.css' %}" rel="stylesheet">
 
     <style>
-        /* Detalle-eventos: en desktop usar scroll dentro del iframe para permitir sticky dentro del embed */
-        @media (min-width: 992px) {
-            #tab-content-detalle-eventos #iframe-detalle-eventos {
-                height: calc(100vh - 220px) !important;
-                min-height: 700px !important;
-            }
-        }
-
         /* Cuando un iframe abre un modal, elevar el tab activo sobre todo lo demás y hacerlo pantalla completa */
         body.iframe-modal-open {
             overflow: hidden !important; /* Bloquear scroll del padre */
@@ -1074,12 +1066,6 @@
                 if (data.type !== 'nsc-iframe-height' || !data.tabId || !data.height) return;
                 const iframe = document.querySelector(`iframe[name="${data.tabId}"]`);
                 if (!iframe) return;
-
-                // Desktop: en detalle-eventos preferimos scroll dentro del iframe (para que el checkout sticky funcione)
-                if (data.tabId === 'detalle-eventos' && window.innerWidth >= 992) {
-                    return;
-                }
-
                 const h = Math.max(400, parseInt(data.height, 10) || 600);
                 iframe.style.height = h + 'px';
             });
