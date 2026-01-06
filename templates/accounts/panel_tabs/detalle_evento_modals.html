@@ -1530,7 +1530,7 @@
                                                                     data-room-id="{{ room.id }}"
                                                                     data-hotel-pk="{{ event.hotel.pk }}"
                                                                     data-room-capacity="{{ room.capacity }}"
-                                                                    onclick="event.preventDefault(); event.stopPropagation(); window.NSC_HotelReservation?.selectRoom?.(this);"
+                                                                    onclick="event.preventDefault(); event.stopPropagation(); if (window.NSC_HotelReservation && typeof window.NSC_HotelReservation.selectRoom === 'function') { window.NSC_HotelReservation.selectRoom(this); }"
                                                                     style="border-radius: 10px; font-weight: 800; padding: 9px 22px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border: none; box-shadow: 0 4px 12px rgba(13, 44, 84, 0.25), 0 2px 6px rgba(13, 44, 84, 0.15); font-size: 0.9rem; white-space: nowrap; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); color: white;"
                                                                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(13, 44, 84, 0.3), 0 4px 8px rgba(13, 44, 84, 0.2)';"
                                                                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(13, 44, 84, 0.25), 0 2px 6px rgba(13, 44, 84, 0.15)';">
@@ -1593,9 +1593,11 @@
                                                                     data-hotel-pk="{{ event.hotel.pk }}"
                                                                     data-room-id="{{ room.id }}"
                                                                     data-room-capacity="{{ room.capacity|default:0 }}"
-                                                                    onclick="event.preventDefault(); event.stopPropagation(); if (typeof window.nscCollapseExpandedRoomDetails === 'function') { window.nscCollapseExpandedRoomDetails(); } if (typeof window.nscCollapseRoomsListZone === 'function') { window.nscCollapseRoomsListZone('{{ event.hotel.pk }}'); } if (window.NSC_HotelReservation && typeof window.NSC_HotelReservation.selectRoom === 'function') { window.NSC_HotelReservation.selectRoom(this); } if (typeof window.nscCollapseExpandedRoomDetails === 'function') { setTimeout(function(){ window.nscCollapseExpandedRoomDetails(); }, 50); } if (typeof window.nscCollapseRoomsListZone === 'function') { setTimeout(function(){ window.nscCollapseRoomsListZone('{{ event.hotel.pk }}'); }, 50); }"
-                                                                    style="width: 100%; border-radius: 8px; font-weight: 700; padding: 12px 20px; font-size: 1rem; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border: none; box-shadow: 0 4px 12px rgba(13, 44, 84, 0.3); color: white; transition: all 0.2s ease;">
-                                                                <i class="fas fa-check me-2"></i>{% trans "Select this room" %}
+                                                                    onclick="event.preventDefault(); event.stopPropagation(); if (window.NSC_HotelReservation && typeof window.NSC_HotelReservation.selectRoom === 'function') { window.NSC_HotelReservation.selectRoom(this); }"
+                                                                    style="width: 100%; border-radius: 10px; font-weight: 800; padding: 9px 22px; font-size: 0.9rem; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border: none; box-shadow: 0 4px 12px rgba(13, 44, 84, 0.25), 0 2px 6px rgba(13, 44, 84, 0.15); color: white; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap;"
+                                                                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(13, 44, 84, 0.3), 0 4px 8px rgba(13, 44, 84, 0.2)';"
+                                                                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(13, 44, 84, 0.25), 0 2px 6px rgba(13, 44, 84, 0.15)';">
+                                                                <i class="fas fa-plus-circle me-1"></i>{% trans "Select" %}
                                                             </button>
                                                         </div>
                                                     </div>
@@ -3681,29 +3683,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (attempt >= 20) return; // ~5s
         setTimeout(() => bootstrapWrap(attempt + 1), 250);
     })();
-
-    // Fallback: usar capture porque el botón hace stopPropagation()
-    document.addEventListener('click', function(e) {
-        try {
-            const target = e.target;
-            const btn = target && target.closest ? target.closest('.room-select-btn') : null;
-            if (!btn) return;
-            if (String(btn.dataset.hotelPk || '') !== String(hotelPk)) return;
-            // Mark selected in DOM (best-effort) so our validations can find it
-            const roomId = String(btn.dataset.roomId || '').trim();
-            if (roomId) {
-                document.querySelectorAll(`.room-listing-inline[data-hotel-pk="${hotelPk}"]`).forEach((el) => {
-                    if (!el) return;
-                    if (String(el.getAttribute('data-room-id') || '').trim() === roomId) el.setAttribute('data-selected', 'true');
-                    else el.removeAttribute('data-selected');
-                });
-            }
-            setTimeout(collapseExpandedRoomDetails, 0);
-            setTimeout(collapseRoomsListZone, 0);
-        } catch (err) {
-            // ignore
-        }
-    }, true);
 
     // También colapsar si el usuario selecciona desde el modal de detalles
     const detailModalSelectBtn = document.getElementById('room-detail-modal-select-btn' + hotelPk);
