@@ -2283,7 +2283,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Verificar que hay jugadores seleccionados
+        // Verificar que hay jugadores seleccionados y calcular valores
         const playersCount = document.querySelectorAll('.child-checkbox:checked').length;
         if (playersCount === 0) {
             alert('{% trans "Please select at least one player to register." %}');
@@ -2299,8 +2299,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const discountAllowed = (mode === 'now') && !!window.checkoutItems.hotel;
         if (discountPercentInput) discountPercentInput.value = discountAllowed ? '5' : '0';
 
-        // Compute current no-show fee like the UI
-        const playersCount = document.querySelectorAll('.child-checkbox:checked').length;
+        // Compute current no-show fee like the UI (reutilizar playersCount ya declarado arriba)
         const hasEventHotel = {% if event.hotel %}true{% else %}false{% endif %};
         const applyNoShowFee = hasEventHotel && (playersCount > 0) && !window.checkoutItems.hotel;
         const noShowFee = applyNoShowFee ? 1000 : 0;
