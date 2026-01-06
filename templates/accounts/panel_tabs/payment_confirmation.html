@@ -1,0 +1,407 @@
+{% extends "accounts/panel_tabs/embed_base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Payment Confirmation" %} - {{ checkout.event.title }}{% endblock %}
+
+{% block content %}
+<style>
+    .confirmation-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+        text-align: center;
+    }
+
+    .success-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px;
+        box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        animation: scaleIn 0.5s ease-out;
+    }
+
+    @keyframes scaleIn {
+        from {
+            transform: scale(0);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .success-icon i {
+        font-size: 3rem;
+        color: white;
+    }
+
+    .confirmation-title {
+        color: var(--mlb-blue);
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+
+    .confirmation-message {
+        color: #6c757d;
+        font-size: 1.2rem;
+        margin-bottom: 40px;
+        line-height: 1.6;
+    }
+
+    .summary-card {
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        text-align: left;
+    }
+
+    .summary-section {
+        margin-bottom: 25px;
+        padding-bottom: 25px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .summary-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .section-title {
+        color: var(--mlb-blue);
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title i {
+        color: var(--mlb-red);
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        font-size: 0.95rem;
+    }
+
+    .info-label {
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .info-value {
+        color: #212529;
+        font-weight: 600;
+    }
+
+    .total-amount {
+        background: linear-gradient(135deg, var(--mlb-blue) 0%, #0056b3 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .total-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-bottom: 5px;
+    }
+
+    .total-value {
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .players-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .player-item {
+        background: #f8f9fa;
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .player-item i {
+        color: var(--mlb-red);
+    }
+
+    .reservation-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+
+    .reservation-hotel {
+        font-weight: 700;
+        color: var(--mlb-blue);
+        margin-bottom: 8px;
+    }
+
+    .reservation-details {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 40px;
+    }
+
+    .btn-confirmation {
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-primary-confirm {
+        background: var(--mlb-blue);
+        color: white;
+    }
+
+    .btn-primary-confirm:hover {
+        background: #0056b3;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 86, 179, 0.3);
+        color: white;
+    }
+
+    .btn-outline-confirm {
+        background: white;
+        color: var(--mlb-blue);
+        border: 2px solid var(--mlb-blue);
+    }
+
+    .btn-outline-confirm:hover {
+        background: var(--mlb-blue);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 86, 179, 0.3);
+    }
+
+    .payment-mode-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-left: 10px;
+    }
+
+    .badge-plan {
+        background: #ffc107;
+        color: #212529;
+    }
+
+    .badge-now {
+        background: #28a745;
+        color: white;
+    }
+
+    @media (max-width: 768px) {
+        .confirmation-container {
+            padding: 20px 15px;
+        }
+
+        .confirmation-title {
+            font-size: 2rem;
+        }
+
+        .summary-card {
+            padding: 20px;
+        }
+
+        .action-buttons {
+            flex-direction: column;
+        }
+
+        .btn-confirmation {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="confirmation-container">
+    <div class="success-icon">
+        <i class="fas fa-check"></i>
+    </div>
+
+    <h1 class="confirmation-title">{% trans "Payment Successful!" %}</h1>
+    <p class="confirmation-message">
+        {% trans "Thank you for your payment. Your registration has been confirmed and you will receive a confirmation email shortly." %}
+    </p>
+
+    <div class="summary-card">
+        <!-- Event Information -->
+        <div class="summary-section">
+            <h3 class="section-title">
+                <i class="fas fa-calendar-check"></i>
+                {% trans "Event Information" %}
+            </h3>
+            <div class="info-row">
+                <span class="info-label">{% trans "Event" %}:</span>
+                <span class="info-value">{{ checkout.event.title }}</span>
+            </div>
+            {% if checkout.event.location %}
+            <div class="info-row">
+                <span class="info-label">{% trans "Location" %}:</span>
+                <span class="info-value">{{ checkout.event.location }}</span>
+            </div>
+            {% endif %}
+            {% if checkout.event.start_date %}
+            <div class="info-row">
+                <span class="info-label">{% trans "Start Date" %}:</span>
+                <span class="info-value">{{ checkout.event.start_date|date:"d/m/Y" }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Payment Details -->
+        <div class="summary-section">
+            <h3 class="section-title">
+                <i class="fas fa-credit-card"></i>
+                {% trans "Payment Details" %}
+            </h3>
+            <div class="info-row">
+                <span class="info-label">{% trans "Payment Date" %}:</span>
+                <span class="info-value">{{ checkout.paid_at|date:"d/m/Y H:i"|default:checkout.created_at|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">{% trans "Payment Mode" %}:</span>
+                <span class="info-value">
+                    {% if checkout.payment_mode == "plan" %}
+                        {% trans "Payment Plan" %}
+                        <span class="payment-mode-badge badge-plan">{{ checkout.plan_months }} {% trans "months" %}</span>
+                    {% else %}
+                        {% trans "Pay Now" %}
+                        <span class="payment-mode-badge badge-now">{% trans "One-time" %}</span>
+                    {% endif %}
+                </span>
+            </div>
+            {% if checkout.payment_mode == "plan" %}
+            <div class="info-row">
+                <span class="info-label">{% trans "Monthly Payment" %}:</span>
+                <span class="info-value">${{ checkout.plan_monthly_amount|floatformat:2 }}</span>
+            </div>
+            {% endif %}
+            {% if checkout.discount_percent > 0 %}
+            <div class="info-row">
+                <span class="info-label">{% trans "Discount Applied" %}:</span>
+                <span class="info-value" style="color: #28a745;">{{ checkout.discount_percent }}%</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Registered Players -->
+        {% if players %}
+        <div class="summary-section">
+            <h3 class="section-title">
+                <i class="fas fa-users"></i>
+                {% trans "Registered Players" %} ({{ players|length }})
+            </h3>
+            <ul class="players-list">
+                {% for player in players %}
+                <li class="player-item">
+                    <i class="fas fa-user-check"></i>
+                    <span><strong>{{ player.user.get_full_name|default:player.user.username }}</strong></span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <!-- Hotel Reservations -->
+        {% if reservations %}
+        <div class="summary-section">
+            <h3 class="section-title">
+                <i class="fas fa-bed"></i>
+                {% trans "Hotel Reservations" %} ({{ reservations|length }})
+            </h3>
+            {% for reservation in reservations %}
+            <div class="reservation-item">
+                <div class="reservation-hotel">
+                    <i class="fas fa-hotel me-2"></i>{{ reservation.hotel.name }}
+                </div>
+                <div class="reservation-details">
+                    <div><strong>{% trans "Room" %}:</strong> {{ reservation.room.name }}</div>
+                    <div><strong>{% trans "Check-in" %}:</strong> {{ reservation.check_in|date:"d/m/Y" }}</div>
+                    <div><strong>{% trans "Check-out" %}:</strong> {{ reservation.check_out|date:"d/m/Y" }}</div>
+                    <div><strong>{% trans "Guests" %}:</strong> {{ reservation.number_of_guests }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Total Amount -->
+        <div class="total-amount">
+            <div class="total-label">
+                {% if checkout.payment_mode == "plan" %}
+                    {% trans "Total Amount" %}
+                {% else %}
+                    {% trans "Amount Paid" %}
+                {% endif %}
+            </div>
+            <div class="total-value">${{ checkout.amount_total|floatformat:2 }}</div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <a href="{% url 'accounts:stripe_invoice' checkout.pk %}" class="btn-confirmation btn-primary-confirm" target="_blank">
+            <i class="fas fa-receipt"></i>
+            {% trans "View Invoice" %}
+        </a>
+        <a href="{% url 'accounts:panel_event_detail' checkout.event.pk %}" class="btn-confirmation btn-outline-confirm">
+            <i class="fas fa-arrow-left"></i>
+            {% trans "Back to Event" %}
+        </a>
+    </div>
+
+    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e9ecef; color: #6c757d; font-size: 0.9rem;">
+        <p>
+            <i class="fas fa-info-circle me-2"></i>
+            {% trans "A confirmation email has been sent to" %} <strong>{{ checkout.user.email }}</strong>
+        </p>
+        <p style="margin-top: 10px;">
+            {% trans "Transaction ID" %}: <code style="background: #f8f9fa; padding: 4px 8px; border-radius: 4px;">{{ checkout.stripe_session_id|truncatechars:30 }}</code>
+        </p>
+    </div>
+</div>
+{% endblock %}
+

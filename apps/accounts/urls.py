@@ -122,6 +122,16 @@ urlpatterns = [
         name="stripe_event_checkout_cancel",
     ),
     path("stripe/webhook/", views_private.stripe_webhook, name="stripe_webhook"),
+    path(
+        "stripe/invoice/<int:pk>/",
+        views_private.StripeInvoiceView.as_view(),
+        name="stripe_invoice",
+    ),
+    path(
+        "payment/confirmation/<int:pk>/",
+        views_private.PaymentConfirmationView.as_view(),
+        name="payment_confirmation",
+    ),
     # Wallet
     path(
         "wallet/add-funds/",

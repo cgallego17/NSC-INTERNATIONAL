@@ -2076,7 +2076,8 @@ def stripe_event_checkout_success(request, pk):
     request.session.modified = True
 
     messages.success(request, _("Payment completed. Registration confirmed."))
-    return redirect("accounts:panel_event_detail", pk=pk)
+    # Redirigir a la página de confirmación
+    return redirect("accounts:payment_confirmation", pk=checkout.pk)
 
 
 @login_required
@@ -2259,3 +2260,101 @@ def wallet_add_funds(request):
         )
 
     return redirect("panel")
+
+
+class StripeInvoiceView(LoginRequiredMixin, DetailView):
+    """Vista para mostrar el invoice/factura de un pago de Stripe."""
+
+    model = StripeEventCheckout
+    template_name = "accounts/panel_tabs/invoice.html"
+    context_object_name = "checkout"
+
+    def get_queryset(self):
+        """Solo permitir ver invoices del usuario actual."""
+        return StripeEventCheckout.objects.filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        checkout = self.object
+
+        # Obtener jugadores relacionados
+        from .models import PlayerParent
+
+        player_ids = checkout.player_ids or []
+        player_parents = PlayerParent.objects.filter(
+            parent=checkout.user, player_id__in=player_ids
+        ).select_related("player", "player__user")
+
+        players = [pp.player for pp in player_parents]
+
+        # Obtener reservas de hotel relacionadas
+        from apps.locations.models import HotelReservation
+
+        reservations = HotelReservation.objects.filter(
+            user=checkout.user,
+            notes__icontains=checkout.stripe_session_id,
+        ).select_related("hotel", "room")
+
+        # Parsear breakdown para mostrar detalles
+        breakdown = checkout.breakdown or {}
+        hotel_cart = checkout.hotel_cart_snapshot or {}
+
+        context.update(
+            {
+                "players": players,
+                "reservations": reservations,
+                "breakdown": breakdown,
+                "hotel_cart": hotel_cart,
+            }
+        )
+
+        return context
+
+
+class PaymentConfirmationView(LoginRequiredMixin, DetailView):
+    """Vista para mostrar la confirmación de pago exitoso."""
+
+    model = StripeEventCheckout
+    template_name = "accounts/panel_tabs/payment_confirmation.html"
+    context_object_name = "checkout"
+
+    def get_queryset(self):
+        """Solo permitir ver confirmaciones del usuario actual y que estén pagadas."""
+        return StripeEventCheckout.objects.filter(
+            user=self.request.user, status="paid"
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        checkout = self.object
+
+        # Obtener jugadores relacionados
+        from .models import PlayerParent
+
+        player_ids = checkout.player_ids or []
+        player_parents = PlayerParent.objects.filter(
+            parent=checkout.user, player_id__in=player_ids
+        ).select_related("player", "player__user")
+
+        players = [pp.player for pp in player_parents]
+
+        # Obtener reservas de hotel relacionadas
+        from apps.locations.models import HotelReservation
+
+        reservations = HotelReservation.objects.filter(
+            user=checkout.user,
+            notes__icontains=checkout.stripe_session_id,
+        ).select_related("hotel", "room")
+
+        # Parsear breakdown para mostrar detalles
+        breakdown = checkout.breakdown or {}
+
+        context.update(
+            {
+                "players": players,
+                "reservations": reservations,
+                "breakdown": breakdown,
+            }
+        )
+
+        return context

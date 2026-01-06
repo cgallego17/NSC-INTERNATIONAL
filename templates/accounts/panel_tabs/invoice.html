@@ -1,0 +1,475 @@
+{% extends "accounts/panel_tabs/embed_base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% trans "Invoice" %} #{{ checkout.pk }} - {{ checkout.event.title }}{% endblock %}
+
+{% block content %}
+<style>
+    .invoice-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 30px;
+        background: white;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .invoice-header {
+        border-bottom: 3px solid var(--mlb-red);
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+
+    .invoice-title {
+        color: var(--mlb-blue);
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+
+    .invoice-number {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .invoice-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+    }
+
+    .info-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+    }
+
+    .info-section h6 {
+        color: var(--mlb-blue);
+        font-weight: 600;
+        margin-bottom: 15px;
+        border-bottom: 2px solid var(--mlb-red);
+        padding-bottom: 8px;
+    }
+
+    .info-item {
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+        display: inline-block;
+        min-width: 120px;
+    }
+
+    .info-value {
+        color: #212529;
+    }
+
+    .items-section {
+        margin-bottom: 30px;
+    }
+
+    .section-title {
+        color: var(--mlb-blue);
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    .items-table thead {
+        background: var(--mlb-blue);
+        color: white;
+    }
+
+    .items-table th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+    }
+
+    .items-table td {
+        padding: 12px;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .items-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .badge-status {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .badge-paid {
+        background: #28a745;
+        color: white;
+    }
+
+    .badge-created {
+        background: #ffc107;
+        color: #212529;
+    }
+
+    .totals-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        font-size: 0.95rem;
+    }
+
+    .total-row.final {
+        border-top: 2px solid var(--mlb-red);
+        margin-top: 10px;
+        padding-top: 15px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--mlb-blue);
+    }
+
+    .total-label {
+        font-weight: 600;
+    }
+
+    .invoice-footer {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 2px solid #e9ecef;
+        text-align: center;
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+
+    .print-btn {
+        background: var(--mlb-blue);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: 600;
+        margin-bottom: 20px;
+    }
+
+    .print-btn:hover {
+        background: #0056b3;
+    }
+
+    @media print {
+        .print-btn {
+            display: none;
+        }
+        .invoice-container {
+            padding: 0;
+        }
+    }
+</style>
+
+<div class="invoice-container">
+    <div class="invoice-header">
+        <h1 class="invoice-title">
+            <i class="fas fa-receipt me-2"></i>{% trans "Invoice" %}
+        </h1>
+        <div class="invoice-number">
+            {% trans "Invoice #" %}{{ checkout.pk }} |
+            {% trans "Stripe Session" %}: {{ checkout.stripe_session_id|truncatechars:30 }}
+        </div>
+    </div>
+
+    <button class="print-btn" onclick="window.print()">
+        <i class="fas fa-print me-2"></i>{% trans "Print Invoice" %}
+    </button>
+
+    <div class="invoice-info-grid">
+        <div class="info-section">
+            <h6><i class="fas fa-user me-2"></i>{% trans "Customer Information" %}</h6>
+            <div class="info-item">
+                <span class="info-label">{% trans "Name" %}:</span>
+                <span class="info-value">{{ checkout.user.get_full_name|default:checkout.user.username }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">{% trans "Email" %}:</span>
+                <span class="info-value">{{ checkout.user.email }}</span>
+            </div>
+            {% if checkout.user.profile.phone %}
+            <div class="info-item">
+                <span class="info-label">{% trans "Phone" %}:</span>
+                <span class="info-value">{{ checkout.user.profile.phone }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="info-section">
+            <h6><i class="fas fa-calendar me-2"></i>{% trans "Payment Information" %}</h6>
+            <div class="info-item">
+                <span class="info-label">{% trans "Date" %}:</span>
+                <span class="info-value">{{ checkout.paid_at|date:"d/m/Y H:i"|default:checkout.created_at|date:"d/m/Y H:i" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">{% trans "Status" %}:</span>
+                <span class="badge-status {% if checkout.status == 'paid' %}badge-paid{% else %}badge-created{% endif %}">
+                    {{ checkout.get_status_display }}
+                </span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">{% trans "Payment Mode" %}:</span>
+                <span class="info-value">
+                    {% if checkout.payment_mode == "plan" %}
+                        {% trans "Payment Plan" %} ({{ checkout.plan_months }} {% trans "months" %})
+                    {% else %}
+                        {% trans "Pay Now" %}
+                    {% endif %}
+                </span>
+            </div>
+            {% if checkout.discount_percent > 0 %}
+            <div class="info-item">
+                <span class="info-label">{% trans "Discount" %}:</span>
+                <span class="info-value">{{ checkout.discount_percent }}%</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="info-section" style="margin-bottom: 30px;">
+        <h6><i class="fas fa-calendar-check me-2"></i>{% trans "Event Information" %}</h6>
+        <div class="info-item">
+            <span class="info-label">{% trans "Event" %}:</span>
+            <span class="info-value"><strong>{{ checkout.event.title }}</strong></span>
+        </div>
+        {% if checkout.event.location %}
+        <div class="info-item">
+            <span class="info-label">{% trans "Location" %}:</span>
+            <span class="info-value">{{ checkout.event.location }}</span>
+        </div>
+        {% endif %}
+        {% if checkout.event.start_date %}
+        <div class="info-item">
+            <span class="info-label">{% trans "Start Date" %}:</span>
+            <span class="info-value">{{ checkout.event.start_date|date:"d/m/Y" }}</span>
+        </div>
+        {% endif %}
+        {% if checkout.event.end_date %}
+        <div class="info-item">
+            <span class="info-label">{% trans "End Date" %}:</span>
+            <span class="info-value">{{ checkout.event.end_date|date:"d/m/Y" }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Players Section -->
+    {% if players %}
+    <div class="items-section">
+        <h3 class="section-title">
+            <i class="fas fa-users me-2"></i>{% trans "Registered Players" %} ({{ players|length }})
+        </h3>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>{% trans "Player Name" %}</th>
+                    <th>{% trans "Date of Birth" %}</th>
+                    <th class="text-center">{% trans "Status" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in players %}
+                <tr>
+                    <td>
+                        <strong>{{ player.user.get_full_name|default:player.user.username }}</strong>
+                        {% if player.user.email %}
+                        <br><small class="text-muted">{{ player.user.email }}</small>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if player.date_of_birth %}
+                            {{ player.date_of_birth|date:"d/m/Y" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <span class="badge-status badge-paid">{% trans "Confirmed" %}</span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Hotel Reservations Section -->
+    {% if reservations %}
+    <div class="items-section">
+        <h3 class="section-title">
+            <i class="fas fa-bed me-2"></i>{% trans "Hotel Reservations" %} ({{ reservations|length }})
+        </h3>
+        {% for reservation in reservations %}
+        <div class="info-section" style="margin-bottom: 15px;">
+            <h6 style="margin-bottom: 10px;">
+                <i class="fas fa-hotel me-2"></i>{{ reservation.hotel.name }}
+            </h6>
+            <div class="info-item">
+                <span class="info-label">{% trans "Room" %}:</span>
+                <span class="info-value">{{ reservation.room.name }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">{% trans "Check-in" %}:</span>
+                <span class="info-value">{{ reservation.check_in|date:"d/m/Y" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">{% trans "Check-out" %}:</span>
+                <span class="info-value">{{ reservation.check_out|date:"d/m/Y" }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">{% trans "Guests" %}:</span>
+                <span class="info-value">{{ reservation.number_of_guests }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">{% trans "Status" %}:</span>
+                <span class="badge-status badge-paid">{{ reservation.get_status_display }}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Breakdown Section -->
+    <div class="items-section">
+        <h3 class="section-title">
+            <i class="fas fa-list me-2"></i>{% trans "Payment Breakdown" %}
+        </h3>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>{% trans "Description" %}</th>
+                    <th class="text-right">{% trans "Quantity" %}</th>
+                    <th class="text-right">{% trans "Unit Price" %}</th>
+                    <th class="text-right">{% trans "Total" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if breakdown.players_total %}
+                <tr>
+                    <td>
+                        <strong>{% trans "Event Registration" %}</strong>
+                        <br><small class="text-muted">{% trans "Players registration fee" %}</small>
+                    </td>
+                    <td class="text-right">{{ breakdown.players_count|default:"0" }}</td>
+                    <td class="text-right">${{ breakdown.price_per_player|default:"0.00"|floatformat:2 }}</td>
+                    <td class="text-right"><strong>${{ breakdown.players_total|floatformat:2 }}</strong></td>
+                </tr>
+                {% endif %}
+
+                {% if breakdown.hotel_total %}
+                <tr>
+                    <td>
+                        <strong>{% trans "Hotel Stay" %}</strong>
+                        <br><small class="text-muted">{% trans "Accommodation" %}</small>
+                    </td>
+                    <td class="text-right">-</td>
+                    <td class="text-right">-</td>
+                    <td class="text-right"><strong>${{ breakdown.hotel_total|floatformat:2 }}</strong></td>
+                </tr>
+                {% endif %}
+
+                {% if breakdown.no_show_fee %}
+                <tr>
+                    <td>
+                        <strong>{% trans "Hotel Buy Out Fee" %}</strong>
+                        <br><small class="text-muted">{% trans "Fee for not selecting hotel" %}</small>
+                    </td>
+                    <td class="text-right">-</td>
+                    <td class="text-right">-</td>
+                    <td class="text-right"><strong>${{ breakdown.no_show_fee|floatformat:2 }}</strong></td>
+                </tr>
+                {% endif %}
+
+                {% if breakdown.subtotal %}
+                <tr style="background: #f8f9fa;">
+                    <td colspan="3" class="text-right"><strong>{% trans "Subtotal" %}:</strong></td>
+                    <td class="text-right"><strong>${{ breakdown.subtotal|floatformat:2 }}</strong></td>
+                </tr>
+                {% endif %}
+
+                {% if checkout.discount_percent > 0 and breakdown.discount_amount %}
+                <tr>
+                    <td>
+                        <strong>{% trans "Discount" %}</strong>
+                        <br><small class="text-muted">{{ checkout.discount_percent }}% {% trans "off" %}</small>
+                    </td>
+                    <td class="text-right">-</td>
+                    <td class="text-right">-</td>
+                    <td class="text-right" style="color: #28a745;">
+                        <strong>-${{ breakdown.discount_amount|floatformat:2 }}</strong>
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Totals Section -->
+    <div class="totals-section">
+        {% if checkout.payment_mode == "plan" %}
+        <div class="total-row">
+            <span class="total-label">{% trans "Total Amount" %}:</span>
+            <span>${{ checkout.amount_total|floatformat:2 }}</span>
+        </div>
+        <div class="total-row">
+            <span class="total-label">{% trans "Payment Plan" %}:</span>
+            <span>{{ checkout.plan_months }} {% trans "monthly payments" %}</span>
+        </div>
+        <div class="total-row final">
+            <span class="total-label">{% trans "Monthly Payment" %}:</span>
+            <span>${{ checkout.plan_monthly_amount|floatformat:2 }}</span>
+        </div>
+        {% else %}
+        <div class="total-row final">
+            <span class="total-label">{% trans "Total Paid" %}:</span>
+            <span>${{ checkout.amount_total|floatformat:2 }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="invoice-footer">
+        <p>
+            <strong>{% trans "Thank you for your payment!" %}</strong><br>
+            {% trans "This is an official invoice for your records." %}<br>
+            {% trans "For questions or support, please contact us." %}
+        </p>
+        <p style="margin-top: 15px; font-size: 0.8rem;">
+            {% trans "Invoice generated on" %} {{ checkout.created_at|date:"d/m/Y H:i" }}<br>
+            {% trans "Stripe Session ID" %}: {{ checkout.stripe_session_id }}
+        </p>
+    </div>
+</div>
+{% endblock %}
+

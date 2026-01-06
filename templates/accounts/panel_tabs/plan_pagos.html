@@ -117,6 +117,11 @@
                             <a href="{% url 'accounts:panel_event_detail' checkout.event.pk %}" class="btn btn-sm btn-primary">
                                 <i class="fas fa-eye me-1"></i>{% trans "View Event" %}
                             </a>
+                            {% if checkout.status == "paid" %}
+                                <a href="{% url 'accounts:stripe_invoice' checkout.pk %}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                    <i class="fas fa-receipt me-1"></i>{% trans "View Invoice" %}
+                                </a>
+                            {% endif %}
                             {% if checkout.payment_mode == "plan" and checkout.status == "paid" %}
                                 <span class="btn btn-sm btn-success" style="cursor: default;">
                                     <i class="fas fa-check me-1"></i>{% trans "Next payment will be charged automatically" %}
@@ -252,9 +257,14 @@
                                     <span class="badge bg-success">{% trans "Paid" %}</span>
                                 </td>
                                 <td>
-                                    <a href="{% url 'accounts:panel_event_detail' checkout.event.pk %}" class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-eye me-1"></i>{% trans "View" %}
-                                    </a>
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'accounts:panel_event_detail' checkout.event.pk %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye me-1"></i>{% trans "View Event" %}
+                                        </a>
+                                        <a href="{% url 'accounts:stripe_invoice' checkout.pk %}" class="btn btn-sm btn-outline-success" target="_blank">
+                                            <i class="fas fa-receipt me-1"></i>{% trans "Invoice" %}
+                                        </a>
+                                    </div>
                                 </td>
                             </tr>
                         {% endfor %}
