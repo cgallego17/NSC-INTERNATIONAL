@@ -147,12 +147,8 @@
             display: flex !important;
         }
 
-        /* Divisiones extra ocultas por defecto */
+        /* Divisiones extra: se muestra/oculta con <details> (sin JS) */
         .divisions-extra {
-            display: none !important;
-        }
-
-        .divisions-card.show-all .divisions-extra {
             display: flex !important;
             flex-wrap: wrap !important;
             gap: 6px !important;
@@ -178,9 +174,26 @@
             transform: translateY(-1px) !important;
         }
 
-        .divisions-card.show-all .divisions-show-more-chevron {
+        /* details toggle */
+        .divisions-more {
+            width: 100% !important;
+        }
+
+        .divisions-more > summary.divisions-show-more-btn {
+            list-style: none;
+        }
+
+        .divisions-more > summary.divisions-show-more-btn::-webkit-details-marker {
+            display: none;
+        }
+
+        .divisions-more[open] .divisions-show-more-chevron {
             transform: rotate(180deg) !important;
         }
+
+        .divisions-show-more-text--less { display: none; }
+        .divisions-more[open] .divisions-show-more-text--more { display: none; }
+        .divisions-more[open] .divisions-show-more-text--less { display: inline; }
 
         /* Asegurar que el contenedor de divisiones permita clics en PC */
         @media (min-width: 769px) {
@@ -217,14 +230,9 @@
             }
 
             /* En móvil, cuando el acordeón está activo, mostrar todas las divisiones */
-            .divisions-card.active .divisions-extra {
-                display: flex !important;
-                flex-wrap: wrap !important;
-                gap: 6px !important;
-                align-items: center !important;
-                width: 100% !important;
-                margin-top: 6px !important;
-            }
+            /* En móvil el acordeón controla el alto; mostramos extra pero ocultamos el summary */
+            .divisions-more > summary.divisions-show-more-btn { display: none !important; }
+            .divisions-extra { margin-top: 6px !important; }
 
             /* Ocultar botón "Show more" en móvil */
             .divisions-show-more-btn {
@@ -357,12 +365,20 @@
             margin-bottom: 8px !important;
         }
 
-        /* Checkout Card - Más compacta */
+        /* Checkout Card - Sticky para que baje con el scroll (desktop) */
         .checkout-card {
-            position: relative !important;
-            top: 0 !important;
+            position: sticky !important;
+            top: 20px !important;
             padding: 16px 12px !important;
             border-radius: 12px !important;
+        }
+
+        /* En móvil: no sticky */
+        @media (max-width: 768px) {
+            .checkout-card {
+                position: static !important;
+                top: auto !important;
+            }
         }
 
         .checkout-card h4 {
@@ -837,20 +853,23 @@
                                                             {{ division.name }}
                                                         </span>
                                                     {% endfor %}
-                                                    <div class="divisions-extra" style="display: none; width: 100%; flex-wrap: wrap; gap: 6px; align-items: center; flex-direction: row;">
-                                                        {% for division in event.divisions.all|slice:"3:" %}
-                                                            <span class="division-badge" style="display: inline-flex; align-items: center; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; box-shadow: 0 2px 6px rgba(213, 0, 50, 0.25); white-space: nowrap; transition: all 0.2s;">
-                                                                <i class="fas fa-tag" style="font-size: 0.65rem; margin-right: 5px; opacity: 0.9;"></i>
-                                                                {{ division.name }}
-                                                            </span>
-                                                        {% endfor %}
-                            </div>
                                                     {% if event.divisions.count > 3 %}
-                                                        <button type="button" class="divisions-show-more-btn" style="display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 1px solid var(--mlb-red); color: var(--mlb-red); padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 4px;">
-                                                            <span class="divisions-show-more-text">{% trans "Show more" %}</span>
-                                                            <i class="fas fa-chevron-down divisions-show-more-chevron" style="font-size: 0.6rem; transition: transform 0.3s;"></i>
-                                                        </button>
-                        {% endif %}
+                                                        <details class="divisions-more">
+                                                            <summary class="divisions-show-more-btn" style="display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 1px solid var(--mlb-red); color: var(--mlb-red); padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 4px; pointer-events: auto !important; z-index: 100 !important; position: relative !important;">
+                                                                <span class="divisions-show-more-text divisions-show-more-text--more">{% trans "Show more" %}</span>
+                                                                <span class="divisions-show-more-text divisions-show-more-text--less">{% trans "Show less" %}</span>
+                                                                <i class="fas fa-chevron-down divisions-show-more-chevron" style="font-size: 0.6rem; transition: transform 0.3s; transform: rotate(0deg);"></i>
+                                                            </summary>
+                                                            <div class="divisions-extra" style="display: flex; width: 100%; flex-wrap: wrap; gap: 6px; align-items: center; flex-direction: row;">
+                                                                {% for division in event.divisions.all|slice:"3:" %}
+                                                                    <span class="division-badge" style="display: inline-flex; align-items: center; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; box-shadow: 0 2px 6px rgba(213, 0, 50, 0.25); white-space: nowrap; transition: all 0.2s;">
+                                                                        <i class="fas fa-tag" style="font-size: 0.65rem; margin-right: 5px; opacity: 0.9;"></i>
+                                                                        {{ division.name }}
+                                                                    </span>
+                                                                {% endfor %}
+                                                            </div>
+                                                        </details>
+                                                    {% endif %}
                                                 </div>
                                             </div>
                                         </div>
@@ -987,7 +1006,8 @@
                                         const videoId = extractYouTubeId(videoUrl);
                                         if (videoId) {
                                             iframe = document.createElement('iframe');
-                                            iframe.src = 'https://www.youtube.com/embed/' + videoId;
+                                            // Autoplay usually requires muted + playsinline
+                                            iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1';
                                             iframe.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;';
                                             iframe.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
                                             iframe.setAttribute('allowfullscreen', '');
@@ -996,14 +1016,19 @@
                                         const videoId = extractVimeoId(videoUrl);
                                         if (videoId) {
                                             iframe = document.createElement('iframe');
-                                            iframe.src = 'https://player.vimeo.com/video/' + videoId;
+                                            // Autoplay usually requires muted + playsinline
+                                            iframe.src = 'https://player.vimeo.com/video/' + videoId + '?autoplay=1&muted=1&playsinline=1';
                                             iframe.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;';
                                             iframe.setAttribute('allow', 'autoplay; fullscreen; picture-in-picture');
                                             iframe.setAttribute('allowfullscreen', '');
                                         }
                                     } else {
                                         const video = document.createElement('video');
+                                        // Autoplay: most browsers require muted + playsinline
                                         video.controls = true;
+                                        video.autoplay = true;
+                                        video.muted = true;
+                                        video.playsInline = true;
                                         video.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; background: #000;';
                                         const source = document.createElement('source');
                                         source.src = videoUrl;
@@ -1015,6 +1040,13 @@
 
                                     if (iframe) {
                                         container.appendChild(iframe);
+                                        // Attempt to start playback (safe no-op for iframes / blocked autoplay)
+                                        try {
+                                            if (iframe.tagName && iframe.tagName.toLowerCase() === 'video') {
+                                                const p = iframe.play();
+                                                if (p && typeof p.catch === 'function') p.catch(() => {});
+                                            }
+                                        } catch (e) {}
                                     } else {
                                         container.innerHTML = '<div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: white;"><i class="fas fa-exclamation-triangle me-2"></i>{% trans "Invalid video URL" %}</div>';
                                     }
@@ -2396,7 +2428,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const divisionsCard = document.querySelector('.divisions-card');
             const divisionsToggleBtn = document.querySelector('.divisions-toggle-btn');
             const divisionsShowMoreBtn = document.querySelector('.divisions-show-more-btn');
-            const divisionsShowMoreText = document.querySelector('.divisions-show-more-text');
 
             // Acordeón para móvil
             if (divisionsToggleBtn && divisionsCard) {
@@ -2406,39 +2437,37 @@ document.addEventListener('DOMContentLoaded', function() {
                     divisionsCard.classList.toggle('active');
                     // En móvil, cuando se expande, también mostrar las divisiones extra
                     if (divisionsCard.classList.contains('active')) {
+                        const extra = divisionsCard.querySelector('.divisions-extra');
+                        if (extra) extra.style.setProperty('display', 'flex', 'important');
                         divisionsCard.classList.add('show-all');
-                    }
-                };
-            }
-
-            // Botón "Show more" para PC
-            if (divisionsShowMoreBtn && divisionsCard && divisionsShowMoreText) {
-                divisionsShowMoreBtn.onclick = function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    divisionsCard.classList.toggle('show-all');
-
-                    // Cambiar el texto del botón
-                    if (divisionsCard.classList.contains('show-all')) {
-                        divisionsShowMoreText.textContent = '{% trans "Show less" %}';
                     } else {
-                        divisionsShowMoreText.textContent = '{% trans "Show more" %}';
+                        const extra = divisionsCard.querySelector('.divisions-extra');
+                        if (extra) extra.style.setProperty('display', 'none', 'important');
+                        divisionsCard.classList.remove('show-all');
                     }
                 };
             }
+
+            // En desktop el "show more" lo maneja <details>/<summary> (sin JS)
         }
 
         // Ejecutar cuando el DOM esté listo
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(initDivisionsAccordion, 50);
-            });
-        } else {
-            setTimeout(initDivisionsAccordion, 50);
+        function runInit() {
+            initDivisionsAccordion();
         }
 
-        // También intentar después de un delay adicional
-        setTimeout(initDivisionsAccordion, 300);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', runInit);
+        } else {
+            runInit();
+        }
+
+        // También intentar después de delays adicionales para asegurar que funcione
+        setTimeout(runInit, 100);
+        setTimeout(runInit, 300);
+        setTimeout(runInit, 500);
+
+        // Nota: removimos event-delegation/capture aquí porque estaba bloqueando `onclick` del botón en algunos navegadores.
     })();
 </script>
 
