@@ -2300,6 +2300,32 @@ class StripeInvoiceView(LoginRequiredMixin, DetailView):
         breakdown = checkout.breakdown or {}
         hotel_cart = checkout.hotel_cart_snapshot or {}
 
+        # Calcular valores faltantes del breakdown
+        from decimal import Decimal
+
+        # Calcular players_count y price_per_player
+        players_count = len(players)
+        players_total = Decimal(str(breakdown.get("players_total", "0.00")))
+        price_per_player = (
+            players_total / Decimal(str(players_count))
+            if players_count > 0
+            else Decimal("0.00")
+        )
+
+        # Calcular discount_amount
+        subtotal = Decimal(str(breakdown.get("subtotal", "0.00")))
+        discount_percent = breakdown.get("discount_percent", 0)
+        discount_amount = (
+            subtotal * Decimal(str(discount_percent)) / Decimal("100")
+            if discount_percent > 0
+            else Decimal("0.00")
+        )
+
+        # Agregar valores calculados al breakdown para el template
+        breakdown["players_count"] = players_count
+        breakdown["price_per_player"] = str(price_per_player)
+        breakdown["discount_amount"] = str(discount_amount)
+
         context.update(
             {
                 "players": players,
