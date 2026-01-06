@@ -1511,8 +1511,8 @@
                                                                     data-room-id="{{ room.id }}"
                                                                     data-hotel-pk="{{ event.hotel.pk }}"
                                                                     data-room-capacity="{{ room.capacity }}"
-                                                                    onclick="event.preventDefault(); event.stopPropagation(); if (window.NSC_HotelReservation && typeof window.NSC_HotelReservation.selectRoom === 'function') { window.NSC_HotelReservation.selectRoom(this); }"
-                                                                    style="border-radius: 10px; font-weight: 800; padding: 9px 22px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border: none; box-shadow: 0 4px 12px rgba(13, 44, 84, 0.25), 0 2px 6px rgba(13, 44, 84, 0.15); font-size: 0.9rem; white-space: nowrap; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); color: white;"
+                                                                    data-room-detail-url="{% url 'locations:get_room_detail' room_id=room.id %}"
+                                                                    style="border-radius: 10px; font-weight: 800; padding: 9px 22px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border: none; box-shadow: 0 4px 12px rgba(13, 44, 84, 0.25), 0 2px 6px rgba(13, 44, 84, 0.15); font-size: 0.9rem; white-space: nowrap; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); color: white; cursor: pointer;"
                                                                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(13, 44, 84, 0.3), 0 4px 8px rgba(13, 44, 84, 0.2)';"
                                                                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(13, 44, 84, 0.25), 0 2px 6px rgba(13, 44, 84, 0.15)';">
                                                                 <i class="fas fa-plus-circle me-1"></i>{% trans "Select" %}
@@ -1574,8 +1574,8 @@
                                                                     data-hotel-pk="{{ event.hotel.pk }}"
                                                                     data-room-id="{{ room.id }}"
                                                                     data-room-capacity="{{ room.capacity|default:0 }}"
-                                                                    onclick="event.preventDefault(); event.stopPropagation(); if (window.NSC_HotelReservation && typeof window.NSC_HotelReservation.selectRoom === 'function') { window.NSC_HotelReservation.selectRoom(this); }"
-                                                                    style="width: 100%; border-radius: 10px; font-weight: 800; padding: 9px 22px; font-size: 0.9rem; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border: none; box-shadow: 0 4px 12px rgba(13, 44, 84, 0.25), 0 2px 6px rgba(13, 44, 84, 0.15); color: white; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap;"
+                                                                    data-room-detail-url="{% url 'locations:get_room_detail' room_id=room.id %}"
+                                                                    style="width: 100%; border-radius: 10px; font-weight: 800; padding: 9px 22px; font-size: 0.9rem; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border: none; box-shadow: 0 4px 12px rgba(13, 44, 84, 0.25), 0 2px 6px rgba(13, 44, 84, 0.15); color: white; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); white-space: nowrap; cursor: pointer;"
                                                                     onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(13, 44, 84, 0.3), 0 4px 8px rgba(13, 44, 84, 0.2)';"
                                                                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(13, 44, 84, 0.25), 0 2px 6px rgba(13, 44, 84, 0.15)';">
                                                                 <i class="fas fa-plus-circle me-1"></i>{% trans "Select" %}
@@ -3659,6 +3659,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 // ignore
             }
         }, true);
+    })();
+
+    // Handle room-select-btn clicks (replaces inline onclick)
+    (function initRoomSelectButtons() {
+        function handleRoomSelectClick(e) {
+            const btn = e.target.closest('.room-select-btn');
+            if (!btn) return;
+            if (String(btn.dataset.hotelPk || '') !== String(hotelPk)) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (window.NSC_HotelReservation && typeof window.NSC_HotelReservation.selectRoom === 'function') {
+                window.NSC_HotelReservation.selectRoom(btn);
+            }
+        }
+
+        // Use event delegation on document for dynamically added buttons
+        document.addEventListener('click', handleRoomSelectClick, true);
     })();
 
     function tryWrapSelectRoom() {
