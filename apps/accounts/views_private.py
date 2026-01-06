@@ -16,11 +16,12 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone, translation
-from django.utils.translation import gettext_lazy as _
 from django.utils.decorators import method_decorator
+from django.utils.translation import gettext_lazy as _
+from django.views.decorators.cache import never_cache
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import (
     CreateView,
     DetailView,
@@ -90,7 +91,9 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
                 "user", "team", "user__profile"
             )
             context["total_players"] = players_qs.count()  # Contar antes del slice
-            context["recent_players"] = players_qs.order_by("-created_at")[:5]  # Solo los primeros 5
+            context["recent_players"] = players_qs.order_by("-created_at")[
+                :5
+            ]  # Solo los primeros 5
 
         # Si es padre, obtener sus jugadores (optimizado)
         if profile.is_parent:
@@ -107,7 +110,9 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
                 )
                 .order_by("-created_at")
             )
-            context["total_children"] = player_parents_qs.count()  # Contar antes de evaluar
+            context["total_children"] = (
+                player_parents_qs.count()
+            )  # Contar antes de evaluar
             context["children"] = player_parents_qs  # QuerySet lazy
             context["recent_children"] = player_parents_qs[:5]  # Solo los primeros 5
 
@@ -117,7 +122,9 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
 
             banners = DashboardBanner.objects.filter(is_active=True).order_by(
                 "order", "-created_at"
-            )[:10]  # Limitar a 10 banners
+            )[
+                :10
+            ]  # Limitar a 10 banners
             # Si no hay banners, crear una lista vacía (el template mostrará el banner por defecto)
             context["dashboard_banners"] = list(banners) if banners.exists() else []
         except ImportError:
@@ -152,7 +159,9 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
         # Obtener mensajes activos del marquee (limitar a 10)
         marquee_messages = MarqueeMessage.objects.filter(is_active=True).order_by(
             "order", "-created_at"
-        )[:10]  # Limitar a 10 mensajes[:10]  # Limitar a 10 mensajes
+        )[
+            :10
+        ]  # Limitar a 10 mensajes[:10]  # Limitar a 10 mensajes
         context["marquee_messages"] = marquee_messages
 
         # Inicializar contadores de verificaciones pendientes
@@ -162,20 +171,24 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
         # Si es staff/admin, obtener todos los documentos pendientes (no solo de sus equipos)
         if user.is_staff or user.is_superuser:
             pending_qs = Player.objects.filter(
-                    age_verification_status="pending",
-                    age_verification_document__isnull=False,
+                age_verification_status="pending",
+                age_verification_document__isnull=False,
             ).select_related("user", "team", "user__profile")
             context["pending_verifications"] = pending_qs.order_by("-updated_at")[:20]
-            context["pending_verifications_count"] = pending_qs.count()  # Una sola consulta
+            context["pending_verifications_count"] = (
+                pending_qs.count()
+            )  # Una sola consulta
         # Si es manager (pero no staff), obtener solo documentos de sus equipos
         elif profile.is_team_manager:
             pending_qs = Player.objects.filter(
-                    team__manager=user,
-                    age_verification_status="pending",
-                    age_verification_document__isnull=False,
+                team__manager=user,
+                age_verification_status="pending",
+                age_verification_document__isnull=False,
             ).select_related("user", "team", "user__profile")
             context["pending_verifications"] = pending_qs.order_by("-updated_at")[:10]
-            context["pending_verifications_count"] = pending_qs.count()  # Una sola consulta
+            context["pending_verifications_count"] = (
+                pending_qs.count()
+            )  # Una sola consulta
 
         # Contexto adicional para los includes de los tabs
         # Formulario de equipo (para managers)
@@ -186,7 +199,9 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             # Limitar equipos a los más recientes (lazy evaluation)
             context["all_teams"] = Team.objects.filter(manager=user).order_by(
                 "-created_at"
-            )[:100]  # Limitar a 100 equipos más recientes
+            )[
+                :100
+            ]  # Limitar a 100 equipos más recientes
 
             # Limitar jugadores y usar prefetch para optimizar
             all_players_qs = (
@@ -262,9 +277,11 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             from apps.events.models import Event
 
             # Planes activos: checkouts pagados o creados (para planes, mostrar si tienen subscription_id o están pagados)
-            active_checkouts = StripeEventCheckout.objects.filter(
-                user=user
-            ).select_related("event").order_by("-created_at")
+            active_checkouts = (
+                StripeEventCheckout.objects.filter(user=user)
+                .select_related("event")
+                .order_by("-created_at")
+            )
 
             # Filtrar planes activos:
             # - Planes: deben estar pagados O tener subscription_id (aunque estén en "created")
@@ -283,17 +300,22 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             context["active_payment_plans"] = active_plans
 
             # Historial de pagos (todos los checkouts pagados)
-            context["payment_history"] = StripeEventCheckout.objects.filter(
-                user=user,
-                status="paid"
-            ).select_related("event").order_by("-paid_at", "-created_at")[:50]
+            context["payment_history"] = (
+                StripeEventCheckout.objects.filter(user=user, status="paid")
+                .select_related("event")
+                .order_by("-paid_at", "-created_at")[:50]
+            )
 
             # Calcular próximos pagos de planes activos
             upcoming_payments = []
             now = timezone.now()
 
             for plan in active_plans:
-                if plan.payment_mode == "plan" and plan.plan_months and plan.plan_months > 1:
+                if (
+                    plan.payment_mode == "plan"
+                    and plan.plan_months
+                    and plan.plan_months > 1
+                ):
                     # Fecha base: usar paid_at si existe, sino created_at
                     base_date = plan.paid_at if plan.paid_at else plan.created_at
                     if not base_date:
@@ -305,11 +327,11 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
 
                     # Calcular las fechas de los próximos pagos
                     # Usar cálculo manual de meses para evitar dependencia de dateutil
-                    from datetime import date
                     from calendar import monthrange
+                    from datetime import date
 
                     # Convertir base_date a date si es datetime
-                    if hasattr(base_date, 'date'):
+                    if hasattr(base_date, "date"):
                         base_date_only = base_date.date()
                         is_aware = timezone.is_aware(base_date)
                     else:
@@ -332,6 +354,7 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
 
                         # Crear la fecha del próximo pago
                         from datetime import datetime
+
                         due_date_date = date(target_year, target_month, day)
                         # Convertir a datetime aware si el base_date era aware
                         if is_aware:
@@ -339,23 +362,30 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
                                 datetime.combine(due_date_date, datetime.min.time())
                             )
                         else:
-                            due_date = datetime.combine(due_date_date, datetime.min.time())
+                            due_date = datetime.combine(
+                                due_date_date, datetime.min.time()
+                            )
 
                         # Solo incluir pagos futuros
                         if due_date > now:
-                            upcoming_payments.append({
-                                "checkout": plan,
-                                "event": plan.event,
-                                "due_date": due_date,
-                                "amount": plan.plan_monthly_amount,
-                                "payment_number": payment_num + 1,  # +1 porque el primer pago fue el 1
-                                "total_payments": plan.plan_months,
-                                "description": f"{plan.event.title} - Payment {payment_num + 1}/{plan.plan_months}",
-                            })
+                            upcoming_payments.append(
+                                {
+                                    "checkout": plan,
+                                    "event": plan.event,
+                                    "due_date": due_date,
+                                    "amount": plan.plan_monthly_amount,
+                                    "payment_number": payment_num
+                                    + 1,  # +1 porque el primer pago fue el 1
+                                    "total_payments": plan.plan_months,
+                                    "description": f"{plan.event.title} - Payment {payment_num + 1}/{plan.plan_months}",
+                                }
+                            )
 
             # Ordenar por fecha de vencimiento (más cercanos primero)
             upcoming_payments.sort(key=lambda x: x["due_date"])
-            context["upcoming_payments"] = upcoming_payments[:20]  # Limitar a los próximos 20
+            context["upcoming_payments"] = upcoming_payments[
+                :20
+            ]  # Limitar a los próximos 20
 
         except ImportError:
             context["active_payment_plans"] = []
@@ -1329,6 +1359,7 @@ def profile_view(request):
     return redirect("panel")
 
 
+@method_decorator(never_cache, name="dispatch")
 class PanelEventDetailView(UserDashboardView):
     """Vista para mostrar el detalle del evento en el panel con checkout"""
 
@@ -1340,12 +1371,12 @@ class PanelEventDetailView(UserDashboardView):
         event_id = self.kwargs.get("pk")
 
         try:
-            from apps.events.models import Event, EventAttendance, Division
+            from django.db.models import Prefetch
+
+            from apps.events.models import Division, Event, EventAttendance
 
             # Obtener el evento
             from apps.locations.models import HotelRoom
-
-            from django.db.models import Prefetch
 
             event = (
                 Event.objects.filter(status="published")
@@ -1363,7 +1394,9 @@ class PanelEventDetailView(UserDashboardView):
                 )
                 .prefetch_related(
                     Prefetch("divisions", queryset=Division.objects.order_by("name")),
-                    "hotel__rooms", "hotel__images", "hotel__amenities"
+                    "hotel__rooms",
+                    "hotel__images",
+                    "hotel__amenities",
                 )
                 .get(pk=event_id)
             )
@@ -1395,11 +1428,15 @@ class PanelEventDetailView(UserDashboardView):
                 ).select_related("player", "player__user", "player__user__profile")
 
                 # Filtrar jugadores que aplican para el evento según divisiones
-                all_active_children = [pp.player for pp in player_parents if pp.player.is_active]
+                all_active_children = [
+                    pp.player for pp in player_parents if pp.player.is_active
+                ]
                 event_divisions = event.divisions.all()
                 if event_divisions.exists():
                     # Obtener los nombres de las divisiones del evento
-                    event_division_names = list(event_divisions.values_list("name", flat=True))
+                    event_division_names = list(
+                        event_divisions.values_list("name", flat=True)
+                    )
 
                     # Filtrar jugadores cuya división coincida con alguna división del evento
                     # La división del jugador es un código (ej: "10U") y las divisiones del evento
@@ -1416,7 +1453,10 @@ class PanelEventDetailView(UserDashboardView):
                                 for div_name in event_division_names:
                                     # Verificar si el código de división está contenido en el nombre
                                     # o si el nombre contiene el código
-                                    if player_division in div_name or div_name in player_division:
+                                    if (
+                                        player_division in div_name
+                                        or div_name in player_division
+                                    ):
                                         matches = True
                                         break
                                 if matches:
@@ -1491,6 +1531,7 @@ class PanelEventDetailEmbedView(PanelEventDetailView):
         context = super().get_context_data(**kwargs)
         context["inner_template"] = "accounts/panel_tabs/detalle_evento.html"
         return context
+
 
 @login_required
 @require_POST
@@ -1768,6 +1809,7 @@ def create_stripe_event_checkout_session(request, pk):
         if item_data.get("type") == "room":
             try:
                 from apps.locations.models import HotelRoom
+
                 room = HotelRoom.objects.get(id=item_data.get("room_id"))
                 guests = int(item_data.get("guests", 1) or 1)
                 includes = int(room.price_includes_guests or 1)
@@ -1777,7 +1819,9 @@ def create_stripe_event_checkout_session(request, pk):
                 enriched_item = item_data.copy()
                 enriched_item["guests_included"] = includes
                 enriched_item["extra_guests"] = extra_guests
-                enriched_item["additional_guest_price"] = str(room.additional_guest_price or Decimal("0.00"))
+                enriched_item["additional_guest_price"] = str(
+                    room.additional_guest_price or Decimal("0.00")
+                )
                 enriched_cart[item_id] = enriched_item
             except Exception:
                 # Si hay error, usar el item original
@@ -1807,7 +1851,9 @@ def create_stripe_event_checkout_session(request, pk):
     # Hotel buy out fee: solo aplica si el evento tiene hotel, hay jugadores y NO se añadió hotel al checkout
     has_event_hotel = getattr(event, "hotel", None) is not None
     no_show_fee = (
-        Decimal("1000.00") if (has_event_hotel and players_count > 0 and not enriched_cart) else Decimal("0.00")
+        Decimal("1000.00")
+        if (has_event_hotel and players_count > 0 and not enriched_cart)
+        else Decimal("0.00")
     )
 
     subtotal = (players_total + hotel_total + no_show_fee).quantize(Decimal("0.01"))
@@ -2486,9 +2532,7 @@ class PaymentConfirmationView(LoginRequiredMixin, DetailView):
 
     def get_queryset(self):
         """Solo permitir ver confirmaciones del usuario actual y que estén pagadas."""
-        return StripeEventCheckout.objects.filter(
-            user=self.request.user, status="paid"
-        )
+        return StripeEventCheckout.objects.filter(user=self.request.user, status="paid")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
