@@ -4882,10 +4882,14 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         const roomsModalEl = q(`hotelRoomsModal${pk}`);
         if (!roomsModalEl) return;
 
+        // Find the rooms grid container more reliably
         const containerEl = roomsModalEl.querySelector('[style*="max-height: 70vh"]');
         if (!containerEl) return;
 
-        const roomListings = Array.from(containerEl.querySelectorAll('.room-listing-inline'));
+        const roomsGridContainer = containerEl.querySelector('.rooms-grid-container');
+        if (!roomsGridContainer) return;
+
+        const roomListings = Array.from(roomsGridContainer.querySelectorAll('.room-listing-inline'));
         if (roomListings.length === 0) return;
 
         // Get current total guests for recommendation calculation
@@ -4956,8 +4960,8 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         });
 
         // Reorder rooms in DOM
-        const parentContainer = roomListings[0]?.parentElement;
-        if (parentContainer) {
+        // Use the rooms-grid-container directly for more reliable parent reference
+        if (roomsGridContainer) {
             sortedRooms.forEach((roomData, index) => {
                 const roomEl = roomData.el;
 
@@ -4967,9 +4971,12 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                 if (sortBy === 'recommended' && index < 3) {
                     roomEl.classList.add('nsc-room-recommended');
                     // Badge insertion removed to prevent layout conflicts
+                } else {
+                    // Remove recommendation class if not in top 3 or not sorting by recommended
+                    roomEl.classList.remove('nsc-room-recommended');
                 }
 
-                parentContainer.appendChild(roomEl);
+                roomsGridContainer.appendChild(roomEl);
             });
         }
     }
