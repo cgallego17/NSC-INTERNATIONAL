@@ -456,6 +456,264 @@ class StripeCheckoutTestCase(TestCase):
             if "stripe" in sys.modules:
                 del sys.modules["stripe"]
 
+    def test_plan_payment_subscription_only_charges_required_months(self):
+        """Test que el plan de pago solo se suscribe por los meses necesarios hasta pagar el total"""
+        import sys
+        from datetime import date
+        from decimal import ROUND_HALF_UP
+        from unittest.mock import patch
+
+        # Configurar evento con deadline para calcular meses
+        future_date = date.today() + timedelta(days=90)  # ~3 meses
+        self.event.payment_deadline = future_date
+        self.event.save()
+
+        # Calcular meses esperados (inclusive desde hoy hasta deadline)
+        from django.utils import timezone
+
+        now = timezone.localdate()
+        expected_months = (
+            (future_date.year - now.year) * 12 + (future_date.month - now.month) + 1
+        )
+
+        # El subtotal se calcula como: players_total (sin descuento en plan) + hotel_total + no_show_fee
+        # Para simplificar, usaremos el default_entry_fee del evento
+        players_count = 1
+        players_total = Decimal(str(self.event.default_entry_fee)) * Decimal(
+            str(players_count)
+        )
+        # No hay hotel en este test, pero puede haber no_show_fee si el evento tiene hotel
+        hotel_total = Decimal("0.00")
+        no_show_fee = Decimal("1000.00") if self.event.hotel else Decimal("0.00")
+        subtotal = players_total + hotel_total + no_show_fee
+
+        # En modo plan, el monto mensual es subtotal / meses (sin descuento)
+        expected_monthly_amount = (subtotal / Decimal(str(expected_months))).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+
+        # Mock de Stripe
+        mock_stripe = MagicMock()
+
+        # Mock de sesión de checkout
+        mock_checkout_session = Mock()
+        mock_checkout_session.id = "cs_test_plan"
+        mock_checkout_session.url = "https://checkout.stripe.com/test"
+        mock_stripe.checkout.Session.create.return_value = mock_checkout_session
+
+        # Mock de sesión de éxito (con subscription)
+        mock_success_session = Mock()
+        mock_success_session.payment_status = "paid"
+        mock_success_session.subscription = "sub_test_plan_123"
+        mock_stripe.checkout.Session.retrieve.return_value = mock_success_session
+
+        # Mock de subscription
+        mock_subscription = {
+            "id": "sub_test_plan_123",
+            "items": {"data": [{"price": {"id": "price_test_plan_123"}}]},
+        }
+        mock_stripe.Subscription.retrieve.return_value = mock_subscription
+
+        # Mock de subscription schedule
+        mock_schedule = {"id": "sub_sched_test_plan_123"}
+        mock_stripe.SubscriptionSchedule.create.return_value = mock_schedule
+
+        sys.modules["stripe"] = mock_stripe
+
+        try:
+            with self.settings(STRIPE_SECRET_KEY="sk_test_123"):
+                # 1. Crear sesión de checkout en modo plan
+                response = self.client.post(
+                    reverse(
+                        "accounts:create_stripe_event_checkout_session",
+                        args=[self.event.pk],
+                    ),
+                    {
+                        "players": [self.player.pk],
+                        "payment_mode": "plan",
+                    },
+                )
+
+                self.assertEqual(response.status_code, 200)
+                data = response.json()
+                self.assertTrue(data.get("success"))
+
+                # Verificar que se creó el checkout con los datos correctos
+                checkout = StripeEventCheckout.objects.get(
+                    stripe_session_id="cs_test_plan"
+                )
+                self.assertEqual(checkout.payment_mode, "plan")
+                self.assertEqual(checkout.plan_months, expected_months)
+                # Verificar que el monto mensual es aproximadamente correcto
+                self.assertAlmostEqual(
+                    float(checkout.plan_monthly_amount),
+                    float(expected_monthly_amount),
+                    places=2,
+                )
+
+                # Verificar que se llamó a Session.create con modo subscription
+                create_call = mock_stripe.checkout.Session.create
+                self.assertTrue(create_call.called)
+                call_kwargs = create_call.call_args[1]
+                self.assertEqual(call_kwargs["mode"], "subscription")
+
+                # Verificar que los line_items tienen el monto mensual correcto
+                line_items = call_kwargs["line_items"]
+                self.assertEqual(len(line_items), 1)  # Solo el item de suscripción
+                subscription_item = line_items[0]
+                self.assertEqual(
+                    subscription_item["price_data"]["unit_amount"],
+                    int(expected_monthly_amount * 100),  # Convertir a centavos
+                )
+
+                # 2. Simular éxito del pago
+                response = self.client.get(
+                    reverse(
+                        "accounts:stripe_event_checkout_success", args=[self.event.pk]
+                    ),
+                    {"session_id": "cs_test_plan"},
+                )
+
+                # Verificar que se creó el schedule de suscripción
+                checkout.refresh_from_db()
+                self.assertEqual(checkout.stripe_subscription_id, "sub_test_plan_123")
+                self.assertEqual(
+                    checkout.stripe_subscription_schedule_id, "sub_sched_test_plan_123"
+                )
+
+                # Verificar que se llamó a SubscriptionSchedule.create con los parámetros correctos
+                schedule_create_call = mock_stripe.SubscriptionSchedule.create
+                self.assertTrue(schedule_create_call.called)
+                schedule_kwargs = schedule_create_call.call_args[1]
+
+                # Verificar que el schedule se crea desde la suscripción
+                self.assertEqual(
+                    schedule_kwargs["from_subscription"], "sub_test_plan_123"
+                )
+
+                # Verificar que se cancela después de los meses
+                self.assertEqual(schedule_kwargs["end_behavior"], "cancel")
+
+                # Verificar que las fases tienen las iteraciones correctas
+                # (remaining_months = months - 1 porque el primer pago ya se hizo)
+                phases = schedule_kwargs["phases"]
+                self.assertEqual(len(phases), 1)
+                phase = phases[0]
+                expected_iterations = (
+                    expected_months - 1
+                )  # Menos 1 porque el primer pago ya se hizo
+                self.assertEqual(phase["iterations"], expected_iterations)
+
+                # Verificar que el precio es correcto
+                self.assertEqual(phase["items"][0]["price"], "price_test_plan_123")
+
+                # 3. Verificar que el plan aparece en Plans & Payments
+                # Obtener el contexto de la vista directamente
+                from django.test import RequestFactory
+
+                from apps.accounts.views_private import UserDashboardView
+
+                factory = RequestFactory()
+                request = factory.get("/")
+                request.user = self.parent_user
+                # Agregar sesión al request
+                from django.contrib.sessions.middleware import SessionMiddleware
+
+                middleware = SessionMiddleware(lambda req: None)
+                middleware.process_request(request)
+                request.session.save()
+
+                view = UserDashboardView()
+                view.request = request
+                context = view.get_context_data()
+
+                # Verificar que el plan aparece en active_payment_plans
+                active_plans = context.get("active_payment_plans", [])
+                self.assertGreater(
+                    len(active_plans),
+                    0,
+                    "El plan debería aparecer en active_payment_plans",
+                )
+
+                # Buscar nuestro checkout en los planes activos
+                plan_found = False
+                for plan in active_plans:
+                    if plan.pk == checkout.pk:
+                        plan_found = True
+                        # Verificar que tiene los datos correctos
+                        self.assertEqual(plan.payment_mode, "plan")
+                        self.assertEqual(plan.status, "paid")
+                        self.assertEqual(plan.plan_months, expected_months)
+                        self.assertAlmostEqual(
+                            float(plan.plan_monthly_amount),
+                            float(expected_monthly_amount),
+                            places=2,
+                        )
+                        break
+
+                self.assertTrue(
+                    plan_found, "El checkout debería estar en active_payment_plans"
+                )
+
+                # Verificar que el plan aparece en payment_history
+                payment_history = context.get("payment_history", [])
+                self.assertGreater(
+                    len(payment_history),
+                    0,
+                    "El plan debería aparecer en payment_history",
+                )
+
+                # Buscar nuestro checkout en el historial
+                history_found = False
+                for history_item in payment_history:
+                    if history_item.pk == checkout.pk:
+                        history_found = True
+                        # Verificar que tiene los datos correctos
+                        self.assertEqual(history_item.status, "paid")
+                        self.assertEqual(history_item.payment_mode, "plan")
+                        self.assertIsNotNone(history_item.paid_at)
+                        break
+
+                self.assertTrue(
+                    history_found, "El checkout debería estar en payment_history"
+                )
+
+                # Verificar que el plan tiene subscription_id y schedule_id guardados
+                checkout.refresh_from_db()
+                self.assertIsNotNone(checkout.stripe_subscription_id)
+                self.assertIsNotNone(checkout.stripe_subscription_schedule_id)
+                self.assertEqual(checkout.status, "paid")
+                self.assertIsNotNone(checkout.paid_at)
+
+                # 4. Verificar que los próximos pagos aparecen en upcoming_payments
+                upcoming_payments = context.get("upcoming_payments", [])
+                # Debería haber (expected_months - 1) próximos pagos (el primer pago ya se hizo)
+                expected_upcoming_count = expected_months - 1
+                self.assertGreaterEqual(
+                    len(upcoming_payments),
+                    expected_upcoming_count,
+                    f"Debería haber al menos {expected_upcoming_count} próximos pagos",
+                )
+
+                # Verificar que los próximos pagos tienen los datos correctos
+                for payment in upcoming_payments:
+                    if payment["checkout"].pk == checkout.pk:
+                        self.assertEqual(payment["event"], self.event)
+                        self.assertIsNotNone(payment["due_date"])
+                        self.assertEqual(payment["amount"], expected_monthly_amount)
+                        self.assertIn("payment_number", payment)
+                        self.assertIn("total_payments", payment)
+                        self.assertEqual(payment["total_payments"], expected_months)
+                        # Verificar que la fecha es futura
+                        from django.utils import timezone
+
+                        self.assertGreater(payment["due_date"], timezone.now())
+
+        finally:
+            # Limpiar el mock
+            if "stripe" in sys.modules:
+                del sys.modules["stripe"]
+
     def test_no_show_fee_applied_without_hotel(self):
         """Test que se aplica el no-show fee cuando no hay hotel"""
         from apps.accounts.views_private import create_stripe_event_checkout_session

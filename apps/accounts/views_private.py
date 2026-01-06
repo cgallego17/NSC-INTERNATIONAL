@@ -288,9 +288,79 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
                 status="paid"
             ).select_related("event").order_by("-paid_at", "-created_at")[:50]
 
+            # Calcular próximos pagos de planes activos
+            upcoming_payments = []
+            now = timezone.now()
+
+            for plan in active_plans:
+                if plan.payment_mode == "plan" and plan.plan_months and plan.plan_months > 1:
+                    # Fecha base: usar paid_at si existe, sino created_at
+                    base_date = plan.paid_at if plan.paid_at else plan.created_at
+                    if not base_date:
+                        continue
+
+                    # Calcular cuántos pagos quedan
+                    # El primer pago ya se hizo, así que quedan (plan_months - 1) pagos
+                    remaining_payments = plan.plan_months - 1
+
+                    # Calcular las fechas de los próximos pagos
+                    # Usar cálculo manual de meses para evitar dependencia de dateutil
+                    from datetime import date
+                    from calendar import monthrange
+
+                    # Convertir base_date a date si es datetime
+                    if hasattr(base_date, 'date'):
+                        base_date_only = base_date.date()
+                        is_aware = timezone.is_aware(base_date)
+                    else:
+                        base_date_only = base_date
+                        is_aware = False
+
+                    for payment_num in range(1, remaining_payments + 1):
+                        # Calcular el mes y año objetivo
+                        target_month = base_date_only.month + payment_num
+                        target_year = base_date_only.year
+                        while target_month > 12:
+                            target_month -= 12
+                            target_year += 1
+
+                        # Ajustar el día si es necesario (evitar días inválidos como 31 de febrero)
+                        day = base_date_only.day
+                        last_day_of_month = monthrange(target_year, target_month)[1]
+                        if day > last_day_of_month:
+                            day = last_day_of_month
+
+                        # Crear la fecha del próximo pago
+                        from datetime import datetime
+                        due_date_date = date(target_year, target_month, day)
+                        # Convertir a datetime aware si el base_date era aware
+                        if is_aware:
+                            due_date = timezone.make_aware(
+                                datetime.combine(due_date_date, datetime.min.time())
+                            )
+                        else:
+                            due_date = datetime.combine(due_date_date, datetime.min.time())
+
+                        # Solo incluir pagos futuros
+                        if due_date > now:
+                            upcoming_payments.append({
+                                "checkout": plan,
+                                "event": plan.event,
+                                "due_date": due_date,
+                                "amount": plan.plan_monthly_amount,
+                                "payment_number": payment_num + 1,  # +1 porque el primer pago fue el 1
+                                "total_payments": plan.plan_months,
+                                "description": f"{plan.event.title} - Payment {payment_num + 1}/{plan.plan_months}",
+                            })
+
+            # Ordenar por fecha de vencimiento (más cercanos primero)
+            upcoming_payments.sort(key=lambda x: x["due_date"])
+            context["upcoming_payments"] = upcoming_payments[:20]  # Limitar a los próximos 20
+
         except ImportError:
             context["active_payment_plans"] = []
             context["payment_history"] = []
+            context["upcoming_payments"] = []
 
         # Calcular total del carrito (optimizado - evitar múltiples queries)
         from decimal import Decimal
