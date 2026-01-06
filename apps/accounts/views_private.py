@@ -2304,11 +2304,14 @@ class StripeInvoiceView(LoginRequiredMixin, DetailView):
         from decimal import Decimal
 
         # Calcular players_count y price_per_player
-        players_count = len(players)
+        # Usar el count de player_ids si está disponible, sino usar len(players)
+        player_ids = checkout.player_ids or []
+        players_count = len(player_ids) if player_ids else len(players)
+
         players_total = Decimal(str(breakdown.get("players_total", "0.00")))
         price_per_player = (
             players_total / Decimal(str(players_count))
-            if players_count > 0
+            if players_count > 0 and players_total > 0
             else Decimal("0.00")
         )
 
@@ -2323,8 +2326,8 @@ class StripeInvoiceView(LoginRequiredMixin, DetailView):
 
         # Agregar valores calculados al breakdown para el template
         breakdown["players_count"] = players_count
-        breakdown["price_per_player"] = str(price_per_player)
-        breakdown["discount_amount"] = str(discount_amount)
+        breakdown["price_per_player"] = str(price_per_player.quantize(Decimal("0.01")))
+        breakdown["discount_amount"] = str(discount_amount.quantize(Decimal("0.01")))
 
         context.update(
             {

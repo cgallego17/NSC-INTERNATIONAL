@@ -45,6 +45,19 @@
             color: white;
             padding: 40px;
             text-align: center;
+            position: relative;
+        }
+
+        .invoice-header-logo {
+            margin-bottom: 20px;
+        }
+
+        .invoice-header-logo img {
+            height: 60px;
+            width: auto;
+            max-width: 300px;
+            object-fit: contain;
+            filter: brightness(0) invert(1);
         }
 
         .invoice-header h1 {
@@ -342,10 +355,19 @@
 <body>
     <div class="invoice-wrapper">
         <div class="invoice-header">
+            <div class="invoice-header-logo">
+                <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International">
+            </div>
             <h1><i class="fas fa-receipt me-2"></i>{% trans "Invoice" %}</h1>
             <div class="invoice-number">
                 {% trans "Invoice #" %}{{ checkout.pk }} |
-                {% trans "Stripe Session" %}: {{ checkout.stripe_session_id|truncatechars:30 }}
+                {% trans "Payment Date" %}:
+                {% if checkout.paid_at %}
+                    {{ checkout.paid_at|date:"d/m/Y" }}
+                {% else %}
+                    {{ checkout.created_at|date:"d/m/Y" }}
+                {% endif %}
+                | {% trans "Stripe Session" %}: {{ checkout.stripe_session_id|truncatechars:30 }}
             </div>
         </div>
 
@@ -378,8 +400,16 @@
                 <div class="info-card">
                     <h6><i class="fas fa-calendar"></i>{% trans "Payment Information" %}</h6>
                     <div class="info-row">
-                        <span class="info-label">{% trans "Date" %}:</span>
-                        <span class="info-value">{{ checkout.paid_at|date:"d/m/Y H:i"|default:checkout.created_at|date:"d/m/Y H:i" }}</span>
+                        <span class="info-label">{% trans "Payment Date" %}:</span>
+                        <span class="info-value">
+                            {% if checkout.paid_at %}
+                                <strong>{{ checkout.paid_at|date:"d/m/Y" }}</strong>
+                                <small style="color: #6c757d;">{{ checkout.paid_at|date:"H:i" }}</small>
+                            {% else %}
+                                <strong>{{ checkout.created_at|date:"d/m/Y" }}</strong>
+                                <small style="color: #6c757d;">{{ checkout.created_at|date:"H:i" }}</small>
+                            {% endif %}
+                        </span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">{% trans "Status" %}:</span>
@@ -503,11 +533,25 @@
                     {% if breakdown.players_total %}
                     <tr>
                         <td>
-                            <div class="item-description">{% trans "Event Registration" %}</div>
+                            <div class="item-description">{% trans "Event Registration" %} - {{ checkout.event.title }}</div>
                             <div class="item-details">{% trans "Players registration fee" %}</div>
                         </td>
-                        <td class="text-right">{{ breakdown.players_count|default:players|length }}</td>
-                        <td class="text-right">${{ breakdown.price_per_player|default:"0.00" }}</td>
+                        <td class="text-right">
+                            {% if breakdown.players_count %}
+                                {{ breakdown.players_count }}
+                            {% elif players %}
+                                {{ players|length }}
+                            {% else %}
+                                0
+                            {% endif %}
+                        </td>
+                        <td class="text-right">
+                            {% if breakdown.price_per_player %}
+                                ${{ breakdown.price_per_player }}
+                            {% else %}
+                                $0.00
+                            {% endif %}
+                        </td>
                         <td class="text-right"><strong>${{ breakdown.players_total }}</strong></td>
                     </tr>
                     {% endif %}
