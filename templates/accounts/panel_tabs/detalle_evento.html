@@ -1080,6 +1080,46 @@
                 </h4>
 
                 <!-- Paso 1: Seleccionar Jugadores -->
+                {% if has_ineligible_children %}
+                    <div class="alert alert-warning mb-4" style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 12px; padding: 15px;">
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <i class="fas fa-exclamation-triangle" style="color: #856404; font-size: 1.2rem; margin-top: 2px; flex-shrink: 0;"></i>
+                            <div style="flex: 1;">
+                                <p style="color: #856404; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem;">
+                                    {% trans "Some of your players are not eligible for this event" %}
+                                </p>
+                                <p style="color: #856404; font-size: 0.85rem; margin-bottom: 10px;">
+                                    {% trans "The following players do not match any of the event divisions" %}:
+                                </p>
+                                <ul style="margin: 0; padding-left: 20px; color: #856404; font-size: 0.85rem;">
+                                    {% for child in ineligible_children %}
+                                        <li>
+                                            <strong>{% if child.user.get_full_name %}{{ child.user.get_full_name }}{% else %}{{ child.user.username }}{% endif %}</strong>
+                                            {% if child.division %}
+                                                - {% trans "Division" %}: <strong>{{ child.division }}</strong>
+                                            {% else %}
+                                                - {% trans "No division assigned" %}
+                                            {% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                                <div style="margin-top: 12px; padding: 10px; background: white; border-radius: 6px;">
+                                    <p style="font-size: 0.8rem; color: #6c757d; margin-bottom: 6px; font-weight: 600;">
+                                        {% trans "Event Divisions" %}:
+                                    </p>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                        {% for division in event.divisions.all %}
+                                            <span style="background: var(--mlb-red); color: white; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">
+                                                {{ division.name }}
+                                            </span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
                 {% if children %}
                     <div class="checkout-step mb-4" id="step-players">
                         <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 12px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
@@ -1350,11 +1390,32 @@
                 </div>
 
                 {% if not children %}
-                    <div class="alert alert-info alert-persistent" style="background: #e7f3ff; border: 2px solid var(--mlb-blue); border-radius: 12px; padding: 20px; text-align: center; margin-top: 20px;">
-                        <i class="fas fa-info-circle fa-2x mb-3" style="color: var(--mlb-blue);"></i>
-                        <p style="color: var(--mlb-blue); font-weight: 600; margin-bottom: 0;">
-                            {% trans "You don't have any children/players registered. Please register a child/player first." %}
+                    <div class="alert alert-warning alert-persistent" style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 12px; padding: 20px; text-align: center; margin-top: 20px;">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-3" style="color: #856404;"></i>
+                        <p style="color: #856404; font-weight: 600; margin-bottom: 10px;">
+                            {% if has_ineligible_children %}
+                                {% trans "None of your players are eligible for this event based on their divisions." %}
+                            {% else %}
+                                {% trans "You don't have any children/players registered. Please register a child/player first." %}
+                            {% endif %}
                         </p>
+                        {% if has_ineligible_children %}
+                            <div style="margin-top: 15px; padding: 12px; background: white; border-radius: 8px; text-align: left;">
+                                <p style="font-size: 0.9rem; color: #856404; margin-bottom: 10px; font-weight: 600;">
+                                    <i class="fas fa-info-circle me-2"></i>{% trans "Event Divisions" %}:
+                                </p>
+                                <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
+                                    {% for division in event.divisions.all %}
+                                        <span style="background: var(--mlb-red); color: white; padding: 4px 10px; border-radius: 15px; font-size: 0.8rem; font-weight: 600;">
+                                            {{ division.name }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                                <p style="font-size: 0.85rem; color: #6c757d; margin-bottom: 0;">
+                                    {% trans "Your players' divisions must match one of the event divisions to register." %}
+                                </p>
+                            </div>
+                        {% endif %}
                         <a
                             href="{% if user.profile.is_parent %}{% url 'panel' %}?tab=registrar-hijo{% elif user.profile.is_team_manager %}{% url 'panel' %}?tab=registrar-jugador{% else %}{% url 'panel' %}{% endif %}"
                             onclick="return (function(el){
