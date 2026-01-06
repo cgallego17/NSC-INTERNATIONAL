@@ -1452,6 +1452,90 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         return modalEl;
     }
 
+    // Helper: Get or create Bootstrap Modal instance
+    function getOrCreateModalInstance(modalEl) {
+        if (!modalEl || !window.bootstrap?.Modal) return null;
+        let inst = bootstrap.Modal.getInstance(modalEl);
+        if (!inst) {
+            inst = new bootstrap.Modal(modalEl);
+        }
+        return inst;
+    }
+
+    // Helper: Open modal with focus handling and scroll to top
+    function openModalWithScroll(modalEl) {
+        if (!modalEl) return;
+        setupModalFocusHandling(modalEl);
+        const inst = getOrCreateModalInstance(modalEl);
+        if (inst) {
+            inst.show();
+            // Scroll to top
+            modalEl.scrollTop = 0;
+            if (window.parent) {
+                window.parent.postMessage({ type: 'nsc-scroll-to-top', tabId: window.name }, window.location.origin);
+            }
+        }
+    }
+
+    // Helper: Close one modal and open another
+    function closeAndOpenModal(closeModalEl, openModalEl) {
+        if (!closeModalEl || !openModalEl) return;
+
+        const openModal = () => {
+            openModalWithScroll(openModalEl);
+        };
+
+        if (closeModalEl.classList.contains('show')) {
+            closeModalEl.addEventListener('hidden.bs.modal', openModal, { once: true });
+            const inst = getOrCreateModalInstance(closeModalEl);
+            if (inst) {
+                inst.hide();
+            } else {
+                openModal();
+            }
+        } else {
+            openModal();
+        }
+    }
+
+    // Helper: Find room element in modal by room ID (with fallback to document)
+    function findRoomInModal(pk, roomId) {
+        const roomsModalEl = q(`hotelRoomsModal${pk}`);
+        if (roomsModalEl) {
+            const roomEl = roomsModalEl.querySelector(`[data-room-id="${roomId}"]`);
+            if (roomEl) return roomEl;
+        }
+        // Fallback to document-wide search
+        return document.querySelector(`[data-room-id="${roomId}"]`) || null;
+    }
+
+    // Helper: Get room image URL from detail gallery or fetch from API
+    function getRoomImageUrl(pk, roomDetailUrl) {
+        // Try to get image from already loaded room details
+        const detailGallery = q(`rooms-detail-gallery${pk}`);
+        if (detailGallery) {
+            const mainImg = detailGallery.querySelector('.nsc-room-detail-gallery-main img');
+            if (mainImg && mainImg.src) {
+                return Promise.resolve(mainImg.src);
+            }
+        }
+
+        // If not found, fetch from API
+        if (roomDetailUrl) {
+            return fetch(roomDetailUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(res => res.ok ? res.json() : null)
+                .then(data => {
+                    if (data && data.images && data.images.length > 0) {
+                        return data.images[0].image_url || data.images[0].url || null;
+                    }
+                    return null;
+                })
+                .catch(() => null);
+        }
+
+        return Promise.resolve(null);
+    }
+
     function setCounter(pk, which, value) {
         const id = which === 'adults' ? `adults-total-count${pk}` : `additional-children-count${pk}`;
         const el = q(id);
@@ -1674,12 +1758,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             // Setup focus handling for this modal
             setupModalFocusHandling(reservationModalEl);
 
-            let modalInstance = bootstrap.Modal.getInstance(reservationModalEl);
-
-            if (!modalInstance) {
-                console.log('Creating new modal instance...');
-                modalInstance = new bootstrap.Modal(reservationModalEl);
-            }
+            const modalInstance = getOrCreateModalInstance(reservationModalEl);
 
             if (modalInstance && typeof modalInstance.show === 'function') {
                 if (isVisible) {
@@ -1742,77 +1821,16 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             return;
         }
 
-        const openRoomsModal = () => {
-            // Filter + recommend inside the rooms modal
+        // Close reservation modal first, then open rooms modal
+        // After rooms modal opens, filter and recommend rooms, and focus close button
+        roomsModalEl.addEventListener('shown.bs.modal', () => {
             filterAndRecommendRooms(roomsModalEl, total);
-
-            if (!window.bootstrap?.Modal) return;
-            // Setup focus handling for this modal
-            setupModalFocusHandling(roomsModalEl);
-
-            let inst = bootstrap.Modal.getInstance(roomsModalEl);
-            if (!inst) inst = new bootstrap.Modal(roomsModalEl);
-            inst.show();
-
             // Focus something inside rooms modal to avoid aria-hidden/focus warnings
-            roomsModalEl.addEventListener('shown.bs.modal', () => {
-                const closeBtn = roomsModalEl.querySelector('button.btn-close');
-                if (closeBtn && typeof closeBtn.focus === 'function') closeBtn.focus();
-            }, { once: true });
-        };
+            const closeBtn = roomsModalEl.querySelector('button.btn-close');
+            if (closeBtn && typeof closeBtn.focus === 'function') closeBtn.focus();
+        }, { once: true });
 
-        // Close reservation modal first
-        if (reservationModalEl && window.bootstrap?.Modal && reservationModalEl.classList.contains('show')) {
-            // Move focus out of the reservation modal before hiding it
-            try {
-                const active = document.activeElement;
-                if (active && reservationModalEl.contains(active) && typeof active.blur === 'function') {
-                    active.blur();
-                }
-                // Focus a safe element outside modals
-                const sink = document.createElement('div');
-                sink.tabIndex = -1;
-                sink.setAttribute('aria-hidden', 'true');
-                sink.style.cssText = 'position:fixed; width:1px; height:1px; left:-9999px; top:-9999px;';
-                document.body.appendChild(sink);
-                sink.focus();
-                document.body.removeChild(sink);
-            } catch (_) {}
-
-            reservationModalEl.addEventListener('hidden.bs.modal', () => {
-                openRoomsModal();
-            }, { once: true });
-
-            // Just get existing instance and hide it - don't try to create new one
-            const modalInstance = bootstrap.Modal.getInstance(reservationModalEl);
-            if (modalInstance && typeof modalInstance.hide === 'function') {
-                try {
-                    modalInstance.hide();
-                } catch (e) {
-                    console.warn('Error hiding modal:', e);
-                    // Fallback: manually hide modal
-                    reservationModalEl.classList.remove('show');
-                    reservationModalEl.setAttribute('aria-hidden', 'true');
-                    reservationModalEl.style.display = 'none';
-                    const backdrop = document.querySelector('.modal-backdrop');
-                    if (backdrop) backdrop.remove();
-                    document.body.classList.remove('modal-open');
-                    openRoomsModal();
-                }
-            } else {
-                // No instance found, manually hide
-                reservationModalEl.classList.remove('show');
-                reservationModalEl.setAttribute('aria-hidden', 'true');
-                reservationModalEl.style.display = 'none';
-                const backdrop = document.querySelector('.modal-backdrop');
-                if (backdrop) backdrop.remove();
-                document.body.classList.remove('modal-open');
-                openRoomsModal();
-            }
-            return;
-        }
-
-        openRoomsModal();
+        closeAndOpenModal(reservationModalEl, roomsModalEl);
     }
 
     function filterAndRecommendRooms(containerEl, total) {
@@ -1872,11 +1890,20 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         }
 
         const roomListings = Array.from(containerEl.querySelectorAll('.room-listing-inline'));
-        // Clear old recommendation
+        // Clear old recommendation and remove any badges (aggressive cleanup)
         roomListings.forEach(r => {
             r.classList.remove('nsc-room-recommended');
+            // Remove any badge elements that might exist
             const oldBadge = r.querySelector('.nsc-recommended-badge');
-            if (oldBadge) oldBadge.remove();
+            if (oldBadge) {
+                oldBadge.remove();
+            }
+            // Also check in room-info directly
+            const roomInfo = r.querySelector('.room-info');
+            if (roomInfo) {
+                const badgeInInfo = roomInfo.querySelector('.nsc-recommended-badge');
+                if (badgeInInfo) badgeInInfo.remove();
+            }
         });
 
         // Decide mode:
@@ -2210,8 +2237,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         let roomListing = btnEl.closest('.room-listing-inline');
         if (!roomListing) {
             // If not found via closest, search in the rooms modal
-            const roomsModalEl = q(`hotelRoomsModal${pk}`);
-            roomListing = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`);
+            roomListing = findRoomInModal(pk, roomId);
         }
 
         const capacity = parseInt(btnEl.getAttribute('data-room-capacity') || roomListing?.getAttribute('data-room-capacity') || '0', 10);
@@ -2224,7 +2250,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         const totalGuests = state.guests ? state.guests.length : totalPeople(pk);
         let totalCapacity = 0;
         state.rooms.forEach(r => {
-            const roomEl = document.querySelector(`[data-room-id="${r.roomId}"]`);
+            const roomEl = findRoomInModal(pk, r.roomId);
             if (roomEl) {
                 totalCapacity += parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10);
             }
@@ -2250,7 +2276,8 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                 const currentCapacityInsufficient = state.rooms.length >= 1 && totalGuests > totalCapacity;
                 if (currentCapacityInsufficient) {
                     const roomsModalEl = q(`hotelRoomsModal${pk}`);
-                    const listings = Array.from(roomsModalEl?.querySelectorAll('.room-listing-inline') || []);
+                    if (!roomsModalEl) return;
+                    const listings = Array.from(roomsModalEl.querySelectorAll('.room-listing-inline') || []);
                     const candidates = listings
                         .map((el) => {
                             const cap = parseInt(el.getAttribute('data-room-capacity') || '0', 10) || 0;
@@ -2347,91 +2374,27 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             if (totalGuests > newTotalCapacity) {
                 // Still not enough capacity even with this room
                 const roomDetailUrl = btnEl.getAttribute('data-room-detail-url') || roomListing?.getAttribute('data-room-detail-url');
-                let firstImageUrl = null;
 
-                // Try to get image from already loaded room details
-                const detailGallery = q(`rooms-detail-gallery${pk}`);
-                if (detailGallery) {
-                    const mainImg = detailGallery.querySelector('.nsc-room-detail-gallery-main img');
-                    if (mainImg && mainImg.src) {
-                        firstImageUrl = mainImg.src;
+                // Use helper to get image URL
+                getRoomImageUrl(pk, roomDetailUrl).then(imgUrl => {
+                    if (imgUrl) {
+                        showToast(t('addRoomStillInsufficient', { cap: newTotalCapacity, guests: totalGuests }), 'warning', 6000, imgUrl);
+                    } else {
+                        showToast(t('addRoomStillInsufficientAlt', { cap: newTotalCapacity, guests: totalGuests }), 'warning');
                     }
-                }
-
-                // Show toast
-                if (firstImageUrl) {
-                    showToast(t('addRoomStillInsufficient', { cap: newTotalCapacity, guests: totalGuests }), 'warning', 6000, firstImageUrl);
-                } else if (roomDetailUrl) {
-                    fetch(roomDetailUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                        .then(res => res.ok ? res.json() : null)
-                        .then(data => {
-                            const imgUrl = (data && data.images && data.images.length > 0)
-                                ? (data.images[0].image_url || data.images[0].url)
-                                : null;
-                            showToast(t('addRoomStillInsufficient', { cap: newTotalCapacity, guests: totalGuests }), 'warning', 6000, imgUrl);
-                        })
-                        .catch(() => {
-                            showToast(t('addRoomStillInsufficient', { cap: newTotalCapacity, guests: totalGuests }), 'warning');
-                        });
-                } else {
-                    showToast(t('addRoomStillInsufficientAlt', { cap: newTotalCapacity, guests: totalGuests }), 'warning');
-                }
+                });
                 // Don't return - allow selection but show warning
             }
         }
 
-        // Old single-room validation (removed - now we allow multiple rooms)
-        const oldCapacityCheck = false;
-        if (oldCapacityCheck && capacity && totalGuests > capacity) {
-            // Get first room image for toast
-            const roomDetailUrl = btnEl.getAttribute('data-room-detail-url') || roomListing?.getAttribute('data-room-detail-url');
-            let firstImageUrl = null;
-
-            // Try to get image from already loaded room details
-            const detailGallery = q(`rooms-detail-gallery${pk}`);
-            if (detailGallery) {
-                const mainImg = detailGallery.querySelector('.nsc-room-detail-gallery-main img');
-                if (mainImg && mainImg.src) {
-                    firstImageUrl = mainImg.src;
-                }
-            }
-
-            // Show toast immediately with image if available, or fetch it
-            if (firstImageUrl) {
-                showToast(t('roomFitsButYouHave', { cap: capacity, guests: total }), 'warning', 6000, firstImageUrl);
-            } else if (roomDetailUrl) {
-                // Fetch image quickly and show toast
-                fetch(roomDetailUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                    .then(res => res.ok ? res.json() : null)
-                    .then(data => {
-                        const imgUrl = (data && data.images && data.images.length > 0)
-                            ? (data.images[0].image_url || data.images[0].url)
-                            : null;
-                        showToast(t('roomFitsButYouHave', { cap: capacity, guests: total }), 'warning', 6000, imgUrl);
-                    })
-                    .catch(() => {
-                        // Show toast without image if fetch fails
-                        showToast(t('roomFitsButYouHave', { cap: capacity, guests: total }), 'warning');
-                    });
-            } else {
-                // No image available, show toast without image
-                showToast(t('roomFitsButYouHave', { cap: capacity, guests: total }), 'warning');
-            }
-            return;
-        }
+        // Old single-room validation code removed - now we allow multiple rooms
         const roomName = roomListing?.querySelector('.room-name')?.textContent?.trim() || gettext('Room');
         const roomFeatures = roomListing?.querySelector('.room-features')?.textContent?.trim() || '';
         const roomLabel = `${roomName}${roomFeatures ? ` • ${roomFeatures}` : ''}`;
 
         // Toggle room selection (add or remove from array)
+        // Note: Capacity validation for removal already done above (lines 2244-2253)
         if (isCurrentlySelected) {
-            // Check if removing this room would leave enough capacity
-            const remainingCapacity = totalCapacity - capacity;
-            if (remainingCapacity < totalGuests && state.rooms.length > 1) {
-                showToast(t('cannotRemoveRoomCapacity', { remaining: remainingCapacity, guests: totalGuests }), 'warning', 4000);
-                return;
-            }
-
             // Remove room from selection
             state.rooms.splice(roomIndex, 1);
             // Remove guest assignments for this room
@@ -2439,8 +2402,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             if (roomListing) {
                 roomListing.removeAttribute('data-selected');
             } else {
-                const roomsModalEl = q(`hotelRoomsModal${pk}`);
-                const foundRoom = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`);
+                const foundRoom = findRoomInModal(pk, roomId);
                 if (foundRoom) {
                     foundRoom.removeAttribute('data-selected');
                 }
@@ -2468,8 +2430,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             if (roomListing) {
                 roomListing.setAttribute('data-selected', 'true');
             } else {
-                const roomsModalEl = q(`hotelRoomsModal${pk}`);
-                const foundRoom = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`);
+                const foundRoom = findRoomInModal(pk, roomId);
                 if (foundRoom) {
                     foundRoom.setAttribute('data-selected', 'true');
                 }
@@ -2519,7 +2480,6 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         const roomsModalElForScroll = q(`hotelRoomsModal${pk}`);
         if (roomsModalElForScroll) {
             roomsModalElForScroll.scrollTop = 0;
-            // También notificar al padre por si acaso
             if (window.parent) {
                 window.parent.postMessage({ type: 'nsc-scroll-to-top', tabId: window.name }, window.location.origin);
             }
@@ -2543,29 +2503,8 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         const reservationModalEl = q(`hotelReservationModal${p}`);
         if (!roomsModalEl || !reservationModalEl || !window.bootstrap?.Modal) return;
 
-        const openReservation = () => {
-            // Setup focus handling for this modal
-            setupModalFocusHandling(reservationModalEl);
-
-            let inst = bootstrap.Modal.getInstance(reservationModalEl);
-            if (!inst) inst = new bootstrap.Modal(reservationModalEl);
-            inst.show();
-
-            // Scroll to top
-            reservationModalEl.scrollTop = 0;
-            if (window.parent) {
-                window.parent.postMessage({ type: 'nsc-scroll-to-top', tabId: window.name }, window.location.origin);
-            }
-        };
-
-        if (roomsModalEl.classList.contains('show')) {
-            roomsModalEl.addEventListener('hidden.bs.modal', () => openReservation(), { once: true });
-            const inst = bootstrap.Modal.getInstance(roomsModalEl);
-            if (inst) inst.hide();
-            else openReservation();
-        } else {
-            openReservation();
-        }
+        // Use helper function to close rooms modal and open reservation modal
+        closeAndOpenModal(roomsModalEl, reservationModalEl);
     }
 
     function backToRooms(pk) {
@@ -2575,28 +2514,9 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         const roomsModalEl = q(`hotelRoomsModal${p}`);
         if (!guestModalEl || !roomsModalEl || !window.bootstrap?.Modal) return;
 
-        const openRooms = () => {
-            // Setup focus handling for this modal
-            const actualRoomsModal = setupModalFocusHandling(roomsModalEl) || roomsModalEl;
-            let inst = bootstrap.Modal.getInstance(actualRoomsModal);
-            if (!inst) inst = new bootstrap.Modal(actualRoomsModal);
-            inst.show();
-
-            // Scroll to top
-            actualRoomsModal.scrollTop = 0;
-            if (window.parent) {
-                window.parent.postMessage({ type: 'nsc-scroll-to-top', tabId: window.name }, window.location.origin);
-            }
-        };
-
-        if (guestModalEl.classList.contains('show')) {
-            guestModalEl.addEventListener('hidden.bs.modal', () => openRooms(), { once: true });
-            const inst = bootstrap.Modal.getInstance(guestModalEl);
-            if (inst) inst.hide();
-            else openRooms();
-        } else {
-            openRooms();
-        }
+        // Use helper function to close guest modal and open rooms modal
+        const actualRoomsModal = setupModalFocusHandling(roomsModalEl) || roomsModalEl;
+        closeAndOpenModal(guestModalEl, actualRoomsModal);
     }
 
     async function openRoomDetail(fromEl) {
@@ -2903,8 +2823,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             if (selectBtn) {
                 selectBtn.onclick = function() {
                     // Find the actual room listing element in the Available Rooms modal
-                    const roomsModalEl = q(`hotelRoomsModal${pk}`);
-                    const actualRoomEl = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`);
+                    const actualRoomEl = findRoomInModal(pk, roomId);
 
                     if (actualRoomEl) {
                         // Ensure all room data attributes are set on the actual room element
@@ -3120,8 +3039,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         const roomDetails = [];
 
         state.rooms.forEach(room => {
-            const roomEl = roomsModalEl?.querySelector(`[data-room-id="${room.roomId}"]`) ||
-                          document.querySelector(`[data-room-id="${room.roomId}"]`);
+            const roomEl = findRoomInModal(pk, room.roomId);
             if (roomEl) {
                 const roomPrice = parseFloat(roomEl.getAttribute('data-room-price') || '0');
                 const roomIncludesGuests = parseInt(roomEl.getAttribute('data-room-includes-guests') || '1');
@@ -3552,10 +3470,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         // Calculate price and capacity for all selected rooms
         state.rooms.forEach((room, idx) => {
             // Get room element
-            let roomEl = roomsModalEl?.querySelector(`[data-room-id="${room.roomId}"]`);
-            if (!roomEl) {
-                roomEl = document.querySelector(`[data-room-id="${room.roomId}"]`);
-            }
+            const roomEl = findRoomInModal(pk, room.roomId);
             if (!roomEl) {
                 roomEl = document.body.querySelector(`[data-room-id="${room.roomId}"]`);
             }
@@ -4076,7 +3991,8 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             // This lets us recommend "Change room" instead of "Add room" when capacity is exceeded.
             let singleRoomCandidate = null; // { roomId, cap, price, label }
             try {
-                const listings = Array.from(roomsModalEl?.querySelectorAll('.room-listing-inline') || []);
+                if (!roomsModalEl) return;
+                const listings = Array.from(roomsModalEl.querySelectorAll('.room-listing-inline') || []);
                 const candidates = listings
                     .map((el) => {
                         const cap = parseInt(el.getAttribute('data-room-capacity') || '0', 10) || 0;
@@ -4217,7 +4133,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                     el.removeAttribute('data-needs-guests');
                 });
                 roomsWithoutGuests.forEach((room) => {
-                    const el = roomsModalEl?.querySelector(`[data-room-id="${room.roomId}"]`) || document.querySelector(`[data-room-id="${room.roomId}"]`);
+                    const el = findRoomInModal(pk, room.roomId);
                     if (el) el.setAttribute('data-needs-guests', 'true');
                 });
             } catch (e) {
@@ -4631,15 +4547,15 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             try {
                 const roomsModalEl = q(`hotelRoomsModal${pk}`);
                 const roomId = String(state.rooms[0].roomId);
-                const roomEl = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`) ||
-                              document.querySelector(`[data-room-id="${roomId}"]`);
+                const roomEl = findRoomInModal(pk, roomId);
                 const capacity = roomEl ? parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10) : 0;
                 const totalGuests = state.guests ? state.guests.length : 0;
                 if (capacity > 0 && totalGuests > capacity) {
                     // If there exists any available room that can fit all guests, recommend CHANGE.
                     let hasSingleFit = false;
                     try {
-                        const listings = Array.from(roomsModalEl?.querySelectorAll('.room-listing-inline') || []);
+                        if (!roomsModalEl) return;
+                const listings = Array.from(roomsModalEl.querySelectorAll('.room-listing-inline') || []);
                         hasSingleFit = listings.some((el) => {
                             const cap = parseInt(el.getAttribute('data-room-capacity') || '0', 10) || 0;
                             return cap >= totalGuests;
@@ -4999,11 +4915,20 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                 sortedRooms = roomsWithData;
         }
 
-        // Clear old recommendation badges
+        // Clear old recommendation badges (aggressive cleanup)
         roomListings.forEach(r => {
             r.classList.remove('nsc-room-recommended');
+            // Remove any badge elements that might exist
             const oldBadge = r.querySelector('.nsc-recommended-badge');
-            if (oldBadge) oldBadge.remove();
+            if (oldBadge) {
+                oldBadge.remove();
+            }
+            // Also check in room-info directly
+            const roomInfo = r.querySelector('.room-info');
+            if (roomInfo) {
+                const badgeInInfo = roomInfo.querySelector('.nsc-recommended-badge');
+                if (badgeInInfo) badgeInInfo.remove();
+            }
         });
 
         // Reorder rooms in DOM

@@ -651,18 +651,14 @@
         }
     }
 
+    /* Badge removed - causing layout conflicts */
     .nsc-recommended-badge {
-        display: inline-block;
-        padding: 5px 14px;
-        background: var(--mlb-red);
-        color: white;
-        font-size: 0.7rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        border-radius: 6px;
-        margin-bottom: 10px;
-        box-shadow: 0 4px 10px rgba(213, 0, 50, 0.2);
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
     /* Rooms modal: details panel */
@@ -2062,6 +2058,35 @@
 
 <script>
 // Set max date for birth date input (today) and auto-detect adult/child
+// Remove any recommended badges that might exist (aggressive cleanup)
+(function removeAllRecommendedBadges() {
+    function cleanupBadges() {
+        document.querySelectorAll('.nsc-recommended-badge').forEach(badge => {
+            badge.remove();
+        });
+        document.querySelectorAll('.room-listing-inline').forEach(room => {
+            const badge = room.querySelector('.nsc-recommended-badge');
+            if (badge) badge.remove();
+            const roomInfo = room.querySelector('.room-info');
+            if (roomInfo) {
+                const badgeInInfo = roomInfo.querySelector('.nsc-recommended-badge');
+                if (badgeInInfo) badgeInInfo.remove();
+            }
+        });
+    }
+    // Run immediately
+    cleanupBadges();
+    // Run on DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', cleanupBadges);
+    }
+    // Run when modal opens
+    const roomsModal = document.getElementById('hotelRoomsModal{{ event.hotel.pk }}');
+    if (roomsModal) {
+        roomsModal.addEventListener('shown.bs.modal', cleanupBadges);
+    }
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
     const birthDateInput = document.getElementById('guestBirthDate{{ event.hotel.pk }}');
     const adultRadio = document.getElementById('guestTypeAdult{{ event.hotel.pk }}');
