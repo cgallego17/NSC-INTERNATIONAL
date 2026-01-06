@@ -3215,7 +3215,7 @@
     <div class="events-news-section">
         <div class="events-news-header">
             <h2 class="events-news-title">{% trans "EVENTS" %}</h2>
-            <a href="{% url 'events:list' %}" class="events-view-all-btn">{% trans "VIEW ALL" %}</a>
+            <a href="/events/" class="events-view-all-btn">{% trans "VIEW ALL" %}</a>
         </div>
         <div class="events-news-grid">
             {% for event in upcoming_events|slice:":4" %}
