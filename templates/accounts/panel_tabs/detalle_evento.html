@@ -1150,8 +1150,11 @@
                         <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 12px;">
                             <div style="font-size: 0.8rem; color: #6c757d; font-weight: 600; line-height: 1.25; margin-bottom: 10px;">
                                 {% trans "If you don't add a hotel stay, a Hotel buy out fee will apply." %}
-                                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
 
+                        {% if event.hotel %}
                             <button type="button"
                                     class="btn btn-sm w-100"
                                     id="add-hotel-stay-btn"
@@ -1991,9 +1994,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Hotel buy out fee: solo aplica si hay jugadores seleccionados y NO se añadió hotel
+        // Hotel buy out fee: solo aplica si el evento tiene hotel, hay jugadores seleccionados y NO se añadió hotel
         const NO_SHOW_FEE = 1000;
-        const applyNoShowFee = (playersCount > 0) && !window.checkoutItems.hotel;
+        const hasEventHotel = {% if event.hotel %}true{% else %}false{% endif %};
+        const applyNoShowFee = hasEventHotel && (playersCount > 0) && !window.checkoutItems.hotel;
         const noShowFee = applyNoShowFee ? NO_SHOW_FEE : 0;
 
         // Mostrar/ocultar paso 2 (hotel) según si ya se añadió hotel
@@ -2176,7 +2180,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     breakdownDiv.appendChild(noShowRow);
                 }
                 if (noShowRow) {
-                    const applyNoShowFee = (playersCount > 0) && !window.checkoutItems.hotel;
+                    const hasEventHotel = {% if event.hotel %}true{% else %}false{% endif %};
+                    const applyNoShowFee = hasEventHotel && (playersCount > 0) && !window.checkoutItems.hotel;
                     const noShowFee = applyNoShowFee ? 1000 : 0;
                     if (applyNoShowFee) {
                         noShowRow.style.display = 'block';
@@ -2283,8 +2288,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Compute current no-show fee like the UI
         const playersCount = document.querySelectorAll('.child-checkbox:checked').length;
-        const applyNoShowFee = (playersCount > 0) && !window.checkoutItems.hotel;
-        const noShowFee = applyNoShowFee ? 500 : 0;
+        const hasEventHotel = {% if event.hotel %}true{% else %}false{% endif %};
+        const applyNoShowFee = hasEventHotel && (playersCount > 0) && !window.checkoutItems.hotel;
+        const noShowFee = applyNoShowFee ? 1000 : 0;
         const noShowFeeInput = document.getElementById('no-show-fee-input');
         if (noShowFeeInput) noShowFeeInput.value = String(noShowFee);
 

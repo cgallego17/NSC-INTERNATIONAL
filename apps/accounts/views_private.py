@@ -257,6 +257,41 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
         except ImportError:
             context["total_reservations"] = 0
 
+        # Obtener planes de pago y checkouts de Stripe para Plans & Payments
+        try:
+            from apps.events.models import Event
+
+            # Planes activos: checkouts pagados o creados (para planes, mostrar si tienen subscription_id o están pagados)
+            active_checkouts = StripeEventCheckout.objects.filter(
+                user=user
+            ).select_related("event").order_by("-created_at")
+
+            # Filtrar planes activos:
+            # - Planes: deben estar pagados O tener subscription_id (aunque estén en "created")
+            # - Pay Now: solo los pagados
+            active_plans = []
+            for checkout in active_checkouts:
+                if checkout.payment_mode == "plan":
+                    # Para planes, incluir si está pagado o tiene subscription_id (indica que se inició)
+                    if checkout.status == "paid" or checkout.stripe_subscription_id:
+                        active_plans.append(checkout)
+                else:
+                    # Para pay now, solo incluir si está pagado
+                    if checkout.status == "paid":
+                        active_plans.append(checkout)
+
+            context["active_payment_plans"] = active_plans
+
+            # Historial de pagos (todos los checkouts pagados)
+            context["payment_history"] = StripeEventCheckout.objects.filter(
+                user=user,
+                status="paid"
+            ).select_related("event").order_by("-paid_at", "-created_at")[:50]
+
+        except ImportError:
+            context["active_payment_plans"] = []
+            context["payment_history"] = []
+
         # Calcular total del carrito (optimizado - evitar múltiples queries)
         from decimal import Decimal
 
@@ -1591,9 +1626,33 @@ def create_stripe_event_checkout_session(request, pk):
     players_total = (entry_fee * Decimal(str(players_count))).quantize(Decimal("0.01"))
 
     cart = request.session.get("hotel_cart", {}) or {}
+
+    # Enriquecer el snapshot del carrito con información de huéspedes adicionales
+    enriched_cart = {}
+    for item_id, item_data in cart.items():
+        if item_data.get("type") == "room":
+            try:
+                from apps.locations.models import HotelRoom
+                room = HotelRoom.objects.get(id=item_data.get("room_id"))
+                guests = int(item_data.get("guests", 1) or 1)
+                includes = int(room.price_includes_guests or 1)
+                extra_guests = max(0, guests - includes)
+
+                # Agregar información de huéspedes adicionales al snapshot
+                enriched_item = item_data.copy()
+                enriched_item["guests_included"] = includes
+                enriched_item["extra_guests"] = extra_guests
+                enriched_item["additional_guest_price"] = str(room.additional_guest_price or Decimal("0.00"))
+                enriched_cart[item_id] = enriched_item
+            except Exception:
+                # Si hay error, usar el item original
+                enriched_cart[item_id] = item_data
+        else:
+            enriched_cart[item_id] = item_data
+
     hotel_breakdown = (
-        _compute_hotel_amount_from_cart(cart)
-        if cart
+        _compute_hotel_amount_from_cart(enriched_cart)
+        if enriched_cart
         else {
             "room_base": Decimal("0.00"),
             "services_total": Decimal("0.00"),
@@ -1610,8 +1669,10 @@ def create_stripe_event_checkout_session(request, pk):
         Decimal(str(discount_percent)) / Decimal("100")
     )
 
+    # Hotel buy out fee: solo aplica si el evento tiene hotel, hay jugadores y NO se añadió hotel al checkout
+    has_event_hotel = getattr(event, "hotel", None) is not None
     no_show_fee = (
-        Decimal("1000.00") if (players_count > 0 and not cart) else Decimal("0.00")
+        Decimal("1000.00") if (has_event_hotel and players_count > 0 and not enriched_cart) else Decimal("0.00")
     )
 
     subtotal = (players_total + hotel_total + no_show_fee).quantize(Decimal("0.01"))
@@ -1757,7 +1818,7 @@ def create_stripe_event_checkout_session(request, pk):
         payment_mode=payment_mode,
         discount_percent=discount_percent,
         player_ids=[int(p.pk) for p in valid_players],
-        hotel_cart_snapshot=cart,
+        hotel_cart_snapshot=enriched_cart,  # Usar el carrito enriquecido con info de extra guests
         breakdown={
             "players_total": str(players_total),
             "hotel_room_base": str(hotel_breakdown["room_base"]),
