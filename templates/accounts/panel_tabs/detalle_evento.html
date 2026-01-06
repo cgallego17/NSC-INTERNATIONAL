@@ -1310,7 +1310,7 @@
                         <p style="color: var(--mlb-blue); font-weight: 600; margin-bottom: 0;">
                             {% trans "You don't have any children/players registered. Please register a child/player first." %}
                         </p>
-                        <a href="{% url 'accounts:parent_player_register' %}" class="btn mt-3" style="background: var(--mlb-blue); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none;">
+                        <a href="{% url 'panel' %}?tab=registrar-hijo" class="btn mt-3" style="background: var(--mlb-blue); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none;">
                             <i class="fas fa-user-plus me-2"></i>{% trans "Register Child/Player" %}
                         </a>
                     </div>
