@@ -62,9 +62,9 @@
                                     {% endif %}
                                 </h6>
                                 <small class="text-muted">
-                                    {% trans "Created" %}: {{ checkout.created_at|date:"d/m/Y" }}
+                                    {% trans "Created" %}: {{ checkout.created_at|date:"m/d/Y" }}
                                     {% if checkout.paid_at %}
-                                        | {% trans "Paid" %}: {{ checkout.paid_at|date:"d/m/Y" }}
+                                        | {% trans "Paid" %}: {{ checkout.paid_at|date:"m/d/Y" }}
                                     {% endif %}
                                 </small>
                             </div>
@@ -166,7 +166,7 @@
                         {% if wallet_transactions %}
                             {% for transaction in wallet_transactions %}
                                 <tr>
-                                    <td>{{ transaction.created_at|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ transaction.created_at|date:"m/d/Y H:i" }}</td>
                                     <td>
                                         <span class="badge
                                             {% if transaction.transaction_type == 'deposit' %}bg-success
@@ -231,9 +231,9 @@
                             <tr>
                                 <td>
                                     {% if checkout.paid_at %}
-                                        {{ checkout.paid_at|date:"d/m/Y H:i" }}
+                                        {{ checkout.paid_at|date:"m/d/Y H:i" }}
                                     {% else %}
-                                        {{ checkout.created_at|date:"d/m/Y H:i" }}
+                                        {{ checkout.created_at|date:"m/d/Y H:i" }}
                                     {% endif %}
                                 </td>
                                 <td>
@@ -308,7 +308,7 @@
                                     {{ payment.event.title }}
                                 </h6>
                                 <small class="text-muted">
-                                    {% trans "Due Date" %}: {{ payment.due_date|date:"d/m/Y" }}
+                                    {% trans "Due Date" %}: {{ payment.due_date|date:"m/d/Y" }}
                                     | {% trans "Payment" %} {{ payment.payment_number }}/{{ payment.total_payments }}
                                 </small>
                             </div>

@@ -362,9 +362,9 @@
                 {% trans "Invoice #" %}{{ checkout.pk }} |
                 {% trans "Payment Date" %}:
                 {% if checkout.paid_at %}
-                    {{ checkout.paid_at|date:"d/m/Y" }}
+                    {{ checkout.paid_at|date:"m/d/Y" }}
                 {% else %}
-                    {{ checkout.created_at|date:"d/m/Y" }}
+                    {{ checkout.created_at|date:"m/d/Y" }}
                 {% endif %}
             </div>
         </div>
@@ -401,10 +401,10 @@
                         <span class="info-label">{% trans "Payment Date" %}:</span>
                         <span class="info-value">
                             {% if checkout.paid_at %}
-                                <strong>{{ checkout.paid_at|date:"d/m/Y" }}</strong>
+                                <strong>{{ checkout.paid_at|date:"m/d/Y" }}</strong>
                                 <small style="color: #6c757d;">{{ checkout.paid_at|date:"H:i" }}</small>
                             {% else %}
-                                <strong>{{ checkout.created_at|date:"d/m/Y" }}</strong>
+                                <strong>{{ checkout.created_at|date:"m/d/Y" }}</strong>
                                 <small style="color: #6c757d;">{{ checkout.created_at|date:"H:i" }}</small>
                             {% endif %}
                         </span>
@@ -448,13 +448,13 @@
                     {% if checkout.event.start_date %}
                     <div class="info-row">
                         <span class="info-label">{% trans "Start Date" %}:</span>
-                        <span class="info-value">{{ checkout.event.start_date|date:"d/m/Y" }}</span>
+                        <span class="info-value">{{ checkout.event.start_date|date:"m/d/Y" }}</span>
                     </div>
                     {% endif %}
                     {% if checkout.event.end_date %}
                     <div class="info-row">
                         <span class="info-label">{% trans "End Date" %}:</span>
-                        <span class="info-value">{{ checkout.event.end_date|date:"d/m/Y" }}</span>
+                        <span class="info-value">{{ checkout.event.end_date|date:"m/d/Y" }}</span>
                     </div>
                     {% endif %}
                 </div>
@@ -496,11 +496,11 @@
                 </div>
                 <div class="info-row">
                     <span class="info-label">{% trans "Check-in" %}:</span>
-                    <span class="info-value">{{ reservation.check_in|date:"d/m/Y" }}</span>
+                    <span class="info-value">{{ reservation.check_in|date:"m/d/Y" }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">{% trans "Check-out" %}:</span>
-                    <span class="info-value">{{ reservation.check_out|date:"d/m/Y" }}</span>
+                    <span class="info-value">{{ reservation.check_out|date:"m/d/Y" }}</span>
                 </div>
                 <div class="info-row">
                     <span class="info-label">{% trans "Guests" %}:</span>
@@ -675,7 +675,7 @@
                 {% trans "For questions or support, please contact us." %}
             </p>
             <p style="margin-top: 15px; font-size: 0.9rem;">
-                {% trans "Invoice generated on" %} {{ checkout.created_at|date:"d/m/Y H:i" }}<br>
+                {% trans "Invoice generated on" %} {{ checkout.created_at|date:"m/d/Y H:i" }}<br>
                 {% trans "Stripe Session ID" %}: {{ checkout.stripe_session_id }}
             </p>
         </div>

@@ -707,13 +707,13 @@
                         {% if checkout.event.start_date %}
                         <div class="info-item">
                             <div class="info-label">{% trans "Start Date" %}</div>
-                            <div class="info-value">{{ checkout.event.start_date|date:"d/m/Y" }}</div>
+                            <div class="info-value">{{ checkout.event.start_date|date:"m/d/Y" }}</div>
                         </div>
                         {% endif %}
                         {% if checkout.event.end_date %}
                         <div class="info-item">
                             <div class="info-label">{% trans "End Date" %}</div>
-                            <div class="info-value">{{ checkout.event.end_date|date:"d/m/Y" }}</div>
+                            <div class="info-value">{{ checkout.event.end_date|date:"m/d/Y" }}</div>
                         </div>
                         {% endif %}
                     </div>
@@ -730,10 +730,10 @@
                             <div class="info-label">{% trans "Payment Date" %}</div>
                             <div class="info-value">
                                 {% if checkout.paid_at %}
-                                    {{ checkout.paid_at|date:"d/m/Y" }}
+                                    {{ checkout.paid_at|date:"m/d/Y" }}
                                     <br><small style="font-weight: 400; opacity: 0.8;">{{ checkout.paid_at|date:"H:i" }}</small>
                                 {% else %}
-                                    {{ checkout.created_at|date:"d/m/Y" }}
+                                    {{ checkout.created_at|date:"m/d/Y" }}
                                     <br><small style="font-weight: 400; opacity: 0.8;">{{ checkout.created_at|date:"H:i" }}</small>
                                 {% endif %}
                             </div>
@@ -807,11 +807,11 @@
                             </div>
                             <div class="reservation-detail-item">
                                 <div class="reservation-detail-label">{% trans "Check-in" %}</div>
-                                <div class="reservation-detail-value">{{ reservation.check_in|date:"d/m/Y" }}</div>
+                                <div class="reservation-detail-value">{{ reservation.check_in|date:"m/d/Y" }}</div>
                             </div>
                             <div class="reservation-detail-item">
                                 <div class="reservation-detail-label">{% trans "Check-out" %}</div>
-                                <div class="reservation-detail-value">{{ reservation.check_out|date:"d/m/Y" }}</div>
+                                <div class="reservation-detail-value">{{ reservation.check_out|date:"m/d/Y" }}</div>
                             </div>
                             <div class="reservation-detail-item">
                                 <div class="reservation-detail-label">{% trans "Guests" %}</div>
