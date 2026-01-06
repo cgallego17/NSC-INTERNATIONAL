@@ -1312,8 +1312,22 @@
                         </p>
                         <a
                             href="{% if user.profile.is_parent %}{% url 'panel' %}?tab=registrar-hijo{% elif user.profile.is_team_manager %}{% url 'panel' %}?tab=registrar-jugador{% else %}{% url 'panel' %}{% endif %}"
+                            onclick="
+                                (function(el){
+                                    const tabId = '{% if user.profile.is_parent %}registrar-hijo{% elif user.profile.is_team_manager %}registrar-jugador{% else %}{% endif %}';
+                                    // Si estamos dentro del panel (iframe), pedir al parent que active el tab (evita sub-frame-error)
+                                    try {
+                                        if (tabId && window.parent && window.parent !== window) {
+                                            window.parent.postMessage({ type: 'nsc-activate-tab', tabId: tabId }, window.location.origin);
+                                            return false;
+                                        }
+                                    } catch (e) {}
+                                    // Fallback: navegación normal al panel
+                                    try { window.top.location.href = el.href; return false; } catch(e) {}
+                                    return true;
+                                })(this);
+                            "
                             target="_top"
-                            onclick="try{window.top.location.href=this.href;return false;}catch(e){}"
                             class="btn mt-3"
                             style="background: var(--mlb-blue); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none;"
                         >

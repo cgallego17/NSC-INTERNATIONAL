@@ -1106,6 +1106,24 @@
             window.addEventListener('message', function (event) {
                 if (event.origin !== window.location.origin) return;
                 const data = event.data || {};
+                // Activar tabs desde iframes internos (ej: desde checkout en detalle_evento)
+                if (data.type === 'nsc-activate-tab' && data.tabId) {
+                    try {
+                        activateTab(data.tabId, null);
+                    } catch (e) {
+                        // ignore
+                    }
+                    // Actualizar URL para refrescar y conservar el tab
+                    try {
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('tab', data.tabId);
+                        window.history.pushState({}, '', url.toString());
+                    } catch (e) {
+                        // ignore
+                    }
+                    return;
+                }
+
                 if (data.type !== 'nsc-open-event-detail') return;
 
                 const embedUrl = data.embedUrl;
