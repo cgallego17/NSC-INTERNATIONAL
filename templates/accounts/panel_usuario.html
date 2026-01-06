@@ -1165,7 +1165,15 @@
                     const url = button ? button.getAttribute('data-url') : null;
 
                     // Tabs que tienen contenido incluido directamente, no necesitan iframe
-                    const tabsWithDirectContent = ['registrar-hijo', 'mis-hijos'];
+                    // (evita sub-frame-error / X-Frame-Options al intentar embedir vistas del panel)
+                    const tabsWithDirectContent = [
+                        'registrar-hijo',
+                        'mis-hijos',
+                        'registrar-jugador',
+                        'crear-equipo',
+                        'mis-equipos',
+                        'ver-jugadores',
+                    ];
 
                     // Si hay una URL, manejar iframe
                     // Nota: si este tab usa iframe embed (data-src), NO sobrescribir su src con data-url legacy.
