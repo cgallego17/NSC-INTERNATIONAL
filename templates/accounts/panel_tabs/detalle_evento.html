@@ -1312,8 +1312,7 @@
                         </p>
                         <a
                             href="{% if user.profile.is_parent %}{% url 'panel' %}?tab=registrar-hijo{% elif user.profile.is_team_manager %}{% url 'panel' %}?tab=registrar-jugador{% else %}{% url 'panel' %}{% endif %}"
-                            onclick="
-                                (function(el){
+                            onclick="return (function(el){
                                     const tabId = '{% if user.profile.is_parent %}registrar-hijo{% elif user.profile.is_team_manager %}registrar-jugador{% else %}{% endif %}';
                                     // Si estamos dentro del panel (iframe), pedir al parent que active el tab (evita sub-frame-error)
                                     try {
@@ -1325,8 +1324,7 @@
                                     // Fallback: navegación normal al panel
                                     try { window.top.location.href = el.href; return false; } catch(e) {}
                                     return true;
-                                })(this);
-                            "
+                                })(this);"
                             target="_top"
                             class="btn mt-3"
                             style="background: var(--mlb-blue); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none;"
