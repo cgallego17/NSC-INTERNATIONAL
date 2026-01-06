@@ -31,9 +31,10 @@ class EventListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         # Forzar consulta fresca desde la base de datos
-        queryset = Event.objects.select_related(
+        # Solo mostrar eventos publicados
+        queryset = Event.objects.filter(status="published").select_related(
             "category", "organizer", "event_type", "country", "state", "city"
-        ).all()
+        )
 
         # Filtros
         search = self.request.GET.get("search")
@@ -97,6 +98,10 @@ class EventDetailView(LoginRequiredMixin, DetailView):
     template_name = "events/detail.html"
     context_object_name = "event"
 
+    def get_queryset(self):
+        # Solo mostrar eventos publicados
+        return Event.objects.filter(status="published")
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["attendees"] = self.object.attendees.filter(
@@ -119,8 +124,10 @@ class EventDetailView(LoginRequiredMixin, DetailView):
                 context["user_attendance"] = None
 
         # Optimizar consultas relacionadas para mejor rendimiento
+        # El evento ya está filtrado por get_queryset (solo publicados)
         event = (
-            Event.objects.select_related(
+            Event.objects.filter(status="published")
+            .select_related(
                 "category",
                 "organizer",
                 "event_type",
@@ -251,7 +258,7 @@ class EventDetailAPIView(LoginRequiredMixin, View):
         from apps.accounts.models import Player, PlayerParent
 
         event = get_object_or_404(
-            Event.objects.select_related(
+            Event.objects.filter(status="published").select_related(
                 "category",
                 "event_type",
                 "country",
@@ -423,7 +430,7 @@ class EventCalendarView(LoginRequiredMixin, ListView):
         return super().dispatch(*args, **kwargs)
 
     def get_queryset(self):
-        # Obtener eventos del mes actual
+        # Obtener eventos del mes actual (solo publicados)
         now = timezone.now()
         month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(
@@ -431,7 +438,11 @@ class EventCalendarView(LoginRequiredMixin, ListView):
         )
 
         return (
-            Event.objects.filter(start_date__gte=month_start, start_date__lte=month_end)
+            Event.objects.filter(
+                status="published",
+                start_date__gte=month_start,
+                start_date__lte=month_end
+            )
             .select_related("category", "organizer")
             .order_by("start_date")
         )
@@ -480,20 +491,21 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context["active_section"] = "dashboard"
         now = timezone.now()
 
-        # Estadísticas generales
-        total_events = Event.objects.count()
-        upcoming_events = Event.objects.filter(start_date__gt=now).count()
+        # Estadísticas generales (solo eventos publicados)
+        total_events = Event.objects.filter(status="published").count()
+        upcoming_events = Event.objects.filter(status="published", start_date__gt=now).count()
         ongoing_events = Event.objects.filter(
-            start_date__lte=now, end_date__gte=now
+            status="published", start_date__lte=now, end_date__gte=now
         ).count()
-        past_events = Event.objects.filter(end_date__lt=now).count()
+        past_events = Event.objects.filter(status="published", end_date__lt=now).count()
 
-        # Eventos de hoy
+        # Eventos de hoy (solo publicados)
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
         today_end = today_start + timedelta(days=1)
         try:
             today_events = (
                 Event.objects.filter(
+                    status="published",
                     start_date__gte=today_start, start_date__lt=today_end
                 )
                 .select_related("category")
@@ -503,39 +515,48 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         except Exception:
             today_events = (
                 Event.objects.filter(
+                    status="published",
                     start_date__gte=today_start, start_date__lt=today_end
                 )
                 .select_related("category")
                 .order_by("start_date")
             )
 
-        # Próximos eventos (próximos 7 días)
+        # Próximos eventos (próximos 7 días, solo publicados)
         week_end = now + timedelta(days=7)
         try:
             upcoming_week = (
-                Event.objects.filter(start_date__gt=now, start_date__lte=week_end)
+                Event.objects.filter(
+                    status="published",
+                    start_date__gt=now, start_date__lte=week_end
+                )
                 .select_related("category")
                 .prefetch_related("divisions")
                 .order_by("start_date")[:5]
             )
         except Exception:
             upcoming_week = (
-                Event.objects.filter(start_date__gt=now, start_date__lte=week_end)
+                Event.objects.filter(
+                    status="published",
+                    start_date__gt=now, start_date__lte=week_end
+                )
                 .select_related("category")
                 .order_by("start_date")[:5]
             )
 
-        # Eventos por categoría
+        # Eventos por categoría (solo publicados)
         events_by_category = (
-            Event.objects.values("category__name")
+            Event.objects.filter(status="published")
+            .values("category__name")
             .annotate(count=Count("id"))
             .order_by("-count")[:5]
         )
 
-        # Eventos por división
+        # Eventos por división (solo publicados)
         try:
             events_by_division = (
-                Event.objects.values("divisions__name")
+                Event.objects.filter(status="published")
+                .values("divisions__name")
                 .annotate(count=Count("id"))
                 .order_by("-count")[:5]
             )
@@ -543,8 +564,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             # Si la tabla no existe aún, retornar lista vacía
             events_by_division = []
 
-        # Eventos más populares (por número de asistentes)
-        popular_events = Event.objects.annotate(
+        # Eventos más populares (por número de asistentes, solo publicados)
+        popular_events = Event.objects.filter(status="published").annotate(
             attendee_count=Count("attendees")
         ).order_by("-attendee_count")[:5]
 
@@ -554,8 +575,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             status="confirmed"
         ).count()
 
-        # Eventos recientes
-        recent_events = Event.objects.order_by("-created_at")[:5]
+        # Eventos recientes (solo publicados)
+        recent_events = Event.objects.filter(status="published").order_by("-created_at")[:5]
 
         # Estadísticas de usuarios
         try:
@@ -675,7 +696,7 @@ class DivisionDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["events"] = self.object.events.all().order_by("-start_date")[:10]
+        context["events"] = self.object.events.filter(status="published").order_by("-start_date")[:10]
         context["events_count"] = self.object.events.count()
         context["active_section"] = "configuration"
         context["active_subsection"] = "division_list"

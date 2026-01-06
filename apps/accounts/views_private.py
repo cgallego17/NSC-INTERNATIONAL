@@ -128,9 +128,9 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             from apps.events.models import Event
 
             now = timezone.now()
-            # Obtener eventos (excepto cancelados) - limitar a 20 para mejor rendimiento
+            # Obtener solo eventos publicados - limitar a 20 para mejor rendimiento
             context["upcoming_events"] = (
-                Event.objects.exclude(status="cancelled")
+                Event.objects.filter(status="published")
                 .select_related(
                     "category", "event_type", "city", "state", "primary_site"
                 )
@@ -1348,7 +1348,8 @@ class PanelEventDetailView(UserDashboardView):
             from django.db.models import Prefetch
 
             event = (
-                Event.objects.select_related(
+                Event.objects.filter(status="published")
+                .select_related(
                     "category",
                     "event_type",
                     "country",
