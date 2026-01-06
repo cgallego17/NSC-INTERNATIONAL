@@ -3509,16 +3509,29 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             const roomIncludesGuests = parseInt(roomEl.getAttribute('data-room-includes-guests') || '1');
             const additionalGuestPrice = parseFloat(roomEl.getAttribute('data-room-additional-guest-price') || '0');
             const roomCapacity = parseInt(roomEl.getAttribute('data-room-capacity') || '0');
-            totalCapacity += roomCapacity;
+
+            // Validate roomCapacity is valid
+            if (!Number.isFinite(roomCapacity) || roomCapacity <= 0) {
+                console.warn('updateRoomsPriceCalculation: Invalid room capacity for roomId:', room.roomId, 'capacity:', roomCapacity);
+            }
+
+            totalCapacity += (Number.isFinite(roomCapacity) && roomCapacity > 0) ? roomCapacity : 0;
 
             // Get assigned guests for this room (or use auto-distribution)
             const assignedGuestIndices = state.guestAssignments[room.roomId] || [];
             const guestsForThisRoom = assignedGuestIndices.length;
 
-            // Validate assignment doesn't exceed capacity
+            // Calculate actual guests for this room
+            // If no guests assigned, use 0 for display but still show base price
             const actualGuestsForRoom = Math.min(guestsForThisRoom, roomCapacity);
-            const additionalGuestsForRoom = Math.max(0, actualGuestsForRoom - roomIncludesGuests);
+
+            // Calculate additional guests and cost only if there are assigned guests
+            // Base price is always shown, additional cost only applies when guests exceed base included
+            const additionalGuestsForRoom = (actualGuestsForRoom > 0) ? Math.max(0, actualGuestsForRoom - roomIncludesGuests) : 0;
             const additionalCostForRoom = additionalGuestsForRoom > 0 ? additionalGuestPrice * additionalGuestsForRoom : 0;
+
+            // Room total: base price + additional guest costs
+            // Base price is always included even if no guests assigned yet
             const roomTotal = roomPrice + additionalCostForRoom;
             totalPrice += roomTotal;
 
@@ -3648,7 +3661,9 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             if (room.additionalGuestsForRoom > 0) {
                 html += `<div style="font-size: 0.8rem; color: #333; margin-bottom: 2px;">${gettext('Additional guests')} (${room.actualGuestsCount - room.roomIncludesGuests}): <strong style="color: var(--mlb-red);">+$${room.additionalCostForRoom.toFixed(2)}</strong>/${gettext('night')}</div>`;
             }
-            html += `<div style="font-size: 0.85rem; color: var(--mlb-blue); margin-top: 4px; font-weight: 600;">${gettext('Room Total')}: $${room.roomTotal.toFixed(2)}/${gettext('night')} (${room.actualGuestsCount}/${room.roomCapacity} ${gettext('capacity')})</div>`;
+            // Show capacity correctly - use actual assigned count or show 0 if none assigned
+            const displayGuestCount = (room.assignedGuests && room.assignedGuests.length > 0) ? room.actualGuestsCount : 0;
+            html += `<div style="font-size: 0.85rem; color: var(--mlb-blue); margin-top: 4px; font-weight: 600;">${gettext('Room Total')}: $${room.roomTotal.toFixed(2)}/${gettext('night')} (${displayGuestCount}/${room.roomCapacity} ${gettext('capacity')})</div>`;
             html += `</div>`;
         });
 
@@ -4094,7 +4109,13 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             state.rooms.forEach(room => {
                 const roomEl = findRoomInModal(pk, room.roomId);
                 if (roomEl) {
-                    totalCapacity += parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10);
+                    const roomCap = parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10);
+                    // Validate capacity is a valid number
+                    if (Number.isFinite(roomCap) && roomCap > 0) {
+                        totalCapacity += roomCap;
+                    } else {
+                        console.warn('validateRoomSelection: Invalid room capacity for roomId:', room.roomId, 'capacity:', roomCap);
+                    }
 
                     // Collect rules from this room
                     const rulesJson = roomEl.getAttribute('data-room-rules');
