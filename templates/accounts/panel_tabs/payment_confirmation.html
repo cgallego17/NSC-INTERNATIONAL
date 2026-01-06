@@ -43,37 +43,44 @@
         .confirmation-header {
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
-            padding: 50px 40px;
+            padding: 30px 40px;
             text-align: center;
             position: relative;
         }
 
+        .confirmation-header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
         .confirmation-header-logo {
-            margin-bottom: 25px;
+            flex-shrink: 0;
         }
 
         .confirmation-header-logo img {
             height: 50px;
             width: auto;
-            max-width: 250px;
+            max-width: 200px;
             object-fit: contain;
             filter: brightness(0) invert(1);
         }
 
         .success-icon-container {
-            margin-bottom: 25px;
+            flex-shrink: 0;
         }
 
         .success-icon {
-            width: 120px;
-            height: 120px;
+            width: 70px;
+            height: 70px;
             background: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             animation: scaleIn 0.6s ease-out;
         }
 
@@ -89,23 +96,27 @@
         }
 
         .success-icon i {
-            font-size: 4rem;
+            font-size: 2.5rem;
             color: #28a745;
         }
 
+        .confirmation-header-text {
+            flex: 1;
+            min-width: 200px;
+        }
+
         .confirmation-title {
-            font-size: 2.8rem;
+            font-size: 2rem;
             font-weight: 700;
-            margin-bottom: 15px;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 8px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
         .confirmation-message {
-            font-size: 1.15rem;
+            font-size: 1rem;
             opacity: 0.95;
-            line-height: 1.6;
-            max-width: 600px;
-            margin: 0 auto;
+            line-height: 1.5;
+            margin: 0;
         }
 
         .confirmation-body {
@@ -417,10 +428,28 @@
             }
 
             .confirmation-header {
-                padding: 35px 25px;
+                padding: 25px 20px;
+            }
+
+            .confirmation-header-content {
+                flex-direction: column;
+                gap: 15px;
             }
 
             .confirmation-title {
+                font-size: 1.6rem;
+            }
+
+            .confirmation-message {
+                font-size: 0.9rem;
+            }
+
+            .success-icon {
+                width: 60px;
+                height: 60px;
+            }
+
+            .success-icon i {
                 font-size: 2rem;
             }
 
@@ -458,20 +487,24 @@
 <body>
     <div class="confirmation-wrapper">
         <div class="confirmation-header">
-            <div class="confirmation-header-logo">
-                <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International">
-            </div>
+            <div class="confirmation-header-content">
+                <div class="confirmation-header-logo">
+                    <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International">
+                </div>
 
-            <div class="success-icon-container">
-                <div class="success-icon">
-                    <i class="fas fa-check"></i>
+                <div class="success-icon-container">
+                    <div class="success-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+
+                <div class="confirmation-header-text">
+                    <h1 class="confirmation-title">{% trans "Payment Successful!" %}</h1>
+                    <p class="confirmation-message">
+                        {% trans "Thank you for your payment. Your registration has been confirmed." %}
+                    </p>
                 </div>
             </div>
-
-            <h1 class="confirmation-title">{% trans "Payment Successful!" %}</h1>
-            <p class="confirmation-message">
-                {% trans "Thank you for your payment. Your registration has been confirmed and you will receive a confirmation email shortly." %}
-            </p>
         </div>
 
         <div class="confirmation-body">
