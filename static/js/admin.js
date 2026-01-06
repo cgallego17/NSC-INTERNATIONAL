@@ -1995,17 +1995,12 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                 roomEl.classList.add('nsc-room-recommended');
 
                 // Add badge only to the first (most recommended)
+                // NOTE: Badge insertion removed - it was breaking the room-info layout
+                // The recommended class (nsc-room-recommended) is sufficient for styling
                 if (index === 0) {
-                    const roomInfo = roomEl.querySelector('.room-info');
-                    if (roomInfo && !roomInfo.querySelector('.nsc-recommended-badge')) {
-                        const badge = document.createElement('div');
-                        badge.className = 'nsc-recommended-badge';
-                        badge.textContent = singleRoomMode
-                            ? `⭐ ${t('recommendedForGuests', { guests: total })}`
-                            : `⭐ ${t('recommendedAddCapacity')}`;
-                        badge.style.cssText = 'background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px; display: inline-block;';
-                        roomInfo.insertBefore(badge, roomInfo.firstChild);
-                    }
+                    // Just add the class, don't insert badge to avoid layout issues
+                    // const roomInfo = roomEl.querySelector('.room-info');
+                    // Badge insertion removed to prevent layout conflicts
                 }
             }
 
@@ -5018,18 +5013,11 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                 const roomEl = roomData.el;
 
                 // Add recommendation badge for top 3 if sorting by recommended
+                // NOTE: Badge insertion removed - it was breaking the room-info layout
+                // The recommended class (nsc-room-recommended) is sufficient for styling
                 if (sortBy === 'recommended' && index < 3) {
                     roomEl.classList.add('nsc-room-recommended');
-                    if (index === 0) {
-                        const roomInfo = roomEl.querySelector('.room-info');
-                        if (roomInfo && !roomInfo.querySelector('.nsc-recommended-badge')) {
-                            const badge = document.createElement('div');
-                            badge.className = 'nsc-recommended-badge';
-                            badge.textContent = `⭐ Recommended for ${total} ${total === 1 ? 'guest' : 'guests'}`;
-                            badge.style.cssText = 'background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; margin-bottom: 8px; display: inline-block;';
-                            roomInfo.insertBefore(badge, roomInfo.firstChild);
-                        }
-                    }
+                    // Badge insertion removed to prevent layout conflicts
                 }
 
                 parentContainer.appendChild(roomEl);
