@@ -795,23 +795,23 @@
                         <!-- Columna Izquierda -->
                         <div class="col-md-6">
                             <div class="d-flex flex-column" style="gap: 12px;">
-                                <!-- Fecha -->
-                                {% if event.start_date %}
+                        <!-- Fecha -->
+                        {% if event.start_date %}
                                     <div>
-                                        <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
-                                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                                <i class="fas fa-calendar" style="color: white; font-size: 1rem;"></i>
-                                            </div>
-                                            <div>
-                                                <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Start Date" %}</div>
-                                                <div style="font-weight: 600; color: var(--mlb-blue);">{{ event.start_date|date:"F d, Y" }}</div>
-                                                {% if event.end_date and event.end_date != event.start_date %}
-                                                    <div style="font-size: 0.75rem; color: #6c757d; margin-top: 2px;">{% trans "End Date" %}: {{ event.end_date|date:"F d, Y" }}</div>
-                                                {% endif %}
-                                            </div>
-                                        </div>
+                                <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                    <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fas fa-calendar" style="color: white; font-size: 1rem;"></i>
                                     </div>
-                                {% endif %}
+                                    <div>
+                                        <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Start Date" %}</div>
+                                        <div style="font-weight: 600; color: var(--mlb-blue);">{{ event.start_date|date:"F d, Y" }}</div>
+                                        {% if event.end_date and event.end_date != event.start_date %}
+                                            <div style="font-size: 0.75rem; color: #6c757d; margin-top: 2px;">{% trans "End Date" %}: {{ event.end_date|date:"F d, Y" }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
 
                                 <!-- Divisiones -->
                                 {% if event.divisions.exists %}
@@ -819,15 +819,15 @@
                                         <div class="divisions-card" style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 2px solid #e9ecef; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
                                             <div style="width: 44px; height: 44px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(213, 0, 50, 0.2);">
                                                 <i class="fas fa-users" style="color: white; font-size: 1.1rem;"></i>
-                                            </div>
+                                        </div>
                                             <div style="flex: 1; min-width: 0;">
                                                 <button type="button" class="divisions-toggle-btn" style="display: none; width: 100%; background: transparent; border: none; padding: 0; text-align: left; cursor: pointer; margin-bottom: 8px;">
                                                     <div style="display: flex; align-items: center; justify-content: space-between;">
                                                         <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">
                                                             {% trans "Divisions" %} <span class="divisions-count">({{ event.divisions.count }})</span>
-                                                        </div>
+                                    </div>
                                                         <i class="fas fa-chevron-down divisions-chevron" style="color: var(--mlb-red); font-size: 0.7rem; transition: transform 0.3s;"></i>
-                                                    </div>
+                                </div>
                                                 </button>
                                                 <div class="divisions-title-desktop" style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 8px;">{% trans "Divisions" %} <span class="divisions-count">({{ event.divisions.count }})</span></div>
                                                 <div class="divisions-content" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
@@ -844,13 +844,13 @@
                                                                 {{ division.name }}
                                                             </span>
                                                         {% endfor %}
-                                                    </div>
+                            </div>
                                                     {% if event.divisions.count > 3 %}
                                                         <button type="button" class="divisions-show-more-btn" style="display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 1px solid var(--mlb-red); color: var(--mlb-red); padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 4px;">
                                                             <span class="divisions-show-more-text">{% trans "Show more" %}</span>
                                                             <i class="fas fa-chevron-down divisions-show-more-chevron" style="font-size: 0.6rem; transition: transform 0.3s;"></i>
                                                         </button>
-                                                    {% endif %}
+                        {% endif %}
                                                 </div>
                                             </div>
                                         </div>
@@ -860,86 +860,86 @@
                         </div>
 
                         <!-- Columna Derecha -->
-                        <div class="col-md-6">
+                            <div class="col-md-6">
                             <div class="d-flex flex-column" style="gap: 12px;">
                                 <!-- Ubicación -->
                                 {% if event.city or event.state or event.country or event.location %}
                                     <div>
-                                        <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
                                             <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
                                                 <i class="fas fa-map-marker-alt" style="color: white; font-size: 1rem;"></i>
-                                            </div>
-                                            <div>
+                                    </div>
+                                    <div>
                                                 <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Location" %}</div>
-                                                <div style="font-weight: 600; color: var(--mlb-blue);">
+                                        <div style="font-weight: 600; color: var(--mlb-blue);">
                                                     {% if event.city %}{{ event.city.name }}{% endif %}{% if event.state %}{% if event.city %}, {% endif %}{{ event.state.name }}{% endif %}{% if event.country %}{% if event.state or event.city %}, {% endif %}{{ event.country.name }}{% endif %}
                                                     {% if not event.city and not event.state and not event.country and event.location %}{{ event.location }}{% endif %}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% endif %}
-
-                                <!-- Estado -->
-                                <div>
-                                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
-                                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                            <i class="fas fa-check-circle" style="color: white; font-size: 1rem;"></i>
-                                        </div>
-                                        <div>
-                                            <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Status" %}</div>
-                                            <div style="font-weight: 600; color: var(--mlb-blue); text-transform: capitalize;">{{ event.get_status_display }}</div>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        {% endif %}
 
-                                <!-- Hotel Sede -->
-                                {% if event.hotel %}
+                        <!-- Estado -->
+                                <div>
+                            <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                    <i class="fas fa-check-circle" style="color: white; font-size: 1rem;"></i>
+                                </div>
+                                <div>
+                                    <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Status" %}</div>
+                                    <div style="font-weight: 600; color: var(--mlb-blue); text-transform: capitalize;">{{ event.get_status_display }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hotel Sede -->
+                        {% if event.hotel %}
                                     <div>
-                                        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
-                                            {% if event.hotel.photo %}
-                                                <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
-                                                    <img src="{{ event.hotel.photo.url }}" alt="{{ event.hotel.hotel_name }}" style="width: 100%; height: 100%; object-fit: cover;">
-                                                </div>
-                                            {% else %}
+                                <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                    {% if event.hotel.photo %}
+                                        <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                                            <img src="{{ event.hotel.photo.url }}" alt="{{ event.hotel.hotel_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                    {% else %}
                                                 <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); display: flex; align-items: center; justify-content: center;">
                                                     <i class="fas fa-hotel" style="color: white; font-size: 1.5rem;"></i>
-                                                </div>
-                                            {% endif %}
-                                            <div style="flex: 1;">
-                                                <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Headquarters Hotel" %}</div>
-                                                <div style="font-weight: 600; color: var(--mlb-blue);">{{ event.hotel.hotel_name }}</div>
-                                                {% if event.hotel.address %}
-                                                    <div style="font-size: 0.75rem; color: #6c757d; margin-top: 2px;">{{ event.hotel.address }}</div>
-                                                {% endif %}
-                                            </div>
                                         </div>
+                                    {% endif %}
+                                    <div style="flex: 1;">
+                                        <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Headquarters Hotel" %}</div>
+                                        <div style="font-weight: 600; color: var(--mlb-blue);">{{ event.hotel.hotel_name }}</div>
+                                        {% if event.hotel.address %}
+                                            <div style="font-size: 0.75rem; color: #6c757d; margin-top: 2px;">{{ event.hotel.address }}</div>
+                                        {% endif %}
                                     </div>
-                                {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
 
-                                <!-- Sitio Primario del Evento -->
-                                {% if event.primary_site %}
+                        <!-- Sitio Primario del Evento -->
+                        {% if event.primary_site %}
                                     <div>
-                                        <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
-                                            {% if event.primary_site.image %}
-                                                <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
-                                                    <img src="{{ event.primary_site.image.url }}" alt="{{ event.primary_site.site_name }}" style="width: 100%; height: 100%; object-fit: cover;">
-                                                </div>
-                                            {% else %}
+                                <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                    {% if event.primary_site.image %}
+                                        <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                                            <img src="{{ event.primary_site.image.url }}" alt="{{ event.primary_site.site_name }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                    {% else %}
                                                 <div style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); display: flex; align-items: center; justify-content: center;">
                                                     <i class="fas fa-map-marked-alt" style="color: white; font-size: 1.5rem;"></i>
-                                                </div>
-                                            {% endif %}
-                                            <div style="flex: 1;">
-                                                <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Primary Site" %}</div>
-                                                <div style="font-weight: 600; color: var(--mlb-blue);">{{ event.primary_site.site_name }}</div>
-                                                {% if event.primary_site.address_1 %}
-                                                    <div style="font-size: 0.75rem; color: #6c757d; margin-top: 2px;">{{ event.primary_site.address_1 }}{% if event.primary_site.address_2 %}, {{ event.primary_site.address_2 }}{% endif %}</div>
-                                                {% endif %}
-                                            </div>
                                         </div>
+                                    {% endif %}
+                                    <div style="flex: 1;">
+                                        <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{% trans "Primary Site" %}</div>
+                                        <div style="font-weight: 600; color: var(--mlb-blue);">{{ event.primary_site.site_name }}</div>
+                                        {% if event.primary_site.address_1 %}
+                                            <div style="font-size: 0.75rem; color: #6c757d; margin-top: 2px;">{{ event.primary_site.address_1 }}{% if event.primary_site.address_2 %}, {{ event.primary_site.address_2 }}{% endif %}</div>
+                                        {% endif %}
                                     </div>
-                                {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
                             </div>
                         </div>
                     </div>
