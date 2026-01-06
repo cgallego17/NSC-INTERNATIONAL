@@ -1221,7 +1221,10 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         noRoomAllowsAdults: gettext('In this hotel, no room allows adults (max adults = 0 for all rooms).'),
         tooManyChildrenForHotel: gettext('Too many children for the available rooms (max children allowed: {max}).'),
         tooManyAdultsForHotel: gettext('Too many adults for the available rooms (max adults allowed: {max}).'),
-        noRoomsCompatibleGuestMix: gettext('No available rooms are compatible with your guest mix.')
+        noRoomsCompatibleGuestMix: gettext('No available rooms are compatible with your guest mix.'),
+        pleaseAddGuestsFirst: gettext('Please add guests before selecting a room.'),
+        invalidRoomCapacity: gettext('Invalid room capacity. Cannot select this room.'),
+        roomRulesNotMetBeforeSelect: gettext('This room does not meet occupancy rules. You have {adults} adult(s) and {children} child(ren), but this room requires: {requirements}.')
     };
 
     function formatWithParams(str, params) {
@@ -2226,12 +2229,78 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
         const capacity = parseInt(btnEl.getAttribute('data-room-capacity') || roomListing?.getAttribute('data-room-capacity') || '0', 10);
 
+        // VALIDATE ROOM CONDITIONS BEFORE ALLOWING SELECTION
+        // Check if guests are defined
+        const totalGuests = state.guests ? state.guests.length : totalPeople(pk);
+        if (!state.guests || state.guests.length === 0) {
+            showToast(t('pleaseAddGuestsFirst'), 'warning', 4000);
+            return;
+        }
+
+        // Validate room capacity
+        if (!Number.isFinite(capacity) || capacity <= 0) {
+            showToast(t('invalidRoomCapacity'), 'error', 4000);
+            return;
+        }
+
+        // Validate occupancy rules BEFORE allowing selection
+        const rulesJson = roomListing?.getAttribute('data-room-rules');
+        if (rulesJson) {
+            try {
+                const rules = JSON.parse(rulesJson) || [];
+                const activeRules = Array.isArray(rules)
+                    ? rules.filter(r => !r.hasOwnProperty('is_active') || r.is_active)
+                    : [];
+
+                if (activeRules.length > 0) {
+                    const adults = state.guests.filter(g => g.type === 'adult').length;
+                    const children = state.guests.filter(g => g.type === 'child').length;
+
+                    // Check if current guests match any active rule
+                    const validRule = activeRules.some(rule => {
+                        const minAdults = parseInt(rule.min_adults) || 0;
+                        const maxAdults = parseInt(rule.max_adults) || 999;
+                        const minChildren = parseInt(rule.min_children) || 0;
+                        const maxChildren = parseInt(rule.max_children) || 999;
+                        return adults >= minAdults && adults <= maxAdults &&
+                               children >= minChildren && children <= maxChildren;
+                    });
+
+                    if (!validRule) {
+                        // Find the first rule to show requirements
+                        const firstRule = activeRules[0];
+                        const minA = parseInt(firstRule.min_adults) || 0;
+                        const maxA = parseInt(firstRule.max_adults) || 999;
+                        const minC = parseInt(firstRule.min_children) || 0;
+                        const maxC = parseInt(firstRule.max_children) || 999;
+
+                        let ruleDesc = '';
+                        if (minA === maxA && minC === maxC) {
+                            ruleDesc = `${minA} ${minA === 1 ? gettext('adult') : gettext('adults')}, ${minC} ${minC === 1 ? gettext('child') : gettext('children')}`;
+                        } else {
+                            ruleDesc = `${minA}-${maxA} ${gettext('adults')}, ${minC}-${maxC} ${gettext('children')}`;
+                        }
+
+                        showToast(t('roomRulesNotMetBeforeSelect', {
+                            adults: adults,
+                            children: children,
+                            requirements: ruleDesc
+                        }), 'error', 6000);
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn('selectRoom: Error parsing room rules:', e);
+                // Continue if rules can't be parsed (fail-open)
+            }
+        }
+
         // Check if room is already selected
         const roomIndex = state.rooms.findIndex(r => r.roomId === String(roomId));
         const isCurrentlySelected = roomIndex !== -1;
 
         // Calculate total capacity of all selected rooms
-        const totalGuests = state.guests ? state.guests.length : totalPeople(pk);
+        // (totalGuests already calculated above in validation)
         let totalCapacity = 0;
         state.rooms.forEach(r => {
             const roomEl = findRoomInModal(pk, r.roomId);
