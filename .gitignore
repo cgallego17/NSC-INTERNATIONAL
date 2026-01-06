@@ -37,7 +37,9 @@ db.sqlite3
 db.sqlite3-journal
 /media
 /staticfiles
-/static
+# NOTA: /static NO debe estar en .gitignore porque contiene los archivos fuente
+# que SÍ deben estar en el repositorio. Solo /staticfiles (generado) debe ignorarse.
+# /static
 
 # Multimedia - Excluir archivos grandes
 multimedia/video/**/*.mp4

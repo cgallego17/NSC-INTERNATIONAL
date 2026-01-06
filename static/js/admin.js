@@ -1536,6 +1536,65 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         return Promise.resolve(null);
     }
 
+    // Helper: Set or remove data-selected attribute on room element
+    function setRoomSelected(pk, roomId, selected) {
+        const roomEl = findRoomInModal(pk, roomId);
+        if (roomEl) {
+            if (selected) {
+                roomEl.setAttribute('data-selected', 'true');
+            } else {
+                roomEl.removeAttribute('data-selected');
+            }
+        }
+    }
+
+    // Helper: Add room to state and update UI
+    function addRoomToState(pk, state, roomId, roomLabel, capacity) {
+        state.rooms.push({
+            roomId: String(roomId),
+            roomLabel: roomLabel,
+            capacity: capacity
+        });
+        state.guestAssignments[String(roomId)] = [];
+        setRoomSelected(pk, roomId, true);
+    }
+
+    // Helper: Remove room from state and update UI
+    function removeRoomFromState(pk, state, roomId) {
+        const roomIndex = state.rooms.findIndex(r => r.roomId === String(roomId));
+        if (roomIndex !== -1) {
+            state.rooms.splice(roomIndex, 1);
+        }
+        if (state.guestAssignments) {
+            delete state.guestAssignments[String(roomId)];
+        }
+        setRoomSelected(pk, roomId, false);
+    }
+
+    // Helper: Clear all room selections
+    function clearAllRoomSelections(pk, state, listings = null) {
+        state.rooms = [];
+        state.guestAssignments = {};
+        if (listings && Array.isArray(listings)) {
+            listings.forEach((el) => el.removeAttribute('data-selected'));
+        } else {
+            // Clear all rooms in modal
+            const roomsModalEl = q(`hotelRoomsModal${pk}`);
+            if (roomsModalEl) {
+                roomsModalEl.querySelectorAll('.room-listing-inline[data-selected="true"]').forEach(el => {
+                    el.removeAttribute('data-selected');
+                });
+            }
+        }
+    }
+
+    // Helper: Update room selection (call after adding/removing rooms)
+    function updateRoomSelectionState(pk) {
+        autoDistributeGuests(pk);
+        updateRoomsPriceCalculation(pk);
+        validateRoomSelection(pk);
+    }
+
     function setCounter(pk, which, value) {
         const id = which === 'adults' ? `adults-total-count${pk}` : `additional-children-count${pk}`;
         const el = q(id);
@@ -2226,12 +2285,9 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             stateByPk.set(pk, { rooms: [], guests: [], guestAssignments: {} }); // guestAssignments: { roomId: [guestIndex1, guestIndex2, ...] }
         }
         const state = stateByPk.get(pk);
-        if (!state.rooms) {
-            state.rooms = [];
-        }
-        if (!state.guestAssignments) {
-            state.guestAssignments = {};
-        }
+        // Ensure state arrays/objects exist
+        if (!state.rooms) state.rooms = [];
+        if (!state.guestAssignments) state.guestAssignments = {};
 
         // Find the actual room listing element
         let roomListing = btnEl.closest('.room-listing-inline');
@@ -2342,22 +2398,16 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                             const ok = confirm(t('confirmReplaceWithBiggerRoom', { guests: totalGuests, label: proposedLabel, cap: proposedCap }));
                             if (ok) {
                                 // Clear existing selection
-                                state.rooms = [];
-                                state.guestAssignments = {};
-                                listings.forEach((el) => el.removeAttribute('data-selected'));
+                                clearAllRoomSelections(pk, state, listings);
 
                                 // Select proposed room
                                 const finalRoomId = String(proposeRid);
                                 const finalEl = proposedEl || best.el;
                                 const finalCap = parseInt(finalEl?.getAttribute('data-room-capacity') || String(proposedCap || 0), 10) || proposedCap || 0;
                                 const finalLabel = proposedLabel || interpolate(gettext('Room %(id)s'), { id: finalRoomId }, true);
-                                state.rooms.push({ roomId: finalRoomId, roomLabel: finalLabel, capacity: finalCap });
-                                state.guestAssignments[finalRoomId] = [];
-                                if (finalEl) finalEl.setAttribute('data-selected', 'true');
 
-                                autoDistributeGuests(pk);
-                                updateRoomsPriceCalculation(pk);
-                                validateRoomSelection(pk);
+                                addRoomToState(pk, state, finalRoomId, finalLabel, finalCap);
+                                updateRoomSelectionState(pk);
                                 showToast(t('switchedToRoomOne', { label: finalLabel }), 'success', 4500);
                                 return;
                             }
@@ -2396,17 +2446,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         // Note: Capacity validation for removal already done above (lines 2244-2253)
         if (isCurrentlySelected) {
             // Remove room from selection
-            state.rooms.splice(roomIndex, 1);
-            // Remove guest assignments for this room
-            delete state.guestAssignments[String(roomId)];
-            if (roomListing) {
-                roomListing.removeAttribute('data-selected');
-            } else {
-                const foundRoom = findRoomInModal(pk, roomId);
-                if (foundRoom) {
-                    foundRoom.removeAttribute('data-selected');
-                }
-            }
+            removeRoomFromState(pk, state, roomId);
             showToast(t('roomRemoved', { label: roomLabel }), 'info', 3000);
         } else {
             // Smart check: Only add if actually needed or user explicitly wants multiple rooms
@@ -2419,22 +2459,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             }
 
             // Add room to selection
-            state.rooms.push({
-                roomId: String(roomId),
-                roomLabel: roomLabel,
-                capacity: capacity
-            });
-            // Initialize empty guest assignments for this room
-            state.guestAssignments[String(roomId)] = [];
-
-            if (roomListing) {
-                roomListing.setAttribute('data-selected', 'true');
-            } else {
-                const foundRoom = findRoomInModal(pk, roomId);
-                if (foundRoom) {
-                    foundRoom.setAttribute('data-selected', 'true');
-                }
-            }
+            addRoomToState(pk, state, roomId, roomLabel, capacity);
             showToast(t('roomAdded', { label: roomLabel, count: state.rooms.length }), 'success', 3000);
         }
 
@@ -4066,8 +4091,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             }
 
             state.rooms.forEach(room => {
-                const roomEl = roomsModalEl?.querySelector(`[data-room-id="${room.roomId}"]`) ||
-                              document.querySelector(`[data-room-id="${room.roomId}"]`);
+                const roomEl = findRoomInModal(pk, room.roomId);
                 if (roomEl) {
                     totalCapacity += parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10);
 
@@ -4610,8 +4634,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             const roomsModalEl = q(`hotelRoomsModal${pk}`);
             const invalidRooms = [];
             state.rooms.forEach((room) => {
-                const roomEl = roomsModalEl?.querySelector(`[data-room-id="${room.roomId}"]`) ||
-                              document.querySelector(`[data-room-id="${room.roomId}"]`);
+                const roomEl = findRoomInModal(pk, room.roomId);
                 const rulesJson = roomEl?.getAttribute('data-room-rules');
                 if (!rulesJson) return;
                 let rules = [];
@@ -4961,8 +4984,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         const roomsModalEl = q(`hotelRoomsModal${pk}`);
 
         function getRoomMeta(roomId) {
-            const roomEl = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`) ||
-                          document.querySelector(`[data-room-id="${roomId}"]`);
+            const roomEl = findRoomInModal(pk, roomId);
             const capacity = roomEl ? parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10) : 0;
             const label = roomEl?.querySelector('.room-name')?.textContent?.trim()
                 || roomEl?.getAttribute('data-room-label')
@@ -5336,8 +5358,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
         // Get room capacity and rules
         const roomsModalEl = q(`hotelRoomsModal${pk}`);
-        const roomEl = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`) ||
-                      document.querySelector(`[data-room-id="${roomId}"]`);
+        const roomEl = findRoomInModal(pk, roomId);
         const capacity = roomEl ? parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10) : room.capacity;
 
         // Get room rules
@@ -5520,9 +5541,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         let remainingCapacity = 0;
         state.rooms.forEach((r, idx) => {
             if (idx !== roomIndex) {
-                const roomsModalEl = q(`hotelRoomsModal${pk}`);
-                const roomEl = roomsModalEl?.querySelector(`[data-room-id="${r.roomId}"]`) ||
-                              document.querySelector(`[data-room-id="${r.roomId}"]`);
+                const roomEl = findRoomInModal(pk, r.roomId);
                 if (roomEl) {
                     remainingCapacity += parseInt(roomEl.getAttribute('data-room-capacity') || '0', 10);
                 } else {
@@ -5540,19 +5559,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         }
 
         // Remove room from selection
-        state.rooms.splice(roomIndex, 1);
-        // Remove guest assignments for this room
-        if (state.guestAssignments) {
-            delete state.guestAssignments[String(roomId)];
-        }
-
-        // Update UI - remove selected attribute
-        const roomsModalEl = q(`hotelRoomsModal${pk}`);
-        const roomEl = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`) ||
-                      document.querySelector(`[data-room-id="${roomId}"]`);
-        if (roomEl) {
-            roomEl.removeAttribute('data-selected');
-        }
+        removeRoomFromState(pk, state, roomId);
 
         // Auto-redistribute guests if needed
         autoDistributeGuests(pk);
@@ -5596,8 +5603,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
             // Get room rules
             const roomsModalEl = q(`hotelRoomsModal${pk}`);
-            const roomEl = roomsModalEl?.querySelector(`[data-room-id="${roomId}"]`) ||
-                          document.querySelector(`[data-room-id="${roomId}"]`);
+            const roomEl = findRoomInModal(pk, roomId);
             const rulesJson = roomEl?.getAttribute('data-room-rules');
 
             if (rulesJson) {
