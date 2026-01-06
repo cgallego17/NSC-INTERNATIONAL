@@ -2138,6 +2138,9 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                 selectedWrap.style.display = 'block';
                 selectedEl.innerHTML = '';
 
+                // Get registrant email (guest_email) to use for all players
+                const registrantEmail = q(`#guest-details-form${pk} input[name="guest_email"]`)?.value || '';
+
                 // Get state to access player data
                 const state = stateByPk.get(pk);
                 const players = state?.guests?.filter(g => g.isPlayer) || [];
@@ -2149,13 +2152,13 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                         childItem?.querySelector('div[style*="font-weight: 700"]');
                     const name = nameDiv ? nameDiv.textContent.trim() : gettext('Player');
                     const birth = cb.getAttribute('data-birth-date') || '';
-                    const email = childItem?.getAttribute('data-child-email') || '';
 
                     // Try to get player data from state
                     const playerData = players[idx] || {};
                     const playerName = playerData.name || name;
                     const playerBirthDate = playerData.birthDate || birth;
-                    const playerEmail = playerData.email || email;
+                    // Use registrant email for all players instead of player email
+                    const playerEmail = registrantEmail;
 
                     // Determine if player is adult or child based on age or type
                     const playerAge = playerData.age;
@@ -2184,14 +2187,12 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                                        value="${playerBirthDate || ''}"
                                        style="border-radius:10px; border:2px solid #e9ecef; padding:10px;">
                             </div>
-                            ${playerEmail ? `
                             <div class="col-md-12">
                                 <label class="form-label" style="font-weight:700; font-size:0.85rem;">${gettext('Email')}</label>
                                 <input type="email" class="form-control nsc-player-email"
                                        value="${escapeHtml(playerEmail)}"
                                        style="border-radius:10px; border:2px solid #e9ecef; padding:10px;">
                             </div>
-                            ` : ''}
                         </div>
                     `;
                     selectedEl.appendChild(block);

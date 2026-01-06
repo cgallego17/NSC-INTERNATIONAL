@@ -49,10 +49,10 @@
         <div id="activePlansList">
             {% if active_payment_plans %}
                 {% for checkout in active_payment_plans %}
-                    <div class="plan-card mb-3" style="background: white; border: 2px solid #e9ecef; border-radius: 12px; padding: 20px; transition: all 0.3s;">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <h6 class="mb-1" style="color: var(--mlb-blue); font-weight: 700;">
+            <div class="plan-card mb-3" style="background: white; border: 2px solid #e9ecef; border-radius: 12px; padding: 20px; transition: all 0.3s;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h6 class="mb-1" style="color: var(--mlb-blue); font-weight: 700;">
                                     <i class="fas fa-calendar-check me-2" style="color: var(--mlb-red);"></i>
                                     {{ checkout.event.title }}
                                     {% if checkout.payment_mode == "plan" %}
@@ -60,30 +60,30 @@
                                     {% else %}
                                         - {% trans "Pay Now" %}
                                     {% endif %}
-                                </h6>
+                        </h6>
                                 <small class="text-muted">
                                     {% trans "Created" %}: {{ checkout.created_at|date:"m/d/Y" }}
                                     {% if checkout.paid_at %}
                                         | {% trans "Paid" %}: {{ checkout.paid_at|date:"m/d/Y" }}
                                     {% endif %}
                                 </small>
-                            </div>
+                    </div>
                             <span class="badge {% if checkout.status == 'paid' %}bg-success{% else %}bg-warning{% endif %}">
                                 {% if checkout.status == 'paid' %}{% trans "Paid" %}{% else %}{% trans "Active" %}{% endif %}
                             </span>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-4">
-                                <small class="text-muted d-block">{% trans "Total Amount" %}</small>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">{% trans "Total Amount" %}</small>
                                 <strong style="color: var(--mlb-blue); font-size: 1.2rem;">${{ checkout.amount_total|floatformat:2 }}</strong>
-                            </div>
+                    </div>
                             {% if checkout.payment_mode == "plan" %}
-                                <div class="col-md-4">
-                                    <small class="text-muted d-block">{% trans "Installments" %}</small>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">{% trans "Installments" %}</small>
                                     <strong style="color: var(--mlb-blue);">{{ checkout.plan_months }} {% trans "payments" %}</strong>
-                                </div>
-                                <div class="col-md-4">
-                                    <small class="text-muted d-block">{% trans "Amount per Installment" %}</small>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">{% trans "Amount per Installment" %}</small>
                                     <strong style="color: var(--mlb-blue);">${{ checkout.plan_monthly_amount|floatformat:2 }}</strong>
                                 </div>
                             {% else %}
@@ -109,8 +109,8 @@
                                 <div class="progress mb-3" style="height: 8px; border-radius: 4px;">
                                     <div class="progress-bar bg-success" role="progressbar" style="width: {{ progress_percent }}%;" aria-valuenow="{{ paid_count }}" aria-valuemin="0" aria-valuemax="{{ total_months }}">
                                         {{ paid_count }}/{{ total_months }} {% trans "paid" %}
-                                    </div>
-                                </div>
+                    </div>
+                </div>
                             {% endwith %}
                         {% endif %}
                         <div class="d-flex gap-2">
@@ -275,12 +275,12 @@
                             </tr>
                         {% endfor %}
                     {% else %}
-                        <tr>
-                            <td colspan="5" class="text-center py-5">
-                                <i class="fas fa-receipt" style="font-size: 2.5rem; color: #dee2e6; margin-bottom: 10px;"></i>
-                                <p class="text-muted mb-0">{% trans "No payment history available" %}</p>
-                            </td>
-                        </tr>
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <i class="fas fa-receipt" style="font-size: 2.5rem; color: #dee2e6; margin-bottom: 10px;"></i>
+                            <p class="text-muted mb-0">{% trans "No payment history available" %}</p>
+                        </td>
+                    </tr>
                     {% endif %}
                 </tbody>
             </table>
@@ -300,27 +300,27 @@
         <div id="upcomingPaymentsList">
             {% if upcoming_payments %}
                 {% for payment in upcoming_payments %}
-                    <div class="payment-card mb-3" style="background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%); border: 2px solid #ffc107; border-radius: 12px; padding: 20px;">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <h6 class="mb-1" style="color: var(--mlb-blue); font-weight: 700;">
+            <div class="payment-card mb-3" style="background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%); border: 2px solid #ffc107; border-radius: 12px; padding: 20px;">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h6 class="mb-1" style="color: var(--mlb-blue); font-weight: 700;">
                                     <i class="fas fa-calendar-alt me-2" style="color: #ffc107;"></i>
                                     {{ payment.event.title }}
-                                </h6>
+                        </h6>
                                 <small class="text-muted">
                                     {% trans "Due Date" %}: {{ payment.due_date|date:"m/d/Y" }}
                                     | {% trans "Payment" %} {{ payment.payment_number }}/{{ payment.total_payments }}
                                 </small>
-                            </div>
-                            <span class="badge bg-warning text-dark">{% trans "Pending" %}</span>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <small class="text-muted d-block">{% trans "Event" %}</small>
+                    </div>
+                    <span class="badge bg-warning text-dark">{% trans "Pending" %}</span>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">{% trans "Event" %}</small>
                                 <strong style="color: var(--mlb-blue);">{{ payment.event.title }}</strong>
-                            </div>
-                            <div class="col-md-6">
-                                <small class="text-muted d-block">{% trans "Amount" %}</small>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">{% trans "Amount" %}</small>
                                 <strong style="color: var(--mlb-blue); font-size: 1.2rem;">${{ payment.amount|floatformat:2 }}</strong>
                             </div>
                         </div>

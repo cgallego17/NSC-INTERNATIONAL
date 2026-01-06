@@ -17,7 +17,22 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
     <!-- Panel Usuario CSS -->
-    <link href="{% static 'css/panel_usuario.css' %}" rel="stylesheet">
+    <link id="panel-usuario-css" href="{% static 'css/panel_usuario.css' %}" rel="stylesheet">
+    <script>
+        // Agregar parámetro de versión dinámico para evitar caché
+        (function() {
+            const link = document.getElementById('panel-usuario-css');
+            if (link) {
+                const now = new Date();
+                const version = now.getFullYear().toString() +
+                               String(now.getMonth() + 1).padStart(2, '0') +
+                               String(now.getDate()).padStart(2, '0') +
+                               String(now.getHours()).padStart(2, '0') +
+                               String(now.getMinutes()).padStart(2, '0');
+                link.href = link.href.split('?')[0] + '?v=' + version;
+            }
+        })();
+    </script>
 
     <style>
         /* Cuando un iframe abre un modal, elevar el tab activo sobre todo lo demás y hacerlo pantalla completa */

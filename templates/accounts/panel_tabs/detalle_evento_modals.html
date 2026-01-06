@@ -2970,6 +2970,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 playersWrap.style.display = 'block';
                 playersContainer.innerHTML = '';
 
+                // Obtener el correo del registrante (guest_email)
+                const registrantEmail = document.querySelector(`#guest-details-form${hotelPk} input[name="guest_email"]`)?.value || '';
+
                 selectedPlayers.forEach(function(player, index) {
                 const playerDiv = document.createElement('div');
                 playerDiv.className = 'mb-3';
@@ -2992,7 +2995,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="col-md-6">
                             <label class="form-label" style="font-weight: 700; font-size: 0.85rem;">{% trans "Email" %}</label>
                             <input type="email" class="form-control" name="player_email_${player.id}"
-                                   value="${player.email || ''}"
+                                   value="${registrantEmail}"
                                    style="border-radius: 10px; border: 2px solid #e9ecef; padding: 10px;">
                         </div>
                         <div class="col-md-6">
@@ -3111,6 +3114,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 childrenWrap.style.display = 'none';
             }
         }
+    }
+
+    // Actualizar correos de jugadores cuando cambie el correo del registrante
+    const guestEmailInput = document.querySelector('#guest-details-form{{ event.hotel.pk }} input[name="guest_email"]');
+    if (guestEmailInput) {
+        guestEmailInput.addEventListener('input', function() {
+            const registrantEmail = this.value || '';
+            const hotelPk = '{{ event.hotel.pk }}';
+            // Actualizar todos los campos de correo de jugadores
+            document.querySelectorAll(`input[name^="player_email_"]`).forEach(function(input) {
+                input.value = registrantEmail;
+            });
+        });
     }
 
     // Interceptar el submit del formulario para agregar al checkout en lugar de crear reserva
