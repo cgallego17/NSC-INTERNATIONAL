@@ -1,0 +1,249 @@
+"""
+Django settings for nsc_admin project - Configuración básica
+"""
+
+import os
+from pathlib import Path
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Quick-start development settings - unsuitable for production
+SECRET_KEY = "django-insecure-change-this-in-production-key-for-development-only"
+DEBUG = True
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", "playncsintl.com", "www.playncsintl.com"]
+
+# Application definition
+DJANGO_APPS = [
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+]
+
+THIRD_PARTY_APPS = [
+    # Using static Bootstrap 5 files instead of django-bootstrap5
+]
+
+LOCAL_APPS = [
+    "apps.events",
+    "apps.locations",
+    "apps.accounts",
+    "apps.media",
+]
+
+INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+MIDDLEWARE = [
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "apps.core.middleware.SessionInterruptedMiddleware",  # Manejar errores de sesión
+    "apps.core.middleware.DefaultLanguageMiddleware",  # Establecer inglés por defecto
+    "django.middleware.locale.LocaleMiddleware",  # Language switching
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+]
+
+ROOT_URLCONF = "nsc_admin.urls"
+
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.i18n",  # Language context
+                "apps.core.context_processors.sidebar_context",
+                "apps.core.context_processors.site_settings",
+            ],
+        },
+    },
+]
+
+WSGI_APPLICATION = "nsc_admin.wsgi.application"
+# ASGI_APPLICATION = "nsc_admin.asgi.application"  # Comentado - channels removido
+
+# Database
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
+}
+
+# Password validation
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
+]
+
+# Internationalization
+LANGUAGE_CODE = "en"
+TIME_ZONE = "America/Mexico_City"
+USE_I18N = True
+USE_L10N = True
+USE_TZ = True
+
+# Supported languages
+LANGUAGES = [
+    ("en", "English"),
+    ("es", "Spanish"),
+]
+
+LOCALE_PATHS = [
+    BASE_DIR / "locale",
+]
+
+# Static files (CSS, JavaScript, Images)
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+# Media files
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Bootstrap 5 Configuration
+# Using static files instead of crispy forms
+
+# Login/Logout URLs
+LOGIN_URL = "/accounts/login/"
+LOGIN_REDIRECT_URL = "/panel/"
+LOGOUT_REDIRECT_URL = "/"  # Redirigir al home después del logout
+
+# Session settings
+SESSION_COOKIE_AGE = 3600  # 1 hour
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = "Lax"
+
+# Cache configuration
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "unique-snowflake",
+        "OPTIONS": {
+            "MAX_ENTRIES": 1000,
+        },
+        "TIMEOUT": 3600,  # 1 hour default timeout
+    }
+}
+
+# Instagram API Settings
+INSTAGRAM_USERNAME = os.environ.get("INSTAGRAM_USERNAME", "ncs_international")
+INSTAGRAM_ACCESS_TOKEN = os.environ.get("INSTAGRAM_ACCESS_TOKEN", "")
+INSTAGRAM_APP_ID = os.environ.get("INSTAGRAM_APP_ID", "")
+INSTAGRAM_APP_SECRET = os.environ.get("INSTAGRAM_APP_SECRET", "")
+# RSS Feed URL (opcional - desde servicios como RSS.app)
+INSTAGRAM_RSS_FEED_URL = os.environ.get(
+    "INSTAGRAM_RSS_FEED_URL",
+    "https://rss.app/feeds/iP2xRgzsTgmn9qCk.xml",  # Feed de RSS.app para ncs_international
+)
+
+# Static files storage
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Email settings
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+# Stripe (Checkout)
+# NOTE: Set these via environment variables in production.
+STRIPE_SECRET_KEY = os.environ.get(
+    "STRIPE_SECRET_KEY",
+    "",
+)
+STRIPE_PUBLISHABLE_KEY = os.environ.get(
+    "STRIPE_PUBLISHABLE_KEY",
+    "",
+)
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_CURRENCY = os.environ.get("STRIPE_CURRENCY", "usd")
+
+# Virus scanning configuration (ClamAV)
+# Habilitar escaneo de virus en archivos subidos
+ENABLE_VIRUS_SCAN = os.environ.get("ENABLE_VIRUS_SCAN", "False").lower() == "true"
+
+# Configuración de ClamAV
+# Opción 1: Socket Unix (recomendado para Linux)
+CLAMAV_SOCKET = os.environ.get("CLAMAV_SOCKET", "/var/run/clamav/clamd.ctl")
+
+# Opción 2: Conexión TCP (alternativa o para Windows)
+CLAMAV_HOST = os.environ.get("CLAMAV_HOST", "localhost")
+CLAMAV_PORT = int(os.environ.get("CLAMAV_PORT", "3310"))
+
+# Si REQUIRE_VIRUS_SCAN es True, bloquear subidas si ClamAV no está disponible
+# Si es False, permitir subidas pero registrar advertencias
+REQUIRE_VIRUS_SCAN = os.environ.get("REQUIRE_VIRUS_SCAN", "False").lower() == "true"
+
+# Límites de tamaño de archivo por tipo (en MB)
+# Se pueden sobrescribir con variables de entorno
+MEDIA_MAX_FILE_SIZE_VIDEO = int(
+    os.environ.get("MEDIA_MAX_FILE_SIZE_VIDEO", "500")
+)  # 500MB para videos
+MEDIA_MAX_FILE_SIZE_AUDIO = int(
+    os.environ.get("MEDIA_MAX_FILE_SIZE_AUDIO", "200")
+)  # 200MB para audio
+MEDIA_MAX_FILE_SIZE_DOCUMENT = int(
+    os.environ.get("MEDIA_MAX_FILE_SIZE_DOCUMENT", "100")
+)  # 100MB para documentos
+MEDIA_MAX_FILE_SIZE_IMAGE = int(
+    os.environ.get("MEDIA_MAX_FILE_SIZE_IMAGE", "50")
+)  # 50MB para imágenes
+MEDIA_MAX_FILE_SIZE_DEFAULT = int(
+    os.environ.get("MEDIA_MAX_FILE_SIZE_DEFAULT", "100")
+)  # 100MB por defecto
+
+# Configuración de compresión de video
+# Habilitar compresión automática de videos
+ENABLE_VIDEO_COMPRESSION = (
+    os.environ.get("ENABLE_VIDEO_COMPRESSION", "True").lower() == "true"
+)
+
+# Calidad de compresión (CRF - Constant Rate Factor)
+# Rango: 0 (sin pérdida) a 51 (muy comprimido)
+# Recomendado: 18-23 (alta calidad, buena compresión)
+# 18 = calidad casi sin pérdida, 23 = alta calidad con buena compresión
+VIDEO_COMPRESSION_CRF = int(os.environ.get("VIDEO_COMPRESSION_CRF", "23"))
+
+# Preset de codificación (velocidad vs compresión)
+# Opciones: ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow
+# medium = buen balance entre velocidad y compresión
+VIDEO_COMPRESSION_PRESET = os.environ.get("VIDEO_COMPRESSION_PRESET", "medium")
+
+# Ruta de FFmpeg (opcional, si no está en PATH)
+# En Windows, puede ser algo como: r"C:\ffmpeg\bin\ffmpeg.exe"
+# Si no se especifica, se intentará usar ffmpeg desde PATH
+FFMPEG_PATH = os.environ.get(
+    "FFMPEG_PATH",
+    r"C:\Users\User\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.0.1-full_build\bin\ffmpeg.exe",
+)
+
+# Multimedia storage (separado de media)
+MULTIMEDIA_ROOT = BASE_DIR / "multimedia"
+# En desarrollo usar /multimedia/, en producción usar la ruta del servidor
+MULTIMEDIA_URL = "/mnt/volume_sfo3_02/multimedia/"
