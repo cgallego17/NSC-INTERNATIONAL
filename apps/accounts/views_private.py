@@ -1323,7 +1323,34 @@ class PanelEventDetailView(UserDashboardView):
                     parent=user
                 ).select_related("player", "player__user", "player__user__profile")
 
-                children = [pp.player for pp in player_parents if pp.player.is_active]
+                # Filtrar jugadores que aplican para el evento según divisiones
+                event_divisions = event.divisions.all()
+                if event_divisions.exists():
+                    # Obtener los nombres de las divisiones del evento
+                    event_division_names = list(event_divisions.values_list("name", flat=True))
+
+                    # Filtrar jugadores cuya división coincida con alguna división del evento
+                    # La división del jugador es un código (ej: "10U") y las divisiones del evento
+                    # tienen nombres que pueden contener ese código (ej: "Baseball 10U OPEN")
+                    eligible_children = []
+                    for pp in player_parents:
+                        if pp.player.is_active and pp.player.division:
+                            # Verificar si la división del jugador está en alguna división del evento
+                            # Comparar el código de división (ej: "10U") con los nombres de divisiones
+                            player_division = pp.player.division
+                            matches = False
+                            for div_name in event_division_names:
+                                # Verificar si el código de división está contenido en el nombre
+                                # o si el nombre contiene el código
+                                if player_division in div_name or div_name in player_division:
+                                    matches = True
+                                    break
+                            if matches:
+                                eligible_children.append(pp.player)
+                    children = eligible_children
+                else:
+                    # Si el evento no tiene divisiones, mostrar todos los jugadores activos
+                    children = [pp.player for pp in player_parents if pp.player.is_active]
 
             context["children"] = children
 
