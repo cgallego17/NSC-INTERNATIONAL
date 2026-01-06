@@ -512,15 +512,7 @@
                         <span>{% trans "View Players" %}</span>
                     </button>
                 {% endif %}
-                {% if pending_verifications_count %}
-                    {% if profile.is_team_manager or user.is_staff or user.is_superuser %}
-                        <button type="button" class="quick-action-btn tab-btn" data-tab="verificaciones-pendientes">
-                            <i class="fas fa-file-check"></i>
-                            <span>{% trans "Pending Verifications" %}</span>
-                            <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ pending_verifications_count }}</span>
-                        </button>
-                    {% endif %}
-                {% endif %}
+                {# Tab "verificaciones-pendientes" removida de Quick Actions a pedido (el contenido/tab sigue existiendo) #}
                 {% if profile.is_parent %}
                     <button type="button" class="quick-action-btn tab-btn" data-tab="registrar-hijo" data-url="{% url 'accounts:parent_player_register' %}">
                         <i class="fas fa-user-plus"></i>
