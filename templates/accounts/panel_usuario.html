@@ -1164,10 +1164,13 @@
                     // Obtener la URL del botón si existe
                     const url = button ? button.getAttribute('data-url') : null;
 
+                    // Tabs que tienen contenido incluido directamente, no necesitan iframe
+                    const tabsWithDirectContent = ['registrar-hijo', 'mis-hijos'];
+
                     // Si hay una URL, manejar iframe
                     // Nota: si este tab usa iframe embed (data-src), NO sobrescribir su src con data-url legacy.
                     const embedIframe = targetContent.querySelector('iframe[data-src]');
-                    if (url && !embedIframe) {
+                    if (url && !embedIframe && !tabsWithDirectContent.includes(tabId)) {
                         const existingIframe = targetContent.querySelector('iframe');
                         if (existingIframe) {
                             // Si el iframe ya existe, actualizar la URL si es diferente
