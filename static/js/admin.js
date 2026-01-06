@@ -1487,6 +1487,13 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         });
         state.guestAssignments[String(roomId)] = [];
         setRoomSelected(pk, roomId, true);
+
+        // Update hidden input for form submission (backward compatibility)
+        const roomInput = q(`guest-room${pk}`);
+        if (roomInput && state.rooms.length > 0) {
+            // Store the first room ID for backward compatibility
+            roomInput.value = String(state.rooms[0].roomId);
+        }
     }
 
     // Helper: Remove room from state and update UI
@@ -1520,6 +1527,14 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
     // Helper: Update room selection (call after adding/removing rooms)
     function updateRoomSelectionState(pk) {
+        const state = stateByPk.get(pk);
+        if (state && state.rooms && state.rooms.length > 0) {
+            // Update hidden input for form submission
+            const roomInput = q(`guest-room${pk}`);
+            if (roomInput) {
+                roomInput.value = String(state.rooms[0].roomId);
+            }
+        }
         autoDistributeGuests(pk);
         updateRoomsPriceCalculation(pk);
         validateRoomSelection(pk);
@@ -2492,6 +2507,12 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                     })
                     .catch(err => console.warn('selectRoom: Error fetching room details for rules:', err));
             }
+        }
+
+        // Update hidden input for form submission (ensure it's set when room is selected)
+        const roomInput = q(`guest-room${pk}`);
+        if (roomInput && state.rooms.length > 0) {
+            roomInput.value = String(state.rooms[0].roomId);
         }
 
         // Update price calculation

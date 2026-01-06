@@ -3460,16 +3460,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
         function getSelectedRoomEl() {
             try {
-                // Prefer the hidden input set by the main NSC flow (source of truth)
+                // First, check NSC_HotelReservation state (most reliable)
+                if (window.NSC_HotelReservation && window.NSC_HotelReservation.stateByPk) {
+                    const state = window.NSC_HotelReservation.stateByPk.get(hotelPk);
+                    if (state && state.rooms && state.rooms.length > 0) {
+                        const firstRoomId = String(state.rooms[0].roomId);
+                        const byState = document.querySelector(`.room-listing-inline[data-hotel-pk="${hotelPk}"][data-room-id="${firstRoomId}"]`);
+                        if (byState) return byState;
+                    }
+                }
+
+                // Second, check the hidden input set by the main NSC flow
                 const roomInput = document.getElementById('guest-room' + hotelPk);
                 const selectedRoomId = roomInput ? String(roomInput.value || '').trim() : '';
                 if (selectedRoomId) {
                     const byInput = document.querySelector(`.room-listing-inline[data-hotel-pk="${hotelPk}"][data-room-id="${selectedRoomId}"]`);
                     if (byInput) return byInput;
                 }
-                // Fallback to our own marker
-                return document.querySelector(`.room-listing-inline[data-hotel-pk="${hotelPk}"][data-selected="true"]`);
+
+                // Third, fallback to our own marker
+                const byMarker = document.querySelector(`.room-listing-inline[data-hotel-pk="${hotelPk}"][data-selected="true"]`);
+                if (byMarker) return byMarker;
+
+                // Last resort: check if any room has the selected class or visual indicator
+                const allRooms = document.querySelectorAll(`.room-listing-inline[data-hotel-pk="${hotelPk}"]`);
+                for (let room of allRooms) {
+                    if (room.getAttribute('data-selected') === 'true' ||
+                        room.classList.contains('nsc-room-selected') ||
+                        room.style.borderColor && room.style.borderColor.includes('red')) {
+                        return room;
+                    }
+                }
+
+                return null;
             } catch (e) {
+                console.warn('getSelectedRoomEl error:', e);
                 return null;
             }
         }
@@ -3492,7 +3517,29 @@ document.addEventListener('DOMContentLoaded', function() {
             // If there are no rooms available (UI already shows an alert), do not show our banner.
             if (roomsNoneMsgVisible() || getRoomsCount() === 0) return { ok: false, reason: 'no_rooms' };
 
-            const selectedRoom = getSelectedRoomEl();
+            // First check NSC_HotelReservation state (most reliable source)
+            let hasSelectedRoom = false;
+            let selectedRoomId = null;
+            if (window.NSC_HotelReservation && window.NSC_HotelReservation.stateByPk) {
+                const state = window.NSC_HotelReservation.stateByPk.get(hotelPk);
+                if (state && state.rooms && state.rooms.length > 0) {
+                    hasSelectedRoom = true;
+                    selectedRoomId = String(state.rooms[0].roomId);
+                }
+            }
+
+            // If state says no room, try to find in DOM
+            if (!hasSelectedRoom) {
+                const selectedRoom = getSelectedRoomEl();
+                if (!selectedRoom) return { ok: false, reason: 'no_room' };
+                selectedRoomId = selectedRoom.dataset.roomId || selectedRoom.getAttribute('data-room-id') || '';
+            }
+
+            // Get the room element for validation
+            const selectedRoom = selectedRoomId ?
+                document.querySelector(`.room-listing-inline[data-hotel-pk="${hotelPk}"][data-room-id="${selectedRoomId}"]`) :
+                getSelectedRoomEl();
+
             if (!selectedRoom) return { ok: false, reason: 'no_room' };
 
             const totalGuests = getTotalGuests();
@@ -3505,10 +3552,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             // Best-effort: if a rules validation block exists and indicates warning/error, block continue.
-            const roomId = selectedRoom.dataset.roomId || selectedRoom.getAttribute('data-room-id') || '';
-            if (roomId) {
-                const rulesValidation = document.getElementById(`rooms-detail-rules-validation-${roomId}-${hotelPk}`);
-                if (rulesValidation) {
+            // But only if the validation element is actually visible and has content
+            if (selectedRoomId) {
+                const rulesValidation = document.getElementById(`rooms-detail-rules-validation-${selectedRoomId}-${hotelPk}`);
+                if (rulesValidation && rulesValidation.offsetParent !== null) { // Check if visible
                     const msg = (rulesValidation.textContent || '').trim();
                     if (msg && /⚠|warning|invalid|exceed|not\s+allowed|no\s+allowed|error/i.test(msg)) {
                         return { ok: false, reason: 'rules' };
@@ -3517,7 +3564,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const modalRulesValidation = document.getElementById('room-detail-modal-rules-validation' + hotelPk);
-            if (modalRulesValidation) {
+            if (modalRulesValidation && modalRulesValidation.offsetParent !== null) { // Check if visible
                 const msg = (modalRulesValidation.textContent || '').trim();
                 if (msg && /⚠|warning|invalid|exceed|not\s+allowed|no\s+allowed|error/i.test(msg)) {
                     return { ok: false, reason: 'rules' };
@@ -3545,6 +3592,24 @@ document.addEventListener('DOMContentLoaded', function() {
         function applyContinueState() {
             if (!continueBtn) return;
             const v = validateForContinue();
+
+            // Only update if state actually changed to avoid flickering
+            const newDisabled = !v.ok;
+            const currentlyDisabled = continueBtn.disabled;
+
+            if (newDisabled === currentlyDisabled && continueBtn.style.opacity) {
+                // State hasn't changed, only update message if needed
+                if (!v.ok && v.reason !== 'no_rooms' && v.reason !== 'no_room') {
+                    // Update status message only for actionable errors
+                    if (v.reason === 'no_guests') {
+                        showStatus(`<i class="fas fa-exclamation-triangle me-2"></i><strong>⚠ {% trans "No guests assigned to this room" %}</strong><br>{% trans "The room must have at least 1 guest and must comply with the occupancy rules for the room." %}`);
+                    } else if (v.reason === 'rules') {
+                        showStatus(`<i class="fas fa-exclamation-triangle me-2"></i><strong>⚠ {% trans "Room rules not satisfied" %}</strong><br>{% trans "Please adjust guests or choose another room so it complies with the occupancy rules." %}`);
+                    }
+                }
+                return;
+            }
+
             if (v.ok) {
                 hideStatus();
                 continueBtn.disabled = false;
@@ -3612,29 +3677,80 @@ document.addEventListener('DOMContentLoaded', function() {
         })();
 
         // Keep state in sync while the rooms modal is open
+        // Use a longer interval and only update when state actually changes
+        let lastValidationState = null;
         if (roomsModal) {
             roomsModal.addEventListener('shown.bs.modal', function() {
                 applyContinueState();
-                intervalId = setInterval(applyContinueState, 400);
+                // Use a longer interval (2 seconds) to avoid constant updates
+                // Only update if the validation state actually changed
+                intervalId = setInterval(function() {
+                    const v = validateForContinue();
+                    const currentState = v.ok ? 'ok' : v.reason;
+                    if (currentState !== lastValidationState) {
+                        lastValidationState = currentState;
+                        applyContinueState();
+                    }
+                }, 2000);
             });
             roomsModal.addEventListener('hidden.bs.modal', function() {
                 if (intervalId) clearInterval(intervalId);
                 intervalId = null;
+                lastValidationState = null;
             });
         }
 
-        // Also re-check on room selection clicks
+        // Also re-check on room selection clicks and other relevant events
+        // Use debouncing to avoid excessive calls
+        let debounceTimer = null;
+        function debouncedApplyContinueState() {
+            if (debounceTimer) clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(applyContinueState, 300);
+        }
+
         document.addEventListener('click', function(e) {
             try {
                 const target = e.target;
                 const btn = target && target.closest ? target.closest('.room-select-btn') : null;
                 if (!btn) return;
                 if (String(btn.dataset.hotelPk || '') !== String(hotelPk)) return;
-                setTimeout(applyContinueState, 0);
+                debouncedApplyContinueState();
             } catch (err) {
                 // ignore
             }
         }, true);
+
+        // Also listen for changes in guest assignments
+        const roomsModalEl = document.getElementById('hotelRoomsModal' + hotelPk);
+        if (roomsModalEl) {
+            // Use MutationObserver to detect changes in guest assignments
+            const observer = new MutationObserver(function(mutations) {
+                let shouldUpdate = false;
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'childList' || mutation.type === 'attributes') {
+                        // Check if it's related to guest assignments or room selection
+                        const target = mutation.target;
+                        if (target && (
+                            target.id && target.id.includes('guest') ||
+                            target.classList && target.classList.contains('room-listing-inline') ||
+                            target.id && target.id.includes('rooms-selection-status')
+                        )) {
+                            shouldUpdate = true;
+                        }
+                    }
+                });
+                if (shouldUpdate) {
+                    debouncedApplyContinueState();
+                }
+            });
+
+            observer.observe(roomsModalEl, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['data-selected', 'class']
+            });
+        }
     })();
 
     // Handle room-select-btn clicks (replaces inline onclick)
