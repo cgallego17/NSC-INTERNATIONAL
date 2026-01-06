@@ -104,7 +104,22 @@
     <!-- Django JS i18n (gettext / ngettext) requerido por admin.js -->
     <script src="{% url 'javascript-catalog' %}"></script>
     <!-- Reutilizar el mismo JS del panel para funcionalidades (hotel reservation, etc.) dentro del iframe -->
-    <script src="{% static 'js/admin.js' %}"></script>
+    <script id="admin-js" src="{% static 'js/admin.js' %}"></script>
+    <script>
+        // Agregar parámetro de versión dinámico para evitar caché
+        (function() {
+            const script = document.getElementById('admin-js');
+            if (script) {
+                const now = new Date();
+                const version = now.getFullYear().toString() +
+                               String(now.getMonth() + 1).padStart(2, '0') +
+                               String(now.getDate()).padStart(2, '0') +
+                               String(now.getHours()).padStart(2, '0') +
+                               String(now.getMinutes()).padStart(2, '0');
+                script.src = script.src.split('?')[0] + '?v=' + version;
+            }
+        })();
+    </script>
 
     <script>
         (function () {

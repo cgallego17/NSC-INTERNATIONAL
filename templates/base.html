@@ -488,7 +488,22 @@
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JS -->
-    <script src="{% static 'js/admin.js' %}"></script>
+    <script id="admin-js" src="{% static 'js/admin.js' %}"></script>
+    <script>
+        // Agregar parámetro de versión dinámico para evitar caché
+        (function() {
+            const script = document.getElementById('admin-js');
+            if (script) {
+                const now = new Date();
+                const version = now.getFullYear().toString() +
+                               String(now.getMonth() + 1).padStart(2, '0') +
+                               String(now.getDate()).padStart(2, '0') +
+                               String(now.getHours()).padStart(2, '0') +
+                               String(now.getMinutes()).padStart(2, '0');
+                script.src = script.src.split('?')[0] + '?v=' + version;
+            }
+        })();
+    </script>
 
     {% block extra_js %}{% endblock %}
 </body>
