@@ -39,21 +39,23 @@ class PublicHomeView(TemplateView):
             from apps.events.models import Event
 
             now = timezone.now()
-            # Mostrar eventos futuros que no estén cancelados (incluye draft y published)
+            # Mostrar solo eventos futuros publicados
             upcoming_events = (
-                Event.objects.filter(start_date__gte=now.date())
-                .exclude(status="cancelled")
-                .exclude(status="completed")
+                Event.objects.filter(
+                    status="published",
+                    start_date__gte=now.date()
+                )
                 .select_related("category")
                 .prefetch_related("divisions")
                 .order_by("start_date")[:6]  # Ordenar por fecha más próxima primero
             )
 
-            # Eventos de hoy (que no estén cancelados)
+            # Eventos de hoy (solo publicados)
             today_events = (
-                Event.objects.filter(start_date=now.date())
-                .exclude(status="cancelled")
-                .exclude(status="completed")
+                Event.objects.filter(
+                    status="published",
+                    start_date=now.date()
+                )
                 .order_by("start_date")[:3]
             )  # Ordenar por fecha/hora más próxima primero
 
@@ -72,9 +74,9 @@ class PublicHomeView(TemplateView):
                 | Q(location__icontains="merida")
                 | Q(location__icontains="mérida")
             )
-            # Priorizar eventos futuros, luego los más recientes
+            # Priorizar eventos futuros, luego los más recientes (solo publicados)
             merida_event = (
-                Event.objects.exclude(status="cancelled")
+                Event.objects.filter(status="published")
                 .filter(merida_q)
                 .select_related("category", "event_type", "city", "state")
                 .prefetch_related("divisions")
@@ -89,12 +91,13 @@ class PublicHomeView(TemplateView):
             if not future_merida:
                 future_merida = merida_event.order_by("-start_date").first()
 
-            # Si aún no hay evento de Mérida, usar el primer evento próximo como fallback
+            # Si aún no hay evento de Mérida, usar el primer evento próximo como fallback (solo publicados)
             if not future_merida:
                 future_merida = (
-                    Event.objects.exclude(status="cancelled")
-                    .exclude(status="completed")
-                    .filter(start_date__gte=now.date())
+                    Event.objects.filter(
+                        status="published",
+                        start_date__gte=now.date()
+                    )
                     .select_related("category", "event_type", "city", "state")
                     .prefetch_related("divisions")
                     .order_by("start_date")
@@ -104,10 +107,9 @@ class PublicHomeView(TemplateView):
             context["merida_event"] = future_merida
 
             # Obtener eventos con videos promocionales para el carrusel de videos
-            # Priorizar eventos futuros con video_url, luego los más recientes
+            # Priorizar eventos futuros con video_url, luego los más recientes (solo publicados)
             promo_events = (
-                Event.objects.exclude(status="cancelled")
-                .exclude(status="completed")
+                Event.objects.filter(status="published")
                 .exclude(video_url__isnull=True)
                 .exclude(video_url="")
                 .select_related("category", "event_type", "city", "state", "country")
