@@ -1617,6 +1617,30 @@ def create_stripe_event_checkout_session(request, pk):
             status=400,
         )
 
+    # Verificar que ningún jugador ya esté registrado en el evento
+    from apps.events.models import EventAttendance
+
+    already_registered = []
+    for player in valid_players:
+        if EventAttendance.objects.filter(
+            event=event, user=player.user, status__in=["pending", "confirmed"]
+        ).exists():
+            already_registered.append(
+                player.user.get_full_name() or player.user.username
+            )
+
+    if already_registered:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": _(
+                    "The following players are already registered for this event: %(players)s"
+                )
+                % {"players": ", ".join(already_registered)},
+            },
+            status=400,
+        )
+
     payment_mode = request.POST.get("payment_mode", "plan")
     if payment_mode not in ("plan", "now"):
         payment_mode = "plan"

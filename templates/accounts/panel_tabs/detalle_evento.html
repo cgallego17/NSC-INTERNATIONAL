@@ -1088,16 +1088,23 @@
                             </h5>
                         <div class="children-list">
                             {% for child in children %}
-                                <div class="child-item mb-2" style="border: 2px solid #e9ecef; border-radius: 8px; padding: 10px; transition: all 0.3s; cursor: pointer;"
+                                <div class="child-item mb-2" style="border: 2px solid {% if child.pk in registered_players %}#28a745{% else %}#e9ecef{% endif %}; border-radius: 8px; padding: 10px; transition: all 0.3s; cursor: {% if child.pk in registered_players %}not-allowed{% else %}pointer{% endif %}; background: {% if child.pk in registered_players %}#f8fff9{% else %}transparent{% endif %};"
                                      data-child-id="{{ child.pk }}"
                                      data-child-price="{{ event.default_entry_fee|default:'0.00' }}"
                                      data-birth-date="{% if child.user.profile.birth_date %}{{ child.user.profile.birth_date|date:'Y-m-d' }}{% endif %}"
                                      data-child-email="{% if child.user.email %}{{ child.user.email|escapejs }}{% endif %}"
-                                     data-child-name="{% if child.user.get_full_name %}{{ child.user.get_full_name|escapejs }}{% else %}{{ child.user.username|escapejs }}{% endif %}">
+                                     data-child-name="{% if child.user.get_full_name %}{{ child.user.get_full_name|escapejs }}{% else %}{{ child.user.username|escapejs }}{% endif %}"
+                                     {% if child.pk in registered_players %}data-registered="true"{% endif %}>
                                     <div class="form-check" style="display: flex; align-items: center; gap: 10px;">
+                                        {% if child.pk in registered_players %}
+                                        <input class="form-check-input child-checkbox" type="checkbox" name="players" value="{{ child.pk }}" id="child_{{ child.pk }}"
+                                               disabled style="width: 18px; height: 18px; cursor: not-allowed; margin: 0; flex-shrink: 0; opacity: 0.5;">
+                                        <label class="form-check-label" for="child_{{ child.pk }}" style="cursor: not-allowed; width: 100%; margin: 0; opacity: 0.7;">
+                                        {% else %}
                                         <input class="form-check-input child-checkbox" type="checkbox" name="players" value="{{ child.pk }}" id="child_{{ child.pk }}"
                                                style="width: 18px; height: 18px; cursor: pointer; margin: 0; flex-shrink: 0;">
                                         <label class="form-check-label" for="child_{{ child.pk }}" style="cursor: pointer; width: 100%; margin: 0;">
+                                        {% endif %}
                                             <div style="display: flex; align-items: center; gap: 10px;">
                                                 <!-- Foto o Iniciales -->
                                                 <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%);">
@@ -1117,8 +1124,13 @@
                                                 </div>
                                                 <!-- Información del jugador -->
                                                 <div style="flex: 1; min-width: 0;">
-                                                    <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.9rem; line-height: 1.2;">
-                                                        {% if child.user.get_full_name %}{{ child.user.get_full_name }}{% else %}{{ child.user.username }}{% endif %}
+                                                    <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.9rem; line-height: 1.2; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                        <span>{% if child.user.get_full_name %}{{ child.user.get_full_name }}{% else %}{{ child.user.username }}{% endif %}</span>
+                                                        {% if child.pk in registered_players %}
+                                                        <span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                                            <i class="fas fa-check-circle" style="font-size: 0.65rem;"></i>{% trans "Registered" %}
+                                                        </span>
+                                                        {% endif %}
                                                     </div>
                                                     {% if child.division %}
                                                         <div style="font-size: 0.75rem; color: #6c757d; margin-top: 2px;">
@@ -1127,9 +1139,15 @@
                                                     {% endif %}
                                                 </div>
                                                 <!-- Precio -->
+                                                {% if child.pk not in registered_players %}
                                                 <div class="child-price" style="font-weight: 700; color: var(--mlb-red); font-size: 0.95rem; flex-shrink: 0;">
                                                     ${{ event.default_entry_fee|default:"0.00" }}
                                                 </div>
+                                                {% else %}
+                                                <div style="font-weight: 600; color: #6c757d; font-size: 0.85rem; flex-shrink: 0; font-style: italic;">
+                                                    {% trans "Already registered" %}
+                                                </div>
+                                                {% endif %}
                                             </div>
                                         </label>
                                     </div>
@@ -1628,6 +1646,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const checkoutHotelStorageKey = 'checkout_selected_hotel_' + eventId;
     const hasHotelCart = {% if request.session.hotel_cart %}true{% else %}false{% endif %};
 
+    // Excluir jugadores ya registrados de la selección
+    document.querySelectorAll('.child-item[data-registered="true"]').forEach(function(item) {
+        const checkbox = item.querySelector('.child-checkbox');
+        if (checkbox) {
+            checkbox.disabled = true;
+            checkbox.checked = false;
+            // Asegurar que no se pueda seleccionar
+            item.style.pointerEvents = 'none';
+        }
+    });
+
+    // Excluir jugadores ya registrados de la selección
+    document.querySelectorAll('.child-item[data-registered="true"]').forEach(function(item) {
+        const checkbox = item.querySelector('.child-checkbox');
+        if (checkbox) {
+            checkbox.disabled = true;
+            checkbox.checked = false;
+            // Asegurar que no se pueda seleccionar
+            item.style.pointerEvents = 'none';
+        }
+    });
+
     // Almacenar items del checkout
     window.checkoutItems = {
         players: [],
@@ -1637,7 +1677,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Persist / restore checkout selections when the user returns from Stripe (cancel/back)
     function persistSelectedPlayers() {
         try {
-            const selected = Array.from(document.querySelectorAll('.child-checkbox:checked')).map(cb => cb.value);
+            const selected = Array.from(document.querySelectorAll('.child-checkbox:checked:not(:disabled)')).map(cb => cb.value);
             localStorage.setItem(checkoutPlayersStorageKey, JSON.stringify(selected));
         } catch (e) {
             console.warn('Could not persist selected players', e);
@@ -1734,7 +1774,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Shared handler: open hotel room selector from checkout buttons
     window.openHotelRoomSelector = function openHotelRoomSelector() {
-        const selectedPlayersCount = document.querySelectorAll('.child-checkbox:checked').length;
+        const selectedPlayersCount = document.querySelectorAll('.child-checkbox:checked:not(:disabled)').length;
         if (selectedPlayersCount <= 0) {
             alert('{% trans "Please select at least 1 player before adding a hotel stay." %}');
             return;
@@ -1765,7 +1805,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const playersCount = document.querySelectorAll('.child-checkbox:checked').length;
+        const playersCount = document.querySelectorAll('.child-checkbox:checked:not(:disabled)').length;
         const playersTotal = playersCount * pricePerPlayer;
         const addHotelBtn = document.getElementById('add-hotel-stay-btn');
         const addHotelHint = document.getElementById('add-hotel-stay-hint');
@@ -2220,7 +2260,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Actualizar inputs hidden con jugadores seleccionados (múltiples inputs con name="players")
-        const selectedPlayers = Array.from(document.querySelectorAll('.child-checkbox:checked')).map(cb => cb.value);
+        // Excluir jugadores deshabilitados (ya registrados)
+        const selectedPlayers = Array.from(document.querySelectorAll('.child-checkbox:checked:not(:disabled)')).map(cb => cb.value);
         const playersInputsContainer = document.getElementById('selected-players-inputs');
         playersInputsContainer.innerHTML = ''; // Limpiar inputs anteriores
         selectedPlayers.forEach(playerId => {
@@ -2232,12 +2273,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Event listeners para checkboxes de jugadores
+    // Event listeners para checkboxes de jugadores (solo los habilitados)
     checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            persistSelectedPlayers();
-            updateCheckoutSummary();
-        });
+        if (!checkbox.disabled) {
+            checkbox.addEventListener('change', function() {
+                persistSelectedPlayers();
+                updateCheckoutSummary();
+            });
+        }
     });
 
     // Restore selections before initial summary render
@@ -2284,7 +2327,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Verificar que hay jugadores seleccionados y calcular valores
-        const playersCount = document.querySelectorAll('.child-checkbox:checked').length;
+        const playersCount = document.querySelectorAll('.child-checkbox:checked:not(:disabled)').length;
         if (playersCount === 0) {
             alert('{% trans "Please select at least one player to register." %}');
             return;
@@ -2933,7 +2976,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             function updatePeopleCount() {
                 const adults = adultsFormsContainer.querySelectorAll('.adult-form-item').length;
-                const checkboxes = document.querySelectorAll('.child-checkbox:checked');
+                const checkboxes = document.querySelectorAll('.child-checkbox:checked:not(:disabled)');
                 const selectedPlayers = checkboxes.length;
                 const additionalChildren = additionalChildrenContainer.querySelectorAll('.additional-child-form-item').length;
                 const totalPeople = adults + selectedPlayers + additionalChildren;
@@ -3163,7 +3206,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Función para mostrar habitaciones del hotel filtradas por capacidad
             window.showHotelRooms{{ event.hotel.pk }} = function() {
                 const adults = adultsFormsContainer.querySelectorAll('.adult-form-item').length;
-                const checkboxes = document.querySelectorAll('.child-checkbox:checked');
+                const checkboxes = document.querySelectorAll('.child-checkbox:checked:not(:disabled)');
                 const selectedPlayers = checkboxes.length;
                 const additionalChildren = additionalChildrenContainer.querySelectorAll('.additional-child-form-item').length;
                 const totalPeople = adults + selectedPlayers + additionalChildren;
@@ -3416,7 +3459,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         form.appendChild(phoneParam);
 
                         // Calcular número total de huéspedes (adultos + niños)
-                        const checkboxes = document.querySelectorAll('.child-checkbox:checked');
+                        const checkboxes = document.querySelectorAll('.child-checkbox:checked:not(:disabled)');
                         const children = checkboxes.length;
                         const totalGuests = adults + children;
 
