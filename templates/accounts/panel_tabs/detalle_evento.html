@@ -2,7 +2,11 @@
 {% load static %}
 {% load url_filters %}
 
-<div class="tab-content-header mb-4" id="event-details-section">
+<!-- DEBUG: Verificar que la plantilla se está cargando -->
+<!-- Event object: {{ event|default:"NO EVENT" }} -->
+<!-- Active tab: {{ active_tab|default:"NO ACTIVE TAB" }} -->
+
+<div class="tab-content-header mb-4" id="event-details-section" style="display: block !important; visibility: visible !important; opacity: 1 !important; width: 100% !important; position: relative !important; z-index: 1 !important;">
     <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
         <i class="fas fa-calendar-check me-2" style="color: var(--mlb-red);"></i>{% trans "Event Details" %}
     </h4>
@@ -10,7 +14,9 @@
 </div>
 
 {% if event %}
-    <div class="row g-4">
+<!-- DEBUG: Event encontrado, renderizando contenido del evento -->
+<!-- Event ID: {{ event.pk }}, Title: {{ event.title }} -->
+    <div class="row g-4" style="width: 100% !important; display: flex !important; flex-wrap: wrap !important; min-height: 400px !important; position: relative !important; z-index: 1 !important;">
         <!-- Lado Izquierdo - Información del Evento -->
         <div class="col-lg-7">
             <div class="event-info-card" style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
@@ -547,10 +553,12 @@
 
     </div>
 {% else %}
+    <!-- DEBUG: NO EVENT - Event no está en el contexto -->
     <div class="alert alert-warning" style="background: white; border-radius: 16px; padding: 40px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
         <i class="fas fa-exclamation-triangle fa-3x mb-3" style="color: #ffc107;"></i>
         <h5 style="color: var(--mlb-blue); font-weight: 700;">{% trans "Event not found" %}</h5>
         <p class="text-muted">{% trans "The event you are looking for does not exist or is not available." %}</p>
+        <!-- DEBUG: Verificar contexto - event: {{ event|default:"NO EVENT OBJECT" }} -->
     </div>
 {% endif %}
 
@@ -926,6 +934,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const userData = {
             name: '{% if user.get_full_name %}{{ user.get_full_name|escapejs }}{% else %}{{ user.username|escapejs }}{% endif %}',
             email: '{{ user.email|escapejs }}',
+            phone: '{% if user.profile.phone %}{{ user.profile.phone|escapejs }}{% endif %}',
             birthDate: '{% if user.profile.birth_date %}{{ user.profile.birth_date|date:"Y-m-d"|escapejs }}{% endif %}'
         };
         window.NSC_HotelReservation.showRoomsDirect('{{ event.hotel.pk }}', userData);
@@ -1595,7 +1604,12 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 
-<!-- Modales de hotel se cargan desde detalle_evento_modals.html al final de panel_usuario.html -->
+<!-- Modales de hotel: deben existir también en modo iframe (embed), por eso se incluyen aquí -->
+{% if event and event.hotel %}
+    {% include 'accounts/panel_tabs/detalle_evento_modals.html' %}
+{% endif %}
+
+{# Legacy/Debug script (mantenido comentado). Si ya no se usa, se puede borrar. #}
 {% comment %}<script>
         // Definir funciones globales INMEDIATAMENTE (fuera de IIFE)
         window.addAdultForm{{ event.hotel.pk }} = function() {
@@ -2505,4 +2519,3 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })();
     </script>{% endcomment %}
-

@@ -20,246 +20,34 @@
     <link href="{% static 'css/panel_usuario.css' %}" rel="stylesheet">
 
     <style>
-        /* Modern Toast Styles - Extracted from admin.css */
-        .modern-toast-container {
+        /* Cuando un iframe abre un modal, elevar el tab activo sobre todo lo demás y hacerlo pantalla completa */
+        body.iframe-modal-open {
+            overflow: hidden !important; /* Bloquear scroll del padre */
+        }
+
+        body.iframe-modal-open .tab-content.active {
             position: fixed !important;
-            top: 20px !important;
-            right: 20px !important;
-            z-index: 99999 !important;
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 12px !important;
-            max-width: 400px !important;
-            pointer-events: none !important;
-        }
-
-        .modern-toast {
-            position: relative !important;
-            background: #ffffff !important;
-            border-radius: 12px !important;
-            box-shadow: 0 10px 40px rgba(13, 44, 84, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-            overflow: hidden !important;
-            opacity: 0 !important;
-            transform: translateX(400px) scale(0.95) !important;
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55) !important;
-            pointer-events: all !important;
-            min-width: 320px !important;
-            max-width: 400px !important;
-            border: 1px solid rgba(13, 44, 84, 0.1) !important;
-        }
-
-        .modern-toast.show {
-            opacity: 1 !important;
-            transform: translateX(0) scale(1) !important;
-        }
-
-        .modern-toast.hide {
-            opacity: 0 !important;
-            transform: translateX(400px) scale(0.95) !important;
-        }
-
-        .toast-content {
-            display: flex !important;
-            align-items: flex-start !important;
-            padding: 16px 20px !important;
-            gap: 14px !important;
-            position: relative !important;
-            z-index: 2 !important;
-        }
-
-        .toast-icon {
-            width: 40px !important;
-            height: 40px !important;
-            border-radius: 10px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            flex-shrink: 0 !important;
-            font-size: 18px !important;
-            color: white !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-        }
-
-        .toast-body-wrapper {
-            flex: 1 !important;
-            min-width: 0 !important;
-        }
-
-        .toast-title {
-            font-weight: 700 !important;
-            font-size: 16px !important;
-            margin-bottom: 4px !important;
-            color: var(--mlb-blue) !important;
-            line-height: 1.4 !important;
-            font-family: 'Arial', 'Helvetica', sans-serif !important;
-        }
-
-        .toast-message {
-            font-size: 14px !important;
-            color: #2c3e50 !important;
-            line-height: 1.6 !important;
-            word-wrap: break-word !important;
-            font-family: 'Arial', 'Helvetica', sans-serif !important;
-        }
-
-        .toast-close {
-            background: none !important;
-            border: none !important;
-            color: #a0aec0 !important;
-            cursor: pointer !important;
-            padding: 4px !important;
-            width: 24px !important;
-            height: 24px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            border-radius: 6px !important;
-            transition: all 0.2s ease !important;
-            flex-shrink: 0 !important;
-            font-size: 12px !important;
-        }
-
-        .toast-close:hover {
-            background: rgba(0, 0, 0, 0.05) !important;
-            color: #2d3748 !important;
-            transform: rotate(90deg) !important;
-        }
-
-        .toast-progress {
-            position: absolute !important;
-            bottom: 0 !important;
+            top: 0 !important;
             left: 0 !important;
-            right: 0 !important;
-            height: 3px !important;
-            background: rgba(0, 0, 0, 0.05) !important;
-            overflow: hidden !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 2000000 !important; /* Por encima de TODO */
+            background: transparent !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
         }
 
-        .toast-progress-bar {
-            height: 100% !important;
-            width: 100% !important;
-            transform-origin: left !important;
-            animation: progressShrink linear forwards !important;
-            animation-play-state: paused !important;
+        body.iframe-modal-open .tab-content.active iframe {
+            width: 100vw !important;
+            height: 100vh !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
         }
 
-        @keyframes progressShrink {
-            from { transform: scaleX(1); }
-            to { transform: scaleX(0); }
-        }
-
-        /* Toast Type Styles - MLB Theme Colors */
-        .toast-success {
-            border-left: 4px solid #28a745 !important;
-            background: linear-gradient(135deg, #ffffff 0%, #f8fff9 100%) !important;
-        }
-
-        .toast-success .toast-icon {
-            background: linear-gradient(135deg, #28a745 0%, #218838 100%) !important;
-        }
-
-        .toast-success .toast-progress-bar {
-            background: linear-gradient(90deg, #28a745 0%, #218838 100%) !important;
-        }
-
-        .toast-error {
-            border-left: 4px solid var(--mlb-red) !important;
-            background: linear-gradient(135deg, #ffffff 0%, #fff8f8 100%) !important;
-        }
-
-        .toast-error .toast-icon {
-            background: linear-gradient(135deg, var(--mlb-red) 0%, #b50028 100%) !important;
-        }
-
-        .toast-error .toast-progress-bar {
-            background: linear-gradient(90deg, var(--mlb-red) 0%, #b50028 100%) !important;
-        }
-
-        .toast-warning {
-            border-left: 4px solid #ffc107 !important;
-            background: linear-gradient(135deg, #ffffff 0%, #fffef8 100%) !important;
-        }
-
-        .toast-warning .toast-icon {
-            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important;
-        }
-
-        .toast-warning .toast-progress-bar {
-            background: linear-gradient(90deg, #ffc107 0%, #e0a800 100%) !important;
-        }
-
-        .toast-info {
-            border-left: 4px solid var(--mlb-blue) !important;
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%) !important;
-        }
-
-        .toast-info .toast-icon {
-            background: linear-gradient(135deg, var(--mlb-blue) 0%, #0a1f3d 100%) !important;
-        }
-
-        .toast-info .toast-progress-bar {
-            background: linear-gradient(90deg, var(--mlb-blue) 0%, #0a1f3d 100%) !important;
-        }
-
-        .toast-primary {
-            border-left: 4px solid var(--mlb-blue) !important;
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fc 100%) !important;
-        }
-
-        .toast-primary .toast-icon {
-            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-red) 100%) !important;
-        }
-
-        .toast-primary .toast-progress-bar {
-            background: linear-gradient(90deg, var(--mlb-blue) 0%, var(--mlb-red) 100%) !important;
-        }
-
-        /* Special styling for player registration toasts */
-        .modern-toast.player-registered {
-            border-left-width: 6px !important;
-            box-shadow: 0 12px 48px rgba(40, 167, 69, 0.2), 0 4px 16px rgba(40, 167, 69, 0.15) !important;
-        }
-
-        .modern-toast.player-registered .toast-icon {
-            animation: celebrationPulse 1.5s ease-in-out infinite !important;
-        }
-
-        @keyframes celebrationPulse {
-            0%, 100% {
-                transform: scale(1);
-                box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-            }
-            50% {
-                transform: scale(1.1);
-                box-shadow: 0 6px 20px rgba(40, 167, 69, 0.5);
-            }
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .modern-toast-container {
-                top: 10px !important;
-                right: 10px !important;
-                left: 10px !important;
-                max-width: none !important;
-            }
-
-            .modern-toast {
-                min-width: auto !important;
-                max-width: none !important;
-                transform: translateY(-100px) scale(0.95) !important;
-            }
-
-            .modern-toast.show {
-                transform: translateY(0) scale(1) !important;
-            }
-
-            .modern-toast.hide {
-                transform: translateY(-100px) scale(0.95) !important;
-            }
-        }
-
-        /* Original Panel Usuario styles */
         :root {
             --mlb-blue: #0d2c54;
             --mlb-red: #d50032;
@@ -486,6 +274,37 @@
             background: var(--mlb-red);
         }
     </style>
+    <style>
+        /* Estilos generales del panel */
+
+        /* Cuando un iframe abre un modal, elevar el tab activo sobre todo lo demás y hacerlo pantalla completa */
+        body.iframe-modal-open {
+            overflow: hidden !important; /* Bloquear scroll del padre */
+        }
+
+        body.iframe-modal-open .tab-content.active {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 2000000 !important; /* Por encima de TODO */
+            background: transparent !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+        }
+
+        body.iframe-modal-open .tab-content.active iframe {
+            width: 100vw !important;
+            height: 100vh !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+        }
+    </style>
 </head>
 <body>
     <!-- Top Bar -->
@@ -671,7 +490,7 @@
                 </div>
             </h5>
             <div class="quick-actions">
-                <button type="button" class="quick-action-btn tab-btn active" data-tab="inicio">
+                <button type="button" class="quick-action-btn tab-btn {% if active_tab == 'inicio' or not active_tab %}active{% endif %}" data-tab="inicio">
                     <i class="fas fa-home"></i>
                     <span>{% trans "Home" %}</span>
                 </button>
@@ -724,29 +543,30 @@
                         </button>
                     {% endif %}
                 {% endif %}
-                <button type="button" class="quick-action-btn tab-btn" data-tab="eventos" data-url="{% url 'events:list' %}">
+                <button type="button" class="quick-action-btn tab-btn {% if active_tab == 'eventos' %}active{% endif %}" data-tab="eventos">
                     <i class="fas fa-calendar-alt"></i>
                     <span>{% trans "Events" %}</span>
                     {% if upcoming_events %}
                         <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ upcoming_events|length }}</span>
                     {% endif %}
                 </button>
-                <button type="button" class="quick-action-btn tab-btn" data-tab="calendario" data-url="{% url 'events:calendar' %}">
+                {# Nota: detalle-eventos es un tab interno (se abre desde Events), no debe aparecer como botón #}
+                <button type="button" class="quick-action-btn tab-btn {% if active_tab == 'calendario' %}active{% endif %}" data-tab="calendario" data-url="{% url 'events:calendar' %}">
                     <i class="fas fa-calendar"></i>
                     <span>{% trans "Calendar" %}</span>
                 </button>
-                <button type="button" class="quick-action-btn tab-btn" data-tab="reservas" data-url="{% url 'locations:front_hotel_reservation_list' %}">
+                <button type="button" class="quick-action-btn tab-btn {% if active_tab == 'reservas' %}active{% endif %}" data-tab="reservas" data-url="{% url 'locations:front_hotel_reservation_list' %}">
                     <i class="fas fa-calendar-check"></i>
                     <span>{% trans "Reservations" %}</span>
                     {% if pending_reservations > 0 %}
                         <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ pending_reservations }}</span>
                     {% endif %}
                 </button>
-                <button type="button" class="quick-action-btn tab-btn" data-tab="plan-pagos">
+                <button type="button" class="quick-action-btn tab-btn {% if active_tab == 'plan-pagos' %}active{% endif %}" data-tab="plan-pagos">
                     <i class="fas fa-credit-card"></i>
                     <span>{% trans "Plans & Payments" %}</span>
                 </button>
-                <button type="button" class="quick-action-btn tab-btn" data-tab="perfil" data-url="{% url 'accounts:profile' %}">
+                <button type="button" class="quick-action-btn tab-btn {% if active_tab == 'perfil' %}active{% endif %}" data-tab="perfil" data-url="{% url 'accounts:profile' %}">
                     <i class="fas fa-user"></i>
                     <span>{% trans "Profile" %}</span>
                 </button>
@@ -755,70 +575,104 @@
 
         <!-- Contenedor de Contenido de Secciones -->
         <div class="tab-content-container">
-            <div id="tab-content-inicio" class="tab-content active">
+            <!-- Tab: Inicio -->
+            <div id="tab-content-inicio" class="tab-content {% if active_tab == 'inicio' or not active_tab %}active{% endif %}" style="{% if active_tab == 'inicio' or not active_tab %}display: block;{% else %}display: none !important;{% endif %}">
                 {% include 'accounts/panel_tabs/inicio.html' %}
             </div>
-            <!-- Contenido de otros tabs usando includes -->
+
+            <!-- Tabs para Team Managers -->
             {% if profile.is_team_manager %}
-                <div id="tab-content-crear-equipo" class="tab-content" style="display: none;">
+                <div id="tab-content-crear-equipo" class="tab-content {% if active_tab == 'crear-equipo' %}active{% endif %}" style="{% if active_tab == 'crear-equipo' %}display: block;{% else %}display: none;{% endif %}">
                     {% include 'accounts/panel_tabs/crear_equipo.html' %}
                 </div>
-                <div id="tab-content-registrar-jugador" class="tab-content" style="display: none;">
+                <div id="tab-content-registrar-jugador" class="tab-content {% if active_tab == 'registrar-jugador' %}active{% endif %}" style="{% if active_tab == 'registrar-jugador' %}display: block;{% else %}display: none;{% endif %}">
                     {% include 'accounts/panel_tabs/registrar_jugador.html' %}
                 </div>
-                <div id="tab-content-mis-equipos" class="tab-content" style="display: none;">
+                <div id="tab-content-mis-equipos" class="tab-content {% if active_tab == 'mis-equipos' %}active{% endif %}" style="{% if active_tab == 'mis-equipos' %}display: block;{% else %}display: none;{% endif %}">
                     {% include 'accounts/panel_tabs/mis_equipos.html' %}
                 </div>
-                <div id="tab-content-ver-jugadores" class="tab-content" style="display: none;">
+                <div id="tab-content-ver-jugadores" class="tab-content {% if active_tab == 'ver-jugadores' %}active{% endif %}" style="{% if active_tab == 'ver-jugadores' %}display: block;{% else %}display: none;{% endif %}">
                     {% include 'accounts/panel_tabs/ver_jugadores.html' %}
                 </div>
             {% endif %}
+
+            <!-- Tabs para Parents -->
             {% if profile.is_parent %}
-                <div id="tab-content-registrar-hijo" class="tab-content" style="display: none;">
+                <div id="tab-content-registrar-hijo" class="tab-content {% if active_tab == 'registrar-hijo' %}active{% endif %}" style="{% if active_tab == 'registrar-hijo' %}display: block;{% else %}display: none;{% endif %}">
                     {% include 'accounts/panel_tabs/registrar_hijo.html' %}
                 </div>
-                <div id="tab-content-mis-hijos" class="tab-content" style="display: none;">
+                <div id="tab-content-mis-hijos" class="tab-content {% if active_tab == 'mis-hijos' %}active{% endif %}" style="{% if active_tab == 'mis-hijos' %}display: block;{% else %}display: none;{% endif %}">
                     {% include 'accounts/panel_tabs/mis_hijos.html' %}
                 </div>
-                <div id="tab-content-editar-jugador" class="tab-content" style="display: none;">
+                <div id="tab-content-editar-jugador" class="tab-content {% if active_tab == 'editar-jugador' %}active{% endif %}" style="{% if active_tab == 'editar-jugador' %}display: block;{% else %}display: none;{% endif %}">
                     <!-- Contenido se carga dinámicamente -->
                 </div>
             {% endif %}
+
+            <!-- Tab: Verificaciones Pendientes -->
             {% if pending_verifications_count or user.is_staff or user.is_superuser %}
-                <div id="tab-content-verificaciones-pendientes" class="tab-content" style="display: none;">
+                <div id="tab-content-verificaciones-pendientes" class="tab-content {% if active_tab == 'verificaciones-pendientes' %}active{% endif %}" style="{% if active_tab == 'verificaciones-pendientes' %}display: block;{% else %}display: none;{% endif %}">
                     {% include 'accounts/panel_tabs/verificaciones_pendientes.html' %}
                 </div>
             {% endif %}
+
+            <!-- Tabs para Players (no managers ni parents) -->
             {% if not profile.is_team_manager and not profile.is_parent %}
                 {% if user.player_profile %}
-                    <div id="tab-content-mi-perfil" class="tab-content" style="display: none;">
+                    <div id="tab-content-mi-perfil" class="tab-content {% if active_tab == 'mi-perfil' %}active{% endif %}" style="{% if active_tab == 'mi-perfil' %}display: block;{% else %}display: none;{% endif %}">
                         {% include 'accounts/panel_tabs/mi_perfil.html' %}
                     </div>
-                    <div id="tab-content-perfil-publico" class="tab-content" style="display: none;">
+                    <div id="tab-content-perfil-publico" class="tab-content {% if active_tab == 'perfil-publico' %}active{% endif %}" style="{% if active_tab == 'perfil-publico' %}display: block;{% else %}display: none;{% endif %}">
                         {% include 'accounts/panel_tabs/perfil_publico.html' %}
                     </div>
                 {% endif %}
             {% endif %}
-            <div id="tab-content-eventos" class="tab-content" style="display: none;">
-                {% include 'accounts/panel_tabs/eventos.html' %}
+
+            <!-- Tab: Eventos -->
+            <div id="tab-content-eventos" class="tab-content {% if active_tab == 'eventos' %}active{% endif %}" style="{% if active_tab == 'eventos' %}display: block;{% else %}display: none;{% endif %}">
+                <iframe
+                    id="iframe-eventos"
+                    name="eventos"
+                    data-src="{% url 'accounts:panel_eventos_embed' %}"
+                    src="{% if active_tab == 'eventos' %}{% url 'accounts:panel_eventos_embed' %}{% endif %}"
+                    style="width: 100%; border: none; border-radius: 12px; min-height: 600px; display: block;"
+                    loading="lazy"
+                ></iframe>
             </div>
-            <div id="tab-content-detalle-eventos" class="tab-content" style="display: none;">
-                {% if event_detail_template %}
-                    {% include event_detail_template %}
-                {% else %}
-                    {% include 'accounts/panel_tabs/detalle_evento.html' %}
-                {% endif %}
+
+            <!-- Tab: Detalle de Evento -->
+            <div id="tab-content-detalle-eventos" class="tab-content {% if active_tab == 'detalle-eventos' %}active{% endif %}" style="{% if active_tab == 'detalle-eventos' %}display: block;{% else %}display: none;{% endif %}">
+                <iframe
+                    id="iframe-detalle-eventos"
+                    name="detalle-eventos"
+                    {% if event %}
+                        data-src="{% url 'accounts:panel_event_detail_embed' event.pk %}"
+                        src="{% if active_tab == 'detalle-eventos' %}{% url 'accounts:panel_event_detail_embed' event.pk %}{% endif %}"
+                    {% else %}
+                        data-src=""
+                        src="about:blank"
+                    {% endif %}
+                    style="width: 100%; border: none; border-radius: 12px; min-height: 700px; display: block; background: transparent;"
+                ></iframe>
             </div>
-            <div id="tab-content-calendario" class="tab-content" style="display: none;">
+
+            <!-- Tab: Calendario -->
+            <div id="tab-content-calendario" class="tab-content {% if active_tab == 'calendario' %}active{% endif %}" style="{% if active_tab == 'calendario' %}display: block;{% else %}display: none;{% endif %}">
                 {% include 'accounts/panel_tabs/calendario.html' %}
             </div>
-            <div id="tab-content-reservas" class="tab-content" style="display: none;">
+
+            <!-- Tab: Reservas -->
+            <div id="tab-content-reservas" class="tab-content {% if active_tab == 'reservas' %}active{% endif %}" style="{% if active_tab == 'reservas' %}display: block;{% else %}display: none;{% endif %}">
                 {% include 'accounts/panel_tabs/reservas.html' %}
             </div>
-            <div id="tab-content-plan-pagos" class="tab-content" style="display: none;">
+
+            <!-- Tab: Plan de Pagos -->
+            <div id="tab-content-plan-pagos" class="tab-content {% if active_tab == 'plan-pagos' %}active{% endif %}" style="{% if active_tab == 'plan-pagos' %}display: block;{% else %}display: none;{% endif %}">
                 {% include 'accounts/panel_tabs/plan_pagos.html' %}
             </div>
-            <div id="tab-content-perfil" class="tab-content" style="display: none;">
+
+            <!-- Tab: Perfil -->
+            <div id="tab-content-perfil" class="tab-content {% if active_tab == 'perfil' %}active{% endif %}" style="{% if active_tab == 'perfil' %}display: block;{% else %}display: none;{% endif %}">
                 {% include 'accounts/profile.html' %}
             </div>
         </div>
@@ -1083,7 +937,8 @@
         // Funcionalidad de Tabs para Acciones Rápidas
         document.addEventListener('DOMContentLoaded', function() {
             const tabButtons = document.querySelectorAll('.tab-btn');
-            const tabContents = document.querySelectorAll('.tab-content');
+            // Importante: limitar a los tabs del panel para evitar colisiones con otros .tab-content (Bootstrap u otros includes)
+            const tabContents = document.querySelectorAll('.tab-content-container > .tab-content');
 
             // Verificar si hay un parámetro 'tab' en la URL
             const urlParams = new URLSearchParams(window.location.search);
@@ -1158,26 +1013,184 @@
                 }
             {% endif %}
 
-            function activateTab(tabId, button) {
-                // Remover clase active de todos los botones
-                tabButtons.forEach(btn => btn.classList.remove('active'));
+            function loadIframe(tabContent, url) {
+                // Verificar si el iframe ya existe
+                let iframe = tabContent.querySelector('iframe');
+                if (!iframe) {
+                    // Crear contenedor para el iframe si no existe
+                    const iframeContainer = document.createElement('div');
+                    iframeContainer.style.width = '100%';
+                    iframeContainer.style.height = '600px';
+                    iframeContainer.style.minHeight = '600px';
 
-                // Agregar clase active al botón clickeado
-                if (button) {
-                    button.classList.add('active');
+                    iframe = document.createElement('iframe');
+                    iframe.src = url;
+                    iframe.style.width = '100%';
+                    iframe.style.height = '100%';
+                    iframe.style.border = 'none';
+                    iframe.style.borderRadius = '12px';
+                    iframe.style.minHeight = '600px';
+
+                    // Si el tab tiene header, agregar el iframe después del header
+                    const header = tabContent.querySelector('.tab-content-header');
+                    if (header) {
+                        // Crear un contenedor para el iframe después del header
+                        const iframeWrapper = document.createElement('div');
+                        iframeWrapper.style.marginTop = '20px';
+                        iframeWrapper.appendChild(iframe);
+                        tabContent.appendChild(iframeWrapper);
+                    } else {
+                        // Si no hay header, reemplazar todo el contenido
+                        tabContent.innerHTML = '';
+                        tabContent.appendChild(iframe);
+                    }
+                } else {
+                    // Si el iframe existe, actualizar la URL si es diferente
+                    let absoluteUrl = url;
+                    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                        absoluteUrl = window.location.origin + (url.startsWith('/') ? url : '/' + url);
+                    }
+                    if (iframe.src !== absoluteUrl && url) {
+                        iframe.src = absoluteUrl;
+                    }
+                }
+            }
+
+            function ensureIframeLoaded(targetContent) {
+                if (!targetContent) return;
+                const iframe = targetContent.querySelector('iframe[data-src], iframe[name]');
+                if (!iframe) return;
+
+                const dataSrc = iframe.getAttribute('data-src');
+                if (dataSrc && (!iframe.getAttribute('src') || iframe.getAttribute('src') === '')) {
+                    iframe.setAttribute('src', dataSrc);
+                }
+            }
+
+            // Auto-resize de iframes (embed_base.html manda postMessage con height)
+            window.addEventListener('message', function (event) {
+                if (event.origin !== window.location.origin) return;
+                const data = event.data || {};
+                if (data.type !== 'nsc-iframe-height' || !data.tabId || !data.height) return;
+                const iframe = document.querySelector(`iframe[name="${data.tabId}"]`);
+                if (!iframe) return;
+                const h = Math.max(400, parseInt(data.height, 10) || 600);
+                iframe.style.height = h + 'px';
+            });
+
+            // Manejar scroll hacia el inicio del iframe cuando se abre un modal
+            window.addEventListener('message', function (event) {
+                if (event.origin !== window.location.origin) return;
+                const data = event.data || {};
+
+                // Efecto Blur Global / Overlay Global
+                if (data.type === 'nsc-modal-state') {
+                    if (data.state === 'open') {
+                        document.body.classList.add('iframe-modal-open');
+                    } else if (data.state === 'closed') {
+                        // Solo remover si realmente no hay más señales de modales abiertos
+                        // (el iframe se encarga de verificar que no haya modales en su DOM)
+                        document.body.classList.remove('iframe-modal-open');
+                    }
                 }
 
-                // Ocultar todos los contenidos
+                if (data.type === 'nsc-scroll-to-top') {
+                    const iframe = document.querySelector(`iframe[name="${data.tabId}"]`);
+                    if (iframe) {
+                        iframe.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }
+            });
+
+            // Abrir detalle de evento desde el iframe de eventos
+            window.addEventListener('message', function (event) {
+                if (event.origin !== window.location.origin) return;
+                const data = event.data || {};
+                if (data.type !== 'nsc-open-event-detail') return;
+
+                const embedUrl = data.embedUrl;
+                const panelUrl = data.panelUrl;
+
+                // Activar el tab de detalle
+                activateTab('detalle-eventos', null);
+
+                // Cargar el iframe del detalle con la URL embed
+                const detailIframe = document.getElementById('iframe-detalle-eventos');
+                if (detailIframe && embedUrl) {
+                    detailIframe.setAttribute('data-src', embedUrl);
+                    detailIframe.setAttribute('src', embedUrl);
+                }
+
+                // Actualizar URL del navegador (opcional) para que puedas refrescar y volver al mismo evento
+                if (panelUrl) {
+                    try {
+                        window.history.pushState({}, '', panelUrl);
+                    } catch (e) {
+                        // ignore
+                    }
+                }
+            });
+
+            function activateTab(tabId, button) {
+                // Remover clase active de todos los botones y tabs
+                tabButtons.forEach(btn => btn.classList.remove('active'));
                 tabContents.forEach(content => {
                     content.style.display = 'none';
                     content.classList.remove('active');
                 });
 
-                // Mostrar el contenido correspondiente
+                // Activar el botón correspondiente
+                if (button) {
+                    button.classList.add('active');
+                } else {
+                    // Si no hay botón, buscar el botón correspondiente
+                    const tabButton = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+                    if (tabButton) {
+                        tabButton.classList.add('active');
+                    }
+                }
+
+                // Mostrar el contenido del tab
                 const targetContent = document.getElementById('tab-content-' + tabId);
                 if (targetContent) {
                     targetContent.style.display = 'block';
+                    targetContent.style.visibility = 'visible';
+                    targetContent.style.opacity = '1';
                     targetContent.classList.add('active');
+
+                    // Si el tab tiene iframe embed, cargarlo al activarse
+                    ensureIframeLoaded(targetContent);
+
+                    // Obtener la URL del botón si existe
+                    const url = button ? button.getAttribute('data-url') : null;
+
+                    // Si hay una URL, manejar iframe
+                    // Nota: si este tab usa iframe embed (data-src), NO sobrescribir su src con data-url legacy.
+                    const embedIframe = targetContent.querySelector('iframe[data-src]');
+                    if (url && !embedIframe) {
+                        const existingIframe = targetContent.querySelector('iframe');
+                        if (existingIframe) {
+                            // Si el iframe ya existe, actualizar la URL si es diferente
+                            let absoluteUrl = url;
+                            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                                absoluteUrl = window.location.origin + (url.startsWith('/') ? url : '/' + url);
+                            }
+
+                            // Para calendario, recargar el iframe
+                            if (tabId === 'calendario' && existingIframe.src !== absoluteUrl) {
+                                // Evitar src='' (puede intentar cargar '/' dentro del iframe y disparar X-Frame-Options: DENY)
+                                existingIframe.src = 'about:blank';
+                                setTimeout(() => {
+                                    existingIframe.src = absoluteUrl;
+                                }, 100);
+                            } else if (existingIframe.src !== absoluteUrl) {
+                                existingIframe.src = absoluteUrl;
+                            }
+                        } else {
+                            // Si no hay iframe, crear uno
+                            loadIframe(targetContent, url);
+                        }
+                    }
 
                     // Inicializar selectores de ubicación si es el tab de registrar hijo
                     if (tabId === 'registrar-hijo') {
@@ -1189,40 +1202,49 @@
                     }
 
                     // Hacer scroll suave hacia el contenido del tab
-                    if (tabId === 'detalle-eventos') {
-                        // Para el tab de detalle de eventos, hacer scroll a la sección Event Details
-                        // Usar múltiples intentos para asegurar que el contenido esté renderizado
-                        const scrollAttempts = [200, 400, 600, 800];
-                        scrollAttempts.forEach((delay) => {
-                            setTimeout(() => {
-                                const eventDetailsSection = document.getElementById('event-details-section');
-                                if (eventDetailsSection) {
-                                    const rect = eventDetailsSection.getBoundingClientRect();
-                                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-                                    const targetPosition = rect.top + scrollTop - 120; // 120px de offset
-
-                                    window.scrollTo({
-                                        top: targetPosition,
-                                        behavior: delay === scrollAttempts[0] ? 'smooth' : 'auto' // Solo smooth en el primer intento
-                                    });
-                                }
-                            }, delay);
-                        });
-                    } else {
-                        // Para otros tabs, hacer scroll normal
-                        setTimeout(() => {
+                    setTimeout(() => {
+                        if (tabId === 'detalle-eventos') {
+                            const eventDetailsSection = document.getElementById('event-details-section');
+                            if (eventDetailsSection) {
+                                eventDetailsSection.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start',
+                                    inline: 'nearest'
+                                });
+                            } else {
+                                targetContent.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start',
+                                    inline: 'nearest'
+                                });
+                            }
+                        } else {
                             targetContent.scrollIntoView({
                                 behavior: 'smooth',
                                 block: 'start',
                                 inline: 'nearest'
                             });
-                        }, 100);
-                    }
+                        }
+                    }, 100);
+                } else {
+                    console.warn('Tab content not found:', 'tab-content-' + tabId);
                 }
             }
 
-            // Los enlaces de "Detail Event" ahora usan events:public_detail y navegan normalmente
-            // No necesitamos interceptar estos clics
+            // Interceptar clics en botones "Detail Event" para cargar en el tab detalle-eventos
+            document.addEventListener('click', function(e) {
+                const detailEventBtn = e.target.closest('.detail-event-btn');
+                if (detailEventBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const eventUrl = detailEventBtn.getAttribute('data-event-url') || detailEventBtn.getAttribute('href');
+                    if (eventUrl) {
+                        // Navegar a la URL del evento (esto cargará el tab detalle-eventos)
+                        window.location.href = eventUrl;
+                    }
+                }
+            });
 
             // Agregar event listeners a todos los botones
             tabButtons.forEach(button => {
@@ -1245,47 +1267,125 @@
                 const activeTabId = '{{ active_tab }}';
                 console.log('Activando tab desde active_tab:', activeTabId);
 
-                // Función para activar el tab
+                // Variable para evitar múltiples ejecuciones
+                let isActivating = false;
+
+                // Función simplificada para activar el tab
                 function activateActiveTab() {
+                    // Evitar múltiples ejecuciones simultáneas
+                    if (isActivating) {
+                        return;
+                    }
+                    isActivating = true;
+
                     const activeTabButton = document.querySelector(`.tab-btn[data-tab="${activeTabId}"]`);
                     const activeTabContent = document.getElementById('tab-content-' + activeTabId);
 
-                    if (activeTabContent) {
-                        console.log('Tab content encontrado:', activeTabContent.id);
-                        // Ocultar todos los tabs primero
-                        tabContents.forEach(content => {
-                            content.style.display = 'none';
+                    if (!activeTabContent) {
+                        console.warn('Tab content no encontrado:', 'tab-content-' + activeTabId);
+                        isActivating = false;
+                        return;
+                    }
+
+                    // Ocultar todos los tabs excepto el activo
+                    tabContents.forEach(content => {
+                        if (content.id !== 'tab-content-' + activeTabId) {
+                            content.style.setProperty('display', 'none', 'important');
+                            content.style.setProperty('visibility', 'hidden', 'important');
+                            content.style.setProperty('opacity', '0', 'important');
                             content.classList.remove('active');
-                        });
-
-                        // Mostrar el tab activo
-                        activeTabContent.style.display = 'block';
-                        activeTabContent.classList.add('active');
-
-                        // Activar el botón si existe
-                        if (activeTabButton) {
-                            tabButtons.forEach(btn => btn.classList.remove('active'));
-                            activeTabButton.classList.add('active');
                         }
+                    });
 
-                        // Hacer scroll al contenido
-                        setTimeout(() => {
+                    // Mostrar el tab activo (ya debería estar visible desde el HTML)
+                    activeTabContent.style.setProperty('display', 'block', 'important');
+                    activeTabContent.style.setProperty('visibility', 'visible', 'important');
+                    activeTabContent.style.setProperty('opacity', '1', 'important');
+                    activeTabContent.classList.add('active');
+
+                    // Si el tab activo tiene iframe embed, cargarlo
+                    ensureIframeLoaded(activeTabContent);
+
+                    // Para detalle-eventos, asegurar estilos adicionales
+                    if (activeTabId === 'detalle-eventos') {
+                        activeTabContent.style.setProperty('width', '100%', 'important');
+                        activeTabContent.style.setProperty('min-height', '600px', 'important');
+                        activeTabContent.style.setProperty('padding', '30px', 'important');
+                        activeTabContent.style.setProperty('background', '#ffffff', 'important');
+                        activeTabContent.style.setProperty('position', 'relative', 'important');
+                        activeTabContent.style.setProperty('z-index', '10', 'important');
+                    }
+
+                    // Activar el botón si existe
+                    if (activeTabButton) {
+                        tabButtons.forEach(btn => btn.classList.remove('active'));
+                        activeTabButton.classList.add('active');
+
+                        // Manejar iframes si es necesario
+                        const url = activeTabButton.getAttribute('data-url');
+                        // No sobrescribir iframes embed (data-src)
+                        const embedIframe = activeTabContent.querySelector('iframe[data-src]');
+                        if (url && !embedIframe) {
+                            const existingIframe = activeTabContent.querySelector('iframe');
+                            if (existingIframe) {
+                                let absoluteUrl = url;
+                                if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                                    absoluteUrl = window.location.origin + (url.startsWith('/') ? url : '/' + url);
+                                }
+                                if (activeTabId === 'calendario' && existingIframe.src !== absoluteUrl) {
+                                    existingIframe.src = 'about:blank';
+                                    setTimeout(() => {
+                                        existingIframe.src = absoluteUrl;
+                                    }, 100);
+                                }
+                            }
+                        }
+                    }
+
+                    isActivating = false;
+
+                    // Hacer scroll al contenido
+                    setTimeout(() => {
+                        if (activeTabId === 'detalle-eventos') {
+                            const eventDetailsSection = document.getElementById('event-details-section');
+                            if (eventDetailsSection) {
+                                eventDetailsSection.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start',
+                                    inline: 'nearest'
+                                });
+                            } else {
+                                activeTabContent.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'start',
+                                    inline: 'nearest'
+                                });
+                            }
+                        } else {
                             activeTabContent.scrollIntoView({
                                 behavior: 'smooth',
                                 block: 'start',
                                 inline: 'nearest'
                             });
-                        }, 100);
-                    } else {
-                        console.warn('Tab content no encontrado:', 'tab-content-' + activeTabId);
-                    }
+                        }
+                    }, 100);
                 }
 
-                // Intentar activar inmediatamente
+                // Ejecutar la función inmediatamente y también cuando el DOM esté listo
                 activateActiveTab();
 
-                // También intentar después de un pequeño delay por si acaso
-                setTimeout(activateActiveTab, 200);
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        setTimeout(activateActiveTab, 50);
+                    });
+                } else {
+                    setTimeout(activateActiveTab, 50);
+                }
+
+                // También ejecutar después de que la página esté completamente cargada
+                window.addEventListener('load', function() {
+                    setTimeout(activateActiveTab, 100);
+                });
             {% else %}
                 const inicioButton = document.querySelector('.tab-btn[data-tab="inicio"]');
                 if (inicioButton) {
@@ -1347,7 +1447,7 @@
             // Función para activar un tab (definida localmente para evitar problemas de scope)
             function activateTabLocal(tabId, button) {
                 const tabButtons = document.querySelectorAll('.tab-btn');
-                const tabContents = document.querySelectorAll('.tab-content');
+                const tabContents = document.querySelectorAll('.tab-content-container > .tab-content');
 
                 tabButtons.forEach(btn => btn.classList.remove('active'));
                 if (button) {
@@ -1379,7 +1479,7 @@
             editTab.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">' + translations.loading + '</span></div><p class="mt-3">' + translations.loadingForm + '</p></div>';
 
             // Ocultar otros tabs primero
-            const allTabs = document.querySelectorAll('.tab-content');
+            const allTabs = document.querySelectorAll('.tab-content-container > .tab-content');
             allTabs.forEach(tab => {
                 if (tab.id !== 'tab-content-editar-jugador') {
                     tab.style.display = 'none';

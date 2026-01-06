@@ -209,175 +209,464 @@
         display: block;
     }
 
+    .rooms-grid-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
     .room-listing-inline {
         display: flex;
+        flex-direction: column;
         align-items: stretch;
         gap: 0;
         padding: 0;
-        background: white;
-        border-radius: 12px;
+        background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+        border-radius: 16px;
         margin-bottom: 0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-        border: 2px solid #e9ecef;
-        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05);
+        border: 2px solid #f1f3f5;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
         overflow: hidden;
         position: relative;
     }
 
+    .room-listing-inline::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
     .room-listing-inline:hover {
         border-color: var(--mlb-blue);
-        box-shadow: 0 4px 16px rgba(13, 44, 84, 0.2);
-        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(13, 44, 84, 0.15), 0 4px 8px rgba(0,0,0,0.1);
+        transform: translateY(-3px);
+    }
+
+    .room-listing-inline:hover::before {
+        opacity: 1;
     }
 
     .room-listing-inline.nsc-room-recommended {
         border-color: var(--mlb-blue);
-        background: linear-gradient(135deg, rgba(13, 44, 84, 0.05) 0%, rgba(13, 44, 84, 0.02) 100%);
-        box-shadow: 0 4px 16px rgba(13, 44, 84, 0.2);
+        background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 50%, #f8fbff 100%);
+        box-shadow: 0 6px 20px rgba(13, 44, 84, 0.12), 0 2px 6px rgba(0,0,0,0.08);
     }
 
-    .room-listing-inline.nsc-room-recommended:hover {
-        box-shadow: 0 6px 20px rgba(13, 44, 84, 0.25);
-        transform: translateY(-3px);
+    .room-listing-inline.nsc-room-recommended::before {
+        opacity: 1;
     }
 
     .room-listing-inline .room-image-container {
-        width: 120px;
-        min-width: 120px;
+        width: 100%;
+        height: 200px;
+        min-width: 100%;
         flex-shrink: 0;
         position: relative;
         overflow: hidden;
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
     }
 
-    .room-listing-inline .room-image-container img,
-    .room-listing-inline .room-image-container > div {
+    .room-listing-inline .room-image-container::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.02) 100%);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    /* Room Image Slider Styles */
+    .room-slider-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    .room-slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 0.8s ease-in-out, transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: scale(1);
+    }
+
+    .room-slide.active {
+        opacity: 1;
+        z-index: 1;
+    }
+
+    .room-slide img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .room-listing-inline:hover .room-slide.active img {
+        transform: scale(1.1);
+    }
+
+    .room-slider-dots {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 6px;
+        z-index: 2;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 6px 10px;
+        border-radius: 20px;
+        backdrop-filter: blur(4px);
+    }
+
+    .room-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .room-dot.active {
+        background: white;
+        width: 20px;
+        border-radius: 3px;
+    }
+
+    .room-dot:hover {
+        background: rgba(255, 255, 255, 0.8);
     }
 
     .room-listing-inline .room-info {
         flex: 1;
         min-width: 0;
-        padding: 16px;
+        padding: 18px 20px;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
+        gap: 12px;
+        background: transparent;
     }
 
     .room-listing-inline .room-header {
-        margin-bottom: 8px;
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+
+    .room-listing-inline .room-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex: 1;
+        justify-content: space-between;
     }
 
     .room-listing-inline .room-name {
-        font-size: 1.05rem;
-        font-weight: 700;
+        font-size: 1.2rem;
+        font-weight: 900;
         color: var(--mlb-blue);
-        margin: 0 0 4px 0;
+        margin: 0;
         line-height: 1.3;
+        letter-spacing: -0.3px;
     }
 
     .room-listing-inline .room-type {
-        font-size: 0.85rem;
-        color: #6c757d;
-        font-weight: 400;
+        font-size: 0.75rem;
+        color: #64748b;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
         margin: 0;
     }
 
     .room-listing-inline .room-features {
         font-size: 0.8rem;
-        color: #6c757d;
-        margin-bottom: 10px;
+        color: #475569;
+        margin: 0;
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
         flex-wrap: wrap;
-        font-weight: 400;
     }
 
     .room-listing-inline .room-features span {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 5px 10px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #475569;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+
+    .room-listing-inline .room-features span:hover {
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        border-color: var(--mlb-blue);
+        transform: translateY(-1px);
     }
 
     .room-listing-inline .room-footer {
         display: flex;
-        align-items: center;
-        justify-content: space-between;
+        flex-direction: column;
+        align-items: stretch;
         gap: 12px;
         margin-top: auto;
-        padding-top: 10px;
-        border-top: 1px solid #f0f0f0;
+        padding-top: 14px;
+        border-top: 2px solid #f1f5f9;
+    }
+
+    .room-listing-inline .room-price-zone {
+        text-align: center;
+    }
+
+    .room-listing-inline .room-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .room-listing-inline .room-actions button {
+        flex: 1;
+    }
+
+    .room-listing-inline .room-price-zone {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: center;
+        width: 100%;
+    }
+
+    .room-listing-inline .room-price-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-items: center;
+        width: 100%;
     }
 
     .room-listing-inline .room-price {
-        font-size: 1.25rem;
-        font-weight: 800;
+        font-size: 1.5rem;
+        font-weight: 900;
         color: var(--mlb-red);
         margin: 0;
         line-height: 1.2;
+        letter-spacing: -0.5px;
+        text-shadow: 0 1px 2px rgba(213, 0, 50, 0.1);
+        text-align: center;
     }
 
     .room-listing-inline .room-price small {
-        font-size: 0.7rem;
-        font-weight: 500;
-        color: #6c757d;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #94a3b8;
+        text-transform: lowercase;
     }
 
     .room-listing-inline .room-price-includes {
-        font-size: 0.8rem;
-        color: #6c757d;
-        font-weight: 400;
+        font-size: 0.75rem;
+        color: #64748b;
         margin: 0;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 5px;
+        font-weight: 600;
+        white-space: nowrap;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .room-listing-inline .room-price-includes i {
+        font-size: 0.7rem;
+        color: var(--mlb-blue);
+        opacity: 0.8;
+    }
+
+    .room-listing-inline .room-price-includes strong {
+        font-size: 0.8rem;
+        color: var(--mlb-red);
+        font-weight: 700;
+        margin: 0 2px;
     }
 
     .room-listing-inline .room-actions {
         display: flex;
-        gap: 8px;
+        gap: 10px;
         align-items: center;
         flex-shrink: 0;
     }
 
+    /* Estado Seleccionado */
+    .room-listing-inline[data-selected="true"] {
+        border-color: var(--mlb-red) !important;
+        border-width: 3px !important;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffffff 50%, #fffafa 100%) !important;
+        box-shadow: 0 8px 24px rgba(213, 0, 50, 0.2), 0 4px 12px rgba(213, 0, 50, 0.15) !important;
+        transform: translateY(-2px);
+    }
+
+    .room-listing-inline[data-selected="true"]::before {
+        background: linear-gradient(90deg, var(--mlb-red) 0%, #ff1744 100%);
+        opacity: 1;
+        height: 4px;
+    }
+
+    .room-listing-inline[data-selected="true"]::after {
+        content: '\f058'; /* fa-check-circle */
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        color: white;
+        font-size: 1.2rem;
+        z-index: 10;
+        background: linear-gradient(135deg, var(--mlb-red) 0%, #ff1744 100%);
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(213, 0, 50, 0.4), 0 2px 4px rgba(0,0,0,0.2);
+        animation: checkPulse 0.6s ease-out;
+    }
+
+    @keyframes checkPulse {
+        0% {
+            transform: scale(0);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.2);
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    .room-listing-inline[data-selected="true"] .room-name {
+        color: var(--mlb-red) !important;
+    }
+
+    .room-listing-inline[data-selected="true"] .room-select-btn {
+        background: linear-gradient(135deg, var(--mlb-red) 0%, #ff1744 100%) !important;
+        color: white !important;
+        border-color: var(--mlb-red) !important;
+        box-shadow: 0 4px 12px rgba(213, 0, 50, 0.3), 0 2px 6px rgba(213, 0, 50, 0.2) !important;
+        transform: scale(1.02);
+    }
+
+    @media (max-width: 1200px) {
+        .rooms-grid-container {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+    }
+
     @media (max-width: 768px) {
+        .rooms-grid-container {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
         .room-listing-inline {
             flex-direction: column;
+            margin-bottom: 0;
+            border-radius: 14px;
         }
 
         .room-listing-inline .room-image-container {
             width: 100%;
-            height: 180px;
+            height: 200px;
+            min-width: 100%;
+        }
+
+        .room-listing-inline .room-info {
+            padding: 16px 18px;
+        }
+
+        .room-listing-inline .room-name {
+            font-size: 1.15rem;
         }
 
         .room-listing-inline .room-footer {
             flex-direction: column;
             align-items: stretch;
             gap: 12px;
+            padding-top: 14px;
+        }
+
+        .room-listing-inline .room-price-zone {
+            width: 100%;
+            align-items: flex-start;
+        }
+
+        .room-listing-inline .room-price-wrapper {
+            width: 100%;
+        }
+
+        .room-listing-inline .room-price {
+            font-size: 1.6rem;
         }
 
         .room-listing-inline .room-actions {
             width: 100%;
             justify-content: stretch;
+            gap: 10px;
         }
 
         .room-listing-inline .room-actions button {
             flex: 1;
+            padding: 10px 16px;
+            font-size: 0.9rem;
+        }
+
+        .room-listing-inline[data-selected="true"]::after {
+            top: 10px;
+            right: 10px;
+            width: 28px;
+            height: 28px;
+            font-size: 1rem;
         }
     }
 
     .nsc-recommended-badge {
         display: inline-block;
-        padding: 4px 12px;
+        padding: 5px 14px;
         background: var(--mlb-red);
         color: white;
-        font-size: 0.75rem;
-        font-weight: 700;
-        border-radius: 20px;
-        margin-bottom: 8px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-radius: 6px;
+        margin-bottom: 10px;
+        box-shadow: 0 4px 10px rgba(213, 0, 50, 0.2);
     }
 
     /* Rooms modal: details panel */
@@ -432,60 +721,6 @@
         display: block;
     }
 
-    /* Selected room indicator */
-    .room-listing-inline[data-selected="true"] {
-        border-color: var(--mlb-blue) !important;
-        border-width: 3px !important;
-        background: linear-gradient(135deg, rgba(13, 44, 84, 0.08) 0%, rgba(13, 44, 84, 0.03) 100%) !important;
-        box-shadow: 0 6px 20px rgba(13, 44, 84, 0.3) !important;
-        position: relative;
-    }
-
-    .room-listing-inline[data-selected="true"]::before {
-        content: '';
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        width: 32px;
-        height: 32px;
-        background: var(--mlb-blue);
-        border-radius: 50%;
-        z-index: 10;
-        box-shadow: 0 2px 8px rgba(13, 44, 84, 0.4);
-    }
-
-    .room-listing-inline[data-selected="true"]::after {
-        content: '✓';
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1rem;
-        font-weight: 700;
-        z-index: 11;
-    }
-
-    .room-listing-inline[data-selected="true"] .room-name {
-        color: var(--mlb-blue) !important;
-    }
-
-    .room-listing-inline[data-selected="true"] .room-select-btn {
-        background: var(--mlb-red) !important;
-        border-color: var(--mlb-red) !important;
-        color: white !important;
-        box-shadow: 0 2px 8px rgba(213, 0, 50, 0.3) !important;
-    }
-
-    .room-listing-inline[data-selected="true"] .room-select-btn:hover {
-        background: #b8002a !important;
-        transform: scale(1.05);
-    }
-
     /* Helper: highlight rooms missing guest assignments */
     .room-listing-inline[data-needs-guests="true"] {
         border: 2px solid #f97316 !important;
@@ -497,14 +732,29 @@
 <div class="modal fade" id="hotelReservationModal{{ event.hotel.pk }}" data-hotel-pk="{{ event.hotel.pk }}" tabindex="-1" aria-labelledby="hotelReservationModalLabel{{ event.hotel.pk }}" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
-            <div class="modal-header" style="padding: 16px 20px;">
+            <div class="modal-header" style="padding: 16px 20px; display: flex; align-items: center; justify-content: space-between;">
                 <div>
                     <div class="nsc-step">{% trans "Step 1 of 3" %} • {% trans "Guests" %}</div>
                     <h5 class="modal-title mt-2" id="hotelReservationModalLabel{{ event.hotel.pk }}">
                         <i class="fas fa-hotel me-2"></i>{% trans "Hotel Stay" %}
                     </h5>
                 </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    {% if event.hotel and event.hotel.hotel_name %}
+                        <div style="font-weight: 700; color: #1e3a5f; font-size: 0.95rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                            <i class="fas fa-building" style="font-size: 0.85rem; color: #1e3a5f;"></i>
+                            <span>
+                                {{ event.hotel.hotel_name }}
+                                {% if event.hotel.city or event.hotel.state or event.hotel.country %}
+                                    <span style="color: #64748b; font-weight: 500; margin-left: 6px;">
+                                        {% if event.hotel.city %}{{ event.hotel.city.name }}{% endif %}{% if event.hotel.city and event.hotel.state %}, {% endif %}{% if event.hotel.state %}{{ event.hotel.state.name }}{% endif %}{% if event.hotel.state and event.hotel.country %}, {% endif %}{% if event.hotel.country %}{{ event.hotel.country.name }}{% endif %}
+                                    </span>
+                                {% endif %}
+                            </span>
+                        </div>
+                    {% endif %}
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+                </div>
             </div>
             <form id="hotelReservationForm{{ event.hotel.pk }}" method="get" action="{% url 'locations:front_hotel_reservation_create' %}">
                 <div class="modal-body" style="padding: 0;">
@@ -703,7 +953,7 @@
 
             <div class="modal-body" style="padding: 14px 18px;">
                 <!-- Instructions Banner -->
-                <div class="alert alert-info mb-3" style="border-radius: 10px; padding: 12px 16px; background: linear-gradient(135deg, rgba(13, 44, 84, 0.1) 0%, rgba(13, 44, 84, 0.05) 100%); border: 1px solid rgba(13, 44, 84, 0.2);">
+                <div class="alert alert-info alert-persistent mb-3" style="border-radius: 10px; padding: 12px 16px; background: linear-gradient(135deg, rgba(13, 44, 84, 0.1) 0%, rgba(13, 44, 84, 0.05) 100%); border: 1px solid rgba(13, 44, 84, 0.2);">
                     <div style="display: flex; align-items: start; gap: 10px;">
                         <i class="fas fa-info-circle" style="color: var(--mlb-blue); font-size: 1.1rem; margin-top: 2px;"></i>
                         <div style="flex: 1;">
@@ -758,15 +1008,30 @@
 
                 <!-- Rooms Section Header -->
                 <div style="margin-bottom: 12px;">
-                    <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.95rem; margin-bottom: 4px;">
-                        <i class="fas fa-bed me-1"></i>{% trans "Select a Room" %}
+                    <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.95rem; margin-bottom: 4px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <span>
+                            <i class="fas fa-bed me-1"></i>{% trans "Select a Room" %}
+                        </span>
+                        {% if event.hotel and event.hotel.hotel_name %}
+                            <span style="color: #1e3a5f; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                <i class="fas fa-building" style="font-size: 0.8rem; color: #1e3a5f;"></i>
+                                <span>
+                                    {{ event.hotel.hotel_name }}
+                                    {% if event.hotel.city or event.hotel.state or event.hotel.country %}
+                                        <span style="color: #64748b; font-weight: 500; margin-left: 6px;">
+                                            {% if event.hotel.city %}{{ event.hotel.city.name }}{% endif %}{% if event.hotel.city and event.hotel.state %}, {% endif %}{% if event.hotel.state %}{{ event.hotel.state.name }}{% endif %}{% if event.hotel.state and event.hotel.country %}, {% endif %}{% if event.hotel.country %}{{ event.hotel.country.name }}{% endif %}
+                                        </span>
+                                    {% endif %}
+                                </span>
+                            </span>
+                        {% endif %}
                     </div>
                     <div style="font-size: 0.8rem; color: #6c757d; font-weight: 400;">
                         {% trans "Click on a room to see details, then click 'Select' to choose it" %}
                     </div>
                 </div>
 
-                <div id="rooms-none-msg{{ event.hotel.pk }}" data-nsc-rooms-none class="alert alert-warning" style="display:none; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 0.85rem;">
+                <div id="rooms-none-msg{{ event.hotel.pk }}" data-nsc-rooms-none class="alert alert-warning alert-persistent" style="display:none; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; font-size: 0.85rem;">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     {% trans "No rooms available for the selected number of guests. Please adjust guests or try another option." %}
                 </div>
@@ -792,7 +1057,7 @@
 
                     <div style="max-height: 70vh; overflow:auto; padding-right: 4px;">
                             {% if available_rooms %}
-                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                <div class="rooms-grid-container" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
                                     {% for room in available_rooms %}
                                         <div class="room-listing-inline"
                                              data-hotel-pk="{{ event.hotel.pk }}"
@@ -802,29 +1067,39 @@
                                              data-room-price="{{ room.price_per_night|default:0 }}"
                                              data-room-includes-guests="{{ room.price_includes_guests|default:1 }}"
                                              data-room-additional-guest-price="{{ room.additional_guest_price|default:0 }}">
-                                            <!-- Room Image -->
-                                            <div class="room-image-container">
-                                                {% if room.images.exists %}
-                                                    {% with first_image=room.images.first %}
-                                                        {% if first_image.media_file %}
-                                                            <img src="{{ first_image.media_file.get_file_url }}" alt="{{ first_image.alt_text|default:room.name|default:room.get_room_type_display }}">
-                                                        {% elif first_image.image %}
-                                                            <img src="{{ first_image.image.url }}" alt="{{ first_image.alt_text|default:room.name|default:room.get_room_type_display }}">
-                                                        {% else %}
-                                                            <div style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); display: flex; align-items: center; justify-content: center;">
+                                            <!-- Room Image Slider -->
+                                            <div class="room-image-container room-image-slider" data-room-id="{{ room.id }}" data-hotel-pk="{{ event.hotel.pk }}">
+                                                <div class="room-slider-wrapper">
+                                                    {% if room.images.exists %}
+                                                        {% for image in room.images.all %}
+                                                            <div class="room-slide {% if forloop.first %}active{% endif %}">
+                                                                {% if image.media_file %}
+                                                                    <img src="{{ image.media_file.get_file_url }}" alt="{{ image.alt_text|default:room.name|default:room.get_room_type_display }}">
+                                                                {% elif image.image %}
+                                                                    <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:room.name|default:room.get_room_type_display }}">
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endfor %}
+                                                    {% else %}
+                                                        <div class="room-slide active">
+                                                            <div style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
                                                                 <i class="fas fa-bed" style="color: white; font-size: 1.5rem;"></i>
                                                             </div>
-                                                        {% endif %}
-                                                    {% endwith %}
-                                                {% else %}
-                                                    <div style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); display: flex; align-items: center; justify-content: center;">
-                                                        <i class="fas fa-bed" style="color: white; font-size: 1.5rem;"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                                {% if room.images.count > 1 %}
+                                                    <div class="room-slider-dots">
+                                                        {% for image in room.images.all %}
+                                                            <span class="room-dot {% if forloop.first %}active{% endif %}" data-slide="{{ forloop.counter0 }}"></span>
+                                                        {% endfor %}
                                                     </div>
                                                 {% endif %}
                                             </div>
 
                                             <!-- Room Info -->
                                             <div class="room-info">
+                                                <!-- Título alineado con la parte superior de la imagen -->
                                                 <div class="room-header">
                                                     {% if room.name %}
                                                         <div class="room-name">{{ room.name }}</div>
@@ -834,72 +1109,87 @@
                                                     {% endif %}
                                                 </div>
 
-                                                <div class="room-features">
-                                                    {% if room.room_number %}
-                                                        <span>
-                                                            <i class="fas fa-hashtag" style="font-size: 0.7rem;"></i>
-                                                            <span>{% trans "Room" %} {{ room.room_number }}</span>
-                                                        </span>
-                                                    {% endif %}
-                                                    {% if room.capacity %}
-                                                        <span>
-                                                            <i class="fas fa-users" style="font-size: 0.7rem;"></i>
-                                                            <span>{% trans "Max" %} {{ room.capacity }} {% trans "people" %}</span>
-                                                        </span>
-                                                    {% endif %}
-                                                    {% if room.breakfast_included %}
-                                                        <span style="color: #28a745;">
-                                                            <i class="fas fa-coffee" style="font-size: 0.7rem;"></i>
-                                                            <span>{% trans "Breakfast included" %}</span>
-                                                        </span>
-                                                    {% endif %}
-                                                </div>
-
-                                                {% if room.amenities.all %}
-                                                    <div class="room-amenities" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px;">
-                                                        {% for amenity in room.amenities.all %}
-                                                            {% if amenity.is_available %}
-                                                                <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: #e7f3ff; border: 1px solid #0d2c54; border-radius: 6px;" title="{{ amenity.name }}">
-                                                                    <i class="fas {{ amenity.get_icon_class }}" style="font-size: 0.9rem; color: #0d2c54 !important;"></i>
-                                                                </span>
-                                                            {% endif %}
-                                                        {% endfor %}
-                                                    </div>
-                                                {% endif %}
-
-                                                <div class="room-footer">
-                                                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                                                        <div style="display: flex; align-items: baseline; gap: 6px;">
-                                                            <div class="room-price" style="margin: 0;">
-                                                                ${{ room.price_per_night|floatformat:2 }}
-                                                            </div>
-                                                            <div style="font-size: 0.75rem; color: #6c757d; font-weight: 500;">
-                                                                {% trans "per night" %}
-                                                            </div>
-                                                        </div>
-                                                        {% if room.price_includes_guests %}
-                                                            <div class="room-price-includes" style="margin: 0; font-size: 0.8rem; color: #6c757d; font-weight: 400; display: flex; align-items: center; gap: 4px;">
+                                                <!-- Iconos y características debajo del título -->
+                                                <div class="room-content-wrapper">
+                                                    <div class="room-features">
+                                                        {% if room.capacity %}
+                                                            <span>
                                                                 <i class="fas fa-users" style="font-size: 0.7rem;"></i>
-                                                                <span>
-                                                                    {% if room.price_includes_guests == 1 %}
-                                                                        {% trans "Includes 1 guest" %}
-                                                                    {% else %}
-                                                                        <strong style="color: var(--mlb-blue);">{% trans "Includes" %} {{ room.price_includes_guests }} {% trans "guests" %}</strong>
-                                                                    {% endif %}
-                                                                </span>
-                                                            </div>
+                                                                <strong>{{ room.capacity }}</strong> {% trans "people" %}
+                                                            </span>
+                                                        {% endif %}
+                                                        {% if room.breakfast_included %}
+                                                            <span style="color: #059669; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-color: #86efac; box-shadow: 0 2px 4px rgba(5, 150, 105, 0.1);">
+                                                                <i class="fas fa-coffee" style="font-size: 0.7rem;"></i>
+                                                                <strong>{% trans "Breakfast" %}</strong>
+                                                            </span>
+                                                        {% endif %}
+                                                        {% if room.room_number %}
+                                                            <span>
+                                                                <i class="fas fa-hashtag" style="font-size: 0.7rem;"></i>
+                                                                <strong>{{ room.room_number }}</strong>
+                                                            </span>
                                                         {% endif %}
                                                     </div>
 
-                                                    <div class="room-actions">
-                                                        <button type="button"
-                                                                class="btn btn-sm"
-                                                                data-room-detail-url="{% url 'locations:get_room_detail' room_id=room.id %}"
-                                                                onclick="event.preventDefault(); event.stopPropagation(); window.NSC_HotelReservation?.openRoomDetail?.(this);"
-                                                                style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; border: none; border-radius: 8px; padding: 10px 18px; font-weight: 700; font-size: 0.9rem; white-space: nowrap; transition: all 0.2s ease; box-shadow: 0 2px 8px rgba(13, 44, 84, 0.25); display: flex; align-items: center; gap: 6px;">
-                                                            <i class="fas fa-eye" style="font-size: 0.85rem;"></i>
-                                                            <span>{% trans "View Details" %}</span>
-                                                        </button>
+                                                    {% if room.amenities.all %}
+                                                        <div class="room-amenities" style="margin: 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                                                            {% for amenity in room.amenities.all|slice:":6" %}
+                                                                {% if amenity.is_available %}
+                                                                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1.5px solid #e2e8f0; border-radius: 8px; color: var(--mlb-blue); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 1px 3px rgba(0,0,0,0.05);" title="{{ amenity.name }}" onmouseover="this.style.background='linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%)'; this.style.color='white'; this.style.borderColor='var(--mlb-blue)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(13, 44, 84, 0.2)';" onmouseout="this.style.background='linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'; this.style.color='var(--mlb-blue)'; this.style.borderColor='#e2e8f0'; this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
+                                                                        <i class="fas {{ amenity.get_icon_class }}" style="font-size: 0.8rem;"></i>
+                                                                    </span>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                            {% if room.amenities.all.count > 6 %}
+                                                                <span style="font-size: 0.7rem; color: #64748b; align-self: center; font-weight: 700; padding: 4px 8px; background: #f1f5f9; border-radius: 6px; border: 1px solid #e2e8f0;">+{{ room.amenities.all.count|add:"-6" }}</span>
+                                                            {% endif %}
+                                                        </div>
+                                                    {% endif %}
+
+                                                    <!-- Footer con precio y botones -->
+                                                    <div class="room-footer">
+                                                        <div class="room-price-zone">
+                                                            <div class="room-price-wrapper">
+                                                                <div class="room-price">
+                                                                    ${{ room.price_per_night|floatformat:2 }}
+                                                                    <small>/ {% trans "night" %}</small>
+                                                                </div>
+                                                                {% if room.price_includes_guests %}
+                                                                    <div class="room-price-includes" title="{% trans 'Base price includes this number of guests' %}">
+                                                                        <i class="fas fa-users"></i>
+                                                                        {% if room.price_includes_guests == 1 %}
+                                                                            <span>{% trans "Price includes" %} <strong>1</strong> {% trans "guest" %}</span>
+                                                                        {% else %}
+                                                                            <span>{% trans "Price includes" %} <strong>{{ room.price_includes_guests }}</strong> {% trans "guests" %}</span>
+                                                                        {% endif %}
+                                                                    </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="room-actions">
+                                                            <button type="button"
+                                                                    class="btn btn-sm btn-outline-primary room-detail-btn"
+                                                                    data-room-detail-url="{% url 'locations:get_room_detail' room_id=room.id %}"
+                                                                    onclick="event.preventDefault(); event.stopPropagation(); window.NSC_HotelReservation?.openRoomDetail?.(this);"
+                                                                    style="border-radius: 10px; font-weight: 700; padding: 9px 18px; border-width: 2px; font-size: 0.85rem; white-space: nowrap; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-color: var(--mlb-blue); color: var(--mlb-blue); background: transparent; box-shadow: 0 2px 4px rgba(13, 44, 84, 0.1);"
+                                                                    onmouseover="this.style.background='var(--mlb-blue)'; this.style.color='white'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(13, 44, 84, 0.2)';"
+                                                                    onmouseout="this.style.background='transparent'; this.style.color='var(--mlb-blue)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(13, 44, 84, 0.1)';">
+                                                                <i class="fas fa-eye me-1"></i>{% trans "Details" %}
+                                                            </button>
+                                                            <button type="button"
+                                                                    class="btn btn-sm btn-primary room-select-btn"
+                                                                    data-room-id="{{ room.id }}"
+                                                                    data-hotel-pk="{{ event.hotel.pk }}"
+                                                                    data-room-capacity="{{ room.capacity }}"
+                                                                    onclick="event.preventDefault(); event.stopPropagation(); window.NSC_HotelReservation?.selectRoom?.(this);"
+                                                                    style="border-radius: 10px; font-weight: 800; padding: 9px 22px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border: none; box-shadow: 0 4px 12px rgba(13, 44, 84, 0.25), 0 2px 6px rgba(13, 44, 84, 0.15); font-size: 0.9rem; white-space: nowrap; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); color: white;"
+                                                                    onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(13, 44, 84, 0.3), 0 4px 8px rgba(13, 44, 84, 0.2)';"
+                                                                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(13, 44, 84, 0.25), 0 2px 6px rgba(13, 44, 84, 0.15)';">
+                                                                <i class="fas fa-plus-circle me-1"></i>{% trans "Select" %}
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1014,12 +1304,6 @@
                         data-bs-dismiss="modal"
                         style="padding: 12px 22px;">
                     {% trans "Cancel" %}
-                </button>
-                <button type="button"
-                        class="btn btn-sm"
-                        onclick="window.NSC_HotelReservation?.autoDistributeGuests?.('{{ event.hotel.pk }}');"
-                        style="padding: 12px 14px; border-radius: 10px; font-weight: 900; background: #f8f9fa; border: 2px solid #e9ecef; color: var(--mlb-blue);">
-                    <i class="fas fa-magic me-2"></i>{% trans "Auto-assign guests" %}
                 </button>
                 <button type="button"
                         class="btn btn-form-submit"
@@ -1330,8 +1614,8 @@
 </div>
 
 <!-- Modal: Add Guest Form -->
-<div class="modal fade" id="addGuestModal{{ event.hotel.pk }}" data-hotel-pk="{{ event.hotel.pk }}" tabindex="-1" aria-labelledby="addGuestModalLabel{{ event.hotel.pk }}" aria-hidden="true" style="z-index: 1060;">
-    <div class="modal-dialog modal-dialog-centered" style="z-index: 1061;">
+<div class="modal fade" id="addGuestModal{{ event.hotel.pk }}" data-hotel-pk="{{ event.hotel.pk }}" tabindex="-1" aria-labelledby="addGuestModalLabel{{ event.hotel.pk }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
             <div class="modal-header" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; padding: 16px 20px;">
                 <h5 class="modal-title" id="addGuestModalLabel{{ event.hotel.pk }}">
@@ -3099,6 +3383,94 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(collapseRoomsListZone, 0);
         }, true);
     }
+
+    // Room Image Slider Auto-rotation
+    (function initRoomImageSliders() {
+        const sliders = document.querySelectorAll('.room-image-slider');
+        const sliderIntervals = new Map();
+
+        function initSlider(slider) {
+            const slides = slider.querySelectorAll('.room-slide');
+            const dots = slider.querySelectorAll('.room-dot');
+            if (slides.length <= 1) return; // No need for slider if only one image
+
+            let currentSlide = 0;
+            const totalSlides = slides.length;
+
+            function showSlide(index) {
+                // Remove active class from all slides and dots
+                slides.forEach(slide => slide.classList.remove('active'));
+                dots.forEach(dot => dot.classList.remove('active'));
+
+                // Add active class to current slide and dot
+                if (slides[index]) slides[index].classList.add('active');
+                if (dots[index]) dots[index].classList.add('active');
+
+                currentSlide = index;
+            }
+
+            function nextSlide() {
+                const next = (currentSlide + 1) % totalSlides;
+                showSlide(next);
+            }
+
+            // Initialize first slide
+            showSlide(0);
+
+            // Auto-rotate every 4 seconds
+            const intervalId = setInterval(nextSlide, 4000);
+            sliderIntervals.set(slider, intervalId);
+
+            // Pause on hover
+            slider.addEventListener('mouseenter', function() {
+                const id = sliderIntervals.get(slider);
+                if (id) clearInterval(id);
+            });
+
+            slider.addEventListener('mouseleave', function() {
+                const intervalId = setInterval(nextSlide, 4000);
+                sliderIntervals.set(slider, intervalId);
+            });
+
+            // Click on dots to navigate
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    showSlide(index);
+                    // Reset interval
+                    const oldId = sliderIntervals.get(slider);
+                    if (oldId) clearInterval(oldId);
+                    const newId = setInterval(nextSlide, 4000);
+                    sliderIntervals.set(slider, newId);
+                });
+            });
+        }
+
+        // Initialize all sliders
+        sliders.forEach(initSlider);
+
+        // Re-initialize when new rooms are loaded (for dynamic content)
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType === 1) { // Element node
+                        const newSliders = node.querySelectorAll ? node.querySelectorAll('.room-image-slider') : [];
+                        newSliders.forEach(function(slider) {
+                            if (!sliderIntervals.has(slider)) {
+                                initSlider(slider);
+                            }
+                        });
+                    }
+                });
+            });
+        });
+
+        // Observe the rooms container for changes
+        const roomsContainer = document.querySelector('.rooms-grid-container');
+        if (roomsContainer) {
+            observer.observe(roomsContainer, { childList: true, subtree: true });
+        }
+    })();
 })();
 </script>
 

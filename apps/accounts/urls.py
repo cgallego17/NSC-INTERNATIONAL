@@ -94,6 +94,17 @@ urlpatterns = [
         views_private.register_children_to_event,
         name="register_children_to_event",
     ),
+    # ===== EMBEDS (IFRAME) PARA TABS DEL PANEL =====
+    path(
+        "panel-tabs/eventos/",
+        views_private.PanelEventosEmbedView.as_view(),
+        name="panel_eventos_embed",
+    ),
+    path(
+        "panel-tabs/events/<int:pk>/",
+        views_private.PanelEventDetailEmbedView.as_view(),
+        name="panel_event_detail_embed",
+    ),
     # Stripe checkout (evento)
     path(
         "events/<int:pk>/stripe/create-checkout-session/",

@@ -17,8 +17,10 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone, translation
 from django.utils.translation import gettext_lazy as _
+from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import (
     CreateView,
     DetailView,
@@ -1309,6 +1311,37 @@ class PanelEventDetailView(UserDashboardView):
 
         return context
 
+
+@method_decorator(xframe_options_exempt, name="dispatch")
+class PanelEventosEmbedView(UserDashboardView):
+    """
+    Renderiza el tab 'eventos' dentro de un iframe (sin el panel completo),
+    usando el wrapper templates/accounts/panel_tabs/embed_base.html
+    """
+
+    template_name = "accounts/panel_tabs/embed_base.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["inner_template"] = "accounts/panel_tabs/eventos.html"
+        # En el iframe no necesitamos activar tabs del panel
+        context["active_tab"] = "eventos"
+        return context
+
+
+@method_decorator(xframe_options_exempt, name="dispatch")
+class PanelEventDetailEmbedView(PanelEventDetailView):
+    """
+    Renderiza el detalle del evento dentro de un iframe (sin panel completo).
+    Reutiliza la lógica de PanelEventDetailView para poblar 'event' y contexto.
+    """
+
+    template_name = "accounts/panel_tabs/embed_base.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["inner_template"] = "accounts/panel_tabs/detalle_evento.html"
+        return context
 
 @login_required
 @require_POST

@@ -452,7 +452,7 @@
                                 </h4>
                                 <p class="text-muted">Visualiza todos los eventos en formato de calendario</p>
                             </div>
-                            <iframe src="{% url 'events:calendar' %}" style="width: 100%; height: 600px; border: none; border-radius: 12px; min-height: 600px;"></iframe>
+                            <iframe id="iframe-calendario" src="{% url 'events:calendar' %}" style="width: 100%; height: 600px; border: none; border-radius: 12px; min-height: 600px; display: block;"></iframe>
                         </div>
                         <div id="tab-content-hoteles" class="tab-content" style="display: none;">
                             <div class="tab-content-header mb-4">
@@ -704,6 +704,8 @@
 
             // Función para activar un tab
             function activateTab(tabId, button) {
+                console.log('=== ACTIVANDO TAB ===', tabId);
+
                 // Remover clase active de todos los botones
                 tabButtons.forEach(btn => btn.classList.remove('active'));
 
@@ -720,36 +722,72 @@
 
                 // Mostrar el contenido correspondiente
                 const targetContent = document.getElementById('tab-content-' + tabId);
-                if (targetContent) {
-                    targetContent.style.display = 'block';
-                    targetContent.classList.add('active');
+                if (!targetContent) {
+                    console.error('ERROR: No se encontró tab-content-' + tabId);
+                    return;
+                }
 
-                    // Obtener la URL del botón
-                    const url = button ? button.getAttribute('data-url') : null;
+                console.log('Contenido encontrado:', targetContent);
 
-                    // Si hay una URL, verificar si necesita cargar iframe
-                    if (url) {
-                        const existingIframe = targetContent.querySelector('iframe');
-                        const hasStaticContent = targetContent.querySelector('.row') ||
-                                               targetContent.querySelector('.card') ||
-                                               targetContent.querySelector('.welcome-content-item') ||
-                                               targetContent.querySelector('.event-card');
+                // FORZAR mostrar el contenido
+                targetContent.style.display = 'block';
+                targetContent.style.visibility = 'visible';
+                targetContent.style.opacity = '1';
+                targetContent.classList.add('active');
 
-                        // Si no hay iframe existente, crear uno
-                        if (!existingIframe) {
-                            // Si hay contenido estático, agregar iframe después
-                            // Si no hay contenido estático, reemplazar todo con iframe
-                            loadIframe(targetContent, url);
+                // Obtener la URL del botón
+                const url = button ? button.getAttribute('data-url') : null;
+                console.log('URL del botón:', url);
+
+                // Si hay una URL, manejar el iframe
+                if (url) {
+                    const existingIframe = targetContent.querySelector('iframe');
+
+                    if (existingIframe) {
+                        console.log('Iframe encontrado:', existingIframe);
+
+                        // Construir URL absoluta
+                        let absoluteUrl = url;
+                        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                            absoluteUrl = window.location.origin + (url.startsWith('/') ? url : '/' + url);
+                        }
+
+                        console.log('URL absoluta:', absoluteUrl);
+
+                        // FORZAR visibilidad del iframe
+                        existingIframe.style.display = 'block';
+                        existingIframe.style.visibility = 'visible';
+                        existingIframe.style.opacity = '1';
+                        existingIframe.style.width = '100%';
+                        existingIframe.style.height = '600px';
+
+                        // Para calendario, siempre recargar
+                        if (tabId === 'calendario') {
+                            console.log('CALENDARIO: Forzando recarga completa');
+                            // Limpiar y recargar
+                            existingIframe.src = '';
+                            setTimeout(() => {
+                                existingIframe.src = absoluteUrl;
+                                console.log('CALENDARIO: Iframe recargado con:', absoluteUrl);
+                                // Verificar que se cargó
+                                setTimeout(() => {
+                                    console.log('CALENDARIO: Estado final - src:', existingIframe.src, 'display:', window.getComputedStyle(existingIframe).display);
+                                }, 200);
+                            }, 150);
                         } else {
-                            // Si el iframe existe pero no tiene src o tiene src diferente, actualizarlo
-                            if (!existingIframe.src || existingIframe.src !== url) {
-                                existingIframe.src = url;
+                            // Para otros tabs, actualizar si es necesario
+                            if (existingIframe.src !== absoluteUrl) {
+                                existingIframe.src = absoluteUrl;
+                                console.log('Iframe actualizado');
                             }
                         }
+                    } else {
+                        console.log('No hay iframe, creando uno nuevo');
+                        loadIframe(targetContent, url);
                     }
-                } else {
-                    console.warn('No se encontró el contenido para el tab:', tabId);
                 }
+
+                console.log('=== TAB ACTIVADO ===');
             }
 
             // Agregar event listeners a todos los botones

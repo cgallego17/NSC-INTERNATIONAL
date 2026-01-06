@@ -9,7 +9,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 from django.utils import timezone
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import (
     CreateView,
     DetailView,
@@ -161,6 +163,10 @@ class EventCalendarView(LoginRequiredMixin, ListView):
     model = Event
     template_name = "events/calendar.html"
     context_object_name = "events"
+
+    @method_decorator(xframe_options_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
 
     def get_queryset(self):
         # Obtener eventos del mes actual

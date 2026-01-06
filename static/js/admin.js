@@ -639,20 +639,21 @@ class AdminDashboard {
         toast.setAttribute('aria-live', 'assertive');
         toast.setAttribute('aria-atomic', 'true');
 
-        // Icon or image section
-        const iconOrImage = imageUrl
+        const iconOrImage = (imageUrl && imageUrl !== 'null' && imageUrl !== 'undefined' && String(imageUrl).length > 10)
             ? `<div class="toast-icon toast-image" style="width: 48px; height: 48px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: #f8f9fa;">
-                <img src="${imageUrl}" alt="Room image" style="width: 100%; height: 100%; object-fit: cover;">
+                <img src="${imageUrl}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
                </div>`
             : `<div class="toast-icon">
                 <i class="fas ${icon}"></i>
                </div>`;
 
+        const titleHtml = (title && title !== 'null' && title !== 'undefined') ? `<div class="toast-title">${title}</div>` : '';
+
         toast.innerHTML = `
             <div class="toast-content">
                 ${iconOrImage}
                 <div class="toast-body-wrapper">
-                    ${title ? `<div class="toast-title">${title}</div>` : ''}
+                    ${titleHtml}
                     <div class="toast-message">${message}</div>
                 </div>
                 <button type="button" class="toast-close" aria-label="Cerrar">
@@ -1316,17 +1317,12 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
     // Helper function to show toast notifications
     function showToast(message, type = 'warning', duration = 6000, imageUrl = null) {
-        if (window.AdminUtils && window.AdminUtils.showToast) {
-            // AdminUtils.showToast doesn't support imageUrl, so we'll call adminDashboard directly
-            if (window.adminDashboard && window.adminDashboard.showToast) {
-                window.adminDashboard.showToast(message, type, null, duration, imageUrl);
-            } else {
-                window.AdminUtils.showToast(message, type);
-            }
-        } else if (window.adminDashboard && window.adminDashboard.showToast) {
+        if (window.adminDashboard && window.adminDashboard.showToast) {
+            // La firma de adminDashboard.showToast es (message, type, title, duration, imageUrl)
             window.adminDashboard.showToast(message, type, null, duration, imageUrl);
+        } else if (window.AdminUtils && window.AdminUtils.showToast) {
+            window.AdminUtils.showToast(message, type);
         } else {
-            // Fallback to alert if toast system is not available
             alert(message);
         }
     }
@@ -2451,6 +2447,16 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         updateRoomsPriceCalculation(pk);
         validateRoomSelection(pk);
 
+        // Forzar scroll al inicio del modal para que el usuario vea el botón de continuar
+        const roomsModalElForScroll = q(`hotelRoomsModal${pk}`);
+        if (roomsModalElForScroll) {
+            roomsModalElForScroll.scrollTop = 0;
+            // También notificar al padre por si acaso
+            if (window.parent) {
+                window.parent.postMessage({ type: 'nsc-scroll-to-top', tabId: window.name }, window.location.origin);
+            }
+        }
+
         // Show success message
         const statusEl = q(`rooms-selection-status${pk}`);
         if (statusEl) {
@@ -2476,6 +2482,12 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             let inst = bootstrap.Modal.getInstance(reservationModalEl);
             if (!inst) inst = new bootstrap.Modal(reservationModalEl);
             inst.show();
+
+            // Scroll to top
+            reservationModalEl.scrollTop = 0;
+            if (window.parent) {
+                window.parent.postMessage({ type: 'nsc-scroll-to-top', tabId: window.name }, window.location.origin);
+            }
         };
 
         if (roomsModalEl.classList.contains('show')) {
@@ -2501,6 +2513,12 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             let inst = bootstrap.Modal.getInstance(actualRoomsModal);
             if (!inst) inst = new bootstrap.Modal(actualRoomsModal);
             inst.show();
+
+            // Scroll to top
+            actualRoomsModal.scrollTop = 0;
+            if (window.parent) {
+                window.parent.postMessage({ type: 'nsc-scroll-to-top', tabId: window.name }, window.location.origin);
+            }
         };
 
         if (guestModalEl.classList.contains('show')) {
@@ -2595,57 +2613,7 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         // Setup focus handling for this modal
         setupModalFocusHandling(modalEl);
 
-        let modalInstance = bootstrap.Modal.getInstance(modalEl);
-        if (!modalInstance) {
-            modalInstance = new bootstrap.Modal(modalEl, { backdrop: true, keyboard: true, focus: true });
-        }
-
-        // Add blur effect to existing backdrop ONLY when Room Detail modal opens
-        const applyBlur = function() {
-            // Wait a bit for Bootstrap to create the new backdrop
-            setTimeout(() => {
-                const backdrops = document.querySelectorAll('.modal-backdrop');
-                if (backdrops.length > 1) {
-                    // Apply blur to the first backdrop (the one from the parent modal - Available Rooms)
-                    const firstBackdrop = backdrops[0];
-                    firstBackdrop.style.backdropFilter = 'blur(8px)';
-                    firstBackdrop.style.webkitBackdropFilter = 'blur(8px)';
-                    firstBackdrop.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-                    firstBackdrop.style.zIndex = '1055'; // Behind the Room Detail modal backdrop
-
-                    // Ensure the second backdrop (Room Detail) doesn't have blur and is above
-                    if (backdrops[1]) {
-                        backdrops[1].style.backdropFilter = '';
-                        backdrops[1].style.webkitBackdropFilter = '';
-                        backdrops[1].style.zIndex = '1059'; // Above the first backdrop
-                    }
-                }
-                // Ensure the modal itself has the highest z-index
-                if (modalEl) {
-                    modalEl.style.zIndex = '1060';
-                }
-            }, 100);
-        };
-
-        // Remove blur when Room Detail modal closes
-        const removeBlur = function() {
-            const backdrops = document.querySelectorAll('.modal-backdrop');
-            // Only restore the first backdrop (parent modal - Available Rooms)
-            if (backdrops.length > 0) {
-                const firstBackdrop = backdrops[0];
-                firstBackdrop.style.backdropFilter = '';
-                firstBackdrop.style.webkitBackdropFilter = '';
-                firstBackdrop.style.backgroundColor = '';
-                firstBackdrop.style.zIndex = '';
-            }
-        };
-
-        // Apply blur ONLY when Room Detail modal is shown
-        modalEl.addEventListener('shown.bs.modal', applyBlur, { once: true });
-
-        // Remove blur ONLY when Room Detail modal is hidden
-        modalEl.addEventListener('hidden.bs.modal', removeBlur, { once: true });
-
+        let modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl, { backdrop: true, keyboard: true, focus: true });
         modalInstance.show();
 
         try {
@@ -3294,32 +3262,23 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         let registrantName = null;
         let registrantEmail = null;
         let registrantBirthDate = null;
+        let registrantPhone = null;
 
         if (userData && typeof userData === 'object') {
             registrantName = userData.name || null;
             registrantEmail = userData.email || null;
             registrantBirthDate = userData.birthDate || null;
-        } else if (typeof userData === 'string') {
-            // Backward compatibility: if string is passed, treat as name
-            registrantName = userData;
+            registrantPhone = userData.phone || null;
         }
 
+        if (!registrantName) registrantName = window.currentUserName;
         if (!registrantName) {
-            registrantName = window.currentUserName;
-        }
-        if (!registrantName) {
-            // Try to get from data attribute on the main content
             const mainContent = document.querySelector('[data-user-name]');
-            if (mainContent) {
-                registrantName = mainContent.getAttribute('data-user-name');
-            }
+            if (mainContent) registrantName = mainContent.getAttribute('data-user-name');
         }
-        // If still no name, use a fallback
-        if (!registrantName || registrantName.trim() === '') {
-            registrantName = 'You';
-        }
+        if (!registrantName) registrantName = 'You';
 
-        // Calculate age if birth date is available
+        // Calculate age
         let registrantAge = null;
         if (registrantBirthDate) {
             const birthDate = new Date(registrantBirthDate);
@@ -3328,21 +3287,12 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             }
         }
 
-        // Determine type based on age
         const registrantType = registrantAge !== null && registrantAge < 18 ? 'child' : 'adult';
-
-        // Debug log
-        console.log('[showRoomsDirect] Registrant data:', {
-            name: registrantName,
-            email: registrantEmail,
-            birthDate: registrantBirthDate,
-            age: registrantAge,
-            type: registrantType
-        });
 
         const registrant = {
             name: registrantName.trim(),
             email: registrantEmail ? registrantEmail.trim() : null,
+            phone: registrantPhone ? registrantPhone.trim() : null,
             birthDate: registrantBirthDate ? registrantBirthDate.trim() : null,
             age: registrantAge,
             type: registrantType,
@@ -3351,45 +3301,33 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
         // Store guests state
         if (!stateByPk.has(pk)) {
-            stateByPk.set(pk, { roomId: null, roomLabel: null, guests: [] });
+            stateByPk.set(pk, { rooms: [], guests: [], guestAssignments: {} });
         }
         const state = stateByPk.get(pk);
 
         // Initialize default guests
         state.guests = [];
         if (registrant.name) {
-            state.guests.push({
-                type: registrant.type || 'adult',
-                name: registrant.name,
-                email: registrant.email || null,
-                birthDate: registrant.birthDate || null,
-                age: registrant.age || null,
-                isRegistrant: true
-            });
+            state.guests.push(registrant);
         }
+
         selectedPlayers.forEach(cb => {
             const childItem = cb.closest('.child-item');
             if (!childItem) return;
 
-            // Get name from data attribute or DOM
             let name = childItem.getAttribute('data-child-name');
             if (!name) {
                 const nameDiv = childItem.querySelector('div[style*="font-weight: 700"]');
                 name = nameDiv ? nameDiv.textContent.trim() : 'Player';
             }
 
-            // Get email from data attribute
             const email = childItem.getAttribute('data-child-email') || null;
-
-            // Get birth date from data attribute
             const birthDate = childItem.getAttribute('data-birth-date') || null;
-
-            // Calculate age if birth date is available
             let age = null;
             if (birthDate) {
-                const birthDateObj = new Date(birthDate);
-                if (!isNaN(birthDateObj.getTime())) {
-                    age = Math.floor((new Date() - birthDateObj) / (365.25 * 24 * 60 * 60 * 1000));
+                const bd = new Date(birthDate);
+                if (!isNaN(bd.getTime())) {
+                    age = Math.floor((new Date() - bd) / (365.25 * 24 * 60 * 60 * 1000));
                 }
             }
 
@@ -3403,29 +3341,60 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             });
         });
 
+        // FILTRADO INTELIGENTE: Ocultar habitaciones con capacidad insuficiente
+        const totalGuestsCount = state.guests.length;
+        const roomListings = roomsModalEl.querySelectorAll('.room-listing-inline');
+        let visibleRoomsCount = 0;
+
+        roomListings.forEach(el => {
+            const cap = parseInt(el.getAttribute('data-room-capacity') || '0', 10);
+            if (cap < totalGuestsCount) {
+                el.style.display = 'none';
+            } else {
+                el.style.display = 'block';
+                visibleRoomsCount++;
+            }
+        });
+
+        // Mostrar mensaje si no hay habitaciones
+        let noRoomsAlert = roomsModalEl.querySelector('.nsc-no-rooms-alert');
+        if (visibleRoomsCount === 0) {
+            if (!noRoomsAlert) {
+                noRoomsAlert = document.createElement('div');
+                noRoomsAlert.className = 'alert alert-warning nsc-no-rooms-alert text-center m-3';
+                noRoomsAlert.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i> ${gettext('No rooms available for')} ${totalGuestsCount} ${gettext('guests')}.`;
+                const listZone = roomsModalEl.querySelector('.rooms-list-zone') || roomsModalEl.querySelector('.modal-body');
+                if (listZone) listZone.prepend(noRoomsAlert);
+            } else {
+                noRoomsAlert.style.display = 'block';
+            }
+        } else if (noRoomsAlert) {
+            noRoomsAlert.style.display = 'none';
+        }
+
         // Update UI
         updateRoomsGuestsList(pk);
         updateRoomsPriceCalculation(pk);
         validateRoomSelection(pk);
-
-        // Filter and recommend rooms based on current guests
-        const total = state.guests ? state.guests.length : 1;
-        filterAndRecommendRooms(roomsModalEl, total);
 
         // Open modal
         if (!window.bootstrap?.Modal) return;
         // Setup focus handling for this modal
         setupModalFocusHandling(roomsModalEl);
 
-        let inst = bootstrap.Modal.getInstance(roomsModalEl);
-        if (!inst) inst = new bootstrap.Modal(roomsModalEl);
+        let inst = bootstrap.Modal.getOrCreateInstance(roomsModalEl);
         inst.show();
+
+        // Forzar scroll al inicio del modal
+        roomsModalEl.scrollTop = 0;
+        if (window.parent) {
+            window.parent.postMessage({ type: 'nsc-scroll-to-top', tabId: window.name }, window.location.origin);
+        }
 
         // Update header
         const headerEl = q(`rooms-default-guests${pk}`);
         if (headerEl) {
-            const totalGuests = state.guests.length;
-            headerEl.textContent = `${totalGuests} ${totalGuests === 1 ? 'guest' : 'guests'} (${state.guests.filter(g => g.type === 'adult').length} adults, ${state.guests.filter(g => g.type === 'child').length} children)`;
+            headerEl.textContent = `${totalGuestsCount} ${totalGuestsCount === 1 ? gettext('guest') : gettext('guests')} (${state.guests.filter(g => g.type === 'adult').length} ${gettext('adults')}, ${state.guests.filter(g => g.type === 'child').length} ${gettext('children')})`;
         }
     }
 
@@ -4799,6 +4768,12 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
             let modalInstance = bootstrap.Modal.getInstance(guestModalEl);
             if (!modalInstance) modalInstance = new bootstrap.Modal(guestModalEl);
             modalInstance.show();
+
+            // Forzar scroll al inicio del modal de huéspedes
+            guestModalEl.scrollTop = 0;
+            if (window.parent) {
+                window.parent.postMessage({ type: 'nsc-scroll-to-top', tabId: window.name }, window.location.origin);
+            }
         };
 
         // Close rooms modal first (avoid backdrop conflicts), then open guest modal
