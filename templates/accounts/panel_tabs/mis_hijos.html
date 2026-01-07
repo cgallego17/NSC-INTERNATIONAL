@@ -143,9 +143,9 @@
         <p class="text-muted mb-4" style="font-size: 1.1rem; max-width: 500px; margin-left: auto; margin-right: auto;">
             {% trans "You haven't registered any players yet. Start by registering your first child/player." %}
         </p>
-        <a href="{% url 'accounts:parent_player_register' %}" class="btn" style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; border: none; border-radius: 10px; padding: 14px 35px; font-weight: 700; text-transform: uppercase; font-size: 0.95rem; letter-spacing: 0.8px; text-decoration: none; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(213, 0, 50, 0.4); transition: all 0.3s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 25px rgba(213, 0, 50, 0.5)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(213, 0, 50, 0.4)';">
+        <button type="button" class="tab-btn" data-tab="registrar-hijo" data-url="{% url 'accounts:parent_player_register' %}" style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; border: none; border-radius: 10px; padding: 14px 35px; font-weight: 700; text-transform: uppercase; font-size: 0.95rem; letter-spacing: 0.8px; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 15px rgba(213, 0, 50, 0.4); transition: all 0.3s; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 25px rgba(213, 0, 50, 0.5)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(213, 0, 50, 0.4)';">
             <i class="fas fa-user-plus"></i>{% trans "Register First Player" %}
-        </a>
+        </button>
     </div>
 {% endif %}
 
