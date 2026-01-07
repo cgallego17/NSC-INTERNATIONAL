@@ -1,0 +1,364 @@
+<!-- This is a reference template for the Vue.js event detail component -->
+<!-- The actual template is embedded in event-detail.js as a template string -->
+
+<div v-if="eventData">
+    <ToastComponent :toasts="toast.toasts" />
+
+    <!-- Header -->
+    <div class="tab-content-header mb-4" id="event-details-section" style="display: block !important; visibility: visible !important; opacity: 1 !important; width: 100% !important; position: relative !important; z-index: 1 !important;">
+        <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
+            <i class="fas fa-calendar-check me-2" style="color: var(--mlb-red);"></i>{{ $t('eventDetails') }}
+        </h4>
+        <p class="text-muted">{{ $t('eventInformationAndRegistration') }}</p>
+    </div>
+
+    <div class="row g-4" style="width: 100% !important; display: flex !important; flex-wrap: wrap !important; min-height: 400px !important; position: relative !important; z-index: 1 !important;">
+        <!-- Left Side - Event Information -->
+        <div class="col-lg-7">
+            <div class="event-info-card" style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <!-- Banner/Logo -->
+                <div v-if="eventData.banner || eventData.logo" style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 25px;">
+                    <img v-if="eventData.banner" :src="eventData.banner" :alt="eventData.title" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                    <img v-else-if="eventData.logo" :src="eventData.logo" :alt="eventData.title" style="width: 100%; height: 100%; object-fit: contain; object-position: center; background: #f8f9fa;">
+                </div>
+
+                <!-- Title and Category -->
+                <div class="mb-4">
+                    <span v-if="eventData.category" style="color: var(--mlb-red); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
+                        {{ eventData.category.name }}
+                    </span>
+                    <h2 style="color: var(--mlb-blue); font-weight: 800; font-size: 2rem; margin-top: 10px; margin-bottom: 15px;">
+                        {{ eventData.title }}
+                    </h2>
+                    <p v-if="eventData.event_type" style="color: #6c757d; font-size: 0.9rem; margin-bottom: 0;">
+                        <i class="fas fa-tag me-2" style="color: var(--mlb-red);"></i>{{ eventData.event_type.name }}
+                    </p>
+                </div>
+
+                <!-- Separator Line -->
+                <div style="width: 100%; height: 2px; background: linear-gradient(90deg, var(--mlb-red) 0%, #b30029 100%); margin-bottom: 25px; border-radius: 2px;"></div>
+
+                <!-- Event Information -->
+                <div class="event-details mb-4">
+                    <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 20px;">
+                        <i class="fas fa-calendar-alt me-2" style="color: var(--mlb-red);"></i>{{ $t('eventInformation') }}
+                    </h5>
+                    <div class="row g-3">
+                        <!-- Left Column -->
+                        <div class="col-md-6">
+                            <div class="d-flex flex-column" style="gap: 12px;">
+                                <!-- Date -->
+                                <div v-if="eventData.start_date">
+                                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i class="fas fa-calendar" style="color: white; font-size: 1rem;"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{{ $t('startDate') }}</div>
+                                            <div style="font-weight: 600; color: var(--mlb-blue);">{{ formatDate(eventData.start_date) }}</div>
+                                            <div v-if="eventData.end_date && eventData.end_date !== eventData.start_date" style="font-size: 0.75rem; color: #6c757d; margin-top: 2px;">
+                                                {{ $t('endDate') }}: {{ formatDate(eventData.end_date) }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Divisions -->
+                                <div v-if="eventData.divisions && eventData.divisions.length > 0">
+                                    <div class="divisions-card" style="display: flex; align-items: flex-start; gap: 12px; padding: 14px; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 2px solid #e9ecef; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                        <div style="width: 44px; height: 44px; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 2px 8px rgba(213, 0, 50, 0.2);">
+                                            <i class="fas fa-users" style="color: white; font-size: 1.1rem;"></i>
+                                        </div>
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div class="divisions-title-desktop" style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 8px;">
+                                                {{ $t('divisions') }} <span class="divisions-count">({{ eventData.divisions.length }})</span>
+                                            </div>
+                                            <div class="divisions-content" style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+                                                <span v-for="(division, index) in eventData.divisions.slice(0, 3)" :key="division.id" class="division-badge" style="display: inline-flex; align-items: center; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; box-shadow: 0 2px 6px rgba(213, 0, 50, 0.25); white-space: nowrap; transition: all 0.2s;">
+                                                    <i class="fas fa-tag" style="font-size: 0.65rem; margin-right: 5px; opacity: 0.9;"></i>
+                                                    {{ division.name }}
+                                                </span>
+                                                <details v-if="eventData.divisions.length > 3" class="divisions-more">
+                                                    <summary class="divisions-show-more-btn" style="display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 1px solid var(--mlb-red); color: var(--mlb-red); padding: 6px 12px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 4px; pointer-events: auto !important; z-index: 100 !important; position: relative !important;">
+                                                        <span class="divisions-show-more-text divisions-show-more-text--more">{{ $t('showMore') }}</span>
+                                                        <span class="divisions-show-more-text divisions-show-more-text--less">{{ $t('showLess') }}</span>
+                                                        <i class="fas fa-chevron-down divisions-show-more-chevron" style="font-size: 0.6rem; transition: transform 0.3s; transform: rotate(0deg);"></i>
+                                                    </summary>
+                                                    <div class="divisions-extra" style="display: flex; width: 100%; flex-wrap: wrap; gap: 6px; align-items: center; flex-direction: row;">
+                                                        <span v-for="division in eventData.divisions.slice(3)" :key="division.id" class="division-badge" style="display: inline-flex; align-items: center; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; box-shadow: 0 2px 6px rgba(213, 0, 50, 0.25); white-space: nowrap; transition: all 0.2s;">
+                                                            <i class="fas fa-tag" style="font-size: 0.65rem; margin-right: 5px; opacity: 0.9;"></i>
+                                                            {{ division.name }}
+                                                        </span>
+                                                    </div>
+                                                </details>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="col-md-6">
+                            <div class="d-flex flex-column" style="gap: 12px;">
+                                <!-- Location -->
+                                <div v-if="formatLocation(eventData)">
+                                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i class="fas fa-map-marker-alt" style="color: white; font-size: 1rem;"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{{ $t('location') }}</div>
+                                            <div style="font-weight: 600; color: var(--mlb-blue);">{{ formatLocation(eventData) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Status -->
+                                <div>
+                                    <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i class="fas fa-check-circle" style="color: white; font-size: 1rem;"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{{ $t('status') }}</div>
+                                            <div style="font-weight: 600; color: var(--mlb-blue); text-transform: capitalize;">{{ eventData.status }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Hotel -->
+                                <div v-if="eventData.hotel">
+                                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                        <div v-if="eventData.hotel.photo" style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                                            <img :src="eventData.hotel.photo" :alt="eventData.hotel.name" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div v-else style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%); display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-hotel" style="color: white; font-size: 1.5rem;"></i>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{{ $t('headquartersHotel') }}</div>
+                                            <div style="font-weight: 600; color: var(--mlb-blue);">{{ eventData.hotel.name }}</div>
+                                            <div v-if="eventData.hotel.address" style="font-size: 0.75rem; color: #6c757d; margin-top: 2px;">{{ eventData.hotel.address }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Primary Site -->
+                                <div v-if="eventData.primary_site">
+                                    <div style="display: flex; align-items: center; gap: 12px; padding: 12px; background: #f8f9fa; border-radius: 8px;">
+                                        <div v-if="eventData.primary_site.image" style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+                                            <img :src="eventData.primary_site.image" :alt="eventData.primary_site.name" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                        <div v-else style="width: 60px; height: 60px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-map-marked-alt" style="color: white; font-size: 1.5rem;"></i>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px;">{{ $t('primarySite') }}</div>
+                                            <div style="font-weight: 600; color: var(--mlb-blue);">{{ eventData.primary_site.name }}</div>
+                                            <div v-if="eventData.primary_site.address_1" style="font-size: 0.75rem; color: #6c757d; margin-top: 2px;">
+                                                {{ eventData.primary_site.address_1 }}<span v-if="eventData.primary_site.address_2">, {{ eventData.primary_site.address_2 }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video -->
+                <div v-if="eventData.video_url" class="mb-4" style="margin-top: 30px;">
+                    <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 20px;">
+                        <i class="fas fa-video me-2" style="color: var(--mlb-red);"></i>{{ $t('eventVideo') }}
+                    </h5>
+                    <div id="event-video-container" style="position: relative; width: 100%; padding-bottom: 56.25%; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); background: #000;">
+                        <!-- Video will be embedded here by JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Separator Line -->
+                <div v-if="eventData.video_url || eventData.description" style="width: 100%; height: 2px; background: linear-gradient(90deg, var(--mlb-red) 0%, #b30029 100%); margin-bottom: 25px; margin-top: 25px; border-radius: 2px;"></div>
+
+                <!-- Description -->
+                <div v-if="eventData.description" class="mb-4">
+                    <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 15px;">
+                        <i class="fas fa-info-circle me-2" style="color: var(--mlb-red);"></i>{{ $t('description') }}
+                    </h5>
+                    <div style="color: #333; line-height: 1.8; font-size: 0.95rem; font-weight: normal;" class="event-description" v-html="eventData.description"></div>
+                </div>
+
+                <!-- External Link -->
+                <div v-if="eventData.external_link" class="mt-4">
+                    <a :href="eventData.external_link" target="_blank" class="btn" style="background: var(--mlb-blue); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-external-link-alt"></i>{{ $t('moreInformation') }}
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side - Checkout -->
+        <div class="col-lg-5">
+            <div class="checkout-card" style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); position: sticky; top: 20px;">
+                <h4 style="color: var(--mlb-blue); font-weight: 800; margin-bottom: 18px; border-bottom: 3px solid var(--mlb-red); padding-bottom: 12px; font-size: 1.2rem;">
+                    <i class="fas fa-shopping-cart me-2" style="color: var(--mlb-red);"></i>{{ $t('checkout') }}
+                </h4>
+
+                <!-- Step 1: Select Players -->
+                <div v-if="children && children.length > 0" class="checkout-step mb-4" id="step-players">
+                    <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 12px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                        <span style="background: var(--mlb-red); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">1</span>
+                        <i class="fas fa-users me-1" style="color: var(--mlb-red);"></i>{{ $t('selectPlayers') }}
+                    </h5>
+                    <div class="children-list">
+                        <div v-for="child in children" :key="child.id" class="child-item mb-2"
+                             :style="{
+                                 border: '2px solid ' + (child.registered ? '#28a745' : '#e9ecef'),
+                                 borderRadius: '8px',
+                                 padding: '10px',
+                                 transition: 'all 0.3s',
+                                 cursor: child.registered ? 'not-allowed' : 'pointer',
+                                 background: child.registered ? '#f8fff9' : 'transparent'
+                             }">
+                            <div class="form-check" style="display: flex; align-items: center; gap: 10px;">
+                                <input v-if="!child.registered"
+                                       class="form-check-input child-checkbox"
+                                       type="checkbox"
+                                       :value="child.id"
+                                       :id="'child_' + child.id"
+                                       :checked="selectedChildren.includes(child.id)"
+                                       @change="toggleChild(child.id)"
+                                       style="width: 18px; height: 18px; cursor: pointer; margin: 0; flex-shrink: 0;">
+                                <input v-else
+                                       class="form-check-input child-checkbox"
+                                       type="checkbox"
+                                       :value="child.id"
+                                       :id="'child_' + child.id"
+                                       disabled
+                                       style="width: 18px; height: 18px; cursor: not-allowed; margin: 0; flex-shrink: 0; opacity: 0.5;">
+                                <label :for="'child_' + child.id"
+                                       :style="{ cursor: child.registered ? 'not-allowed' : 'pointer', width: '100%', margin: 0, opacity: child.registered ? 0.7 : 1 }">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <!-- Photo or Initials -->
+                                        <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%);">
+                                            <img v-if="child.profile_picture" :src="child.profile_picture" :alt="child.name" style="width: 100%; height: 100%; object-fit: cover;">
+                                            <span v-else-if="getInitials(child.name)" style="color: white; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;">
+                                                {{ getInitials(child.name) }}
+                                            </span>
+                                            <i v-else class="fas fa-user" style="color: white; font-size: 1rem;"></i>
+                                        </div>
+                                        <!-- Player Information -->
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.9rem; line-height: 1.2; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                <span>{{ child.name }}</span>
+                                                <span v-if="child.registered" style="background: #28a745; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                                    <i class="fas fa-check-circle" style="font-size: 0.65rem;"></i>{{ $t('registered') }}
+                                                </span>
+                                            </div>
+                                            <div v-if="child.division" style="font-size: 0.75rem; color: #6c757d; margin-top: 2px;">
+                                                <i class="fas fa-tag me-1" style="color: var(--mlb-red); font-size: 0.65rem;"></i>{{ child.division }}
+                                            </div>
+                                        </div>
+                                        <!-- Price -->
+                                        <div v-if="!child.registered" class="child-price" style="font-weight: 700; color: var(--mlb-red); font-size: 0.95rem; flex-shrink: 0;">
+                                            {{ formatPrice(eventData.default_entry_fee) }}
+                                        </div>
+                                        <div v-else style="font-weight: 600; color: #6c757d; font-size: 0.85rem; flex-shrink: 0; font-style: italic;">
+                                            {{ $t('alreadyRegistered') }}
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Add Hotel Stay -->
+                <div v-if="eventData.hotel" class="checkout-step mb-4" id="step-hotel">
+                    <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 12px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                        <span style="background: var(--mlb-red); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">2</span>
+                        <i class="fas fa-hotel me-1" style="color: var(--mlb-red);"></i>{{ $t('addHotelStay') }}
+                    </h5>
+                    <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 12px;">
+                        <div style="font-size: 0.8rem; color: #6c757d; font-weight: 600; line-height: 1.25; margin-bottom: 10px;">
+                            {{ $t('hotelBuyOutFeeMessage') }}
+                        </div>
+                    </div>
+                    <button type="button"
+                            class="btn btn-sm w-100"
+                            id="add-hotel-stay-btn"
+                            @click="openHotelRoomSelector"
+                            style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; padding: 10px; border-radius: 10px; font-weight: 800; font-size: 0.9rem; border: none; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;"
+                            @mouseover="$event.target.style.transform='translateY(-1px)'; $event.target.style.boxShadow='0 10px 24px rgba(213, 0, 50, 0.25)';"
+                            @mouseout="$event.target.style.transform='translateY(0)'; $event.target.style.boxShadow='none';">
+                        <i class="fas fa-hotel"></i>
+                        <span>{{ $t('addHotelStay') }}</span>
+                    </button>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="checkout-summary" style="border-top: 3px solid var(--mlb-red); padding-top: 20px; margin-top: 20px;">
+                    <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 15px; font-size: 1rem;">
+                        <i class="fas fa-receipt me-2" style="color: var(--mlb-red);"></i>{{ $t('orderSummary') }}
+                    </h5>
+
+                    <!-- Players Summary -->
+                    <div v-if="selectedChildrenCount > 0" id="checkout-players-summary" style="margin-bottom: 15px;">
+                        <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 15px; border-left: 4px solid var(--mlb-blue);">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="flex: 1;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <i class="fas fa-users" style="color: var(--mlb-blue); font-size: 1rem;"></i>
+                                        <span style="font-weight: 700; color: var(--mlb-blue); font-size: 1rem;">
+                                            {{ selectedChildrenCount }} {{ $t('players') }}
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: #6c757d;">{{ $t('eventRegistration') }}</div>
+                                </div>
+                                <div style="text-align: right; flex-shrink: 0; margin-left: 15px;">
+                                    <div style="font-weight: 800; color: var(--mlb-blue); font-size: 1.2rem;">{{ formatPrice(playersTotal) }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total -->
+                    <div style="border-top: 2px solid var(--mlb-red); padding-top: 15px; margin-top: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 800; color: var(--mlb-blue); font-size: 1.1rem;">{{ $t('total') }}:</span>
+                            <span style="font-weight: 800; color: var(--mlb-red); font-size: 1.4rem;">{{ formatPrice(playersTotal) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <RoomSelectionModal
+        v-if="hotelPk"
+        :hotel-pk="hotelPk"
+        :rooms="rooms"
+        :selected-rooms="reservation.selectedRooms"
+        :show="showRoomModal"
+        @close="showRoomModal = false"
+        @select-room="handleSelectRoom"
+        @remove-room="handleRemoveRoom"
+    />
+
+    <GuestDetailsModal
+        v-if="hotelPk"
+        :hotel-pk="hotelPk"
+        :guests="reservation.state.guests"
+        :show="showGuestModal"
+        @close="showGuestModal = false"
+        @continue="handleGuestDetailsContinue"
+    />
+</div>
+<div v-else>
+    <div style="text-align: center; padding: 40px;">
+        <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--mlb-blue);"></i>
+        <p style="margin-top: 20px; color: #6c757d;">{{ $t('loading') }}</p>
+    </div>
+</div>
+
