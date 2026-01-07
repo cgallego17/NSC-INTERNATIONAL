@@ -2619,39 +2619,11 @@ def events_blocked_view(request, *args, **kwargs):
     return redirect("panel")
 
 
+@login_required
+@require_POST
 def wallet_add_funds(request):
-    """Vista para agregar fondos a la wallet del usuario"""
-    from decimal import Decimal
-
-    from .models import UserWallet
-
-    try:
-        amount = Decimal(request.POST.get("amount", "0"))
-        description = request.POST.get("description", "Depósito de fondos")
-
-        if amount <= 0:
-            messages.error(request, _("The amount must be greater than zero."))
-            return redirect("panel")
-
-        # Obtener o crear wallet
-        wallet, created = UserWallet.objects.get_or_create(user=request.user)
-
-        # Aquí iría la integración con el gateway de pagos
-        # Por ahora, simulamos el depósito directamente
-        # En producción, esto debería redirigir a un gateway de pago
-        wallet.add_funds(amount, description)
-
-        messages.success(
-            request,
-            _("$%(amount)s successfully added to your wallet.") % {"amount": amount},
-        )
-    except ValueError as e:
-        messages.error(request, str(e))
-    except Exception as e:
-        messages.error(
-            request, _("Error processing deposit: %(error)s") % {"error": str(e)}
-        )
-
+    """Wallet top-ups are disabled."""
+    messages.error(request, _("Add Funds is currently disabled."))
     return redirect("panel")
 
 

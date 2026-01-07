@@ -28,7 +28,14 @@
                             ${{ wallet.balance|floatformat:2 }}
                         </h3>
                     </div>
-                    <button type="button" class="btn btn-light btn-sm" data-bs-toggle="modal" data-bs-target="#addFundsModal" style="border-radius: 8px;">
+                    <button
+                        type="button"
+                        class="btn btn-light btn-sm"
+                        style="border-radius: 8px; opacity: 0.65; cursor: not-allowed;"
+                        disabled
+                        aria-disabled="true"
+                        title="{% trans 'Add Funds is currently disabled' %}"
+                    >
                         <i class="fas fa-plus me-1"></i>{% trans "Add Funds" %}
                     </button>
                 </div>
@@ -346,7 +353,7 @@
     </div>
 </div>
 
-<!-- Modal para Agregar Fondos -->
+<!-- Modal para Agregar Fondos (disabled) -->
 {% if wallet %}
     <div class="modal fade" id="addFundsModal" tabindex="-1" aria-labelledby="addFundsModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -380,7 +387,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" disabled aria-disabled="true" title="{% trans 'Add Funds is currently disabled' %}">
                             <i class="fas fa-credit-card me-1"></i>{% trans "Proceed to Payment" %}
                         </button>
                     </div>
