@@ -1287,7 +1287,7 @@ const RoomSelectionModal = {
             <div class="modal-dialog modal-xl" style="margin: 0 auto !important; max-width: 1400px !important; width: 100% !important; padding: 0 10px !important; display: flex !important; align-items: center !important; justify-content: center !important;">
                 <div class="modal-content" style="border-radius: 16px !important; overflow: hidden !important; max-height: 95vh !important; width: 100% !important; max-width: 100% !important; display: flex !important; flex-direction: column !important; margin: 0 !important;">
                     <!-- Enhanced Header -->
-                    <div class="modal-header" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; padding: 12px 16px; border-bottom: none;">
+                    <div class="modal-header" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; padding: 12px 16px; border-bottom: none; display: flex; align-items: center; gap: 12px;">
                         <div style="flex: 1;">
                             <h5 class="modal-title" style="font-weight: 800; font-size: 1.1rem; margin: 0; display: flex; align-items: center; gap: 8px; line-height: 1.1;">
                                 <i class="fas fa-bed"></i>{{ t('selectRoom') }}
@@ -1296,7 +1296,16 @@ const RoomSelectionModal = {
                                 <i class="fas fa-users me-1"></i>{{ guestsList.length }} {{ guestsList.length === 1 ? t('guest') : t('guests') }}
                             </div>
                         </div>
-                        <button type="button" class="btn-close btn-close-white" @click="$emit('close')" style="opacity: 0.9; transform: scale(0.9);"></button>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <button v-if="safeSelectedRooms.length > 0"
+                                    type="button"
+                                    class="btn btn-sm btn-primary"
+                                    @click.stop="handleContinue"
+                                    style="padding: 8px 20px; font-weight: 800; border-radius: 8px; background: white; color: var(--mlb-blue); border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: all 0.3s ease; line-height: 1.1; font-size: 0.85rem;">
+                                <i class="fas fa-arrow-right me-2"></i>{{ t('continue') }}
+                            </button>
+                            <button type="button" class="btn-close btn-close-white" @click="$emit('close')" style="opacity: 0.9; transform: scale(0.9); margin: 0;"></button>
+                        </div>
                     </div>
 
                     <div class="modal-body" style="padding: 24px; overflow: auto; flex: 1 1 auto; min-height: 0; position: relative;">
@@ -1517,7 +1526,7 @@ const RoomSelectionModal = {
                         </div>
 
                         <!-- Guests and Selected Room Grid -->
-                        <div class="modal-grid-layout" style="margin-bottom: 18px;">
+                        <div class="modal-grid-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px;">
                             <!-- Guests Section (Left) -->
                             <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; height: 100%;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0;">
@@ -1535,7 +1544,7 @@ const RoomSelectionModal = {
                                         <span style="margin-left: 4px;">{{ t('addGuest') }}</span>
                                     </button>
                                 </div>
-                                <div class="guest-grid-layout" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 3px; min-height: 0; align-content: start;">
+                                <div class="guest-grid-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 3px; min-height: 0; align-content: start;">
                                     <div v-for="guest in guestsList" :key="guest.id"
                                          style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border-radius: 8px; border: 1.5px solid #e9ecef; font-size: 0.8rem; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); position: relative;">
                                         <!-- Guest Avatar/Icon -->

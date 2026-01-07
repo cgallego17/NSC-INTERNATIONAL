@@ -670,6 +670,19 @@
         }
     }
 
+    /* Responsive Grid for Modal (Global) */
+    .modal-grid-layout {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 14px !important;
+    }
+
+    .guest-grid-layout {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 6px !important;
+    }
+
     /* Estilos específicos para móvil - Detalle de Evento */
     @media (max-width: 768px) {
         html, body {
@@ -793,19 +806,6 @@
             width: 100% !important;
             max-width: 100% !important;
             margin-bottom: 8px !important;
-        }
-
-        /* Responsive Grid for Modal */
-        .modal-grid-layout {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 14px !important;
-        }
-
-        .guest-grid-layout {
-            display: grid !important;
-            grid-template-columns: 1fr 1fr !important;
-            gap: 6px !important;
         }
 
         @media (max-width: 991.98px) {
