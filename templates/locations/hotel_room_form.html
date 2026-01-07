@@ -311,27 +311,66 @@
                                     </button>
                                 </div>
                                 <div class="row g-3" id="taxes-checkbox-container">
-                                    {% for tax in taxes_list %}
-                                        <div class="col-md-4 tax-item">
-                                            <div class="form-check p-3 border rounded h-100" style="cursor: pointer; background: white;">
-                                                <input type="checkbox"
-                                                       name="taxes"
-                                                       id="tax_{{ tax.id }}"
-                                                       value="{{ tax.id }}"
-                                                       class="form-check-input"
-                                                       {% if tax in object.taxes.all %}checked{% endif %}>
-                                                <label class="form-check-label w-100" for="tax_{{ tax.id }}" style="cursor: pointer;">
-                                                    <strong>{{ tax.name }}</strong>
-                                                    <br>
-                                                    <span class="text-success">${{ tax.amount }}</span>
-                                                </label>
+                                    {% if object %}
+                                        {% for tax in object.taxes.all %}
+                                            <div class="col-md-4 tax-item" data-tax-id="{{ tax.id }}">
+                                                <div class="p-3 border rounded h-100" style="background: white;">
+                                                    <div class="d-flex justify-content-between align-items-start gap-2">
+                                                        <div class="form-check" style="flex: 1;">
+                                                            <input type="checkbox"
+                                                                   name="taxes"
+                                                                   id="tax_{{ tax.id }}"
+                                                                   value="{{ tax.id }}"
+                                                                   class="form-check-input"
+                                                                   checked>
+                                                            <label class="form-check-label w-100" for="tax_{{ tax.id }}" style="cursor: pointer;">
+                                                                <strong>{{ tax.name }}</strong>
+                                                                <br>
+                                                                <span class="text-success">${{ tax.amount }}</span>
+                                                                {% if tax.event %}
+                                                                    <span class="badge bg-info ms-2">{{ tax.event.title }}</span>
+                                                                {% else %}
+                                                                    <span class="badge bg-secondary ms-2">Global</span>
+                                                                {% endif %}
+                                                            </label>
+                                                        </div>
+                                                        <button type="button"
+                                                                class="btn btn-sm btn-outline-danger"
+                                                                title="Eliminar impuesto (si no se usa en otras habitaciones)"
+                                                                onclick="deleteRoomTax({{ tax.id }});">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                    <small class="text-muted d-block mt-2">Puedes deseleccionar y guardar para quitarlo de la habitación.</small>
+                                                </div>
                                             </div>
-                                        </div>
-                                    {% empty %}
-                                        <div class="col-12 no-taxes-msg">
-                                            <p class="text-muted small italic">No hay impuestos configurados.</p>
-                                        </div>
-                                    {% endfor %}
+                                        {% empty %}
+                                            <div class="col-12 no-taxes-msg">
+                                                <p class="text-muted small italic">Esta habitación no tiene impuestos asignados.</p>
+                                            </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        {% for tax in taxes_list %}
+                                            <div class="col-md-4 tax-item">
+                                                <div class="form-check p-3 border rounded h-100" style="cursor: pointer; background: white;">
+                                                    <input type="checkbox"
+                                                           name="taxes"
+                                                           id="tax_{{ tax.id }}"
+                                                           value="{{ tax.id }}"
+                                                           class="form-check-input">
+                                                    <label class="form-check-label w-100" for="tax_{{ tax.id }}" style="cursor: pointer;">
+                                                        <strong>{{ tax.name }}</strong>
+                                                        <br>
+                                                        <span class="text-success">${{ tax.amount }}</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        {% empty %}
+                                            <div class="col-12 no-taxes-msg">
+                                                <p class="text-muted small italic">No hay impuestos configurados.</p>
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -1741,19 +1780,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     const container = document.getElementById('taxes-checkbox-container');
                     if (container) {
                         const newTaxHtml = `
-                            <div class="col-md-4 tax-item">
-                                <div class="form-check p-3 border rounded h-100" style="cursor: pointer; border-color: var(--mlb-blue) !important; background: #e7f3ff;">
-                                    <input type="checkbox"
-                                           name="taxes"
-                                           id="tax_${data.id}"
-                                           value="${data.id}"
-                                           class="form-check-input"
-                                           checked>
-                                    <label class="form-check-label w-100" for="tax_${data.id}" style="cursor: pointer;">
-                                        <strong>${data.name}</strong>
-                                        <br>
-                                        <span class="text-success">$${data.amount.toFixed(2)}</span>
-                                    </label>
+                            <div class="col-md-4 tax-item" data-tax-id="${data.id}">
+                                <div class="p-3 border rounded h-100" style="border-color: var(--mlb-blue) !important; background: #e7f3ff;">
+                                    <div class="d-flex justify-content-between align-items-start gap-2">
+                                        <div class="form-check" style="flex: 1;">
+                                            <input type="checkbox"
+                                                   name="taxes"
+                                                   id="tax_${data.id}"
+                                                   value="${data.id}"
+                                                   class="form-check-input"
+                                                   checked>
+                                            <label class="form-check-label w-100" for="tax_${data.id}" style="cursor: pointer;">
+                                                <strong>${data.name}</strong>
+                                                <br>
+                                                <span class="text-success">$${data.amount.toFixed(2)}</span>
+                                            </label>
+                                        </div>
+                                        <button type="button"
+                                                class="btn btn-sm btn-outline-danger"
+                                                title="Eliminar impuesto (si no se usa en otras habitaciones)"
+                                                onclick="deleteRoomTax(${data.id});">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                    <small class="text-muted d-block mt-2">Recuerda guardar la habitación para aplicar cambios.</small>
                                 </div>
                             </div>
                         `;
@@ -1776,9 +1826,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (taxEventEl) taxEventEl.value = '';
 
                     if (window.showToast) {
-                        showToast('success', 'Impuesto creado y seleccionado.');
+                        showToast('success', 'Impuesto creado. Recuerda guardar la habitación para aplicar cambios.');
                     } else {
-                        alert('Impuesto creado y seleccionado.');
+                        alert('Impuesto creado. Recuerda guardar la habitación para aplicar cambios.');
                     }
                 } else {
                     alert('Error del servidor: ' + data.message);
@@ -1792,6 +1842,62 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Eliminar impuesto desde la habitación (solo si no se usa en otras habitaciones)
+    async function deleteRoomTax(taxId) {
+        {% if object %}
+        const roomId = {{ object.id }};
+        {% else %}
+        const roomId = null;
+        {% endif %}
+
+        if (!roomId) {
+            alert('Primero debes guardar la habitación antes de eliminar impuestos.');
+            return;
+        }
+
+        if (!confirm('¿Eliminar este impuesto? Si está usado por otras habitaciones, no se podrá borrar.')) {
+            return;
+        }
+
+        function getCookie(name) {
+            const v = document.cookie.split(';').map(s => s.trim()).find(s => s.startsWith(name + '='));
+            return v ? decodeURIComponent(v.split('=').slice(1).join('=')) : '';
+        }
+
+        try {
+            const resp = await fetch(`/locations/admin/hotel-rooms/${roomId}/taxes/${taxId}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({})
+            });
+
+            const data = await resp.json();
+            if (!resp.ok || !data.success) {
+                alert(data.message || 'No se pudo eliminar el impuesto.');
+                return;
+            }
+
+            // Remover del DOM
+            const item = document.querySelector(`.tax-item[data-tax-id="${taxId}"]`);
+            if (item) item.remove();
+
+            if (window.showToast) {
+                showToast('success', data.message || 'Impuesto eliminado.');
+            } else {
+                alert(data.message || 'Impuesto eliminado.');
+            }
+        } catch (e) {
+            console.error('Error eliminando impuesto:', e);
+            alert('Error de red al eliminar el impuesto. Revisa la consola.');
+        }
+    }
+
+    window.deleteRoomTax = deleteRoomTax;
 });
 
 </script>

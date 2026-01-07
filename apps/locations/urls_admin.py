@@ -257,6 +257,11 @@ urlpatterns = [
         views_admin.admin_hotel_room_tax_create_ajax,
         name="admin_hotel_room_tax_create_ajax",
     ),
+    path(
+        "admin/hotel-rooms/<int:room_id>/taxes/<int:tax_id>/delete/",
+        views_admin.admin_hotel_room_tax_delete_ajax,
+        name="admin_hotel_room_tax_delete_ajax",
+    ),
     # Hotel Service URLs (admin)
     path(
         "admin/hotel-services/",

@@ -2557,6 +2557,66 @@ def admin_hotel_room_tax_create_ajax(request):
         )
 
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def admin_hotel_room_tax_delete_ajax(request, room_id: int, tax_id: int):
+    """
+    Eliminar un impuesto desde el editor de una habitación.
+    - Siempre intenta desasociar el impuesto de la habitación.
+    - Solo elimina el objeto impuesto si no está asociado a otras habitaciones.
+    """
+    import logging
+    import json
+
+    logger = logging.getLogger(__name__)
+
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return JsonResponse({"success": False, "message": "No autorizado."}, status=403)
+
+    try:
+        try:
+            _ = json.loads(request.body or "{}")
+        except json.JSONDecodeError:
+            # No es crítico para esta acción
+            pass
+
+        room = get_object_or_404(HotelRoom, pk=room_id)
+        tax = get_object_or_404(HotelRoomTax, pk=tax_id)
+
+        # Quitar de esta habitación
+        room.taxes.remove(tax)
+
+        # Si el impuesto aún se usa en otras habitaciones, no borrarlo globalmente
+        if tax.rooms.exists():
+            return JsonResponse(
+                {
+                    "success": True,
+                    "deleted": False,
+                    "message": "Impuesto quitado de esta habitación. No se eliminó porque está usado en otras habitaciones.",
+                }
+            )
+
+        # Ya no se usa en ninguna habitación -> borrar
+        tax.delete()
+        return JsonResponse(
+            {
+                "success": True,
+                "deleted": True,
+                "message": "Impuesto eliminado correctamente.",
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"Error eliminando impuesto: {e}", exc_info=True)
+        return JsonResponse(
+            {
+                "success": False,
+                "message": f"Error interno del servidor: {str(e)}",
+            },
+            status=500,
+        )
+
+
 # ===== HOTEL SERVICE VIEWS (Admin) =====
 class AdminHotelServiceListView(StaffRequiredMixin, ListView):
     """Lista administrativa de servicios de hotel"""
