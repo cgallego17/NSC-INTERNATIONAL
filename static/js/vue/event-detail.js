@@ -3154,7 +3154,12 @@ const EventDetailApp = {
                 return;
             }
 
-            const stripeUrl = eventData.value?.stripe_checkout_url || `/accounts/events/${eventPkRef.value}/stripe/create-checkout-session/`;
+            const pk = eventPkRef.value || eventData.value?.id || '';
+            const stripeUrl = eventData.value?.stripe_checkout_url || `/accounts/events/${pk}/stripe/create-checkout-session/`;
+
+            console.log('Stripe Checkout Mode:', mode);
+            console.log('Stripe Checkout URL:', stripeUrl);
+            console.log('Event PK:', pk);
 
             // Show loader
             loading.value = true;
@@ -3205,6 +3210,12 @@ const EventDetailApp = {
                     body: formData
                 });
 
+                if (!resp.ok) {
+                    const text = await resp.text();
+                    console.error('Checkout error response:', resp.status, text);
+                    throw new Error(`Server returned ${resp.status}: ${text.substring(0, 100)}`);
+                }
+
                 const data = await resp.json();
 
                 if (resp.ok && data.success && data.checkout_url) {
@@ -3220,8 +3231,9 @@ const EventDetailApp = {
                     loading.value = false;
                 }
             } catch (e) {
-                console.error('Checkout error:', e);
-                toast.show($t('checkoutError') || 'Error starting payment. Please try again.', 'error');
+                console.error('Full Checkout Error:', e);
+                const errorMsg = e.message || 'Error starting payment. Please try again.';
+                toast.show(`${$t('checkoutError') || 'Error:'} ${errorMsg}`, 'error');
                 loading.value = false;
             }
         }
