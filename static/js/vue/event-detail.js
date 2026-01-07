@@ -3226,8 +3226,6 @@ const EventDetailApp = {
                     formData.set('hotel_reservation_json', JSON.stringify(hotelData));
                 }
 
-                const csrfToken = getCsrfToken();
-
                 const resp = await fetch(stripeUrl, {
                     method: 'POST',
                     headers: {
