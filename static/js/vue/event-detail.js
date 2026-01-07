@@ -183,6 +183,16 @@ function $t(key) {
 // Composables / Services
 // ============================================
 
+function calculateNights(checkInDateStr, checkOutDateStr) {
+    if (!checkInDateStr || !checkOutDateStr) return 1;
+    const inDate = new Date(String(checkInDateStr) + 'T00:00:00');
+    const outDate = new Date(String(checkOutDateStr) + 'T00:00:00');
+    if (!isFinite(inDate.getTime()) || !isFinite(outDate.getTime())) return 1;
+    const diffDays = Math.round((outDate.getTime() - inDate.getTime()) / (1000 * 60 * 60 * 24));
+    // If same-day or invalid order, charge at least 1 night
+    return diffDays > 0 ? diffDays : 1;
+}
+
 /**
  * Hotel Reservation Service
  * Manages room selection, guest assignment, and price calculation
@@ -190,6 +200,11 @@ function $t(key) {
 function useHotelReservation(hotelPk) {
     const state = reactive({
         rooms: [],
+        // Stay dates/times (apply to the hotel stay as a whole)
+        check_in_date: '',
+        check_out_date: '',
+        check_in_time: '',
+        check_out_time: '',
         // Manual guests added by the user (adults/children). Does NOT include registrant/players.
         manualGuests: [],
         // Extended guest list used for room assignment indices (registrant + selected players + manualGuests).
@@ -316,6 +331,7 @@ function useHotelReservation(hotelPk) {
  */
 function usePriceCalculation(hotelPk, reservationState) {
     const priceBreakdown = computed(() => {
+        const nights = calculateNights(reservationState.check_in_date, reservationState.check_out_date);
         let total = 0;
         let subtotal = 0;
         let totalTaxes = 0;
@@ -325,39 +341,42 @@ function usePriceCalculation(hotelPk, reservationState) {
         reservationState.rooms.forEach(room => {
             const roomId = String(room.roomId);
             const assignedGuests = reservationState.guestAssignments[roomId] || [];
-            const basePrice = parseFloat(room.price || 0);
+            const basePricePerNight = parseFloat(room.price || 0);
             const includesGuests = parseInt(room.priceIncludesGuests || 0);
             const additionalGuestPrice = parseFloat(room.additionalGuestPrice || 0);
 
-            let roomSubtotal = basePrice;
+            let roomSubtotalPerNight = basePricePerNight;
             if (assignedGuests.length > includesGuests) {
                 const extraGuests = assignedGuests.length - includesGuests;
-                roomSubtotal += extraGuests * additionalGuestPrice;
+                roomSubtotalPerNight += extraGuests * additionalGuestPrice;
             }
 
+            const roomSubtotal = roomSubtotalPerNight * nights;
             subtotal += roomSubtotal;
 
             // Calculate taxes for this room
-            let roomTaxes = 0;
+            let roomTaxesPerNight = 0;
             if (Array.isArray(room.taxes)) {
                 room.taxes.forEach(tax => {
                     const taxAmount = parseFloat(tax.amount || 0);
-                    roomTaxes += taxAmount;
+                    roomTaxesPerNight += taxAmount;
 
                     if (!taxesBreakdown[tax.name]) {
                         taxesBreakdown[tax.name] = 0;
                     }
-                    taxesBreakdown[tax.name] += taxAmount;
+                    taxesBreakdown[tax.name] += (taxAmount * nights);
                 });
             }
 
+            const roomTaxes = roomTaxesPerNight * nights;
             const roomTotal = roomSubtotal + roomTaxes;
             totalTaxes += roomTaxes;
             total += roomTotal;
 
             breakdown.push({
                 room: room.roomLabel,
-                basePrice,
+                nights,
+                basePricePerNight,
                 assignedGuests: assignedGuests.length,
                 subtotal: roomSubtotal,
                 taxes: roomTaxes,
@@ -365,7 +384,7 @@ function usePriceCalculation(hotelPk, reservationState) {
             });
         });
 
-        return { total, subtotal, totalTaxes, breakdown, taxesBreakdown };
+        return { total, subtotal, totalTaxes, breakdown, taxesBreakdown, nights };
     });
 
     return {
@@ -478,6 +497,18 @@ const RoomSelectionModal = {
         const editingGuest = ref(null); // Guest being edited (null = new guest)
         const showAssignGuestsModal = ref(false);
 
+        // Stay dates / times are informational (user cannot edit).
+        const stayInfo = computed(() => {
+            const s = props.reservationState || {};
+            return {
+                check_in_date: s.check_in_date || '',
+                check_out_date: s.check_out_date || '',
+                check_in_time: s.check_in_time || '',
+                check_out_time: s.check_out_time || '',
+            };
+        });
+        const stayNights = computed(() => calculateNights(stayInfo.value.check_in_date, stayInfo.value.check_out_date));
+
         const safeGuests = computed(() => {
             return Array.isArray(props.guests) ? props.guests : [];
         });
@@ -549,6 +580,7 @@ const RoomSelectionModal = {
                 return { basePrice: 0, additionalGuests: 0, total: 0, taxes: 0, additionalGuestsCount: 0, additionalGuestPricePerPerson: 0, taxesBreakdown: {} };
             }
 
+            const nights = stayNights.value;
             let basePrice = 0;
             let additionalGuestsTotal = 0;
             let totalAdditionalCount = 0;
@@ -566,7 +598,7 @@ const RoomSelectionModal = {
 
                 // Base price of this room
                 const roomBasePrice = parseFloat(room.price || 0);
-                basePrice += roomBasePrice;
+                basePrice += (roomBasePrice * nights);
 
                 // Additional guests in THIS room
                 const included = parseInt(room.priceIncludesGuests || 1);
@@ -577,7 +609,7 @@ const RoomSelectionModal = {
                 if (guestCountInRoom > included) {
                     const extraInRoom = guestCountInRoom - included;
                     totalAdditionalCount += extraInRoom;
-                    roomAdditionalTotal = extraInRoom * extraPrice;
+                    roomAdditionalTotal = extraInRoom * extraPrice * nights;
                     additionalGuestsTotal += roomAdditionalTotal;
                 }
 
@@ -585,11 +617,11 @@ const RoomSelectionModal = {
                 if (Array.isArray(room.taxes)) {
                     room.taxes.forEach(tax => {
                         const taxAmount = parseFloat(tax.amount || 0);
-                        totalTaxes += taxAmount;
+                        totalTaxes += taxAmount * nights;
                         if (!taxesBreakdown[tax.name]) {
                             taxesBreakdown[tax.name] = 0;
                         }
-                        taxesBreakdown[tax.name] += taxAmount;
+                        taxesBreakdown[tax.name] += taxAmount * nights;
                     });
                 }
             });
@@ -603,7 +635,8 @@ const RoomSelectionModal = {
                 total,
                 additionalGuestsCount: totalAdditionalCount,
                 additionalGuestPricePerPerson: maxAdditionalGuestPrice,
-                taxesBreakdown
+                taxesBreakdown,
+                nights
             };
         });
 
@@ -1263,6 +1296,8 @@ const RoomSelectionModal = {
             showAddGuestModal,
             editingGuest,
             showAssignGuestsModal,
+            stayInfo,
+            stayNights,
             safeGuests,
             guestsList,
             priceCalculation,
@@ -1523,6 +1558,31 @@ const RoomSelectionModal = {
                                         </div>
                                     </div>
                                 </template>
+                            </div>
+                        </div>
+
+                        <!-- Stay dates / times (informational only) -->
+                        <div style="background: #ffffff; border: 1px solid #e9ecef; border-radius: 12px; padding: 12px; margin-bottom: 14px;">
+                            <div style="display:flex; align-items:center; justify-content: space-between; gap: 10px; margin-bottom: 8px;">
+                                <div style="font-weight:800; color: var(--mlb-blue); font-size: 0.9rem; display:flex; align-items:center; gap:8px;">
+                                    <i class="fas fa-calendar-alt" style="color: var(--mlb-red);"></i>
+                                    Stay dates & times
+                                    <span style="background: #0d2c54; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 800;">
+                                        {{ stayNights }} night(s)
+                                    </span>
+                                </div>
+                            </div>
+                            <div style="display:flex; flex-wrap: wrap; gap: 12px; font-size: 0.82rem; color: #6c757d; font-weight: 700; line-height: 1.3;">
+                                <div style="display:flex; align-items:center; gap: 8px;">
+                                    <span style="color:#374151; font-weight: 800;">Check-in:</span>
+                                    <span>{{ stayInfo.check_in_date || '—' }}</span>
+                                    <span style="opacity:0.9;">{{ stayInfo.check_in_time ? ('• ' + stayInfo.check_in_time) : '' }}</span>
+                                </div>
+                                <div style="display:flex; align-items:center; gap: 8px;">
+                                    <span style="color:#374151; font-weight: 800;">Check-out:</span>
+                                    <span>{{ stayInfo.check_out_date || '—' }}</span>
+                                    <span style="opacity:0.9;">{{ stayInfo.check_out_time ? ('• ' + stayInfo.check_out_time) : '' }}</span>
+                                </div>
                             </div>
                         </div>
 
@@ -2738,6 +2798,21 @@ const EventDetailApp = {
                     room.rules || [],
                     room.taxes || []
                 );
+
+                // If stay dates/times are not set yet, seed them from the room defaults
+                if (!reservation.state.check_in_date && room.check_in_date) {
+                    reservation.state.check_in_date = room.check_in_date;
+                }
+                if (!reservation.state.check_out_date && room.check_out_date) {
+                    reservation.state.check_out_date = room.check_out_date;
+                }
+                if (!reservation.state.check_in_time && room.check_in_time) {
+                    reservation.state.check_in_time = room.check_in_time;
+                }
+                if (!reservation.state.check_out_time && room.check_out_time) {
+                    reservation.state.check_out_time = room.check_out_time;
+                }
+
                 toast.show(`Room "${label}" added`, 'success');
             }
 
@@ -3310,6 +3385,11 @@ const EventDetailApp = {
                 if (reservation.state.rooms.length > 0) {
                     const hotelData = {
                         hotel_pk: hotelPk.value,
+                        check_in_date: reservation.state.check_in_date,
+                        check_out_date: reservation.state.check_out_date,
+                        check_in_time: reservation.state.check_in_time,
+                        check_out_time: reservation.state.check_out_time,
+                        nights: calculateNights(reservation.state.check_in_date, reservation.state.check_out_date),
                         rooms: reservation.state.rooms,
                         guest_assignments: reservation.state.guestAssignments,
                         guests: reservation.state.guests
@@ -3834,6 +3914,10 @@ const EventDetailApp = {
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 8px; border-top: 2px solid #fecaca;">
                                         <span style="font-weight: 700; color: var(--mlb-red); font-size: 0.85rem; text-transform: uppercase;">{{ t('hotelStay') }} Subtotal</span>
                                         <span style="font-weight: 800; color: var(--mlb-red); font-size: 1rem;">{{ formatPrice(priceCalc.priceBreakdown.value?.total || 0) }}</span>
+                                    </div>
+                                    <div v-if="reservation.state.rooms.length > 0 && priceCalc.priceBreakdown.value?.nights"
+                                         style="margin-top: 4px; font-size: 0.75rem; color: #6c757d; font-weight: 700; text-align: right;">
+                                        {{ priceCalc.priceBreakdown.value.nights }} night(s)
                                     </div>
                                 </div>
                             </div>
