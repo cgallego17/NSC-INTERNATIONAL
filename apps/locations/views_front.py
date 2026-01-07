@@ -350,6 +350,19 @@ def get_hotel_rooms(request, hotel_id):
                     "capacity": room.capacity,
                     "price_per_night": str(room.price_per_night),
                     "description": room.description or "",
+                    # Stay defaults (used by Vue "Select Room" flow)
+                    "check_in_date": room.check_in_date.isoformat()
+                    if room.check_in_date
+                    else "",
+                    "check_out_date": room.check_out_date.isoformat()
+                    if room.check_out_date
+                    else "",
+                    "check_in_time": room.check_in_time.strftime("%H:%M")
+                    if room.check_in_time
+                    else "",
+                    "check_out_time": room.check_out_time.strftime("%H:%M")
+                    if room.check_out_time
+                    else "",
                     "is_available": is_available,
                 }
             )
@@ -483,6 +496,17 @@ def get_room_detail(request, room_id):
         "additional_guest_price": str(room.additional_guest_price or 0),
         "breakfast_included": room.breakfast_included,
         "description": room.description or "",
+        # Stay defaults (used by Vue "Select Room" flow)
+        "check_in_date": room.check_in_date.isoformat() if room.check_in_date else "",
+        "check_out_date": room.check_out_date.isoformat()
+        if room.check_out_date
+        else "",
+        "check_in_time": room.check_in_time.strftime("%H:%M")
+        if room.check_in_time
+        else "",
+        "check_out_time": room.check_out_time.strftime("%H:%M")
+        if room.check_out_time
+        else "",
         "images": images,
         "amenities": amenities,
         "services": services,

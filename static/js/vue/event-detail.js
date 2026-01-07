@@ -1587,10 +1587,25 @@ const RoomSelectionModal = {
                         </div>
 
                         <!-- Guests and Selected Room Grid -->
-                        <div class="modal-grid-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px;">
+                        <div class="modal-grid-layout"
+                             :style="{
+                                 display: 'grid',
+                                 gridTemplateColumns: isNarrow ? '1fr' : '1fr 1fr',
+                                 gap: isNarrow ? '12px' : '14px',
+                                 marginBottom: '18px'
+                             }">
                             <!-- Guests Section (Left) -->
                             <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; height: 100%;">
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0;">
+                                <div :style="{
+                                         display: 'flex',
+                                         alignItems: isNarrow ? 'stretch' : 'center',
+                                         justifyContent: 'space-between',
+                                         flexDirection: isNarrow ? 'column' : 'row',
+                                         gap: isNarrow ? '8px' : '10px',
+                                         flexWrap: 'wrap',
+                                         marginBottom: '10px',
+                                         flexShrink: 0
+                                     }">
                                     <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.9rem; display: flex; align-items: center; gap: 6px;">
                                         <i class="fas fa-users" style="font-size: 0.95rem;"></i>{{ t('yourGuests') }}
                                         <span style="background: var(--mlb-blue); color: white; padding: 2px 7px; border-radius: 10px; font-size: 0.7rem; font-weight: 700;">
@@ -1600,12 +1615,38 @@ const RoomSelectionModal = {
                                     <button type="button"
                                             class="btn btn-sm"
                                             @click="handleAddGuest"
-                                            style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; border: none; border-radius: 7px; padding: 5px 10px; font-size: 0.75rem; font-weight: 600; white-space: nowrap;">
-                                        <i class="fas fa-plus" style="font-size: 0.7rem;"></i>
-                                        <span style="margin-left: 4px;">{{ t('addGuest') }}</span>
+                                            :style="{
+                                                background: 'linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%)',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: isNarrow ? '10px' : '7px',
+                                                padding: isNarrow ? '10px 12px' : '5px 10px',
+                                                fontSize: isNarrow ? '0.875rem' : '0.75rem',
+                                                fontWeight: '700',
+                                                whiteSpace: 'nowrap',
+                                                width: isNarrow ? '100%' : 'auto',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                gap: '8px',
+                                                boxShadow: isNarrow ? '0 2px 6px rgba(13, 44, 84, 0.18)' : 'none'
+                                            }">
+                                        <i class="fas fa-plus" :style="{ fontSize: isNarrow ? '0.9rem' : '0.7rem' }"></i>
+                                        <span>{{ t('addGuest') }}</span>
                                     </button>
                                 </div>
-                                <div class="guest-grid-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 3px; min-height: 0; align-content: start;">
+                                <div class="guest-grid-layout"
+                                     :style="{
+                                         display: 'grid',
+                                         gridTemplateColumns: isNarrow ? '1fr' : '1fr 1fr',
+                                         gap: '6px',
+                                         flex: 1,
+                                         overflowY: 'auto',
+                                         overflowX: 'hidden',
+                                         paddingRight: '3px',
+                                         minHeight: 0,
+                                         alignContent: 'start'
+                                     }">
                                     <div v-for="guest in guestsList" :key="guest.id"
                                          style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border-radius: 8px; border: 1.5px solid #e9ecef; font-size: 0.8rem; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); position: relative;">
                                         <!-- Guest Avatar/Icon -->
