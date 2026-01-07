@@ -609,6 +609,30 @@ class HotelRoom(models.Model):
         verbose_name="Desayuno Incluido",
         help_text="Indica si el desayuno está incluido en el precio de la habitación",
     )
+    check_in_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha de Check-in",
+        help_text="Fecha sugerida de entrada para este tipo de habitación (opcional)",
+    )
+    check_out_date = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha de Check-out",
+        help_text="Fecha sugerida de salida para este tipo de habitación (opcional)",
+    )
+    check_in_time = models.TimeField(
+        null=True,
+        blank=True,
+        verbose_name="Hora de Check-in",
+        help_text="Hora de entrada (ej: 15:00) (opcional)",
+    )
+    check_out_time = models.TimeField(
+        null=True,
+        blank=True,
+        verbose_name="Hora de Check-out",
+        help_text="Hora de salida (ej: 11:00) (opcional)",
+    )
     stock = models.PositiveIntegerField(
         default=0,
         verbose_name="Stock",

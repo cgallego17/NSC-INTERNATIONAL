@@ -325,6 +325,10 @@ class HotelRoomForm(forms.ModelForm):
             "price_includes_guests",
             "additional_guest_price",
             "breakfast_included",
+            "check_in_date",
+            "check_out_date",
+            "check_in_time",
+            "check_out_time",
             "stock",
             "taxes",
             "description",
@@ -370,6 +374,18 @@ class HotelRoomForm(forms.ModelForm):
             ),
             "breakfast_included": forms.CheckboxInput(
                 attrs={"class": "form-check-input"}
+            ),
+            "check_in_date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
+            "check_out_date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
+            "check_in_time": forms.TimeInput(
+                attrs={"class": "form-control", "type": "time"}
+            ),
+            "check_out_time": forms.TimeInput(
+                attrs={"class": "form-control", "type": "time"}
             ),
             "stock": forms.NumberInput(
                 attrs={

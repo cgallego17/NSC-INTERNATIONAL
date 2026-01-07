@@ -135,7 +135,16 @@ class HotelAmenityInline(admin.TabularInline):
 class HotelRoomInline(admin.TabularInline):
     model = HotelRoom
     extra = 0
-    fields = ["room_number", "room_type", "capacity", "price_per_night", "stock", "is_available"]
+    fields = [
+        "room_number",
+        "room_type",
+        "capacity",
+        "price_per_night",
+        "stock",
+        "check_in_time",
+        "check_out_time",
+        "is_available",
+    ]
     readonly_fields = []
 
 
@@ -310,6 +319,10 @@ class HotelRoomAdmin(admin.ModelAdmin):
                     "price_includes_guests",
                     "additional_guest_price",
                     "breakfast_included",
+                    "check_in_date",
+                    "check_out_date",
+                    "check_in_time",
+                    "check_out_time",
                 )
             },
         ),
