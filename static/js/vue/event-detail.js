@@ -3013,6 +3013,24 @@ const EventDetailApp = {
             return playersTotal.value + hotelTotal;
         });
 
+        const videoInfo = computed(() => {
+            const url = eventData.value?.video_url;
+            if (!url) return null;
+
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                const match = url.match(regExp);
+                const id = (match && match[2].length === 11) ? match[2] : null;
+                if (id) return { type: 'youtube', src: `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&playsinline=1&rel=0&modestbranding=1` };
+            } else if (url.includes('vimeo.com')) {
+                const regExp = /(?:vimeo\.com\/)(?:.*\/)?(\d+)/;
+                const match = url.match(regExp);
+                const id = match ? match[1] : null;
+                if (id) return { type: 'vimeo', src: `https://player.vimeo.com/video/${id}?autoplay=1&muted=1&playsinline=1` };
+            }
+            return { type: 'direct', src: url };
+        });
+
         // Update checkout summary
         function updateCheckoutSummary() {
             // This will be called when children selection changes
@@ -3308,6 +3326,7 @@ const EventDetailApp = {
             selectedChildrenCount,
             playersTotal,
             checkoutTotals,
+            videoInfo,
             reservation,
             priceCalc,
             toast,
@@ -3512,12 +3531,25 @@ const EventDetailApp = {
                         </div>
 
                         <!-- Video -->
-                        <div v-if="eventData.video_url" class="mb-4" style="margin-top: 30px;">
+                        <div v-if="videoInfo" class="mb-4" style="margin-top: 30px;">
                             <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 20px;">
                                 <i class="fas fa-video me-2" style="color: var(--mlb-red);"></i>{{ t('eventVideo') }}
                             </h5>
                             <div id="event-video-container" style="position: relative; width: 100%; padding-bottom: 56.25%; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); background: #000;">
-                                <!-- Video will be embedded here by JavaScript -->
+                                <iframe v-if="videoInfo.type === 'youtube' || videoInfo.type === 'vimeo'"
+                                    :src="videoInfo.src"
+                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                                    allowfullscreen>
+                                </iframe>
+                                <video v-else-if="videoInfo.type === 'direct'"
+                                    :src="videoInfo.src"
+                                    controls
+                                    autoplay
+                                    muted
+                                    playsinline
+                                    style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; background: #000;">
+                                </video>
                             </div>
                         </div>
 
