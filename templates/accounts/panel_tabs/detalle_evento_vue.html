@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load static %}
 {% load url_filters %}
+{% load l10n %}
 
 <!-- Estilos responsive para móvil (copiados del template original) -->
 <style>
@@ -834,6 +835,7 @@
 
 <!-- Event Data (JSON) for Vue to consume -->
 <script id="event-data" type="application/json">
+{% localize off %}
 {
     "id": {{ event.pk }},
     "title": "{{ event.title|escapejs }}",
@@ -858,7 +860,8 @@
         "id": {{ event.hotel.pk }},
         "name": "{{ event.hotel.hotel_name|escapejs }}",
         "address": "{{ event.hotel.address|default:''|escapejs }}",
-        "photo": "{% if event.hotel.photo %}{{ event.hotel.photo.url }}{% endif %}"
+        "photo": "{% if event.hotel.photo %}{{ event.hotel.photo.url }}{% endif %}",
+        "buy_out_fee": {{ event.hotel.buy_out_fee|default_if_none:0 }}
     }{% else %}null{% endif %},
     "primary_site": {% if event.primary_site %}{
         "id": {{ event.primary_site.id }},
@@ -876,6 +879,7 @@
         {% endfor %}
     ]
 }
+{% endlocalize %}
 </script>
 
 <!-- Registrant/User Data (JSON) -->
@@ -909,6 +913,7 @@
 
 <!-- Rooms Data (JSON) for Vue to consume -->
 <script id="rooms-data-{{ event.hotel.pk|default:'' }}" type="application/json">
+{% localize off %}
 [
     {% if available_rooms %}
         {% for room in available_rooms %}
@@ -972,6 +977,7 @@
         {% endfor %}
     {% endif %}
 ]
+{% endlocalize %}
 </script>
 
 <!-- Container for Vue App -->

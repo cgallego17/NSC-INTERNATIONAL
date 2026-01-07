@@ -208,7 +208,7 @@ function useHotelReservation(hotelPk) {
         return state.rooms.reduce((sum, room) => sum + (room.capacity || 0), 0);
     });
 
-    function addRoom(roomId, roomLabel, capacity, price, includesGuests, additionalPrice, rules) {
+    function addRoom(roomId, roomLabel, capacity, price, includesGuests, additionalPrice, rules, taxes) {
         const roomIdStr = String(roomId);
         const exists = state.rooms.find(r => r.roomId === roomIdStr);
         if (!exists) {
@@ -220,7 +220,8 @@ function useHotelReservation(hotelPk) {
                 price: parseFloat(price || 0),
                 priceIncludesGuests: parseInt(includesGuests || 1),
                 rules: rules || [],
-                additionalGuestPrice: parseFloat(additionalPrice || 0)
+                additionalGuestPrice: parseFloat(additionalPrice || 0),
+                taxes: Array.isArray(taxes) ? taxes : []
             });
             state.guestAssignments[roomIdStr] = [];
         } else {
@@ -2734,7 +2735,8 @@ const EventDetailApp = {
                     room.price_per_night || room.price || 0,
                     room.price_includes_guests || 1,
                     room.additional_guest_price || 0,
-                    room.rules || []
+                    room.rules || [],
+                    room.taxes || []
                 );
                 toast.show(`Room "${label}" added`, 'success');
             }
@@ -3187,10 +3189,17 @@ const EventDetailApp = {
             const playersPrice = playersTotal.value;
             const hotelPrice = priceCalc.priceBreakdown.value?.total || 0;
 
-            // Hotel buy out fee: applies if event has hotel, there are players, and NO hotel is selected
+            // Hotel buy out fee: comes from the event hotel (Hotel.buy_out_fee).
+            // Applies if event has hotel, there are players, and NO hotel stay is selected.
             const hasEventHotel = !!eventData.value?.hotel;
-            const applyNoShowFee = hasEventHotel && (selectedChildrenCount.value > 0) && (reservation.state.rooms.length === 0);
-            const noShowFee = applyNoShowFee ? 1000 : 0;
+            const applyNoShowFee =
+                hasEventHotel &&
+                (selectedChildrenCount.value > 0) &&
+                (reservation.state.rooms.length === 0);
+
+            const buyOutFeeRaw = eventData.value?.hotel?.buy_out_fee;
+            const buyOutFee = parseFloat(buyOutFeeRaw);
+            const noShowFee = applyNoShowFee ? (isNaN(buyOutFee) ? 0 : buyOutFee) : 0;
 
             const subtotal = playersPrice + hotelPrice + noShowFee;
 
