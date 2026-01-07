@@ -398,15 +398,154 @@ class PublicPlayerListView(ListView):
         return context
 
 
+def _get_client_ip(request):
+    """Obtiene la IP del cliente, considerando proxies"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0].strip()
+    else:
+        ip = request.META.get('REMOTE_ADDR', 'unknown')
+    return ip
+
+
+def _check_login_rate_limit(request):
+    """
+    Verifica rate limiting para login y previene ataques de fuerza bruta.
+
+    Returns:
+        tuple: (is_allowed, remaining_attempts, is_blocked, block_seconds_remaining)
+    """
+    from django.core.cache import cache
+
+    ip_address = _get_client_ip(request)
+
+    # Configuración de rate limiting
+    MAX_ATTEMPTS_PER_HOUR = 10  # Máximo 10 intentos por hora
+    MAX_FAILED_ATTEMPTS = 5  # Máximo 5 intentos fallidos consecutivos
+    BLOCK_DURATION = 900  # Bloquear por 15 minutos después de 5 intentos fallidos
+
+    # Claves de caché
+    rate_limit_key = f"login_rate_limit_{ip_address}"
+    failed_attempts_key = f"login_failed_attempts_{ip_address}"
+    blocked_key = f"login_blocked_{ip_address}"
+
+    # Verificar si está bloqueado
+    blocked_until = cache.get(blocked_key)
+    if blocked_until:
+        import time
+        current_time = time.time()
+        if current_time < blocked_until:
+            seconds_remaining = int(blocked_until - current_time)
+            return False, 0, True, seconds_remaining
+        else:
+            # El bloqueo expiró, limpiar
+            cache.delete(blocked_key)
+            cache.delete(failed_attempts_key)
+
+    # Verificar rate limiting general (intentos por hora)
+    attempts_count = cache.get(rate_limit_key, 0)
+    if attempts_count >= MAX_ATTEMPTS_PER_HOUR:
+        return False, 0, False, 0
+
+    # Obtener intentos fallidos consecutivos
+    failed_attempts = cache.get(failed_attempts_key, 0)
+
+    remaining = MAX_ATTEMPTS_PER_HOUR - attempts_count
+    return True, remaining, False, 0
+
+
+def _increment_login_attempts(request, is_successful=False):
+    """
+    Incrementa contadores de intentos de login.
+
+    Args:
+        request: HttpRequest object
+        is_successful: Si el login fue exitoso
+    """
+    from django.core.cache import cache
+    import time
+
+    ip_address = _get_client_ip(request)
+
+    # Configuración
+    MAX_FAILED_ATTEMPTS = 5
+    BLOCK_DURATION = 900  # 15 minutos
+    RATE_LIMIT_WINDOW = 3600  # 1 hora
+
+    # Claves de caché
+    rate_limit_key = f"login_rate_limit_{ip_address}"
+    failed_attempts_key = f"login_failed_attempts_{ip_address}"
+    blocked_key = f"login_blocked_{ip_address}"
+
+    if is_successful:
+        # Login exitoso: limpiar contadores de intentos fallidos
+        cache.delete(failed_attempts_key)
+        # Pero mantener el rate limit general (para prevenir abuso)
+        # No incrementar el contador general en login exitoso
+    else:
+        # Login fallido: incrementar contadores
+        # Incrementar rate limit general
+        attempts_count = cache.get(rate_limit_key, 0)
+        cache.set(rate_limit_key, attempts_count + 1, RATE_LIMIT_WINDOW)
+
+        # Incrementar intentos fallidos consecutivos
+        failed_attempts = cache.get(failed_attempts_key, 0) + 1
+        cache.set(failed_attempts_key, failed_attempts, BLOCK_DURATION)
+
+        # Si se exceden los intentos fallidos, bloquear
+        if failed_attempts >= MAX_FAILED_ATTEMPTS:
+            block_until = time.time() + BLOCK_DURATION
+            cache.set(blocked_key, block_until, BLOCK_DURATION)
+
+
 class PublicLoginView(BaseLoginView):
-    """Vista de login público con diseño MLB - Usa correo electrónico"""
+    """
+    Vista de login público con diseño MLB - Usa correo electrónico
+
+    Rate Limiting:
+    - Máximo 10 intentos por hora por IP
+    - Bloqueo de 15 minutos después de 5 intentos fallidos consecutivos
+    """
 
     template_name = "accounts/public_login.html"
     authentication_form = EmailAuthenticationForm
     redirect_authenticated_user = True
 
+    def dispatch(self, request, *args, **kwargs):
+        """Verificar rate limiting antes de procesar el request"""
+        # Verificar rate limiting
+        is_allowed, remaining, is_blocked, seconds_remaining = _check_login_rate_limit(request)
+
+        if is_blocked:
+            messages.error(
+                request,
+                _(
+                    "Too many failed login attempts. Please try again in %(minutes)d minutes."
+                ) % {"minutes": (seconds_remaining // 60) + 1},
+            )
+            # Redirigir a home con mensaje de error
+            request.session["login_error"] = True
+            request.session["login_blocked"] = True
+            request.session["block_seconds_remaining"] = seconds_remaining
+            return redirect(f"/?login_error=1&blocked=1")
+
+        if not is_allowed:
+            messages.error(
+                request,
+                _(
+                    "Too many login attempts. Please try again later. (Remaining attempts: %(remaining)d)"
+                ) % {"remaining": remaining},
+            )
+            request.session["login_error"] = True
+            return redirect(f"/?login_error=1&rate_limit=1")
+
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
         """Redirigir según el tipo de usuario después del login"""
+        # Login exitoso: limpiar contadores de intentos fallidos
+        _increment_login_attempts(self.request, is_successful=True)
+
         super().form_valid(form)
         user = form.get_user()
 
@@ -469,12 +608,38 @@ class PublicLoginView(BaseLoginView):
         return redirect("panel")
 
     def form_invalid(self, form):
-        """Si el formulario es inválido, redirigir a la página principal con el modal abierto"""
+        """Si el formulario es inválido, registrar intento fallido y redirigir"""
+        # Registrar intento fallido
+        _increment_login_attempts(self.request, is_successful=False)
+
+        # Verificar si ahora está bloqueado después de este intento
+        is_allowed, remaining, is_blocked, seconds_remaining = _check_login_rate_limit(self.request)
+
         # Guardar los datos del formulario y errores en la sesión
         self.request.session["login_error"] = True
         self.request.session["login_form_data"] = {
             "username": self.request.POST.get("username", ""),
         }
+
+        if is_blocked:
+            self.request.session["login_blocked"] = True
+            self.request.session["block_seconds_remaining"] = seconds_remaining
+            messages.error(
+                self.request,
+                _(
+                    "Too many failed login attempts. Your IP has been temporarily blocked. Please try again in %(minutes)d minutes."
+                ) % {"minutes": (seconds_remaining // 60) + 1},
+            )
+            return redirect(f"/?login_error=1&blocked=1")
+        elif not is_allowed:
+            messages.error(
+                self.request,
+                _(
+                    "Too many login attempts. Please try again later. (Remaining attempts: %(remaining)d)"
+                ) % {"remaining": remaining},
+            )
+            return redirect(f"/?login_error=1&rate_limit=1")
+
         # Redirigir a la página principal con parámetro de error
         return redirect(f"/?login_error=1")
 
@@ -691,19 +856,96 @@ class FrontPlayerProfileView(LoginRequiredMixin, DetailView):
 
         return context
 
+def _check_rate_limit(request, cache_key_prefix, max_requests=100, window_seconds=3600):
+    """
+    Verifica rate limiting usando caché de Django.
+
+    Args:
+        request: HttpRequest object
+        cache_key_prefix: Prefijo para la clave de caché
+        max_requests: Número máximo de requests permitidos
+        window_seconds: Ventana de tiempo en segundos (por defecto 1 hora)
+
+    Returns:
+        tuple: (is_allowed, remaining_requests)
+    """
+    from django.core.cache import cache
+    from django.utils import timezone
+
+    # Obtener IP del cliente
+    ip_address = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+    if not ip_address:
+        ip_address = request.META.get('REMOTE_ADDR', 'unknown')
+
+    # Crear clave de caché única por IP
+    cache_key = f"{cache_key_prefix}_{ip_address}"
+
+    # Obtener contador actual
+    request_count = cache.get(cache_key, 0)
+
+    # Verificar si se excedió el límite
+    if request_count >= max_requests:
+        return False, 0
+
+    # Incrementar contador
+    cache.set(cache_key, request_count + 1, window_seconds)
+
+    return True, max_requests - request_count - 1
+
+
 def instagram_posts_api(request):
     """
     API endpoint para obtener posts de Instagram
-    Siempre devuelve exactamente 12 posts (completa con placeholders si es necesario)
-    """
-    try:
-        from urllib.parse import quote
+    Siempre devuelve exactamente 6 posts (completa con placeholders si es necesario)
 
+    Rate Limiting: 100 requests por hora por IP
+    Caché: 15 minutos
+    """
+    from django.core.cache import cache
+    from django.http import JsonResponse
+    from urllib.parse import quote
+
+    # Rate limiting: 100 requests por hora por IP
+    is_allowed, remaining = _check_rate_limit(
+        request,
+        "instagram_posts_api",
+        max_requests=100,
+        window_seconds=3600
+    )
+
+    if not is_allowed:
+        return JsonResponse(
+            {"error": "Rate limit exceeded. Please try again later."},
+            status=429
+        )
+
+    # Validar parámetros GET
+    limit = request.GET.get("limit", "6")
+    try:
+        limit = int(limit)
+        # Limitar entre 1 y 12
+        limit = max(1, min(12, limit))
+    except (ValueError, TypeError):
+        limit = 6
+
+    # Clave de caché
+    cache_key = f"instagram_posts_api_{limit}"
+
+    # Intentar obtener del caché
+    cached_posts = cache.get(cache_key)
+    if cached_posts is not None:
+        # Agregar header de rate limit
+        response = JsonResponse(cached_posts, safe=False)
+        response['X-RateLimit-Remaining'] = str(remaining)
+        response['X-RateLimit-Limit'] = '100'
+        return response
+
+    try:
         from .instagram_api import get_instagram_posts
 
         username = getattr(settings, "INSTAGRAM_USERNAME", "ncs_international")
-        # Solicitar 6 posts del RSS feed
-        posts = get_instagram_posts(username=username, limit=6)
+        # Solicitar posts del RSS feed
+        posts = get_instagram_posts(username=username, limit=limit)
 
         # Reemplazar URLs de imágenes con URLs de proxy para evitar CORS
         for post in posts:
@@ -714,36 +956,128 @@ def instagram_posts_api(request):
                     f"/accounts/api/instagram/image-proxy/?url={quote(image_url)}"
                 )
 
-        # Limitar a exactamente 6 posts (sin placeholders)
-        posts = posts[:6]
+        # Limitar a exactamente el número solicitado
+        posts = posts[:limit]
+
+        # Guardar en caché por 15 minutos (900 segundos)
+        cache.set(cache_key, posts, 900)
 
         # Log para debugging
         print(
-            f"Instagram API: Devolviendo {len(posts)} posts para {username} (solicitados: 6)"
+            f"Instagram API: Devolviendo {len(posts)} posts para {username} (solicitados: {limit})"
         )
-        if posts:
-            print(
-                f"Primer post: {posts[0].get('image_url', 'No image_url')[:100] if posts[0].get('image_url') else 'Placeholder'}"
-            )
 
-        return JsonResponse(posts, safe=False)
+        # Agregar headers de rate limit
+        response = JsonResponse(posts, safe=False)
+        response['X-RateLimit-Remaining'] = str(remaining)
+        response['X-RateLimit-Limit'] = '100'
+        return response
+
     except Exception as e:
         # Si hay error, retornar lista vacía con información del error
         print(f"Error en instagram_posts_api: {e}")
         import traceback
 
         traceback.print_exc()
-        return JsonResponse([], safe=False)
+        response = JsonResponse([], safe=False)
+        response['X-RateLimit-Remaining'] = str(remaining)
+        response['X-RateLimit-Limit'] = '100'
+        return response
 
 
 def instagram_image_proxy(request):
     """
     Proxy para imágenes de Instagram que evita problemas de CORS.
     Descarga la imagen desde Instagram y la sirve desde nuestro servidor.
+
+    Rate Limiting: 200 requests por hora por IP
+    Validación: Solo URLs de Instagram permitidas
+    Caché: 1 hora
     """
+    from django.core.cache import cache
+    from django.http import HttpResponse
+    from urllib.parse import urlparse, unquote
+    import hashlib
+
+    # Rate limiting: 200 requests por hora por IP (más permisivo para imágenes)
+    is_allowed, remaining = _check_rate_limit(
+        request,
+        "instagram_image_proxy",
+        max_requests=200,
+        window_seconds=3600
+    )
+
+    if not is_allowed:
+        return HttpResponse(
+            "Rate limit exceeded. Please try again later.",
+            status=429
+        )
+
+    # Validar y obtener URL
     image_url = request.GET.get("url")
     if not image_url:
-        return HttpResponse(status=400)
+        return HttpResponse("Missing 'url' parameter", status=400)
+
+    # Decodificar URL
+    try:
+        image_url = unquote(image_url)
+    except Exception:
+        pass
+
+    # Validar que sea una URL válida
+    try:
+        parsed_url = urlparse(image_url)
+        if not parsed_url.scheme or not parsed_url.netloc:
+            return HttpResponse("Invalid URL format", status=400)
+
+        # Validar que sea de un dominio permitido (Instagram)
+        allowed_domains = [
+            'instagram.com',
+            'cdninstagram.com',
+            'fbcdn.net',
+            'scontent',
+            'scontent.cdninstagram.com',
+        ]
+
+        domain_valid = any(
+            allowed_domain in parsed_url.netloc.lower()
+            for allowed_domain in allowed_domains
+        )
+
+        if not domain_valid:
+            return HttpResponse(
+                "Only Instagram image URLs are allowed",
+                status=403
+            )
+    except Exception as e:
+        return HttpResponse(f"Invalid URL: {str(e)}", status=400)
+
+    # Validar referer (opcional pero recomendado)
+    referer = request.META.get('HTTP_REFERER', '')
+    if referer:
+        from django.conf import settings
+        allowed_hosts = getattr(settings, 'ALLOWED_HOSTS', [])
+        referer_host = urlparse(referer).netloc
+        # Permitir si el referer es de nuestro dominio o está vacío
+        if referer_host and referer_host not in allowed_hosts:
+            # No bloquear, solo registrar
+            print(f"Warning: Request from unexpected referer: {referer_host}")
+
+    # Crear clave de caché basada en la URL
+    url_hash = hashlib.md5(image_url.encode()).hexdigest()
+    cache_key = f"instagram_image_proxy_{url_hash}"
+
+    # Intentar obtener del caché
+    cached_image = cache.get(cache_key)
+    if cached_image is not None:
+        content, content_type = cached_image
+        response = HttpResponse(content, content_type=content_type)
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "GET"
+        response["Cache-Control"] = "public, max-age=3600"
+        response['X-RateLimit-Remaining'] = str(remaining)
+        response['X-RateLimit-Limit'] = '200'
+        return response
 
     try:
         # Descargar la imagen desde Instagram
@@ -758,18 +1092,37 @@ def instagram_image_proxy(request):
         # Determinar content type
         content_type = response.headers.get("Content-Type", "image/jpeg")
 
+        # Validar que sea una imagen
+        if not content_type.startswith('image/'):
+            return HttpResponse("URL does not point to an image", status=400)
+
+        # Limitar tamaño de imagen (10MB máximo)
+        content = response.content
+        if len(content) > 10 * 1024 * 1024:  # 10MB
+            return HttpResponse("Image too large (max 10MB)", status=413)
+
+        # Guardar en caché por 1 hora (3600 segundos)
+        cache.set(cache_key, (content, content_type), 3600)
+
         # Retornar la imagen con headers apropiados
-        django_response = HttpResponse(response.content, content_type=content_type)
+        django_response = HttpResponse(content, content_type=content_type)
         # Headers para evitar problemas de CORS
         django_response["Access-Control-Allow-Origin"] = "*"
         django_response["Access-Control-Allow-Methods"] = "GET"
         # Cache por 1 hora
         django_response["Cache-Control"] = "public, max-age=3600"
+        django_response['X-RateLimit-Remaining'] = str(remaining)
+        django_response['X-RateLimit-Limit'] = '200'
         return django_response
 
+    except requests.exceptions.Timeout:
+        return HttpResponse("Request timeout", status=504)
+    except requests.exceptions.RequestException as e:
+        print(f"Error descargando imagen de Instagram: {e}")
+        return HttpResponse("Error fetching image", status=502)
     except Exception as e:
         print(f"Error descargando imagen de Instagram: {e}")
         import traceback
 
         traceback.print_exc()
-        return HttpResponse(status=500)
+        return HttpResponse("Internal server error", status=500)

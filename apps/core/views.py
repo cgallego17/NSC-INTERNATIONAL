@@ -106,3 +106,13 @@ def custom_logout_view(request):
     messages.success(request, _("You have been successfully logged out."))
     # Redirigir con parámetro para que JavaScript muestre el alert
     return redirect("/?logout=success")
+
+
+def handler404(request, exception):
+    """
+    Handler personalizado para errores 404 (Página no encontrada)
+    """
+    from django.shortcuts import render
+    from django.template import RequestContext
+
+    return render(request, '404.html', status=404)

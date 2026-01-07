@@ -212,9 +212,9 @@ def media_file_upload_ajax(request):
 
 @require_http_methods(["POST"])
 def media_file_bulk_delete(request):
-    """Eliminar múltiples archivos"""
-    if not request.user.is_staff:
-        return JsonResponse({"error": "No autorizado"}, status=403)
+    """Eliminar múltiples archivos - Solo admin"""
+    if not request.user.is_superuser:
+        return JsonResponse({"error": "No autorizado. Solo administradores pueden realizar esta operación."}, status=403)
 
     try:
         data = json.loads(request.body)
@@ -240,9 +240,9 @@ def media_file_bulk_delete(request):
 
 @require_http_methods(["POST"])
 def media_file_bulk_update(request):
-    """Actualizar múltiples archivos (cambiar estado, agregar tags, etc.)"""
-    if not request.user.is_staff:
-        return JsonResponse({"error": "No autorizado"}, status=403)
+    """Actualizar múltiples archivos (cambiar estado, agregar tags, etc.) - Solo admin"""
+    if not request.user.is_superuser:
+        return JsonResponse({"error": "No autorizado. Solo administradores pueden realizar esta operación."}, status=403)
 
     try:
         data = json.loads(request.body)

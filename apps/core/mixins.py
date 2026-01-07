@@ -102,3 +102,23 @@ class OwnerOrStaffRequiredMixin(LoginRequiredMixin):
             return redirect("panel")
 
         return super().dispatch(request, *args, **kwargs)
+
+
+class SuperuserRequiredMixin(LoginRequiredMixin):
+    """
+    Mixin que requiere que el usuario sea superuser.
+    Si no cumple, redirige al panel con mensaje de error.
+    """
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect("accounts:login")
+
+        if not request.user.is_superuser:
+            messages.error(
+                request,
+                "Solo los administradores pueden acceder a esta sección.",
+            )
+            return redirect("panel")
+
+        return super().dispatch(request, *args, **kwargs)

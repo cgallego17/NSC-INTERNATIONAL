@@ -31,7 +31,7 @@ from django.views.generic import (
     UpdateView,
 )
 
-from apps.core.mixins import ManagerRequiredMixin
+from apps.core.mixins import ManagerRequiredMixin, OwnerOrStaffRequiredMixin, StaffRequiredMixin, SuperuserRequiredMixin
 
 from .forms import (
     ParentPlayerRegistrationForm,
@@ -810,21 +810,12 @@ class TeamCreateView(ManagerRequiredMixin, CreateView):
         return kwargs
 
 
-class TeamUpdateView(LoginRequiredMixin, UpdateView):
+class TeamUpdateView(OwnerOrStaffRequiredMixin, UpdateView):
     """Actualizar equipo"""
 
     model = Team
     form_class = TeamForm
     template_name = "accounts/team_form.html"
-
-    def dispatch(self, request, *args, **kwargs):
-        team = self.get_object()
-        if team.manager != request.user and not (
-            request.user.is_staff or request.user.is_superuser
-        ):
-            messages.error(request, _("You do not have permission to edit this team."))
-            return redirect("accounts:team_list")
-        return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self):
         return reverse_lazy("accounts:team_detail", kwargs={"pk": self.object.pk})
@@ -837,7 +828,7 @@ class TeamUpdateView(LoginRequiredMixin, UpdateView):
 # ===== VISTAS DE JUGADORES =====
 
 
-class PlayerListView(LoginRequiredMixin, ListView):
+class PlayerListView(StaffRequiredMixin, ListView):
     """Lista de jugadores"""
 
     model = Player
@@ -900,6 +891,10 @@ class PlayerListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        # Sidebar (admin dashboard base.html)
+        context["active_section"] = "players"
+        context["active_subsection"] = "player_list"
+
         # Agregar site_settings para navbar y footer
         try:
             from .models import SiteSettings
@@ -939,6 +934,26 @@ class PlayerDetailView(LoginRequiredMixin, DetailView):
     model = Player
     template_name = "accounts/player_detail.html"
     context_object_name = "player"
+
+    def dispatch(self, request, *args, **kwargs):
+        """Verificar permisos antes de mostrar el detalle del jugador"""
+        if not request.user.is_authenticated:
+            return redirect("accounts:login")
+
+        player = self.get_object()
+        user = request.user
+
+        # Verificar permisos
+        is_staff = user.is_staff or user.is_superuser
+        is_manager = player.team and player.team.manager == user
+        is_parent = PlayerParent.objects.filter(parent=user, player=player).exists()
+        is_owner = player.user == user
+
+        if not (is_staff or is_manager or is_parent or is_owner):
+            from django.core.exceptions import PermissionDenied
+            raise PermissionDenied(_("No tienes permisos para ver este jugador."))
+
+        return super().dispatch(request, *args, **kwargs)
 
 
 class PlayerRegistrationView(ManagerRequiredMixin, CreateView):
@@ -1294,17 +1309,13 @@ class AgeVerificationListView(UserPassesTestMixin, LoginRequiredMixin, ListView)
         return context
 
 
-class UserListView(UserPassesTestMixin, LoginRequiredMixin, ListView):
-    """Lista de usuarios (solo staff)"""
+class UserListView(SuperuserRequiredMixin, ListView):
+    """Lista de usuarios (solo admin/superuser)"""
 
     model = User
     template_name = "accounts/user_list.html"
     context_object_name = "users"
     paginate_by = 20
-
-    def test_func(self):
-        """Solo staff puede ver la lista de usuarios"""
-        return self.request.user.is_staff or self.request.user.is_superuser
 
     def get_queryset(self):
         queryset = User.objects.select_related("profile").all()
@@ -2568,15 +2579,10 @@ def approve_age_verification(request, pk):
     player = get_object_or_404(Player, pk=pk)
     user = request.user
 
-    # Verificar permisos: solo staff, superuser o manager del equipo del jugador
-    is_staff = user.is_staff or user.is_superuser
-    is_manager = False
-    if hasattr(user, "profile") and user.profile.is_team_manager:
-        is_manager = player.team and player.team.manager == user
-
-    if not is_staff and not is_manager:
+    # Verificar permisos: SOLO staff o superuser pueden aprobar verificaciones
+    if not (user.is_staff or user.is_superuser):
         messages.error(
-            request, _("You do not have permission to approve age verifications.")
+            request, _("Solo el staff puede aprobar verificaciones de edad.")
         )
         return redirect("accounts:age_verification_list")
 

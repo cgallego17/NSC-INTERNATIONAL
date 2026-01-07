@@ -20,7 +20,7 @@ from django.views.generic import (
     UpdateView,
 )
 
-from apps.core.mixins import StaffRequiredMixin
+from apps.core.mixins import StaffRequiredMixin, SuperuserRequiredMixin
 from apps.media.models import MediaFile
 
 from .forms import HotelForm, HotelRoomForm
@@ -241,7 +241,7 @@ class AdminCountryUpdateView(StaffRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class AdminCountryDeleteView(StaffRequiredMixin, DeleteView):
+class AdminCountryDeleteView(SuperuserRequiredMixin, DeleteView):
     """Eliminar país - Solo admin"""
 
     model = Country
@@ -467,7 +467,7 @@ class AdminStateUpdateView(StaffRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class AdminStateDeleteView(StaffRequiredMixin, DeleteView):
+class AdminStateDeleteView(SuperuserRequiredMixin, DeleteView):
     """Eliminar estado - Solo admin"""
 
     model = State
@@ -693,7 +693,7 @@ class AdminCityUpdateView(StaffRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class AdminCityDeleteView(StaffRequiredMixin, DeleteView):
+class AdminCityDeleteView(SuperuserRequiredMixin, DeleteView):
     """Eliminar ciudad - Solo admin"""
 
     model = City
@@ -916,7 +916,7 @@ class AdminSeasonUpdateView(StaffRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class AdminSeasonDeleteView(StaffRequiredMixin, DeleteView):
+class AdminSeasonDeleteView(SuperuserRequiredMixin, DeleteView):
     """Eliminar temporada - Solo admin"""
 
     model = Season
@@ -1100,7 +1100,7 @@ class AdminRuleUpdateView(StaffRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class AdminRuleDeleteView(StaffRequiredMixin, DeleteView):
+class AdminRuleDeleteView(SuperuserRequiredMixin, DeleteView):
     """Eliminar regla - Solo admin"""
 
     model = Rule
@@ -1318,7 +1318,7 @@ class AdminSiteUpdateView(StaffRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class AdminSiteDeleteView(StaffRequiredMixin, DeleteView):
+class AdminSiteDeleteView(SuperuserRequiredMixin, DeleteView):
     """Eliminar sitio - Solo admin"""
 
     model = Site

@@ -12,11 +12,13 @@ from django.views.generic import (
     UpdateView,
 )
 
+from apps.core.mixins import StaffRequiredMixin, SuperuserRequiredMixin
+
 from .models import City, Country, Hotel, Rule, Season, Site, State
 
 
 # ===== COUNTRY VIEWS =====
-class CountryListView(LoginRequiredMixin, ListView):
+class CountryListView(StaffRequiredMixin, ListView):
     model = Country
     template_name = "locations/country_list.html"
     context_object_name = "countries"
@@ -58,7 +60,7 @@ class CountryListView(LoginRequiredMixin, ListView):
         return context
 
 
-class CountryDetailView(LoginRequiredMixin, DetailView):
+class CountryDetailView(StaffRequiredMixin, DetailView):
     model = Country
     template_name = "locations/country_detail.html"
     context_object_name = "country"
@@ -73,7 +75,7 @@ class CountryDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class CountryCreateView(LoginRequiredMixin, CreateView):
+class CountryCreateView(StaffRequiredMixin, CreateView):
     model = Country
     template_name = "locations/country_form.html"
     fields = ["name", "code", "is_active"]
@@ -84,7 +86,7 @@ class CountryCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class CountryUpdateView(LoginRequiredMixin, UpdateView):
+class CountryUpdateView(StaffRequiredMixin, UpdateView):
     model = Country
     template_name = "locations/country_form.html"
     fields = ["name", "code", "is_active"]
@@ -97,7 +99,7 @@ class CountryUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class CountryDeleteView(LoginRequiredMixin, DeleteView):
+class CountryDeleteView(SuperuserRequiredMixin, DeleteView):
     model = Country
     template_name = "locations/country_confirm_delete.html"
     success_url = reverse_lazy("locations:country_list")
@@ -108,7 +110,7 @@ class CountryDeleteView(LoginRequiredMixin, DeleteView):
 
 
 # ===== STATE VIEWS =====
-class StateListView(LoginRequiredMixin, ListView):
+class StateListView(StaffRequiredMixin, ListView):
     model = State
     template_name = "locations/state_list.html"
     context_object_name = "states"
@@ -170,7 +172,7 @@ class StateListView(LoginRequiredMixin, ListView):
         return context
 
 
-class StateDetailView(LoginRequiredMixin, DetailView):
+class StateDetailView(StaffRequiredMixin, DetailView):
     model = State
     template_name = "locations/state_detail.html"
     context_object_name = "state"
@@ -182,7 +184,7 @@ class StateDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class StateCreateView(LoginRequiredMixin, CreateView):
+class StateCreateView(StaffRequiredMixin, CreateView):
     model = State
     template_name = "locations/state_form.html"
     fields = ["country", "name", "code", "is_active"]
@@ -193,7 +195,7 @@ class StateCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class StateUpdateView(LoginRequiredMixin, UpdateView):
+class StateUpdateView(StaffRequiredMixin, UpdateView):
     model = State
     template_name = "locations/state_form.html"
     fields = ["country", "name", "code", "is_active"]
@@ -206,7 +208,7 @@ class StateUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class StateDeleteView(LoginRequiredMixin, DeleteView):
+class StateDeleteView(SuperuserRequiredMixin, DeleteView):
     model = State
     template_name = "locations/state_confirm_delete.html"
     success_url = reverse_lazy("locations:state_list")
@@ -217,7 +219,7 @@ class StateDeleteView(LoginRequiredMixin, DeleteView):
 
 
 # ===== CITY VIEWS =====
-class CityListView(LoginRequiredMixin, ListView):
+class CityListView(StaffRequiredMixin, ListView):
     model = City
     template_name = "locations/city_list.html"
     context_object_name = "cities"
@@ -296,13 +298,13 @@ class CityListView(LoginRequiredMixin, ListView):
         return context
 
 
-class CityDetailView(LoginRequiredMixin, DetailView):
+class CityDetailView(StaffRequiredMixin, DetailView):
     model = City
     template_name = "locations/city_detail.html"
     context_object_name = "city"
 
 
-class CityCreateView(LoginRequiredMixin, CreateView):
+class CityCreateView(StaffRequiredMixin, CreateView):
     model = City
     template_name = "locations/city_form.html"
     fields = ["state", "name", "is_active"]
@@ -313,7 +315,7 @@ class CityCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class CityUpdateView(LoginRequiredMixin, UpdateView):
+class CityUpdateView(StaffRequiredMixin, UpdateView):
     model = City
     template_name = "locations/city_form.html"
     fields = ["state", "name", "is_active"]
@@ -326,7 +328,7 @@ class CityUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class CityDeleteView(LoginRequiredMixin, DeleteView):
+class CityDeleteView(SuperuserRequiredMixin, DeleteView):
     model = City
     template_name = "locations/city_confirm_delete.html"
     success_url = reverse_lazy("locations:city_list")
@@ -337,7 +339,7 @@ class CityDeleteView(LoginRequiredMixin, DeleteView):
 
 
 # ===== SEASON VIEWS =====
-class SeasonListView(LoginRequiredMixin, ListView):
+class SeasonListView(StaffRequiredMixin, ListView):
     model = Season
     template_name = "locations/season_list.html"
     context_object_name = "seasons"
@@ -394,13 +396,13 @@ class SeasonListView(LoginRequiredMixin, ListView):
         return context
 
 
-class SeasonDetailView(LoginRequiredMixin, DetailView):
+class SeasonDetailView(StaffRequiredMixin, DetailView):
     model = Season
     template_name = "locations/season_detail.html"
     context_object_name = "season"
 
 
-class SeasonCreateView(LoginRequiredMixin, CreateView):
+class SeasonCreateView(StaffRequiredMixin, CreateView):
     model = Season
     template_name = "locations/season_form.html"
     fields = [
@@ -419,7 +421,7 @@ class SeasonCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class SeasonUpdateView(LoginRequiredMixin, UpdateView):
+class SeasonUpdateView(StaffRequiredMixin, UpdateView):
     model = Season
     template_name = "locations/season_form.html"
     fields = [
@@ -440,7 +442,7 @@ class SeasonUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class SeasonDeleteView(LoginRequiredMixin, DeleteView):
+class SeasonDeleteView(SuperuserRequiredMixin, DeleteView):
     model = Season
     template_name = "locations/season_confirm_delete.html"
     success_url = reverse_lazy("locations:season_list")
@@ -666,7 +668,7 @@ def seasons_api(request):
 
 
 # ===== RULE VIEWS =====
-class RuleListView(LoginRequiredMixin, ListView):
+class RuleListView(StaffRequiredMixin, ListView):
     model = Rule
     template_name = "locations/rule_list.html"
     context_object_name = "rules"
@@ -704,13 +706,13 @@ class RuleListView(LoginRequiredMixin, ListView):
         return context
 
 
-class RuleDetailView(LoginRequiredMixin, DetailView):
+class RuleDetailView(StaffRequiredMixin, DetailView):
     model = Rule
     template_name = "locations/rule_detail.html"
     context_object_name = "rule"
 
 
-class RuleCreateView(LoginRequiredMixin, CreateView):
+class RuleCreateView(StaffRequiredMixin, CreateView):
     model = Rule
     template_name = "locations/rule_form.html"
     fields = ["name", "description", "rule_type", "is_active"]
@@ -721,7 +723,7 @@ class RuleCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class RuleUpdateView(LoginRequiredMixin, UpdateView):
+class RuleUpdateView(StaffRequiredMixin, UpdateView):
     model = Rule
     template_name = "locations/rule_form.html"
     fields = ["name", "description", "rule_type", "is_active"]
@@ -732,7 +734,7 @@ class RuleUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class RuleDeleteView(LoginRequiredMixin, DeleteView):
+class RuleDeleteView(SuperuserRequiredMixin, DeleteView):
     model = Rule
     template_name = "locations/rule_confirm_delete.html"
     success_url = reverse_lazy("locations:rule_list")
@@ -753,7 +755,7 @@ def rules_api(request):
 
 
 # ===== SITE VIEWS =====
-class SiteListView(LoginRequiredMixin, ListView):
+class SiteListView(StaffRequiredMixin, ListView):
     model = Site
     template_name = "locations/site_list.html"
     context_object_name = "sites"
@@ -799,13 +801,13 @@ class SiteListView(LoginRequiredMixin, ListView):
         return context
 
 
-class SiteDetailView(LoginRequiredMixin, DetailView):
+class SiteDetailView(StaffRequiredMixin, DetailView):
     model = Site
     template_name = "locations/site_detail.html"
     context_object_name = "site"
 
 
-class SiteCreateView(LoginRequiredMixin, CreateView):
+class SiteCreateView(StaffRequiredMixin, CreateView):
     model = Site
     template_name = "locations/site_form.html"
     fields = [
@@ -829,7 +831,7 @@ class SiteCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class SiteUpdateView(LoginRequiredMixin, UpdateView):
+class SiteUpdateView(StaffRequiredMixin, UpdateView):
     model = Site
     template_name = "locations/site_form.html"
     fields = [
@@ -853,7 +855,7 @@ class SiteUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class SiteDeleteView(LoginRequiredMixin, DeleteView):
+class SiteDeleteView(SuperuserRequiredMixin, DeleteView):
     model = Site
     template_name = "locations/site_confirm_delete.html"
     success_url = reverse_lazy("locations:site_list")

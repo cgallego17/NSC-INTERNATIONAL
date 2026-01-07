@@ -15,7 +15,7 @@ from django.views.generic import (
     UpdateView,
 )
 
-from apps.core.mixins import StaffRequiredMixin
+from apps.core.mixins import StaffRequiredMixin, SuperuserRequiredMixin
 
 from .forms import (
     ContactSettingsForm,
@@ -112,7 +112,7 @@ class HomeBannerDeleteView(StaffRequiredMixin, DeleteView):
 
 
 # ===== SITE SETTINGS VIEWS =====
-class ScheduleSettingsUpdateView(StaffRequiredMixin, UpdateView):
+class ScheduleSettingsUpdateView(SuperuserRequiredMixin, UpdateView):
     """Editar solo la sección Schedule"""
 
     model = SiteSettings
@@ -137,7 +137,7 @@ class ScheduleSettingsUpdateView(StaffRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class ShowcaseSettingsUpdateView(StaffRequiredMixin, UpdateView):
+class ShowcaseSettingsUpdateView(SuperuserRequiredMixin, UpdateView):
     """Editar solo la sección Showcase"""
 
     model = SiteSettings
@@ -162,7 +162,7 @@ class ShowcaseSettingsUpdateView(StaffRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class ContactSettingsUpdateView(StaffRequiredMixin, UpdateView):
+class ContactSettingsUpdateView(SuperuserRequiredMixin, UpdateView):
     """Editar solo la información de contacto"""
 
     model = SiteSettings
@@ -195,7 +195,7 @@ class SiteSettingsRedirectView(StaffRequiredMixin, TemplateView):
         return redirect("accounts:home_content_admin")
 
 
-class HomeContentAdminView(StaffRequiredMixin, TemplateView):
+class HomeContentAdminView(SuperuserRequiredMixin, TemplateView):
     """Vista principal de administración de contenido del home"""
 
     template_name = "accounts/home_content_admin.html"

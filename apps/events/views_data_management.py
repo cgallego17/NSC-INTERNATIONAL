@@ -14,12 +14,14 @@ from django.views.generic import (
     UpdateView,
 )
 
+from apps.core.mixins import StaffRequiredMixin
+
 from .forms import EventContactForm, EventTypeForm, GateFeeTypeForm
 from .models import EventContact, EventType, GateFeeType
 
 
 # ===== EVENT CONTACT VIEWS =====
-class EventContactListView(LoginRequiredMixin, ListView):
+class EventContactListView(StaffRequiredMixin, ListView):
     model = EventContact
     template_name = "events/eventcontact_list.html"
     context_object_name = "contacts"
@@ -55,7 +57,7 @@ class EventContactListView(LoginRequiredMixin, ListView):
         return context
 
 
-class EventContactDetailView(LoginRequiredMixin, DetailView):
+class EventContactDetailView(StaffRequiredMixin, DetailView):
     model = EventContact
     template_name = "events/eventcontact_detail.html"
     context_object_name = "contact"
@@ -67,7 +69,7 @@ class EventContactDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class EventContactCreateView(LoginRequiredMixin, CreateView):
+class EventContactCreateView(StaffRequiredMixin, CreateView):
     model = EventContact
     form_class = EventContactForm
     template_name = "events/eventcontact_form.html"
@@ -84,7 +86,7 @@ class EventContactCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class EventContactUpdateView(LoginRequiredMixin, UpdateView):
+class EventContactUpdateView(StaffRequiredMixin, UpdateView):
     model = EventContact
     form_class = EventContactForm
     template_name = "events/eventcontact_form.html"
@@ -106,7 +108,7 @@ class EventContactUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class EventContactDeleteView(LoginRequiredMixin, DeleteView):
+class EventContactDeleteView(StaffRequiredMixin, DeleteView):
     model = EventContact
     template_name = "events/eventcontact_confirm_delete.html"
     success_url = reverse_lazy("events:eventcontact_list")
@@ -123,7 +125,7 @@ class EventContactDeleteView(LoginRequiredMixin, DeleteView):
 
 
 # ===== EVENT TYPE VIEWS =====
-class EventTypeListView(LoginRequiredMixin, ListView):
+class EventTypeListView(StaffRequiredMixin, ListView):
     model = EventType
     template_name = "events/eventtype_list.html"
     context_object_name = "event_types"
@@ -154,7 +156,7 @@ class EventTypeListView(LoginRequiredMixin, ListView):
         return context
 
 
-class EventTypeDetailView(LoginRequiredMixin, DetailView):
+class EventTypeDetailView(StaffRequiredMixin, DetailView):
     model = EventType
     template_name = "events/eventtype_detail.html"
     context_object_name = "event_type"
@@ -166,7 +168,7 @@ class EventTypeDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class EventTypeCreateView(LoginRequiredMixin, CreateView):
+class EventTypeCreateView(StaffRequiredMixin, CreateView):
     model = EventType
     form_class = EventTypeForm
     template_name = "events/eventtype_form.html"
@@ -183,7 +185,7 @@ class EventTypeCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class EventTypeUpdateView(LoginRequiredMixin, UpdateView):
+class EventTypeUpdateView(StaffRequiredMixin, UpdateView):
     model = EventType
     form_class = EventTypeForm
     template_name = "events/eventtype_form.html"
@@ -200,7 +202,7 @@ class EventTypeUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class EventTypeDeleteView(LoginRequiredMixin, DeleteView):
+class EventTypeDeleteView(StaffRequiredMixin, DeleteView):
     model = EventType
     template_name = "events/eventtype_confirm_delete.html"
     success_url = reverse_lazy("events:eventtype_list")
@@ -217,7 +219,7 @@ class EventTypeDeleteView(LoginRequiredMixin, DeleteView):
 
 
 # ===== GATE FEE TYPE VIEWS =====
-class GateFeeTypeListView(LoginRequiredMixin, ListView):
+class GateFeeTypeListView(StaffRequiredMixin, ListView):
     model = GateFeeType
     template_name = "events/gatefeetype_list.html"
     context_object_name = "gate_fee_types"
@@ -248,7 +250,7 @@ class GateFeeTypeListView(LoginRequiredMixin, ListView):
         return context
 
 
-class GateFeeTypeDetailView(LoginRequiredMixin, DetailView):
+class GateFeeTypeDetailView(StaffRequiredMixin, DetailView):
     model = GateFeeType
     template_name = "events/gatefeetype_detail.html"
     context_object_name = "gate_fee_type"
@@ -260,7 +262,7 @@ class GateFeeTypeDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class GateFeeTypeCreateView(LoginRequiredMixin, CreateView):
+class GateFeeTypeCreateView(StaffRequiredMixin, CreateView):
     model = GateFeeType
     form_class = GateFeeTypeForm
     template_name = "events/gatefeetype_form.html"
@@ -277,7 +279,7 @@ class GateFeeTypeCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class GateFeeTypeUpdateView(LoginRequiredMixin, UpdateView):
+class GateFeeTypeUpdateView(StaffRequiredMixin, UpdateView):
     model = GateFeeType
     form_class = GateFeeTypeForm
     template_name = "events/gatefeetype_form.html"
@@ -294,7 +296,7 @@ class GateFeeTypeUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class GateFeeTypeDeleteView(LoginRequiredMixin, DeleteView):
+class GateFeeTypeDeleteView(StaffRequiredMixin, DeleteView):
     model = GateFeeType
     template_name = "events/gatefeetype_confirm_delete.html"
     success_url = reverse_lazy("events:gatefeetype_list")

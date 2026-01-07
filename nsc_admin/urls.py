@@ -79,3 +79,6 @@ if settings.DEBUG:
     multimedia_root = getattr(settings, "MULTIMEDIA_ROOT", None)
     if multimedia_root:
         urlpatterns += static(settings.MULTIMEDIA_URL, document_root=multimedia_root)
+
+# Handler para página 404 (solo funciona cuando DEBUG=False)
+handler404 = "apps.core.views.handler404"

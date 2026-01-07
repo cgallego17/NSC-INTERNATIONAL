@@ -19,11 +19,13 @@ from django.views.generic import (
     UpdateView,
 )
 
+from apps.core.mixins import StaffRequiredMixin, SuperuserRequiredMixin
+
 from .forms import EventForm
 from .models import Division, Event, EventAttendance, EventCategory
 
 
-class EventListView(LoginRequiredMixin, ListView):
+class EventListView(StaffRequiredMixin, ListView):
     model = Event
     template_name = "events/list.html"
     context_object_name = "events"
@@ -93,7 +95,7 @@ class EventListView(LoginRequiredMixin, ListView):
         return context
 
 
-class EventDetailView(LoginRequiredMixin, DetailView):
+class EventDetailView(StaffRequiredMixin, DetailView):
     model = Event
     template_name = "events/detail.html"
     context_object_name = "event"
@@ -161,7 +163,7 @@ class EventDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class EventCreateView(LoginRequiredMixin, CreateView):
+class EventCreateView(StaffRequiredMixin, CreateView):
     """Vista para crear eventos"""
 
     model = Event
@@ -189,7 +191,7 @@ class EventCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class EventUpdateView(LoginRequiredMixin, UpdateView):
+class EventUpdateView(StaffRequiredMixin, UpdateView):
     model = Event
     form_class = EventForm
     template_name = "events/event_form.html"
@@ -218,7 +220,7 @@ class EventUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class EventDeleteView(LoginRequiredMixin, DeleteView):
+class EventDeleteView(SuperuserRequiredMixin, DeleteView):
     model = Event
     template_name = "events/confirm_delete.html"
     success_url = reverse_lazy("events:list")
@@ -228,7 +230,7 @@ class EventDeleteView(LoginRequiredMixin, DeleteView):
         return super().delete(request, *args, **kwargs)
 
 
-class EventTogglePublishView(LoginRequiredMixin, View):
+class EventTogglePublishView(SuperuserRequiredMixin, View):
     """Vista para publicar/despublicar un evento"""
 
     def post(self, request, pk):
@@ -255,7 +257,7 @@ class EventTogglePublishView(LoginRequiredMixin, View):
         return redirect(redirect_url)
 
 
-class EventDetailAPIView(LoginRequiredMixin, View):
+class EventDetailAPIView(StaffRequiredMixin, View):
     """API view para obtener detalles del evento en JSON"""
 
     def get(self, request, pk):
@@ -424,7 +426,7 @@ class EventDetailAPIView(LoginRequiredMixin, View):
         return JsonResponse(data)
 
 
-class EventCalendarView(LoginRequiredMixin, ListView):
+class EventCalendarView(StaffRequiredMixin, ListView):
     model = Event
     template_name = "events/calendar.html"
     context_object_name = "events"
@@ -486,7 +488,7 @@ class EventAttendanceView(LoginRequiredMixin, CreateView):
         return context
 
 
-class DashboardView(LoginRequiredMixin, TemplateView):
+class DashboardView(StaffRequiredMixin, TemplateView):
     template_name = "events/dashboard.html"
 
     def get_context_data(self, **kwargs):
@@ -642,7 +644,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
 
 # ===== DIVISION VIEWS =====
-class DivisionListView(LoginRequiredMixin, ListView):
+class DivisionListView(StaffRequiredMixin, ListView):
     model = Division
     template_name = "events/division_list.html"
     context_object_name = "divisions"
@@ -693,7 +695,7 @@ class DivisionListView(LoginRequiredMixin, ListView):
         return context
 
 
-class DivisionDetailView(LoginRequiredMixin, DetailView):
+class DivisionDetailView(StaffRequiredMixin, DetailView):
     model = Division
     template_name = "events/division_detail.html"
     context_object_name = "division"
@@ -707,7 +709,7 @@ class DivisionDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class DivisionCreateView(LoginRequiredMixin, CreateView):
+class DivisionCreateView(StaffRequiredMixin, CreateView):
     model = Division
     template_name = "events/division_form.html"
     fields = ["name", "description", "age_min", "age_max", "skill_level", "is_active"]
@@ -724,7 +726,7 @@ class DivisionCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
 
-class DivisionUpdateView(LoginRequiredMixin, UpdateView):
+class DivisionUpdateView(StaffRequiredMixin, UpdateView):
     model = Division
     template_name = "events/division_form.html"
     fields = ["name", "description", "age_min", "age_max", "skill_level", "is_active"]
@@ -743,7 +745,7 @@ class DivisionUpdateView(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-class DivisionDeleteView(LoginRequiredMixin, DeleteView):
+class DivisionDeleteView(SuperuserRequiredMixin, DeleteView):
     model = Division
     template_name = "events/division_confirm_delete.html"
     success_url = reverse_lazy("events:division_list")
