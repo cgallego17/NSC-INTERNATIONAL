@@ -1076,7 +1076,7 @@
                             </span>
                         </div>
                     {% endif %}
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
                 </div>
             </div>
             <form id="hotelReservationForm{{ event.hotel.pk }}" method="get" action="{% url 'locations:front_hotel_reservation_create' %}">
@@ -1333,7 +1333,7 @@
                 <div style="margin-bottom: 12px;">
                     <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.95rem; margin-bottom: 4px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
                         <span>
-                            <i class="fas fa-bed me-1"></i>{% trans "Select a Room" %}
+                        <i class="fas fa-bed me-1"></i>{% trans "Select a Room" %}
                         </span>
                         {% if event.hotel and event.hotel.hotel_name %}
                             <span style="color: #1e3a5f; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
@@ -1393,25 +1393,25 @@
                                             <!-- Room Image Slider -->
                                             <div class="room-image-container room-image-slider" data-room-id="{{ room.id }}" data-hotel-pk="{{ event.hotel.pk }}">
                                                 <div class="room-slider-wrapper">
-                                                    {% if room.images.exists %}
+                                                {% if room.images.exists %}
                                                         {% for image in room.images.all %}
                                                             <div class="room-slide {% if forloop.first %}active{% endif %}">
                                                                 {% if image.media_file %}
                                                                     <img src="{{ image.media_file.get_file_url }}" alt="{{ image.alt_text|default:room.name|default:room.get_room_type_display }}">
                                                                 {% elif image.image %}
                                                                     <img src="{{ image.image.url }}" alt="{{ image.alt_text|default:room.name|default:room.get_room_type_display }}">
-                                                                {% else %}
+                                                        {% else %}
                                                                     {# Fallback si no hay imagen válida #}
                                                                     <div style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
-                                                                        <i class="fas fa-bed" style="color: white; font-size: 1.5rem;"></i>
-                                                                    </div>
-                                                                {% endif %}
+                                                                <i class="fas fa-bed" style="color: white; font-size: 1.5rem;"></i>
+                                                            </div>
+                                                        {% endif %}
                                                             </div>
                                                         {% endfor %}
-                                                    {% else %}
+                                                {% else %}
                                                         <div class="room-slide active">
                                                             <div style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
-                                                                <i class="fas fa-bed" style="color: white; font-size: 1.5rem;"></i>
+                                                        <i class="fas fa-bed" style="color: white; font-size: 1.5rem;"></i>
                                                             </div>
                                                         </div>
                                                     {% endif %}
@@ -1439,16 +1439,16 @@
 
                                                 <!-- Iconos y características debajo del título HOLAAA -->
                                                 <div class="room-content-wrapper">
-                                                    <div class="room-features">
-                                                        {% if room.capacity %}
-                                                            <span>
-                                                                <i class="fas fa-users" style="font-size: 0.7rem;"></i>
+                                                <div class="room-features">
+                                                    {% if room.capacity %}
+                                                        <span>
+                                                            <i class="fas fa-users" style="font-size: 0.7rem;"></i>
                                                                 <strong>{{ room.capacity }}</strong> {% trans "people" %}
-                                                            </span>
-                                                        {% endif %}
-                                                        {% if room.breakfast_included %}
+                                                        </span>
+                                                    {% endif %}
+                                                    {% if room.breakfast_included %}
                                                             <span style="color: #059669; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-color: #86efac; box-shadow: 0 2px 4px rgba(5, 150, 105, 0.1);">
-                                                                <i class="fas fa-coffee" style="font-size: 0.7rem;"></i>
+                                                            <i class="fas fa-coffee" style="font-size: 0.7rem;"></i>
                                                                 <strong>{% trans "Breakfast" %}</strong>
                                                             </span>
                                                         {% endif %}
@@ -1456,56 +1456,56 @@
                                                             <span>
                                                                 <i class="fas fa-hashtag" style="font-size: 0.7rem;"></i>
                                                                 <strong>{{ room.room_number }}</strong>
-                                                            </span>
-                                                        {% endif %}
-                                                    </div>
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
 
-                                                    {% if room.amenities.all %}
+                                                {% if room.amenities.all %}
                                                         <div class="room-amenities" style="margin: 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
                                                             {% for amenity in room.amenities.all|slice:":6" %}
-                                                                {% if amenity.is_available %}
+                                                            {% if amenity.is_available %}
                                                                     <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1.5px solid #e2e8f0; border-radius: 8px; color: var(--mlb-blue); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 1px 3px rgba(0,0,0,0.05);" title="{{ amenity.name }}" onmouseover="this.style.background='linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%)'; this.style.color='white'; this.style.borderColor='var(--mlb-blue)'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(13, 44, 84, 0.2)';" onmouseout="this.style.background='linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)'; this.style.color='var(--mlb-blue)'; this.style.borderColor='#e2e8f0'; this.style.transform='translateY(0)'; this.style.boxShadow='0 1px 3px rgba(0,0,0,0.05)';">
                                                                         <i class="fas {{ amenity.get_icon_class }}" style="font-size: 0.8rem;"></i>
-                                                                    </span>
-                                                                {% endif %}
-                                                            {% endfor %}
+                                                                </span>
+                                                            {% endif %}
+                                                        {% endfor %}
                                                             {% if room.amenities.all.count > 6 %}
                                                                 <span style="font-size: 0.7rem; color: #64748b; align-self: center; font-weight: 700; padding: 4px 8px; background: #f1f5f9; border-radius: 6px; border: 1px solid #e2e8f0;">+{{ room.amenities.all.count|add:"-6" }}</span>
                                                             {% endif %}
-                                                        </div>
-                                                    {% endif %}
+                                                    </div>
+                                                {% endif %}
 
                                                     <!-- Footer con precio y botones -->
-                                                    <div class="room-footer">
+                                                <div class="room-footer">
                                                         <div class="room-price-zone">
                                                             <div class="room-price-wrapper">
                                                                 <div class="room-price">
-                                                                    ${{ room.price_per_night|floatformat:2 }}
+                                                                ${{ room.price_per_night|floatformat:2 }}
                                                                     <small>/ {% trans "night" %}</small>
-                                                                </div>
-                                                                {% if room.price_includes_guests %}
+                                                        </div>
+                                                        {% if room.price_includes_guests %}
                                                                     <div class="room-price-includes" title="{% trans 'Base price includes this number of guests' %}">
                                                                         <i class="fas fa-users"></i>
-                                                                        {% if room.price_includes_guests == 1 %}
+                                                                    {% if room.price_includes_guests == 1 %}
                                                                             <span>{% trans "Price includes" %} <strong>1</strong> {% trans "guest" %}</span>
-                                                                        {% else %}
+                                                                    {% else %}
                                                                             <span>{% trans "Price includes" %} <strong>{{ room.price_includes_guests }}</strong> {% trans "guests" %}</span>
-                                                                        {% endif %}
-                                                                    </div>
-                                                                {% endif %}
+                                                                    {% endif %}
                                                             </div>
-                                                        </div>
+                                                        {% endif %}
+                                                            </div>
+                                                    </div>
 
-                                                        <div class="room-actions">
-                                                            <button type="button"
+                                                    <div class="room-actions">
+                                                        <button type="button"
                                                                     class="btn btn-sm btn-outline-primary room-detail-btn"
-                                                                    data-room-detail-url="{% url 'locations:get_room_detail' room_id=room.id %}"
-                                                                    onclick="event.preventDefault(); event.stopPropagation(); window.NSC_HotelReservation?.openRoomDetail?.(this);"
+                                                                data-room-detail-url="{% url 'locations:get_room_detail' room_id=room.id %}"
+                                                                onclick="event.preventDefault(); event.stopPropagation(); window.NSC_HotelReservation?.openRoomDetail?.(this);"
                                                                     style="border-radius: 10px; font-weight: 700; padding: 9px 18px; border-width: 2px; font-size: 0.85rem; white-space: nowrap; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-color: var(--mlb-blue); color: var(--mlb-blue); background: transparent; box-shadow: 0 2px 4px rgba(13, 44, 84, 0.1); width: 100%;"
                                                                     onmouseover="this.style.background='var(--mlb-blue)'; this.style.color='white'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(13, 44, 84, 0.2)';"
                                                                     onmouseout="this.style.background='transparent'; this.style.color='var(--mlb-blue)'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(13, 44, 84, 0.1)';">
                                                                 <i class="fas fa-eye me-1"></i>{% trans "Details" %}
-                                                            </button>
+                                                        </button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -3427,8 +3427,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!btn) return;
             if (String(btn.dataset.hotelPk || '') !== String(hotelPk)) return;
 
-            e.preventDefault();
-            e.stopPropagation();
+                    e.preventDefault();
+                    e.stopPropagation();
 
             if (window.NSC_HotelReservation && typeof window.NSC_HotelReservation.selectRoom === 'function') {
                 window.NSC_HotelReservation.selectRoom(btn);

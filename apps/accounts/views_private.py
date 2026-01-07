@@ -1360,6 +1360,7 @@ def profile_view(request):
 
 
 @method_decorator(never_cache, name="dispatch")
+@method_decorator(xframe_options_exempt, name="dispatch")
 class PanelEventDetailView(UserDashboardView):
     """Vista para mostrar el detalle del evento en el panel con checkout"""
 
@@ -1529,7 +1530,7 @@ class PanelEventDetailEmbedView(PanelEventDetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["inner_template"] = "accounts/panel_tabs/detalle_evento.html"
+        context["inner_template"] = "accounts/panel_tabs/detalle_evento_vue.html"
         return context
 
 

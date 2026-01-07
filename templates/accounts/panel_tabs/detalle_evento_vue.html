@@ -1,0 +1,974 @@
+{% load i18n %}
+{% load static %}
+{% load url_filters %}
+
+<!-- Estilos responsive para móvil (copiados del template original) -->
+<style>
+    /* Ensure body and html have no margins/padding when modal is open */
+    body.modal-open,
+    html.modal-open {
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* Fullscreen Modal Styles */
+    .room-selection-modal-fullscreen {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: rgba(0, 0, 0, 0.6) !important;
+        backdrop-filter: blur(5px) !important;
+        -webkit-backdrop-filter: blur(5px) !important;
+        z-index: 9999999 !important; /* Z-index extremadamente alto para estar por encima de TODO */
+        /* Avoid double scroll: overlay should NOT scroll; modal-body will */
+        overflow: hidden !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 20px !important;
+        isolation: isolate !important; /* Crear nuevo contexto de apilamiento */
+    }
+
+    .room-selection-modal-fullscreen .modal-dialog {
+        margin: 0 auto !important;
+        max-width: 1400px !important;
+        width: 100% !important;
+        padding: 0 10px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .room-selection-modal-fullscreen .modal-content {
+        margin: 0 !important;
+        border-radius: 16px !important;
+        max-height: 95vh !important;
+        height: auto !important;
+        min-height: auto !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: hidden !important;
+    }
+
+    .room-selection-modal-fullscreen .modal-body {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+    }
+
+    @media (max-width: 991.98px) {
+        .room-selection-modal-fullscreen {
+            padding: 0 !important;
+            align-items: stretch !important;
+        }
+
+        .room-selection-modal-fullscreen .modal-dialog {
+            padding: 0 !important;
+            max-width: 100% !important;
+            align-items: stretch !important;
+        }
+
+        .room-selection-modal-fullscreen .modal-content {
+            border-radius: 0 !important;
+            max-height: 100vh !important;
+        }
+    }
+
+    /* Toast Message Styles */
+    .toast-message {
+        font-size: 14px !important;
+        color: #2c3e50 !important;
+        line-height: 1.6 !important;
+        word-wrap: break-word !important;
+        font-family: 'Arial', 'Helvetica', sans-serif !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Room Selection Modal Styles - Original Design */
+    /* Rooms grid: responsive, consistent spacing */
+    .rooms-grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 18px;
+        padding: 8px;
+        align-items: stretch;
+    }
+
+    @media (max-width: 768px) {
+        .rooms-grid-container {
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+    }
+
+    .room-listing-inline {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        padding: 0;
+        background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+        border-radius: 16px;
+        margin-bottom: 0;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+        border: 2px solid #f1f3f5;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        overflow: hidden;
+        position: relative;
+        height: 100%;
+    }
+
+    .room-listing-inline::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .room-listing-inline:hover {
+        border-color: var(--mlb-blue);
+        box-shadow: 0 12px 32px rgba(13, 44, 84, 0.2), 0 6px 12px rgba(0,0,0,0.12);
+        transform: translateY(-4px);
+    }
+
+    .room-listing-inline:hover::before {
+        opacity: 1;
+    }
+
+    .room-listing-inline .room-image-container {
+        width: 100%;
+        height: 240px;
+        min-width: 100%;
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        border-radius: 16px 16px 0 0;
+    }
+
+    .room-listing-inline .room-image-container::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.02) 100%);
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    .room-slider-wrapper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        cursor: pointer;
+    }
+
+    .room-slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        transform: scale(1.05);
+        will-change: opacity, transform;
+    }
+
+    .room-slide.active {
+        opacity: 1;
+        z-index: 1;
+        transform: scale(1);
+    }
+
+    .room-slide img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        display: block;
+    }
+
+    .room-listing-inline:hover .room-slide.active img {
+        transform: scale(1.08);
+    }
+
+    /* Slider Navigation Arrows */
+    .room-slider-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.9);
+        border: none;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 3;
+        opacity: 0;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(4px);
+    }
+
+    .room-slider-nav:hover {
+        background: white;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        transform: translateY(-50%) scale(1.1);
+    }
+
+    .room-slider-nav.prev {
+        left: 10px;
+    }
+
+    .room-slider-nav.next {
+        right: 10px;
+    }
+
+    .room-image-container:hover .room-slider-nav {
+        opacity: 1;
+    }
+
+    .room-slider-nav i {
+        color: var(--mlb-blue);
+        font-size: 0.9rem;
+        font-weight: 700;
+    }
+
+    .room-slider-dots {
+        position: absolute;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 6px;
+        z-index: 3;
+        background: rgba(0, 0, 0, 0.4);
+        padding: 8px 12px;
+        border-radius: 25px;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .room-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+
+    .room-dot:hover {
+        background: rgba(255, 255, 255, 0.9);
+        transform: scale(1.2);
+    }
+
+    .room-dot.active {
+        background: white;
+        width: 24px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .room-listing-inline .room-info {
+        flex: 1;
+        min-width: 0;
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        background: transparent;
+    }
+
+    .room-listing-inline .room-header {
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex-shrink: 0;
+    }
+
+    .room-listing-inline .room-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+        justify-content: space-between;
+    }
+
+    /* Features (left) + Amenities (right) on the same row */
+    .room-meta-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: nowrap; /* keep in one line */
+    }
+
+    .room-meta-row .room-features {
+        flex: 0 0 auto;
+        min-width: 0;
+    }
+
+    .room-meta-row .room-amenities {
+        flex: 1 1 auto;
+        justify-content: flex-end;
+        flex-wrap: nowrap;           /* keep icons in one line */
+        overflow-x: auto;            /* if too many icons, scroll horizontally */
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    @media (max-width: 420px) {
+        .room-meta-row .room-features {
+            min-width: 0;
+        }
+    }
+
+    /* Ensure features row doesn't wrap internally */
+    .room-meta-row .room-features {
+        white-space: nowrap;
+    }
+
+    .room-listing-inline .room-name {
+        font-size: 1.1rem;
+        font-weight: 900;
+        color: var(--mlb-blue);
+        margin: 0;
+        line-height: 1.2;
+        letter-spacing: -0.2px;
+    }
+
+    .room-listing-inline .room-type {
+        font-size: 0.7rem;
+        color: #64748b;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.45px;
+        margin: 0;
+    }
+
+    .room-listing-inline .room-features {
+        font-size: 0.78rem;
+        color: #475569;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .room-listing-inline .room-features span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        padding: 4px 9px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #475569;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+        transition: all 0.2s ease;
+        line-height: 1.1;
+        white-space: nowrap;
+    }
+
+    .room-listing-inline .room-features span:hover {
+        background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+        border-color: var(--mlb-blue);
+        transform: translateY(-1px);
+    }
+
+    .room-listing-inline .room-footer {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        margin-top: auto;
+        padding-top: 10px;
+        border-top: 1px solid #eef2f7;
+    }
+
+    .room-listing-inline .room-price-zone {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        align-items: center;
+        width: 100%;
+        text-align: center;
+    }
+
+    .room-listing-inline .room-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-shrink: 0;
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .room-listing-inline .room-actions button {
+        flex: 1;
+    }
+
+    .room-listing-inline .room-price-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        align-items: center;
+        width: 100%;
+    }
+
+    .room-listing-inline .room-price {
+        font-size: 1.35rem;
+        font-weight: 900;
+        color: var(--mlb-red);
+        margin: 0;
+        line-height: 1.1;
+        letter-spacing: -0.4px;
+        text-shadow: 0 1px 2px rgba(213, 0, 50, 0.08);
+        text-align: center;
+    }
+
+    .room-listing-inline .room-price small {
+        font-size: 0.72rem;
+        font-weight: 800;
+        color: #94a3b8;
+        text-transform: lowercase;
+    }
+
+    .room-listing-inline .room-price-includes {
+        font-size: 0.75rem;
+        color: #64748b;
+        margin: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-weight: 600;
+        white-space: nowrap;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .room-listing-inline .room-price-includes i {
+        font-size: 0.7rem;
+        color: var(--mlb-blue);
+        opacity: 0.8;
+    }
+
+    .room-listing-inline .room-price-includes strong {
+        font-size: 0.8rem;
+        color: var(--mlb-red);
+        font-weight: 700;
+        margin: 0 2px;
+    }
+
+    .room-listing-inline[data-selected="true"] {
+        border-color: var(--mlb-red) !important;
+        border-width: 3px !important;
+        background: linear-gradient(135deg, #fff5f5 0%, #ffffff 50%, #fffafa 100%) !important;
+        box-shadow: 0 8px 24px rgba(213, 0, 50, 0.2), 0 4px 12px rgba(213, 0, 50, 0.15) !important;
+        transform: translateY(-2px);
+    }
+
+    .room-listing-inline[data-selected="true"]::before {
+        background: linear-gradient(90deg, var(--mlb-red) 0%, #ff1744 100%);
+        opacity: 1;
+        height: 4px;
+    }
+
+    .room-listing-inline[data-selected="true"]::after {
+        content: '\f058';
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        color: white;
+        font-size: 1.2rem;
+        z-index: 10;
+        background: linear-gradient(135deg, var(--mlb-red) 0%, #ff1744 100%);
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(213, 0, 50, 0.4), 0 2px 4px rgba(0,0,0,0.2);
+        animation: checkPulse 0.6s ease-out;
+    }
+
+    @keyframes checkPulse {
+        0% {
+            transform: scale(0);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.2);
+        }
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .room-listing-inline[data-selected="true"] .room-name {
+        color: var(--mlb-red) !important;
+    }
+
+    .room-amenities {
+        margin: 0;
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 5px;
+        align-items: center;
+    }
+
+    .room-amenities span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border: 1.5px solid #e2e8f0;
+        border-radius: 8px;
+        color: var(--mlb-blue);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .room-amenities span:hover {
+        background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+        color: white;
+        border-color: var(--mlb-blue);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(13, 44, 84, 0.2);
+    }
+
+    @media (max-width: 1200px) {
+        .rooms-grid-container {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .rooms-grid-container {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+    }
+
+    /* Fullscreen Modal in Iframe */
+    .room-selection-modal-fullscreen {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        z-index: 9999 !important;
+        background: rgba(0, 0, 0, 0.6) !important;
+        backdrop-filter: blur(4px);
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    .room-selection-modal-fullscreen .modal-dialog {
+        margin: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        min-height: 100% !important;
+        display: flex !important;
+        align-items: flex-start !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        padding-top: 0 !important;
+    }
+
+    .room-selection-modal-fullscreen .modal-content {
+        max-height: 100vh !important;
+        height: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 0 !important;
+    }
+
+    @media (min-width: 992px) {
+        .room-selection-modal-fullscreen .modal-dialog {
+            padding: 20px !important;
+            padding-top: 20px !important;
+        }
+
+        .room-selection-modal-fullscreen .modal-content {
+            max-width: 1400px !important;
+            max-height: 95vh !important;
+            border-radius: 16px !important;
+            margin: 0 auto !important;
+        }
+    }
+
+    .room-selection-modal-fullscreen .modal-body {
+        overflow-y: auto !important;
+        flex: 1 !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+
+    @media (max-width: 768px) {
+        .room-selection-modal-fullscreen .modal-dialog {
+            padding: 0 !important;
+        }
+
+        .room-selection-modal-fullscreen .modal-content {
+            max-height: 100vh !important;
+            border-radius: 0 !important;
+            max-width: 100% !important;
+        }
+    }
+
+    /* Estilos específicos para móvil - Detalle de Evento */
+    @media (max-width: 768px) {
+        html, body {
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+        .iframe-inner {
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        #event-details-section {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            width: 100% !important;
+        }
+        .tab-content-header {
+            padding: 0 0 12px 0 !important;
+            margin-bottom: 0 !important;
+        }
+        .tab-content-header h4 {
+            font-size: 1.15rem !important;
+            margin-bottom: 4px !important;
+        }
+        .tab-content-header p {
+            font-size: 0.8rem !important;
+            margin-bottom: 0 !important;
+        }
+        .row.g-4 {
+            flex-direction: column !important;
+            gap: 12px !important;
+            margin: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        .col-lg-7, .col-lg-5 {
+            width: 100% !important;
+            padding: 0 !important;
+            max-width: 100% !important;
+        }
+        .event-info-card {
+            padding: 16px 8px !important;
+            border-radius: 12px !important;
+            margin-bottom: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+        .checkout-card {
+            position: relative !important;
+            top: 0 !important;
+            padding: 16px 12px !important;
+            border-radius: 12px !important;
+        }
+        .btn-lg, .btn {
+            width: 100% !important;
+            padding: 12px 18px !important;
+            font-size: 0.9rem !important;
+            margin-bottom: 8px !important;
+        }
+    }
+</style>
+
+<!-- Vue.js Integration for Event Detail Page -->
+<!-- This replaces the vanilla JavaScript implementation with Vue.js -->
+
+<!-- Vue.js CDN (Production) -->
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+<!-- Event Detail Vue App -->
+<script src="{% static 'js/vue/event-detail.js' %}"></script>
+
+<!-- Event Data (JSON) for Vue to consume -->
+<script id="event-data" type="application/json">
+{
+    "id": {{ event.pk }},
+    "title": "{{ event.title|escapejs }}",
+    "description": {% if event.description %}"{{ event.description|escapejs }}"{% else %}null{% endif %},
+    "start_date": "{{ event.start_date|date:'Y-m-d' }}",
+    "end_date": "{{ event.end_date|date:'Y-m-d'|default:'' }}",
+    "banner": "{% if event.banner %}{{ event.banner|clean_localhost_url }}{% endif %}",
+    "logo": "{% if event.logo %}{{ event.logo|clean_localhost_url }}{% endif %}",
+    "video_url": "{{ event.video_url|default:''|escapejs }}",
+    "external_link": "{{ event.external_link|default:''|escapejs }}",
+    "default_entry_fee": {{ event.default_entry_fee|default:0 }},
+    "category": {% if event.category %}{"id": {{ event.category.id }}, "name": "{{ event.category.name|escapejs }}"}{% else %}null{% endif %},
+    "event_type": {% if event.event_type %}{"id": {{ event.event_type.id }}, "name": "{{ event.event_type.name|escapejs }}"}{% else %}null{% endif %},
+    "status": "{{ event.get_status_display|escapejs }}",
+    "city": {% if event.city %}{"id": {{ event.city.id }}, "name": "{{ event.city.name|escapejs }}"}{% else %}null{% endif %},
+    "state": {% if event.state %}{"id": {{ event.state.id }}, "name": "{{ event.state.name|escapejs }}"}{% else %}null{% endif %},
+    "country": {% if event.country %}{"id": {{ event.country.id }}, "name": "{{ event.country.name|escapejs }}"}{% else %}null{% endif %},
+    "location": "{{ event.location|default:''|escapejs }}",
+    "hotel": {% if event.hotel %}{
+        "id": {{ event.hotel.pk }},
+        "name": "{{ event.hotel.hotel_name|escapejs }}",
+        "address": "{{ event.hotel.address|default:''|escapejs }}",
+        "photo": "{% if event.hotel.photo %}{{ event.hotel.photo.url }}{% endif %}"
+    }{% else %}null{% endif %},
+    "primary_site": {% if event.primary_site %}{
+        "id": {{ event.primary_site.id }},
+        "name": "{{ event.primary_site.site_name|escapejs }}",
+        "address_1": "{{ event.primary_site.address_1|default:''|escapejs }}",
+        "address_2": "{{ event.primary_site.address_2|default:''|escapejs }}",
+        "image": "{% if event.primary_site.image %}{{ event.primary_site.image.url }}{% endif %}"
+    }{% else %}null{% endif %},
+    "divisions": [
+        {% for division in event.divisions.all %}
+        {
+            "id": {{ division.id }},
+            "name": "{{ division.name|escapejs }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ]
+}
+</script>
+
+<!-- Registrant/User Data (JSON) -->
+<script id="registrant-data" type="application/json">
+{
+    "id": {{ user.pk }},
+    "name": "{% if user.get_full_name %}{{ user.get_full_name|escapejs }}{% else %}{{ user.username|escapejs }}{% endif %}",
+    "email": "{{ user.email|escapejs }}",
+    "birth_date": "{% if user.profile.birth_date %}{{ user.profile.birth_date|date:'Y-m-d' }}{% endif %}",
+    "profile_picture": "{% if user.profile.profile_picture %}{{ user.profile.profile_picture.url }}{% endif %}",
+    "is_registrant": true
+}
+</script>
+
+<!-- Children/Players Data (JSON) -->
+<script id="children-data" type="application/json">
+[
+    {% for child in children %}
+    {
+        "id": {{ child.pk }},
+        "name": "{% if child.user.get_full_name %}{{ child.user.get_full_name|escapejs }}{% else %}{{ child.user.username|escapejs }}{% endif %}",
+        "email": "{{ child.user.email|escapejs }}",
+        "division": "{{ child.division|default:''|escapejs }}",
+        "birth_date": "{% if child.user.profile.birth_date %}{{ child.user.profile.birth_date|date:'Y-m-d' }}{% endif %}",
+        "profile_picture": "{% if child.user.profile.profile_picture %}{{ child.user.profile.profile_picture.url }}{% endif %}",
+        "registered": {% if child.pk in registered_players %}true{% else %}false{% endif %}
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+]
+</script>
+
+<!-- Rooms Data (JSON) for Vue to consume -->
+<script id="rooms-data-{{ event.hotel.pk|default:'' }}" type="application/json">
+[
+    {% if available_rooms %}
+        {% for room in available_rooms %}
+        {
+            "id": {{ room.id }},
+            "name": "{% if room.name %}{{ room.name|escapejs }}{% else %}{{ room.get_room_type_display|escapejs }}{% endif %}",
+            "room_type": "{{ room.room_type|escapejs }}",
+            "room_type_display": "{{ room.get_room_type_display|escapejs }}",
+            "room_number": "{{ room.room_number|escapejs|default:'' }}",
+            "description": "{{ room.description|escapejs|default:'' }}",
+            "capacity": {{ room.capacity|default:4 }},
+            "price_per_night": {{ room.price_per_night|default:0 }},
+            "price_includes_guests": {{ room.price_includes_guests|default:2 }},
+            "additional_guest_price": {{ room.additional_guest_price|default:0 }},
+            "breakfast_included": {% if room.breakfast_included %}true{% else %}false{% endif %},
+            "price": {{ room.price_per_night|default:0 }},
+            "amenities": [
+                {% for amenity in room.amenities.all %}
+                {
+                    "name": "{{ amenity.name|escapejs }}",
+                    "icon": "{{ amenity.get_icon_class }}",
+                    "icon_class": "fa-solid {{ amenity.get_icon_class }}"
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
+            "images": [
+                {% for image in room.images.all %}
+                {% if image.image_url %}
+                {
+                    "url": "{{ image.image_url }}",
+                    "alt": "{{ image.image_alt|escapejs|default:'' }}"
+                }{% if not forloop.last %},{% endif %}
+                {% endif %}
+                {% endfor %}
+            ],
+            "rules": []
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    {% endif %}
+]
+</script>
+
+<!-- Container for Vue App -->
+<div id="event-detail-app" data-hotel-pk="{{ event.hotel.pk|default:'' }}" data-event-pk="{{ event.pk }}">
+    <!-- Vue will mount here and render the entire event detail -->
+</div>
+
+<!-- Initialize Vue App -->
+<script>
+(function() {
+    // Check if Vue is loaded
+    if (typeof Vue === 'undefined') {
+        console.error('Vue.js is not loaded');
+        return;
+    }
+
+    // Check if EventDetailApp is defined
+    if (typeof EventDetailApp === 'undefined') {
+        console.error('EventDetailApp is not defined. Make sure event-detail.js is loaded.');
+        return;
+    }
+
+    const { createApp } = Vue;
+    const appElement = document.getElementById('event-detail-app');
+
+    if (!appElement) {
+        console.warn('Event detail app container not found');
+        return;
+    }
+
+    // Load event data
+    const eventDataEl = document.getElementById('event-data');
+    let eventData = null;
+    if (eventDataEl) {
+        try {
+            eventData = JSON.parse(eventDataEl.textContent);
+        } catch (e) {
+            console.error('Error parsing event data:', e);
+        }
+    }
+
+    // Load children data
+    const childrenDataEl = document.getElementById('children-data');
+    let childrenData = [];
+    if (childrenDataEl) {
+        try {
+            childrenData = JSON.parse(childrenDataEl.textContent);
+        } catch (e) {
+            console.error('Error parsing children data:', e);
+        }
+    }
+
+    // Load registrant data
+    const registrantDataEl = document.getElementById('registrant-data');
+    let registrantData = null;
+    if (registrantDataEl) {
+        try {
+            registrantData = JSON.parse(registrantDataEl.textContent);
+        } catch (e) {
+            console.error('Error parsing registrant data:', e);
+        }
+    }
+
+    // Load rooms data
+    const hotelPk = appElement.dataset.hotelPk;
+    const roomsDataEl = document.getElementById('rooms-data-' + hotelPk);
+    let roomsData = [];
+    if (roomsDataEl) {
+        try {
+            const jsonText = roomsDataEl.textContent.trim();
+            if (jsonText) {
+                roomsData = JSON.parse(jsonText);
+                roomsData = roomsData.filter(room => room && room.id);
+            }
+        } catch (e) {
+            console.error('Error parsing rooms data:', e);
+        }
+    }
+
+    try {
+        // Create Vue app instance
+        const app = createApp(EventDetailApp);
+
+        // Mount the app
+        const instance = app.mount('#event-detail-app');
+
+        // Set initial data if available
+        if (eventData && instance && instance.eventData) {
+            instance.eventData.value = eventData;
+        }
+        if (registrantData && instance && instance.registrant) {
+            instance.registrant.value = registrantData;
+        }
+        if (childrenData && childrenData.length > 0 && instance && instance.children) {
+            instance.children.value = childrenData;
+        }
+        if (roomsData && roomsData.length > 0 && instance && instance.rooms) {
+            instance.rooms.value = roomsData;
+        }
+
+        // Make Vue app instance accessible globally
+        window.VueEventDetail = window.VueEventDetail || {};
+        window.VueEventDetail[appElement.dataset.eventPk] = instance;
+
+        console.log('Vue Event Detail app initialized successfully');
+        console.log('Event:', eventData);
+        console.log('Children:', childrenData.length);
+        console.log('Rooms:', roomsData.length);
+    } catch (e) {
+        console.error('Error initializing Vue app:', e);
+    }
+})();
+</script>
+

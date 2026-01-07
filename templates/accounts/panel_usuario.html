@@ -318,6 +318,19 @@
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
+            z-index: 2000001 !important; /* Por encima del tab-content */
+        }
+
+        /* Cuando un iframe abre un modal, ocultar UI del dashboard que puede "verse" por el fondo transparente */
+        body.iframe-modal-open .quick-actions-section {
+            display: none !important;
+        }
+
+        /* Evitar que wrappers del panel creen stacking context raro por encima del iframe */
+        body.iframe-modal-open .dashboard-content-wrapper,
+        body.iframe-modal-open .main-content {
+            position: relative !important;
+            z-index: 1 !important;
         }
     </style>
 </head>
