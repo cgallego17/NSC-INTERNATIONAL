@@ -731,6 +731,95 @@
             font-size: 0.9rem !important;
             margin-bottom: 8px !important;
         }
+
+        /* Modal specific adjustments */
+        .modal-body {
+            padding: 15px !important;
+        }
+
+        .modal-footer {
+            padding: 12px !important;
+            flex-direction: column-reverse !important;
+            gap: 10px !important;
+            justify-content: center !important;
+        }
+
+        .modal-footer > div {
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 8px !important;
+            margin: 0 !important;
+        }
+
+        .modal-footer .btn {
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 12px !important;
+        }
+
+        /* Invoice Summary on Mobile */
+        .checkout-summary h5 {
+            font-size: 0.95rem !important;
+        }
+
+        #checkout-players-summary, #checkout-hotel-summary, #checkout-no-show-summary {
+            margin-bottom: 12px !important;
+        }
+
+        #checkout-players-summary > div, #checkout-hotel-summary > div {
+            padding: 10px !important;
+        }
+
+        .checkout-summary span {
+            font-size: 0.85rem !important;
+        }
+
+        .checkout-summary .font-weight-800,
+        .checkout-summary .font-weight-900 {
+            font-size: 1.1rem !important;
+        }
+
+        /* Toast on mobile */
+        .toast-container {
+            width: 100% !important;
+            padding: 10px !important;
+            left: 0 !important;
+            right: 0 !important;
+            top: 0 !important;
+        }
+
+        .toast {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-bottom: 8px !important;
+        }
+
+        /* Responsive Grid for Modal */
+        .modal-grid-layout {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 14px !important;
+        }
+
+        .guest-grid-layout {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
+            gap: 6px !important;
+        }
+
+        @media (max-width: 991.98px) {
+            .modal-grid-layout {
+                grid-template-columns: 1fr !important;
+                gap: 12px !important;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .guest-grid-layout {
+                grid-template-columns: 1fr !important;
+            }
+        }
     }
 </style>
 
@@ -836,6 +925,15 @@
             "additional_guest_price": {{ room.additional_guest_price|default:0 }},
             "breakfast_included": {% if room.breakfast_included %}true{% else %}false{% endif %},
             "price": {{ room.price_per_night|default:0 }},
+            "taxes": [
+                {% for tax in room.taxes.all %}
+                {
+                    "id": {{ tax.id }},
+                    "name": "{{ tax.name|escapejs }}",
+                    "amount": {{ tax.amount }}
+                }{% if not forloop.last %},{% endif %}
+                {% endfor %}
+            ],
             "amenities": [
                 {% for amenity in room.amenities.all %}
                 {

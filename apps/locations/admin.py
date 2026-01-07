@@ -9,6 +9,7 @@ from .models import (
     HotelReservation,
     HotelRoom,
     HotelRoomImage,
+    HotelRoomTax,
     HotelService,
     Rule,
     Season,
@@ -134,7 +135,7 @@ class HotelAmenityInline(admin.TabularInline):
 class HotelRoomInline(admin.TabularInline):
     model = HotelRoom
     extra = 0
-    fields = ["room_number", "room_type", "capacity", "price_per_night", "is_available"]
+    fields = ["room_number", "room_type", "capacity", "price_per_night", "stock", "is_available"]
     readonly_fields = []
 
 
@@ -259,6 +260,14 @@ class HotelRoomImageAdmin(admin.ModelAdmin):
     ordering = ["room", "order", "-is_featured"]
 
 
+@admin.register(HotelRoomTax)
+class HotelRoomTaxAdmin(admin.ModelAdmin):
+    list_display = ["name", "amount", "is_active", "created_at"]
+    list_filter = ["is_active", "created_at"]
+    search_fields = ["name"]
+    ordering = ["name"]
+
+
 @admin.register(HotelRoom)
 class HotelRoomAdmin(admin.ModelAdmin):
     list_display = [
@@ -267,12 +276,54 @@ class HotelRoomAdmin(admin.ModelAdmin):
         "room_type",
         "capacity",
         "price_per_night",
+        "stock",
         "is_available",
     ]
     list_filter = ["hotel", "room_type", "is_available", "created_at"]
     search_fields = ["hotel__hotel_name", "room_number", "description"]
+    filter_horizontal = ["taxes", "amenities"]
     ordering = ["hotel", "room_number"]
-    list_editable = ["is_available"]
+    list_editable = ["is_available", "stock"]
+
+    fieldsets = (
+        (
+            "Información de la Habitación",
+            {
+                "fields": (
+                    "hotel",
+                    "room_number",
+                    "name",
+                    "room_type",
+                    "description",
+                    "is_available",
+                )
+            },
+        ),
+        (
+            "Inventario y Precios",
+            {
+                "fields": (
+                    "stock",
+                    "capacity",
+                    "price_per_night",
+                    "price_includes_guests",
+                    "additional_guest_price",
+                    "breakfast_included",
+                )
+            },
+        ),
+        (
+            "Impuestos y Amenidades",
+            {
+                "fields": ("taxes", "amenities"),
+            },
+        ),
+        (
+            "Fechas",
+            {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
+        ),
+    )
+    readonly_fields = ["created_at", "updated_at"]
 
 
 @admin.register(HotelService)

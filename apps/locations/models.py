@@ -494,6 +494,49 @@ class Hotel(models.Model):
         return self.rooms.filter(is_available=True).count()
 
 
+class HotelRoomTax(models.Model):
+    """Impuestos aplicables a las habitaciones"""
+
+    event = models.ForeignKey(
+        "events.Event",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="hotel_taxes",
+        verbose_name="Evento",
+        help_text="Opcional: Vincular este impuesto a un evento específico",
+    )
+    name = models.CharField(
+        max_length=100,
+        verbose_name="Nombre del Impuesto",
+        help_text="Nombre descriptivo del impuesto (ej: IVA, Tasa Municipal)",
+    )
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Monto",
+        help_text="Monto fijo del impuesto",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Activo",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Fecha de Creación"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, verbose_name="Fecha de Actualización"
+    )
+
+    class Meta:
+        verbose_name = "Impuesto de Habitación"
+        verbose_name_plural = "Impuestos de Habitación"
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.name} (${self.amount})"
+
+
 class HotelRoom(models.Model):
     """Habitaciones de los hoteles"""
 
@@ -558,6 +601,18 @@ class HotelRoom(models.Model):
         default=False,
         verbose_name="Desayuno Incluido",
         help_text="Indica si el desayuno está incluido en el precio de la habitación",
+    )
+    stock = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Stock",
+        help_text="Cantidad de habitaciones disponibles de este tipo",
+    )
+    taxes = models.ManyToManyField(
+        "HotelRoomTax",
+        related_name="rooms",
+        blank=True,
+        verbose_name="Impuestos",
+        help_text="Impuestos aplicables a esta habitación",
     )
     amenities = models.ManyToManyField(
         'HotelAmenity',

@@ -316,7 +316,10 @@ function useHotelReservation(hotelPk) {
 function usePriceCalculation(hotelPk, reservationState) {
     const priceBreakdown = computed(() => {
         let total = 0;
+        let subtotal = 0;
+        let totalTaxes = 0;
         const breakdown = [];
+        const taxesBreakdown = {}; // name -> amount
 
         reservationState.rooms.forEach(room => {
             const roomId = String(room.roomId);
@@ -325,22 +328,43 @@ function usePriceCalculation(hotelPk, reservationState) {
             const includesGuests = parseInt(room.priceIncludesGuests || 0);
             const additionalGuestPrice = parseFloat(room.additionalGuestPrice || 0);
 
-            let roomTotal = basePrice;
+            let roomSubtotal = basePrice;
             if (assignedGuests.length > includesGuests) {
                 const extraGuests = assignedGuests.length - includesGuests;
-                roomTotal += extraGuests * additionalGuestPrice;
+                roomSubtotal += extraGuests * additionalGuestPrice;
             }
 
+            subtotal += roomSubtotal;
+
+            // Calculate taxes for this room
+            let roomTaxes = 0;
+            if (Array.isArray(room.taxes)) {
+                room.taxes.forEach(tax => {
+                    const taxAmount = parseFloat(tax.amount || 0);
+                    roomTaxes += taxAmount;
+
+                    if (!taxesBreakdown[tax.name]) {
+                        taxesBreakdown[tax.name] = 0;
+                    }
+                    taxesBreakdown[tax.name] += taxAmount;
+                });
+            }
+
+            const roomTotal = roomSubtotal + roomTaxes;
+            totalTaxes += roomTaxes;
             total += roomTotal;
+
             breakdown.push({
                 room: room.roomLabel,
                 basePrice,
                 assignedGuests: assignedGuests.length,
-                roomTotal
+                subtotal: roomSubtotal,
+                taxes: roomTaxes,
+                total: roomTotal
             });
         });
 
-        return { total, breakdown };
+        return { total, subtotal, totalTaxes, breakdown, taxesBreakdown };
     });
 
     return {
@@ -521,13 +545,15 @@ const RoomSelectionModal = {
         const priceCalculation = computed(() => {
             const selectedRooms = safeSelectedRooms.value;
             if (selectedRooms.length === 0) {
-                return { basePrice: 0, additionalGuests: 0, total: 0, additionalGuestsCount: 0, additionalGuestPricePerPerson: 0 };
+                return { basePrice: 0, additionalGuests: 0, total: 0, taxes: 0, additionalGuestsCount: 0, additionalGuestPricePerPerson: 0, taxesBreakdown: {} };
             }
 
             let basePrice = 0;
             let additionalGuestsTotal = 0;
             let totalAdditionalCount = 0;
             let maxAdditionalGuestPrice = 0;
+            let totalTaxes = 0;
+            const taxesBreakdown = {};
 
             // Use guestAssignments from props.reservationState to get real occupation
             const assignments = props.reservationState?.guestAssignments || {};
@@ -546,21 +572,37 @@ const RoomSelectionModal = {
                 const extraPrice = parseFloat(room.additionalGuestPrice || 0);
                 maxAdditionalGuestPrice = Math.max(maxAdditionalGuestPrice, extraPrice);
 
+                let roomAdditionalTotal = 0;
                 if (guestCountInRoom > included) {
                     const extraInRoom = guestCountInRoom - included;
                     totalAdditionalCount += extraInRoom;
-                    additionalGuestsTotal += (extraInRoom * extraPrice);
+                    roomAdditionalTotal = extraInRoom * extraPrice;
+                    additionalGuestsTotal += roomAdditionalTotal;
+                }
+
+                // Taxes for this room
+                if (Array.isArray(room.taxes)) {
+                    room.taxes.forEach(tax => {
+                        const taxAmount = parseFloat(tax.amount || 0);
+                        totalTaxes += taxAmount;
+                        if (!taxesBreakdown[tax.name]) {
+                            taxesBreakdown[tax.name] = 0;
+                        }
+                        taxesBreakdown[tax.name] += taxAmount;
+                    });
                 }
             });
 
-            const total = basePrice + additionalGuestsTotal;
+            const total = basePrice + additionalGuestsTotal + totalTaxes;
 
             return {
                 basePrice,
                 additionalGuests: additionalGuestsTotal,
+                taxes: totalTaxes,
                 total,
                 additionalGuestsCount: totalAdditionalCount,
-                additionalGuestPricePerPerson: maxAdditionalGuestPrice
+                additionalGuestPricePerPerson: maxAdditionalGuestPrice,
+                taxesBreakdown
             };
         });
 
@@ -1475,7 +1517,7 @@ const RoomSelectionModal = {
                         </div>
 
                         <!-- Guests and Selected Room Grid -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px;">
+                        <div class="modal-grid-layout" style="margin-bottom: 18px;">
                             <!-- Guests Section (Left) -->
                             <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; height: 100%;">
                                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0;">
@@ -1493,7 +1535,7 @@ const RoomSelectionModal = {
                                         <span style="margin-left: 4px;">{{ t('addGuest') }}</span>
                                     </button>
                                 </div>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 3px; min-height: 0; align-content: start;">
+                                <div class="guest-grid-layout" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 3px; min-height: 0; align-content: start;">
                                     <div v-for="guest in guestsList" :key="guest.id"
                                          style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border-radius: 8px; border: 1.5px solid #e9ecef; font-size: 0.8rem; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); position: relative;">
                                         <!-- Guest Avatar/Icon -->
@@ -1601,7 +1643,7 @@ const RoomSelectionModal = {
                                                 <i class="fas fa-times"></i>
                                             </button>
                                         </div>
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin-bottom: 8px;">
+                                        <div class="guest-grid-layout" style="font-size: 0.8rem; margin-bottom: 8px;">
                                             <div style="color: #64748b; display: flex; align-items: center; gap: 5px;">
                                                 <i class="fas fa-users" style="color: var(--mlb-blue); font-size: 0.85rem;"></i>
                                                 <div>
@@ -1678,6 +1720,19 @@ const RoomSelectionModal = {
                                                     </div>
                                                 </div>
                                                 <span style="font-weight: 700; color: #ff9800; font-size: 0.85rem; margin-left: 8px; white-space: nowrap; flex-shrink: 0;">+ \${{ formatPrice(priceCalculation.additionalGuests) }}</span>
+                                            </div>
+
+                                            <!-- Taxes -->
+                                            <div v-if="priceCalculation.taxes > 0"
+                                                 style="display: flex; flex-direction: column; gap: 4px; padding: 6px 0; border-bottom: 1px solid #f0f0f0;">
+                                                <div v-for="(amount, name) in priceCalculation.taxesBreakdown" :key="name"
+                                                     style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #6c757d;">
+                                                    <div style="display: flex; align-items: center; gap: 6px;">
+                                                        <i class="fas fa-file-invoice-dollar" style="color: #6c757d; font-size: 0.85rem;"></i>
+                                                        <span>{{ name }}</span>
+                                                    </div>
+                                                    <span style="font-weight: 700;">+ \${{ formatPrice(amount) }}</span>
+                                                </div>
                                             </div>
 
                                             <!-- Total -->
@@ -1854,7 +1909,7 @@ const RoomSelectionModal = {
                             <button type="button"
                                     class="btn btn-secondary"
                                     @click="$emit('close')"
-                                    style="padding: 8px 14px; font-weight: 600; border-radius: 8px; line-height: 1.1;">
+                                    style="padding: 12px 24px; font-weight: 600; border-radius: 12px; line-height: 1.1; font-size: 0.95rem;">
                                 {{ t('cancel') }}
                             </button>
                             <button
@@ -1862,8 +1917,8 @@ const RoomSelectionModal = {
                                 class="btn btn-primary"
                                 @click.stop="handleContinue"
                                 :disabled="safeSelectedRooms.length === 0"
-                                style="padding: 8px 16px; font-weight: 700; border-radius: 8px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border: none; box-shadow: 0 3px 10px rgba(13, 44, 84, 0.25); transition: all 0.3s ease; line-height: 1.1;"
-                                :style="safeSelectedRooms.length === 0 ? 'opacity: 0.5; cursor: not-allowed;' : 'opacity: 1;'">
+                                style="padding: 12px 28px; font-weight: 800; border-radius: 12px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border: none; box-shadow: 0 4px 12px rgba(13, 44, 84, 0.3); transition: all 0.3s ease; line-height: 1.1; font-size: 1rem;"
+                                :style="safeSelectedRooms.length === 0 ? 'opacity: 0.5; cursor: not-allowed;' : 'opacity: 1; transform: translateY(0);'">
                                 <i class="fas fa-arrow-right me-2"></i>{{ t('continue') }}
                             </button>
                         </div>
@@ -3380,9 +3435,9 @@ const EventDetailApp = {
                 <div class="col-lg-7">
                     <div class="event-info-card" style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
                         <!-- Banner/Logo -->
-                        <div v-if="eventData.banner || eventData.logo" style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 25px;">
+                        <div v-if="eventData.banner || eventData.logo" style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 25px; background: #f8f9fa;">
                             <img v-if="eventData.banner" :src="eventData.banner" :alt="eventData.title" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
-                            <img v-else-if="eventData.logo" :src="eventData.logo" :alt="eventData.title" style="width: 100%; height: 100%; object-fit: contain; object-position: center; background: #f8f9fa;">
+                            <img v-else-if="eventData.logo" :src="eventData.logo" :alt="eventData.title" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
                         </div>
 
                         <!-- Title and Category -->
@@ -3745,6 +3800,16 @@ const EventDetailApp = {
                                             {{ priceCalc.priceBreakdown.value?.additionalGuestsCount }} {{ t('additionalGuests') }}
                                         </div>
                                         <div style="font-weight: 700;">+ {{ formatPrice(priceCalc.priceBreakdown.value?.additionalGuests) }}</div>
+                                    </div>
+
+                                    <!-- Taxes info -->
+                                    <div v-if="priceCalc.priceBreakdown.value?.totalTaxes > 0"
+                                         style="margin-top: 12px; padding-top: 8px; border-top: 1px solid #f0f0f0;">
+                                        <div v-for="(amount, name) in priceCalc.priceBreakdown.value?.taxesBreakdown" :key="name"
+                                             style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #6c757d; margin-bottom: 4px;">
+                                            <div style="font-weight: 600;">{{ name }}</div>
+                                            <div style="font-weight: 700;">+ {{ formatPrice(amount) }}</div>
+                                        </div>
                                     </div>
 
                                     <!-- Subtotal Hotel -->

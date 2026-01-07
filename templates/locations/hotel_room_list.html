@@ -95,6 +95,7 @@
                                 <th>Tipo</th>
                                 <th>Capacidad</th>
                                 <th>Precio/Noche</th>
+                                <th>Stock</th>
                                 <th>Disponible</th>
                                 <th>Acciones</th>
                             </tr>
@@ -152,6 +153,11 @@
                                     </td>
                                     <td>
                                         <strong>${{ room.price_per_night|floatformat:2 }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if room.stock > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ room.stock }}
+                                        </span>
                                     </td>
                                     <td>
                                         {% if room.is_available %}

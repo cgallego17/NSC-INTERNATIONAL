@@ -1408,7 +1408,7 @@ class PanelEventDetailView(UserDashboardView):
                 available_rooms = (
                     HotelRoom.objects.filter(hotel=event.hotel, is_available=True)
                     .select_related("hotel")
-                    .prefetch_related("amenities")
+                    .prefetch_related("amenities", "taxes", "images")
                     .order_by("room_type", "price_per_night")
                 )
                 context["available_rooms"] = available_rooms
