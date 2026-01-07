@@ -2585,7 +2585,7 @@ def serve_age_verification_document(request, player_id):
     is_owner = (player.user == user) or (
         hasattr(user, "profile")
         and user.profile.is_parent
-        and PlayerParent.objects.filter(parent=user.profile, player=player).exists()
+        and PlayerParent.objects.filter(parent=user, player=player).exists()
     )
     is_staff = user.is_staff or user.is_superuser
     is_manager = player.team and player.team.manager == user
