@@ -368,7 +368,11 @@ class AdminStateCreateView(StaffRequiredMixin, CreateView):
             related_events = Event.objects.filter(
                 Q(hotel=hotel) | Q(additional_hotels=hotel)
             ).distinct()
-            context["events_list"] = related_events.order_by("-start_date")
+            # Si el hotel aún no está asociado a eventos, mostrar fallback de eventos recientes
+            if related_events.exists():
+                context["events_list"] = related_events.order_by("-start_date")
+            else:
+                context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
 
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
@@ -433,7 +437,11 @@ class AdminStateUpdateView(StaffRequiredMixin, UpdateView):
             related_events = Event.objects.filter(
                 Q(hotel=hotel) | Q(additional_hotels=hotel)
             ).distinct()
-            context["events_list"] = related_events.order_by("-start_date")
+            # Si el hotel aún no está asociado a eventos, mostrar fallback de eventos recientes
+            if related_events.exists():
+                context["events_list"] = related_events.order_by("-start_date")
+            else:
+                context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
 
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)

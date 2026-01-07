@@ -99,35 +99,17 @@ class EventDetailView(LoginRequiredMixin, DetailView):
     context_object_name = "event"
 
     def get_queryset(self):
-        # Permitir ver detalles de cualquier evento (incluyendo borradores) para usuarios logueados
-        return Event.objects.all()
+        """
+        Admin/detail view.
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["attendees"] = self.object.attendees.filter(
-            eventattendance__status="confirmed"
-        ).select_related()
-        context["comments"] = (
-            self.object.comments.filter(is_internal=False)
-            .select_related("user")
-            .order_by("-created_at")[:10]
-        )
-
-        # Verificar si el usuario está registrado
-        if self.request.user.is_authenticated:
-            try:
-                attendance = EventAttendance.objects.get(
-                    event=self.object, user=self.request.user
-                )
-                context["user_attendance"] = attendance
-            except EventAttendance.DoesNotExist:
-                context["user_attendance"] = None
+        - Staff: can view any event (published/draft/etc.)
+        - Non-staff: only published events
+        """
+        base_qs = Event.objects.all() if self.request.user.is_staff else Event.objects.filter(status="published")
 
         # Optimizar consultas relacionadas para mejor rendimiento
-        # El evento ya está filtrado por get_queryset (solo publicados)
-        event = (
-            Event.objects.filter(status="published")
-            .select_related(
+        return (
+            base_qs.select_related(
                 "category",
                 "organizer",
                 "event_type",
@@ -150,9 +132,31 @@ class EventDetailView(LoginRequiredMixin, DetailView):
                 "additional_hotels__state",
                 "event_contact",
             )
-            .get(pk=self.object.pk)
         )
-        context["event"] = event
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["attendees"] = self.object.attendees.filter(
+            eventattendance__status="confirmed"
+        ).select_related()
+        context["comments"] = (
+            self.object.comments.filter(is_internal=False)
+            .select_related("user")
+            .order_by("-created_at")[:10]
+        )
+
+        # Verificar si el usuario está registrado
+        if self.request.user.is_authenticated:
+            try:
+                attendance = EventAttendance.objects.get(
+                    event=self.object, user=self.request.user
+                )
+                context["user_attendance"] = attendance
+            except EventAttendance.DoesNotExist:
+                context["user_attendance"] = None
+
+        # Ya tenemos el evento cargado desde get_queryset() (con select_related/prefetch)
+        context["event"] = self.object
 
         return context
 
