@@ -3147,6 +3147,27 @@ const EventDetailApp = {
             await startStripeCheckout('now');
         }
 
+        // Helper to get CSRF token
+        function getCsrfToken() {
+            // 1. Try from hidden input
+            const input = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (input && input.value) return input.value;
+
+            // 2. Try from cookie
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, 10) === ('csrftoken=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(10));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
         // Updated startStripeCheckout for Vue
         async function startStripeCheckout(mode) {
             if (selectedChildrenCount.value === 0) {
@@ -3200,13 +3221,14 @@ const EventDetailApp = {
                     formData.set('hotel_reservation_json', JSON.stringify(hotelData));
                 }
 
-                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+                const csrfToken = getCsrfToken();
 
                 const resp = await fetch(stripeUrl, {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': csrfToken,
                     },
+                    credentials: 'same-origin',
                     body: formData
                 });
 

@@ -878,6 +878,7 @@
 
 <!-- Container for Vue App -->
 <div id="event-detail-app" data-hotel-pk="{{ event.hotel.pk|default:'' }}" data-event-pk="{{ event.pk }}">
+    {% csrf_token %}
     <!-- Vue will mount here and render the entire event detail -->
 </div>
 
