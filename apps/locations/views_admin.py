@@ -1915,6 +1915,23 @@ class AdminHotelRoomCreateView(StaffRequiredMixin, CreateView):
 
         logger = logging.getLogger(__name__)
 
+        # Validación: la descripción de cada regla es obligatoria
+        rule_index = 0
+        while True:
+            min_adults_key = f"rule_min_adults_{rule_index}"
+            if min_adults_key not in self.request.POST:
+                break
+
+            description = self.request.POST.get(f"rule_description_{rule_index}", "").strip()
+            if not description:
+                form.add_error(None, f"La descripción de la regla #{rule_index + 1} es obligatoria.")
+
+            rule_index += 1
+
+        if form.errors:
+            logger.warning(f"[CREATE] Validación fallida (reglas): {form.errors}")
+            return self.form_invalid(form)
+
         # Guardar la instancia básica (maneja hotel, stock, etc.)
         try:
             # Usar commit=False para poder hacer ajustes manuales si fuera necesario
@@ -2154,6 +2171,23 @@ class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
         import logging
 
         logger = logging.getLogger(__name__)
+
+        # Validación: la descripción de cada regla es obligatoria
+        rule_index = 0
+        while True:
+            min_adults_key = f"rule_min_adults_{rule_index}"
+            if min_adults_key not in self.request.POST:
+                break
+
+            description = self.request.POST.get(f"rule_description_{rule_index}", "").strip()
+            if not description:
+                form.add_error(None, f"La descripción de la regla #{rule_index + 1} es obligatoria.")
+
+            rule_index += 1
+
+        if form.errors:
+            logger.warning(f"[UPDATE] Validación fallida (reglas): {form.errors}")
+            return self.form_invalid(form)
 
         # Guardar la instancia básica (maneja hotel, stock, etc.)
         try:

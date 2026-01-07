@@ -439,11 +439,12 @@
                                                                    required>
                                                         </div>
                                                         <div class="col-md-3">
-                                                            <label class="form-label small">Descripción (opcional)</label>
+                                                            <label class="form-label small">Descripción <span class="text-danger">*</span></label>
                                                             <input type="text"
                                                                    name="rule_description_{{ forloop.counter0 }}"
                                                                    class="form-control form-control-sm"
                                                                    value="{{ rule.description|default:'' }}"
+                                                                   required
                                                                    placeholder="Ej: Mín 1 niño, máx 3 adultos">
                                                         </div>
                                                         <div class="col-md-1">
@@ -1502,11 +1503,12 @@ function addRoomRule() {
                                required>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label small">Descripción (opcional)</label>
+                        <label class="form-label small">Descripción <span class="text-danger">*</span></label>
                         <input type="text"
                                name="rule_description_${index}"
                                class="form-control form-control-sm"
                                value=""
+                               required
                                placeholder="Ej: Mín 1 niño, máx 3 adultos">
                     </div>
                     <div class="col-md-1">
