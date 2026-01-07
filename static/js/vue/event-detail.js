@@ -3123,6 +3123,21 @@ const EventDetailApp = {
             return `$${formatted}`;
         }
 
+        function getStayNights() {
+            return calculateNights(reservation.state.check_in_date, reservation.state.check_out_date);
+        }
+
+        // If a guest exceeds the included guests for the room, show their additional charge (per night * nights)
+        function getGuestAdditionalCharge(room, guestPositionInRoom) {
+            if (!room) return 0;
+            const included = parseInt(room.priceIncludesGuests || 1);
+            if (!isFinite(included)) return 0;
+            if (guestPositionInRoom < included) return 0;
+            const perNight = parseFloat(room.additionalGuestPrice || 0);
+            if (!isFinite(perNight) || perNight <= 0) return 0;
+            return perNight * getStayNights();
+        }
+
         function formatLocation(event) {
             if (!event) return '';
             const parts = [];
@@ -3513,6 +3528,7 @@ const EventDetailApp = {
             formatPrice,
             formatLocation,
             getInitials,
+            getGuestAdditionalCharge,
             t: $t
         };
     },
@@ -3882,10 +3898,14 @@ const EventDetailApp = {
 
                                         <!-- Guests in this room -->
                                         <div style="margin-top: 6px; padding-left: 8px; border-left: 2px solid #fecaca;">
-                                            <div v-for="idx in (reservation.state.guestAssignments[String(room.roomId)] || [])"
+                                            <div v-for="(idx, pos) in (reservation.state.guestAssignments[String(room.roomId)] || [])"
                                                  :key="idx"
                                                  style="font-size: 0.72rem; color: #6c757d; line-height: 1.4;">
                                                 • {{ reservation.state.guests[idx]?.displayName }}
+                                                <span v-if="getGuestAdditionalCharge(room, pos) > 0"
+                                                      style="margin-left: 6px; font-weight: 800; color: #f97316;">
+                                                    (+ {{ formatPrice(getGuestAdditionalCharge(room, pos)) }})
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
