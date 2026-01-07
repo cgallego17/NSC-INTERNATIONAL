@@ -756,6 +756,8 @@
     "video_url": "{{ event.video_url|default:''|escapejs }}",
     "external_link": "{{ event.external_link|default:''|escapejs }}",
     "default_entry_fee": {{ event.default_entry_fee|default:0 }},
+    "stripe_checkout_url": "{% url 'accounts:create_stripe_event_checkout_session' event.pk %}",
+    "payment_deadline": "{{ event.payment_deadline|date:'Y-m-d'|default:'' }}",
     "category": {% if event.category %}{"id": {{ event.category.id }}, "name": "{{ event.category.name|escapejs }}"}{% else %}null{% endif %},
     "event_type": {% if event.event_type %}{"id": {{ event.event_type.id }}, "name": "{{ event.event_type.name|escapejs }}"}{% else %}null{% endif %},
     "status": "{{ event.get_status_display|escapejs }}",

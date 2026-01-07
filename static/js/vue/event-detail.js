@@ -3154,7 +3154,7 @@ const EventDetailApp = {
                 return;
             }
 
-            const stripeUrl = eventData.value?.stripe_checkout_url || `/accounts/events/${eventPkRef.value}/checkout/stripe/`;
+            const stripeUrl = eventData.value?.stripe_checkout_url || `/accounts/events/${eventPkRef.value}/stripe/create-checkout-session/`;
 
             // Show loader
             loading.value = true;
