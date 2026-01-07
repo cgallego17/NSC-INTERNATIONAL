@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import City, Country, Hotel, Season, State
+from .models import City, Country, Hotel, HotelRoom, HotelRoomTax, Season, State
 
 
 class CountryForm(forms.ModelForm):
@@ -136,6 +136,7 @@ class HotelForm(forms.ModelForm):
             "information",
             "registration_url",
             "capacity",
+            "buy_out_fee",
             "contact_name",
             "contact_email",
             "contact_phone",
@@ -208,6 +209,14 @@ class HotelForm(forms.ModelForm):
                     "placeholder": "Número de habitaciones o personas",
                 }
             ),
+            "buy_out_fee": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "min": "0",
+                    "step": "0.01",
+                    "placeholder": "Ej: 1000.00",
+                }
+            ),
             "contact_name": forms.TextInput(
                 attrs={
                     "class": "form-control",
@@ -242,6 +251,7 @@ class HotelForm(forms.ModelForm):
             "information": "Información Adicional",
             "registration_url": "URL de Registro",
             "capacity": "Capacidad",
+            "buy_out_fee": "Buy Out Fee (Cargo por no Hospedarse)",
             "contact_name": "Nombre de Contacto",
             "contact_email": "Email de Contacto",
             "contact_phone": "Teléfono de Contacto",
@@ -298,3 +308,110 @@ class HotelForm(forms.ModelForm):
             return city_obj
         except (ValueError, TypeError):
             raise forms.ValidationError("La ciudad seleccionada no es válida.")
+
+
+class HotelRoomForm(forms.ModelForm):
+    """Formulario para crear/editar habitaciones de hotel"""
+
+    class Meta:
+        model = HotelRoom
+        fields = [
+            "hotel",
+            "room_number",
+            "name",
+            "room_type",
+            "capacity",
+            "price_per_night",
+            "price_includes_guests",
+            "additional_guest_price",
+            "breakfast_included",
+            "stock",
+            "taxes",
+            "description",
+            "is_available",
+        ]
+        widgets = {
+            "hotel": forms.Select(attrs={"class": "form-select"}),
+            "room_number": forms.TextInput(
+                attrs={"class": "form-control", "placeholder": "Ej: 101, 205, Suite A"}
+            ),
+            "name": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Ej: Suite Presidencial, Habitación con Vista al Mar",
+                }
+            ),
+            "room_type": forms.Select(attrs={"class": "form-select"}),
+            "capacity": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "min": "1",
+                    "placeholder": "Total de personas",
+                }
+            ),
+            "price_per_night": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "min": "0",
+                    "placeholder": "0.00",
+                }
+            ),
+            "price_includes_guests": forms.NumberInput(
+                attrs={"class": "form-control", "min": "1", "placeholder": "1"}
+            ),
+            "additional_guest_price": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "min": "0",
+                    "placeholder": "0.00",
+                }
+            ),
+            "breakfast_included": forms.CheckboxInput(
+                attrs={"class": "form-check-input"}
+            ),
+            "stock": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "min": "0",
+                    "placeholder": "Cantidad disponible",
+                }
+            ),
+            "taxes": forms.CheckboxSelectMultiple(),
+            "description": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 4,
+                    "placeholder": "Descripción de la habitación (amenidades, vista, etc.)",
+                }
+            ),
+            "is_available": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Taxes: incluir activos + los ya asignados a la habitación (aunque estén inactivos),
+        # para evitar que el formulario sea inválido al editar.
+        taxes_qs = HotelRoomTax.objects.filter(is_active=True)
+        if getattr(self.instance, "pk", None):
+            try:
+                taxes_qs = taxes_qs | self.instance.taxes.all()
+            except Exception:
+                pass
+        self.fields["taxes"].queryset = taxes_qs.distinct()
+        self.fields["taxes"].required = False
+
+        # Hotel: incluir activos + el hotel actual (aunque esté inactivo), para no romper edición.
+        try:
+            from .models import Hotel
+
+            hotel_qs = Hotel.objects.filter(is_active=True)
+            if getattr(self.instance, "pk", None) and getattr(
+                self.instance, "hotel_id", None
+            ):
+                hotel_qs = hotel_qs | Hotel.objects.filter(pk=self.instance.hotel_id)
+            self.fields["hotel"].queryset = hotel_qs.distinct()
+        except Exception:
+            # Si algo falla, dejamos el queryset por defecto del ModelChoiceField.
+            pass

@@ -31,8 +31,8 @@ class EventListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         # Forzar consulta fresca desde la base de datos
-        # Solo mostrar eventos publicados
-        queryset = Event.objects.filter(status="published").select_related(
+        # Mostrar todos los eventos (incluyendo despublicados/borradores)
+        queryset = Event.objects.all().select_related(
             "category", "organizer", "event_type", "country", "state", "city"
         )
 
@@ -99,8 +99,8 @@ class EventDetailView(LoginRequiredMixin, DetailView):
     context_object_name = "event"
 
     def get_queryset(self):
-        # Solo mostrar eventos publicados
-        return Event.objects.filter(status="published")
+        # Permitir ver detalles de cualquier evento (incluyendo borradores) para usuarios logueados
+        return Event.objects.all()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -258,7 +258,7 @@ class EventDetailAPIView(LoginRequiredMixin, View):
         from apps.accounts.models import Player, PlayerParent
 
         event = get_object_or_404(
-            Event.objects.filter(status="published").select_related(
+            Event.objects.all().select_related(
                 "category",
                 "event_type",
                 "country",

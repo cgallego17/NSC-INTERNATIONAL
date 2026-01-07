@@ -2,14 +2,16 @@
 Vistas administrativas de ubicaciones - Solo staff/superuser, CRUD completo
 """
 
+from pathlib import Path
+
 from django.contrib import messages
-from django.db.models import Q, Max
+from django.db.models import Max, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
-from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -18,6 +20,10 @@ from django.views.generic import (
     UpdateView,
 )
 
+from apps.core.mixins import StaffRequiredMixin
+from apps.media.models import MediaFile
+
+from .forms import HotelForm, HotelRoomForm
 from .models import (
     City,
     Country,
@@ -35,10 +41,6 @@ from .models import (
     Site,
     State,
 )
-from .forms import HotelForm
-from apps.core.mixins import StaffRequiredMixin
-from apps.media.models import MediaFile
-from pathlib import Path
 
 
 # ===== COUNTRY VIEWS (Admin) =====
@@ -115,9 +117,11 @@ class AdminCountryCreateView(StaffRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -141,13 +145,21 @@ class AdminCountryCreateView(StaffRequiredMixin, CreateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -170,9 +182,11 @@ class AdminCountryUpdateView(StaffRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -196,13 +210,21 @@ class AdminCountryUpdateView(StaffRequiredMixin, UpdateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -313,9 +335,11 @@ class AdminStateCreateView(StaffRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -339,13 +363,21 @@ class AdminStateCreateView(StaffRequiredMixin, CreateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -368,9 +400,11 @@ class AdminStateUpdateView(StaffRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -394,13 +428,21 @@ class AdminStateUpdateView(StaffRequiredMixin, UpdateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -519,9 +561,11 @@ class AdminCityCreateView(StaffRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -545,13 +589,21 @@ class AdminCityCreateView(StaffRequiredMixin, CreateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -574,9 +626,11 @@ class AdminCityUpdateView(StaffRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -600,13 +654,21 @@ class AdminCityUpdateView(StaffRequiredMixin, UpdateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -714,9 +776,11 @@ class AdminSeasonCreateView(StaffRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -740,13 +804,21 @@ class AdminSeasonCreateView(StaffRequiredMixin, CreateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -777,9 +849,11 @@ class AdminSeasonUpdateView(StaffRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -803,13 +877,21 @@ class AdminSeasonUpdateView(StaffRequiredMixin, UpdateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -890,9 +972,11 @@ class AdminRuleCreateView(StaffRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -916,13 +1000,21 @@ class AdminRuleCreateView(StaffRequiredMixin, CreateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -941,9 +1033,11 @@ class AdminRuleUpdateView(StaffRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -967,13 +1061,21 @@ class AdminRuleUpdateView(StaffRequiredMixin, UpdateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -1075,9 +1177,11 @@ class AdminSiteCreateView(StaffRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -1101,13 +1205,21 @@ class AdminSiteCreateView(StaffRequiredMixin, CreateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -1139,9 +1251,11 @@ class AdminSiteUpdateView(StaffRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -1165,13 +1279,21 @@ class AdminSiteUpdateView(StaffRequiredMixin, UpdateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -1261,9 +1383,11 @@ class AdminHotelCreateView(StaffRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -1287,13 +1411,21 @@ class AdminHotelCreateView(StaffRequiredMixin, CreateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -1302,14 +1434,21 @@ class AdminHotelCreateView(StaffRequiredMixin, CreateView):
         hotel = self.object
 
         # Procesar imágenes múltiples
-        images = self.request.FILES.getlist('hotel_images')
+        images = self.request.FILES.getlist("hotel_images")
         if images:
             for index, image_file in enumerate(images):
                 if image_file:
                     # Obtener datos adicionales del formulario usando el índice
-                    title = self.request.POST.get(f'image_title_{index}', '').strip() or None
-                    alt_text = self.request.POST.get(f'image_alt_{index}', '').strip() or None
-                    is_featured = self.request.POST.get(f'image_featured_{index}') == 'on'
+                    title = (
+                        self.request.POST.get(f"image_title_{index}", "").strip()
+                        or None
+                    )
+                    alt_text = (
+                        self.request.POST.get(f"image_alt_{index}", "").strip() or None
+                    )
+                    is_featured = (
+                        self.request.POST.get(f"image_featured_{index}") == "on"
+                    )
 
                     # Crear la imagen del hotel
                     HotelImage.objects.create(
@@ -1318,7 +1457,7 @@ class AdminHotelCreateView(StaffRequiredMixin, CreateView):
                         title=title,
                         alt_text=alt_text,
                         is_featured=is_featured,
-                        order=hotel.images.count()  # Orden basado en el número actual de imágenes
+                        order=hotel.images.count(),  # Orden basado en el número actual de imágenes
                     )
 
         # Procesar amenidades seleccionadas (checkboxes)
@@ -1326,36 +1465,42 @@ class AdminHotelCreateView(StaffRequiredMixin, CreateView):
 
         # Mapeo de valores de ícono a nombres y categorías
         amenity_mapping = {
-            'wifi': {'name': 'WiFi Gratis', 'category': 'general'},
-            'parking': {'name': 'Estacionamiento', 'category': 'general'},
-            'pool': {'name': 'Piscina', 'category': 'general'},
-            'gym': {'name': 'Gimnasio', 'category': 'general'},
-            'spa': {'name': 'Spa', 'category': 'general'},
-            'restaurant': {'name': 'Restaurante', 'category': 'food_drink'},
-            'bar': {'name': 'Bar', 'category': 'food_drink'},
-            'room_service': {'name': 'Servicio a Habitación', 'category': 'services'},
-            'cable_tv': {'name': 'TV por Cable', 'category': 'entertainment'},
-            'streaming': {'name': 'Streaming', 'category': 'entertainment'},
-            'game_room': {'name': 'Sala de Juegos', 'category': 'entertainment'},
-            'laundry': {'name': 'Lavandería', 'category': 'services'},
-            'concierge': {'name': 'Concierge', 'category': 'services'},
-            '24h_reception': {'name': 'Recepción 24h', 'category': 'services'},
-            'airport_shuttle': {'name': 'Transporte Aeropuerto', 'category': 'services'},
-            'business_center': {'name': 'Centro de Negocios', 'category': 'services'},
-            'meeting_rooms': {'name': 'Salas de Reuniones', 'category': 'services'},
-            'wheelchair_accessible': {'name': 'Acceso para Sillas de Ruedas', 'category': 'accessibility'},
-            'elevator': {'name': 'Ascensor', 'category': 'accessibility'},
-            'pet_friendly': {'name': 'Admite Mascotas', 'category': 'general'},
-            'smoking_area': {'name': 'Área de Fumadores', 'category': 'general'},
-            'non_smoking': {'name': 'No Fumadores', 'category': 'general'},
-            'family_friendly': {'name': 'Apto para Familias', 'category': 'general'}
+            "wifi": {"name": "WiFi Gratis", "category": "general"},
+            "parking": {"name": "Estacionamiento", "category": "general"},
+            "pool": {"name": "Piscina", "category": "general"},
+            "gym": {"name": "Gimnasio", "category": "general"},
+            "spa": {"name": "Spa", "category": "general"},
+            "restaurant": {"name": "Restaurante", "category": "food_drink"},
+            "bar": {"name": "Bar", "category": "food_drink"},
+            "room_service": {"name": "Servicio a Habitación", "category": "services"},
+            "cable_tv": {"name": "TV por Cable", "category": "entertainment"},
+            "streaming": {"name": "Streaming", "category": "entertainment"},
+            "game_room": {"name": "Sala de Juegos", "category": "entertainment"},
+            "laundry": {"name": "Lavandería", "category": "services"},
+            "concierge": {"name": "Concierge", "category": "services"},
+            "24h_reception": {"name": "Recepción 24h", "category": "services"},
+            "airport_shuttle": {
+                "name": "Transporte Aeropuerto",
+                "category": "services",
+            },
+            "business_center": {"name": "Centro de Negocios", "category": "services"},
+            "meeting_rooms": {"name": "Salas de Reuniones", "category": "services"},
+            "wheelchair_accessible": {
+                "name": "Acceso para Sillas de Ruedas",
+                "category": "accessibility",
+            },
+            "elevator": {"name": "Ascensor", "category": "accessibility"},
+            "pet_friendly": {"name": "Admite Mascotas", "category": "general"},
+            "smoking_area": {"name": "Área de Fumadores", "category": "general"},
+            "non_smoking": {"name": "No Fumadores", "category": "general"},
+            "family_friendly": {"name": "Apto para Familias", "category": "general"},
         }
 
         # Obtener amenidades seleccionadas (checkboxes)
         selected_amenities = []
         for key in self.request.POST.keys():
-            if key.startswith('amenity_') and key != 'amenity_available':
-                icon_value = key.replace('amenity_', '')
+            if key.startswith("amenity_") and key != "amenity_available":
+                icon_value = key.replace("amenity_", "")
                 if icon_value in amenity_mapping:
                     selected_amenities.append(icon_value)
 
@@ -1364,24 +1509,35 @@ class AdminHotelCreateView(StaffRequiredMixin, CreateView):
             if icon_value in amenity_mapping:
                 HotelAmenity.objects.create(
                     hotel=hotel,
-                    name=amenity_mapping[icon_value]['name'],
-                    category=amenity_mapping[icon_value]['category'],
+                    name=amenity_mapping[icon_value]["name"],
+                    category=amenity_mapping[icon_value]["category"],
                     icon=icon_value,
                     is_available=True,
-                    order=amenity_count
+                    order=amenity_count,
                 )
                 amenity_count += 1
 
         # Procesar amenidades personalizadas
         custom_index = 0
         while True:
-            name = self.request.POST.get(f'custom_amenity_name_{custom_index}', '').strip()
+            name = self.request.POST.get(
+                f"custom_amenity_name_{custom_index}", ""
+            ).strip()
             if not name:
                 break
 
-            category = self.request.POST.get(f'custom_amenity_category_{custom_index}', 'general')
-            icon_value = self.request.POST.get(f'custom_amenity_icon_{custom_index}', 'other')
-            description = self.request.POST.get(f'custom_amenity_description_{custom_index}', '').strip() or None
+            category = self.request.POST.get(
+                f"custom_amenity_category_{custom_index}", "general"
+            )
+            icon_value = self.request.POST.get(
+                f"custom_amenity_icon_{custom_index}", "other"
+            )
+            description = (
+                self.request.POST.get(
+                    f"custom_amenity_description_{custom_index}", ""
+                ).strip()
+                or None
+            )
 
             HotelAmenity.objects.create(
                 hotel=hotel,
@@ -1390,16 +1546,23 @@ class AdminHotelCreateView(StaffRequiredMixin, CreateView):
                 icon=icon_value,
                 description=description,
                 is_available=True,
-                order=hotel.amenities.count()
+                order=hotel.amenities.count(),
             )
             amenity_count += 1
             custom_index += 1
 
-        messages.success(self.request, f"Hotel '{hotel.hotel_name}' creado exitosamente.")
+        messages.success(
+            self.request, f"Hotel '{hotel.hotel_name}' creado exitosamente."
+        )
         if images:
-            messages.info(self.request, f"Se agregaron {len(images)} imagen(es) a la galería del hotel.")
+            messages.info(
+                self.request,
+                f"Se agregaron {len(images)} imagen(es) a la galería del hotel.",
+            )
         if amenity_count > 0:
-            messages.info(self.request, f"Se agregaron {amenity_count} amenidad(es) al hotel.")
+            messages.info(
+                self.request, f"Se agregaron {amenity_count} amenidad(es) al hotel."
+            )
         return response
 
 
@@ -1413,9 +1576,11 @@ class AdminHotelUpdateView(StaffRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -1439,13 +1604,21 @@ class AdminHotelUpdateView(StaffRequiredMixin, UpdateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -1461,19 +1634,26 @@ class AdminHotelUpdateView(StaffRequiredMixin, UpdateView):
         hotel = self.object
 
         # Procesar imágenes múltiples
-        images = self.request.FILES.getlist('hotel_images')
+        images = self.request.FILES.getlist("hotel_images")
         if images:
             # Obtener el último orden para continuar desde ahí
-            last_order = hotel.images.aggregate(
-                max_order=Max('order')
-            )['max_order'] or 0
+            last_order = (
+                hotel.images.aggregate(max_order=Max("order"))["max_order"] or 0
+            )
 
             for index, image_file in enumerate(images):
                 if image_file:
                     # Obtener datos adicionales del formulario usando el índice
-                    title = self.request.POST.get(f'image_title_{index}', '').strip() or None
-                    alt_text = self.request.POST.get(f'image_alt_{index}', '').strip() or None
-                    is_featured = self.request.POST.get(f'image_featured_{index}') == 'on'
+                    title = (
+                        self.request.POST.get(f"image_title_{index}", "").strip()
+                        or None
+                    )
+                    alt_text = (
+                        self.request.POST.get(f"image_alt_{index}", "").strip() or None
+                    )
+                    is_featured = (
+                        self.request.POST.get(f"image_featured_{index}") == "on"
+                    )
 
                     # Crear la imagen del hotel
                     HotelImage.objects.create(
@@ -1482,7 +1662,7 @@ class AdminHotelUpdateView(StaffRequiredMixin, UpdateView):
                         title=title,
                         alt_text=alt_text,
                         is_featured=is_featured,
-                        order=last_order + index + 1
+                        order=last_order + index + 1,
                     )
 
         # Procesar amenidades seleccionadas (checkboxes)
@@ -1490,42 +1670,54 @@ class AdminHotelUpdateView(StaffRequiredMixin, UpdateView):
 
         # Mapeo de valores de ícono a nombres y categorías
         amenity_mapping = {
-            'wifi': {'name': 'WiFi Gratis', 'category': 'general'},
-            'parking': {'name': 'Estacionamiento', 'category': 'general'},
-            'pool': {'name': 'Piscina', 'category': 'general'},
-            'gym': {'name': 'Gimnasio', 'category': 'general'},
-            'spa': {'name': 'Spa', 'category': 'general'},
-            'restaurant': {'name': 'Restaurante', 'category': 'food_drink'},
-            'bar': {'name': 'Bar', 'category': 'food_drink'},
-            'room_service': {'name': 'Servicio a Habitación', 'category': 'services'},
-            'cable_tv': {'name': 'TV por Cable', 'category': 'entertainment'},
-            'streaming': {'name': 'Streaming', 'category': 'entertainment'},
-            'game_room': {'name': 'Sala de Juegos', 'category': 'entertainment'},
-            'laundry': {'name': 'Lavandería', 'category': 'services'},
-            'concierge': {'name': 'Concierge', 'category': 'services'},
-            '24h_reception': {'name': 'Recepción 24h', 'category': 'services'},
-            'airport_shuttle': {'name': 'Transporte Aeropuerto', 'category': 'services'},
-            'business_center': {'name': 'Centro de Negocios', 'category': 'services'},
-            'meeting_rooms': {'name': 'Salas de Reuniones', 'category': 'services'},
-            'wheelchair_accessible': {'name': 'Acceso para Sillas de Ruedas', 'category': 'accessibility'},
-            'elevator': {'name': 'Ascensor', 'category': 'accessibility'},
-            'pet_friendly': {'name': 'Admite Mascotas', 'category': 'general'},
-            'smoking_area': {'name': 'Área de Fumadores', 'category': 'general'},
-            'non_smoking': {'name': 'No Fumadores', 'category': 'general'},
-            'family_friendly': {'name': 'Apto para Familias', 'category': 'general'}
+            "wifi": {"name": "WiFi Gratis", "category": "general"},
+            "parking": {"name": "Estacionamiento", "category": "general"},
+            "pool": {"name": "Piscina", "category": "general"},
+            "gym": {"name": "Gimnasio", "category": "general"},
+            "spa": {"name": "Spa", "category": "general"},
+            "restaurant": {"name": "Restaurante", "category": "food_drink"},
+            "bar": {"name": "Bar", "category": "food_drink"},
+            "room_service": {"name": "Servicio a Habitación", "category": "services"},
+            "cable_tv": {"name": "TV por Cable", "category": "entertainment"},
+            "streaming": {"name": "Streaming", "category": "entertainment"},
+            "game_room": {"name": "Sala de Juegos", "category": "entertainment"},
+            "laundry": {"name": "Lavandería", "category": "services"},
+            "concierge": {"name": "Concierge", "category": "services"},
+            "24h_reception": {"name": "Recepción 24h", "category": "services"},
+            "airport_shuttle": {
+                "name": "Transporte Aeropuerto",
+                "category": "services",
+            },
+            "business_center": {"name": "Centro de Negocios", "category": "services"},
+            "meeting_rooms": {"name": "Salas de Reuniones", "category": "services"},
+            "wheelchair_accessible": {
+                "name": "Acceso para Sillas de Ruedas",
+                "category": "accessibility",
+            },
+            "elevator": {"name": "Ascensor", "category": "accessibility"},
+            "pet_friendly": {"name": "Admite Mascotas", "category": "general"},
+            "smoking_area": {"name": "Área de Fumadores", "category": "general"},
+            "non_smoking": {"name": "No Fumadores", "category": "general"},
+            "family_friendly": {"name": "Apto para Familias", "category": "general"},
         }
 
         # Obtener amenidades seleccionadas (checkboxes)
         selected_amenities = []
         for key in self.request.POST.keys():
-            if key.startswith('amenity_') and key != 'amenity_available':
-                icon_value = key.replace('amenity_', '')
+            if key.startswith("amenity_") and key != "amenity_available":
+                icon_value = key.replace("amenity_", "")
                 if icon_value in amenity_mapping:
                     selected_amenities.append(icon_value)
 
         # Eliminar amenidades existentes que no están seleccionadas (solo generales del hotel)
         existing_amenities = hotel.amenities.filter(
-            category__in=['general', 'entertainment', 'food_drink', 'services', 'accessibility']
+            category__in=[
+                "general",
+                "entertainment",
+                "food_drink",
+                "services",
+                "accessibility",
+            ]
         )
         for existing in existing_amenities:
             if existing.icon not in selected_amenities:
@@ -1539,24 +1731,35 @@ class AdminHotelUpdateView(StaffRequiredMixin, UpdateView):
                 if not existing:
                     HotelAmenity.objects.create(
                         hotel=hotel,
-                        name=amenity_mapping[icon_value]['name'],
-                        category=amenity_mapping[icon_value]['category'],
+                        name=amenity_mapping[icon_value]["name"],
+                        category=amenity_mapping[icon_value]["category"],
                         icon=icon_value,
                         is_available=True,
-                        order=amenity_count
+                        order=amenity_count,
                     )
                     amenity_count += 1
 
         # Procesar amenidades personalizadas
         custom_index = 0
         while True:
-            name = self.request.POST.get(f'custom_amenity_name_{custom_index}', '').strip()
+            name = self.request.POST.get(
+                f"custom_amenity_name_{custom_index}", ""
+            ).strip()
             if not name:
                 break
 
-            category = self.request.POST.get(f'custom_amenity_category_{custom_index}', 'general')
-            icon_value = self.request.POST.get(f'custom_amenity_icon_{custom_index}', 'other')
-            description = self.request.POST.get(f'custom_amenity_description_{custom_index}', '').strip() or None
+            category = self.request.POST.get(
+                f"custom_amenity_category_{custom_index}", "general"
+            )
+            icon_value = self.request.POST.get(
+                f"custom_amenity_icon_{custom_index}", "other"
+            )
+            description = (
+                self.request.POST.get(
+                    f"custom_amenity_description_{custom_index}", ""
+                ).strip()
+                or None
+            )
 
             HotelAmenity.objects.create(
                 hotel=hotel,
@@ -1565,16 +1768,24 @@ class AdminHotelUpdateView(StaffRequiredMixin, UpdateView):
                 icon=icon_value,
                 description=description,
                 is_available=True,
-                order=hotel.amenities.count()
+                order=hotel.amenities.count(),
             )
             amenity_count += 1
             custom_index += 1
 
-        messages.success(self.request, f"Hotel '{hotel.hotel_name}' actualizado exitosamente.")
+        messages.success(
+            self.request, f"Hotel '{hotel.hotel_name}' actualizado exitosamente."
+        )
         if images:
-            messages.info(self.request, f"Se agregaron {len(images)} nueva(s) imagen(es) a la galería del hotel.")
+            messages.info(
+                self.request,
+                f"Se agregaron {len(images)} nueva(s) imagen(es) a la galería del hotel.",
+            )
         if amenity_count > 0:
-            messages.info(self.request, f"Se agregaron {amenity_count} nueva(s) amenidad(es) al hotel.")
+            messages.info(
+                self.request,
+                f"Se agregaron {amenity_count} nueva(s) amenidad(es) al hotel.",
+            )
         return response
 
 
@@ -1600,7 +1811,11 @@ class AdminHotelRoomListView(StaffRequiredMixin, ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        queryset = HotelRoom.objects.select_related("hotel").prefetch_related("images__media_file", "images").all()
+        queryset = (
+            HotelRoom.objects.select_related("hotel")
+            .prefetch_related("images__media_file", "images")
+            .all()
+        )
 
         # Filtro por hotel
         hotel = self.request.GET.get("hotel")
@@ -1636,29 +1851,17 @@ class AdminHotelRoomCreateView(StaffRequiredMixin, CreateView):
     """Crear habitación - Solo admin"""
 
     model = HotelRoom
+    form_class = HotelRoomForm
     template_name = "locations/hotel_room_form.html"
-    fields = [
-        "hotel",
-        "room_number",
-        "name",
-        "room_type",
-        "capacity",
-        "price_per_night",
-        "price_includes_guests",
-        "additional_guest_price",
-        "breakfast_included",
-        "stock",
-        "taxes",
-        "description",
-        "is_available",
-    ]
     success_url = reverse_lazy("locations:admin_hotel_room_list")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -1682,64 +1885,67 @@ class AdminHotelRoomCreateView(StaffRequiredMixin, CreateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
+        # Obtener lista de hoteles activos + el hotel actual de la habitación
+        hotels_filters = Q(is_active=True)
+        if hotel:
+            hotels_filters |= Q(pk=hotel.pk)
+        context["hotels_list"] = (
+            Hotel.objects.filter(hotels_filters).distinct().order_by("hotel_name")
+        )
         return context
 
     def form_valid(self, form):
-        # Debug: Log todos los campos recibidos
         import logging
+
         logger = logging.getLogger(__name__)
-        logger.info(f"[CREATE] POST data keys: {list(self.request.POST.keys())}")
-        logger.info(f"[CREATE] Form cleaned_data: {form.cleaned_data}")
-        logger.info(f"[CREATE] additional_guest_price en POST: {self.request.POST.get('additional_guest_price', 'NO ENCONTRADO')}")
-        logger.info(f"[CREATE] price_per_night en POST: {self.request.POST.get('price_per_night', 'NO ENCONTRADO')}")
 
-        # Asegurar que los checkboxes se procesen correctamente
-        # Los checkboxes no se envían si no están marcados, así que debemos manejarlos explícitamente
-        if 'breakfast_included' not in self.request.POST:
-            form.instance.breakfast_included = False
-        if 'is_available' not in self.request.POST:
-            form.instance.is_available = False
-
-        # Asegurar que additional_guest_price tenga un valor por defecto si está vacío
-        additional_price = self.request.POST.get('additional_guest_price', '').strip()
-        if not additional_price or additional_price == '':
-            form.instance.additional_guest_price = 0.00
-        else:
-            try:
-                form.instance.additional_guest_price = float(additional_price)
-            except (ValueError, TypeError):
-                form.instance.additional_guest_price = 0.00
-
-        response = super().form_valid(form)
-        room = self.object
-
-        # Debug: Verificar que el objeto se guardó correctamente
-        logger.info(f"[CREATE] Room guardado - ID: {room.id}, Hotel: {room.hotel_id}, Número: {room.room_number}, Nombre: {room.name}, Tipo: {room.room_type}, Capacidad: {room.capacity}, Precio: {room.price_per_night}, Incluye: {room.price_includes_guests}, Adicional: {room.additional_guest_price}, Desayuno: {room.breakfast_included}, Disponible: {room.is_available}")
+        # Guardar la instancia básica (maneja hotel, stock, etc.)
+        try:
+            # Usar commit=False para poder hacer ajustes manuales si fuera necesario
+            room = form.save(commit=False)
+            room.save()
+            # IMPORTANTE: Guardar campos ManyToMany (como 'taxes')
+            form.save_m2m()
+            self.object = room
+            logger.info(
+                f"[CREATE] Room guardado exitosamente - ID: {room.id}, Stock: {room.stock}"
+            )
+        except Exception as e:
+            logger.error(
+                f"[CREATE] Error al guardar el formulario: {str(e)}", exc_info=True
+            )
+            return self.form_invalid(form)
 
         added_images = 0
 
         # 1) Selección desde biblioteca multimedia (IDs)
         media_ids_raw = self.request.POST.getlist("room_media_ids")
-        logger.info(f"[CREATE] Media IDs raw recibidos: {media_ids_raw}")
         media_ids = [i for i in media_ids_raw if str(i).isdigit()]
-        logger.info(f"[CREATE] Media IDs procesados: {media_ids}")
 
         for idx, media_id in enumerate(media_ids):
             try:
-                mf = MediaFile.objects.filter(id=int(media_id), status="active", file_type="image").first()
+                mf = MediaFile.objects.filter(
+                    id=int(media_id), status="active", file_type="image"
+                ).first()
                 if not mf:
-                    logger.warning(f"[CREATE] MediaFile con ID {media_id} no encontrado o no es imagen activa")
                     continue
                 if room.images.filter(media_file_id=mf.id).exists():
-                    logger.info(f"[CREATE] Imagen con MediaFile ID {media_id} ya existe para esta habitación, omitiendo")
                     continue
                 HotelRoomImage.objects.create(
                     room=room,
@@ -1750,66 +1956,52 @@ class AdminHotelRoomCreateView(StaffRequiredMixin, CreateView):
                     order=idx,
                 )
                 added_images += 1
-                logger.info(f"[CREATE] Imagen agregada exitosamente: MediaFile ID {media_id}")
             except Exception as e:
                 logger.error(f"[CREATE] Error al agregar imagen con ID {media_id}: {e}")
                 continue
 
-        # Debug: Log para verificar imágenes
-        logger.info(f"[CREATE] Total imágenes agregadas: {added_images}")
-
         # Procesar amenidades de habitación
         amenity_count = 0
         amenity_mapping = {
-            'air_conditioning': {'name': 'Aire Acondicionado', 'category': 'room'},
-            'heating': {'name': 'Calefacción', 'category': 'room'},
-            'tv': {'name': 'Televisión', 'category': 'room'},
-            'safe': {'name': 'Caja Fuerte', 'category': 'room'},
-            'minibar': {'name': 'Minibar', 'category': 'room'},
-            'balcony': {'name': 'Balcón', 'category': 'room'},
-            'hairdryer': {'name': 'Secador de Pelo', 'category': 'bathroom'},
-            'bathtub': {'name': 'Bañera', 'category': 'bathroom'},
-            'shower': {'name': 'Ducha', 'category': 'bathroom'}
+            "air_conditioning": {"name": "Aire Acondicionado", "category": "room"},
+            "heating": {"name": "Calefacción", "category": "room"},
+            "tv": {"name": "Televisión", "category": "room"},
+            "safe": {"name": "Caja Fuerte", "category": "room"},
+            "minibar": {"name": "Minibar", "category": "room"},
+            "balcony": {"name": "Balcón", "category": "room"},
+            "hairdryer": {"name": "Secador de Pelo", "category": "bathroom"},
+            "bathtub": {"name": "Bañera", "category": "bathroom"},
+            "shower": {"name": "Ducha", "category": "bathroom"},
         }
 
         selected_amenities = []
-        # Buscar checkboxes marcados - los checkboxes solo se envían si están marcados
-        amenity_keys = [k for k in self.request.POST.keys() if k.startswith('room_amenity_')]
-        logger.info(f"[CREATE] Keys POST que empiezan con 'room_amenity_': {amenity_keys}")
+        amenity_keys = [
+            k for k in self.request.POST.keys() if k.startswith("room_amenity_")
+        ]
 
         for key in amenity_keys:
-            icon_value = key.replace('room_amenity_', '')
-            # Verificar que el checkbox esté marcado (si está en POST, está marcado)
+            icon_value = key.replace("room_amenity_", "")
             if icon_value in amenity_mapping:
                 selected_amenities.append(icon_value)
-                logger.info(f"[CREATE] Amenidad seleccionada: {icon_value}")
 
-        # Debug: Log para verificar amenidades
-        logger.info(f"[CREATE] Total amenidades seleccionadas: {len(selected_amenities)} - {selected_amenities}")
-
-        # Asociar amenidades a la habitación
         room_amenities_to_add = []
         for icon_value in selected_amenities:
             if icon_value in amenity_mapping:
-                # Buscar o crear la amenidad en el hotel
                 amenity, created = HotelAmenity.objects.get_or_create(
                     hotel=room.hotel,
                     icon=icon_value,
                     defaults={
-                        'name': amenity_mapping[icon_value]['name'],
-                        'category': amenity_mapping[icon_value]['category'],
-                        'is_available': True,
-                        'order': room.hotel.amenities.count()
-                    }
+                        "name": amenity_mapping[icon_value]["name"],
+                        "category": amenity_mapping[icon_value]["category"],
+                        "is_available": True,
+                        "order": room.hotel.amenities.count(),
+                    },
                 )
                 if created:
                     amenity_count += 1
-                # Agregar a la lista para asociar a la habitación
                 room_amenities_to_add.append(amenity)
 
-        # Asociar las amenidades a la habitación (siempre, incluso si está vacío para limpiar)
         room.amenities.set(room_amenities_to_add)
-        logger.info(f"[CREATE] Amenidades asociadas a la habitación: {[a.icon for a in room_amenities_to_add]}")
 
         # Procesar reglas de habitación
         rules_count = 0
@@ -1821,16 +2013,21 @@ class AdminHotelRoomCreateView(StaffRequiredMixin, CreateView):
 
             try:
                 min_adults = int(self.request.POST.get(min_adults_key, 0))
-                max_adults = int(self.request.POST.get(f"rule_max_adults_{rule_index}", 0))
-                min_children = int(self.request.POST.get(f"rule_min_children_{rule_index}", 0))
-                max_children = int(self.request.POST.get(f"rule_max_children_{rule_index}", 0))
-                description = self.request.POST.get(f"rule_description_{rule_index}", "").strip()
-                is_active = self.request.POST.get(f"rule_is_active_{rule_index}") == "on"
-
-                # Debug: Log para verificar qué se está recibiendo
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.info(f"[CREATE] Procesando regla {rule_index}: min_adults={min_adults}, max_adults={max_adults}, min_children={min_children}, max_children={max_children}")
+                max_adults = int(
+                    self.request.POST.get(f"rule_max_adults_{rule_index}", 0)
+                )
+                min_children = int(
+                    self.request.POST.get(f"rule_min_children_{rule_index}", 0)
+                )
+                max_children = int(
+                    self.request.POST.get(f"rule_max_children_{rule_index}", 0)
+                )
+                description = self.request.POST.get(
+                    f"rule_description_{rule_index}", ""
+                ).strip()
+                is_active = (
+                    self.request.POST.get(f"rule_is_active_{rule_index}") == "on"
+                )
 
                 if min_adults > 0 and max_adults > 0:
                     HotelRoomRule.objects.create(
@@ -1844,54 +2041,67 @@ class AdminHotelRoomCreateView(StaffRequiredMixin, CreateView):
                         order=rule_index,
                     )
                     rules_count += 1
-                    logger.info(f"[CREATE] Regla {rule_index} creada exitosamente")
-                else:
-                    logger.warning(f"[CREATE] Regla {rule_index} omitida: min_adults={min_adults}, max_adults={max_adults} (debe ser > 0)")
-            except (ValueError, TypeError) as e:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.warning(f"[CREATE] Error procesando regla {rule_index}: {e}")
+            except (ValueError, TypeError):
                 pass
 
             rule_index += 1
 
-        messages.success(self.request, f"Habitación '{room.room_number}' creada exitosamente.")
+        messages.success(
+            self.request, f"Habitación '{room.room_number}' creada exitosamente."
+        )
         if added_images:
-            messages.info(self.request, f"Se agregaron {added_images} imagen(es) a la galería de la habitación.")
+            messages.info(
+                self.request,
+                f"Se agregaron {added_images} imagen(es) a la galería de la habitación.",
+            )
         if amenity_count > 0:
-            messages.info(self.request, f"Se agregaron {amenity_count} amenidad(es) al hotel.")
+            messages.info(
+                self.request, f"Se agregaron {amenity_count} amenidad(es) al hotel."
+            )
         if rules_count > 0:
-            messages.info(self.request, f"Se agregaron {rules_count} regla(s) de ocupación a la habitación.")
-        return response
+            messages.info(
+                self.request,
+                f"Se agregaron {rules_count} regla(s) de ocupación a la habitación.",
+            )
+
+        from django.shortcuts import redirect
+
+        return redirect(self.get_success_url())
+
+    def form_invalid(self, form):
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Formulario inválido: {form.errors}")
+        for field, errors in form.errors.items():
+            logger.warning(f"Campo '{field}': {errors}")
+        return super().form_invalid(form)
+
+    def form_invalid(self, form):
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.warning(f"[CREATE] Formulario inválido: {form.errors}")
+        for field, errors in form.errors.items():
+            logger.warning(f"Campo '{field}': {errors}")
+        return super().form_invalid(form)
 
 
 class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
     """Actualizar habitación - Solo admin"""
 
     model = HotelRoom
+    form_class = HotelRoomForm
     template_name = "locations/hotel_room_form.html"
-    fields = [
-        "hotel",
-        "room_number",
-        "name",
-        "room_type",
-        "capacity",
-        "price_per_night",
-        "price_includes_guests",
-        "additional_guest_price",
-        "breakfast_included",
-        "stock",
-        "taxes",
-        "description",
-        "is_available",
-    ]
     success_url = reverse_lazy("locations:admin_hotel_room_list")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -1915,65 +2125,69 @@ class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
+        # Obtener lista de hoteles activos + el hotel actual de la habitación
+        hotels_filters = Q(is_active=True)
+        if hotel:
+            hotels_filters |= Q(pk=hotel.pk)
+        context["hotels_list"] = (
+            Hotel.objects.filter(hotels_filters).distinct().order_by("hotel_name")
+        )
         return context
 
     def form_valid(self, form):
-        # Debug: Log todos los campos recibidos
         import logging
+
         logger = logging.getLogger(__name__)
-        logger.info(f"[UPDATE] POST data keys: {list(self.request.POST.keys())}")
-        logger.info(f"[UPDATE] Form cleaned_data: {form.cleaned_data}")
-        logger.info(f"[UPDATE] additional_guest_price en POST: {self.request.POST.get('additional_guest_price', 'NO ENCONTRADO')}")
-        logger.info(f"[UPDATE] price_per_night en POST: {self.request.POST.get('price_per_night', 'NO ENCONTRADO')}")
 
-        # Asegurar que los checkboxes se procesen correctamente
-        # Los checkboxes no se envían si no están marcados, así que debemos manejarlos explícitamente
-        if 'breakfast_included' not in self.request.POST:
-            form.instance.breakfast_included = False
-        if 'is_available' not in self.request.POST:
-            form.instance.is_available = False
-
-        # Asegurar que additional_guest_price tenga un valor por defecto si está vacío
-        additional_price = self.request.POST.get('additional_guest_price', '').strip()
-        if not additional_price or additional_price == '':
-            form.instance.additional_guest_price = 0.00
-        else:
-            try:
-                form.instance.additional_guest_price = float(additional_price)
-            except (ValueError, TypeError):
-                form.instance.additional_guest_price = 0.00
-
-        response = super().form_valid(form)
-        room = self.object
-
-        # Debug: Verificar que el objeto se guardó correctamente
-        logger.info(f"[UPDATE] Room guardado - ID: {room.id}, Hotel: {room.hotel_id}, Número: {room.room_number}, Nombre: {room.name}, Tipo: {room.room_type}, Capacidad: {room.capacity}, Precio: {room.price_per_night}, Incluye: {room.price_includes_guests}, Adicional: {room.additional_guest_price}, Desayuno: {room.breakfast_included}, Disponible: {room.is_available}")
+        # Guardar la instancia básica (maneja hotel, stock, etc.)
+        try:
+            # Usar commit=False para poder hacer ajustes manuales si fuera necesario
+            room = form.save(commit=False)
+            room.save()
+            # IMPORTANTE: Guardar campos ManyToMany (como 'taxes')
+            form.save_m2m()
+            self.object = room
+            logger.info(
+                f"[UPDATE] Room guardado exitosamente - ID: {room.id}, Stock: {room.stock}"
+            )
+        except Exception as e:
+            logger.error(
+                f"[UPDATE] Error al guardar el formulario: {str(e)}", exc_info=True
+            )
+            return self.form_invalid(form)
 
         added_images = 0
+
         last_order = room.images.aggregate(max_order=Max("order"))["max_order"] or 0
 
         # 1) Selección desde biblioteca multimedia (IDs)
         media_ids_raw = self.request.POST.getlist("room_media_ids")
-        logger.info(f"[UPDATE] Media IDs raw recibidos: {media_ids_raw}")
         media_ids = [i for i in media_ids_raw if str(i).isdigit()]
-        logger.info(f"[UPDATE] Media IDs procesados: {media_ids}")
 
         for idx, media_id in enumerate(media_ids):
             try:
-                mf = MediaFile.objects.filter(id=int(media_id), status="active", file_type="image").first()
+                mf = MediaFile.objects.filter(
+                    id=int(media_id), status="active", file_type="image"
+                ).first()
                 if not mf:
-                    logger.warning(f"[UPDATE] MediaFile con ID {media_id} no encontrado o no es imagen activa")
                     continue
                 if room.images.filter(media_file_id=mf.id).exists():
-                    logger.info(f"[UPDATE] Imagen con MediaFile ID {media_id} ya existe para esta habitación, omitiendo")
                     continue
                 HotelRoomImage.objects.create(
                     room=room,
@@ -1984,7 +2198,6 @@ class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
                     order=last_order + idx + 1,
                 )
                 added_images += 1
-                logger.info(f"[UPDATE] Imagen agregada exitosamente: MediaFile ID {media_id}")
             except Exception as e:
                 logger.error(f"[UPDATE] Error al agregar imagen con ID {media_id}: {e}")
                 continue
@@ -2009,72 +2222,63 @@ class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
                 title=mf.title or None,
                 alt_text=getattr(mf, "alt_text", "") or "",
                 is_featured=False,
-                order=(room.images.aggregate(max_order=Max("order"))["max_order"] or 0) + 1,
+                order=(room.images.aggregate(max_order=Max("order"))["max_order"] or 0)
+                + 1,
             )
             added_images += 1
 
         # Procesar amenidades de habitación
         amenity_count = 0
         amenity_mapping = {
-            'air_conditioning': {'name': 'Aire Acondicionado', 'category': 'room'},
-            'heating': {'name': 'Calefacción', 'category': 'room'},
-            'tv': {'name': 'Televisión', 'category': 'room'},
-            'safe': {'name': 'Caja Fuerte', 'category': 'room'},
-            'minibar': {'name': 'Minibar', 'category': 'room'},
-            'balcony': {'name': 'Balcón', 'category': 'room'},
-            'hairdryer': {'name': 'Secador de Pelo', 'category': 'bathroom'},
-            'bathtub': {'name': 'Bañera', 'category': 'bathroom'},
-            'shower': {'name': 'Ducha', 'category': 'bathroom'}
+            "air_conditioning": {"name": "Aire Acondicionado", "category": "room"},
+            "heating": {"name": "Calefacción", "category": "room"},
+            "tv": {"name": "Televisión", "category": "room"},
+            "safe": {"name": "Caja Fuerte", "category": "room"},
+            "minibar": {"name": "Minibar", "category": "room"},
+            "balcony": {"name": "Balcón", "category": "room"},
+            "hairdryer": {"name": "Secador de Pelo", "category": "bathroom"},
+            "bathtub": {"name": "Bañera", "category": "bathroom"},
+            "shower": {"name": "Ducha", "category": "bathroom"},
         }
 
         selected_amenities = []
-        # Buscar checkboxes marcados - los checkboxes solo se envían si están marcados
-        amenity_keys = [k for k in self.request.POST.keys() if k.startswith('room_amenity_')]
-        logger.info(f"[UPDATE] Keys POST que empiezan con 'room_amenity_': {amenity_keys}")
+        amenity_keys = [
+            k for k in self.request.POST.keys() if k.startswith("room_amenity_")
+        ]
 
         for key in amenity_keys:
-            icon_value = key.replace('room_amenity_', '')
-            # Verificar que el checkbox esté marcado (si está en POST, está marcado)
+            icon_value = key.replace("room_amenity_", "")
             if icon_value in amenity_mapping:
                 selected_amenities.append(icon_value)
-                logger.info(f"[UPDATE] Amenidad seleccionada: {icon_value}")
 
-        logger.info(f"[UPDATE] Total amenidades seleccionadas: {len(selected_amenities)} - {selected_amenities}")
-
-        # Asociar amenidades a la habitación
         room_amenities_to_add = []
         for icon_value in selected_amenities:
             if icon_value in amenity_mapping:
-                # Buscar o crear la amenidad en el hotel
                 amenity, created = HotelAmenity.objects.get_or_create(
                     hotel=room.hotel,
                     icon=icon_value,
                     defaults={
-                        'name': amenity_mapping[icon_value]['name'],
-                        'category': amenity_mapping[icon_value]['category'],
-                        'is_available': True,
-                        'order': room.hotel.amenities.count()
-                    }
+                        "name": amenity_mapping[icon_value]["name"],
+                        "category": amenity_mapping[icon_value]["category"],
+                        "is_available": True,
+                        "order": room.hotel.amenities.count(),
+                    },
                 )
                 if created:
                     amenity_count += 1
-                # Agregar a la lista para asociar a la habitación
                 room_amenities_to_add.append(amenity)
 
-        # Asociar las amenidades a la habitación (siempre, incluso si está vacío para limpiar)
         room.amenities.set(room_amenities_to_add)
-        logger.info(f"[UPDATE] Amenidades asociadas a la habitación: {[a.icon for a in room_amenities_to_add]}")
 
         # Procesar reglas de habitación
-        # Primero, obtener todas las reglas existentes y las que vienen en el POST
-        existing_rule_ids = set(room.rules.values_list('id', flat=True))
+        existing_rule_ids = set(room.rules.values_list("id", flat=True))
         submitted_rule_ids = set()
         delete_rule_ids = [
-            int(rule_id) for rule_id in self.request.POST.getlist("delete_rule_ids")
+            int(rule_id)
+            for rule_id in self.request.POST.getlist("delete_rule_ids")
             if str(rule_id).isdigit()
         ]
 
-        # Eliminar reglas marcadas explícitamente para eliminar
         for rule_id in delete_rule_ids:
             try:
                 rule = HotelRoomRule.objects.get(id=rule_id, room=room)
@@ -2083,7 +2287,6 @@ class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
             except HotelRoomRule.DoesNotExist:
                 pass
 
-        # Actualizar reglas existentes y crear nuevas
         rules_updated = 0
         rules_created = 0
         rule_index = 0
@@ -2098,20 +2301,24 @@ class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
             try:
                 rule_id_str = self.request.POST.get(rule_id_key, "").strip()
                 min_adults = int(self.request.POST.get(min_adults_key, 0))
-                max_adults = int(self.request.POST.get(f"rule_max_adults_{rule_index}", 0))
-                min_children = int(self.request.POST.get(f"rule_min_children_{rule_index}", 0))
-                max_children = int(self.request.POST.get(f"rule_max_children_{rule_index}", 0))
-                description = self.request.POST.get(f"rule_description_{rule_index}", "").strip()
-                is_active = self.request.POST.get(f"rule_is_active_{rule_index}") == "on"
-
-                # Debug: Log para verificar qué se está recibiendo
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.info(f"Procesando regla {rule_index}: rule_id={rule_id_str}, min_adults={min_adults}, max_adults={max_adults}, min_children={min_children}, max_children={max_children}")
+                max_adults = int(
+                    self.request.POST.get(f"rule_max_adults_{rule_index}", 0)
+                )
+                min_children = int(
+                    self.request.POST.get(f"rule_min_children_{rule_index}", 0)
+                )
+                max_children = int(
+                    self.request.POST.get(f"rule_max_children_{rule_index}", 0)
+                )
+                description = self.request.POST.get(
+                    f"rule_description_{rule_index}", ""
+                ).strip()
+                is_active = (
+                    self.request.POST.get(f"rule_is_active_{rule_index}") == "on"
+                )
 
                 if min_adults > 0 and max_adults > 0:
                     if rule_id_str and rule_id_str.isdigit():
-                        # Actualizar regla existente
                         rule_id = int(rule_id_str)
                         try:
                             rule = HotelRoomRule.objects.get(id=rule_id, room=room)
@@ -2126,7 +2333,6 @@ class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
                             submitted_rule_ids.add(rule_id)
                             rules_updated += 1
                         except HotelRoomRule.DoesNotExist:
-                            # Si la regla no existe, crear una nueva
                             HotelRoomRule.objects.create(
                                 room=room,
                                 min_adults=min_adults,
@@ -2139,7 +2345,6 @@ class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
                             )
                             rules_created += 1
                     else:
-                        # Crear nueva regla (rule_id está vacío o no es un número)
                         HotelRoomRule.objects.create(
                             room=room,
                             min_adults=min_adults,
@@ -2151,15 +2356,11 @@ class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
                             order=rule_index,
                         )
                         rules_created += 1
-            except (ValueError, TypeError) as e:
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.warning(f"Error procesando regla {rule_index}: {e}")
+            except (ValueError, TypeError):
                 pass
 
             rule_index += 1
 
-        # Eliminar reglas existentes que no están en el POST (fueron eliminadas del formulario)
         rules_to_delete = existing_rule_ids - submitted_rule_ids - set(delete_rule_ids)
         for rule_id in rules_to_delete:
             try:
@@ -2168,19 +2369,32 @@ class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
             except HotelRoomRule.DoesNotExist:
                 pass
 
-        messages.success(self.request, f"Habitación '{room.room_number}' actualizada exitosamente.")
+        messages.success(
+            self.request, f"Habitación '{room.room_number}' actualizada exitosamente."
+        )
         if added_images:
-            messages.info(self.request, f"Se agregaron {added_images} nueva(s) imagen(es) a la galería de la habitación.")
+            messages.info(
+                self.request,
+                f"Se agregaron {added_images} nueva(s) imagen(es) a la galería de la habitación.",
+            )
         if amenity_count > 0:
-            messages.info(self.request, f"Se agregaron {amenity_count} nueva(s) amenidad(es) al hotel.")
-        if rules_updated > 0 or rules_created > 0 or delete_rule_ids or rules_to_delete:
-            total_rules = rules_updated + rules_created
-            deleted_rules = len(delete_rule_ids) + len(rules_to_delete)
-            if total_rules > 0:
-                messages.info(self.request, f"Se {'actualizaron' if rules_updated > 0 else 'crearon'} {total_rules} regla(s) de ocupación.")
-            if deleted_rules > 0:
-                messages.info(self.request, f"Se eliminaron {deleted_rules} regla(s) de ocupación.")
-        return response
+            messages.info(
+                self.request,
+                f"Se agregaron {amenity_count} nueva(s) amenidad(es) al hotel.",
+            )
+
+        from django.shortcuts import redirect
+
+        return redirect(self.get_success_url())
+
+    def form_invalid(self, form):
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.warning(f"Formulario inválido: {form.errors}")
+        for field, errors in form.errors.items():
+            logger.warning(f"Campo '{field}': {errors}")
+        return super().form_invalid(form)
 
 
 class AdminHotelRoomDeleteView(StaffRequiredMixin, DeleteView):
@@ -2201,20 +2415,26 @@ def admin_hotel_room_image_delete_ajax(request, pk):
 
     # Verificar que el usuario sea staff
     if not request.user.is_authenticated or not request.user.is_staff:
-        return JsonResponse({
-            "success": False,
-            "message": "No autorizado. Debes ser staff para realizar esta acción.",
-        }, status=403)
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "No autorizado. Debes ser staff para realizar esta acción.",
+            },
+            status=403,
+        )
 
     try:
         # Obtener la imagen (sin usar get_object_or_404 para evitar HTML)
         try:
             image = HotelRoomImage.objects.get(pk=pk)
         except HotelRoomImage.DoesNotExist:
-            return JsonResponse({
-                "success": False,
-                "message": "La imagen no existe o ya fue eliminada.",
-            }, status=404)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "La imagen no existe o ya fue eliminada.",
+                },
+                status=404,
+            )
 
         image_id = image.id
         room_id = image.room.id
@@ -2223,96 +2443,118 @@ def admin_hotel_room_image_delete_ajax(request, pk):
         # El MediaFile se preserva en la biblioteca multimedia
         image.delete()
 
-        return JsonResponse({
-            "success": True,
-            "message": "Imagen eliminada de la habitación exitosamente.",
-            "image_id": image_id,
-            "room_id": room_id,
-        })
+        return JsonResponse(
+            {
+                "success": True,
+                "message": "Imagen eliminada de la habitación exitosamente.",
+                "image_id": image_id,
+                "room_id": room_id,
+            }
+        )
     except Exception as e:
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error(f"Error al eliminar imagen de habitación: {e}", exc_info=True)
-        return JsonResponse({
-            "success": False,
-            "message": f"Error al eliminar la imagen: {str(e)}",
-        }, status=500)
+        return JsonResponse(
+            {
+                "success": False,
+                "message": f"Error al eliminar la imagen: {str(e)}",
+            },
+            status=500,
+        )
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def admin_hotel_room_tax_create_ajax(request):
     """Crear un nuevo impuesto vía AJAX"""
-    import logging
     import json
-    from django.core.exceptions import ValidationError
+    import logging
     from decimal import Decimal, InvalidOperation
+
+    from django.core.exceptions import ValidationError
 
     logger = logging.getLogger(__name__)
     logger.info(f"AJAX Create Tax called. Method: {request.method}")
 
     if not request.user.is_authenticated or not request.user.is_staff:
-        return JsonResponse({
-            "success": False,
-            "message": "No autorizado.",
-        }, status=403)
+        return JsonResponse(
+            {
+                "success": False,
+                "message": "No autorizado.",
+            },
+            status=403,
+        )
 
     try:
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
-            return JsonResponse({
-                "success": False,
-                "message": "Cuerpo de solicitud inválido (no es JSON).",
-            }, status=400)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "Cuerpo de solicitud inválido (no es JSON).",
+                },
+                status=400,
+            )
 
         name = data.get("name")
         amount_raw = data.get("amount")
         event_id = data.get("event_id")
 
         if not name or amount_raw is None:
-            return JsonResponse({
-                "success": False,
-                "message": "El nombre y el monto son obligatorios.",
-            }, status=400)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "El nombre y el monto son obligatorios.",
+                },
+                status=400,
+            )
 
         try:
             amount = Decimal(str(amount_raw))
         except (InvalidOperation, ValueError, TypeError):
-            return JsonResponse({
-                "success": False,
-                "message": "El monto debe ser un número válido.",
-            }, status=400)
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "El monto debe ser un número válido.",
+                },
+                status=400,
+            )
 
         # Buscar el evento si se proporcionó
         event = None
         if event_id:
             try:
                 from apps.events.models import Event
+
                 event = Event.objects.get(pk=event_id)
             except (Event.DoesNotExist, ValueError):
                 pass
 
         tax = HotelRoomTax.objects.create(
-            name=name,
-            amount=amount,
-            event=event,
-            is_active=True
+            name=name, amount=amount, event=event, is_active=True
         )
 
-        return JsonResponse({
-            "success": True,
-            "id": tax.id,
-            "name": tax.name,
-            "amount": float(tax.amount),
-            "message": "Impuesto creado exitosamente."
-        })
+        return JsonResponse(
+            {
+                "success": True,
+                "id": tax.id,
+                "name": tax.name,
+                "amount": float(tax.amount),
+                "message": "Impuesto creado exitosamente.",
+            }
+        )
     except Exception as e:
         logger.error(f"Error fatal en AJAX tax create: {str(e)}", exc_info=True)
-        return JsonResponse({
-            "success": False,
-            "message": f"Error interno del servidor: {str(e)}",
-        }, status=500)
+        return JsonResponse(
+            {
+                "success": False,
+                "message": f"Error interno del servidor: {str(e)}",
+            },
+            status=500,
+        )
 
 
 # ===== HOTEL SERVICE VIEWS (Admin) =====
@@ -2375,9 +2617,11 @@ class AdminHotelServiceCreateView(StaffRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -2401,13 +2645,21 @@ class AdminHotelServiceCreateView(StaffRequiredMixin, CreateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -2435,9 +2687,11 @@ class AdminHotelServiceUpdateView(StaffRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -2461,13 +2715,21 @@ class AdminHotelServiceUpdateView(StaffRequiredMixin, UpdateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -2569,8 +2831,8 @@ class AdminHotelReservationCreateView(StaffRequiredMixin, CreateView):
         form = super().get_form(form_class)
         # Personalizar el campo user para evitar enlaces a user_list
         if "user" in form.fields:
-            from django.contrib.auth import get_user_model
             from django import forms
+            from django.contrib.auth import get_user_model
 
             User = get_user_model()
             form.fields["user"].queryset = User.objects.all().order_by("username")
@@ -2579,9 +2841,11 @@ class AdminHotelReservationCreateView(StaffRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -2605,13 +2869,21 @@ class AdminHotelReservationCreateView(StaffRequiredMixin, CreateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -2644,8 +2916,8 @@ class AdminHotelReservationUpdateView(StaffRequiredMixin, UpdateView):
         form = super().get_form(form_class)
         # Personalizar el campo user para evitar enlaces a user_list
         if "user" in form.fields:
-            from django.contrib.auth import get_user_model
             from django import forms
+            from django.contrib.auth import get_user_model
 
             User = get_user_model()
             form.fields["user"].queryset = User.objects.all().order_by("username")
@@ -2654,9 +2926,11 @@ class AdminHotelReservationUpdateView(StaffRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -2680,13 +2954,21 @@ class AdminHotelReservationUpdateView(StaffRequiredMixin, UpdateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -2744,9 +3026,11 @@ class AdminHotelImageCreateView(StaffRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -2770,13 +3054,21 @@ class AdminHotelImageCreateView(StaffRequiredMixin, CreateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -2800,9 +3092,11 @@ class AdminHotelImageUpdateView(StaffRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -2826,13 +3120,21 @@ class AdminHotelImageUpdateView(StaffRequiredMixin, UpdateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -2877,7 +3179,11 @@ class AdminHotelAmenityListView(StaffRequiredMixin, ListView):
 
     def get_queryset(self):
         hotel_pk = self.kwargs.get("hotel_pk")
-        queryset = HotelAmenity.objects.filter(hotel_id=hotel_pk) if hotel_pk else HotelAmenity.objects.select_related("hotel").all()
+        queryset = (
+            HotelAmenity.objects.filter(hotel_id=hotel_pk)
+            if hotel_pk
+            else HotelAmenity.objects.select_related("hotel").all()
+        )
 
         category = self.request.GET.get("category")
         if category:
@@ -2900,14 +3206,24 @@ class AdminHotelAmenityCreateView(StaffRequiredMixin, CreateView):
 
     model = HotelAmenity
     template_name = "locations/hotel_amenity_form.html"
-    fields = ["hotel", "name", "category", "icon", "description", "is_available", "order"]
+    fields = [
+        "hotel",
+        "name",
+        "category",
+        "icon",
+        "description",
+        "is_available",
+        "order",
+    ]
     success_url = reverse_lazy("locations:admin_hotel_list")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -2931,18 +3247,28 @@ class AdminHotelAmenityCreateView(StaffRequiredMixin, CreateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
     def form_valid(self, form):
-        messages.success(self.request, f"Amenidad '{form.instance.name}' creada exitosamente.")
+        messages.success(
+            self.request, f"Amenidad '{form.instance.name}' creada exitosamente."
+        )
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -2957,13 +3283,23 @@ class AdminHotelAmenityUpdateView(StaffRequiredMixin, UpdateView):
 
     model = HotelAmenity
     template_name = "locations/hotel_amenity_form.html"
-    fields = ["hotel", "name", "category", "icon", "description", "is_available", "order"]
+    fields = [
+        "hotel",
+        "name",
+        "category",
+        "icon",
+        "description",
+        "is_available",
+        "order",
+    ]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -2987,18 +3323,28 @@ class AdminHotelAmenityUpdateView(StaffRequiredMixin, UpdateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
     def form_valid(self, form):
-        messages.success(self.request, f"Amenidad '{form.instance.name}' actualizada exitosamente.")
+        messages.success(
+            self.request, f"Amenidad '{form.instance.name}' actualizada exitosamente."
+        )
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -3063,9 +3409,11 @@ class AdminHotelImageCreateView(StaffRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -3089,13 +3437,21 @@ class AdminHotelImageCreateView(StaffRequiredMixin, CreateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -3119,9 +3475,11 @@ class AdminHotelImageUpdateView(StaffRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -3145,13 +3503,21 @@ class AdminHotelImageUpdateView(StaffRequiredMixin, UpdateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
@@ -3196,7 +3562,11 @@ class AdminHotelAmenityListView(StaffRequiredMixin, ListView):
 
     def get_queryset(self):
         hotel_pk = self.kwargs.get("hotel_pk")
-        queryset = HotelAmenity.objects.filter(hotel_id=hotel_pk) if hotel_pk else HotelAmenity.objects.select_related("hotel").all()
+        queryset = (
+            HotelAmenity.objects.filter(hotel_id=hotel_pk)
+            if hotel_pk
+            else HotelAmenity.objects.select_related("hotel").all()
+        )
 
         category = self.request.GET.get("category")
         if category:
@@ -3219,14 +3589,24 @@ class AdminHotelAmenityCreateView(StaffRequiredMixin, CreateView):
 
     model = HotelAmenity
     template_name = "locations/hotel_amenity_form.html"
-    fields = ["hotel", "name", "category", "icon", "description", "is_available", "order"]
+    fields = [
+        "hotel",
+        "name",
+        "category",
+        "icon",
+        "description",
+        "is_available",
+        "order",
+    ]
     success_url = reverse_lazy("locations:admin_hotel_list")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -3250,18 +3630,28 @@ class AdminHotelAmenityCreateView(StaffRequiredMixin, CreateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
     def form_valid(self, form):
-        messages.success(self.request, f"Amenidad '{form.instance.name}' creada exitosamente.")
+        messages.success(
+            self.request, f"Amenidad '{form.instance.name}' creada exitosamente."
+        )
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -3276,13 +3666,23 @@ class AdminHotelAmenityUpdateView(StaffRequiredMixin, UpdateView):
 
     model = HotelAmenity
     template_name = "locations/hotel_amenity_form.html"
-    fields = ["hotel", "name", "category", "icon", "description", "is_available", "order"]
+    fields = [
+        "hotel",
+        "name",
+        "category",
+        "icon",
+        "description",
+        "is_available",
+        "order",
+    ]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        from .models import HotelRoomTax, Hotel
-        from apps.events.models import Event
         from django.db.models import Q
+
+        from apps.events.models import Event
+
+        from .models import Hotel, HotelRoomTax
 
         # Determinar el hotel actual
         hotel = None
@@ -3306,18 +3706,28 @@ class AdminHotelAmenityUpdateView(StaffRequiredMixin, UpdateView):
             context["events_list"] = related_events.order_by("-start_date")
 
             # Filtrar impuestos: los del evento O globales
-            context["taxes_list"] = HotelRoomTax.objects.filter(
-                Q(event__in=related_events) | Q(event__isnull=True),
-                is_active=True
-            ).order_by("name")
+            tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
+            if hasattr(self, "object") and self.object:
+                tax_filters |= Q(rooms=self.object)
+
+            context["taxes_list"] = (
+                HotelRoomTax.objects.filter(tax_filters, is_active=True)
+                .distinct()
+                .order_by("name")
+            )
+
         else:
             context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
-            context["taxes_list"] = HotelRoomTax.objects.filter(is_active=True).order_by("name")
+            context["taxes_list"] = HotelRoomTax.objects.filter(
+                is_active=True
+            ).order_by("name")
 
         return context
 
     def form_valid(self, form):
-        messages.success(self.request, f"Amenidad '{form.instance.name}' actualizada exitosamente.")
+        messages.success(
+            self.request, f"Amenidad '{form.instance.name}' actualizada exitosamente."
+        )
         return super().form_valid(form)
 
     def get_success_url(self):

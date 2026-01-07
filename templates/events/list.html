@@ -287,14 +287,13 @@
                             </select>
                         </div>
                         <div class="col-lg-2 col-md-6">
-                            <label for="status" class="form-label">Estado</label>
+                            <label for="status" class="form-label">Estado de Publicación</label>
                             <select class="form-select" id="status" name="status">
                                 <option value="">Todos los estados</option>
-                                {% for value, label in status_choices %}
-                                    <option value="{{ value }}" {% if request.GET.status == value %}selected{% endif %}>
-                                        {{ label }}
-                                    </option>
-                                {% endfor %}
+                                <option value="published" {% if request.GET.status == 'published' %}selected{% endif %}>Publicados (Activos)</option>
+                                <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>Borradores (Ocultos)</option>
+                                <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelados</option>
+                                <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completados</option>
                             </select>
                         </div>
                         <div class="col-lg-2 col-md-6">

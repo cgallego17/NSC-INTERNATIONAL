@@ -189,6 +189,7 @@ class HotelAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "capacity",
+                    "buy_out_fee",
                     "contact_name",
                     "contact_email",
                     "contact_phone",

@@ -457,6 +457,13 @@ class Hotel(models.Model):
         verbose_name="Capacidad",
         help_text="Capacidad del hotel (número de habitaciones o personas)",
     )
+    buy_out_fee = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        verbose_name="Buy Out Fee",
+        help_text="Cargo por no hospedarse en el hotel sede",
+    )
     contact_name = models.CharField(
         max_length=200,
         blank=True,

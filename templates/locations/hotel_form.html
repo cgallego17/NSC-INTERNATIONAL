@@ -167,7 +167,7 @@
                             </h5>
 
                             <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="form-group mb-3">
                                         <label for="capacity" class="form-label">
                                             <i class="fas fa-users me-1"></i>Capacidad <span class="text-muted small">(Opcional)</span>
@@ -181,14 +181,39 @@
                                                placeholder="Número de habitaciones o personas">
                                         <small class="form-text text-muted">
                                             <i class="fas fa-info-circle me-1"></i>
-                                            Capacidad del hotel (número de habitaciones o personas)
+                                            Capacidad del hotel
                                         </small>
                                         {% if form.capacity.errors %}
                                             <div class="text-danger">{{ form.capacity.errors.0 }}</div>
                                         {% endif %}
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label for="buy_out_fee" class="form-label">
+                                            <i class="fas fa-dollar-sign me-1"></i>Buy Out Fee <span class="text-muted small">(Opcional)</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">$</span>
+                                            <input type="number"
+                                                   id="buy_out_fee"
+                                                   name="buy_out_fee"
+                                                   class="form-control"
+                                                   value="{{ form.buy_out_fee.value|stringformat:'.2f'|default:'0.00' }}"
+                                                   min="0"
+                                                   step="0.01"
+                                                   placeholder="Ej: 1000.00">
+                                        </div>
+                                        <small class="form-text text-muted">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Cargo por no hospedarse en el hotel sede
+                                        </small>
+                                        {% if form.buy_out_fee.errors %}
+                                            <div class="text-danger">{{ form.buy_out_fee.errors.0 }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
                                     <div class="form-group mb-3">
                                         <label for="registration_url" class="form-label">
                                             <i class="fas fa-link me-1"></i>URL de Registro <span class="text-muted small">(Opcional)</span>

@@ -32,12 +32,24 @@
                     <form method="post" class="needs-validation" novalidate enctype="multipart/form-data">
                         {% csrf_token %}
 
+                        {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <h6 class="alert-heading"><i class="fas fa-exclamation-circle me-2"></i>Por favor corrige los siguientes errores:</h6>
+                                <ul class="mb-0">
+                                    {% for field, errors in form.errors.items %}
+                                        <li><strong>{{ field }}:</strong> {{ errors|join:", " }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
                         {% if form.non_field_errors %}
                             <div class="alert alert-danger">
                                 <i class="fas fa-exclamation-triangle me-2"></i>
                                 {{ form.non_field_errors }}
                             </div>
                         {% endif %}
+
 
                         <!-- SECCIÓN 1: INFORMACIÓN BÁSICA -->
                         <div class="form-section">
@@ -589,7 +601,8 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form id="newTaxForm">
+                <!-- Nota: no usar <form> aquí porque esta página ya tiene un <form> principal -->
+                <div id="newTaxForm">
                     <div class="mb-3">
                         <label for="new_tax_name" class="form-label">Nombre del Impuesto <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="new_tax_name" required placeholder="Ej: IVA, Tasa Turística">
@@ -611,7 +624,7 @@
                         </select>
                         <small class="text-muted">Si seleccionas un evento, este impuesto solo se mostrará para este evento.</small>
                     </div>
-                </form>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -1523,8 +1536,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const form = document.querySelector('form.needs-validation');
     if (form) {
         form.addEventListener('submit', function(e) {
-            // Asegurar que renderSelectedPreview se ejecute antes de enviar
-            const idsWrap = document.getElementById('room-media-ids');
+            try {
+                // Debug rápido: confirmar que el submit se ejecuta y qué valores van en el POST
+                const hotelEl = form.querySelector('[name="hotel"]');
+                const stockEl = form.querySelector('[name="stock"]');
+                const taxesEls = form.querySelectorAll('input[name="taxes"]:checked');
+                const priceEl = form.querySelector('[name="price_per_night"]');
+                const roomNumberEl = form.querySelector('[name="room_number"]');
+
+                console.log('[DEBUG] HotelRoomForm submit fired');
+                console.log('[DEBUG] action:', form.getAttribute('action') || '(current URL)');
+                console.log('[DEBUG] method:', (form.getAttribute('method') || 'GET').toUpperCase());
+                console.log('[DEBUG] hotel:', hotelEl ? hotelEl.value : '(missing)');
+                console.log('[DEBUG] room_number:', roomNumberEl ? roomNumberEl.value : '(missing)');
+                console.log('[DEBUG] stock:', stockEl ? stockEl.value : '(missing)');
+                console.log('[DEBUG] price_per_night:', priceEl ? priceEl.value : '(missing)');
+                console.log('[DEBUG] taxes checked:', Array.from(taxesEls).map(x => x.value));
+                console.log('[DEBUG] HTML5 validity:', typeof form.checkValidity === 'function' ? form.checkValidity() : '(no checkValidity)');
+
+                // Asegurar que renderSelectedPreview se ejecute antes de enviar
+                const idsWrap = document.getElementById('room-media-ids');
+                // ... resto del código ...
+
 
             // Primero, intentar usar la función global renderRoomMediaPreview si existe
             if (typeof window.renderRoomMediaPreview === 'function') {
@@ -1644,8 +1677,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 const maxAdults = rule.querySelector('input[name^="rule_max_adults_"]');
                 console.log(`[DEBUG] Regla ${index}: ID=${ruleId ? ruleId.value : 'NUEVA'}, MinAdults=${minAdults ? minAdults.value : 'N/A'}, MaxAdults=${maxAdults ? maxAdults.value : 'N/A'}`);
             });
+        } catch (err) {
+            console.error('[ERROR] Error en submit listener:', err);
+        }
         });
     }
+
 
     // Lógica para crear nuevo impuesto vía AJAX
     const saveTaxBtn = document.getElementById('saveTaxBtn');
@@ -1730,8 +1767,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         modalInstance.hide();
                     }
 
-                    const taxForm = document.getElementById('newTaxForm');
-                    if (taxForm) taxForm.reset();
+                    // Limpiar inputs del modal (no es <form> para evitar nested forms)
+                    const taxNameEl = document.getElementById('new_tax_name');
+                    const taxAmountEl = document.getElementById('new_tax_amount');
+                    const taxEventEl = document.getElementById('new_tax_event');
+                    if (taxNameEl) taxNameEl.value = '';
+                    if (taxAmountEl) taxAmountEl.value = '';
+                    if (taxEventEl) taxEventEl.value = '';
 
                     if (window.showToast) {
                         showToast('success', 'Impuesto creado y seleccionado.');
