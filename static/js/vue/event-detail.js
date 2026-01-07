@@ -3392,6 +3392,29 @@ const EventDetailApp = {
                 const discountPercent = (mode === 'now' && checkoutTotals.value.hasHotelForDiscount) ? '5' : '0';
                 formData.set('discount_percent', discountPercent);
 
+                // Debug/validation: send frontend totals so backend can compare and log mismatches
+                try {
+                    const frontendPlayersTotal = playersTotal.value || 0;
+                    const frontendHotelTotal = priceCalc.priceBreakdown.value?.total || 0;
+                    const frontendNights = priceCalc.priceBreakdown.value?.nights || calculateNights(reservation.state.check_in_date, reservation.state.check_out_date);
+                    const frontendSubtotal = checkoutTotals.value.subtotal || 0;
+                    const frontendPayNowTotal = checkoutTotals.value.payNowTotal || 0;
+                    const frontendPlanMonths = checkoutTotals.value.planMonths || 1;
+                    const frontendPlanMonthly = checkoutTotals.value.monthlyPlanAmount || 0;
+
+                    formData.set('frontend_players_total', String(frontendPlayersTotal));
+                    formData.set('frontend_hotel_total', String(frontendHotelTotal));
+                    formData.set('frontend_no_show_fee', String(checkoutTotals.value.noShowFee || 0));
+                    formData.set('frontend_subtotal', String(frontendSubtotal));
+                    formData.set('frontend_discount_percent', String(discountPercent));
+                    formData.set('frontend_paynow_total', String(frontendPayNowTotal));
+                    formData.set('frontend_plan_months', String(frontendPlanMonths));
+                    formData.set('frontend_plan_monthly', String(frontendPlanMonthly));
+                    formData.set('frontend_hotel_nights', String(frontendNights || 1));
+                } catch (e) {
+                    // ignore
+                }
+
                 // Ensure all selected players are in the formData
                 formData.delete('players'); // Clear existing if any
                 selectedChildren.value.forEach(id => formData.append('players', id));

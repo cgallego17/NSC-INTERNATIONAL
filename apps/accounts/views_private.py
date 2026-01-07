@@ -1697,6 +1697,128 @@ def _compute_hotel_amount_from_cart(cart: dict) -> dict:
     }
 
 
+def _compute_hotel_amount_from_vue_payload(payload: dict) -> dict:
+    """
+    Compute hotel totals from Vue payload (hotel_reservation_json).
+
+    Matches the current Vue implementation:
+    - Room base price is per-night and multiplied by nights
+    - Additional guests are per-night and multiplied by nights
+    - Taxes are taken from room.taxes[] as fixed per-night amounts and multiplied by nights
+    """
+    from datetime import datetime, timedelta
+
+    from apps.locations.models import HotelRoom
+
+    def _as_decimal(v) -> Decimal:
+        try:
+            return Decimal(str(v)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        except Exception:
+            return Decimal("0.00")
+
+    check_in_date = (payload or {}).get("check_in_date") or ""
+    check_out_date = (payload or {}).get("check_out_date") or ""
+    nights = payload.get("nights")
+
+    # Determine nights
+    computed_nights = None
+    try:
+        if check_in_date and check_out_date:
+            d_in = datetime.strptime(check_in_date, "%Y-%m-%d").date()
+            d_out = datetime.strptime(check_out_date, "%Y-%m-%d").date()
+            computed_nights = (d_out - d_in).days
+    except Exception:
+        computed_nights = None
+
+    try:
+        nights_int = int(nights) if nights is not None else None
+    except Exception:
+        nights_int = None
+
+    nights_final = computed_nights if (computed_nights is not None) else nights_int
+    if not nights_final or nights_final < 1:
+        nights_final = 1
+
+    rooms = (payload or {}).get("rooms") or []
+    guest_assignments = (payload or {}).get("guest_assignments") or {}
+
+    room_base = Decimal("0.00")  # includes extra guests, before taxes
+    total_taxes = Decimal("0.00")
+
+    for r in rooms:
+        room_id = str((r or {}).get("roomId") or (r or {}).get("room_id") or "")
+        if not room_id:
+            continue
+
+        # Guests assigned to this room
+        assigned = guest_assignments.get(room_id) or guest_assignments.get(str(room_id)) or []
+        try:
+            guests_count = int(len(assigned))
+        except Exception:
+            guests_count = 0
+
+        # Per-night prices (from payload if present; otherwise, fallback to DB)
+        price_per_night = _as_decimal((r or {}).get("price"))
+        includes = (r or {}).get("priceIncludesGuests")
+        additional_guest_price = _as_decimal((r or {}).get("additionalGuestPrice"))
+
+        # Fallback to DB if payload missing/zero (defensive)
+        try:
+            room_obj = HotelRoom.objects.filter(pk=int(room_id)).first()
+        except Exception:
+            room_obj = None
+
+        if room_obj:
+            if price_per_night == Decimal("0.00"):
+                price_per_night = _as_decimal(room_obj.price_per_night)
+            try:
+                includes_int = int(includes) if includes is not None else int(room_obj.price_includes_guests or 1)
+            except Exception:
+                includes_int = int(room_obj.price_includes_guests or 1)
+            if additional_guest_price == Decimal("0.00"):
+                additional_guest_price = _as_decimal(room_obj.additional_guest_price or Decimal("0.00"))
+        else:
+            try:
+                includes_int = int(includes) if includes is not None else 1
+            except Exception:
+                includes_int = 1
+
+        extra_guests = max(0, guests_count - (includes_int or 1))
+        per_night_total = price_per_night + (additional_guest_price * Decimal(str(extra_guests)))
+        item_room_base = (per_night_total * Decimal(str(nights_final))).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
+        room_base += item_room_base
+
+        # Taxes: fixed per-night amounts per room.
+        # Prefer payload taxes (what the UI is showing). If missing, fallback to DB room.taxes.
+        taxes = (r or {}).get("taxes") or []
+        if not taxes and room_obj:
+            try:
+                taxes = list(room_obj.taxes.values("name", "amount"))
+            except Exception:
+                taxes = []
+
+        for tx in taxes:
+            # tx can be dict from payload, or dict from values()
+            amt = _as_decimal((tx or {}).get("amount"))
+            if amt <= 0:
+                continue
+            total_taxes += (amt * Decimal(str(nights_final))).quantize(
+                Decimal("0.01"), rounding=ROUND_HALF_UP
+            )
+
+    total = (room_base + total_taxes).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return {
+        "room_base": room_base,
+        "total_taxes": total_taxes,
+        "total": total,
+        "nights": int(nights_final),
+        "check_in": check_in_date,
+        "check_out": check_out_date,
+    }
+
+
 def _plan_months_until_deadline(payment_deadline):
     """
     Matches the frontend: inclusive months from current month through deadline month.
@@ -1804,46 +1926,89 @@ def create_stripe_event_checkout_session(request, pk):
     players_count = int(len(valid_players))
     players_total = (entry_fee * Decimal(str(players_count))).quantize(Decimal("0.01"))
 
+    # Prefer Vue payload (hotel_reservation_json) over legacy session cart.
+    hotel_payload_raw = request.POST.get("hotel_reservation_json") or ""
+    hotel_payload = None
+    vue_cart_snapshot = {}
+
+    if hotel_payload_raw:
+        try:
+            hotel_payload = json.loads(hotel_payload_raw)
+        except Exception:
+            hotel_payload = None
+
+    # Legacy cart (server-side) fallback
     cart = request.session.get("hotel_cart", {}) or {}
 
-    # Enriquecer el snapshot del carrito con información de huéspedes adicionales
-    enriched_cart = {}
-    for item_id, item_data in cart.items():
-        if item_data.get("type") == "room":
+    if hotel_payload and isinstance(hotel_payload, dict) and (hotel_payload.get("rooms") or []):
+        hotel_breakdown = _compute_hotel_amount_from_vue_payload(hotel_payload)
+        hotel_total = hotel_breakdown["total"]
+
+        # Build a snapshot compatible with _finalize_stripe_event_checkout()
+        # (one room item per selected room; services currently not supported in Vue)
+        check_in = hotel_breakdown.get("check_in") or ""
+        check_out = hotel_breakdown.get("check_out") or ""
+        guest_assignments = hotel_payload.get("guest_assignments") or {}
+
+        for r in hotel_payload.get("rooms") or []:
+            room_id = str((r or {}).get("roomId") or "")
+            if not room_id:
+                continue
+            assigned = guest_assignments.get(room_id) or []
             try:
-                from apps.locations.models import HotelRoom
-
-                room = HotelRoom.objects.get(id=item_data.get("room_id"))
-                guests = int(item_data.get("guests", 1) or 1)
-                includes = int(room.price_includes_guests or 1)
-                extra_guests = max(0, guests - includes)
-
-                # Agregar información de huéspedes adicionales al snapshot
-                enriched_item = item_data.copy()
-                enriched_item["guests_included"] = includes
-                enriched_item["extra_guests"] = extra_guests
-                enriched_item["additional_guest_price"] = str(
-                    room.additional_guest_price or Decimal("0.00")
-                )
-                enriched_cart[item_id] = enriched_item
+                guests_count = int(len(assigned))
             except Exception:
-                # Si hay error, usar el item original
-                enriched_cart[item_id] = item_data
-        else:
-            enriched_cart[item_id] = item_data
+                guests_count = 0
 
-    hotel_breakdown = (
-        _compute_hotel_amount_from_cart(enriched_cart)
-        if enriched_cart
-        else {
-            "room_base": Decimal("0.00"),
-            "services_total": Decimal("0.00"),
-            "iva": Decimal("0.00"),
-            "ish": Decimal("0.00"),
-            "total": Decimal("0.00"),
-        }
-    )
-    hotel_total = hotel_breakdown["total"]
+            vue_cart_snapshot[f"vue-room-{room_id}"] = {
+                "type": "room",
+                "room_id": int(room_id) if str(room_id).isdigit() else room_id,
+                "check_in": check_in,
+                "check_out": check_out,
+                "guests": max(1, guests_count),
+                "services": [],
+            }
+
+        enriched_cart = vue_cart_snapshot
+    else:
+        # Enriquecer el snapshot del carrito con información de huéspedes adicionales
+        enriched_cart = {}
+        for item_id, item_data in cart.items():
+            if item_data.get("type") == "room":
+                try:
+                    from apps.locations.models import HotelRoom
+
+                    room = HotelRoom.objects.get(id=item_data.get("room_id"))
+                    guests = int(item_data.get("guests", 1) or 1)
+                    includes = int(room.price_includes_guests or 1)
+                    extra_guests = max(0, guests - includes)
+
+                    # Agregar información de huéspedes adicionales al snapshot
+                    enriched_item = item_data.copy()
+                    enriched_item["guests_included"] = includes
+                    enriched_item["extra_guests"] = extra_guests
+                    enriched_item["additional_guest_price"] = str(
+                        room.additional_guest_price or Decimal("0.00")
+                    )
+                    enriched_cart[item_id] = enriched_item
+                except Exception:
+                    # Si hay error, usar el item original
+                    enriched_cart[item_id] = item_data
+            else:
+                enriched_cart[item_id] = item_data
+
+        hotel_breakdown = (
+            _compute_hotel_amount_from_cart(enriched_cart)
+            if enriched_cart
+            else {
+                "room_base": Decimal("0.00"),
+                "services_total": Decimal("0.00"),
+                "iva": Decimal("0.00"),
+                "ish": Decimal("0.00"),
+                "total": Decimal("0.00"),
+            }
+        )
+        hotel_total = hotel_breakdown["total"]
 
     # Pay now discount only applies if a hotel stay is included
     discount_percent = 5 if (payment_mode == "now" and hotel_total > 0) else 0
@@ -1853,8 +2018,9 @@ def create_stripe_event_checkout_session(request, pk):
 
     # Hotel buy out fee: solo aplica si el evento tiene hotel, hay jugadores y NO se añadió hotel al checkout
     has_event_hotel = getattr(event, "hotel", None) is not None
+    buy_out_fee = _decimal(getattr(getattr(event, "hotel", None), "buy_out_fee", None), default="0.00")
     no_show_fee = (
-        Decimal("1000.00")
+        buy_out_fee
         if (has_event_hotel and players_count > 0 and not enriched_cart)
         else Decimal("0.00")
     )
@@ -1863,6 +2029,47 @@ def create_stripe_event_checkout_session(request, pk):
     total = (subtotal * discount_multiplier).quantize(
         Decimal("0.01"), rounding=ROUND_HALF_UP
     )
+
+    # Debug log to compare totals (helps diagnose mismatches with frontend)
+    try:
+        import logging
+
+        logger = logging.getLogger(__name__)
+        fe_players_total = request.POST.get("frontend_players_total")
+        fe_hotel_total = request.POST.get("frontend_hotel_total")
+        fe_no_show_fee = request.POST.get("frontend_no_show_fee")
+        fe_subtotal = request.POST.get("frontend_subtotal")
+        fe_discount = request.POST.get("frontend_discount_percent")
+        fe_paynow_total = request.POST.get("frontend_paynow_total")
+        fe_plan_months = request.POST.get("frontend_plan_months")
+        fe_plan_monthly = request.POST.get("frontend_plan_monthly")
+        fe_hotel_nights = request.POST.get("frontend_hotel_nights")
+
+        logger.info(
+            "[StripeCheckout] event=%s user=%s mode=%s players=%s players_total=%s hotel_total=%s no_show_fee=%s discount=%s total=%s source=%s nights=%s | FE players_total=%s hotel_total=%s no_show_fee=%s subtotal=%s discount=%s paynow_total=%s plan_months=%s plan_monthly=%s nights=%s",
+            event.pk,
+            user.pk,
+            payment_mode,
+            players_count,
+            str(players_total),
+            str(hotel_total),
+            str(no_show_fee),
+            str(discount_percent),
+            str(total),
+            "vue" if hotel_payload else "session_cart",
+            str(hotel_breakdown.get("nights", "")) if isinstance(hotel_breakdown, dict) else "",
+            fe_players_total,
+            fe_hotel_total,
+            fe_no_show_fee,
+            fe_subtotal,
+            fe_discount,
+            fe_paynow_total,
+            fe_plan_months,
+            fe_plan_monthly,
+            fe_hotel_nights,
+        )
+    except Exception:
+        pass
 
     currency = (getattr(settings, "STRIPE_CURRENCY", "usd") or "usd").lower()
 
@@ -2006,9 +2213,11 @@ def create_stripe_event_checkout_session(request, pk):
         breakdown={
             "players_total": str(players_total),
             "hotel_room_base": str(hotel_breakdown["room_base"]),
-            "hotel_services_total": str(hotel_breakdown["services_total"]),
-            "hotel_iva": str(hotel_breakdown["iva"]),
-            "hotel_ish": str(hotel_breakdown["ish"]),
+            "hotel_services_total": str(hotel_breakdown.get("services_total", Decimal("0.00"))),
+            "hotel_iva": str(hotel_breakdown.get("iva", Decimal("0.00"))),
+            "hotel_ish": str(hotel_breakdown.get("ish", Decimal("0.00"))),
+            "hotel_total_taxes": str(hotel_breakdown.get("total_taxes", Decimal("0.00"))),
+            "hotel_nights": str(hotel_breakdown.get("nights", "")),
             "hotel_total": str(hotel_total),
             "no_show_fee": str(no_show_fee),
             "subtotal": str(subtotal),
