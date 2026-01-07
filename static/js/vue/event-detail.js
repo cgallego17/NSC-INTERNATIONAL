@@ -3202,6 +3202,11 @@ const EventDetailApp = {
                 formData.set('payment_mode', mode);
                 formData.set('no_show_fee', checkoutTotals.value.noShowFee);
 
+                const csrfToken = getCsrfToken();
+                if (csrfToken) {
+                    formData.set('csrfmiddlewaretoken', csrfToken);
+                }
+
                 // Set discount percent
                 const discountPercent = (mode === 'now' && checkoutTotals.value.hasHotelForDiscount) ? '5' : '0';
                 formData.set('discount_percent', discountPercent);
@@ -3235,10 +3240,24 @@ const EventDetailApp = {
                 if (!resp.ok) {
                     const text = await resp.text();
                     console.error('Checkout error response:', resp.status, text);
-                    throw new Error(`Server returned ${resp.status}: ${text.substring(0, 100)}`);
+                    let serverMsg = text;
+                    try {
+                        // Try to parse if server returned JSON error
+                        const errorJson = JSON.parse(text);
+                        serverMsg = errorJson.error || errorJson.message || text;
+                    } catch(e) {}
+                    throw new Error(`Server error (${resp.status}): ${serverMsg.substring(0, 150)}`);
                 }
 
-                const data = await resp.json();
+                let data;
+                const contentType = resp.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    data = await resp.json();
+                } else {
+                    const rawText = await resp.text();
+                    console.error('Expected JSON but got:', rawText);
+                    throw new Error('Server returned invalid data format (not JSON)');
+                }
 
                 if (resp.ok && data.success && data.checkout_url) {
                     // Redirect to Stripe

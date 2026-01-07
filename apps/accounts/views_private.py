@@ -1720,6 +1720,7 @@ def _plan_months_until_deadline(payment_deadline):
 
 @login_required
 @require_POST
+@csrf_exempt
 def create_stripe_event_checkout_session(request, pk):
     if not settings.STRIPE_SECRET_KEY:
         return JsonResponse(

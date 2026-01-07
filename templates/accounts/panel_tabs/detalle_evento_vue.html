@@ -741,7 +741,7 @@
 <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 
 <!-- Event Detail Vue App -->
-<script src="{% static 'js/vue/event-detail.js' %}"></script>
+<script src="{% static 'js/vue/event-detail.js' %}?v={% now 'U' %}"></script>
 
 <!-- Event Data (JSON) for Vue to consume -->
 <script id="event-data" type="application/json">
