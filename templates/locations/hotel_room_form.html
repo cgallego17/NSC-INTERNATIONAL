@@ -308,11 +308,12 @@
                                 <div class="row">
                                     <div class="col-md-3">
                                         <div class="form-group mb-3">
-                                            <label for="check_in_date" class="form-label">Fecha Check-in</label>
+                                            <label for="check_in_date" class="form-label">Fecha Check-in <span class="text-danger">*</span></label>
                                             <input type="date"
                                                    id="check_in_date"
                                                    name="check_in_date"
                                                    class="form-control"
+                                                   required
                                                    value="{% if object and object.check_in_date %}{{ object.check_in_date|date:'Y-m-d' }}{% else %}{{ form.check_in_date.value|default:'' }}{% endif %}">
                                             {% if form.check_in_date.errors %}
                                                 <div class="text-danger">{{ form.check_in_date.errors.0 }}</div>
@@ -321,11 +322,12 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group mb-3">
-                                            <label for="check_out_date" class="form-label">Fecha Check-out</label>
+                                            <label for="check_out_date" class="form-label">Fecha Check-out <span class="text-danger">*</span></label>
                                             <input type="date"
                                                    id="check_out_date"
                                                    name="check_out_date"
                                                    class="form-control"
+                                                   required
                                                    value="{% if object and object.check_out_date %}{{ object.check_out_date|date:'Y-m-d' }}{% else %}{{ form.check_out_date.value|default:'' }}{% endif %}">
                                             {% if form.check_out_date.errors %}
                                                 <div class="text-danger">{{ form.check_out_date.errors.0 }}</div>
@@ -334,11 +336,12 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group mb-3">
-                                            <label for="check_in_time" class="form-label">Hora Check-in</label>
+                                            <label for="check_in_time" class="form-label">Hora Check-in <span class="text-danger">*</span></label>
                                             <input type="time"
                                                    id="check_in_time"
                                                    name="check_in_time"
                                                    class="form-control"
+                                                   required
                                                    value="{% if object and object.check_in_time %}{{ object.check_in_time|time:'H:i' }}{% else %}{{ form.check_in_time.value|default:'' }}{% endif %}">
                                             {% if form.check_in_time.errors %}
                                                 <div class="text-danger">{{ form.check_in_time.errors.0 }}</div>
@@ -347,11 +350,12 @@
                                     </div>
                                     <div class="col-md-3">
                                         <div class="form-group mb-3">
-                                            <label for="check_out_time" class="form-label">Hora Check-out</label>
+                                            <label for="check_out_time" class="form-label">Hora Check-out <span class="text-danger">*</span></label>
                                             <input type="time"
                                                    id="check_out_time"
                                                    name="check_out_time"
                                                    class="form-control"
+                                                   required
                                                    value="{% if object and object.check_out_time %}{{ object.check_out_time|time:'H:i' }}{% else %}{{ form.check_out_time.value|default:'' }}{% endif %}">
                                             {% if form.check_out_time.errors %}
                                                 <div class="text-danger">{{ form.check_out_time.errors.0 }}</div>
@@ -359,7 +363,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <small class="text-muted d-block">Opcional: estos valores sirven como referencia/configuración para este tipo de habitación.</small>
+                                <small class="text-muted d-block">Estos valores son obligatorios.</small>
                             </div>
 
                             <!-- Impuestos dentro de la zona de precios -->

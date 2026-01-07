@@ -407,6 +407,11 @@ class HotelRoomForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Check-in / Check-out: obligatorios a nivel de formulario
+        for f in ("check_in_date", "check_out_date", "check_in_time", "check_out_time"):
+            if f in self.fields:
+                self.fields[f].required = True
+
         # Taxes: incluir activos + los ya asignados a la habitación (aunque estén inactivos),
         # para evitar que el formulario sea inválido al editar.
         taxes_qs = HotelRoomTax.objects.filter(is_active=True)

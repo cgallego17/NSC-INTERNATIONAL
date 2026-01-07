@@ -678,6 +678,41 @@ class HotelRoom(models.Model):
     def __str__(self):
         return f"{self.hotel.hotel_name} - Habitación {self.room_number}"
 
+    def clean(self):
+        """
+        Validaciones de negocio para la habitación.
+
+        Nota: aunque los campos permiten NULL en DB por compatibilidad con datos existentes,
+        a nivel de formulario los tratamos como obligatorios.
+        """
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+
+        if not self.check_in_date:
+            errors["check_in_date"] = "La fecha de check-in es obligatoria."
+        if not self.check_out_date:
+            errors["check_out_date"] = "La fecha de check-out es obligatoria."
+        if not self.check_in_time:
+            errors["check_in_time"] = "La hora de check-in es obligatoria."
+        if not self.check_out_time:
+            errors["check_out_time"] = "La hora de check-out es obligatoria."
+
+        # Validar orden de fechas/horas si están presentes
+        if self.check_in_date and self.check_out_date:
+            if self.check_out_date < self.check_in_date:
+                errors["check_out_date"] = (
+                    "La fecha de check-out no puede ser anterior a la fecha de check-in."
+                )
+            elif self.check_out_date == self.check_in_date and self.check_in_time and self.check_out_time:
+                if self.check_out_time <= self.check_in_time:
+                    errors["check_out_time"] = (
+                        "Si la fecha es la misma, la hora de check-out debe ser posterior a la hora de check-in."
+                    )
+
+        if errors:
+            raise ValidationError(errors)
+
     @property
     def is_reserved(self):
         """Verifica si la habitación tiene reservas activas"""
