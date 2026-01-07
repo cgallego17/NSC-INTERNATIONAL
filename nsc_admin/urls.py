@@ -21,7 +21,7 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.i18n import JavaScriptCatalog
 
-from apps.accounts.views_private import UserDashboardView
+from apps.accounts.views_private import UserDashboardView, forbidden_media
 from apps.accounts.views_public import (
     PublicHomeView,
     PublicPlayerListView,
@@ -32,6 +32,8 @@ from apps.core.views import CachedJavaScriptCatalog, set_language
 from apps.events.views import DashboardView
 
 urlpatterns = [
+    # Bloquear acceso directo a documentos de verificación
+    path("media/accounts/age_verification/<path:filename>", forbidden_media),
     path("admin/", admin.site.urls),
     path("admin/login/", admin.site.login, name="admin_login"),  # Login admin separado
     path("", PublicHomeView.as_view(), name="home"),  # Home público

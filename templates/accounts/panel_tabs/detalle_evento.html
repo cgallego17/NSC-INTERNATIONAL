@@ -1824,14 +1824,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Función para formatear números con separadores de miles (puntos)
     function formatPrice(amount) {
-        const num = parseFloat(amount);
-        if (isNaN(num)) return '0.00';
-        // Separar parte entera y decimal
-        const parts = num.toFixed(2).split('.');
-        // Agregar puntos de miles a la parte entera
-        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        // Unir con punto decimal
-        return parts.join('.');
+        const num = parseFloat(amount || 0);
+        return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
     }
 
     const paymentDeadlineStr = '{% if event.payment_deadline %}{{ event.payment_deadline|date:"Y-m-d" }}{% endif %}';

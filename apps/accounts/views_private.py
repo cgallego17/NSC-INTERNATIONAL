@@ -12,7 +12,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.db import models, transaction
 from django.db.models import Q
-from django.http import HttpResponse, JsonResponse
+from django.core.exceptions import PermissionDenied
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone, translation
@@ -2569,3 +2570,39 @@ class PaymentConfirmationView(LoginRequiredMixin, DetailView):
         )
 
         return context
+
+
+@login_required
+def serve_age_verification_document(request, player_id):
+    """Serve age verification documents privately, checking permissions."""
+    player = get_object_or_404(Player, pk=player_id)
+    user = request.user
+
+    # Permissions:
+    # 1. Owner of the player (parent or self)
+    # 2. Staff / Superuser
+    # 3. Team Manager of the player's team
+    is_owner = (player.user == user) or (
+        hasattr(user, "profile")
+        and user.profile.is_parent
+        and PlayerParent.objects.filter(parent=user.profile, player=player).exists()
+    )
+    is_staff = user.is_staff or user.is_superuser
+    is_manager = player.team and player.team.manager == user
+
+    if not (is_owner or is_staff or is_manager):
+        raise PermissionDenied(_("You do not have permission to view this document."))
+
+    if not player.age_verification_document:
+        raise Http404(_("No document uploaded."))
+
+    try:
+        return FileResponse(player.age_verification_document.open())
+    except Exception as e:
+        raise Http404(_("Error opening document: %(error)s") % {"error": str(e)})
+
+
+@login_required
+def forbidden_media(request, *args, **kwargs):
+    """Bloquea acceso directo a carpetas sensibles de media."""
+    raise PermissionDenied(_("Direct access to this folder is forbidden."))

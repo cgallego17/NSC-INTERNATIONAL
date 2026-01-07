@@ -77,6 +77,11 @@ urlpatterns = [
         views_private.approve_age_verification,
         name="approve_age_verification",
     ),
+    path(
+        "players/<int:player_id>/age-verification-document/",
+        views_private.serve_age_verification_document,
+        name="serve_age_verification_document",
+    ),
     # Verificaciones de edad (solo staff y managers)
     path(
         "age-verifications/",

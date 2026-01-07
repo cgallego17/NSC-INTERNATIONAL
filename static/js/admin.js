@@ -1778,17 +1778,21 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
                     console.log('Showing modal...');
 
                     // Initialize elements AFTER modal is shown
+                    // Defer heavy operations to prevent blocking modal animation
                     reservationModalEl.addEventListener('shown.bs.modal', () => {
                         console.log('Modal shown, initializing elements...');
 
-                        // Now the elements should exist
-                        if (q(`adults-total-count${pk}`) && q(`additional-children-count${pk}`)) {
-                            renderSelectedPlayers(pk);
-                            updateSummary(pk);
-                            console.log('Elements initialized successfully');
-                        } else {
-                            console.warn('Elements still not found after modal shown');
-                        }
+                        // Defer DOM operations to next frame
+                        requestAnimationFrame(() => {
+                            // Now the elements should exist
+                            if (q(`adults-total-count${pk}`) && q(`additional-children-count${pk}`)) {
+                                renderSelectedPlayers(pk);
+                                updateSummary(pk);
+                                console.log('Elements initialized successfully');
+                            } else {
+                                console.warn('Elements still not found after modal shown');
+                            }
+                        });
                     }, { once: true });
 
                     modalInstance.show();
@@ -1827,12 +1831,20 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
         // Close reservation modal first, then open rooms modal
         // After rooms modal opens, filter and recommend rooms, and focus close button
+        // Use requestAnimationFrame to defer heavy operations and prevent UI blocking
         roomsModalEl.addEventListener('shown.bs.modal', () => {
-            filterAndRecommendRooms(roomsModalEl, total);
-            // Focus something inside rooms modal to avoid aria-hidden/focus warnings
-                const closeBtn = roomsModalEl.querySelector('button.btn-close');
-                if (closeBtn && typeof closeBtn.focus === 'function') closeBtn.focus();
-            }, { once: true });
+            // Focus first to give immediate feedback
+            const closeBtn = roomsModalEl.querySelector('button.btn-close');
+            if (closeBtn && typeof closeBtn.focus === 'function') closeBtn.focus();
+
+            // Defer heavy filtering operation to next frame to prevent blocking
+            requestAnimationFrame(() => {
+                // Use setTimeout to allow browser to paint first
+                setTimeout(() => {
+                    filterAndRecommendRooms(roomsModalEl, total);
+                }, 0);
+            });
+        }, { once: true });
 
         closeAndOpenModal(reservationModalEl, roomsModalEl);
     }
@@ -2793,13 +2805,19 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
         });
     });
 
-    // Bootstrap modal hook
+    // Bootstrap modal hook - optimized to only run for specific modals
     document.addEventListener('shown.bs.modal', (e) => {
         const modalEl = e.target;
+        // Early return if not the modal we care about
         if (!modalEl || !modalEl.classList?.contains('modal') || !modalEl.id || !modalEl.id.startsWith('hotelReservationModal')) return;
         const pk = modalEl.getAttribute('data-hotel-pk');
-        if (pk) initModal(String(pk));
-    });
+        if (pk) {
+            // Defer initialization to prevent blocking modal animation
+            requestAnimationFrame(() => {
+                initModal(String(pk));
+            });
+        }
+    }, { passive: true });
 
     // Guest details form: add to checkout card instead of creating reservation
     document.addEventListener('submit', (e) => {

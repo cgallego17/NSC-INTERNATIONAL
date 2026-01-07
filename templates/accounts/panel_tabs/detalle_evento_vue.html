@@ -853,7 +853,21 @@
                 {% endif %}
                 {% endfor %}
             ],
-            "rules": []
+            "rules": [
+                {% for rule in room.rules.all %}
+                {% if rule.is_active %}
+                {
+                    "id": {{ rule.id }},
+                    "min_adults": {{ rule.min_adults }},
+                    "max_adults": {{ rule.max_adults }},
+                    "min_children": {{ rule.min_children }},
+                    "max_children": {{ rule.max_children }},
+                    "description": "{{ rule.description|escapejs|default:'' }}",
+                    "is_active": true
+                }{% if not forloop.last %},{% endif %}
+                {% endif %}
+                {% endfor %}
+            ]
         }{% if not forloop.last %},{% endif %}
         {% endfor %}
     {% endif %}

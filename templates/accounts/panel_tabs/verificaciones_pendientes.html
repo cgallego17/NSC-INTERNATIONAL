@@ -32,7 +32,7 @@
 
                         {% if player.age_verification_document %}
                             <div class="mb-3">
-                                <a href="{{ player.age_verification_document.url }}" target="_blank" class="btn btn-outline-primary btn-sm w-100">
+                                <a href="{% url 'accounts:serve_age_verification_document' player.pk %}" target="_blank" class="btn btn-outline-primary btn-sm w-100">
                                     <i class="fas fa-file-pdf me-2"></i>{% trans "View Document" %}
                                 </a>
                             </div>

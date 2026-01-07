@@ -100,6 +100,8 @@ const translations = {
     child: gettext('Child'),
     yearsOld: gettext('years old'),
     selectRoomToSeePrice: gettext('Select a room to see price calculation'),
+    selectedRoom: gettext('Selected Room'),
+    price: gettext('Price'),
     basePrice: gettext('Base Price'),
     additionalGuests: gettext('Additional Guests'),
     howToProceed: gettext('How to proceed:'),
@@ -115,6 +117,27 @@ const translations = {
     enterEmailAddress: gettext('Enter email address'),
     dateOfBirth: gettext('Date of Birth'),
     saveGuest: gettext('Save Guest'),
+    updateGuest: gettext('Update Guest'),
+    editGuest: gettext('Edit Guest'),
+    removeGuest: gettext('Remove Guest'),
+    capacityExceeded: gettext('Capacity Exceeded'),
+    needMoreRooms: gettext('More Rooms Needed'),
+    youHave: gettext('You have'),
+    butCapacity: gettext('but the total capacity is'),
+    selectMoreRooms: gettext('Please select more rooms to accommodate all guests.'),
+    assignedGuests: gettext('Assigned Guests'),
+    assignGuestsToRooms: gettext('Assign Guests to Rooms'),
+    assignGuests: gettext('Assign Guests'),
+    selectRoomForGuest: gettext('Select room for guest'),
+    ruleViolation: gettext('Rule Violation'),
+    roomRulesNotMet: gettext('Room rules not met'),
+    adultsRequired: gettext('Adults required'),
+    childrenRequired: gettext('Children required'),
+    tooManyAdults: gettext('Too many adults'),
+    tooManyChildren: gettext('Too many children'),
+    noValidRule: gettext('No valid rule found for this assignment'),
+    assignmentValid: gettext('Assignment valid'),
+    noGuestsAssigned: gettext('No guests assigned yet'),
     back: gettext('Back'),
     registrant: gettext('Registrant'),
     availableRooms: gettext('Available Rooms'),
@@ -128,7 +151,27 @@ const translations = {
     per: gettext('per'),
     additionalGuest: gettext('additional guest'),
     roomSize: gettext('Room size'),
-    extraLargeBed: gettext('extra-large double bed')
+    extraLargeBed: gettext('extra-large double bed'),
+    emptyRoomError: gettext('The following rooms are empty: {rooms}. Each room must have at least one guest assigned.'),
+    verifyGuestDetails: gettext('Verify Guest Details'),
+    verifyInstructions: gettext('Please verify the information of all guests before proceeding to checkout.'),
+    confirmAndCheckout: gettext('Confirm and Checkout'),
+    type: gettext('Type'),
+    selectPlayersBeforeHotel: gettext('Please select at least 1 player before adding a hotel stay.'),
+    hotelBuyOutFee: gettext('Hotel buy out fee'),
+    appliesWhenNoHotel: gettext("Applies when you don't add a hotel stay to this checkout."),
+    paymentPlan: gettext('Payment plan'),
+    payNow: gettext('Pay now'),
+    monthlyPlanAmount: gettext('Monthly plan amount'),
+    monthlyPaymentsApproxUntil: gettext('monthly payments (approx.) until'),
+    goodIfPreferSpreadTotal: gettext('Good if you prefer to spread the total over time.'),
+    youPayTodayAndSave: gettext('You pay today and save'),
+    fivePercentOffAppliesWhenHotel: gettext('5% OFF applies when you add a hotel stay.'),
+    bestValueIfPayToday: gettext('Best value if you can pay today.'),
+    selectPlayersBeforeCheckout: gettext('Please select at least one player to register.'),
+    redirectingToStripe: gettext('Redirecting to Stripe...'),
+    checkoutError: gettext('Error starting payment. Please try again.'),
+    hotelStay: gettext('Hotel Stay')
 };
 
 // Simple translation function for Vue templates
@@ -147,7 +190,13 @@ function $t(key) {
 function useHotelReservation(hotelPk) {
     const state = reactive({
         rooms: [],
+        // Manual guests added by the user (adults/children). Does NOT include registrant/players.
+        manualGuests: [],
+        // Extended guest list used for room assignment indices (registrant + selected players + manualGuests).
         guests: [],
+        // 'auto' => autoDistributeGuests() controls assignments
+        // 'manual' => preserve guestAssignments as set by Assign Guests modal
+        assignmentMode: 'auto',
         guestAssignments: {}, // { roomId: [guestIndex1, guestIndex2, ...] }
     });
 
@@ -159,22 +208,23 @@ function useHotelReservation(hotelPk) {
         return state.rooms.reduce((sum, room) => sum + (room.capacity || 0), 0);
     });
 
-    function addRoom(roomId, roomLabel, capacity, price, includesGuests, additionalPrice) {
+    function addRoom(roomId, roomLabel, capacity, price, includesGuests, additionalPrice, rules) {
         const roomIdStr = String(roomId);
         const exists = state.rooms.find(r => r.roomId === roomIdStr);
         if (!exists) {
-            console.log('Adding room to state:', roomIdStr, { roomLabel, price });
+            // Removed console.log for performance
             state.rooms.push({
                 roomId: roomIdStr,
                 roomLabel: roomLabel || `Room ${roomIdStr}`,
                 capacity: capacity || 0,
                 price: parseFloat(price || 0),
                 priceIncludesGuests: parseInt(includesGuests || 1),
+                rules: rules || [],
                 additionalGuestPrice: parseFloat(additionalPrice || 0)
             });
             state.guestAssignments[roomIdStr] = [];
         } else {
-            console.log('Room already exists in state:', roomIdStr);
+            // Removed console.log for performance
         }
     }
 
@@ -182,24 +232,19 @@ function useHotelReservation(hotelPk) {
         const roomIdStr = String(roomId);
         const index = state.rooms.findIndex(r => r.roomId === roomIdStr);
         if (index !== -1) {
-            console.log('Removing room from state:', roomIdStr);
+            // Removed console.log for performance
             state.rooms.splice(index, 1);
             delete state.guestAssignments[roomIdStr];
         }
     }
 
+    // These helpers manage ONLY manual guests. The EventDetail app rebuilds `state.guests` as needed.
     function addGuest(guest) {
-        state.guests.push(guest);
+        state.manualGuests.push(guest);
     }
 
     function removeGuest(index) {
-        state.guests.splice(index, 1);
-        // Remove from all room assignments
-        Object.keys(state.guestAssignments).forEach(roomId => {
-            state.guestAssignments[roomId] = state.guestAssignments[roomId]
-                .filter(guestIdx => guestIdx !== index)
-                .map(guestIdx => guestIdx > index ? guestIdx - 1 : guestIdx);
-        });
+        state.manualGuests.splice(index, 1);
     }
 
     function assignGuestToRoom(guestIndex, roomId) {
@@ -370,9 +415,13 @@ const RoomSelectionModal = {
         registrant: {
             type: Object,
             default: null
+        },
+        reservationState: {
+            type: Object,
+            default: () => ({ guestAssignments: {} })
         }
     },
-    emits: ['close', 'select-room', 'remove-room', 'continue', 'add-guest'],
+    emits: ['close', 'select-room', 'remove-room', 'continue-to-checkout', 'add-guest', 'update-guest', 'remove-guest', 'assign-guests'],
     setup(props, { emit }) {
         const modalContainer = ref(null);
         const detailRoom = ref(null);
@@ -389,7 +438,7 @@ const RoomSelectionModal = {
             if (!rooms || !Array.isArray(rooms)) {
                 return [];
             }
-            console.log('safeSelectedRooms computed update. Count:', rooms.length);
+            // Removed console.log for performance
             return rooms;
         });
 
@@ -401,6 +450,8 @@ const RoomSelectionModal = {
         const roomSlides = ref({}); // Track active slide for each room
         const roomAutoPlayTimers = ref({}); // Track auto-play timers
         const showAddGuestModal = ref(false);
+        const editingGuest = ref(null); // Guest being edited (null = new guest)
+        const showAssignGuestsModal = ref(false);
 
         const safeGuests = computed(() => {
             return Array.isArray(props.guests) ? props.guests : [];
@@ -415,79 +466,51 @@ const RoomSelectionModal = {
         });
 
         const guestsList = computed(() => {
+            // Try to use the master list from reservation state first
+            const masterList = props.reservationState?.guests;
+            if (Array.isArray(masterList) && masterList.length > 0) {
+                return masterList;
+            }
+
+            // Fallback: Rebuild list locally if master list is not yet populated
             const allGuests = [];
 
-            // Add registrant first (always included)
+            // Add registrant
             if (props.registrant) {
                 const reg = props.registrant;
-                let displayName = '';
-                if (reg.name && reg.name.trim()) {
-                    displayName = reg.name.trim();
-                } else if (reg.first_name && reg.last_name) {
-                    displayName = `${reg.first_name.trim()} ${reg.last_name.trim()}`;
-                } else if (reg.first_name) {
-                    displayName = reg.first_name.trim();
-                } else if (reg.last_name) {
-                    displayName = reg.last_name.trim();
-                } else if (reg.username) {
-                    displayName = reg.username;
-                } else {
-                    displayName = 'Registrant';
-                }
-
+                let displayName = reg.name || (reg.first_name && reg.last_name ? `${reg.first_name} ${reg.last_name}` : reg.first_name || reg.username || 'Registrant');
                 allGuests.push({
+                    ...reg,
                     id: `registrant-${reg.id || reg.pk}`,
                     displayName: displayName,
-                    type: 'registrant',
-                    age: reg.age || (reg.birth_date ? calculateAge(reg.birth_date) : null),
-                    birth_date: reg.birth_date,
-                    email: reg.email,
-                    isRegistrant: true
+                    isRegistrant: true,
+                    isPlayer: false
                 });
             }
 
-            // Add selected players/children
+            // Add selected players
             safeSelectedChildren.value.forEach(childId => {
                 const child = safeChildren.value.find(c => c.id === childId || c.pk === childId);
                 if (child) {
-                    // Build display name - try multiple possible fields
-                    let displayName = '';
-                    if (child.name && child.name.trim()) {
-                        displayName = child.name.trim();
-                    } else if (child.first_name && child.last_name) {
-                        displayName = `${child.first_name.trim()} ${child.last_name.trim()}`;
-                    } else if (child.first_name) {
-                        displayName = child.first_name.trim();
-                    } else if (child.last_name) {
-                        displayName = child.last_name.trim();
-                    } else if (child.user && child.user.username) {
-                        displayName = child.user.username;
-                    } else {
-                        displayName = `Player ${child.id || child.pk || childId}`;
-                    }
-
+                    let displayName = child.name || (child.first_name && child.last_name ? `${child.first_name} ${child.last_name}` : child.first_name || child.user?.username || `Player ${childId}`);
                     allGuests.push({
+                        ...child,
                         id: `player-${child.id || child.pk || childId}`,
                         displayName: displayName,
-                        type: 'player',
-                        age: child.age || (child.birth_date ? calculateAge(child.birth_date) : null),
-                        birth_date: child.birth_date,
-                        email: child.email,
-                        isPlayer: true
+                        isRegistrant: false,
+                        isPlayer: true,
+                        type: 'child' // Ensure players are categorized as children
                     });
                 }
             });
 
-            // Add manually added guests
+            // Add manual guests
             safeGuests.value.forEach((guest, index) => {
                 allGuests.push({
                     ...guest,
-                    id: guest.id || `guest-${index}`,
-                    displayName: guest.first_name && guest.last_name
-                        ? `${guest.first_name} ${guest.last_name}`
-                        : guest.name || `Guest ${index + 1}`,
-                    type: guest.type || guest.guest_type || 'adult',
-                    age: guest.age || (guest.birth_date ? calculateAge(guest.birth_date) : null),
+                    id: guest.id || `manual-${index}`,
+                    displayName: guest.displayName || (guest.first_name && guest.last_name ? `${guest.first_name} ${guest.last_name}` : guest.name || `Guest ${index + 1}`),
+                    isRegistrant: false,
                     isPlayer: false
                 });
             });
@@ -496,42 +519,48 @@ const RoomSelectionModal = {
         });
 
         const priceCalculation = computed(() => {
-            console.log('Calculating price. Selected rooms count:', safeSelectedRooms.value.length);
-
-            if (safeSelectedRooms.value.length === 0) {
-                return { basePrice: 0, additionalGuests: 0, total: 0 };
+            const selectedRooms = safeSelectedRooms.value;
+            if (selectedRooms.length === 0) {
+                return { basePrice: 0, additionalGuests: 0, total: 0, additionalGuestsCount: 0, additionalGuestPricePerPerson: 0 };
             }
 
             let basePrice = 0;
-            let additionalGuests = 0;
+            let additionalGuestsTotal = 0;
+            let totalAdditionalCount = 0;
+            let maxAdditionalGuestPrice = 0;
 
-            // Calculate total guests (registrant + selected players + manually added guests)
-            const totalGuestsCount = guestsList.value.length;
-            console.log('Total guests for calculation:', totalGuestsCount);
+            // Use guestAssignments from props.reservationState to get real occupation
+            const assignments = props.reservationState?.guestAssignments || {};
 
-            safeSelectedRooms.value.forEach(selectedRoom => {
-                // Use values directly from the selected room object (already has price, capacity etc)
-                const price = parseFloat(selectedRoom.price || 0);
-                basePrice += price;
+            selectedRooms.forEach(room => {
+                const roomId = String(room.roomId);
+                const assignedIndices = assignments[roomId] || [];
+                const guestCountInRoom = assignedIndices.length;
 
-                const includedGuests = parseInt(selectedRoom.priceIncludesGuests || 1);
-                console.log(`Room: ${selectedRoom.roomLabel}. Price: ${price}. Included: ${includedGuests}`);
+                // Base price of this room
+                const roomBasePrice = parseFloat(room.price || 0);
+                basePrice += roomBasePrice;
 
-                if (totalGuestsCount > includedGuests) {
-                    const extra = totalGuestsCount - includedGuests;
-                    const additionalPrice = parseFloat(selectedRoom.additionalGuestPrice || 0) * extra;
-                    additionalGuests += additionalPrice;
-                    console.log(`Adding additional guests cost: ${additionalPrice} (Extra: ${extra})`);
+                // Additional guests in THIS room
+                const included = parseInt(room.priceIncludesGuests || 1);
+                const extraPrice = parseFloat(room.additionalGuestPrice || 0);
+                maxAdditionalGuestPrice = Math.max(maxAdditionalGuestPrice, extraPrice);
+
+                if (guestCountInRoom > included) {
+                    const extraInRoom = guestCountInRoom - included;
+                    totalAdditionalCount += extraInRoom;
+                    additionalGuestsTotal += (extraInRoom * extraPrice);
                 }
             });
 
-            const total = basePrice + additionalGuests;
-            console.log('Final calculation:', { basePrice, additionalGuests, total });
+            const total = basePrice + additionalGuestsTotal;
 
             return {
                 basePrice,
-                additionalGuests,
-                total
+                additionalGuests: additionalGuestsTotal,
+                total,
+                additionalGuestsCount: totalAdditionalCount,
+                additionalGuestPricePerPerson: maxAdditionalGuestPrice
             };
         });
 
@@ -548,12 +577,39 @@ const RoomSelectionModal = {
         }
 
         function handleAddGuest() {
+            editingGuest.value = null; // New guest
             showAddGuestModal.value = true;
         }
 
+        function handleEditGuest(guest) {
+            editingGuest.value = guest; // Set guest to edit
+            showAddGuestModal.value = true;
+        }
+
+        function handleRemoveGuest(guestId) {
+            // Only allow removing manually added guests (not registrant or players)
+            const guest = guestsList.value.find(g => g.id === guestId);
+            if (guest && !guest.isRegistrant && !guest.isPlayer) {
+                emit('remove-guest', guestId);
+            }
+        }
+
         function handleGuestAdded(guest) {
-            emit('add-guest', guest);
+            if (editingGuest.value) {
+                // Update existing guest
+                emit('update-guest', editingGuest.value.id, guest);
+                editingGuest.value = null;
+            } else {
+                // Add new guest
+                emit('add-guest', guest);
+            }
             showAddGuestModal.value = false;
+        }
+
+        function handleGuestAssignment(assignments) {
+            // assignments: { guestId: roomId }
+            emit('assign-guests', assignments);
+            showAssignGuestsModal.value = false;
         }
 
         function handleModalScroll() {
@@ -565,46 +621,48 @@ const RoomSelectionModal = {
         }
 
         function scrollToTop() {
-            // Scroll to top immediately when modal opens
-            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-            window.scrollTo(0, 0);
-            document.documentElement.scrollTop = 0;
-            document.body.scrollTop = 0;
+            // Use requestAnimationFrame to defer heavy operations and prevent blocking
+            requestAnimationFrame(() => {
+                // Scroll main window
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+                document.documentElement.scrollTop = 0;
+                document.body.scrollTop = 0;
 
-            // Force all scrollable containers to top
-            const scrollableElements = document.querySelectorAll('*');
-            scrollableElements.forEach(el => {
-                if (el.scrollTop > 0) {
-                    el.scrollTop = 0;
+                // Only check common scrollable containers instead of ALL elements
+                // This is much more performant than querySelectorAll('*')
+                const commonScrollableSelectors = [
+                    '.modal-body',
+                    '.modal-content',
+                    '.room-selection-modal-fullscreen',
+                    '[style*="overflow"]',
+                    '[style*="overflow-y"]'
+                ];
+
+                // Use a single query with multiple selectors
+                const scrollableElements = document.querySelectorAll(commonScrollableSelectors.join(','));
+                scrollableElements.forEach(el => {
+                    if (el.scrollTop > 0) {
+                        el.scrollTop = 0;
+                    }
+                });
+
+                // Scroll to top of iframe (deferred)
+                if (window.parent && window.parent !== window) {
+                    try {
+                        window.parent.postMessage({
+                            type: 'nsc-scroll-to-top',
+                            tabId: window.name || 'event-detail'
+                        }, window.location.origin);
+                    } catch (e) {
+                        // Cross-origin, can't scroll parent
+                    }
+                }
+
+                // Scroll modal container to top
+                if (modalContainer.value) {
+                    modalContainer.value.scrollTop = 0;
                 }
             });
-
-            // Scroll to top of iframe
-            if (window.parent && window.parent !== window) {
-                try {
-                    window.parent.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-                    window.parent.scrollTo(0, 0);
-                    window.parent.postMessage({
-                        type: 'nsc-scroll-to-top',
-                        tabId: window.name || 'event-detail'
-                    }, window.location.origin);
-                } catch (e) {
-                    // Cross-origin, can't scroll parent
-                }
-            }
-
-            // Scroll modal container to top
-            if (modalContainer.value) {
-                modalContainer.value.scrollTop = 0;
-                modalContainer.value.scrollIntoView({ behavior: 'auto', block: 'start' });
-                // Force scroll after a tiny delay
-                setTimeout(() => {
-                    if (modalContainer.value) {
-                        modalContainer.value.scrollTop = 0;
-                        modalContainer.value.scrollIntoView({ behavior: 'auto', block: 'start' });
-                    }
-                }, 10);
-            }
         }
 
         // Function to hoist modal to body (for iframe compatibility)
@@ -631,57 +689,52 @@ const RoomSelectionModal = {
         // Watch for modal opening to focus on it
         watch(() => props.show, (isOpen) => {
             if (isOpen) {
-                // Hoist modal to body for iframe compatibility
-                hoistModalToBody();
+                // Defer heavy operations to prevent blocking modal animation
+                requestAnimationFrame(() => {
+                    // Hoist modal to body for iframe compatibility
+                    hoistModalToBody();
 
-                // Add modal-open class to body and html
-                document.body.classList.add('modal-open');
-                document.documentElement.classList.add('modal-open');
+                    // Batch DOM operations using requestAnimationFrame
+                    requestAnimationFrame(() => {
+                        // Add modal-open class to body and html
+                        document.body.classList.add('modal-open');
+                        document.documentElement.classList.add('modal-open');
 
-                // Prevent body scroll immediately
-                document.body.style.overflow = 'hidden';
-                document.documentElement.style.overflow = 'hidden';
-                document.body.style.position = 'fixed';
-                document.body.style.width = '100%';
-                document.body.style.top = '0';
-                document.body.style.left = '0';
-                document.body.style.right = '0';
-                document.body.style.margin = '0';
-                document.body.style.padding = '0';
+                        // Prevent body scroll - batch style changes
+                        const bodyStyles = {
+                            overflow: 'hidden',
+                            position: 'fixed',
+                            width: '100%',
+                            top: '0',
+                            left: '0',
+                            right: '0',
+                            margin: '0',
+                            padding: '0'
+                        };
+                        Object.assign(document.body.style, bodyStyles);
+                        document.documentElement.style.overflow = 'hidden';
+                        document.documentElement.style.margin = '0';
+                        document.documentElement.style.padding = '0';
+                        document.documentElement.style.width = '100%';
+                        document.documentElement.style.height = '100%';
+                    });
 
-                // Also ensure html has no margin/padding
-                document.documentElement.style.margin = '0';
-                document.documentElement.style.padding = '0';
-                document.documentElement.style.width = '100%';
-                document.documentElement.style.height = '100%';
-
-                // Notify parent iframe that modal is opening
-                if (window.parent && window.parent !== window) {
-                    try {
-                        window.parent.postMessage({
-                            type: 'nsc-scroll-to-top',
-                            tabId: window.name || 'event-detail'
-                        }, window.location.origin);
-                        window.parent.postMessage({
-                            type: 'nsc-modal-state',
-                            state: 'open'
-                        }, window.location.origin);
-                    } catch (e) {
-                        // Cross-origin, can't communicate
+                    // Notify parent iframe that modal is opening (deferred)
+                    if (window.parent && window.parent !== window) {
+                        try {
+                            window.parent.postMessage({
+                                type: 'nsc-modal-state',
+                                state: 'open'
+                            }, window.location.origin);
+                        } catch (e) {
+                            // Cross-origin, can't communicate
+                        }
                     }
-                }
 
-                nextTick(() => {
-                    scrollToTop();
-
-                    // Additional scroll after a short delay to ensure it's at the top
-                    setTimeout(() => {
+                    // Scroll to top only once after modal is rendered
+                    nextTick(() => {
                         scrollToTop();
-                    }, 50);
-
-                    setTimeout(() => {
-                        scrollToTop();
-                    }, 200);
+                    });
                 });
             } else {
                 // Remove modal-open class
@@ -719,19 +772,70 @@ const RoomSelectionModal = {
 
         const sortedRooms = computed(() => {
             const rooms = Array.isArray(props.rooms) ? [...props.rooms] : [];
+            if (rooms.length === 0) return rooms;
+
+            // Use toSorted() if available (ES2023), otherwise create new array before sorting
+            const sorted = rooms.length > 0 ? [...rooms] : [];
+
             if (sortBy.value === 'price-low-high') {
-                return rooms.sort((a, b) => (a.price_per_night || 0) - (b.price_per_night || 0));
+                sorted.sort((a, b) => (a.price_per_night || 0) - (b.price_per_night || 0));
             } else if (sortBy.value === 'price-high-low') {
-                return rooms.sort((a, b) => (b.price_per_night || 0) - (a.price_per_night || 0));
+                sorted.sort((a, b) => (b.price_per_night || 0) - (a.price_per_night || 0));
             } else if (sortBy.value === 'capacity-low-high') {
-                return rooms.sort((a, b) => (a.capacity || 0) - (b.capacity || 0));
+                sorted.sort((a, b) => (a.capacity || 0) - (b.capacity || 0));
             } else if (sortBy.value === 'capacity-high-low') {
-                return rooms.sort((a, b) => (b.capacity || 0) - (a.capacity || 0));
+                sorted.sort((a, b) => (b.capacity || 0) - (a.capacity || 0));
             }
-            return rooms;
+            return sorted;
         });
 
+        function canSelectRoom(room) {
+            if (!room || !room.capacity) return true; // Si no tiene capacidad definida, permitir selección
+            const totalGuests = guestsList.value.length;
+            const roomCapacity = parseInt(room.capacity || 0);
+            // Verificar capacidad total de todas las habitaciones seleccionadas + la nueva
+            const totalCapacity = safeSelectedRooms.value.reduce((sum, r) => sum + parseInt(r.capacity || 0), 0) + roomCapacity;
+            // Permitir seleccionar si hay espacio suficiente en total (puede necesitar múltiples habitaciones)
+            return totalGuests <= totalCapacity;
+        }
+
+        function getTotalCapacity() {
+            return safeSelectedRooms.value.reduce((sum, r) => sum + parseInt(r.capacity || 0), 0);
+        }
+
+        function needsMoreRooms() {
+            const totalGuests = guestsList.value.length;
+            const totalCapacity = getTotalCapacity();
+            return totalGuests > totalCapacity;
+        }
+
+        function getAssignedGuestsCount(roomIndex) {
+            const room = safeSelectedRooms.value[roomIndex];
+            if (!room || !room.roomId) return 0;
+
+            // Use actual assignments from reservation state
+            const assignedIndices = props.reservationState?.guestAssignments?.[room.roomId] || [];
+            return assignedIndices.length;
+        }
+
+        function getAssignedGuestsForRoom(roomIndex) {
+            const room = safeSelectedRooms.value[roomIndex];
+            if (!room || !room.roomId) return [];
+
+            const assignedIndices = props.reservationState?.guestAssignments?.[room.roomId] || [];
+            const masterList = props.reservationState?.guests || [];
+
+            return assignedIndices
+                .map(idx => masterList[idx])
+                .filter(Boolean);
+        }
+
         function handleSelectRoom(room) {
+            // Validar antes de seleccionar
+            if (!canSelectRoom(room)) {
+                // El mensaje se mostrará en el componente principal
+                return;
+            }
             emit('select-room', room);
         }
 
@@ -747,7 +851,9 @@ const RoomSelectionModal = {
             if (safeSelectedRooms.value.length === 0) {
                 return;
             }
-            emit('continue');
+            // For debugging
+            // toast.show('Proceeding to checkout...', 'info');
+            emit('continue-to-checkout');
         }
 
         function changeSlide(roomId, slideIndex) {
@@ -872,7 +978,8 @@ const RoomSelectionModal = {
 
         function formatPrice(price) {
             if (!price) return '0.00';
-            return parseFloat(price).toFixed(2);
+            const num = parseFloat(price);
+            return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
         }
 
         function getRoomTypeDisplay(room) {
@@ -1057,14 +1164,13 @@ const RoomSelectionModal = {
         }
 
         function removeGuest(guestId) {
-            // Remove guest from the list
-            const updatedGuests = safeGuests.value.filter(g => g.id !== guestId);
-            emit('update:guests', updatedGuests);
+            // Emit remove-guest event to parent
+            emit('remove-guest', guestId);
         }
 
         function onSelectFromDetail() {
             if (detailRoom.value) {
-                console.log('Selecting room from detail overlay:', detailRoom.value.id);
+                // Removed console.log for performance
                 handleSelectRoom(detailRoom.value);
                 // Close the detail overlay so the user sees the main modal updating
                 closeRoomDetails();
@@ -1080,6 +1186,11 @@ const RoomSelectionModal = {
             handleRemoveRoom,
             onSelectFromDetail,
             isSelected,
+            canSelectRoom,
+            getTotalCapacity,
+            needsMoreRooms,
+            getAssignedGuestsCount,
+            getAssignedGuestsForRoom,
             handleContinue,
             changeSlide,
             nextSlide,
@@ -1107,11 +1218,16 @@ const RoomSelectionModal = {
             removeGuest,
             isNarrow,
             showAddGuestModal,
+            editingGuest,
+            showAssignGuestsModal,
             safeGuests,
             guestsList,
             priceCalculation,
             handleAddGuest,
+            handleEditGuest,
+            handleRemoveGuest,
             handleGuestAdded,
+            handleGuestAssignment,
             handleModalScroll,
             modalContainer,
             scrollToTop,
@@ -1313,30 +1429,35 @@ const RoomSelectionModal = {
                                                         </div>
                                                     </div>
                                                     <!-- Select Room Button -->
-                                                    <button type="button"
-                                                            @click="onSelectFromDetail"
-                                                            :style="{
-                                                                width: isNarrow ? 'auto' : '100%',
-                                                                padding: isNarrow ? '12px 20px' : '16px 24px',
-                                                                borderRadius: '4px',
-                                                                border: 'none',
-                                                                color: 'white',
-                                                                fontWeight: '600',
-                                                                fontSize: isNarrow ? '0.9375rem' : '1rem',
-                                                                cursor: 'pointer',
-                                                                transition: 'all 0.2s ease',
-                                                                whiteSpace: 'nowrap',
-                                                                background: (detailRoom && isSelected(detailRoom.id)) ? '#d32f2f' : '#0071c2'
-                                                            }"
-                                                            onmouseover="this.style.opacity='0.9';"
-                                                            onmouseout="this.style.opacity='1';">
-                                                        <template v-if="detailRoom && isSelected(detailRoom.id)">
-                                                            <i class="fas fa-times-circle me-2"></i>{{ t('remove') }}
-                                                        </template>
-                                                        <template v-else>
-                                                            {{ t('selectRoom') }}
-                                                        </template>
-                                                    </button>
+                                                     <button type="button"
+                                                             @click="onSelectFromDetail"
+                                                             :disabled="detailRoom && !canSelectRoom(detailRoom) && !isSelected(detailRoom.id)"
+                                                             :style="{
+                                                                 width: isNarrow ? 'auto' : '100%',
+                                                                 padding: isNarrow ? '12px 20px' : '16px 24px',
+                                                                 borderRadius: '4px',
+                                                                 border: 'none',
+                                                                 color: 'white',
+                                                                 fontWeight: '600',
+                                                                 fontSize: isNarrow ? '0.9375rem' : '1rem',
+                                                                 cursor: (detailRoom && !canSelectRoom(detailRoom) && !isSelected(detailRoom.id)) ? 'not-allowed' : 'pointer',
+                                                                 transition: 'all 0.2s ease',
+                                                                 whiteSpace: 'nowrap',
+                                                                 background: (detailRoom && isSelected(detailRoom.id)) ? '#d32f2f' : ((detailRoom && !canSelectRoom(detailRoom) && !isSelected(detailRoom.id)) ? '#6c757d' : '#0071c2'),
+                                                                 opacity: (detailRoom && !canSelectRoom(detailRoom) && !isSelected(detailRoom.id)) ? '0.6' : '1'
+                                                             }"
+                                                             onmouseover="if (!this.disabled) { this.style.opacity='0.9'; }"
+                                                             onmouseout="if (!this.disabled) { this.style.opacity='1'; }">
+                                                         <template v-if="detailRoom && isSelected(detailRoom.id)">
+                                                             <i class="fas fa-times-circle me-2"></i>{{ t('remove') }}
+                                                         </template>
+                                                         <template v-else-if="detailRoom && !canSelectRoom(detailRoom)">
+                                                             <i class="fas fa-exclamation-triangle me-2"></i>{{ t('capacityExceeded') }}
+                                                         </template>
+                                                         <template v-else>
+                                                             {{ t('selectRoom') }}
+                                                         </template>
+                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
@@ -1353,61 +1474,218 @@ const RoomSelectionModal = {
                             </div>
                         </div>
 
-                        <!-- Compact Guests & Price Summary -->
-                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px;">
-                            <!-- Guests Summary -->
-                            <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 16px;">
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                                    <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
-                                        <i class="fas fa-users"></i>{{ t('yourGuests') }}
-                                        <span style="background: var(--mlb-blue); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">
+                        <!-- Guests and Selected Room Grid -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px;">
+                            <!-- Guests Section (Left) -->
+                            <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; height: 100%;">
+                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; flex-shrink: 0;">
+                                    <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.9rem; display: flex; align-items: center; gap: 6px;">
+                                        <i class="fas fa-users" style="font-size: 0.95rem;"></i>{{ t('yourGuests') }}
+                                        <span style="background: var(--mlb-blue); color: white; padding: 2px 7px; border-radius: 10px; font-size: 0.7rem; font-weight: 700;">
                                             {{ guestsList.length }}
                                         </span>
                                     </div>
                                     <button type="button"
                                             class="btn btn-sm"
                                             @click="handleAddGuest"
-                                            style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; border: none; border-radius: 8px; padding: 6px 12px; font-size: 0.8rem; font-weight: 600;">
-                                        <i class="fas fa-plus me-1"></i>{{ t('addGuest') }}
+                                            style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; border: none; border-radius: 7px; padding: 5px 10px; font-size: 0.75rem; font-weight: 600; white-space: nowrap;">
+                                        <i class="fas fa-plus" style="font-size: 0.7rem;"></i>
+                                        <span style="margin-left: 4px;">{{ t('addGuest') }}</span>
                                     </button>
                                 </div>
-                                <div style="display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; white-space: nowrap; padding-bottom: 6px;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 3px; min-height: 0; align-content: start;">
                                     <div v-for="guest in guestsList" :key="guest.id"
-                                         style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; background: white; border-radius: 8px; border: 1px solid #e9ecef; font-size: 0.8rem; flex: 0 0 auto;">
-                                        <span style="font-weight: 600; color: var(--mlb-blue);">{{ guest.displayName }}</span>
-                                        <span v-if="guest.isRegistrant"
-                                              style="font-size: 0.65rem; padding: 2px 5px; background: var(--mlb-red); color: white; border-radius: 4px; font-weight: 700;">
-                                            {{ t('registrant') }}
-                                        </span>
-                                        <span v-else-if="guest.isPlayer"
-                                              style="font-size: 0.65rem; padding: 2px 5px; background: var(--mlb-blue); color: white; border-radius: 4px; font-weight: 700;">
-                                            {{ t('player') }}
-                                        </span>
+                                         style="display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: white; border-radius: 8px; border: 1.5px solid #e9ecef; font-size: 0.8rem; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.04); position: relative;">
+                                        <!-- Guest Avatar/Icon -->
+                                        <div style="width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i v-if="guest.isRegistrant" class="fas fa-user" style="color: white; font-size: 0.8rem;"></i>
+                                            <i v-else-if="guest.isPlayer" class="fas fa-child" style="color: white; font-size: 0.8rem;"></i>
+                                            <i v-else class="fas fa-user-plus" style="color: white; font-size: 0.8rem;"></i>
+                                        </div>
+                                        <!-- Guest Info -->
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.85rem; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                {{ guest.displayName }}
+                                            </div>
+                                            <div style="display: flex; gap: 5px; align-items: center; flex-wrap: wrap;">
+                                                <span v-if="guest.isRegistrant"
+                                                      style="font-size: 0.65rem; padding: 2px 6px; background: var(--mlb-red); color: white; border-radius: 10px; font-weight: 700; white-space: nowrap; line-height: 1.2;">
+                                                    {{ t('registrant') }}
+                                                </span>
+                                                <span v-else-if="guest.isPlayer"
+                                                      style="font-size: 0.65rem; padding: 2px 6px; background: var(--mlb-blue); color: white; border-radius: 10px; font-weight: 700; white-space: nowrap; line-height: 1.2;">
+                                                    {{ t('player') }}
+                                                </span>
+                                                <span v-else
+                                                      style="font-size: 0.65rem; padding: 2px 6px; background: #6c757d; color: white; border-radius: 10px; font-weight: 700; white-space: nowrap; line-height: 1.2;">
+                                                    {{ guest.type === 'adult' ? t('adult') : t('child') }}
+                                                </span>
+                                                <span v-if="guest.age !== null && guest.age !== undefined"
+                                                      style="font-size: 0.65rem; color: #6c757d; font-weight: 600; line-height: 1.2;">
+                                                    ({{ guest.age }} {{ t('yearsOld') }})
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <!-- Edit/Delete Buttons (only for manually added guests) -->
+                                        <div v-if="!guest.isRegistrant && !guest.isPlayer" style="display: flex; gap: 4px; flex-shrink: 0; margin-left: 4px;">
+                                            <button type="button"
+                                                    @click.stop="handleEditGuest(guest)"
+                                                    style="width: 24px; height: 24px; border-radius: 6px; background: var(--mlb-blue); color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 0.7rem; padding: 0;"
+                                                    @mouseover="$event.target.style.transform='scale(1.1)'; $event.target.style.background='var(--mlb-light-blue)';"
+                                                    @mouseout="$event.target.style.transform='scale(1)'; $event.target.style.background='var(--mlb-blue)';"
+                                                    :title="t('editGuest')">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button"
+                                                    @click.stop="handleRemoveGuest(guest.id)"
+                                                    style="width: 24px; height: 24px; border-radius: 6px; background: var(--mlb-red); color: white; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 0.7rem; padding: 0;"
+                                                    @mouseover="$event.target.style.transform='scale(1.1)'; $event.target.style.background='#b30029';"
+                                                    @mouseout="$event.target.style.transform='scale(1)'; $event.target.style.background='var(--mlb-red)';"
+                                                    :title="t('removeGuest')">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
                                     </div>
+                                    <!-- Empty State -->
+                                    <div v-if="guestsList.length === 0" style="grid-column: 1 / -1; text-align: center; padding: 20px 15px; color: #6c757d; font-style: italic; font-size: 0.8rem; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                        <i class="fas fa-users" style="font-size: 1.5rem; opacity: 0.3; margin-bottom: 8px;"></i>
+                                        <span>{{ t('noGuestsAdded') }}</span>
+                                    </div>
+                                </div>
+                                <!-- Assign Guests Button (only if 2 or more rooms) -->
+                                <div v-if="guestsList.length > 0 && safeSelectedRooms.length >= 2" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #e9ecef; flex-shrink: 0;">
+                                    <button type="button"
+                                            class="btn btn-sm w-100"
+                                            @click="showAssignGuestsModal = true"
+                                            style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 8px; padding: 8px 12px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;"
+                                            @mouseover="$event.target.style.transform='translateY(-1px)'; $event.target.style.boxShadow='0 4px 12px rgba(40, 167, 69, 0.3)';"
+                                            @mouseout="$event.target.style.transform='translateY(0)'; $event.target.style.boxShadow='none';">
+                                        <i class="fas fa-user-check"></i>
+                                        <span>{{ t('assignGuestsToRooms') }}</span>
+                                    </button>
                                 </div>
                             </div>
 
-                            <!-- Price Summary -->
-                            <div style="background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%); border: 2px solid #fecaca; border-radius: 12px; padding: 16px;">
-                                <div style="font-weight: 700; color: var(--mlb-red); font-size: 0.95rem; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
-                                    <i class="fas fa-calculator"></i>{{ t('priceCalculation') }}
+                            <!-- Selected Room Section (Right) -->
+                            <div style="background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%); border: 2px solid #fecaca; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; height: 100%;">
+                                <div style="font-weight: 700; color: var(--mlb-red); font-size: 0.9rem; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                                    <i class="fas fa-bed" style="font-size: 0.95rem;"></i>{{ t('selectedRoom') }}
                                 </div>
-                                <div v-if="safeSelectedRooms.length === 0" style="color: #6c757d; font-style: italic; font-size: 0.85rem; text-align: center; padding: 20px 0;">
+                                <div v-if="safeSelectedRooms.length === 0" style="color: #6c757d; font-style: italic; font-size: 0.8rem; text-align: center; padding: 30px 15px; flex: 1; display: flex; align-items: center; justify-content: center;">
                                     {{ t('selectRoomToSeePrice') }}
                                 </div>
-                                <div v-else style="font-size: 0.9rem;">
-                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #64748b;">
-                                        <span>{{ t('basePrice') }}:</span>
-                                        <strong style="color: #333;">\${{ formatPrice(priceCalculation.basePrice) }}</strong>
+                                <div v-else style="display: flex; flex-direction: column; gap: 10px; flex: 1; min-height: 0; overflow-y: auto; padding-right: 3px;">
+                                    <!-- Warning if more rooms needed -->
+                                    <div v-if="needsMoreRooms()" style="padding: 10px; background: #fff3cd; border: 1.5px solid #ffc107; border-radius: 8px; margin-bottom: 8px; flex-shrink: 0;">
+                                        <div style="display: flex; align-items: center; gap: 8px; color: #856404; font-size: 0.8rem;">
+                                            <i class="fas fa-exclamation-triangle" style="font-size: 0.9rem; flex-shrink: 0;"></i>
+                                            <div style="flex: 1;">
+                                                <div style="font-weight: 700; margin-bottom: 2px;">{{ t('needMoreRooms') }}</div>
+                                                <div style="font-size: 0.75rem; line-height: 1.3;">
+                                                    {{ t('youHave') }} <strong>{{ guestsList.length }}</strong> {{ t('guests') }} {{ t('butCapacity') }} <strong>{{ getTotalCapacity() }}</strong>. {{ t('selectMoreRooms') }}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div v-if="priceCalculation.additionalGuests > 0" style="display: flex; justify-content: space-between; margin-bottom: 8px; color: #64748b; font-size: 0.85rem;">
-                                        <span>{{ t('additionalGuests') }}:</span>
-                                        <span>\${{ formatPrice(priceCalculation.additionalGuests) }}</span>
+                                    <div v-for="(selectedRoom, index) in safeSelectedRooms" :key="selectedRoom.roomId || index" style="padding: 10px; background: white; border-radius: 8px; border: 1.5px solid #fecaca; box-shadow: 0 1px 3px rgba(0,0,0,0.06); flex-shrink: 0;">
+                                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                                            <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+                                                <i class="fas fa-hotel" style="color: var(--mlb-red); font-size: 0.9rem;"></i>
+                                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ selectedRoom.roomLabel || selectedRoom.room || 'Room' }}</span>
+                                            </div>
+                                            <button type="button"
+                                                    @click="handleRemoveRoom(selectedRoom.roomId)"
+                                                    style="background: var(--mlb-red); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 0.75rem; flex-shrink: 0;"
+                                                    @mouseover="$event.target.style.transform='scale(1.1)'; $event.target.style.background='#b30029';"
+                                                    @mouseout="$event.target.style.transform='scale(1)'; $event.target.style.background='var(--mlb-red)';">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.8rem; margin-bottom: 8px;">
+                                            <div style="color: #64748b; display: flex; align-items: center; gap: 5px;">
+                                                <i class="fas fa-users" style="color: var(--mlb-blue); font-size: 0.85rem;"></i>
+                                                <div>
+                                                    <div style="font-weight: 600; color: var(--mlb-blue); font-size: 0.75rem;">{{ t('capacity') }}</div>
+                                                    <div style="font-size: 0.7rem; line-height: 1.2;">{{ selectedRoom.capacity || 'N/A' }} {{ t('people') }}</div>
+                                                </div>
+                                            </div>
+                                            <div v-if="selectedRoom.priceIncludesGuests" style="color: #64748b; display: flex; align-items: center; gap: 5px;">
+                                                <i class="fas fa-user-check" style="color: #28a745; font-size: 0.85rem;"></i>
+                                                <div>
+                                                    <div style="font-weight: 600; color: var(--mlb-blue); font-size: 0.75rem;">{{ t('priceIncludes') }}</div>
+                                                    <div style="font-size: 0.7rem; line-height: 1.2;">{{ selectedRoom.priceIncludesGuests }} {{ selectedRoom.priceIncludesGuests === 1 ? t('guest') : t('guests') }}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Assigned Guests Info -->
+                                        <div v-if="guestsList.length > 0 && selectedRoom.capacity" style="padding: 8px; background: #f8f9fa; border-radius: 6px; font-size: 0.75rem; color: #495057; border-left: 3px solid var(--mlb-blue); margin-top: 8px;">
+                                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                                                <i class="fas fa-user-friends" style="color: var(--mlb-blue); font-size: 0.8rem;"></i>
+                                                <span style="font-weight: 600;">{{ t('assignedGuests') }}:</span>
+                                                <span style="color: var(--mlb-blue); font-weight: 700;">
+                                                    {{ getAssignedGuestsCount(index) }} / {{ selectedRoom.capacity }}
+                                                </span>
+                                            </div>
+                                            <!-- List of assigned guests -->
+                                            <div v-if="getAssignedGuestsForRoom(index).length > 0" style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #e0e0e0;">
+                                                <div v-for="(assignedGuest, guestIdx) in getAssignedGuestsForRoom(index)" :key="guestIdx"
+                                                     style="display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 0.7rem;">
+                                                    <i v-if="assignedGuest.isRegistrant" class="fas fa-user" style="color: var(--mlb-red); font-size: 0.7rem; width: 12px;"></i>
+                                                    <i v-else-if="assignedGuest.isPlayer" class="fas fa-child" style="color: var(--mlb-blue); font-size: 0.7rem; width: 12px;"></i>
+                                                    <i v-else class="fas fa-user-plus" style="color: #6c757d; font-size: 0.7rem; width: 12px;"></i>
+                                                    <span style="color: #495057; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">
+                                                        {{ assignedGuest.displayName }}
+                                                    </span>
+                                                    <span v-if="assignedGuest.isRegistrant" style="font-size: 0.65rem; padding: 1px 4px; background: var(--mlb-red); color: white; border-radius: 8px; font-weight: 600; white-space: nowrap;">
+                                                        {{ t('registrant') }}
+                                                    </span>
+                                                    <span v-else-if="assignedGuest.isPlayer" style="font-size: 0.65rem; padding: 1px 4px; background: var(--mlb-blue); color: white; border-radius: 8px; font-weight: 600; white-space: nowrap;">
+                                                        {{ t('player') }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div v-else style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #e0e0e0; font-size: 0.65rem; color: #9e9e9e; font-style: italic;">
+                                                {{ t('noGuestsAssigned') || 'No guests assigned yet' }}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <hr style="margin: 10px 0; border-top: 2px solid #fecaca;">
-                                    <div style="display: flex; justify-content: space-between; font-weight: 800; color: var(--mlb-red); font-size: 1.1rem;">
-                                        <span>{{ t('total') }}:</span>
-                                        <span>\${{ formatPrice(priceCalculation.total) }}</span>
+
+                                    <!-- Price Breakdown -->
+                                    <div style="background: white; border-radius: 8px; border: 1.5px solid #fecaca; padding: 12px; margin-top: auto; flex-shrink: 0;">
+                                        <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.85rem; margin-bottom: 10px; display: flex; align-items: center; gap: 5px;">
+                                            <i class="fas fa-receipt" style="font-size: 0.9rem;"></i>{{ t('priceBreakdown') }}
+                                        </div>
+                                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                                            <!-- Base Price -->
+                                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #f0f0f0;">
+                                                <div style="display: flex; align-items: center; gap: 6px; color: #64748b; font-size: 0.8rem;">
+                                                    <i class="fas fa-bed" style="color: var(--mlb-blue); font-size: 0.85rem;"></i>
+                                                    <span>{{ t('basePrice') }}</span>
+                                                </div>
+                                                <span style="font-weight: 700; color: #333; font-size: 0.85rem;">\${{ formatPrice(priceCalculation.basePrice) }}</span>
+                                            </div>
+
+                                            <!-- Additional Guests Cost -->
+                                            <div v-if="priceCalculation.additionalGuestsCount > 0"
+                                                 style="display: flex; justify-content: space-between; align-items: flex-start; padding: 6px 0; border-bottom: 1px solid #f0f0f0;">
+                                                <div style="display: flex; align-items: flex-start; gap: 6px; color: #856404; font-size: 0.8rem; flex: 1; min-width: 0;">
+                                                    <i class="fas fa-user-plus" style="color: #ff9800; font-size: 0.85rem; margin-top: 2px; flex-shrink: 0;"></i>
+                                                    <div style="flex: 1; min-width: 0;">
+                                                        <div style="font-weight: 600; margin-bottom: 2px; line-height: 1.2;">{{ priceCalculation.additionalGuestsCount }} {{ priceCalculation.additionalGuestsCount === 1 ? t('additionalGuest') : t('additionalGuests') }}</div>
+                                                        <div style="font-size: 0.7rem; opacity: 0.85; line-height: 1.2;">
+                                                            \${{ formatPrice(priceCalculation.additionalGuestPricePerPerson) }} {{ t('per') }}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <span style="font-weight: 700; color: #ff9800; font-size: 0.85rem; margin-left: 8px; white-space: nowrap; flex-shrink: 0;">+ \${{ formatPrice(priceCalculation.additionalGuests) }}</span>
+                                            </div>
+
+                                            <!-- Total -->
+                                            <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; margin-top: 6px; border-top: 2px solid #fecaca;">
+                                                <span style="font-weight: 800; color: var(--mlb-blue); font-size: 0.95rem;">{{ t('total') }}:</span>
+                                                <span style="font-weight: 800; color: var(--mlb-red); font-size: 1.1rem;">\${{ formatPrice(priceCalculation.total) }}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1441,6 +1719,8 @@ const RoomSelectionModal = {
                             <div v-for="room in sortedRooms" :key="room.id"
                                  class="room-listing-inline"
                                  :data-selected="isSelected(room.id)"
+                                 :data-disabled="!canSelectRoom(room) && !isSelected(room.id)"
+                                 :style="!canSelectRoom(room) && !isSelected(room.id) ? 'opacity: 0.6; cursor: not-allowed; pointer-events: none;' : ''"
                                  @click="handleSelectRoom(room)">
                                 <!-- Room Image Slider -->
                                 <div class="room-image-container"
@@ -1580,7 +1860,7 @@ const RoomSelectionModal = {
                             <button
                                 type="button"
                                 class="btn btn-primary"
-                                @click="handleContinue"
+                                @click.stop="handleContinue"
                                 :disabled="safeSelectedRooms.length === 0"
                                 style="padding: 8px 16px; font-weight: 700; border-radius: 8px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border: none; box-shadow: 0 3px 10px rgba(13, 44, 84, 0.25); transition: all 0.3s ease; line-height: 1.1;"
                                 :style="safeSelectedRooms.length === 0 ? 'opacity: 0.5; cursor: not-allowed;' : 'opacity: 1;'">
@@ -1597,8 +1877,18 @@ const RoomSelectionModal = {
         <AddGuestModal
             :show="showAddGuestModal"
             :hotel-pk="hotelPk"
-            @close="showAddGuestModal = false"
+            :editing-guest="editingGuest"
+            @close="showAddGuestModal = false; editingGuest = null;"
             @guest-added="handleGuestAdded" />
+
+        <!-- Assign Guests to Rooms Modal -->
+        <AssignGuestsModal
+            :show="showAssignGuestsModal"
+            :guests="guestsList"
+            :rooms="safeSelectedRooms"
+            :reservation-state="reservationState"
+            @close="showAssignGuestsModal = false"
+            @assign="handleGuestAssignment" />
     `
 };
 
@@ -1608,7 +1898,11 @@ const RoomSelectionModal = {
 const AddGuestModal = {
     props: {
         show: Boolean,
-        hotelPk: String
+        hotelPk: String,
+        editingGuest: {
+            type: Object,
+            default: null
+        }
     },
     emits: ['close', 'guest-added'],
     setup(props, { emit }) {
@@ -1619,6 +1913,21 @@ const AddGuestModal = {
             birth_date: '',
             guest_type: 'adult'
         });
+
+        // Watch for editing guest changes to populate form
+        watch(() => props.editingGuest, (guest) => {
+            if (guest) {
+                formData.value = {
+                    first_name: guest.first_name || guest.name?.split(' ')[0] || '',
+                    last_name: guest.last_name || guest.name?.split(' ').slice(1).join(' ') || '',
+                    email: guest.email || '',
+                    birth_date: guest.birth_date || guest.birthdate || '',
+                    guest_type: guest.guest_type || guest.type || 'adult'
+                };
+            } else {
+                resetForm();
+            }
+        }, { immediate: true });
 
         const maxDate = computed(() => {
             const today = new Date();
@@ -1653,7 +1962,7 @@ const AddGuestModal = {
 
             const guest = {
                 ...formData.value,
-                id: `guest-${Date.now()}`,
+                id: props.editingGuest ? props.editingGuest.id : `manual-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
                 age: calculateAge(formData.value.birth_date),
                 type: formData.value.guest_type
             };
@@ -1692,12 +2001,12 @@ const AddGuestModal = {
         };
     },
     template: `
-        <div v-if="show" class="modal fade show" style="display: block; z-index: 1060;" tabindex="-1" @click.self="handleClose">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+        <div v-if="show" class="modal fade show" style="display: block; z-index: 10000000 !important; position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; overflow: auto !important;" tabindex="-1" @click.self="handleClose">
+            <div class="modal-dialog modal-dialog-centered" style="z-index: 10000001 !important; position: relative !important;">
+                <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.3); position: relative !important; z-index: 10000002 !important;">
                     <div class="modal-header" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; padding: 16px 20px;">
                         <h5 class="modal-title">
-                            <i class="fas fa-user-plus me-2"></i>{{ t('addGuest') }}
+                            <i :class="editingGuest ? 'fas fa-edit' : 'fas fa-user-plus'" class="me-2"></i>{{ editingGuest ? t('editGuest') : t('addGuest') }}
                         </h5>
                         <button type="button" class="btn-close btn-close-white" @click="handleClose"></button>
                     </div>
@@ -1780,13 +2089,303 @@ const AddGuestModal = {
                             {{ t('cancel') }}
                         </button>
                         <button type="button" class="btn btn-form-submit" @click="handleSubmit" style="padding: 12px 22px;">
-                            <i class="fas fa-save me-2"></i>{{ t('saveGuest') }}
+                            <i :class="editingGuest ? 'fas fa-save' : 'fas fa-plus'" class="me-2"></i>{{ editingGuest ? t('updateGuest') : t('saveGuest') }}
                         </button>
                     </div>
                 </div>
             </div>
         </div>
-        <div v-if="show" class="modal-backdrop fade show" style="z-index: 1055;"></div>
+        <div v-if="show" class="modal-backdrop fade show" style="z-index: 9999999 !important; position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; background: rgba(0, 0, 0, 0.6) !important; backdrop-filter: blur(4px) !important;"></div>
+    `
+};
+
+/**
+ * Assign Guests to Rooms Modal Component
+ */
+const AssignGuestsModal = {
+    props: {
+        show: Boolean,
+        guests: {
+            type: Array,
+            default: () => []
+        },
+        rooms: {
+            type: Array,
+            default: () => []
+        },
+        reservationState: {
+            type: Object,
+            default: () => ({ guestAssignments: {} })
+        }
+    },
+    emits: ['close', 'assign'],
+    setup(props, { emit }) {
+        const guestAssignments = ref({}); // { guestId: roomId }
+        const validationErrors = ref({}); // { roomId: [errors] }
+
+        // Helper function to determine if a guest is an adult or child
+        function isGuestAdult(guest) {
+            if (!guest) return true;
+            // Players are children
+            if (guest.isPlayer) return false;
+            // Registrant is always an adult
+            if (guest.isRegistrant) return true;
+
+            // Check type field if available
+            if (guest.type) return guest.type === 'adult';
+
+            // Check age if available
+            if (guest.age !== null && guest.age !== undefined) {
+                return guest.age >= 18;
+            }
+            // Default to adult
+            return true;
+        }
+
+        // Validate assignments against room rules
+        function validateAssignments() {
+            validationErrors.value = {};
+
+            // Group guests by assigned room
+            const roomAssignments = {}; // { roomId: [guests] }
+            Object.entries(guestAssignments.value).forEach(([guestId, roomId]) => {
+                if (roomId) {
+                    if (!roomAssignments[roomId]) {
+                        roomAssignments[roomId] = [];
+                    }
+                    const guest = props.guests.find(g => g.id === guestId);
+                    if (guest) {
+                        roomAssignments[roomId].push(guest);
+                    }
+                }
+            });
+
+            // Validate each room's assignments
+            Object.entries(roomAssignments).forEach(([roomId, guests]) => {
+                const room = props.rooms.find(r => r.roomId === roomId);
+                if (!room || !room.rules || room.rules.length === 0) {
+                    // No rules to validate
+                    return;
+                }
+
+                // Count adults and children
+                const adultsCount = guests.filter(g => isGuestAdult(g)).length;
+                const childrenCount = guests.filter(g => !isGuestAdult(g)).length;
+
+                // Check if any rule matches
+                const matchingRule = room.rules.find(rule => {
+                    return adultsCount >= rule.min_adults &&
+                           adultsCount <= rule.max_adults &&
+                           childrenCount >= rule.min_children &&
+                           childrenCount <= rule.max_children;
+                });
+
+                if (!matchingRule) {
+                    // Find which constraints are violated by checking all rules
+                    const errors = [];
+
+                    // Find the rule with the most lenient constraints to show helpful messages
+                    const minAdultsRequired = Math.min(...room.rules.map(r => r.min_adults));
+                    const maxAdultsAllowed = Math.max(...room.rules.map(r => r.max_adults));
+                    const minChildrenRequired = Math.min(...room.rules.map(r => r.min_children));
+                    const maxChildrenAllowed = Math.max(...room.rules.map(r => r.max_children));
+
+                    if (adultsCount < minAdultsRequired) {
+                        errors.push(`${t('adultsRequired')}: ${minAdultsRequired} (have ${adultsCount})`);
+                    }
+                    if (adultsCount > maxAdultsAllowed) {
+                        errors.push(`${t('tooManyAdults')}: ${maxAdultsAllowed} (have ${adultsCount})`);
+                    }
+                    if (childrenCount < minChildrenRequired) {
+                        errors.push(`${t('childrenRequired')}: ${minChildrenRequired} (have ${childrenCount})`);
+                    }
+                    if (childrenCount > maxChildrenAllowed) {
+                        errors.push(`${t('tooManyChildren')}: ${maxChildrenAllowed} (have ${childrenCount})`);
+                    }
+
+                    if (errors.length === 0) {
+                        // No single rule matches, but constraints might be met by different rules
+                        // Show all valid rule ranges
+                        const ruleDescriptions = room.rules.map(r =>
+                            `${r.min_adults}-${r.max_adults} ${t('adults')}, ${r.min_children}-${r.max_children} ${t('children')}`
+                        ).join('; ');
+                        errors.push(`${t('noValidRule')}. Valid ranges: ${ruleDescriptions}`);
+                    }
+
+                    validationErrors.value[roomId] = errors;
+                }
+            });
+        }
+
+        // Watch for changes in assignments and validate
+        watch(guestAssignments, () => {
+            validateAssignments();
+        }, { deep: true });
+
+        // Initialize assignments from current state when modal opens
+        watch(() => props.show, (isOpen) => {
+            if (isOpen) {
+                guestAssignments.value = {};
+                validationErrors.value = {};
+
+                // Get current assignments from reservation state
+                if (props.reservationState?.guestAssignments) {
+                    const guests = props.guests || [];
+                    Object.entries(props.reservationState.guestAssignments).forEach(([roomId, guestIndices]) => {
+                        if (Array.isArray(guestIndices)) {
+                            guestIndices.forEach(idx => {
+                                const guest = guests[idx];
+                                if (guest && guest.id) {
+                                    guestAssignments.value[guest.id] = roomId;
+                                }
+                            });
+                        }
+                    });
+                }
+            }
+        });
+
+        // Check if assignments are valid
+        const isValid = computed(() => {
+            return Object.keys(validationErrors.value).length === 0;
+        });
+
+        function handleAssign() {
+            if (!isValid.value) {
+                // Don't allow assignment if validation fails
+                return;
+            }
+            emit('assign', guestAssignments.value);
+        }
+
+        function handleClose() {
+            guestAssignments.value = {};
+            validationErrors.value = {};
+            emit('close');
+        }
+
+        // Get validation errors for a specific room
+        function getRoomErrors(roomId) {
+            return validationErrors.value[roomId] || [];
+        }
+
+        // Translation function
+        function t(key) {
+            return translations[key] || key;
+        }
+
+        return {
+            guestAssignments,
+            validationErrors,
+            isValid,
+            handleAssign,
+            handleClose,
+            getRoomErrors,
+            isGuestAdult,
+            t
+        };
+    },
+    template: `
+        <div v-if="show" class="modal fade show" style="display: block; z-index: 10000000 !important; position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; overflow: auto !important;" tabindex="-1" @click.self="handleClose">
+            <div class="modal-dialog modal-dialog-centered modal-lg" style="z-index: 10000001 !important; position: relative !important;">
+                <div class="modal-content" style="border-radius: 16px; overflow: hidden; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.3); position: relative !important; z-index: 10000002 !important;">
+                    <div class="modal-header" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 16px 20px;">
+                        <h5 class="modal-title">
+                            <i class="fas fa-user-check me-2"></i>{{ t('assignGuestsToRooms') }}
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" @click="handleClose"></button>
+                    </div>
+                    <div class="modal-body" style="padding: 20px; max-height: 70vh; overflow-y: auto;">
+                        <div v-if="guests.length === 0 || rooms.length === 0" style="text-align: center; padding: 40px 20px; color: #6c757d;">
+                            <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
+                            <p style="margin: 0;">{{ guests.length === 0 ? t('noGuestsAdded') : t('selectRoomToSeePrice') }}</p>
+                        </div>
+                        <div v-else style="display: flex; flex-direction: column; gap: 16px;">
+                            <div v-for="guest in guests" :key="guest.id" style="padding: 12px; background: #f8f9fa; border-radius: 8px; border: 1px solid #e9ecef;">
+                                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                                    <div style="width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i v-if="guest.isRegistrant" class="fas fa-user" style="color: white; font-size: 0.9rem;"></i>
+                                        <i v-else-if="guest.isPlayer" class="fas fa-child" style="color: white; font-size: 0.9rem;"></i>
+                                        <i v-else class="fas fa-user-plus" style="color: white; font-size: 0.9rem;"></i>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 700; color: var(--mlb-blue); font-size: 0.95rem; margin-bottom: 4px;">
+                                            {{ guest.displayName }}
+                                        </div>
+                                        <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                                            <span v-if="guest.isRegistrant" style="font-size: 0.7rem; padding: 2px 6px; background: var(--mlb-red); color: white; border-radius: 10px; font-weight: 700;">
+                                                {{ t('registrant') }}
+                                            </span>
+                                            <span v-else-if="guest.isPlayer" style="font-size: 0.7rem; padding: 2px 6px; background: var(--mlb-blue); color: white; border-radius: 10px; font-weight: 700;">
+                                                {{ t('player') }}
+                                            </span>
+                                            <span v-else style="font-size: 0.7rem; padding: 2px 6px; background: #6c757d; color: white; border-radius: 10px; font-weight: 700;">
+                                                {{ guest.type === 'adult' ? t('adult') : t('child') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label style="font-size: 0.85rem; font-weight: 600; color: #495057; margin-bottom: 6px; display: block;">
+                                        <i class="fas fa-bed me-1" style="color: var(--mlb-red);"></i>{{ t('selectRoomForGuest') }}
+                                    </label>
+                                    <select v-model="guestAssignments[guest.id]"
+                                            class="form-select"
+                                            :style="{
+                                                padding: '8px 12px',
+                                                border: '2px solid ' + (guestAssignments[guest.id] && getRoomErrors(guestAssignments[guest.id]).length > 0 ? '#dc3545' : '#ced4da'),
+                                                borderRadius: '8px',
+                                                fontSize: '0.85rem',
+                                                background: 'white',
+                                                color: '#333',
+                                                cursor: 'pointer',
+                                                fontWeight: '600'
+                                            }">
+                                        <option :value="null">{{ t('select') }}...</option>
+                                        <option v-for="room in rooms" :key="room.roomId" :value="room.roomId">
+                                            {{ room.roomLabel || room.room || 'Room' }} ({{ t('capacity') }}: {{ room.capacity || 'N/A' }})
+                                        </option>
+                                    </select>
+                                    <!-- Show validation errors for this room assignment -->
+                                    <div v-if="guestAssignments[guest.id] && getRoomErrors(guestAssignments[guest.id]).length > 0" style="margin-top: 6px; padding: 8px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; font-size: 0.75rem;">
+                                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px; color: #856404; font-weight: 600;">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            {{ t('ruleViolation') }}
+                                        </div>
+                                        <ul style="margin: 0; padding-left: 20px; color: #856404;">
+                                            <li v-for="(error, idx) in getRoomErrors(guestAssignments[guest.id])" :key="idx" style="margin-bottom: 2px;">
+                                                {{ error }}
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 16px 20px; background: #ffffff;">
+                        <button type="button" class="btn btn-secondary" @click="handleClose" style="padding: 12px 22px;">
+                            {{ t('cancel') }}
+                        </button>
+                        <button type="button"
+                                class="btn btn-success"
+                                @click="handleAssign"
+                                :disabled="!isValid"
+                                :style="{
+                                    padding: '12px 22px',
+                                    background: isValid ? 'linear-gradient(135deg, #28a745 0%, #20c997 100%)' : '#6c757d',
+                                    border: 'none',
+                                    color: 'white',
+                                    fontWeight: '600',
+                                    cursor: isValid ? 'pointer' : 'not-allowed',
+                                    opacity: isValid ? '1' : '0.6'
+                                }">
+                            <i class="fas fa-check me-2"></i>{{ t('assignGuests') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div v-if="show" class="modal-backdrop fade show" style="z-index: 9999999 !important; position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; background: rgba(0, 0, 0, 0.6) !important; backdrop-filter: blur(4px) !important;"></div>
     `
 };
 
@@ -1796,44 +2395,33 @@ const AddGuestModal = {
 const GuestDetailsModal = {
     props: {
         hotelPk: String,
-        guests: Array,
+        guests: Array, // Full extended guest list (registrant + players + manual)
         show: Boolean
     },
-    emits: ['close', 'add-guest', 'remove-guest', 'continue'],
+    emits: ['close', 'continue', 'edit-guest', 'back'],
     setup(props, { emit }) {
-        const adults = ref([]);
-        const children = ref([]);
-
-        function addAdult() {
-            adults.value.push({
-                name: '',
-                email: '',
-                phone: '',
-                birthdate: ''
-            });
-        }
-
-        function removeAdult(index) {
-            adults.value.splice(index, 1);
-        }
-
-        function addChild() {
-            children.value.push({
-                name: '',
-                birthdate: ''
-            });
-        }
-
-        function removeChild(index) {
-            children.value.splice(index, 1);
-        }
-
         function handleContinue() {
-            const allGuests = [
-                ...adults.value.map(a => ({ ...a, type: 'adult' })),
-                ...children.value.map(c => ({ ...c, type: 'child' }))
-            ];
-            emit('continue', allGuests);
+            emit('continue');
+        }
+
+        function handleEdit(guest) {
+            emit('edit-guest', guest);
+        }
+
+        function handleBack() {
+            emit('back');
+        }
+
+        function calculateAge(birthDate) {
+            if (!birthDate) return null;
+            const today = new Date();
+            const birth = new Date(birthDate);
+            let age = today.getFullYear() - birth.getFullYear();
+            const monthDiff = today.getMonth() - birth.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                age--;
+            }
+            return age;
         }
 
         // Translation function
@@ -1842,70 +2430,89 @@ const GuestDetailsModal = {
         }
 
         return {
-            adults,
-            children,
-            addAdult,
-            removeAdult,
-            addChild,
-            removeChild,
             handleContinue,
+            handleEdit,
+            handleBack,
+            calculateAge,
             t
         };
     },
     template: `
-        <div v-if="show" class="modal fade show" style="display: block;" tabindex="-1">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Guest Details</h5>
-                        <button type="button" class="btn-close" @click="$emit('close')"></button>
+        <div v-if="show" class="modal fade show" style="display: block; z-index: 20000000;" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content" style="border-radius: 16px; border: none; box-shadow: 0 15px 50px rgba(0,0,0,0.3); overflow: hidden;">
+                    <div class="modal-header" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); color: white; border: none; padding: 20px;">
+                        <h5 class="modal-title" style="font-weight: 800; display: flex; align-items: center; gap: 10px;">
+                            <i class="fas fa-user-check"></i>
+                            {{ t('verifyGuestDetails') || 'Verify Guest Details' }}
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" @click="$emit('close')"></button>
                     </div>
-                    <div class="modal-body">
-                        <h6>Adults</h6>
-                        <div v-for="(adult, index) in adults" :key="index" class="mb-3">
-                            <div class="row g-2">
-                                <div class="col-md-6">
-                                    <input v-model="adult.name" type="text" class="form-control" placeholder="Name" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <input v-model="adult.email" type="email" class="form-control" placeholder="Email" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <input v-model="adult.phone" type="tel" class="form-control" placeholder="Phone" required>
-                                </div>
-                                <div class="col-md-4">
-                                    <input v-model="adult.birthdate" type="date" class="form-control" required>
-                                </div>
-                                <div class="col-md-2">
-                                    <button @click="removeAdult(index)" class="btn btn-danger btn-sm">Remove</button>
-                                </div>
-                            </div>
+                    <div class="modal-body" style="padding: 25px; background: #f8f9fa; max-height: 70vh; overflow-y: auto;">
+                        <div class="alert alert-info" style="border-radius: 10px; border: none; background: rgba(13, 44, 84, 0.08); color: var(--mlb-blue); font-size: 0.9rem; margin-bottom: 20px;">
+                            <i class="fas fa-info-circle me-2"></i>
+                            {{ t('verifyInstructions') || 'Please verify the information of all guests before proceeding to checkout.' }}
                         </div>
-                        <button @click="addAdult" class="btn btn-outline-primary btn-sm mb-3">Add Adult</button>
 
-                        <h6>Children</h6>
-                        <div v-for="(child, index) in children" :key="index" class="mb-3">
-                            <div class="row g-2">
+                        <div v-for="(guest, index) in guests" :key="guest.id || index"
+                             class="guest-verify-card mb-3"
+                             style="background: white; border-radius: 12px; padding: 15px; border: 1px solid #e9ecef; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span v-if="guest.isRegistrant" style="background: var(--mlb-red); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700;">{{ t('registrant') }}</span>
+                                    <span v-else-if="guest.isPlayer" style="background: var(--mlb-blue); color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700;">{{ t('player') }}</span>
+                                    <span v-else style="background: #6c757d; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700;">{{ t('guest') }}</span>
+                                    <span style="font-weight: 700; color: var(--mlb-blue);">{{ guest.displayName }}</span>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div style="font-size: 0.8rem; color: #6c757d;">
+                                        <span v-if="guest.age">{{ guest.age }} {{ t('yearsOld') }}</span>
+                                        <span v-else-if="guest.birth_date">{{ calculateAge(guest.birth_date) }} {{ t('yearsOld') }}</span>
+                                    </div>
+                                    <button type="button" @click="handleEdit(guest)"
+                                            class="btn btn-sm btn-outline-primary"
+                                            style="border-radius: 8px; padding: 4px 8px; font-size: 0.75rem;">
+                                        <i class="fas fa-edit me-1"></i>{{ t('edit') || 'Edit' }}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
                                 <div class="col-md-6">
-                                    <input v-model="child.name" type="text" class="form-control" placeholder="Name" required>
+                                    <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">{{ t('email') }}</div>
+                                    <div style="font-weight: 600; color: #333; font-size: 0.9rem;">{{ guest.email || 'N/A' }}</div>
                                 </div>
-                                <div class="col-md-4">
-                                    <input v-model="child.birthdate" type="date" class="form-control" required>
+                                <div v-if="guest.phone" class="col-md-6">
+                                    <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">{{ t('phone') }}</div>
+                                    <div style="font-weight: 600; color: #333; font-size: 0.9rem;">{{ guest.phone }}</div>
                                 </div>
-                                <div class="col-md-2">
-                                    <button @click="removeChild(index)" class="btn btn-danger btn-sm">Remove</button>
+                                <div class="col-md-6">
+                                    <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">{{ t('birthdate') }}</div>
+                                    <div style="font-weight: 600; color: #333; font-size: 0.9rem;">{{ guest.birth_date || guest.birthdate || 'N/A' }}</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">{{ t('type') || 'Type' }}</div>
+                                    <div style="font-weight: 600; color: #333; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;">
+                                        <i v-if="guest.type === 'adult' || !guest.isPlayer" class="fas fa-user" style="font-size: 0.8rem; color: var(--mlb-blue);"></i>
+                                        <i v-else class="fas fa-child" style="font-size: 0.8rem; color: var(--mlb-blue);"></i>
+                                        {{ guest.type === 'child' || guest.isPlayer ? t('child') : t('adult') }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <button @click="addChild" class="btn btn-outline-primary btn-sm">Add Child</button>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" @click="$emit('close')">Cancel</button>
-                        <button type="button" class="btn btn-primary" @click="handleContinue">Continue</button>
+                    <div class="modal-footer" style="padding: 15px 25px; background: white; border-top: 1px solid #f0f0f0;">
+                        <button type="button" class="btn btn-secondary" @click="handleBack" style="border-radius: 10px; font-weight: 600; padding: 10px 20px;">
+                            {{ t('back') }}
+                        </button>
+                        <button type="button" class="btn btn-primary" @click="handleContinue" style="border-radius: 10px; font-weight: 700; padding: 10px 30px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border: none; box-shadow: 0 4px 15px rgba(13, 44, 84, 0.25);">
+                            {{ t('confirmAndCheckout') || 'Confirm and Checkout' }}
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
+        <div v-if="show" class="modal-backdrop fade show" style="z-index: 10000; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px);"></div>
     `
 };
 
@@ -1928,7 +2535,7 @@ const ToastComponent = {
         };
     },
     template: `
-        <div v-if="hasToasts" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 3000001;">
+        <div v-if="hasToasts" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 10000000;">
             <div
                 v-for="toast in toasts"
                 :key="toast.id"
@@ -1948,7 +2555,8 @@ const ToastComponent = {
 
 const RoomSelectionModalWithComponents = {
     components: {
-        AddGuestModal
+        AddGuestModal,
+        AssignGuestsModal
     },
     ...RoomSelectionModal
 };
@@ -1958,7 +2566,8 @@ const EventDetailApp = {
         RoomSelectionModal: RoomSelectionModalWithComponents,
         GuestDetailsModal,
         ToastComponent,
-        AddGuestModal
+        AddGuestModal,
+        AssignGuestsModal
     },
     setup() {
         // Get hotel PK and event PK from the mounted element's data attribute
@@ -1988,6 +2597,8 @@ const EventDetailApp = {
         // UI State
         const showRoomModal = ref(false);
         const showGuestModal = ref(false);
+        const showAddGuestModal = ref(false);
+        const editingGuest = ref(null);
         const rooms = ref([]);
         const loading = ref(false);
 
@@ -2023,16 +2634,31 @@ const EventDetailApp = {
             }
 
             const roomIdStr = String(room.id);
-            console.log('Parent handleSelectRoom called for room:', roomIdStr);
+            // Removed console.log for performance
             const existing = reservation.state.rooms.find(r => r.roomId === roomIdStr);
 
             // If already selected -> toggle off
             if (existing) {
-                console.log('Toggling OFF room:', roomIdStr);
+                // Removed console.log for performance
                 reservation.removeRoom(roomIdStr);
                 toast.show(`Room "${existing.roomLabel || room.name || roomIdStr}" removed`, 'info');
             } else {
-                console.log('Toggling ON room:', roomIdStr);
+                // Validar capacidad antes de agregar - permitir seleccionar si hay espacio total suficiente
+                const totalGuests =
+                    (registrant.value ? 1 : 0) +
+                    (Array.isArray(selectedChildren.value) ? selectedChildren.value.length : 0) +
+                    (Array.isArray(reservation.state.manualGuests) ? reservation.state.manualGuests.length : 0);
+                const roomCapacity = parseInt(room.capacity || 0);
+                const currentTotalCapacity = reservation.state.rooms.reduce((sum, r) => sum + parseInt(r.capacity || 0), 0);
+                const newTotalCapacity = currentTotalCapacity + roomCapacity;
+
+                // Solo bloquear si después de agregar esta habitación aún no hay suficiente capacidad
+                if (roomCapacity > 0 && totalGuests > newTotalCapacity) {
+                    toast.show(`Cannot select room: You have ${totalGuests} guests but the total room capacity would be ${newTotalCapacity}. Please select more rooms.`, 'warning');
+                    return;
+                }
+
+                // Removed console.log for performance
                 const label = (room.name && String(room.name).trim())
                     ? String(room.name).trim()
                     : (room.room_type_display || room.room_type || `Room ${roomIdStr}`);
@@ -2043,15 +2669,82 @@ const EventDetailApp = {
                     room.capacity,
                     room.price_per_night || room.price || 0,
                     room.price_includes_guests || 1,
-                    room.additional_guest_price || 0
+                    room.additional_guest_price || 0,
+                    room.rules || []
                 );
                 toast.show(`Room "${label}" added`, 'success');
             }
 
-            console.log('Total rooms selected now:', reservation.state.rooms.length);
+            // Removed console.log for performance
 
-            // If guests already exist, keep assignments consistent
-            if (Array.isArray(reservation.state.guests) && reservation.state.guests.length > 0) {
+            // Auto-assign guests when room is added
+            reservation.state.assignmentMode = 'auto';
+            autoAssignGuests();
+        }
+
+        // Local ID generator for manual guests without ids
+        let manualGuestSeq = 1;
+        function ensureManualGuestId(g) {
+            if (g && g.id) return g;
+            const id = `manual-${Date.now()}-${manualGuestSeq++}`;
+            return { ...g, id };
+        }
+
+        // Rebuild extended guest list (registrant + players + manualGuests) and auto-distribute
+        function autoAssignGuests() {
+            if (!Array.isArray(reservation.state.manualGuests)) {
+                reservation.state.manualGuests = [];
+            }
+            // Normalize manual guest IDs
+            reservation.state.manualGuests = reservation.state.manualGuests.map(ensureManualGuestId);
+
+            const extendedGuests = [];
+
+            if (registrant.value) {
+                const reg = registrant.value;
+                let displayName = reg.name || (reg.first_name && reg.last_name ? `${reg.first_name} ${reg.last_name}` : reg.first_name || reg.username || 'Registrant');
+
+                extendedGuests.push({
+                    ...reg,
+                    id: `registrant-${reg.id || reg.pk}`,
+                    displayName: displayName,
+                    isRegistrant: true,
+                    isPlayer: false
+                });
+            }
+
+            (selectedChildren.value || []).forEach(childId => {
+                const child = children.value.find(c => c.id === childId || c.pk === childId);
+                if (child) {
+                    let displayName = child.name || (child.first_name && child.last_name ? `${child.first_name} ${child.last_name}` : child.first_name || child.user?.username || `Player ${childId}`);
+
+                    extendedGuests.push({
+                        ...child,
+                        id: `player-${child.id || child.pk || childId}`,
+                        displayName: displayName,
+                        isRegistrant: false,
+                        isPlayer: true,
+                        type: 'child' // Players are always children
+                    });
+                }
+            });
+
+            reservation.state.manualGuests.forEach((guest, index) => {
+                let displayName = guest.displayName || (guest.first_name && guest.last_name ? `${guest.first_name} ${guest.last_name}` : guest.name || `Guest ${index + 1}`);
+
+                extendedGuests.push({
+                    ...guest,
+                    displayName: displayName,
+                    isRegistrant: false,
+                    isPlayer: false
+                });
+            });
+
+            // Keep `reservation.state.guests` ALWAYS as the extended list.
+            // guestAssignments indices refer to this array.
+            reservation.state.guests = extendedGuests;
+
+            if (reservation.state.rooms.length > 0 && reservation.state.assignmentMode !== 'manual') {
                 reservation.autoDistributeGuests();
             }
         }
@@ -2063,47 +2756,161 @@ const EventDetailApp = {
                 toast.show(`Room "${room.roomLabel}" removed`, 'info');
             }
 
-            if (Array.isArray(reservation.state.guests) && reservation.state.guests.length > 0) {
-                reservation.autoDistributeGuests();
-            }
+            // Re-assign guests after removing a room
+            reservation.state.assignmentMode = 'auto';
+            autoAssignGuests();
         }
 
         function handleAddGuest(guest) {
-            if (!reservation.state.guests) {
-                reservation.state.guests = [];
+            if (!Array.isArray(reservation.state.manualGuests)) {
+                reservation.state.manualGuests = [];
             }
-            reservation.state.guests.push(guest);
+            reservation.state.manualGuests.push(ensureManualGuestId(guest));
             toast.show(`Guest "${guest.first_name} ${guest.last_name}" added`, 'success');
+            reservation.state.assignmentMode = 'auto';
+            autoAssignGuests();
+        }
+
+        function handleUpdateGuest(guestId, updatedGuest) {
+            if (!Array.isArray(reservation.state.manualGuests)) {
+                reservation.state.manualGuests = [];
+            }
+            const index = reservation.state.manualGuests.findIndex(g => g.id === guestId);
+            if (index !== -1) {
+                reservation.state.manualGuests[index] = { ...updatedGuest, id: guestId };
+                toast.show(`Guest "${updatedGuest.first_name} ${updatedGuest.last_name}" updated`, 'success');
+                reservation.state.assignmentMode = 'auto';
+                autoAssignGuests();
+            }
+        }
+
+        function handleRemoveGuest(guestId) {
+            if (!Array.isArray(reservation.state.manualGuests)) return;
+            const guest = reservation.state.manualGuests.find(g => g.id === guestId);
+            if (!guest) return;
+            reservation.state.manualGuests = reservation.state.manualGuests.filter(g => g.id !== guestId);
+            toast.show(`Guest "${guest.first_name} ${guest.last_name}" removed`, 'info');
+            reservation.state.assignmentMode = 'auto';
+            autoAssignGuests();
+        }
+
+        function handleAssignGuests(assignments) {
+            // 1. Force manual mode so autoDistribute doesn't overwrite our choices
+            reservation.state.assignmentMode = 'manual';
+
+            // 2. Rebuild the master guest list to ensure indices are stable
+            autoAssignGuests();
+
+            // 3. Clear all current assignments
+            Object.keys(reservation.state.guestAssignments).forEach(roomId => {
+                reservation.state.guestAssignments[roomId] = [];
+            });
+
+            // 4. Create a map of guestId -> index in the master list
+            const masterList = reservation.state.guests || [];
+            const idToIndexMap = {};
+            masterList.forEach((g, idx) => {
+                if (g && g.id) idToIndexMap[String(g.id)] = idx;
+            });
+
+            // 5. Apply assignments from the modal
+            Object.entries(assignments || {}).forEach(([guestId, roomId]) => {
+                if (!roomId) return;
+                const guestIdx = idToIndexMap[String(guestId)];
+                if (guestIdx !== undefined) {
+                    reservation.assignGuestToRoom(guestIdx, String(roomId));
+                }
+            });
+
+            toast.show('Guests assigned to rooms successfully', 'success');
         }
 
         function handleGuestDetailsContinue(allGuests) {
-            reservation.state.guests = allGuests;
-            reservation.autoDistributeGuests();
+            reservation.state.manualGuests = Array.isArray(allGuests) ? allGuests.map(ensureManualGuestId) : [];
+            reservation.state.assignmentMode = 'auto';
+            autoAssignGuests();
             showGuestModal.value = false;
             toast.show('Guests added successfully', 'success');
         }
 
-        function handleContinueToCheckout() {
-            // Validate and proceed to checkout
-            if (reservation.state.rooms.length === 0) {
-                toast.show('Please select at least one room', 'warning');
-                return;
+        function handleGuestAdded(guest) {
+            if (editingGuest.value) {
+                // Update existing guest
+                handleUpdateGuest(editingGuest.value.id, guest);
+                editingGuest.value = null;
+            } else {
+                // Add new guest
+                handleAddGuest(guest);
             }
-            if (reservation.state.guests.length === 0) {
-                toast.show('Please add guest details', 'warning');
+            showAddGuestModal.value = false;
+        }
+
+        function handleContinueToCheckout() {
+            // Check rooms
+            if (reservation.state.rooms.length === 0) {
+                toast.show($t('pleaseSelectRoom'), 'warning');
                 return;
             }
 
-            // Submit form or redirect to checkout
-            const form = document.getElementById('hotel-reservation-form');
-            if (form) {
-                // Update hidden inputs
-                const roomInput = document.getElementById(`guest-room${hotelPk.value}`);
-                if (roomInput && reservation.state.rooms.length > 0) {
-                    roomInput.value = reservation.state.rooms[0].roomId;
-                }
-                form.submit();
+            // Check guests
+            if (reservation.state.guests.length === 0) {
+                toast.show($t('pleaseAddGuests'), 'warning');
+                return;
             }
+
+            // Verify that no room is empty
+            const emptyRooms = reservation.state.rooms.filter(room => {
+                const roomId = String(room.roomId);
+                const assignments = reservation.state.guestAssignments[roomId] || [];
+                return assignments.length === 0;
+            });
+
+            if (emptyRooms.length > 0) {
+                const roomNames = emptyRooms.map(r => r.roomLabel || r.room || 'Room').join(', ');
+                const errorMsg = $t('emptyRoomError').replace('{rooms}', roomNames);
+                toast.show(errorMsg, 'danger');
+
+                // Also use alert as a fallback if toast is not visible
+                alert(errorMsg);
+                return;
+            }
+
+            // If everything is valid, proceed
+            showRoomModal.value = false;
+            // Delay showing the next modal slightly to ensure clean transition
+            setTimeout(() => {
+                showGuestModal.value = true;
+            }, 100);
+        }
+
+        function handleEditFromVerify(guest) {
+            editingGuest.value = guest;
+            showAddGuestModal.value = true;
+        }
+
+        function handleBackFromVerify() {
+            showGuestModal.value = false;
+            // Re-open room selection modal
+            setTimeout(() => {
+                showRoomModal.value = true;
+            }, 100);
+        }
+
+        function handleFinalCheckout() {
+            // Instead of submitting a separate form, we just close the modals
+            // The data is already in reservation.state and reflected in the summary card
+            showGuestModal.value = false;
+            showRoomModal.value = false;
+
+            toast.show('Hotel stay added to your order summary', 'success');
+
+            // Scroll to the order summary so the user sees the update
+            nextTick(() => {
+                const summaryEl = document.querySelector('.checkout-summary');
+                if (summaryEl) {
+                    summaryEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
         }
 
         // Load event data
@@ -2170,7 +2977,9 @@ const EventDetailApp = {
         }
 
         function formatPrice(amount) {
-            return `$${parseFloat(amount || 0).toFixed(2)}`;
+            const num = parseFloat(amount || 0);
+            const formatted = new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+            return `$${formatted}`;
         }
 
         function formatLocation(event) {
@@ -2212,8 +3021,12 @@ const EventDetailApp = {
 
         // Handle hotel room selector
         function openHotelRoomSelector() {
-            if (selectedChildrenCount.value <= 0) {
-                toast.show('Please select at least 1 player before adding a hotel stay.', 'warning');
+            const count = selectedChildrenCount.value || 0;
+            if (count <= 0) {
+                const msg = $t('selectPlayersBeforeHotel') || 'Please select at least 1 player before adding a hotel stay.';
+                toast.show(msg, 'warning');
+                // Alerta de respaldo para asegurar visibilidad
+                alert(msg);
                 return;
             }
             showRoomModal.value = true;
@@ -2269,6 +3082,150 @@ const EventDetailApp = {
             }
         });
 
+        // Watch for changes in selected children and auto-assign
+        watch(selectedChildren, () => {
+            if (reservation.state.rooms.length > 0) {
+                // Changing players should revert to auto distribution
+                reservation.state.assignmentMode = 'auto';
+                autoAssignGuests();
+            }
+        }, { deep: true });
+
+        // Watch for changes in rooms and auto-assign
+        watch(() => reservation.state.rooms, () => {
+            if (reservation.state.rooms.length > 0) {
+                // Changing rooms should revert to auto distribution
+                reservation.state.assignmentMode = 'auto';
+                autoAssignGuests();
+            }
+        }, { deep: true });
+
+        // Total calculation with optional no-show fee and pay now discount
+        const checkoutTotals = computed(() => {
+            const playersPrice = playersTotal.value;
+            const hotelPrice = priceCalc.priceBreakdown.value?.total || 0;
+
+            // Hotel buy out fee: applies if event has hotel, there are players, and NO hotel is selected
+            const hasEventHotel = !!eventData.value?.hotel;
+            const applyNoShowFee = hasEventHotel && (selectedChildrenCount.value > 0) && (reservation.state.rooms.length === 0);
+            const noShowFee = applyNoShowFee ? 1000 : 0;
+
+            const subtotal = playersPrice + hotelPrice + noShowFee;
+
+            // Pay now -5% OFF only applies if a hotel stay is added
+            const hasHotelForDiscount = (hotelPrice > 0) && (reservation.state.rooms.length > 0);
+            const payNowTotal = hasHotelForDiscount ? (subtotal * 0.95) : subtotal;
+
+            // Plan monthly amount (approx)
+            let planMonths = 1;
+            if (eventData.value?.payment_deadline) {
+                const now = new Date();
+                const deadline = new Date(eventData.value.payment_deadline + 'T00:00:00');
+                planMonths = (deadline.getFullYear() - now.getFullYear()) * 12 + (deadline.getMonth() - now.getMonth()) + 1;
+                if (!isFinite(planMonths) || planMonths < 1) planMonths = 1;
+            }
+            const monthlyPlanAmount = subtotal / planMonths;
+
+            return {
+                subtotal,
+                noShowFee,
+                payNowTotal,
+                hasHotelForDiscount,
+                planMonths,
+                monthlyPlanAmount,
+                savings: subtotal - payNowTotal
+            };
+        });
+
+        // Handle payment plan button
+        async function handlePaymentPlan() {
+            await startStripeCheckout('plan');
+        }
+
+        // Handle pay now button
+        async function handlePayNow() {
+            await startStripeCheckout('now');
+        }
+
+        // Updated startStripeCheckout for Vue
+        async function startStripeCheckout(mode) {
+            if (selectedChildrenCount.value === 0) {
+                toast.show($t('selectPlayersBeforeCheckout') || 'Please select at least one player to register.', 'warning');
+                return;
+            }
+
+            const stripeUrl = eventData.value?.stripe_checkout_url || `/accounts/events/${eventPkRef.value}/checkout/stripe/`;
+
+            // Show loader
+            loading.value = true;
+            toast.show($t('redirectingToStripe') || 'Redirecting to Stripe...', 'info');
+
+            try {
+                // We need to send the same data as the registration form would
+                // but since we are in Vue, we'll build the data manually or use the existing form if present
+                const registrationForm = document.getElementById('eventRegistrationForm');
+                let formData;
+
+                if (registrationForm) {
+                    formData = new FormData(registrationForm);
+                } else {
+                    formData = new FormData();
+                }
+
+                // Add or update essential fields
+                formData.set('payment_mode', mode);
+                formData.set('no_show_fee', checkoutTotals.value.noShowFee);
+
+                // Set discount percent
+                const discountPercent = (mode === 'now' && checkoutTotals.value.hasHotelForDiscount) ? '5' : '0';
+                formData.set('discount_percent', discountPercent);
+
+                // Ensure all selected players are in the formData
+                formData.delete('players'); // Clear existing if any
+                selectedChildren.value.forEach(id => formData.append('players', id));
+
+                // If hotel is selected, add hotel data
+                if (reservation.state.rooms.length > 0) {
+                    const hotelData = {
+                        hotel_pk: hotelPk.value,
+                        rooms: reservation.state.rooms,
+                        guest_assignments: reservation.state.guestAssignments,
+                        guests: reservation.state.guests
+                    };
+                    formData.set('hotel_reservation_json', JSON.stringify(hotelData));
+                }
+
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+
+                const resp = await fetch(stripeUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: formData
+                });
+
+                const data = await resp.json();
+
+                if (resp.ok && data.success && data.checkout_url) {
+                    // Redirect to Stripe
+                    if (window.top && window.top !== window) {
+                        window.top.location.href = data.checkout_url;
+                    } else {
+                        window.location.href = data.checkout_url;
+                    }
+                } else {
+                    const errorMsg = data.error || data.message || $t('checkoutError') || 'Could not start payment.';
+                    toast.show(errorMsg, 'error');
+                    loading.value = false;
+                }
+            } catch (e) {
+                console.error('Checkout error:', e);
+                toast.show($t('checkoutError') || 'Error starting payment. Please try again.', 'error');
+                loading.value = false;
+            }
+        }
+
         onMounted(() => {
             // Get hotel PK and event PK from element
             const appEl = document.querySelector('[id^="event-detail-app"]');
@@ -2279,6 +3236,13 @@ const EventDetailApp = {
             loadEventData();
             loadRegistrantData();
             loadChildrenData();
+
+            // Auto-assign guests after initial data load
+            nextTick(() => {
+                if (reservation.state.rooms.length > 0) {
+                    autoAssignGuests();
+                }
+            });
             loadRooms();
         });
 
@@ -2292,18 +3256,30 @@ const EventDetailApp = {
             selectedChildren,
             selectedChildrenCount,
             playersTotal,
+            checkoutTotals,
             reservation,
             priceCalc,
             toast,
             showRoomModal,
             showGuestModal,
+            showAddGuestModal,
+            editingGuest,
             rooms,
             loading,
             handleSelectRoom,
             handleRemoveRoom,
             handleAddGuest,
+            handleUpdateGuest,
+            handleRemoveGuest,
+            handleAssignGuests,
             handleGuestDetailsContinue,
             handleContinueToCheckout,
+            handleFinalCheckout,
+            handleEditFromVerify,
+            handleGuestAdded,
+            handleBackFromVerify,
+            handlePaymentPlan,
+            handlePayNow,
             loadRooms,
             loadEventData,
             loadChildrenData,
@@ -2613,58 +3589,186 @@ const EventDetailApp = {
                             </button>
                         </div>
 
-                        <!-- Order Summary -->
-                        <div class="checkout-summary" style="border-top: 3px solid var(--mlb-red); padding-top: 20px; margin-top: 20px;">
-                            <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 15px; font-size: 1rem;">
-                                <i class="fas fa-receipt me-2" style="color: var(--mlb-red);"></i>{{ t('orderSummary') }}
+                        <!-- Order Summary (Invoice Style) -->
+                        <div class="checkout-summary" style="border-top: 2px solid var(--mlb-blue); padding-top: 20px; margin-top: 20px;">
+                            <h5 style="color: var(--mlb-blue); font-weight: 800; margin-bottom: 20px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center;">
+                                <span><i class="fas fa-file-invoice me-2"></i>{{ t('orderSummary') }}</span>
                             </h5>
 
-                            <!-- Players Summary -->
-                            <div v-if="selectedChildrenCount > 0" id="checkout-players-summary" style="margin-bottom: 15px;">
-                                <div style="background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 15px; border-left: 4px solid var(--mlb-blue);">
+                            <!-- Players Section -->
+                            <div v-if="selectedChildrenCount > 0" id="checkout-players-summary" style="margin-bottom: 20px;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: var(--mlb-blue); font-weight: 700; font-size: 0.85rem; text-transform: uppercase;">
+                                    <i class="fas fa-users"></i> {{ t('eventRegistration') }}
+                                </div>
+                                <div style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px;">
                                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <div style="flex: 1;">
-                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                                <i class="fas fa-users" style="color: var(--mlb-blue); font-size: 1rem;"></i>
-                                                <span style="font-weight: 700; color: var(--mlb-blue); font-size: 1rem;">
-                                                    {{ selectedChildrenCount }} {{ t('players') }}
+                                        <div style="font-weight: 600; color: #333; font-size: 0.9rem;">
+                                            {{ selectedChildrenCount }} {{ t('players') }}
+                                        </div>
+                                        <div style="font-weight: 700; color: var(--mlb-blue);">
+                                            {{ formatPrice(playersTotal) }}
+                                        </div>
+                                    </div>
+                                    <!-- Show selected players names and divisions -->
+                                    <div style="margin-top: 6px; padding-left: 8px; border-left: 2px solid var(--mlb-blue);">
+                                        <div v-for="childId in selectedChildren" :key="childId"
+                                             style="font-size: 0.72rem; color: #6c757d; line-height: 1.4; display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                                            <span style="font-weight: 600;">• {{ children.find(c => c.id === childId || c.pk === childId)?.name || 'Player' }}</span>
+                                            <span v-if="children.find(c => c.id === childId || c.pk === childId)?.division"
+                                                  style="font-size: 0.6rem; background: rgba(13, 44, 84, 0.08); color: var(--mlb-blue); padding: 1px 6px; border-radius: 4px; font-weight: 700; text-transform: uppercase;">
+                                                {{ children.find(c => c.id === childId || c.pk === childId)?.division }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div style="font-size: 0.7rem; color: #6c757d; margin-top: 8px; font-style: italic;">
+                                        {{ t('eventRegistration') }} ({{ eventData.title }})
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hotel Section -->
+                            <div v-if="reservation.state.rooms.length > 0" id="checkout-hotel-summary" style="margin-bottom: 20px;">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: var(--mlb-red); font-weight: 700; font-size: 0.85rem; text-transform: uppercase;">
+                                    <i class="fas fa-hotel"></i> {{ t('headquartersHotel') }}
+                                </div>
+                                <div style="background: #fcfcfc; border: 1px solid #fecaca; border-radius: 8px; padding: 12px;">
+                                    <!-- Each Room -->
+                                    <div v-for="(room, rIdx) in reservation.state.rooms" :key="room.roomId"
+                                         :style="rIdx > 0 ? 'margin-top: 12px; padding-top: 12px; border-top: 1px dashed #fecaca;' : ''">
+                                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                            <div style="font-weight: 700; color: #333; font-size: 0.85rem;">
+                                                {{ room.roomLabel }}
+                                            </div>
+                                            <div style="font-weight: 700; color: #333; font-size: 0.85rem;">
+                                                {{ formatPrice(room.price) }}
+                                            </div>
+                                        </div>
+
+                                        <!-- Guests in this room -->
+                                        <div style="margin-top: 6px; padding-left: 8px; border-left: 2px solid #fecaca;">
+                                            <div v-for="idx in (reservation.state.guestAssignments[String(room.roomId)] || [])"
+                                                 :key="idx"
+                                                 style="font-size: 0.72rem; color: #6c757d; line-height: 1.4;">
+                                                • {{ reservation.state.guests[idx]?.displayName }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Additional Guests info -->
+                                    <div v-if="priceCalc.priceBreakdown.value?.additionalGuests > 0"
+                                         style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid #f0f0f0; font-size: 0.8rem; color: #856404;">
+                                        <div style="font-weight: 600;">
+                                            <i class="fas fa-user-plus me-1"></i>
+                                            {{ priceCalc.priceBreakdown.value?.additionalGuestsCount }} {{ t('additionalGuests') }}
+                                        </div>
+                                        <div style="font-weight: 700;">+ {{ formatPrice(priceCalc.priceBreakdown.value?.additionalGuests) }}</div>
+                                    </div>
+
+                                    <!-- Subtotal Hotel -->
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 8px; border-top: 2px solid #fecaca;">
+                                        <span style="font-weight: 700; color: var(--mlb-red); font-size: 0.85rem; text-transform: uppercase;">{{ t('hotelStay') }} Subtotal</span>
+                                        <span style="font-weight: 800; color: var(--mlb-red); font-size: 1rem;">{{ formatPrice(priceCalc.priceBreakdown.value?.total || 0) }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hotel buy out fee Section -->
+                            <div v-if="checkoutTotals.noShowFee > 0" id="checkout-no-show-summary" style="margin-bottom: 20px;">
+                                <div style="background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%); border: 2px solid #ffedd5; border-radius: 12px; padding: 12px; border-left: 4px solid #f97316;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                                <i class="fas fa-exclamation-triangle" style="color: #f97316; font-size: 1rem;"></i>
+                                                <span style="font-weight: 800; color: var(--mlb-blue); font-size: 0.95rem;">
+                                                    {{ t('hotelBuyOutFee') }}
                                                 </span>
                                             </div>
-                                            <div style="font-size: 0.75rem; color: #6c757d;">{{ t('eventRegistration') }}</div>
+                                            <div style="font-size: 0.78rem; color: #6c757d; font-weight: 600; line-height: 1.25;">
+                                                {{ t('appliesWhenNoHotel') }}
+                                            </div>
                                         </div>
-                                        <div style="text-align: right; flex-shrink: 0; margin-left: 15px;">
-                                            <div style="font-weight: 800; color: var(--mlb-blue); font-size: 1.2rem;">{{ formatPrice(playersTotal) }}</div>
+                                        <div style="text-align: right; flex-shrink: 0;">
+                                            <div style="font-weight: 900; color: #f97316; font-size: 1.1rem;">{{ formatPrice(checkoutTotals.noShowFee) }}</div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Hotel Summary -->
-                            <div v-if="reservation.state.rooms.length > 0" id="checkout-hotel-summary" style="margin-bottom: 15px;">
-                                <div style="background: linear-gradient(135deg, #fff5f5 0%, #ffffff 100%); border: 2px solid #fecaca; border-radius: 12px; padding: 15px; border-left: 4px solid var(--mlb-red);">
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <div style="flex: 1;">
-                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                                                <i class="fas fa-hotel" style="color: var(--mlb-red); font-size: 1rem;"></i>
-                                                <span style="font-weight: 700; color: var(--mlb-red); font-size: 1rem;">
-                                                    {{ reservation.state.rooms.length }} {{ reservation.state.rooms.length === 1 ? t('room') : t('rooms') }}
-                                                </span>
-                                            </div>
-                                            <div style="font-size: 0.75rem; color: #6c757d;">{{ t('hotelStay') }}</div>
-                                        </div>
-                                        <div style="text-align: right; flex-shrink: 0; margin-left: 15px;">
-                                            <div style="font-weight: 800; color: var(--mlb-red); font-size: 1.2rem;">{{ formatPrice(priceCalc.priceBreakdown.value?.total || 0) }}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Total -->
-                            <div style="border-top: 2px solid var(--mlb-red); padding-top: 15px; margin-top: 15px;">
+                            <!-- Final Total -->
+                            <div style="background: var(--mlb-blue); border-radius: 8px; padding: 15px; margin-top: 25px; box-shadow: 0 4px 12px rgba(13, 44, 84, 0.2);">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: 800; color: var(--mlb-blue); font-size: 1.1rem;">{{ t('total') }}:</span>
-                                    <span style="font-weight: 800; color: var(--mlb-red); font-size: 1.4rem;">{{ formatPrice(grandTotal) }}</span>
+                                    <span style="font-weight: 800; color: white; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;">{{ t('total') }}</span>
+                                    <span style="font-weight: 900; color: white; font-size: 1.5rem; letter-spacing: -0.5px;">{{ formatPrice(checkoutTotals.subtotal) }}</span>
                                 </div>
+                            </div>
+
+                            <!-- Payment Buttons -->
+                            <div class="d-flex flex-column flex-sm-row gap-2" style="margin-top: 20px;">
+                                <button type="button"
+                                        class="btn"
+                                        @click="handlePaymentPlan"
+                                        :disabled="selectedChildrenCount === 0 || loading"
+                                        :style="{
+                                            flex: 1,
+                                            background: '#f8f9fa',
+                                            color: 'var(--mlb-blue)',
+                                            border: '2px solid #e9ecef',
+                                            borderRadius: '10px',
+                                            padding: '12px',
+                                            fontWeight: '800',
+                                            transition: 'all 0.2s',
+                                            opacity: (selectedChildrenCount === 0 || loading) ? 0.5 : 1,
+                                            cursor: (selectedChildrenCount === 0 || loading) ? 'not-allowed' : 'pointer',
+                                            textAlign: 'left'
+                                        }">
+                                    <div style="display:flex; align-items:center; justify-content: space-between; gap: 10px;">
+                                        <span><i class="fas fa-calendar-alt me-2"></i>{{ t('paymentPlan') }}</span>
+                                        <span style="font-weight: 900; color: var(--mlb-blue);">{{ formatPrice(checkoutTotals.monthlyPlanAmount) }}/mo</span>
+                                    </div>
+                                    <div style="margin-top: 4px; font-size: 0.75rem; font-weight: 700; color: #6c757d; line-height: 1.25;">
+                                        {{ checkoutTotals.planMonths }} {{ t('monthlyPaymentsApproxUntil') }} {{ formatDate(eventData.payment_deadline) }}
+                                    </div>
+                                    <div style="margin-top: 2px; font-size: 0.7rem; font-weight: 600; color: #6c757d; line-height: 1.25;">
+                                        {{ t('goodIfPreferSpreadTotal') }}
+                                    </div>
+                                </button>
+
+                                <button type="button"
+                                        class="btn"
+                                        @click="handlePayNow"
+                                        :disabled="selectedChildrenCount === 0 || loading"
+                                        :style="{
+                                            flex: 1,
+                                            background: 'linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '10px',
+                                            padding: '12px',
+                                            fontWeight: '800',
+                                            transition: 'all 0.2s',
+                                            opacity: (selectedChildrenCount === 0 || loading) ? 0.5 : 1,
+                                            cursor: (selectedChildrenCount === 0 || loading) ? 'not-allowed' : 'pointer',
+                                            textAlign: 'left'
+                                        }">
+                                    <div style="display:flex; align-items:center; justify-content: space-between; gap: 10px;">
+                                        <span>
+                                            <i class="fas fa-bolt me-2"></i>{{ t('payNow') }}
+                                            <span v-if="checkoutTotals.hasHotelForDiscount" style="opacity:0.9; margin-left: 4px; font-size: 0.7rem; background: rgba(255,255,255,0.2); padding: 1px 4px; border-radius: 4px;">- 5% OFF</span>
+                                        </span>
+                                        <span style="font-weight: 900; color: white;">{{ formatPrice(checkoutTotals.payNowTotal) }}</span>
+                                    </div>
+                                    <div style="margin-top: 4px; font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.9); line-height: 1.25;">
+                                        <span v-if="checkoutTotals.hasHotelForDiscount">{{ t('youPayTodayAndSave') }} {{ formatPrice(checkoutTotals.savings) }}</span>
+                                        <span v-else>{{ t('fivePercentOffAppliesWhenHotel') }}</span>
+                                    </div>
+                                    <div style="margin-top: 2px; font-size: 0.7rem; font-weight: 600; color: rgba(255,255,255,0.85); line-height: 1.25;">
+                                        {{ t('bestValueIfPayToday') }}
+                                    </div>
+                                </button>
+                            </div>
+
+                            <div style="text-align: center; margin-top: 15px; font-size: 0.65rem; color: #9ca3af; font-weight: 600; text-transform: uppercase;">
+                                <i class="fas fa-lock me-1"></i> Secure Checkout
                             </div>
                         </div>
                     </div>
@@ -2677,25 +3781,39 @@ const EventDetailApp = {
                 :hotel-pk="hotelPk"
                 :rooms="rooms || []"
                 :selected-rooms="reservation.state.rooms || []"
-                :guests="reservation.state.guests || []"
+                :guests="reservation.state.manualGuests || []"
                 :children="children || []"
                 :selected-children="selectedChildren || []"
                 :registrant="registrant"
+                :reservation-state="reservation.state"
                 :show="showRoomModal"
                 @close="showRoomModal = false"
                 @select-room="handleSelectRoom"
                 @remove-room="handleRemoveRoom"
                 @add-guest="handleAddGuest"
+                @update-guest="handleUpdateGuest"
+                @remove-guest="handleRemoveGuest"
+                @assign-guests="handleAssignGuests"
+                @continue-to-checkout="handleContinueToCheckout"
             />
 
             <GuestDetailsModal
                 v-if="hotelPk"
                 :hotel-pk="hotelPk"
-                :guests="reservation.state.guests"
+                :guests="reservation.state.guests || []"
                 :show="showGuestModal"
                 @close="showGuestModal = false"
-                @continue="handleGuestDetailsContinue"
+                @continue="handleFinalCheckout"
+                @edit-guest="handleEditFromVerify"
+                @back="handleBackFromVerify"
             />
+
+            <AddGuestModal
+                :show="showAddGuestModal"
+                :hotel-pk="hotelPk"
+                :editing-guest="editingGuest"
+                @close="showAddGuestModal = false; editingGuest = null;"
+                @guest-added="handleGuestAdded" />
         </div>
         <div v-else>
             <div style="text-align: center; padding: 40px;">

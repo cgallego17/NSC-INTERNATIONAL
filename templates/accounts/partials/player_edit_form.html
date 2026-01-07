@@ -1,13 +1,13 @@
 <div class="player-registration-form-container" style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
     <form method="post" enctype="multipart/form-data" class="needs-validation player-edit-form" novalidate id="playerEditForm">
         {% csrf_token %}
-        
+
         {% if form.non_field_errors %}
             <div class="alert alert-danger">
                 {{ form.non_field_errors }}
             </div>
         {% endif %}
-        
+
         <!-- Información de Usuario (Solo mostrar, no editable) -->
         <div class="form-section mb-4" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
             <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
@@ -72,13 +72,13 @@
                     </label>
                     <div class="text-center">
                         {% if object.user.profile.profile_picture %}
-                            <img src="{{ object.user.profile.profile_picture.url }}" 
-                                 alt="Foto actual" 
-                                 id="current-profile-picture" 
+                            <img src="{{ object.user.profile.profile_picture.url }}"
+                                 alt="Foto actual"
+                                 id="current-profile-picture"
                                  class="rounded-circle border border-primary"
                                  style="width: 120px; height: 120px; object-fit: cover; margin-bottom: 10px;">
                         {% else %}
-                            <div id="current-profile-picture" 
+                            <div id="current-profile-picture"
                                  class="rounded-circle border border-primary d-flex align-items-center justify-content-center mx-auto"
                                  style="width: 120px; height: 120px; background: #f8f9fa; margin-bottom: 10px;">
                                 <i class="fas fa-user fa-3x text-muted"></i>
@@ -93,7 +93,7 @@
                         {% endif %}
                         <div id="profile-picture-preview" class="text-center mt-3" style="display: none;">
                             <p class="mb-2"><strong>Vista Previa:</strong></p>
-                            <img id="preview-image" src="#" alt="Vista previa" 
+                            <img id="preview-image" src="#" alt="Vista previa"
                                  class="rounded-circle border border-success"
                                  style="width: 120px; height: 120px; object-fit: cover;">
                         </div>
@@ -101,7 +101,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Información Deportiva -->
         <div class="form-section mb-4" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
             <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
@@ -142,7 +142,7 @@
                     </div>
                 {% endif %}
             </div>
-            
+
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <label for="{{ form.position.id_for_label }}" class="form-label">
@@ -176,7 +176,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="{{ form.batting_hand.id_for_label }}" class="form-label">
@@ -200,7 +200,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Elegibilidad y División -->
         <div class="form-section mb-4" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
             <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
@@ -230,7 +230,7 @@
                 <i class="fas fa-exclamation-triangle me-2"></i>
                 <strong>Importante:</strong> Los jugadores sin verificación de edad aprobada no son elegibles hasta que se produzca y apruebe la documentación.
             </div>
-            
+
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="{{ form.grade.id_for_label }}" class="form-label">
@@ -259,7 +259,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <div class="mb-3">
                 <label for="{{ form.age_verification_document.id_for_label }}" class="form-label">
                     <i class="fas fa-file-upload me-1"></i>Documento de Verificación de Edad
@@ -268,7 +268,7 @@
                 {{ form.age_verification_document }}
                 {% if object.age_verification_document %}
                     <div class="mt-2">
-                        <a href="{{ object.age_verification_document.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                        <a href="{% url 'accounts:serve_age_verification_document' object.pk %}" target="_blank" class="btn btn-sm btn-outline-info">
                             <i class="fas fa-file me-1"></i>Ver documento actual
                         </a>
                     </div>
@@ -283,7 +283,7 @@
                     <i class="fas fa-file-alt me-1"></i>Formatos aceptados: PDF, JPG, JPEG, PNG. Tamaño máximo recomendado: 5MB.
                 </small>
             </div>
-            
+
             {% if not is_parent_editing %}
                 {% if user.profile.is_team_manager or user.is_staff or user.is_superuser %}
                     <div class="row">
@@ -311,7 +311,7 @@
                 {% endif %}
             {% endif %}
         </div>
-        
+
         <!-- Tallas de Uniformes -->
         <div class="form-section mb-4" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
             <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
@@ -321,7 +321,7 @@
                 <i class="fas fa-info-circle me-2"></i>
                 <strong>Nota:</strong> Selecciona una talla por cada categoría de uniforme.
             </div>
-            
+
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="{{ form.jersey_size.id_for_label }}" class="form-label">
@@ -344,7 +344,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="{{ form.batting_glove_size.id_for_label }}" class="form-label">
@@ -367,7 +367,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="{{ form.shorts_size.id_for_label }}" class="form-label">
@@ -381,7 +381,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Contacto de Emergencia -->
         <div class="form-section mb-4">
             <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
@@ -419,7 +419,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <div class="mb-3">
                 <label for="{{ form.medical_conditions.id_for_label }}" class="form-label">
                     <i class="fas fa-heartbeat me-1"></i>Condiciones Médicas
@@ -432,7 +432,7 @@
                 <small class="text-muted">Especifica cualquier condición médica relevante o "Ninguna"</small>
             </div>
         </div>
-        
+
         <!-- Estado (Solo para managers/staff) -->
         {% if not is_parent_editing %}
             {% if user.profile.is_team_manager or user.is_staff or user.is_superuser %}
@@ -452,7 +452,7 @@
                 </div>
             {% endif %}
         {% endif %}
-        
+
         <!-- Botones -->
         <div class="d-flex justify-content-between mt-4">
             <button type="button" class="btn btn-secondary btn-cancel-edit">
@@ -471,18 +471,18 @@
         height: 1.5rem;
         cursor: pointer;
     }
-    
+
     .form-label {
         font-size: 0.9rem;
         margin-bottom: 0.5rem;
     }
-    
+
     .form-control:focus,
     .form-select:focus {
         border-color: #4a5568;
         box-shadow: 0 0 0 0.2rem rgba(74, 85, 104, 0.25);
     }
-    
+
     #id_profile_picture {
         display: none;
     }
@@ -493,7 +493,7 @@
         const profilePictureInput = document.getElementById('id_profile_picture');
         const previewDiv = document.getElementById('profile-picture-preview');
         const previewImage = document.getElementById('preview-image');
-        
+
         if (profilePictureInput) {
             profilePictureInput.addEventListener('change', function(event) {
                 const file = event.target.files[0];
@@ -518,7 +518,7 @@
                 }
             });
         }
-        
+
         // Manejar cancelar
         const cancelBtn = document.querySelector('.btn-cancel-edit');
         if (cancelBtn) {
@@ -530,7 +530,7 @@
                 }
             });
         }
-        
+
         // Inicializar cálculo de división si hay fecha de nacimiento
         const editForm = document.getElementById('playerEditForm');
         if (editForm && !editForm.dataset.divisionInitialized) {
@@ -544,13 +544,13 @@
 </script>
 
         {% csrf_token %}
-        
+
         {% if form.non_field_errors %}
             <div class="alert alert-danger">
                 {{ form.non_field_errors }}
             </div>
         {% endif %}
-        
+
         <!-- Información de Usuario (Solo mostrar, no editable) -->
         <div class="form-section mb-4" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
             <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
@@ -615,13 +615,13 @@
                     </label>
                     <div class="text-center">
                         {% if object.user.profile.profile_picture %}
-                            <img src="{{ object.user.profile.profile_picture.url }}" 
-                                 alt="Foto actual" 
-                                 id="current-profile-picture" 
+                            <img src="{{ object.user.profile.profile_picture.url }}"
+                                 alt="Foto actual"
+                                 id="current-profile-picture"
                                  class="rounded-circle border border-primary"
                                  style="width: 120px; height: 120px; object-fit: cover; margin-bottom: 10px;">
                         {% else %}
-                            <div id="current-profile-picture" 
+                            <div id="current-profile-picture"
                                  class="rounded-circle border border-primary d-flex align-items-center justify-content-center mx-auto"
                                  style="width: 120px; height: 120px; background: #f8f9fa; margin-bottom: 10px;">
                                 <i class="fas fa-user fa-3x text-muted"></i>
@@ -636,7 +636,7 @@
                         {% endif %}
                         <div id="profile-picture-preview" class="text-center mt-3" style="display: none;">
                             <p class="mb-2"><strong>Vista Previa:</strong></p>
-                            <img id="preview-image" src="#" alt="Vista previa" 
+                            <img id="preview-image" src="#" alt="Vista previa"
                                  class="rounded-circle border border-success"
                                  style="width: 120px; height: 120px; object-fit: cover;">
                         </div>
@@ -644,7 +644,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Información Deportiva -->
         <div class="form-section mb-4" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
             <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
@@ -685,7 +685,7 @@
                     </div>
                 {% endif %}
             </div>
-            
+
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <label for="{{ form.position.id_for_label }}" class="form-label">
@@ -719,7 +719,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="{{ form.batting_hand.id_for_label }}" class="form-label">
@@ -743,7 +743,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Elegibilidad y División -->
         <div class="form-section mb-4" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
             <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
@@ -773,7 +773,7 @@
                 <i class="fas fa-exclamation-triangle me-2"></i>
                 <strong>Importante:</strong> Los jugadores sin verificación de edad aprobada no son elegibles hasta que se produzca y apruebe la documentación.
             </div>
-            
+
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="{{ form.grade.id_for_label }}" class="form-label">
@@ -802,7 +802,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <div class="mb-3">
                 <label for="{{ form.age_verification_document.id_for_label }}" class="form-label">
                     <i class="fas fa-file-upload me-1"></i>Documento de Verificación de Edad
@@ -811,7 +811,7 @@
                 {{ form.age_verification_document }}
                 {% if object.age_verification_document %}
                     <div class="mt-2">
-                        <a href="{{ object.age_verification_document.url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                        <a href="{% url 'accounts:serve_age_verification_document' object.pk %}" target="_blank" class="btn btn-sm btn-outline-info">
                             <i class="fas fa-file me-1"></i>Ver documento actual
                         </a>
                     </div>
@@ -826,7 +826,7 @@
                     <i class="fas fa-file-alt me-1"></i>Formatos aceptados: PDF, JPG, JPEG, PNG. Tamaño máximo recomendado: 5MB.
                 </small>
             </div>
-            
+
             {% if not is_parent_editing %}
                 {% if user.profile.is_team_manager or user.is_staff or user.is_superuser %}
                     <div class="row">
@@ -854,7 +854,7 @@
                 {% endif %}
             {% endif %}
         </div>
-        
+
         <!-- Tallas de Uniformes -->
         <div class="form-section mb-4" style="border-bottom: 2px solid #e5e7eb; padding-bottom: 20px;">
             <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
@@ -864,7 +864,7 @@
                 <i class="fas fa-info-circle me-2"></i>
                 <strong>Nota:</strong> Selecciona una talla por cada categoría de uniforme.
             </div>
-            
+
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="{{ form.jersey_size.id_for_label }}" class="form-label">
@@ -887,7 +887,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="{{ form.batting_glove_size.id_for_label }}" class="form-label">
@@ -910,7 +910,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="{{ form.shorts_size.id_for_label }}" class="form-label">
@@ -924,7 +924,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Contacto de Emergencia -->
         <div class="form-section mb-4">
             <h5 class="mb-3" style="color: var(--mlb-blue); font-weight: 700;">
@@ -962,7 +962,7 @@
                     {% endif %}
                 </div>
             </div>
-            
+
             <div class="mb-3">
                 <label for="{{ form.medical_conditions.id_for_label }}" class="form-label">
                     <i class="fas fa-heartbeat me-1"></i>Condiciones Médicas
@@ -975,7 +975,7 @@
                 <small class="text-muted">Especifica cualquier condición médica relevante o "Ninguna"</small>
             </div>
         </div>
-        
+
         <!-- Estado (Solo para managers/staff) -->
         {% if not is_parent_editing %}
             {% if user.profile.is_team_manager or user.is_staff or user.is_superuser %}
@@ -995,7 +995,7 @@
                 </div>
             {% endif %}
         {% endif %}
-        
+
         <!-- Botones -->
         <div class="d-flex justify-content-between mt-4">
             <button type="button" class="btn btn-secondary btn-cancel-edit">
@@ -1014,18 +1014,18 @@
         height: 1.5rem;
         cursor: pointer;
     }
-    
+
     .form-label {
         font-size: 0.9rem;
         margin-bottom: 0.5rem;
     }
-    
+
     .form-control:focus,
     .form-select:focus {
         border-color: #4a5568;
         box-shadow: 0 0 0 0.2rem rgba(74, 85, 104, 0.25);
     }
-    
+
     #id_profile_picture {
         display: none;
     }
@@ -1036,7 +1036,7 @@
         const profilePictureInput = document.getElementById('id_profile_picture');
         const previewDiv = document.getElementById('profile-picture-preview');
         const previewImage = document.getElementById('preview-image');
-        
+
         if (profilePictureInput) {
             profilePictureInput.addEventListener('change', function(event) {
                 const file = event.target.files[0];
@@ -1061,7 +1061,7 @@
                 }
             });
         }
-        
+
         // Manejar cancelar
         const cancelBtn = document.querySelector('.btn-cancel-edit');
         if (cancelBtn) {
@@ -1073,7 +1073,7 @@
                 }
             });
         }
-        
+
         // Inicializar cálculo de división si hay fecha de nacimiento
         const editForm = document.getElementById('playerEditForm');
         if (editForm && !editForm.dataset.divisionInitialized) {
