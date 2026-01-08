@@ -134,7 +134,6 @@ class EventAdmin(admin.ModelAdmin):
                 "fields": (
                     "title",
                     "description",
-                    "short_description",
                     "category",
                     "divisions",
                     "image",
