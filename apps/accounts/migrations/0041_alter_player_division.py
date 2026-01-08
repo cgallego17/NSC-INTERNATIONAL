@@ -72,6 +72,19 @@ def migrate_division_data(apps, schema_editor):
             # Si la tabla no existe, no hay datos que migrar
             division_data = {}
 
+    # Verificar que la columna existe antes de actualizar
+    with connection.cursor() as check_cursor:
+        check_cursor.execute("PRAGMA table_info(accounts_player)")
+        columns = [col[1] for col in check_cursor.fetchall()]
+        if "division_id_temp" not in columns:
+            # Si la columna no existe, crearla primero
+            check_cursor.execute(
+                "ALTER TABLE accounts_player ADD COLUMN division_id_temp INTEGER REFERENCES events_division(id);"
+            )
+
+    # Preparar todos los datos para actualizar
+    updates_to_apply = []
+
     # Migrar cada jugador a la columna temporal division_id_temp
     for player_id, old_division_value in division_data.items():
         if not old_division_value:
@@ -96,23 +109,18 @@ def migrate_division_data(apps, schema_editor):
             if not division:
                 division = Division.objects.create(name=base_name, is_active=True)
 
-        # Actualizar usando raw SQL directamente
+        # Guardar para actualizar después
         if division:
-            with connection.cursor() as update_cursor:
-                # Verificar que la columna existe antes de actualizar
-                update_cursor.execute("PRAGMA table_info(accounts_player)")
-                columns = [col[1] for col in update_cursor.fetchall()]
-                if "division_id_temp" not in columns:
-                    # Si la columna no existe, crearla primero
-                    update_cursor.execute(
-                        "ALTER TABLE accounts_player ADD COLUMN division_id_temp INTEGER REFERENCES events_division(id);"
-                    )
-                # Usar parámetros correctamente para SQLite (? en lugar de %s)
-                # Usar execute con parámetros como tupla para evitar problemas con debug SQL
-                sql = "UPDATE accounts_player SET division_id_temp = ? WHERE id = ?"
-                params = (division.id, player_id)
-                # Ejecutar directamente sin pasar por el debug SQL de Django
-                update_cursor.execute(sql, params)
+            updates_to_apply.append((division.id, player_id))
+
+    # Aplicar todas las actualizaciones de una vez usando executemany
+    if updates_to_apply:
+        with connection.cursor() as update_cursor:
+            # Usar executemany para evitar problemas con debug SQL
+            update_cursor.executemany(
+                "UPDATE accounts_player SET division_id_temp = ? WHERE id = ?",
+                updates_to_apply
+            )
 
     # Limpiar la tabla temporal
     with connection.cursor() as cursor:
