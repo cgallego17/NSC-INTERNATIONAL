@@ -609,7 +609,7 @@
                     </tr>
                     {% endif %}
 
-                    {% if breakdown.no_show_fee and breakdown.no_show_fee != "0.00" %}
+                    {% if breakdown.hotel_buy_out_fee|default:breakdown.no_show_fee and breakdown.hotel_buy_out_fee|default:breakdown.no_show_fee != "0.00" %}
                     <tr>
                         <td>
                             <div class="item-description">{% trans "Hotel Buy Out Fee" %}</div>
@@ -617,7 +617,7 @@
                         </td>
                         <td class="text-right">-</td>
                         <td class="text-right">-</td>
-                        <td class="text-right"><strong>${{ breakdown.no_show_fee }}</strong></td>
+                        <td class="text-right"><strong>${{ breakdown.hotel_buy_out_fee|default:breakdown.no_show_fee }}</strong></td>
                     </tr>
                     {% endif %}
 

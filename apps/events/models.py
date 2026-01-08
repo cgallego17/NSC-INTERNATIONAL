@@ -324,6 +324,15 @@ class Event(models.Model):
         null=True,
         blank=True,
     )
+    service_fee = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        verbose_name="Service Fee (%)",
+        null=True,
+        blank=True,
+        default=0.00,
+        help_text="Service fee percentage to be added to the checkout total",
+    )
 
     # Recordatorios y solicitudes
     send_payment_reminders = models.BooleanField(

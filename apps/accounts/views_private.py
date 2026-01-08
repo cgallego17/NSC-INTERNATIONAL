@@ -2249,14 +2249,23 @@ def create_stripe_event_checkout_session(request, pk):
     buy_out_fee = _decimal(
         getattr(getattr(event, "hotel", None), "buy_out_fee", None), default="0.00"
     )
-    no_show_fee = (
+    hotel_buy_out_fee = (
         buy_out_fee
         if (has_event_hotel and players_count > 0 and not enriched_cart)
         else Decimal("0.00")
     )
 
-    subtotal = (players_total + hotel_total + no_show_fee).quantize(Decimal("0.01"))
-    total = (subtotal * discount_multiplier).quantize(
+    subtotal = (players_total + hotel_total + hotel_buy_out_fee).quantize(Decimal("0.01"))
+
+    # Service fee: porcentaje del subtotal
+    service_fee_percent = _decimal(getattr(event, "service_fee", None), default="0.00")
+    service_fee_amount = (
+        subtotal * (service_fee_percent / Decimal("100"))
+    ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+    # Aplicar descuento al subtotal + service fee
+    total_before_discount = (subtotal + service_fee_amount).quantize(Decimal("0.01"))
+    total = (total_before_discount * discount_multiplier).quantize(
         Decimal("0.01"), rounding=ROUND_HALF_UP
     )
 
@@ -2267,7 +2276,7 @@ def create_stripe_event_checkout_session(request, pk):
         logger = logging.getLogger(__name__)
         fe_players_total = request.POST.get("frontend_players_total")
         fe_hotel_total = request.POST.get("frontend_hotel_total")
-        fe_no_show_fee = request.POST.get("frontend_no_show_fee")
+        fe_hotel_buy_out_fee = request.POST.get("frontend_hotel_buy_out_fee")
         fe_subtotal = request.POST.get("frontend_subtotal")
         fe_discount = request.POST.get("frontend_discount_percent")
         fe_paynow_total = request.POST.get("frontend_paynow_total")
@@ -2276,14 +2285,17 @@ def create_stripe_event_checkout_session(request, pk):
         fe_hotel_nights = request.POST.get("frontend_hotel_nights")
 
         logger.info(
-            "[StripeCheckout] event=%s user=%s mode=%s players=%s players_total=%s hotel_total=%s no_show_fee=%s discount=%s total=%s source=%s nights=%s | FE players_total=%s hotel_total=%s no_show_fee=%s subtotal=%s discount=%s paynow_total=%s plan_months=%s plan_monthly=%s nights=%s",
+            "[StripeCheckout] event=%s user=%s mode=%s players=%s players_total=%s hotel_total=%s hotel_buy_out_fee=%s service_fee_percent=%s service_fee_amount=%s total_before_discount=%s discount=%s total=%s source=%s nights=%s | FE players_total=%s hotel_total=%s hotel_buy_out_fee=%s subtotal=%s service_fee_percent=%s service_fee_amount=%s total_before_discount=%s discount=%s paynow_total=%s plan_months=%s plan_monthly=%s nights=%s",
             event.pk,
             user.pk,
             payment_mode,
             players_count,
             str(players_total),
             str(hotel_total),
-            str(no_show_fee),
+            str(hotel_buy_out_fee),
+            str(service_fee_percent),
+            str(service_fee_amount),
+            str(total_before_discount),
             str(discount_percent),
             str(total),
             "vue" if hotel_payload else "session_cart",
@@ -2294,8 +2306,11 @@ def create_stripe_event_checkout_session(request, pk):
             ),
             fe_players_total,
             fe_hotel_total,
-            fe_no_show_fee,
+            fe_hotel_buy_out_fee,
             fe_subtotal,
+            request.POST.get("frontend_service_fee_percent"),
+            request.POST.get("frontend_service_fee_amount"),
+            request.POST.get("frontend_total_before_discount"),
             fe_discount,
             fe_paynow_total,
             fe_plan_months,
@@ -2320,8 +2335,8 @@ def create_stripe_event_checkout_session(request, pk):
     plan_monthly_amount = Decimal("0.00")
 
     if payment_mode == "plan":
-        # Plan doesn't apply discount. Monthly amount is approximate = subtotal / months.
-        plan_monthly_amount = (subtotal / Decimal(str(plan_months))).quantize(
+        # Plan doesn't apply discount. Monthly amount is approximate = (subtotal + service_fee) / months.
+        plan_monthly_amount = (total_before_discount / Decimal(str(plan_months))).quantize(
             Decimal("0.01"), rounding=ROUND_HALF_UP
         )
         if plan_monthly_amount <= 0:
@@ -2330,16 +2345,23 @@ def create_stripe_event_checkout_session(request, pk):
                 status=400,
             )
 
+        # Build description including service fee if applicable
+        plan_description = (
+            f"First charge today, then {max(0, plan_months - 1)} monthly charge(s). "
+            f"Ends automatically."
+        )
+        if service_fee_amount > 0:
+            plan_description += (
+                f" Includes service fee ({service_fee_percent}%)."
+            )
+
         line_items = [
             {
                 "price_data": {
                     "currency": currency,
                     "product_data": {
                         "name": f"Payment plan ({plan_months} month{'s' if plan_months != 1 else ''}) - {event.title}",
-                        "description": (
-                            f"First charge today, then {max(0, plan_months - 1)} monthly charge(s). "
-                            f"Ends automatically."
-                        ),
+                        "description": plan_description,
                     },
                     "unit_amount": _money_to_cents(plan_monthly_amount),
                     "recurring": {"interval": "month"},
@@ -2379,13 +2401,27 @@ def create_stripe_event_checkout_session(request, pk):
                 }
             )
 
-        if no_show_fee > 0:
+        if hotel_buy_out_fee > 0:
             line_items.append(
                 {
                     "price_data": {
                         "currency": currency,
                         "product_data": {"name": "Hotel buy out fee"},
-                        "unit_amount": _money_to_cents(scale(no_show_fee)),
+                        "unit_amount": _money_to_cents(scale(hotel_buy_out_fee)),
+                    },
+                    "quantity": 1,
+                }
+            )
+
+        if service_fee_amount > 0:
+            line_items.append(
+                {
+                    "price_data": {
+                        "currency": currency,
+                        "product_data": {
+                            "name": f"Service fee ({service_fee_percent}%)"
+                        },
+                        "unit_amount": _money_to_cents(scale(service_fee_amount)),
                     },
                     "quantity": 1,
                 }
@@ -2425,6 +2461,8 @@ def create_stripe_event_checkout_session(request, pk):
             "user_id": str(user.pk),
             "payment_mode": payment_mode,
             "discount_percent": str(discount_percent),
+            "service_fee_percent": str(service_fee_percent),
+            "service_fee_amount": str(service_fee_amount),
             "player_ids": ",".join([str(p.pk) for p in valid_players]),
             "plan_months": str(plan_months),
         },
@@ -2457,8 +2495,11 @@ def create_stripe_event_checkout_session(request, pk):
             ),
             "hotel_nights": str(hotel_breakdown.get("nights", "")),
             "hotel_total": str(hotel_total),
-            "no_show_fee": str(no_show_fee),
+            "hotel_buy_out_fee": str(hotel_buy_out_fee),
+            "service_fee_percent": str(service_fee_percent),
+            "service_fee_amount": str(service_fee_amount),
             "subtotal": str(subtotal),
+            "total_before_discount": str(total_before_discount),
             "discount_percent": discount_percent,
             "total": str(total),
         },
@@ -2496,6 +2537,8 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
         breakdown_data = checkout.breakdown or {}
         players_total = breakdown_data.get("players_total", Decimal("0.00"))
         hotel_total = breakdown_data.get("hotel_total", Decimal("0.00"))
+        # Soporte para ambos nombres (legacy: no_show_fee, nuevo: hotel_buy_out_fee)
+        hotel_buy_out_fee = breakdown_data.get("hotel_buy_out_fee") or breakdown_data.get("no_show_fee", Decimal("0.00"))
         # Asegurar que son Decimal
         if isinstance(players_total, str):
             players_total = Decimal(players_total)
@@ -2505,7 +2548,11 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
             hotel_total = Decimal(hotel_total)
         elif not isinstance(hotel_total, Decimal):
             hotel_total = Decimal(str(hotel_total))
-        subtotal = players_total + hotel_total
+        if isinstance(hotel_buy_out_fee, str):
+            hotel_buy_out_fee = Decimal(hotel_buy_out_fee)
+        elif not isinstance(hotel_buy_out_fee, Decimal):
+            hotel_buy_out_fee = Decimal(str(hotel_buy_out_fee)) if hotel_buy_out_fee else Decimal("0.00")
+        subtotal = players_total + hotel_total + hotel_buy_out_fee
 
     tax_amount = breakdown.get("tax_amount", Decimal("0.00"))
     if isinstance(tax_amount, str):

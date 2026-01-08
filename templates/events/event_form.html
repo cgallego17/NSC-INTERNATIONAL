@@ -1517,6 +1517,24 @@
                                         <div class="text-danger small mt-1">{{ form.gate_fee_amount.errors }}</div>
                                     {% endif %}
                                 </div>
+
+                                <div class="col-md-6">
+                                    <label for="{{ form.service_fee.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-percentage me-1 text-muted"></i>
+                                        {{ form.service_fee.label }}
+                                        {% if form.service_fee.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    <div class="input-group">
+                                        {{ form.service_fee }}
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                    {% if form.service_fee.errors %}
+                                        <div class="text-danger small mt-1">{{ form.service_fee.errors }}</div>
+                                    {% endif %}
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>Porcentaje que se aplicará al total del checkout
+                                    </small>
+                                </div>
                             </div>
                         </div>
 

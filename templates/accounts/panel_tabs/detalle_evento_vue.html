@@ -777,7 +777,7 @@
             font-size: 0.95rem !important;
         }
 
-        #checkout-players-summary, #checkout-hotel-summary, #checkout-no-show-summary {
+        #checkout-players-summary, #checkout-hotel-summary, #checkout-hotel-buy-out-summary, #checkout-service-fee-summary {
             margin-bottom: 12px !important;
         }
 
@@ -847,6 +847,7 @@
     "video_url": "{{ event.video_url|default:''|escapejs }}",
     "external_link": "{{ event.external_link|default:''|escapejs }}",
     "default_entry_fee": {{ event.default_entry_fee|default:0 }},
+    "service_fee": {{ event.service_fee|default_if_none:0 }},
     "stripe_checkout_url": "{% url 'accounts:create_stripe_event_checkout_session' event.pk %}",
     "payment_deadline": "{{ event.payment_deadline|date:'Y-m-d'|default:'' }}",
     "category": {% if event.category %}{"id": {{ event.category.id }}, "name": "{{ event.category.name|escapejs }}"}{% else %}null{% endif %},

@@ -907,15 +907,15 @@
                             </div>
                             {% endif %}
 
-                            {% if breakdown.no_show_fee %}
+                            {% if breakdown.hotel_buy_out_fee or breakdown.no_show_fee %}
                             <div class="mb-4 p-3" style="background: white; border-radius: 6px; border-left: 4px solid #ffc107;">
                                 <div class="d-flex align-items-center mb-2">
                                     <i class="fas fa-exclamation-triangle me-2" style="color: #ffc107;"></i>
                                     <strong style="color: #856404; font-size: 1rem;">{% trans "Additional Fees" %}</strong>
                                 </div>
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span style="color: #6c757d; font-size: 0.9rem;">{% trans "No-Show Fee" %}</span>
-                                    <strong style="color: #856404; font-size: 1.1rem;">${{ breakdown.no_show_fee|intcomma_dot }}</strong>
+                                    <span style="color: #6c757d; font-size: 0.9rem;">{% trans "Hotel Buy Out Fee" %}</span>
+                                    <strong style="color: #856404; font-size: 1.1rem;">${{ breakdown.hotel_buy_out_fee|default:breakdown.no_show_fee|intcomma_dot }}</strong>
                                 </div>
                             </div>
                             {% endif %}

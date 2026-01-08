@@ -34,6 +34,7 @@ class EventForm(forms.ModelForm):
             "payment_deadline",  # DIA LIMITE DE PAGO DATE
             "gate_fee_type",  # TIPO DE GATE FEE
             "gate_fee_amount",  # PRECIO GATE FEE
+            "service_fee",  # SERVICE FEE (%)
             "primary_site",  # SITIO DEL EVENTO PRIMARY SELECT
             "additional_sites",  # SITIO DEL EVENTO ADICIONALES SELECT MULTIPLE
             "hotel",  # HOTEL SEDE SELECT
@@ -163,6 +164,16 @@ class EventForm(forms.ModelForm):
                     "required": False,
                 }
             ),
+            "service_fee": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "min": "0",
+                    "max": "100",
+                    "placeholder": "0.00",
+                    "required": False,
+                }
+            ),
             "primary_site": forms.Select(
                 attrs={
                     "class": "form-select",
@@ -253,6 +264,7 @@ class EventForm(forms.ModelForm):
             "payment_deadline": "Día Límite de Pago",
             "gate_fee_type": "Tipo de Gate Fee",
             "gate_fee_amount": "Precio Gate Fee",
+            "service_fee": "Service Fee (%)",
             "primary_site": "Sitio del Evento (Primary)",
             "additional_sites": "Sitios del Evento (Adicionales)",
             "hotel": "Hotel Sede",
@@ -644,6 +656,20 @@ class EventForm(forms.ModelForm):
                 "gate_fee_amount",
                 "El precio del gate fee no puede ser negativo.",
             )
+
+        # Validar que service_fee sea positivo y menor o igual a 100 si está presente
+        service_fee = cleaned_data.get("service_fee")
+        if service_fee is not None:
+            if service_fee < 0:
+                self.add_error(
+                    "service_fee",
+                    "El service fee no puede ser negativo.",
+                )
+            elif service_fee > 100:
+                self.add_error(
+                    "service_fee",
+                    "El service fee no puede ser mayor a 100%.",
+                )
 
         return cleaned_data
 

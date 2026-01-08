@@ -3374,7 +3374,7 @@ const EventDetailApp = {
             }
         }, { deep: true });
 
-        // Total calculation with optional no-show fee and pay now discount
+        // Total calculation with optional hotel buy out fee and pay now discount
         const checkoutTotals = computed(() => {
             const playersPrice = playersTotal.value;
             const hotelPrice = priceCalc.priceBreakdown.value?.total || 0;
@@ -3382,20 +3382,25 @@ const EventDetailApp = {
             // Hotel buy out fee: comes from the event hotel (Hotel.buy_out_fee).
             // Applies if event has hotel, there are players, and NO hotel stay is selected.
             const hasEventHotel = !!eventData.value?.hotel;
-            const applyNoShowFee =
+            const applyHotelBuyOutFee =
                 hasEventHotel &&
                 (selectedChildrenCount.value > 0) &&
                 (reservation.state.rooms.length === 0);
 
             const buyOutFeeRaw = eventData.value?.hotel?.buy_out_fee;
             const buyOutFee = parseFloat(buyOutFeeRaw);
-            const noShowFee = applyNoShowFee ? (isNaN(buyOutFee) ? 0 : buyOutFee) : 0;
+            const hotelBuyOutFee = applyHotelBuyOutFee ? (isNaN(buyOutFee) ? 0 : buyOutFee) : 0;
 
-            const subtotal = playersPrice + hotelPrice + noShowFee;
+            const subtotal = playersPrice + hotelPrice + hotelBuyOutFee;
+
+            // Service fee: porcentaje del subtotal
+            const serviceFeePercent = parseFloat(eventData.value?.service_fee) || 0;
+            const serviceFeeAmount = serviceFeePercent > 0 ? (subtotal * (serviceFeePercent / 100)) : 0;
+            const totalBeforeDiscount = subtotal + serviceFeeAmount;
 
             // Pay now -5% OFF only applies if a hotel stay is added
             const hasHotelForDiscount = (hotelPrice > 0) && (reservation.state.rooms.length > 0);
-            const payNowTotal = hasHotelForDiscount ? (subtotal * 0.95) : subtotal;
+            const payNowTotal = hasHotelForDiscount ? (totalBeforeDiscount * 0.95) : totalBeforeDiscount;
 
             // Plan monthly amount (approx)
             let planMonths = 1;
@@ -3405,16 +3410,19 @@ const EventDetailApp = {
                 planMonths = (deadline.getFullYear() - now.getFullYear()) * 12 + (deadline.getMonth() - now.getMonth()) + 1;
                 if (!isFinite(planMonths) || planMonths < 1) planMonths = 1;
             }
-            const monthlyPlanAmount = subtotal / planMonths;
+            const monthlyPlanAmount = totalBeforeDiscount / planMonths;
 
             return {
                 subtotal,
-                noShowFee,
+                hotelBuyOutFee,
+                serviceFeePercent,
+                serviceFeeAmount,
+                totalBeforeDiscount,
                 payNowTotal,
                 hasHotelForDiscount,
                 planMonths,
                 monthlyPlanAmount,
-                savings: subtotal - payNowTotal
+                savings: totalBeforeDiscount - payNowTotal
             };
         });
 
@@ -3485,7 +3493,7 @@ const EventDetailApp = {
 
                 // Add or update essential fields
                 formData.set('payment_mode', mode);
-                formData.set('no_show_fee', checkoutTotals.value.noShowFee);
+                formData.set('hotel_buy_out_fee', checkoutTotals.value.hotelBuyOutFee);
 
                 const csrfToken = getCsrfToken();
                 if (csrfToken) {
@@ -3502,14 +3510,20 @@ const EventDetailApp = {
                     const frontendHotelTotal = priceCalc.priceBreakdown.value?.total || 0;
                     const frontendNights = priceCalc.priceBreakdown.value?.nights || calculateNights(reservation.state.check_in_date, reservation.state.check_out_date);
                     const frontendSubtotal = checkoutTotals.value.subtotal || 0;
+                    const frontendServiceFeePercent = checkoutTotals.value.serviceFeePercent || 0;
+                    const frontendServiceFeeAmount = checkoutTotals.value.serviceFeeAmount || 0;
+                    const frontendTotalBeforeDiscount = checkoutTotals.value.totalBeforeDiscount || 0;
                     const frontendPayNowTotal = checkoutTotals.value.payNowTotal || 0;
                     const frontendPlanMonths = checkoutTotals.value.planMonths || 1;
                     const frontendPlanMonthly = checkoutTotals.value.monthlyPlanAmount || 0;
 
                     formData.set('frontend_players_total', String(frontendPlayersTotal));
                     formData.set('frontend_hotel_total', String(frontendHotelTotal));
-                    formData.set('frontend_no_show_fee', String(checkoutTotals.value.noShowFee || 0));
+                    formData.set('frontend_hotel_buy_out_fee', String(checkoutTotals.value.hotelBuyOutFee || 0));
                     formData.set('frontend_subtotal', String(frontendSubtotal));
+                    formData.set('frontend_service_fee_percent', String(frontendServiceFeePercent));
+                    formData.set('frontend_service_fee_amount', String(frontendServiceFeeAmount));
+                    formData.set('frontend_total_before_discount', String(frontendTotalBeforeDiscount));
                     formData.set('frontend_discount_percent', String(discountPercent));
                     formData.set('frontend_paynow_total', String(frontendPayNowTotal));
                     formData.set('frontend_plan_months', String(frontendPlanMonths));
@@ -4190,7 +4204,7 @@ const EventDetailApp = {
                             </div>
 
                             <!-- Hotel buy out fee Section -->
-                            <div v-if="checkoutTotals.noShowFee > 0" id="checkout-no-show-summary" style="margin-bottom: 20px;">
+                            <div v-if="checkoutTotals.hotelBuyOutFee > 0" id="checkout-hotel-buy-out-summary" style="margin-bottom: 20px;">
                                 <div style="background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%); border: 2px solid #ffedd5; border-radius: 12px; padding: 12px; border-left: 4px solid #f97316;">
                                     <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
                                         <div style="flex: 1; min-width: 0;">
@@ -4205,7 +4219,29 @@ const EventDetailApp = {
                                             </div>
                                         </div>
                                         <div style="text-align: right; flex-shrink: 0;">
-                                            <div style="font-weight: 900; color: #f97316; font-size: 1.1rem;">{{ formatPrice(checkoutTotals.noShowFee) }}</div>
+                                            <div style="font-weight: 900; color: #f97316; font-size: 1.1rem;">{{ formatPrice(checkoutTotals.hotelBuyOutFee) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Service Fee Section -->
+                            <div v-if="checkoutTotals.serviceFeeAmount > 0" id="checkout-service-fee-summary" style="margin-bottom: 20px;">
+                                <div style="background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%); border: 2px solid #bae6fd; border-radius: 12px; padding: 12px; border-left: 4px solid #0ea5e9;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                                <i class="fas fa-percentage" style="color: #0ea5e9; font-size: 1rem;"></i>
+                                                <span style="font-weight: 800; color: var(--mlb-blue); font-size: 0.95rem;">
+                                                    Service Fee ({{ checkoutTotals.serviceFeePercent }}%)
+                                                </span>
+                                            </div>
+                                            <div style="font-size: 0.78rem; color: #6c757d; font-weight: 600; line-height: 1.25;">
+                                                Percentage applied to the checkout total
+                                            </div>
+                                        </div>
+                                        <div style="text-align: right; flex-shrink: 0;">
+                                            <div style="font-weight: 900; color: #0ea5e9; font-size: 1.1rem;">{{ formatPrice(checkoutTotals.serviceFeeAmount) }}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -4215,7 +4251,7 @@ const EventDetailApp = {
                             <div style="background: var(--mlb-blue); border-radius: 8px; padding: 15px; margin-top: 25px; box-shadow: 0 4px 12px rgba(13, 44, 84, 0.2);">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <span style="font-weight: 800; color: white; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;">{{ t('total') }}</span>
-                                    <span style="font-weight: 900; color: white; font-size: 1.5rem; letter-spacing: -0.5px;">{{ formatPrice(checkoutTotals.subtotal) }}</span>
+                                    <span style="font-weight: 900; color: white; font-size: 1.5rem; letter-spacing: -0.5px;">{{ formatPrice(checkoutTotals.totalBeforeDiscount) }}</span>
                                 </div>
                             </div>
 
