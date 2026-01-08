@@ -226,6 +226,32 @@
             font-size: 0.875rem;
         }
     }
+
+    /* Estilos para tabs personalizados */
+    .nav-tabs-custom {
+        border-bottom: none;
+    }
+
+    .nav-tabs-custom .nav-link {
+        transition: all 0.2s ease;
+        cursor: pointer;
+        border-radius: 0;
+        background: transparent;
+    }
+
+    .nav-tabs-custom .nav-link:hover {
+        background-color: #f8f9fa;
+    }
+
+    .nav-tabs-custom .nav-link.active {
+        background-color: transparent;
+    }
+
+    .nav-tabs-custom .nav-link .badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+        font-weight: 600;
+    }
 </style>
 {% endblock %}
 
@@ -287,17 +313,7 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-lg-2 col-md-6">
-                            <label for="status" class="form-label">Estado de Publicación</label>
-                            <select class="form-select" id="status" name="status">
-                                <option value="">Todos los estados</option>
-                                <option value="published" {% if request.GET.status == 'published' %}selected{% endif %}>Publicados (Activos)</option>
-                                <option value="draft" {% if request.GET.status == 'draft' %}selected{% endif %}>Borradores (Ocultos)</option>
-                                <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>Cancelados</option>
-                                <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completados</option>
-                            </select>
-                        </div>
-                        <div class="col-lg-2 col-md-6">
+                        <div class="col-lg-3 col-md-6">
                             <label for="time_filter" class="form-label">Período</label>
                             <select class="form-select" id="time_filter" name="time_filter">
                                 <option value="">Todos los tiempos</option>
@@ -338,6 +354,43 @@
                         </a>
                     </div>
                 </div>
+
+                <!-- Tabs de Estado -->
+                <div class="card-body p-0" style="background: white; border-bottom: 1px solid #dee2e6;">
+                    <ul class="nav nav-tabs nav-tabs-custom" id="statusTabs" role="tablist" style="border-bottom: none; padding: 0 1rem; margin: 0;">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link status-tab-btn {% if active_status == 'all' or not request.GET.status %}active{% endif %}"
+                                    data-status="all" type="button" style="border: none; border-bottom: 2px solid {% if active_status == 'all' or not request.GET.status %}#0d6efd{% else %}transparent{% endif %}; color: {% if active_status == 'all' or not request.GET.status %}#0d6efd{% else %}#6c757d{% endif %}; font-weight: 600; padding: 0.75rem 1rem;">
+                                <i class="fas fa-list me-1"></i>Todos <span class="badge bg-secondary ms-1">{{ status_counts.all }}</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link status-tab-btn {% if active_status == 'published' %}active{% endif %}"
+                                    data-status="published" type="button" style="border: none; border-bottom: 2px solid {% if active_status == 'published' %}#198754{% else %}transparent{% endif %}; color: {% if active_status == 'published' %}#198754{% else %}#6c757d{% endif %}; font-weight: 600; padding: 0.75rem 1rem;">
+                                <i class="fas fa-check-circle me-1"></i>Publicados <span class="badge bg-success ms-1">{{ status_counts.published }}</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link status-tab-btn {% if active_status == 'draft' %}active{% endif %}"
+                                    data-status="draft" type="button" style="border: none; border-bottom: 2px solid {% if active_status == 'draft' %}#6c757d{% else %}transparent{% endif %}; color: {% if active_status == 'draft' %}#6c757d{% else %}#6c757d{% endif %}; font-weight: 600; padding: 0.75rem 1rem;">
+                                <i class="fas fa-edit me-1"></i>Borradores <span class="badge bg-secondary ms-1">{{ status_counts.draft }}</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link status-tab-btn {% if active_status == 'completed' %}active{% endif %}"
+                                    data-status="completed" type="button" style="border: none; border-bottom: 2px solid {% if active_status == 'completed' %}#0dcaf0{% else %}transparent{% endif %}; color: {% if active_status == 'completed' %}#0dcaf0{% else %}#6c757d{% endif %}; font-weight: 600; padding: 0.75rem 1rem;">
+                                <i class="fas fa-check-double me-1"></i>Completados <span class="badge bg-info ms-1">{{ status_counts.completed }}</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link status-tab-btn {% if active_status == 'cancelled' %}active{% endif %}"
+                                    data-status="cancelled" type="button" style="border: none; border-bottom: 2px solid {% if active_status == 'cancelled' %}#dc3545{% else %}transparent{% endif %}; color: {% if active_status == 'cancelled' %}#dc3545{% else %}#6c757d{% endif %}; font-weight: 600; padding: 0.75rem 1rem;">
+                                <i class="fas fa-times-circle me-1"></i>Cancelados <span class="badge bg-danger ms-1">{{ status_counts.cancelled }}</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
                 <div class="card-body p-0" style="background: white;">
                     {% if events %}
                         <div class="table-responsive">
@@ -421,12 +474,15 @@
                                         </td>
                                         <td>
                                             <div class="d-flex flex-column gap-1">
-                                                <select class="form-select form-select-sm event-status-select" data-event-id="{{ event.pk }}" style="font-size: 0.8125rem; font-weight: 600; min-width: 120px;">
-                                                    <option value="draft" {% if event.status == 'draft' %}selected{% endif %}>Borrador</option>
-                                                    <option value="published" {% if event.status == 'published' %}selected{% endif %}>Publicado</option>
-                                                    <option value="cancelled" {% if event.status == 'cancelled' %}selected{% endif %}>Cancelado</option>
-                                                    <option value="completed" {% if event.status == 'completed' %}selected{% endif %}>Completado</option>
-                                                </select>
+                                                {% if event.status == 'published' %}
+                                                    <span class="badge bg-success" style="font-size: 0.8125rem; font-weight: 600;">Publicado</span>
+                                                {% elif event.status == 'draft' %}
+                                                    <span class="badge bg-secondary" style="font-size: 0.8125rem; font-weight: 600;">Borrador</span>
+                                                {% elif event.status == 'cancelled' %}
+                                                    <span class="badge bg-danger" style="font-size: 0.8125rem; font-weight: 600;">Cancelado</span>
+                                                {% elif event.status == 'completed' %}
+                                                    <span class="badge bg-info" style="font-size: 0.8125rem; font-weight: 600;">Completado</span>
+                                                {% endif %}
 
                                                 {% if event.priority == 'high' %}
                                                     <span class="badge bg-warning text-dark" style="font-size: 0.75rem; font-weight: 600;">Alta</span>
@@ -442,28 +498,21 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="d-flex gap-1">
-                                                <a href="{% url 'events:admin_detail' event.pk %}" class="btn btn-outline-primary btn-sm" title="Ver detalles">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="{% url 'events:update' event.pk %}" class="btn btn-outline-secondary btn-sm" title="Editar">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                {% if event.status != 'published' %}
-                                                    <form method="post" action="{% url 'events:toggle_publish' event.pk %}" class="d-inline">
-                                                        {% csrf_token %}
-                                                        <button type="submit" class="btn btn-success btn-sm" title="Publicar evento">
-                                                            <i class="fas fa-check"></i>
-                                                        </button>
-                                                    </form>
-                                                {% else %}
-                                                    <form method="post" action="{% url 'events:toggle_publish' event.pk %}" class="d-inline">
-                                                        {% csrf_token %}
-                                                        <button type="submit" class="btn btn-warning btn-sm" title="Despublicar evento">
-                                                            <i class="fas fa-eye-slash"></i>
-                                                        </button>
-                                                    </form>
-                                                {% endif %}
+                                            <div class="d-flex flex-column gap-2">
+                                                <div class="d-flex gap-1">
+                                                    <a href="{% url 'events:admin_detail' event.pk %}" class="btn btn-outline-primary btn-sm" title="Ver detalles">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{% url 'events:update' event.pk %}" class="btn btn-outline-secondary btn-sm" title="Editar">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                </div>
+                                                <select class="form-select form-select-sm event-status-select" data-event-id="{{ event.pk }}" style="font-size: 0.8125rem; font-weight: 600; min-width: 120px;">
+                                                    <option value="draft" {% if event.status == 'draft' %}selected{% endif %}>Borrador</option>
+                                                    <option value="published" {% if event.status == 'published' %}selected{% endif %}>Publicado</option>
+                                                    <option value="cancelled" {% if event.status == 'cancelled' %}selected{% endif %}>Cancelado</option>
+                                                    <option value="completed" {% if event.status == 'completed' %}selected{% endif %}>Completado</option>
+                                                </select>
                                             </div>
                                         </td>
                                     </tr>
@@ -537,7 +586,27 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Manejar cambio de estado
+    // Manejar cambio de tabs de estado
+    const statusTabBtns = document.querySelectorAll('.status-tab-btn');
+
+    statusTabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const status = this.dataset.status;
+            const url = new URL(window.location);
+
+            // Actualizar parámetro status en la URL
+            if (status === 'all') {
+                url.searchParams.delete('status');
+            } else {
+                url.searchParams.set('status', status);
+            }
+
+            // Redirigir a la nueva URL
+            window.location.href = url.toString();
+        });
+    });
+
+    // Manejar cambio de estado desde el selector
     const statusSelects = document.querySelectorAll('.event-status-select');
 
     statusSelects.forEach(select => {

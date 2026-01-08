@@ -92,6 +92,52 @@ class EventListView(StaffRequiredMixin, ListView):
             ("past", "Pasados"),
             ("today", "Hoy"),
         ]
+
+        # Obtener conteos por estado para los tabs
+        base_queryset = Event.objects.all()
+        search = self.request.GET.get("search")
+        category = self.request.GET.get("category")
+        event_type = self.request.GET.get("event_type")
+        time_filter = self.request.GET.get("time_filter")
+
+        # Aplicar los mismos filtros que se aplican en get_queryset (excepto status)
+        if search:
+            base_queryset = base_queryset.filter(
+                Q(title__icontains=search)
+                | Q(description__icontains=search)
+                | Q(location__icontains=search)
+            )
+        if category:
+            base_queryset = base_queryset.filter(category__id=category)
+        if event_type:
+            base_queryset = base_queryset.filter(event_type__id=event_type)
+        if time_filter:
+            now = timezone.now()
+            if time_filter == "upcoming":
+                base_queryset = base_queryset.filter(start_date__gt=now)
+            elif time_filter == "ongoing":
+                base_queryset = base_queryset.filter(start_date__lte=now, end_date__gte=now)
+            elif time_filter == "past":
+                base_queryset = base_queryset.filter(end_date__lt=now)
+            elif time_filter == "today":
+                today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+                today_end = today_start + timedelta(days=1)
+                base_queryset = base_queryset.filter(
+                    start_date__gte=today_start, start_date__lt=today_end
+                )
+
+        # Contar eventos por estado
+        context["status_counts"] = {
+            "all": base_queryset.count(),
+            "draft": base_queryset.filter(status="draft").count(),
+            "published": base_queryset.filter(status="published").count(),
+            "cancelled": base_queryset.filter(status="cancelled").count(),
+            "completed": base_queryset.filter(status="completed").count(),
+        }
+
+        # Estado activo actual (default: 'all')
+        context["active_status"] = self.request.GET.get("status", "all")
+
         return context
 
 
