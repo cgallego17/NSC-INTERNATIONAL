@@ -252,6 +252,45 @@
         padding: 0.2rem 0.4rem;
         font-weight: 600;
     }
+
+    /* Estilos para el dropdown de estado */
+    .btn-status-toggle {
+        border: 1px solid #dee2e6;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .btn-status-toggle:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .status-dropdown-menu .dropdown-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+    }
+
+    .status-dropdown-menu .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .status-dropdown-menu .dropdown-item.active {
+        background-color: #e7f3ff;
+        color: #0d6efd;
+        font-weight: 600;
+    }
+
+    .status-dropdown-menu .dropdown-item .badge {
+        font-size: 0.7rem;
+        width: 8px;
+        height: 8px;
+        padding: 0;
+        border-radius: 50%;
+        display: inline-block;
+    }
 </style>
 {% endblock %}
 
@@ -475,13 +514,13 @@
                                         <td>
                                             <div class="d-flex flex-column gap-1">
                                                 {% if event.status == 'published' %}
-                                                    <span class="badge bg-success" style="font-size: 0.8125rem; font-weight: 600;">Publicado</span>
+                                                    <span class="badge bg-success badge-status" style="font-size: 0.8125rem; font-weight: 600;">Publicado</span>
                                                 {% elif event.status == 'draft' %}
-                                                    <span class="badge bg-secondary" style="font-size: 0.8125rem; font-weight: 600;">Borrador</span>
+                                                    <span class="badge bg-secondary badge-status" style="font-size: 0.8125rem; font-weight: 600;">Borrador</span>
                                                 {% elif event.status == 'cancelled' %}
-                                                    <span class="badge bg-danger" style="font-size: 0.8125rem; font-weight: 600;">Cancelado</span>
+                                                    <span class="badge bg-danger badge-status" style="font-size: 0.8125rem; font-weight: 600;">Cancelado</span>
                                                 {% elif event.status == 'completed' %}
-                                                    <span class="badge bg-info" style="font-size: 0.8125rem; font-weight: 600;">Completado</span>
+                                                    <span class="badge bg-info badge-status" style="font-size: 0.8125rem; font-weight: 600;">Completado</span>
                                                 {% endif %}
 
                                                 {% if event.priority == 'high' %}
@@ -507,12 +546,37 @@
                                                         <i class="fas fa-edit"></i>
                                                     </a>
                                                 </div>
-                                                <select class="form-select form-select-sm event-status-select" data-event-id="{{ event.pk }}" style="font-size: 0.8125rem; font-weight: 600; min-width: 120px;">
-                                                    <option value="draft" {% if event.status == 'draft' %}selected{% endif %}>Borrador</option>
-                                                    <option value="published" {% if event.status == 'published' %}selected{% endif %}>Publicado</option>
-                                                    <option value="cancelled" {% if event.status == 'cancelled' %}selected{% endif %}>Cancelado</option>
-                                                    <option value="completed" {% if event.status == 'completed' %}selected{% endif %}>Completado</option>
-                                                </select>
+                                                <div class="btn-group" style="position: relative;">
+                                                    <button type="button" class="btn btn-sm btn-status-toggle dropdown-toggle"
+                                                            data-event-id="{{ event.pk }}"
+                                                            data-bs-toggle="dropdown"
+                                                            aria-expanded="false"
+                                                            style="font-size: 0.8125rem; font-weight: 600; min-width: 120px;">
+                                                        {% if event.status == 'published' %}
+                                                            <span class="badge bg-success me-1">●</span>Publicado
+                                                        {% elif event.status == 'draft' %}
+                                                            <span class="badge bg-secondary me-1">●</span>Borrador
+                                                        {% elif event.status == 'cancelled' %}
+                                                            <span class="badge bg-danger me-1">●</span>Cancelado
+                                                        {% elif event.status == 'completed' %}
+                                                            <span class="badge bg-info me-1">●</span>Completado
+                                                        {% endif %}
+                                                    </button>
+                                                    <ul class="dropdown-menu status-dropdown-menu" data-event-id="{{ event.pk }}">
+                                                        <li><a class="dropdown-item status-option {% if event.status == 'draft' %}active{% endif %}" href="#" data-status="draft">
+                                                            <span class="badge bg-secondary me-2">●</span>Borrador
+                                                        </a></li>
+                                                        <li><a class="dropdown-item status-option {% if event.status == 'published' %}active{% endif %}" href="#" data-status="published">
+                                                            <span class="badge bg-success me-2">●</span>Publicado
+                                                        </a></li>
+                                                        <li><a class="dropdown-item status-option {% if event.status == 'completed' %}active{% endif %}" href="#" data-status="completed">
+                                                            <span class="badge bg-info me-2">●</span>Completado
+                                                        </a></li>
+                                                        <li><a class="dropdown-item status-option {% if event.status == 'cancelled' %}active{% endif %}" href="#" data-status="cancelled">
+                                                            <span class="badge bg-danger me-2">●</span>Cancelado
+                                                        </a></li>
+                                                    </ul>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -606,106 +670,126 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Manejar cambio de estado desde el selector
-    const statusSelects = document.querySelectorAll('.event-status-select');
+    // Inicializar dropdowns de Bootstrap
+    const statusToggleButtons = document.querySelectorAll('.btn-status-toggle');
+    statusToggleButtons.forEach(button => {
+        new bootstrap.Dropdown(button);
+    });
 
-    statusSelects.forEach(select => {
-        select.addEventListener('change', function() {
-            const eventId = this.dataset.eventId;
-            const newStatus = this.value;
-            const originalValue = this.getAttribute('data-original-status') || this.value;
+    // Manejar cambio de estado desde el dropdown
+    document.addEventListener('click', function(e) {
+        const statusOption = e.target.closest('.status-option');
+        if (!statusOption) return;
 
-            // Guardar el valor original si no existe
-            if (!this.getAttribute('data-original-status')) {
-                this.setAttribute('data-original-status', originalValue);
+        e.preventDefault();
+        e.stopPropagation();
+
+        const menu = statusOption.closest('.status-dropdown-menu');
+        const eventId = menu.dataset.eventId;
+        const newStatus = statusOption.dataset.status;
+        const toggleButton = document.querySelector(`.btn-status-toggle[data-event-id="${eventId}"]`);
+
+        // Si el estado seleccionado es el mismo, solo cerrar el dropdown
+        if (statusOption.classList.contains('active')) {
+            const dropdownInstance = bootstrap.Dropdown.getInstance(toggleButton);
+            if (dropdownInstance) {
+                dropdownInstance.hide();
             }
-
-            // Confirmar cambio
-            if (!confirm('¿Estás seguro de cambiar el estado del evento?')) {
-                this.value = originalValue;
-                return;
-            }
-
-            // Deshabilitar el select mientras se procesa
-            this.disabled = true;
-
-            // Obtener token CSRF desde el formulario de filtros
-            const csrfToken = document.querySelector('form input[name=csrfmiddlewaretoken]');
-            const token = csrfToken ? csrfToken.value : '{{ csrf_token }}';
-
-            // Crear form data
-            const formData = new FormData();
-            formData.append('status', newStatus);
-            formData.append('csrfmiddlewaretoken', token);
-
-            // Enviar request AJAX
-            fetch(`/events/${eventId}/change-status/`, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                credentials: 'same-origin'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Actualizar el valor original guardado
-                    this.setAttribute('data-original-status', newStatus);
-
-                    // Actualizar clase del select según el estado
-                    this.className = 'form-select form-select-sm event-status-select';
-                    const statusClasses = {
-                        'draft': 'bg-secondary text-white',
-                        'published': 'bg-success text-white',
-                        'cancelled': 'bg-danger text-white',
-                        'completed': 'bg-info text-white'
-                    };
-                    this.classList.add(statusClasses[newStatus] || 'bg-secondary');
-
-                    // Mostrar mensaje de éxito
-                    const alert = document.createElement('div');
-                    alert.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
-                    alert.style.zIndex = '9999';
-                    alert.innerHTML = `
-                        <strong>✓ Estado actualizado:</strong> ${data.status_label}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    `;
-                    document.body.appendChild(alert);
-
-                    // Remover alert después de 3 segundos
-                    setTimeout(() => {
-                        alert.remove();
-                    }, 3000);
-                } else {
-                    // Revertir al valor original en caso de error
-                    this.value = originalValue;
-                    alert('Error al cambiar el estado: ' + (data.error || 'Error desconocido'));
-                }
-            })
-            .catch(error => {
-                // Revertir al valor original en caso de error
-                this.value = originalValue;
-                console.error('Error:', error);
-                alert('Error al cambiar el estado. Por favor, intenta nuevamente.');
-            })
-            .finally(() => {
-                // Rehabilitar el select
-                this.disabled = false;
-            });
-        });
-
-        // Aplicar clases de color inicial según el estado seleccionado
-        const statusClasses = {
-            'draft': 'bg-secondary text-white',
-            'published': 'bg-success text-white',
-            'cancelled': 'bg-danger text-white',
-            'completed': 'bg-info text-white'
-        };
-        const currentStatus = select.value;
-        if (statusClasses[currentStatus]) {
-            select.classList.add(statusClasses[currentStatus]);
+            return;
         }
+
+        // Deshabilitar el botón mientras se procesa
+        toggleButton.disabled = true;
+
+        // Obtener token CSRF desde el formulario de filtros
+        const csrfToken = document.querySelector('form input[name=csrfmiddlewaretoken]');
+        const token = csrfToken ? csrfToken.value : '{{ csrf_token }}';
+
+        // Crear form data
+        const formData = new FormData();
+        formData.append('status', newStatus);
+        formData.append('csrfmiddlewaretoken', token);
+
+        // Enviar request AJAX
+        fetch(`/events/${eventId}/change-status/`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Actualizar botón con nuevo estado
+                const statusLabels = {
+                    'draft': '<span class="badge bg-secondary me-1">●</span>Borrador',
+                    'published': '<span class="badge bg-success me-1">●</span>Publicado',
+                    'cancelled': '<span class="badge bg-danger me-1">●</span>Cancelado',
+                    'completed': '<span class="badge bg-info me-1">●</span>Completado'
+                };
+                toggleButton.innerHTML = statusLabels[newStatus] || newStatus;
+
+                // Actualizar clase activa en el menú
+                const allOptions = menu.querySelectorAll('.status-option');
+                allOptions.forEach(opt => opt.classList.remove('active'));
+                statusOption.classList.add('active');
+
+                // Actualizar badge del estado en la columna de estado
+                const row = toggleButton.closest('tr');
+                if (row) {
+                    const statusBadge = row.querySelector('.badge-status');
+                    if (statusBadge) {
+                        const badgeClasses = {
+                            'draft': 'bg-secondary',
+                            'published': 'bg-success',
+                            'cancelled': 'bg-danger',
+                            'completed': 'bg-info'
+                        };
+                        statusBadge.className = `badge ${badgeClasses[newStatus] || 'bg-secondary'} badge-status`;
+                        const statusLabelsText = {
+                            'draft': 'Borrador',
+                            'published': 'Publicado',
+                            'cancelled': 'Cancelado',
+                            'completed': 'Completado'
+                        };
+                        statusBadge.textContent = statusLabelsText[newStatus] || newStatus;
+                    }
+                }
+
+                // Cerrar el dropdown
+                const dropdownInstance = bootstrap.Dropdown.getInstance(toggleButton);
+                if (dropdownInstance) {
+                    dropdownInstance.hide();
+                }
+
+                // Mostrar mensaje de éxito
+                const alert = document.createElement('div');
+                alert.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+                alert.style.zIndex = '9999';
+                alert.innerHTML = `
+                    <strong>✓ Estado actualizado:</strong> ${data.status_label}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                document.body.appendChild(alert);
+
+                // Remover alert después de 3 segundos
+                setTimeout(() => {
+                    alert.remove();
+                }, 3000);
+            } else {
+                alert('Error al cambiar el estado: ' + (data.error || 'Error desconocido'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cambiar el estado. Por favor, intenta nuevamente.');
+        })
+        .finally(() => {
+            // Rehabilitar el botón
+            toggleButton.disabled = false;
+        });
     });
 });
 </script>
