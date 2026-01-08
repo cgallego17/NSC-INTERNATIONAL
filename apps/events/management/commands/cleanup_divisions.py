@@ -63,6 +63,38 @@ class Command(BaseCommand):
                 self.style.WARNING(f'  ... y {len(divisions_to_delete) - 20} más')
             )
 
+        # Verificar divisiones estándar que faltan (en dry-run solo verificar, no crear)
+        self.stdout.write('\n3. Verificando divisiones estándar faltantes...')
+        missing_divisions = []
+        for std_div_name in standard_divisions:
+            if not Division.objects.filter(name=std_div_name).exists():
+                missing_divisions.append(std_div_name)
+
+        if missing_divisions:
+            self.stdout.write(
+                self.style.WARNING(
+                    f'  ⚠ Faltan {len(missing_divisions)} divisiones estándar que se crearán: {", ".join(missing_divisions)}'
+                )
+            )
+        else:
+            self.stdout.write('  ✓ Todas las divisiones estándar ya existen')
+
+        # Si no es dry-run, crear las divisiones faltantes
+        if not dry_run:
+            created_divisions = []
+            for std_div_name in missing_divisions:
+                std_div, created = Division.objects.get_or_create(
+                    name=std_div_name,
+                    defaults={'is_active': True}
+                )
+                if created:
+                    created_divisions.append(std_div)
+                    self.stdout.write(
+                        self.style.SUCCESS(f'  [CREATED] División creada: {std_div_name}')
+                    )
+            if created_divisions:
+                self.stdout.write(f'  ✓ Creadas {len(created_divisions)} divisiones estándar')
+
         # Verificar jugadores y eventos afectados
         players_with_deleted_divisions = Player.objects.filter(
             division__in=divisions_to_delete
@@ -84,10 +116,17 @@ class Command(BaseCommand):
                     # Extraer nombre base (ej: "10U" de "10U OPEN")
                     base_name = div_name.split()[0] if ' ' in div_name else div_name
                     if base_name in standard_divisions:
-                        standard_div = Division.objects.get(name=base_name)
-                        self.stdout.write(
-                            f'  - {player.user.get_full_name()}: {div_name} -> {base_name}'
+                        # Usar get_or_create para evitar DoesNotExist
+                        standard_div, created = Division.objects.get_or_create(
+                            name=base_name,
+                            defaults={'is_active': True}
                         )
+                        created_msg = ' [SE CREARÁ]' if created and dry_run else (' [CREATED]' if created else '')
+                        self.stdout.write(
+                            f'  - {player.user.get_full_name()}: {div_name} -> {base_name}{created_msg}'
+                        )
+                        if created and base_name not in [d.name for d in divisions_to_keep]:
+                            divisions_to_keep.append(standard_div)
                     else:
                         self.stdout.write(
                             self.style.ERROR(
@@ -123,7 +162,17 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('\n=== ELIMINANDO DIVISIONES ===\n'))
 
         with transaction.atomic():
+            # 0. Asegurar que todas las divisiones estándar existen
+            self.stdout.write('0. Creando divisiones estándar faltantes...')
+            for std_div_name in standard_divisions:
+                Division.objects.get_or_create(
+                    name=std_div_name,
+                    defaults={'is_active': True}
+                )
+            self.stdout.write('  ✓ Divisiones estándar verificadas\n')
+
             # 1. Actualizar jugadores con divisiones a eliminar
+            self.stdout.write('1. Actualizando jugadores...')
             updated_players = 0
             for player in players_with_deleted_divisions:
                 if player.division:
@@ -136,9 +185,14 @@ class Command(BaseCommand):
                             player.save()
                             updated_players += 1
                         except Division.DoesNotExist:
+                            # Crear la división si no existe (no debería pasar, pero por si acaso)
+                            standard_div = Division.objects.create(name=base_name, is_active=True)
+                            player.division = standard_div
+                            player.save()
+                            updated_players += 1
                             self.stdout.write(
-                                self.style.ERROR(
-                                    f'  [ERROR] No se encontró división estándar: {base_name}'
+                                self.style.WARNING(
+                                    f'  [CREATED] División {base_name} creada para jugador {player.user.get_full_name()}'
                                 )
                             )
                     else:
@@ -151,9 +205,10 @@ class Command(BaseCommand):
                             )
                         )
 
-            self.stdout.write(f'  [OK] Actualizados {updated_players} jugadores\n')
+            self.stdout.write(f'  ✓ Actualizados {updated_players} jugadores\n')
 
             # 2. Actualizar eventos - remover divisiones a eliminar
+            self.stdout.write('2. Actualizando eventos...')
             updated_events = 0
             for event in events_with_deleted_divisions:
                 current_divs = list(event.divisions.all())
@@ -170,14 +225,17 @@ class Command(BaseCommand):
                                 if standard_div not in new_divs:
                                     new_divs.append(standard_div)
                             except Division.DoesNotExist:
-                                pass
+                                # Crear la división si no existe
+                                standard_div = Division.objects.create(name=base_name, is_active=True)
+                                new_divs.append(standard_div)
 
                 event.divisions.set(new_divs)
                 updated_events += 1
 
-            self.stdout.write(f'  [OK] Actualizados {updated_events} eventos\n')
+            self.stdout.write(f'  ✓ Actualizados {updated_events} eventos\n')
 
             # 3. Eliminar divisiones
+            self.stdout.write('3. Eliminando divisiones no estándar...')
             deleted_count = 0
             for division in divisions_to_delete:
                 div_name = division.name
@@ -186,7 +244,7 @@ class Command(BaseCommand):
                 if deleted_count <= 20:
                     self.stdout.write(f'  [DELETED] {div_name}')
 
-            self.stdout.write(f'\n  [OK] Eliminadas {deleted_count} divisiones\n')
+            self.stdout.write(f'\n  ✓ Eliminadas {deleted_count} divisiones\n')
 
         self.stdout.write(self.style.SUCCESS('\n=== COMPLETADO ===\n'))
 
