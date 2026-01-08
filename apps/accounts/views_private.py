@@ -2025,11 +2025,19 @@ def create_stripe_event_checkout_session(request, pk):
             room_id = str((r or {}).get("roomId") or "")
             if not room_id:
                 continue
-            assigned_indices = guest_assignments.get(room_id) or []
+            assigned_indices = guest_assignments.get(room_id) or guest_assignments.get(str(room_id)) or []
+
+            # Calcular número de huéspedes: usar assigned_indices si está disponible, sino usar el valor del payload
             try:
-                guests_count = int(len(assigned_indices))
-            except Exception:
-                guests_count = 0
+                if assigned_indices and len(assigned_indices) > 0:
+                    guests_count = int(len(assigned_indices))
+                else:
+                    # Fallback: usar el número de huéspedes del payload de la habitación
+                    guests_count = int((r or {}).get("guests") or (r or {}).get("guestsCount") or 0)
+                    if guests_count == 0:
+                        guests_count = 1  # Mínimo 1 huésped
+            except (ValueError, TypeError):
+                guests_count = 1
 
             # Extraer información completa de huéspedes adicionales (excluyendo el principal)
             additional_guest_names = []
@@ -2075,6 +2083,26 @@ def create_stripe_event_checkout_session(request, pk):
                 if additional_guest_names:
                     guest_names_text = "Additional guests: " + ", ".join(additional_guest_names)
 
+            # Obtener información de la habitación para calcular personas adicionales como fallback
+            try:
+                from apps.locations.models import HotelRoom
+                room_obj = HotelRoom.objects.filter(pk=int(room_id)).first()
+                price_includes_guests = room_obj.price_includes_guests or 1 if room_obj else 1
+
+                # Si no tenemos datos detallados pero hay más huéspedes que los incluidos, crear placeholders
+                if not additional_guest_names and guests_count > price_includes_guests:
+                    extra_guests_count = guests_count - price_includes_guests
+                    for i in range(1, extra_guests_count + 1):
+                        additional_guest_names.append(f"Guest {i + price_includes_guests}")
+                        additional_guest_details.append({
+                            "name": f"Guest {i + price_includes_guests}",
+                            "type": "adult",
+                            "birth_date": "",
+                            "email": ""
+                        })
+            except Exception:
+                pass
+
             vue_cart_snapshot[f"vue-room-{room_id}"] = {
                 "type": "room",
                 "room_id": int(room_id) if str(room_id).isdigit() else room_id,
@@ -2083,8 +2111,10 @@ def create_stripe_event_checkout_session(request, pk):
                 "check_out": check_out,
                 "guests": max(1, guests_count),
                 "services": [],
-                "additional_guest_names": additional_guest_names,  # Lista directa de nombres (para compatibilidad)
-                "additional_guest_details": additional_guest_details,  # Lista de objetos con datos completos EN ORDEN
+                "additional_guest_names": additional_guest_names,  # SIEMPRE guardar (puede estar vacío)
+                "additional_guest_details": additional_guest_details,  # SIEMPRE guardar (puede estar vacío)
+                "guest_assignments": guest_assignments,  # Guardar para referencia
+                "all_guests": all_guests,  # Guardar lista completa de huéspedes
                 "notes": guest_names_text,  # Texto para compatibilidad
             }
 
@@ -2569,8 +2599,15 @@ def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
 
     with transaction.atomic():
         checkout.refresh_from_db()
+        # Verificar si ya está pagado ANTES de procesar (idempotencia)
         if checkout.status == "paid":
-            return
+            # Si ya está pagado, verificar si ya existe una orden/reservas
+            # Si no existen, crearlas (por si falló antes)
+            if not Order.objects.filter(stripe_checkout=checkout).exists():
+                # Continuar con el procesamiento aunque esté marcado como paid
+                pass
+            else:
+                return
 
         user = checkout.user
         event = checkout.event
