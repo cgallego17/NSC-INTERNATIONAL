@@ -2428,9 +2428,82 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const formData = new FormData(registrationForm);
 
-            // Debug: Log para verificar que se está enviando la petición
-            console.log('Iniciando checkout de Stripe, modo:', mode);
-            console.log('URL:', stripeCreateSessionUrl);
+            // Convertir FormData a objeto para mostrarlo en consola
+            const formDataObject = {};
+            for (const [key, value] of formData.entries()) {
+                if (key === 'hotel_reservation_json') {
+                    try {
+                        formDataObject[key] = JSON.parse(value);
+                    } catch (e) {
+                        formDataObject[key] = value;
+                    }
+                } else if (key === 'players') {
+                    // players puede aparecer múltiples veces
+                    if (!formDataObject[key]) {
+                        formDataObject[key] = [];
+                    }
+                    formDataObject[key].push(value);
+                } else {
+                    formDataObject[key] = value;
+                }
+            }
+
+            // CONSOLE LOG COMPLETO - TODOS LOS DATOS QUE SE ENVIAN A STRIPE
+            console.log('');
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('🚀 DATOS COMPLETOS QUE SE ENVIARÁN A STRIPE CHECKOUT');
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('');
+
+            console.log('📋 INFORMACIÓN GENERAL:');
+            console.log('  - Modo de pago:', mode);
+            console.log('  - URL:', stripeCreateSessionUrl);
+            console.log('  - Players seleccionados:', formDataObject.players || []);
+            console.log('  - Discount percent:', formDataObject.discount_percent || '0');
+            console.log('  - No-show fee:', formDataObject.no_show_fee || '0');
+            console.log('');
+
+            if (formDataObject.hotel_reservation_json) {
+                const hotelData = formDataObject.hotel_reservation_json;
+                console.log('📦 DATOS DE HOTEL (hotel_reservation_json):');
+                console.log(hotelData);
+                console.log('');
+                console.log('📦 DATOS DE HOTEL (JSON formateado):');
+                console.log(JSON.stringify(hotelData, null, 2));
+                console.log('');
+
+                if (hotelData.guest_assignments) {
+                    console.log('👥 ASIGNACIONES DE HUÉSPEDES (guest_assignments):');
+                    console.log(hotelData.guest_assignments);
+                    console.log('');
+                }
+
+                if (hotelData.guests) {
+                    console.log('👥 LISTA COMPLETA DE HUÉSPEDES (guests):');
+                    console.log(hotelData.guests);
+                    console.log('');
+                }
+
+                if (hotelData.rooms) {
+                    console.log('🏨 HABITACIONES SELECCIONADAS (rooms):');
+                    console.log(hotelData.rooms);
+                    console.log('');
+                }
+            } else {
+                console.log('📦 DATOS DE HOTEL: No hay hotel seleccionado');
+                console.log('');
+            }
+
+            console.log('📋 FORMDATA COMPLETO (todos los campos que se envían al backend):');
+            console.log(formDataObject);
+            console.log('');
+            console.log('📋 FORMDATA COMPLETO (JSON formateado):');
+            console.log(JSON.stringify(formDataObject, null, 2));
+            console.log('');
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('✅ ENVIANDO A STRIPE AHORA...');
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('');
 
             const resp = await fetch(stripeCreateSessionUrl, {
                 method: 'POST',

@@ -1092,9 +1092,130 @@
         console.log('Event:', eventData);
         console.log('Children:', childrenData.length);
         console.log('Rooms:', roomsData.length);
+        
+        // Interceptar las funciones de checkout para agregar logs
+        if (instance && instance.handlePayNow) {
+            const originalHandlePayNow = instance.handlePayNow;
+            instance.handlePayNow = async function() {
+                console.log('');
+                console.log('═══════════════════════════════════════════════════════════════');
+                console.log('🔥🔥🔥 handlePayNow CLICKEADO 🔥🔥🔥');
+                console.log('═══════════════════════════════════════════════════════════════');
+                return originalHandlePayNow.call(this);
+            };
+        }
+        
+        if (instance && instance.handlePaymentPlan) {
+            const originalHandlePaymentPlan = instance.handlePaymentPlan;
+            instance.handlePaymentPlan = async function() {
+                console.log('');
+                console.log('═══════════════════════════════════════════════════════════════');
+                console.log('🔥🔥🔥 handlePaymentPlan CLICKEADO 🔥🔥🔥');
+                console.log('═══════════════════════════════════════════════════════════════');
+                return originalHandlePaymentPlan.call(this);
+            };
+        }
     } catch (e) {
         console.error('Error initializing Vue app:', e);
     }
+})();
+</script>
+
+<!-- Script para interceptar y logear datos antes de enviar a Stripe -->
+<script>
+(function() {
+    console.log('🔧 Script de logging de checkout cargado');
+    
+    // Esperar a que Vue se monte
+    setTimeout(function() {
+        // Interceptar el fetch para capturar datos antes de enviar
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            const url = args[0];
+            const options = args[1] || {};
+            
+            // Verificar si es la URL de checkout de Stripe
+            if (url && typeof url === 'string' && url.includes('create-checkout-session')) {
+                console.log('');
+                console.log('═══════════════════════════════════════════════════════════════');
+                console.log('🚀🚀🚀 INTERCEPTANDO PETICIÓN A STRIPE CHECKOUT 🚀🚀🚀');
+                console.log('═══════════════════════════════════════════════════════════════');
+                console.log('');
+                console.log('📍 URL:', url);
+                console.log('📍 Método:', options.method || 'GET');
+                
+                // Si hay FormData en el body, extraerlo
+                if (options.body instanceof FormData) {
+                    console.log('📋 EXTRAYENDO DATOS DE FORMDATA...');
+                    const formDataObject = {};
+                    
+                    for (const [key, value] of options.body.entries()) {
+                        if (key === 'hotel_reservation_json') {
+                            try {
+                                formDataObject[key] = JSON.parse(value);
+                            } catch (e) {
+                                formDataObject[key] = value;
+                            }
+                        } else if (key === 'players') {
+                            if (!formDataObject[key]) {
+                                formDataObject[key] = [];
+                            }
+                            formDataObject[key].push(value);
+                        } else {
+                            formDataObject[key] = value;
+                        }
+                    }
+                    
+                    console.log('');
+                    console.log('📋 FORMDATA COMPLETO:');
+                    console.log(formDataObject);
+                    console.log('');
+                    console.log('📋 FORMDATA COMPLETO (JSON formateado):');
+                    console.log(JSON.stringify(formDataObject, null, 2));
+                    console.log('');
+                    
+                    // Si hay datos de hotel, mostrarlos por separado
+                    if (formDataObject.hotel_reservation_json) {
+                        const hotelData = formDataObject.hotel_reservation_json;
+                        console.log('📦 DATOS DE HOTEL (hotel_reservation_json):');
+                        console.log(hotelData);
+                        console.log('');
+                        console.log('📦 DATOS DE HOTEL (JSON formateado):');
+                        console.log(JSON.stringify(hotelData, null, 2));
+                        console.log('');
+                        
+                        if (hotelData.guest_assignments) {
+                            console.log('👥 ASIGNACIONES DE HUÉSPEDES (guest_assignments):');
+                            console.log(hotelData.guest_assignments);
+                            console.log('');
+                        }
+                        
+                        if (hotelData.guests) {
+                            console.log('👥 LISTA COMPLETA DE HUÉSPEDES (guests):');
+                            console.log(hotelData.guests);
+                            console.log('');
+                        }
+                        
+                        if (hotelData.rooms) {
+                            console.log('🏨 HABITACIONES SELECCIONADAS (rooms):');
+                            console.log(hotelData.rooms);
+                            console.log('');
+                        }
+                    }
+                    
+                    console.log('═══════════════════════════════════════════════════════════════');
+                    console.log('✅ ENVIANDO A STRIPE AHORA...');
+                    console.log('═══════════════════════════════════════════════════════════════');
+                    console.log('');
+                }
+            }
+            
+            // Llamar al fetch original
+            return originalFetch.apply(this, args);
+        };
+        
+        console.log('✅ Interceptador de fetch configurado correctamente');
+    }, 1000);
 })();
 </script>
 

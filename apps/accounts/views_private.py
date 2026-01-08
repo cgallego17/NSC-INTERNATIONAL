@@ -10,9 +10,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
+from django.core.exceptions import PermissionDenied
 from django.db import models, transaction
 from django.db.models import Q
-from django.core.exceptions import PermissionDenied
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
@@ -31,7 +31,12 @@ from django.views.generic import (
     UpdateView,
 )
 
-from apps.core.mixins import ManagerRequiredMixin, OwnerOrStaffRequiredMixin, StaffRequiredMixin, SuperuserRequiredMixin
+from apps.core.mixins import (
+    ManagerRequiredMixin,
+    OwnerOrStaffRequiredMixin,
+    StaffRequiredMixin,
+    SuperuserRequiredMixin,
+)
 
 from .forms import (
     ParentPlayerRegistrationForm,
@@ -952,6 +957,7 @@ class PlayerDetailView(LoginRequiredMixin, DetailView):
 
         if not (is_staff or is_manager or is_parent or is_owner):
             from django.core.exceptions import PermissionDenied
+
             raise PermissionDenied(_("No tienes permisos para ver este jugador."))
 
         return super().dispatch(request, *args, **kwargs)
@@ -1754,7 +1760,9 @@ def _compute_hotel_amount_from_vue_payload(payload: dict) -> dict:
             continue
 
         # Guests assigned to this room
-        assigned = guest_assignments.get(room_id) or guest_assignments.get(str(room_id)) or []
+        assigned = (
+            guest_assignments.get(room_id) or guest_assignments.get(str(room_id)) or []
+        )
         try:
             guests_count = int(len(assigned))
         except Exception:
@@ -1775,11 +1783,17 @@ def _compute_hotel_amount_from_vue_payload(payload: dict) -> dict:
             if price_per_night == Decimal("0.00"):
                 price_per_night = _as_decimal(room_obj.price_per_night)
             try:
-                includes_int = int(includes) if includes is not None else int(room_obj.price_includes_guests or 1)
+                includes_int = (
+                    int(includes)
+                    if includes is not None
+                    else int(room_obj.price_includes_guests or 1)
+                )
             except Exception:
                 includes_int = int(room_obj.price_includes_guests or 1)
             if additional_guest_price == Decimal("0.00"):
-                additional_guest_price = _as_decimal(room_obj.additional_guest_price or Decimal("0.00"))
+                additional_guest_price = _as_decimal(
+                    room_obj.additional_guest_price or Decimal("0.00")
+                )
         else:
             try:
                 includes_int = int(includes) if includes is not None else 1
@@ -1787,7 +1801,9 @@ def _compute_hotel_amount_from_vue_payload(payload: dict) -> dict:
                 includes_int = 1
 
         extra_guests = max(0, guests_count - (includes_int or 1))
-        per_night_total = price_per_night + (additional_guest_price * Decimal(str(extra_guests)))
+        per_night_total = price_per_night + (
+            additional_guest_price * Decimal(str(extra_guests))
+        )
         item_room_base = (per_night_total * Decimal(str(nights_final))).quantize(
             Decimal("0.01"), rounding=ROUND_HALF_UP
         )
@@ -1945,15 +1961,20 @@ def create_stripe_event_checkout_session(request, pk):
     # Legacy cart (server-side) fallback
     cart = request.session.get("hotel_cart", {}) or {}
 
-    if hotel_payload and isinstance(hotel_payload, dict) and (hotel_payload.get("rooms") or []):
+    if (
+        hotel_payload
+        and isinstance(hotel_payload, dict)
+        and (hotel_payload.get("rooms") or [])
+    ):
         # Validar disponibilidad de stock ANTES de crear el checkout
         check_in_date = hotel_payload.get("check_in_date") or ""
         check_out_date = hotel_payload.get("check_out_date") or ""
 
         if check_in_date and check_out_date:
             try:
-                from apps.locations.models import HotelRoom
                 from datetime import datetime
+
+                from apps.locations.models import HotelRoom
 
                 check_in = datetime.strptime(check_in_date, "%Y-%m-%d").date()
                 check_out = datetime.strptime(check_out_date, "%Y-%m-%d").date()
@@ -1972,9 +1993,8 @@ def create_stripe_event_checkout_session(request, pk):
                             return JsonResponse(
                                 {
                                     "success": False,
-                                    "error": _(
-                                        "Room %(room_number)s is not available."
-                                    ) % {"room_number": room.room_number},
+                                    "error": _("Room %(room_number)s is not available.")
+                                    % {"room_number": room.room_number},
                                 },
                                 status=400,
                             )
@@ -1994,7 +2014,8 @@ def create_stripe_event_checkout_session(request, pk):
                                         "error": _(
                                             "Room %(room_number)s is not available for the selected dates. "
                                             "All rooms of this type are already reserved."
-                                        ) % {"room_number": room.room_number},
+                                        )
+                                        % {"room_number": room.room_number},
                                     },
                                     status=400,
                                 )
@@ -2002,7 +2023,8 @@ def create_stripe_event_checkout_session(request, pk):
                         return JsonResponse(
                             {
                                 "success": False,
-                                "error": _("Room with ID %(room_id)s not found.") % {"room_id": room_id},
+                                "error": _("Room with ID %(room_id)s not found.")
+                                % {"room_id": room_id},
                             },
                             status=400,
                         )
@@ -2018,14 +2040,20 @@ def create_stripe_event_checkout_session(request, pk):
         check_in = hotel_breakdown.get("check_in") or ""
         check_out = hotel_breakdown.get("check_out") or ""
         guest_assignments = hotel_payload.get("guest_assignments") or {}
-        all_guests = hotel_payload.get("guests", []) or []  # Lista completa de huéspedes desde Vue
+        all_guests = (
+            hotel_payload.get("guests", []) or []
+        )  # Lista completa de huéspedes desde Vue
 
         # IMPORTANTE: Preservar el orden de selección de las habitaciones
         for room_order, r in enumerate(hotel_payload.get("rooms") or []):
             room_id = str((r or {}).get("roomId") or "")
             if not room_id:
                 continue
-            assigned_indices = guest_assignments.get(room_id) or guest_assignments.get(str(room_id)) or []
+            assigned_indices = (
+                guest_assignments.get(room_id)
+                or guest_assignments.get(str(room_id))
+                or []
+            )
 
             # Calcular número de huéspedes: usar assigned_indices si está disponible, sino usar el valor del payload
             try:
@@ -2033,7 +2061,9 @@ def create_stripe_event_checkout_session(request, pk):
                     guests_count = int(len(assigned_indices))
                 else:
                     # Fallback: usar el número de huéspedes del payload de la habitación
-                    guests_count = int((r or {}).get("guests") or (r or {}).get("guestsCount") or 0)
+                    guests_count = int(
+                        (r or {}).get("guests") or (r or {}).get("guestsCount") or 0
+                    )
                     if guests_count == 0:
                         guests_count = 1  # Mínimo 1 huésped
             except (ValueError, TypeError):
@@ -2044,7 +2074,11 @@ def create_stripe_event_checkout_session(request, pk):
             additional_guest_details = []
             guest_names_text = ""
 
-            if isinstance(assigned_indices, list) and len(assigned_indices) > 0 and isinstance(all_guests, list):
+            if (
+                isinstance(assigned_indices, list)
+                and len(assigned_indices) > 0
+                and isinstance(all_guests, list)
+            ):
                 # assigned_indices contiene índices que referencian all_guests
                 for idx, guest_index in enumerate(assigned_indices):
                     if idx == 0:
@@ -2052,25 +2086,35 @@ def create_stripe_event_checkout_session(request, pk):
 
                     # Obtener el objeto completo del huésped
                     try:
-                        guest_index_int = int(guest_index) if isinstance(guest_index, (int, str)) else None
-                        if guest_index_int is not None and 0 <= guest_index_int < len(all_guests):
+                        guest_index_int = (
+                            int(guest_index)
+                            if isinstance(guest_index, (int, str))
+                            else None
+                        )
+                        if guest_index_int is not None and 0 <= guest_index_int < len(
+                            all_guests
+                        ):
                             guest_obj = all_guests[guest_index_int]
 
                             # Construir nombre completo
                             guest_name = ""
                             if isinstance(guest_obj, dict):
                                 guest_name = (
-                                    guest_obj.get("displayName", "") or
-                                    guest_obj.get("name", "") or
-                                    f"{guest_obj.get('first_name', '')} {guest_obj.get('last_name', '')}".strip()
+                                    guest_obj.get("displayName", "")
+                                    or guest_obj.get("name", "")
+                                    or f"{guest_obj.get('first_name', '')} {guest_obj.get('last_name', '')}".strip()
                                 ).strip()
 
                                 # Construir objeto con datos completos
                                 guest_detail = {
                                     "name": guest_name,
-                                    "type": guest_obj.get("type", "adult"),  # "adult" o "child"
-                                    "birth_date": guest_obj.get("birth_date", "") or guest_obj.get("birthDate", ""),
-                                    "email": guest_obj.get("email", "") or guest_obj.get("email_address", "")
+                                    "type": guest_obj.get(
+                                        "type", "adult"
+                                    ),  # "adult" o "child"
+                                    "birth_date": guest_obj.get("birth_date", "")
+                                    or guest_obj.get("birthDate", ""),
+                                    "email": guest_obj.get("email", "")
+                                    or guest_obj.get("email_address", ""),
                                 }
                                 additional_guest_details.append(guest_detail)
                                 additional_guest_names.append(guest_name)
@@ -2081,27 +2125,45 @@ def create_stripe_event_checkout_session(request, pk):
 
                 # Construir texto para notas (compatibilidad legacy)
                 if additional_guest_names:
-                    guest_names_text = "Additional guests: " + ", ".join(additional_guest_names)
+                    guest_names_text = "Additional guests: " + ", ".join(
+                        additional_guest_names
+                    )
 
             # Obtener información de la habitación para calcular personas adicionales como fallback
+            # Este fallback se ejecuta SIEMPRE, incluso si no hay guest_assignments del frontend
             try:
                 from apps.locations.models import HotelRoom
-                room_obj = HotelRoom.objects.filter(pk=int(room_id)).first()
-                price_includes_guests = room_obj.price_includes_guests or 1 if room_obj else 1
 
-                # Si no tenemos datos detallados pero hay más huéspedes que los incluidos, crear placeholders
-                if not additional_guest_names and guests_count > price_includes_guests:
-                    extra_guests_count = guests_count - price_includes_guests
-                    for i in range(1, extra_guests_count + 1):
-                        additional_guest_names.append(f"Guest {i + price_includes_guests}")
-                        additional_guest_details.append({
-                            "name": f"Guest {i + price_includes_guests}",
-                            "type": "adult",
-                            "birth_date": "",
-                            "email": ""
-                        })
-            except Exception:
-                pass
+                room_obj = HotelRoom.objects.filter(pk=int(room_id)).first()
+                if room_obj:
+                    price_includes_guests = room_obj.price_includes_guests or 1
+
+                    # Si no tenemos datos detallados pero hay más huéspedes que los incluidos, crear placeholders
+                    if (
+                        not additional_guest_names
+                        and guests_count > price_includes_guests
+                    ):
+                        extra_guests_count = guests_count - price_includes_guests
+                        for i in range(extra_guests_count):
+                            guest_num = i + 1
+                            placeholder_name = f"Additional Guest {guest_num}"
+                            additional_guest_names.append(placeholder_name)
+                            additional_guest_details.append(
+                                {
+                                    "name": placeholder_name,
+                                    "type": "adult",
+                                    "birth_date": "",
+                                    "email": "",
+                                }
+                            )
+            except Exception as e:
+                # Log del error para debugging
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.warning(
+                    f"Error al calcular huéspedes adicionales para room_id={room_id}: {e}"
+                )
 
             vue_cart_snapshot[f"vue-room-{room_id}"] = {
                 "type": "room",
@@ -2118,7 +2180,24 @@ def create_stripe_event_checkout_session(request, pk):
                 "notes": guest_names_text,  # Texto para compatibilidad
             }
 
-        enriched_cart = vue_cart_snapshot
+        # Agregar datos adicionales del evento, registrant y jugadores registrados al snapshot
+        # Estos datos están disponibles en hotel_cart_snapshot para poblar toda la información
+        # cuando se procese el checkout y se cree la Order y las HotelReservation
+        enriched_cart = vue_cart_snapshot.copy()
+        # Agregar datos del evento si están disponibles en el payload
+        # Incluye: id, pk, title, start_date, end_date, location, hotel (pk, name, address)
+        if hotel_payload.get("event"):
+            enriched_cart["_event_data"] = hotel_payload.get("event")
+        # Agregar datos del registrant si están disponibles en el payload
+        # Incluye: id, username, email, first_name, last_name, name, phone
+        if hotel_payload.get("registrant"):
+            enriched_cart["_registrant_data"] = hotel_payload.get("registrant")
+        # Agregar datos de jugadores registrados si están disponibles en el payload
+        # Incluye: id, first_name, last_name, name, email, phone, birth_date, age, grade, division, team, jersey_number, position
+        if hotel_payload.get("registered_players"):
+            enriched_cart["_registered_players_data"] = hotel_payload.get(
+                "registered_players"
+            )
     else:
         # Enriquecer el snapshot del carrito con información de huéspedes adicionales
         enriched_cart = {}
@@ -2167,7 +2246,9 @@ def create_stripe_event_checkout_session(request, pk):
 
     # Hotel buy out fee: solo aplica si el evento tiene hotel, hay jugadores y NO se añadió hotel al checkout
     has_event_hotel = getattr(event, "hotel", None) is not None
-    buy_out_fee = _decimal(getattr(getattr(event, "hotel", None), "buy_out_fee", None), default="0.00")
+    buy_out_fee = _decimal(
+        getattr(getattr(event, "hotel", None), "buy_out_fee", None), default="0.00"
+    )
     no_show_fee = (
         buy_out_fee
         if (has_event_hotel and players_count > 0 and not enriched_cart)
@@ -2206,7 +2287,11 @@ def create_stripe_event_checkout_session(request, pk):
             str(discount_percent),
             str(total),
             "vue" if hotel_payload else "session_cart",
-            str(hotel_breakdown.get("nights", "")) if isinstance(hotel_breakdown, dict) else "",
+            (
+                str(hotel_breakdown.get("nights", ""))
+                if isinstance(hotel_breakdown, dict)
+                else ""
+            ),
             fe_players_total,
             fe_hotel_total,
             fe_no_show_fee,
@@ -2362,10 +2447,14 @@ def create_stripe_event_checkout_session(request, pk):
         breakdown={
             "players_total": str(players_total),
             "hotel_room_base": str(hotel_breakdown["room_base"]),
-            "hotel_services_total": str(hotel_breakdown.get("services_total", Decimal("0.00"))),
+            "hotel_services_total": str(
+                hotel_breakdown.get("services_total", Decimal("0.00"))
+            ),
             "hotel_iva": str(hotel_breakdown.get("iva", Decimal("0.00"))),
             "hotel_ish": str(hotel_breakdown.get("ish", Decimal("0.00"))),
-            "hotel_total_taxes": str(hotel_breakdown.get("total_taxes", Decimal("0.00"))),
+            "hotel_total_taxes": str(
+                hotel_breakdown.get("total_taxes", Decimal("0.00"))
+            ),
             "hotel_nights": str(hotel_breakdown.get("nights", "")),
             "hotel_total": str(hotel_total),
             "no_show_fee": str(no_show_fee),
@@ -2426,12 +2515,18 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
 
     discount_amount = Decimal("0.00")
     if checkout.discount_percent > 0:
-        discount_amount = subtotal * Decimal(str(checkout.discount_percent)) / Decimal("100")
+        discount_amount = (
+            subtotal * Decimal(str(checkout.discount_percent)) / Decimal("100")
+        )
 
     # Obtener stripe_customer_id si existe
     stripe_customer_id = ""
-    if hasattr(checkout.user, "profile") and hasattr(checkout.user.profile, "stripe_customer_id"):
-        stripe_customer_id = getattr(checkout.user.profile, "stripe_customer_id", "") or ""
+    if hasattr(checkout.user, "profile") and hasattr(
+        checkout.user.profile, "stripe_customer_id"
+    ):
+        stripe_customer_id = (
+            getattr(checkout.user.profile, "stripe_customer_id", "") or ""
+        )
 
     # Calcular información del plan de pagos
     plan_months = checkout.plan_months or 1
@@ -2439,7 +2534,9 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
     plan_total_amount = plan_monthly_amount * Decimal(str(plan_months))
 
     # Si es un plan de pagos, el primer pago ya se completó
-    plan_payments_completed = 1 if checkout.payment_mode == "plan" and checkout.status == "paid" else 0
+    plan_payments_completed = (
+        1 if checkout.payment_mode == "plan" and checkout.status == "paid" else 0
+    )
     plan_payments_remaining = max(0, plan_months - plan_payments_completed)
 
     # Extraer información de huéspedes adicionales del hotel_cart_snapshot
@@ -2454,7 +2551,9 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
         if item_data.get("type") != "room":
             continue
         # Usar room_order si está disponible (preserva el orden de selección)
-        room_order = item_data.get("room_order", 999999)  # Default alto para items sin order
+        room_order = item_data.get(
+            "room_order", 999999
+        )  # Default alto para items sin order
         sorted_room_items.append((room_order, room_key, item_data))
 
     # Ordenar por room_order para mantener el orden de selección original
@@ -2467,9 +2566,12 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
         room_number = item_data.get("room_number", "")
         try:
             from apps.locations.models import HotelRoom
+
             room_id = item_data.get("room_id")
             if room_id:
-                room = HotelRoom.objects.select_related("hotel").filter(id=room_id).first()
+                room = (
+                    HotelRoom.objects.select_related("hotel").filter(id=room_id).first()
+                )
                 if room:
                     if room.hotel:
                         hotel_name = room.hotel.hotel_name
@@ -2486,7 +2588,9 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
             "check_in": item_data.get("check_in", ""),
             "check_out": item_data.get("check_out", ""),
             "number_of_guests": item_data.get("guests", 1),
-            "guest_name": item_data.get("guest_name", checkout.user.get_full_name() or checkout.user.username),
+            "guest_name": item_data.get(
+                "guest_name", checkout.user.get_full_name() or checkout.user.username
+            ),
             "guest_email": item_data.get("guest_email", checkout.user.email),
             "guest_phone": item_data.get("guest_phone", ""),
             "additional_guest_names": [],
@@ -2496,11 +2600,15 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
         # IMPORTANTE: Mantener el orden de los huéspedes como fueron asignados
         # Priorizar additional_guest_details (datos completos)
         additional_guest_details_list = item_data.get("additional_guest_details", [])
-        if isinstance(additional_guest_details_list, list) and additional_guest_details_list:
+        if (
+            isinstance(additional_guest_details_list, list)
+            and additional_guest_details_list
+        ):
             # Si tenemos datos completos, usarlos EN EL MISMO ORDEN que fueron asignados
             # Preservar el orden de la lista original
             reservation_info["additional_guest_names"] = [
-                g.get("name", "") for g in additional_guest_details_list
+                g.get("name", "")
+                for g in additional_guest_details_list
                 if g.get("name", "").strip()
             ]
             # Guardar los detalles completos manteniendo el orden exacto
@@ -2509,35 +2617,54 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
             # Fallback: usar lista de nombres
             additional_guest_names = item_data.get("additional_guest_names", [])
             if isinstance(additional_guest_names, list) and additional_guest_names:
-                reservation_info["additional_guest_names"] = [name for name in additional_guest_names if name and name.strip()]
-                reservation_info["additional_guest_details"] = [{"name": name} for name in additional_guest_names if name and name.strip()]
+                reservation_info["additional_guest_names"] = [
+                    name for name in additional_guest_names if name and name.strip()
+                ]
+                reservation_info["additional_guest_details"] = [
+                    {"name": name}
+                    for name in additional_guest_names
+                    if name and name.strip()
+                ]
         else:
             # Fallback: extraer desde las notas (código legacy)
             notes_text = item_data.get("notes", "") or ""
             if notes_text:
                 import re
+
                 guest_names_list = []
 
                 # Extraer nombres de "Selected players/children:"
-                players_match = re.search(r"Selected players/children:\s*([^|]+)", notes_text)
+                players_match = re.search(
+                    r"Selected players/children:\s*([^|]+)", notes_text
+                )
                 if players_match:
                     players_str = players_match.group(1).strip()
-                    player_names = [p.strip() for p in re.split(r'[,|]', players_str) if p.strip()]
+                    player_names = [
+                        p.strip() for p in re.split(r"[,|]", players_str) if p.strip()
+                    ]
                     guest_names_list.extend(player_names)
 
                 # Extraer nombres de "Additional adults:"
                 adults_match = re.search(r"Additional adults:\s*([^|]+)", notes_text)
                 if adults_match:
                     adults_str = adults_match.group(1).strip()
-                    adult_names = re.findall(r'([^(|]+?)(?:\s*\([^)]+\))?', adults_str)
-                    guest_names_list.extend([a.strip() for a in adult_names if a.strip()])
+                    adult_names = re.findall(r"([^(|]+?)(?:\s*\([^)]+\))?", adults_str)
+                    guest_names_list.extend(
+                        [a.strip() for a in adult_names if a.strip()]
+                    )
 
                 # Extraer nombres de "Additional children:"
-                children_match = re.search(r"Additional children:\s*([^|]+)", notes_text)
+                children_match = re.search(
+                    r"Additional children:\s*([^|]+)", notes_text
+                )
                 if children_match:
                     children_str = children_match.group(1).strip()
-                    child_names = re.findall(r'([^(|]+?)(?:\s*\([^)]+\))?', children_str)
-                    guest_names_list.extend([c.strip() for c in child_names if c.strip()])
+                    child_names = re.findall(
+                        r"([^(|]+?)(?:\s*\([^)]+\))?", children_str
+                    )
+                    guest_names_list.extend(
+                        [c.strip() for c in child_names if c.strip()]
+                    )
 
                 # Remover el nombre principal si está en la lista
                 primary_guest = reservation_info["guest_name"]
@@ -2642,7 +2769,9 @@ def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
             if item_data.get("type") != "room":
                 continue
             # Usar room_order si está disponible (preserva el orden de selección)
-            room_order = item_data.get("room_order", 999999)  # Default alto para items sin order
+            room_order = item_data.get(
+                "room_order", 999999
+            )  # Default alto para items sin order
             sorted_room_items_for_reservations.append((room_order, item_data))
 
         # Ordenar por room_order para mantener el orden de selección original
@@ -2652,7 +2781,9 @@ def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
 
             try:
                 # Usar select_for_update para lock en la transacción y evitar condiciones de carrera
-                room = HotelRoom.objects.select_for_update().get(id=item_data.get("room_id"))
+                room = HotelRoom.objects.select_for_update().get(
+                    id=item_data.get("room_id")
+                )
                 check_in = datetime.strptime(
                     item_data.get("check_in"), "%Y-%m-%d"
                 ).date()
@@ -2685,42 +2816,78 @@ def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
             notes_text = item_data.get("notes", "") or ""
             additional_guest_names = ""
             additional_guest_details_json = []
-            clean_notes = f"Reserva pagada vía Stripe session {checkout.stripe_session_id}"
+            clean_notes = (
+                f"Reserva pagada vía Stripe session {checkout.stripe_session_id}"
+            )
 
             # Priorizar additional_guest_details (datos completos) desde item_data (Vue payload)
             # IMPORTANTE: Mantener el orden de los huéspedes como fueron asignados
-            additional_guest_details_list = item_data.get("additional_guest_details", [])
-            if isinstance(additional_guest_details_list, list) and additional_guest_details_list:
+            additional_guest_details_list = item_data.get(
+                "additional_guest_details", []
+            )
+            if (
+                isinstance(additional_guest_details_list, list)
+                and additional_guest_details_list
+            ):
                 # Si tenemos datos completos, usarlos EN EL MISMO ORDEN que fueron asignados
                 # Preservar el orden de la lista original
                 additional_guest_details_json = additional_guest_details_list
-                additional_guest_names = "\n".join([
-                    g.get("name", "") for g in additional_guest_details_list
-                    if g.get("name", "").strip()
-                ])
+                additional_guest_names = "\n".join(
+                    [
+                        g.get("name", "")
+                        for g in additional_guest_details_list
+                        if g.get("name", "").strip()
+                    ]
+                )
             # Fallback: usar additional_guest_names (solo nombres)
             elif item_data.get("additional_guest_names"):
-                additional_guest_names_list = item_data.get("additional_guest_names", [])
-                if isinstance(additional_guest_names_list, list) and additional_guest_names_list:
+                additional_guest_names_list = item_data.get(
+                    "additional_guest_names", []
+                )
+                if (
+                    isinstance(additional_guest_names_list, list)
+                    and additional_guest_names_list
+                ):
                     # Si tenemos una lista directa de nombres, usarla
-                    additional_guest_names = "\n".join([name for name in additional_guest_names_list if name and name.strip()])
+                    additional_guest_names = "\n".join(
+                        [
+                            name
+                            for name in additional_guest_names_list
+                            if name and name.strip()
+                        ]
+                    )
                     # Crear JSON básico con la información disponible (solo nombres, sin tipo ni fecha)
                     additional_guest_details_json = [
-                        {"name": name.strip(), "type": "adult", "birth_date": "", "email": ""}
-                        for name in additional_guest_names_list if name and name.strip()
+                        {
+                            "name": name.strip(),
+                            "type": "adult",
+                            "birth_date": "",
+                            "email": "",
+                        }
+                        for name in additional_guest_names_list
+                        if name and name.strip()
                     ]
             # Si las notas contienen información de jugadores/huéspedes, extraerla (fallback para código legacy)
-            elif "Selected players/children:" in notes_text or "Additional adults:" in notes_text or "Additional children:" in notes_text:
+            elif (
+                "Selected players/children:" in notes_text
+                or "Additional adults:" in notes_text
+                or "Additional children:" in notes_text
+            ):
                 # Parsear la información de las notas
                 import re
+
                 guest_names_list = []
 
                 # Extraer nombres de "Selected players/children:"
-                players_match = re.search(r"Selected players/children:\s*([^|]+)", notes_text)
+                players_match = re.search(
+                    r"Selected players/children:\s*([^|]+)", notes_text
+                )
                 if players_match:
                     players_str = players_match.group(1).strip()
                     # Dividir por comas o "|" si hay múltiples jugadores
-                    player_names = [p.strip() for p in re.split(r'[,|]', players_str) if p.strip()]
+                    player_names = [
+                        p.strip() for p in re.split(r"[,|]", players_str) if p.strip()
+                    ]
                     guest_names_list.extend(player_names)
 
                 # Extraer nombres de "Additional adults:"
@@ -2728,23 +2895,37 @@ def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
                 if adults_match:
                     adults_str = adults_match.group(1).strip()
                     # Extraer solo el nombre (antes del paréntesis con fecha)
-                    adult_names = re.findall(r'([^(|]+?)(?:\s*\([^)]+\))?', adults_str)
-                    guest_names_list.extend([a.strip() for a in adult_names if a.strip()])
+                    adult_names = re.findall(r"([^(|]+?)(?:\s*\([^)]+\))?", adults_str)
+                    guest_names_list.extend(
+                        [a.strip() for a in adult_names if a.strip()]
+                    )
 
                 # Extraer nombres de "Additional children:"
-                children_match = re.search(r"Additional children:\s*([^|]+)", notes_text)
+                children_match = re.search(
+                    r"Additional children:\s*([^|]+)", notes_text
+                )
                 if children_match:
                     children_str = children_match.group(1).strip()
                     # Extraer solo el nombre (antes del paréntesis con fecha)
-                    child_names = re.findall(r'([^(|]+?)(?:\s*\([^)]+\))?', children_str)
-                    guest_names_list.extend([c.strip() for c in child_names if c.strip()])
+                    child_names = re.findall(
+                        r"([^(|]+?)(?:\s*\([^)]+\))?", children_str
+                    )
+                    guest_names_list.extend(
+                        [c.strip() for c in child_names if c.strip()]
+                    )
 
                 if guest_names_list:
                     additional_guest_names = "\n".join(guest_names_list)
                     # Crear JSON básico con la información disponible (solo nombres, sin tipo ni fecha)
                     additional_guest_details_json = [
-                        {"name": name.strip(), "type": "adult", "birth_date": "", "email": ""}
-                        for name in guest_names_list if name and name.strip()
+                        {
+                            "name": name.strip(),
+                            "type": "adult",
+                            "birth_date": "",
+                            "email": "",
+                        }
+                        for name in guest_names_list
+                        if name and name.strip()
                     ]
                     # Limpiar las notas para que solo contengan la información del pago
                     clean_notes = f"Reserva pagada vía Stripe session {checkout.stripe_session_id}"
@@ -2778,8 +2959,14 @@ def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
                 check_out=check_out,
                 status="confirmed",
                 notes=clean_notes,
-                additional_guest_names=additional_guest_names_text if additional_guest_names_text else "",
-                additional_guest_details_json=additional_guest_details_json if additional_guest_details_json else [],
+                additional_guest_names=(
+                    additional_guest_names_text if additional_guest_names_text else ""
+                ),
+                additional_guest_details_json=(
+                    additional_guest_details_json
+                    if additional_guest_details_json
+                    else []
+                ),
             )
 
             # Guardar la reserva para actualizarla después con la orden
@@ -2807,7 +2994,11 @@ def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
             # (lock para evitar condiciones de carrera)
             # Solo descontar si el stock es mayor a 0
             # IMPORTANTE: Este código solo se ejecuta después de un pago exitoso de Stripe
-            if reservation.status == "confirmed" and room.stock is not None and room.stock > 0:
+            if (
+                reservation.status == "confirmed"
+                and room.stock is not None
+                and room.stock > 0
+            ):
                 room.stock -= 1
                 room.save(update_fields=["stock"])
 

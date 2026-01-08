@@ -3,6 +3,7 @@
  * Replaces the vanilla JavaScript implementation with a more organized Vue.js structure
  */
 
+
 const { createApp, ref, reactive, computed, watch, onMounted, onUnmounted, nextTick } = Vue;
 
 // ============================================
@@ -543,7 +544,8 @@ const RoomSelectionModal = {
                     id: `registrant-${reg.id || reg.pk}`,
                     displayName: displayName,
                     isRegistrant: true,
-                    isPlayer: false
+                    isPlayer: false,
+                    esAdicional: false
                 });
             }
 
@@ -558,7 +560,8 @@ const RoomSelectionModal = {
                         displayName: displayName,
                         isRegistrant: false,
                         isPlayer: true,
-                        type: 'child' // Ensure players are categorized as children
+                        type: 'child', // Ensure players are categorized as children
+                        esAdicional: false
                     });
                 }
             });
@@ -570,7 +573,8 @@ const RoomSelectionModal = {
                     id: guest.id || `manual-${index}`,
                     displayName: guest.displayName || (guest.first_name && guest.last_name ? `${guest.first_name} ${guest.last_name}` : guest.name || `Guest ${index + 1}`),
                     isRegistrant: false,
-                    isPlayer: false
+                    isPlayer: false,
+                    esAdicional: true
                 });
             });
 
@@ -2938,13 +2942,14 @@ const EventDetailApp = {
                 const reg = registrant.value;
                 let displayName = reg.name || (reg.first_name && reg.last_name ? `${reg.first_name} ${reg.last_name}` : reg.first_name || reg.username || 'Registrant');
 
-                extendedGuests.push({
-                    ...reg,
-                    id: `registrant-${reg.id || reg.pk}`,
-                    displayName: displayName,
-                    isRegistrant: true,
-                    isPlayer: false
-                });
+                    extendedGuests.push({
+                        ...reg,
+                        id: `registrant-${reg.id || reg.pk}`,
+                        displayName: displayName,
+                        isRegistrant: true,
+                        isPlayer: false,
+                        esAdicional: false
+                    });
             }
 
             (selectedChildren.value || []).forEach(childId => {
@@ -2958,7 +2963,8 @@ const EventDetailApp = {
                         displayName: displayName,
                         isRegistrant: false,
                         isPlayer: true,
-                        type: 'child' // Players are always children
+                        type: 'child', // Players are always children
+                        esAdicional: false
                     });
                 }
             });
@@ -2970,7 +2976,8 @@ const EventDetailApp = {
                     ...guest,
                     displayName: displayName,
                     isRegistrant: false,
-                    isPlayer: false
+                    isPlayer: false,
+                    esAdicional: true
                 });
             });
 
@@ -3444,17 +3451,21 @@ const EventDetailApp = {
 
         // Updated startStripeCheckout for Vue
         async function startStripeCheckout(mode) {
+            // FORZAR LOGS VISIBLES - Estos deberían aparecer SIEMPRE
+            console.error('═══════════════════════════════════════════════════════════════');
+            console.error('═══════════════════════════════════════════════════════════════');
+            console.log('═══════════════════════════════════════════════════════════════');
+            console.log('═══════════════════════════════════════════════════════════════');
+
             if (selectedChildrenCount.value === 0) {
                 toast.show($t('selectPlayersBeforeCheckout') || 'Please select at least one player to register.', 'warning');
                 return;
             }
 
+
             const pk = eventPkRef.value || eventData.value?.id || '';
             const stripeUrl = eventData.value?.stripe_checkout_url || `/accounts/events/${pk}/stripe/create-checkout-session/`;
 
-            console.log('Stripe Checkout Mode:', mode);
-            console.log('Stripe Checkout URL:', stripeUrl);
-            console.log('Event PK:', pk);
 
             // Show loader
             loading.value = true;
@@ -3512,9 +3523,60 @@ const EventDetailApp = {
                 formData.delete('players'); // Clear existing if any
                 selectedChildren.value.forEach(id => formData.append('players', id));
 
-                // If hotel is selected, add hotel data
-                if (reservation.state.rooms.length > 0) {
-                    const hotelData = {
+                console.log('  - Players seleccionados:', selectedChildren.value);
+
+                // Preparar datos del hotel si existe
+                let hotelData = null;
+                console.log('  - reservation.state.rooms.length:', reservation.state.rooms?.length || 0);
+
+                if (reservation.state.rooms && reservation.state.rooms.length > 0) {
+                    // Obtener datos completos de los jugadores registrados
+                    const registeredPlayers = (selectedChildren.value || []).map(playerId => {
+                        return children.value.find(c => c.id === playerId || c.pk === playerId);
+                    }).filter(Boolean);
+
+                    hotelData = {
+                        // Datos del evento
+                        event: eventData.value ? {
+                            id: eventData.value.id,
+                            pk: eventData.value.pk || eventData.value.id,
+                            title: eventData.value.title,
+                            start_date: eventData.value.start_date,
+                            end_date: eventData.value.end_date,
+                            location: eventData.value.location,
+                            hotel: eventData.value.hotel ? {
+                                pk: eventData.value.hotel.pk,
+                                name: eventData.value.hotel.name || eventData.value.hotel.hotel_name,
+                                address: eventData.value.hotel.address
+                            } : null
+                        } : null,
+                        // Datos del registrant
+                        registrant: registrant.value ? {
+                            id: registrant.value.id || registrant.value.pk,
+                            username: registrant.value.username,
+                            email: registrant.value.email,
+                            first_name: registrant.value.first_name,
+                            last_name: registrant.value.last_name,
+                            name: registrant.value.name,
+                            phone: registrant.value.phone
+                        } : null,
+                        // Jugadores registrados del evento (con todos sus datos)
+                        registered_players: registeredPlayers.map(player => ({
+                            id: player.id || player.pk,
+                            first_name: player.first_name,
+                            last_name: player.last_name,
+                            name: player.name,
+                            email: player.email,
+                            phone: player.phone,
+                            birth_date: player.birth_date || player.birthdate,
+                            age: player.age,
+                            grade: player.grade,
+                            division: player.division,
+                            team: player.team,
+                            jersey_number: player.jersey_number,
+                            position: player.position
+                        })),
+                        // Datos del hotel y habitaciones
                         hotel_pk: hotelPk.value,
                         check_in_date: reservation.state.check_in_date,
                         check_out_date: reservation.state.check_out_date,
@@ -3523,10 +3585,73 @@ const EventDetailApp = {
                         nights: calculateNights(reservation.state.check_in_date, reservation.state.check_out_date),
                         rooms: reservation.state.rooms,
                         guest_assignments: reservation.state.guestAssignments,
-                        guests: reservation.state.guests
+                        guests: reservation.state.guests,
+                        all_guests: reservation.state.guests
                     };
                     formData.set('hotel_reservation_json', JSON.stringify(hotelData));
+                } else {
+                    console.log('ℹ️ No hay habitaciones seleccionadas');
                 }
+
+                // Convertir FormData a objeto para mostrarlo en consola
+                const formDataObject = {};
+                for (const [key, value] of formData.entries()) {
+                    if (key === 'hotel_reservation_json') {
+                        try {
+                            formDataObject[key] = JSON.parse(value);
+                        } catch (e) {
+                            formDataObject[key] = value;
+                        }
+                    } else if (key === 'players') {
+                        // players puede aparecer múltiples veces
+                        if (!formDataObject[key]) {
+                            formDataObject[key] = [];
+                        }
+                        formDataObject[key].push(value);
+                    } else {
+                        formDataObject[key] = value;
+                    }
+                }
+
+                // CONSOLE LOG COMPLETO - TODOS LOS DATOS QUE SE ENVIAN A STRIPE
+                // Usar múltiples niveles de log para asegurar visibilidad
+                console.error('═══════════════════════════════════════════════════════════════');
+                console.error('═══════════════════════════════════════════════════════════════');
+                console.warn('═══════════════════════════════════════════════════════════════');
+                console.warn('═══════════════════════════════════════════════════════════════');
+                console.log('');
+                console.log('═══════════════════════════════════════════════════════════════');
+                console.log('═══════════════════════════════════════════════════════════════');
+                console.log('');
+
+                console.log('  - Modo de pago:', mode);
+                console.log('  - URL:', stripeUrl);
+                console.log('  - Event PK:', pk);
+                console.log('  - Players seleccionados:', selectedChildren.value);
+                console.log('');
+
+                if (hotelData) {
+                    console.log(hotelData);
+                    console.log('');
+                    console.log(JSON.stringify(hotelData, null, 2));
+                    console.log('');
+                    console.log(reservation.state.guestAssignments);
+                    console.log('');
+                    console.log(reservation.state.guests);
+                    console.log('');
+                    console.log(reservation.state.rooms);
+                    console.log('');
+                } else {
+                    console.log('');
+                }
+
+                console.log(formDataObject);
+                console.log('');
+                console.log(JSON.stringify(formDataObject, null, 2));
+                console.log('');
+                console.log('═══════════════════════════════════════════════════════════════');
+                console.log('═══════════════════════════════════════════════════════════════');
+                console.log('');
 
                 const resp = await fetch(stripeUrl, {
                     method: 'POST',
@@ -3572,10 +3697,16 @@ const EventDetailApp = {
                     loading.value = false;
                 }
             } catch (e) {
-                console.error('Full Checkout Error:', e);
+                console.error('═══════════════════════════════════════════════════════════════');
+                console.error('═══════════════════════════════════════════════════════════════');
+                console.error('Stack trace:', e.stack);
                 const errorMsg = e.message || 'Error starting payment. Please try again.';
                 toast.show(`${$t('checkoutError') || 'Error:'} ${errorMsg}`, 'error');
                 loading.value = false;
+            } finally {
+                console.log('═══════════════════════════════════════════════════════════════');
+                console.log('🏁 FIN DE startStripeCheckout');
+                console.log('═══════════════════════════════════════════════════════════════');
             }
         }
 
