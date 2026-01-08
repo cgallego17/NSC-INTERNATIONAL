@@ -100,7 +100,7 @@ class EventAdmin(admin.ModelAdmin):
         "divisions_display",
         "start_date",
         "end_date",
-        "status",
+        "status_display",
         "priority",
         "organizer",
         "attendees_count",
@@ -187,6 +187,30 @@ class EventAdmin(admin.ModelAdmin):
         return "-"
 
     divisions_display.short_description = "Divisiones"
+
+    def status_display(self, obj):
+        """Muestra el estado del evento con colores"""
+        status_colors = {
+            "draft": "#6c757d",  # Gris
+            "published": "#28a745",  # Verde
+            "cancelled": "#dc3545",  # Rojo
+            "completed": "#17a2b8",  # Azul claro
+        }
+        status_labels = {
+            "draft": "Borrador",
+            "published": "Publicado",
+            "cancelled": "Cancelado",
+            "completed": "Completado",
+        }
+        color = status_colors.get(obj.status, "#6c757d")
+        label = status_labels.get(obj.status, obj.status)
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 4px 10px; border-radius: 4px; font-weight: 600; font-size: 0.85rem;">{}</span>',
+            color,
+            label,
+        )
+
+    status_display.short_description = "Estado"
 
 
 @admin.register(EventAttendance)

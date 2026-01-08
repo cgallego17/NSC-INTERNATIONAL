@@ -444,6 +444,35 @@ class EventDeleteView(SuperuserRequiredMixin, DeleteView):
         return super().delete(request, *args, **kwargs)
 
 
+class EventChangeStatusView(StaffRequiredMixin, View):
+    """Vista AJAX para cambiar el estado de un evento"""
+
+    def post(self, request, pk):
+        event = get_object_or_404(Event, pk=pk)
+        new_status = request.POST.get("status")
+
+        if new_status not in dict(Event.STATUS_CHOICES):
+            return JsonResponse({"success": False, "error": "Estado inválido"}, status=400)
+
+        event.status = new_status
+        event.save()
+
+        status_labels = {
+            "draft": "Borrador",
+            "published": "Publicado",
+            "cancelled": "Cancelado",
+            "completed": "Completado",
+        }
+
+        return JsonResponse(
+            {
+                "success": True,
+                "status": new_status,
+                "status_label": status_labels.get(new_status, new_status),
+            }
+        )
+
+
 class EventTogglePublishView(SuperuserRequiredMixin, View):
     """Vista para publicar/despublicar un evento"""
 

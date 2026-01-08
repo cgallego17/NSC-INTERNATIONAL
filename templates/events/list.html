@@ -270,6 +270,7 @@
                             </div>
                             <div class="card-body" style="background: white;">
                     <form method="get" class="row g-3">
+                        {% csrf_token %}
                         <div class="col-lg-3 col-md-6">
                             <label for="search" class="form-label">Buscar Eventos</label>
                             <input type="text" class="form-control" id="search" name="search"
@@ -420,15 +421,12 @@
                                         </td>
                                         <td>
                                             <div class="d-flex flex-column gap-1">
-                                                {% if event.status == 'published' %}
-                                                    <span class="badge bg-success" style="font-size: 0.8125rem; font-weight: 600;">Publicado</span>
-                                                {% elif event.status == 'draft' %}
-                                                    <span class="badge bg-secondary" style="font-size: 0.8125rem; font-weight: 600;">Borrador</span>
-                                                {% elif event.status == 'cancelled' %}
-                                                    <span class="badge bg-danger" style="font-size: 0.8125rem; font-weight: 600;">Cancelado</span>
-                                                {% elif event.status == 'completed' %}
-                                                    <span class="badge bg-info" style="font-size: 0.8125rem; font-weight: 600;">Completado</span>
-                                                {% endif %}
+                                                <select class="form-select form-select-sm event-status-select" data-event-id="{{ event.pk }}" style="font-size: 0.8125rem; font-weight: 600; min-width: 120px;">
+                                                    <option value="draft" {% if event.status == 'draft' %}selected{% endif %}>Borrador</option>
+                                                    <option value="published" {% if event.status == 'published' %}selected{% endif %}>Publicado</option>
+                                                    <option value="cancelled" {% if event.status == 'cancelled' %}selected{% endif %}>Cancelado</option>
+                                                    <option value="completed" {% if event.status == 'completed' %}selected{% endif %}>Completado</option>
+                                                </select>
 
                                                 {% if event.priority == 'high' %}
                                                     <span class="badge bg-warning text-dark" style="font-size: 0.75rem; font-weight: 600;">Alta</span>
@@ -536,4 +534,111 @@
     </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Manejar cambio de estado
+    const statusSelects = document.querySelectorAll('.event-status-select');
+
+    statusSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            const eventId = this.dataset.eventId;
+            const newStatus = this.value;
+            const originalValue = this.getAttribute('data-original-status') || this.value;
+
+            // Guardar el valor original si no existe
+            if (!this.getAttribute('data-original-status')) {
+                this.setAttribute('data-original-status', originalValue);
+            }
+
+            // Confirmar cambio
+            if (!confirm('¿Estás seguro de cambiar el estado del evento?')) {
+                this.value = originalValue;
+                return;
+            }
+
+            // Deshabilitar el select mientras se procesa
+            this.disabled = true;
+
+            // Obtener token CSRF desde el formulario de filtros
+            const csrfToken = document.querySelector('form input[name=csrfmiddlewaretoken]');
+            const token = csrfToken ? csrfToken.value : '{{ csrf_token }}';
+
+            // Crear form data
+            const formData = new FormData();
+            formData.append('status', newStatus);
+            formData.append('csrfmiddlewaretoken', token);
+
+            // Enviar request AJAX
+            fetch(`/events/${eventId}/change-status/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar el valor original guardado
+                    this.setAttribute('data-original-status', newStatus);
+
+                    // Actualizar clase del select según el estado
+                    this.className = 'form-select form-select-sm event-status-select';
+                    const statusClasses = {
+                        'draft': 'bg-secondary text-white',
+                        'published': 'bg-success text-white',
+                        'cancelled': 'bg-danger text-white',
+                        'completed': 'bg-info text-white'
+                    };
+                    this.classList.add(statusClasses[newStatus] || 'bg-secondary');
+
+                    // Mostrar mensaje de éxito
+                    const alert = document.createElement('div');
+                    alert.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+                    alert.style.zIndex = '9999';
+                    alert.innerHTML = `
+                        <strong>✓ Estado actualizado:</strong> ${data.status_label}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    `;
+                    document.body.appendChild(alert);
+
+                    // Remover alert después de 3 segundos
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 3000);
+                } else {
+                    // Revertir al valor original en caso de error
+                    this.value = originalValue;
+                    alert('Error al cambiar el estado: ' + (data.error || 'Error desconocido'));
+                }
+            })
+            .catch(error => {
+                // Revertir al valor original en caso de error
+                this.value = originalValue;
+                console.error('Error:', error);
+                alert('Error al cambiar el estado. Por favor, intenta nuevamente.');
+            })
+            .finally(() => {
+                // Rehabilitar el select
+                this.disabled = false;
+            });
+        });
+
+        // Aplicar clases de color inicial según el estado seleccionado
+        const statusClasses = {
+            'draft': 'bg-secondary text-white',
+            'published': 'bg-success text-white',
+            'cancelled': 'bg-danger text-white',
+            'completed': 'bg-info text-white'
+        };
+        const currentStatus = select.value;
+        if (statusClasses[currentStatus]) {
+            select.classList.add(statusClasses[currentStatus]);
+        }
+    });
+});
+</script>
+
 {% endblock %}
