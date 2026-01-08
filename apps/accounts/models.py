@@ -421,10 +421,12 @@ class Player(models.Model):
         verbose_name="Grado Actual",
         help_text=_("Grado escolar actual del jugador"),
     )
-    division = models.CharField(
-        max_length=10,
-        choices=DIVISION_CHOICES,
+    division = models.ForeignKey(
+        "events.Division",
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
+        related_name="players",
         verbose_name="División Asignada",
         help_text=_("División en la que el jugador está asignado"),
     )
@@ -604,7 +606,19 @@ class Player(models.Model):
         Reglas:
         - No puede jugar "down" (solo puede jugar "up" máximo 2 divisiones)
         - Debe tener verificación de edad aprobada
+
+        Args:
+            target_division: Puede ser un objeto Division o un string con el nombre
         """
+        # Convertir a string si es un objeto Division
+        if hasattr(target_division, 'name'):
+            target_division_name = target_division.name
+        else:
+            target_division_name = str(target_division)
+
+        # Extraer solo la parte de edad si tiene formato compuesto (ej: "10U D1" -> "10U")
+        target_division_name = target_division_name.split()[0] if ' ' in target_division_name else target_division_name
+
         # Verificar que tenga verificación de edad aprobada
         if self.age_verification_status != "approved":
             return False, "El jugador no tiene verificación de edad aprobada"
@@ -614,7 +628,7 @@ class Player(models.Model):
             return False, "No se puede determinar la elegibilidad del jugador"
 
         # Obtener el número de la división objetivo
-        target_num = int(target_division.replace("U", ""))
+        target_num = int(target_division_name.replace("U", ""))
 
         # Obtener el número de la división más baja elegible (basada en edad)
         age_division = self.get_age_based_division()
@@ -627,18 +641,18 @@ class Player(models.Model):
         if target_num < age_division_num:
             return (
                 False,
-                f"El jugador no puede jugar en una división menor ({target_division}). División mínima elegible: {age_division}",
+                f"El jugador no puede jugar en una división menor ({target_division_name}). División mínima elegible: {age_division}",
             )
 
         # Puede jugar "up" máximo 2 divisiones
         if target_num > age_division_num + 2:
             return (
                 False,
-                f"El jugador solo puede jugar hasta 2 divisiones arriba de su división basada en edad ({age_division}). División solicitada: {target_division}",
+                f"El jugador solo puede jugar hasta 2 divisiones arriba de su división basada en edad ({age_division}). División solicitada: {target_division_name}",
             )
 
         # Si la división está en las elegibles o está dentro del rango permitido
-        if target_division in eligible_divisions:
+        if target_division_name in eligible_divisions:
             return True, "Elegible"
 
         # Verificar si está dentro del rango permitido (hasta 2 divisiones arriba)
@@ -660,7 +674,7 @@ class Player(models.Model):
         if not self.division:
             return False, "No tiene división asignada"
 
-        can_play, message = self.can_play_in_division(self.division)
+        can_play, message = self.can_play_in_division(self.division.name if self.division else None)
         return can_play, message
 
 

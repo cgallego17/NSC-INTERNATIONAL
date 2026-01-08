@@ -988,9 +988,15 @@ class PlayerRegistrationForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        from apps.events.models import Division
+
         self.manager = kwargs.pop("manager", None)
         super().__init__(*args, **kwargs)
         self.fields["age_verification_document"].required = False
+
+        # Actualizar el queryset de division para usar solo divisiones activas
+        self.fields["division"].queryset = Division.objects.filter(is_active=True).order_by('name')
+
         if self.manager:
             # Solo mostrar equipos que el manager gestiona
             self.fields["team"].queryset = Team.objects.filter(manager=self.manager)

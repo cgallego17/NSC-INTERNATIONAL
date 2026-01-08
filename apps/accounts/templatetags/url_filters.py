@@ -32,9 +32,10 @@ def clean_localhost_url(url):
 @register.filter
 def intcomma_dot(value):
     """
-    Formatea un número con puntos como separadores de miles.
+    Formatea un número con puntos como separadores de miles (formato español/europeo).
     El valor ya viene formateado con floatformat (ej: "1000.50")
-    Convierte: "1000.50" -> "1.000,50" o "1000" -> "1.000"
+    Convierte: "5752.90" -> "5.752,90" o "1000" -> "1.000"
+    Usa puntos para miles y comas para decimales.
     """
     if value is None or value == '':
         return ''
@@ -59,7 +60,7 @@ def intcomma_dot(value):
             integer_part = '.'.join(integer_part[i:i+3] for i in range(0, len(integer_part), 3))
             integer_part = integer_part[::-1]
 
-        # Reconstruir el número: usar coma para decimales y punto para miles
+        # Reconstruir el número: usar punto para miles y coma para decimales (formato español)
         if decimal_part:
             return f"{integer_part},{decimal_part}"
         else:

@@ -903,10 +903,11 @@
         "id": {{ child.pk }},
         "name": "{% if child.user.get_full_name %}{{ child.user.get_full_name|escapejs }}{% else %}{{ child.user.username|escapejs }}{% endif %}",
         "email": "{{ child.user.email|escapejs }}",
-        "division": "{{ child.division|default:''|escapejs }}",
+        "division": "{% if child.division %}{{ child.division.name|escapejs }}{% else %}''{% endif %}",
         "birth_date": "{% if child.user.profile.birth_date %}{{ child.user.profile.birth_date|date:'Y-m-d' }}{% endif %}",
         "profile_picture": "{% if child.user.profile.profile_picture %}{{ child.user.profile.profile_picture.url }}{% endif %}",
-        "registered": {% if child.pk in registered_players %}true{% else %}false{% endif %}
+        "registered": {% if child.pk in registered_players %}true{% else %}false{% endif %},
+        "is_eligible": {% if ineligible_player_ids and child.pk in ineligible_player_ids %}false{% else %}true{% endif %}
     }{% if not forloop.last %},{% endif %}
     {% endfor %}
 ]

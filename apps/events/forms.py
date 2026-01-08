@@ -669,7 +669,7 @@ class EventForm(forms.ModelForm):
                 self.add_error(
                     "service_fee",
                     "El service fee no puede ser mayor a 100%.",
-                )
+            )
 
         return cleaned_data
 

@@ -6,8 +6,8 @@ from django.db.models import Count, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
-from django.utils.decorators import method_decorator
 from django.utils import timezone
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.generic import (
@@ -107,36 +107,43 @@ class EventDetailView(StaffRequiredMixin, DetailView):
         - Staff: can view any event (published/draft/etc.)
         - Non-staff: only published events
         """
-        base_qs = Event.objects.all() if self.request.user.is_staff else Event.objects.filter(status="published")
+        base_qs = (
+            Event.objects.all()
+            if self.request.user.is_staff
+            else Event.objects.filter(status="published")
+        )
 
         # Optimizar consultas relacionadas para mejor rendimiento
-        return (
-            base_qs.select_related(
-                "category",
-                "organizer",
-                "event_type",
-                "country",
-                "state",
-                "city",
-                "season",
-                "rule",
-                "gate_fee_type",
-                "primary_site__city",
-                "primary_site__state",
-                "hotel__city",
-                "hotel__state",
-            )
-            .prefetch_related(
-                "divisions",
-                "additional_sites__city",
-                "additional_sites__state",
-                "additional_hotels__city",
-                "additional_hotels__state",
-                "event_contact",
-            )
+        return base_qs.select_related(
+            "category",
+            "organizer",
+            "event_type",
+            "country",
+            "state",
+            "city",
+            "season",
+            "rule",
+            "gate_fee_type",
+            "primary_site__city",
+            "primary_site__state",
+            "hotel__city",
+            "hotel__state",
+        ).prefetch_related(
+            "divisions",
+            "additional_sites__city",
+            "additional_sites__state",
+            "additional_hotels__city",
+            "additional_hotels__state",
+            "event_contact",
         )
 
     def get_context_data(self, **kwargs):
+        from decimal import Decimal
+
+        from django.db.models import Sum
+
+        from apps.accounts.models import Order, Player
+
         context = super().get_context_data(**kwargs)
         context["attendees"] = self.object.attendees.filter(
             eventattendance__status="confirmed"
@@ -159,6 +166,213 @@ class EventDetailView(StaffRequiredMixin, DetailView):
 
         # Ya tenemos el evento cargado desde get_queryset() (con select_related/prefetch)
         context["event"] = self.object
+
+        # Datos para el admin: jugadores registrados al evento
+        # Los jugadores pueden estar registrados a través de:
+        # 1. Order (registered_player_ids)
+        # 2. StripeEventCheckout (player_ids)
+        # 3. EventAttendance (user -> Player)
+
+        player_ids = set()
+
+        # 1. De órdenes pagadas
+        paid_orders = Order.objects.filter(
+            event=self.object, status="paid"
+        ).values_list("registered_player_ids", flat=True)
+        for player_ids_list in paid_orders:
+            if player_ids_list:
+                player_ids.update(player_ids_list)
+
+        # 2. De StripeEventCheckout pagados
+        from apps.accounts.models import StripeEventCheckout
+
+        paid_checkouts = StripeEventCheckout.objects.filter(
+            event=self.object, status="paid"
+        )
+        for checkout in paid_checkouts:
+            if checkout.player_ids:
+                player_ids.update(checkout.player_ids)
+
+        # 3. De EventAttendance confirmados
+        confirmed_attendances = EventAttendance.objects.filter(
+            event=self.object, status="confirmed"
+        ).select_related("user")
+        for attendance in confirmed_attendances:
+            try:
+                player = Player.objects.get(user=attendance.user)
+                player_ids.add(player.id)
+            except Player.DoesNotExist:
+                pass
+
+        # Obtener los jugadores con sus relaciones optimizadas
+        registered_players = (
+            Player.objects.filter(id__in=player_ids)
+            .select_related("user", "division", "user__profile")
+            .prefetch_related("parents__parent")
+            .order_by("user__last_name", "user__first_name")
+        )
+
+        context["registered_players"] = registered_players
+        context["registered_players_count"] = registered_players.count()
+
+        # Contar padres únicos
+        # Los jugadores tienen una relación con padres a través de PlayerParent
+        from apps.accounts.models import PlayerParent
+
+        unique_parents = {}
+        for player in registered_players:
+            # Obtener el padre principal del jugador
+            parent_relation = (
+                PlayerParent.objects.filter(player=player, is_primary=True)
+                .select_related("parent")
+                .first()
+            )
+
+            if not parent_relation:
+                # Si no hay padre principal, tomar el primero
+                parent_relation = (
+                    PlayerParent.objects.filter(player=player)
+                    .select_related("parent")
+                    .first()
+                )
+
+            if parent_relation and parent_relation.parent:
+                parent = parent_relation.parent
+                parent_id = parent.id
+                if parent_id not in unique_parents:
+                    unique_parents[parent_id] = {
+                        "id": parent_id,
+                        "get_full_name": parent.get_full_name() or parent.username,
+                        "username": parent.username,
+                        "email": parent.email,
+                        "players_count": 0,
+                    }
+                unique_parents[parent_id]["players_count"] += 1
+
+        context["unique_parents"] = list(unique_parents.values())
+        context["unique_parents_count"] = len(unique_parents)
+
+        # Contar registros por división
+        if self.object.divisions.exists():
+            # Crear lista de divisiones con conteos
+            divisions_list = []
+            for division in self.object.divisions.all():
+                # Ahora division es un ForeignKey, podemos comparar directamente
+                division_count = registered_players.filter(division=division).count()
+
+                # Agregar el atributo registered_count a la división
+                division.registered_count = division_count
+                divisions_list.append(division)
+
+            # También crear el diccionario para mantener compatibilidad
+            divisions_with_counts = [
+                {"division": div, "registered_count": div.registered_count}
+                for div in divisions_list
+            ]
+            context["divisions_with_counts"] = divisions_with_counts
+
+        # Estadísticas de órdenes y checkouts
+        orders = Order.objects.filter(event=self.object, status="paid")
+        paid_checkouts = StripeEventCheckout.objects.filter(
+            event=self.object, status="paid"
+        )
+        # Contar todas las transacciones pagadas (órdenes + checkouts)
+        context["orders_count"] = orders.count() + paid_checkouts.count()
+
+        # Calcular ingresos de órdenes
+        # Para órdenes con plan de pago, usar plan_total_amount, sino usar total_amount
+        order_revenue = Decimal("0.00")
+        for order in orders:
+            if order.payment_mode == "plan" and order.plan_total_amount:
+                order_revenue += order.plan_total_amount
+            else:
+                order_revenue += order.total_amount or Decimal("0.00")
+
+        # Calcular ingresos de StripeEventCheckout
+        from apps.accounts.models import StripeEventCheckout
+
+        paid_checkouts = StripeEventCheckout.objects.filter(
+            event=self.object, status="paid"
+        )
+        checkout_revenue = Decimal("0.00")
+        for checkout in paid_checkouts:
+            if (
+                checkout.payment_mode == "plan"
+                and checkout.plan_months
+                and checkout.plan_monthly_amount
+            ):
+                # Para planes, usar el total del plan (meses * monto mensual)
+                checkout_revenue += checkout.plan_months * checkout.plan_monthly_amount
+            else:
+                # Para pagos completos, usar amount_total
+                checkout_revenue += checkout.amount_total or Decimal("0.00")
+
+        # Total de ingresos
+        total_revenue = order_revenue + checkout_revenue
+        context["total_revenue"] = total_revenue
+
+        # Estadísticas de hotel
+        from apps.locations.models import HotelReservation
+
+        hotel_reservations_count = 0
+        rooms_sold_count = 0
+
+        if self.object.hotel:
+            # Obtener usuarios que tienen órdenes o checkouts pagados para este evento
+            users_with_payments = set()
+            for order in orders:
+                users_with_payments.add(order.user_id)
+            for checkout in paid_checkouts:
+                users_with_payments.add(checkout.user_id)
+
+            # 1. Contar reservas de hotel confirmadas de estos usuarios en el hotel del evento
+            if users_with_payments:
+                all_reservations = HotelReservation.objects.filter(
+                    hotel=self.object.hotel,
+                    user_id__in=users_with_payments,
+                    status__in=["confirmed", "checked_in", "checked_out"],
+                )
+                hotel_reservations_count = all_reservations.count()
+
+                # Contar habitaciones únicas vendidas desde reservas
+                rooms_from_reservations = (
+                    all_reservations.values("room").distinct().count()
+                )
+                rooms_sold_count = rooms_from_reservations
+
+            # 2. Si no hay reservas creadas, contar habitaciones desde hotel_cart_snapshot de checkouts
+            if rooms_sold_count == 0:
+                rooms_from_checkouts = set()
+                for checkout in paid_checkouts:
+                    hotel_cart = checkout.hotel_cart_snapshot or {}
+                    rooms = hotel_cart.get("rooms", [])
+                    for room_data in rooms:
+                        room_id = room_data.get("roomId") or room_data.get("room_id")
+                        if room_id:
+                            try:
+                                rooms_from_checkouts.add(int(room_id))
+                            except (ValueError, TypeError):
+                                pass
+
+                # 3. También contar desde órdenes (reservas directas)
+                for order in orders:
+                    order_reservations = order.hotel_reservations_direct.filter(
+                        hotel=self.object.hotel,
+                        status__in=["confirmed", "checked_in", "checked_out"],
+                    )
+                    order_rooms = order_reservations.values_list("room_id", flat=True)
+                    rooms_from_checkouts.update(order_rooms)
+                    hotel_reservations_count += order_reservations.count()
+
+                # Actualizar contadores
+                if rooms_from_checkouts:
+                    rooms_sold_count = len(rooms_from_checkouts)
+                    # Si hay habitaciones en cart pero no reservas, estimar 1 reserva por habitación
+                    if hotel_reservations_count == 0:
+                        hotel_reservations_count = rooms_sold_count
+
+        context["hotel_reservations_count"] = hotel_reservations_count
+        context["rooms_sold_count"] = rooms_sold_count
 
         return context
 
@@ -264,7 +478,8 @@ class EventDetailAPIView(StaffRequiredMixin, View):
         from apps.accounts.models import Player, PlayerParent
 
         event = get_object_or_404(
-            Event.objects.all().select_related(
+            Event.objects.all()
+            .select_related(
                 "category",
                 "event_type",
                 "country",
@@ -276,7 +491,8 @@ class EventDetailAPIView(StaffRequiredMixin, View):
                 "hotel__city__state",
                 "hotel__city__state__country",
                 "gate_fee_type",
-            ).prefetch_related("divisions"),
+            )
+            .prefetch_related("divisions"),
             pk=pk,
         )
 
@@ -447,7 +663,7 @@ class EventCalendarView(StaffRequiredMixin, ListView):
             Event.objects.filter(
                 status="published",
                 start_date__gte=month_start,
-                start_date__lte=month_end
+                start_date__lte=month_end,
             )
             .select_related("category", "organizer")
             .order_by("start_date")
@@ -460,7 +676,9 @@ class EventAttendanceView(LoginRequiredMixin, CreateView):
     template_name = "events/attendance_form.html"
 
     def get_success_url(self):
-        return reverse_lazy("events:admin_detail", kwargs={"pk": self.kwargs["event_id"]})
+        return reverse_lazy(
+            "events:admin_detail", kwargs={"pk": self.kwargs["event_id"]}
+        )
 
     def form_valid(self, form):
         event = get_object_or_404(Event, pk=self.kwargs["event_id"])
@@ -499,7 +717,9 @@ class DashboardView(StaffRequiredMixin, TemplateView):
 
         # Estadísticas generales (solo eventos publicados)
         total_events = Event.objects.filter(status="published").count()
-        upcoming_events = Event.objects.filter(status="published", start_date__gt=now).count()
+        upcoming_events = Event.objects.filter(
+            status="published", start_date__gt=now
+        ).count()
         ongoing_events = Event.objects.filter(
             status="published", start_date__lte=now, end_date__gte=now
         ).count()
@@ -512,7 +732,8 @@ class DashboardView(StaffRequiredMixin, TemplateView):
             today_events = (
                 Event.objects.filter(
                     status="published",
-                    start_date__gte=today_start, start_date__lt=today_end
+                    start_date__gte=today_start,
+                    start_date__lt=today_end,
                 )
                 .select_related("category")
                 .prefetch_related("divisions")
@@ -522,7 +743,8 @@ class DashboardView(StaffRequiredMixin, TemplateView):
             today_events = (
                 Event.objects.filter(
                     status="published",
-                    start_date__gte=today_start, start_date__lt=today_end
+                    start_date__gte=today_start,
+                    start_date__lt=today_end,
                 )
                 .select_related("category")
                 .order_by("start_date")
@@ -533,8 +755,7 @@ class DashboardView(StaffRequiredMixin, TemplateView):
         try:
             upcoming_week = (
                 Event.objects.filter(
-                    status="published",
-                    start_date__gt=now, start_date__lte=week_end
+                    status="published", start_date__gt=now, start_date__lte=week_end
                 )
                 .select_related("category")
                 .prefetch_related("divisions")
@@ -543,8 +764,7 @@ class DashboardView(StaffRequiredMixin, TemplateView):
         except Exception:
             upcoming_week = (
                 Event.objects.filter(
-                    status="published",
-                    start_date__gt=now, start_date__lte=week_end
+                    status="published", start_date__gt=now, start_date__lte=week_end
                 )
                 .select_related("category")
                 .order_by("start_date")[:5]
@@ -571,9 +791,11 @@ class DashboardView(StaffRequiredMixin, TemplateView):
             events_by_division = []
 
         # Eventos más populares (por número de asistentes, solo publicados)
-        popular_events = Event.objects.filter(status="published").annotate(
-            attendee_count=Count("attendees")
-        ).order_by("-attendee_count")[:5]
+        popular_events = (
+            Event.objects.filter(status="published")
+            .annotate(attendee_count=Count("attendees"))
+            .order_by("-attendee_count")[:5]
+        )
 
         # Estadísticas de asistencia
         total_attendances = EventAttendance.objects.count()
@@ -582,7 +804,9 @@ class DashboardView(StaffRequiredMixin, TemplateView):
         ).count()
 
         # Eventos recientes (solo publicados)
-        recent_events = Event.objects.filter(status="published").order_by("-created_at")[:5]
+        recent_events = Event.objects.filter(status="published").order_by(
+            "-created_at"
+        )[:5]
 
         # Estadísticas de usuarios
         try:
@@ -702,7 +926,9 @@ class DivisionDetailView(StaffRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["events"] = self.object.events.filter(status="published").order_by("-start_date")[:10]
+        context["events"] = self.object.events.filter(status="published").order_by(
+            "-start_date"
+        )[:10]
         context["events_count"] = self.object.events.count()
         context["active_section"] = "configuration"
         context["active_subsection"] = "division_list"
@@ -759,3 +985,210 @@ class DivisionDeleteView(SuperuserRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, "División eliminada exitosamente.")
         return super().delete(request, *args, **kwargs)
+
+
+class GetEventRecipientsView(StaffRequiredMixin, View):
+    """Vista AJAX para obtener la lista de destinatarios filtrados"""
+
+    def get(self, request, pk):
+        from apps.accounts.models import Order, Player, PlayerParent
+
+        event = get_object_or_404(Event, pk=pk)
+        recipient_filter = request.GET.get("filter", "all")
+
+        # Obtener los jugadores registrados según el filtro
+        # Los jugadores están relacionados a través de las órdenes pagadas
+        paid_orders = Order.objects.filter(event=event, status="paid").values_list(
+            "registered_player_ids", flat=True
+        )
+
+        # Obtener todos los IDs únicos de jugadores
+        player_ids = set()
+        for player_ids_list in paid_orders:
+            if player_ids_list:
+                player_ids.update(player_ids_list)
+
+        # Obtener los jugadores
+        registered_players = Player.objects.filter(id__in=player_ids).select_related(
+            "user"
+        )
+
+        # Filtrar por división si es necesario
+        if recipient_filter.startswith("division_"):
+            division_id = recipient_filter.replace("division_", "")
+            try:
+                division = Division.objects.get(pk=division_id)
+                registered_players = registered_players.filter(division=division)
+            except Division.DoesNotExist:
+                return JsonResponse(
+                    {"success": False, "error": "División no encontrada"}, status=404
+                )
+
+        # Obtener emails únicos de los padres
+        parent_data = {}
+
+        for player in registered_players:
+            # Obtener el padre principal del jugador
+            parent_relation = (
+                PlayerParent.objects.filter(player=player, is_primary=True)
+                .select_related("parent")
+                .first()
+            )
+
+            if not parent_relation:
+                # Si no hay padre principal, tomar el primero
+                parent_relation = (
+                    PlayerParent.objects.filter(player=player)
+                    .select_related("parent")
+                    .first()
+                )
+
+            if parent_relation and parent_relation.parent:
+                parent = parent_relation.parent
+                email = parent.email
+                if email:
+                    if email not in parent_data:
+                        parent_data[email] = {
+                            "id": parent.id,
+                            "name": parent.get_full_name() or parent.username,
+                            "email": email,
+                            "players_count": 0,
+                        }
+                    parent_data[email]["players_count"] += 1
+
+        recipients = list(parent_data.values())
+
+        return JsonResponse(
+            {"success": True, "recipients": recipients, "count": len(recipients)}
+        )
+
+
+class SendEventEmailView(StaffRequiredMixin, View):
+    """Vista para enviar emails masivos a los registrados de un evento"""
+
+    def post(self, request, pk):
+        from django.conf import settings
+        from django.core.mail import send_mass_mail
+
+        from apps.accounts.models import Order, Player, PlayerParent
+
+        event = get_object_or_404(Event, pk=pk)
+
+        # Obtener datos del formulario
+        recipient_filter = request.POST.get("recipient_filter", "all")
+        subject = request.POST.get("subject", "").strip()
+        message = request.POST.get("message", "").strip()
+
+        if not subject or not message:
+            messages.error(request, "El asunto y el mensaje son requeridos.")
+            return JsonResponse(
+                {"success": False, "error": "Asunto y mensaje requeridos"}, status=400
+            )
+
+        # Obtener los jugadores registrados según el filtro
+        # Los jugadores están relacionados a través de las órdenes pagadas
+        paid_orders = Order.objects.filter(event=event, status="paid").values_list(
+            "registered_player_ids", flat=True
+        )
+
+        # Obtener todos los IDs únicos de jugadores
+        player_ids = set()
+        for player_ids_list in paid_orders:
+            if player_ids_list:
+                player_ids.update(player_ids_list)
+
+        # Obtener los jugadores
+        registered_players = Player.objects.filter(id__in=player_ids).select_related(
+            "user"
+        )
+
+        # Filtrar por división si es necesario
+        if recipient_filter.startswith("division_"):
+            division_id = recipient_filter.replace("division_", "")
+            try:
+                division = Division.objects.get(pk=division_id)
+                registered_players = registered_players.filter(division=division)
+            except Division.DoesNotExist:
+                messages.error(request, "División no encontrada.")
+                return JsonResponse(
+                    {"success": False, "error": "División no encontrada"}, status=404
+                )
+
+        # Obtener emails únicos de los padres
+        parent_emails = set()
+        parent_data = {}
+
+        for player in registered_players:
+            # Obtener el padre principal del jugador
+            parent_relation = (
+                PlayerParent.objects.filter(player=player, is_primary=True)
+                .select_related("parent")
+                .first()
+            )
+
+            if not parent_relation:
+                # Si no hay padre principal, tomar el primero
+                parent_relation = (
+                    PlayerParent.objects.filter(player=player)
+                    .select_related("parent")
+                    .first()
+                )
+
+            if parent_relation and parent_relation.parent:
+                parent = parent_relation.parent
+                email = parent.email
+                if email:
+                    parent_emails.add(email)
+                    if email not in parent_data:
+                        parent_data[email] = {
+                            "name": parent.get_full_name() or parent.username,
+                            "players": [],
+                        }
+                    # Obtener nombre del jugador desde el user
+                    player_name = (
+                        f"{player.user.first_name} {player.user.last_name}"
+                        if player.user
+                        else "Jugador"
+                    )
+                    parent_data[email]["players"].append(player_name)
+
+        if not parent_emails:
+            messages.warning(request, "No se encontraron destinatarios válidos.")
+            return JsonResponse(
+                {"success": False, "error": "No hay destinatarios"}, status=400
+            )
+
+        # Preparar mensajes personalizados
+        email_messages = []
+        from_email = settings.DEFAULT_FROM_EMAIL
+
+        for email in parent_emails:
+            data = parent_data[email]
+            # Personalizar mensaje con nombre del padre y jugadores
+            personalized_message = f"Hola {data['name']},\n\n{message}\n\n"
+            personalized_message += (
+                f"Este mensaje es para los jugadores: {', '.join(data['players'])}\n\n"
+            )
+            personalized_message += f"Atentamente,\nEquipo de {event.title}"
+
+            email_messages.append((subject, personalized_message, from_email, [email]))
+
+        try:
+            # Enviar todos los emails
+            send_mass_mail(email_messages, fail_silently=False)
+            messages.success(
+                request,
+                f"Se enviaron {len(email_messages)} email{'s' if len(email_messages) != 1 else ''} exitosamente.",
+            )
+            return JsonResponse(
+                {
+                    "success": True,
+                    "sent_count": len(email_messages),
+                    "redirect_url": reverse_lazy(
+                        "events:admin_detail", kwargs={"pk": pk}
+                    ),
+                }
+            )
+        except Exception as e:
+            messages.error(request, f"Error al enviar emails: {str(e)}")
+            return JsonResponse({"success": False, "error": str(e)}, status=500)

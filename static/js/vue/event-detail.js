@@ -85,6 +85,8 @@ const translations = {
     selectPlayers: gettext('Select Players'),
     registered: gettext('Registered'),
     alreadyRegistered: gettext('Already registered'),
+    notEligible: gettext('Not Eligible'),
+    notEligibleForDivision: gettext('Not eligible for this division'),
     addHotelStay: gettext('Add Hotel Stay'),
     hotelBuyOutFeeMessage: gettext("If you don't add a hotel stay, a Hotel buy out fee will apply."),
     orderSummary: gettext('Order Summary'),
@@ -2942,14 +2944,14 @@ const EventDetailApp = {
                 const reg = registrant.value;
                 let displayName = reg.name || (reg.first_name && reg.last_name ? `${reg.first_name} ${reg.last_name}` : reg.first_name || reg.username || 'Registrant');
 
-                    extendedGuests.push({
-                        ...reg,
-                        id: `registrant-${reg.id || reg.pk}`,
-                        displayName: displayName,
-                        isRegistrant: true,
+                extendedGuests.push({
+                    ...reg,
+                    id: `registrant-${reg.id || reg.pk}`,
+                    displayName: displayName,
+                    isRegistrant: true,
                         isPlayer: false,
                         esAdicional: false
-                    });
+                });
             }
 
             (selectedChildren.value || []).forEach(childId => {
@@ -3195,6 +3197,9 @@ const EventDetailApp = {
             const child = children.value.find(c => c.id === childId);
             if (child && child.registered) {
                 return; // Don't allow selection of registered children
+            }
+            if (child && !child.is_eligible) {
+                return; // Don't allow selection of ineligible children
             }
             const index = selectedChildren.value.indexOf(childId);
             if (index === -1) {
@@ -4019,15 +4024,16 @@ const EventDetailApp = {
                             <div class="children-list">
                                 <div v-for="child in children" :key="child.id" class="child-item mb-2"
                                      :style="{
-                                         border: '2px solid ' + (child.registered ? '#28a745' : '#e9ecef'),
+                                         border: '2px solid ' + (child.registered ? '#28a745' : (!child.is_eligible ? '#ffc107' : '#e9ecef')),
                                          borderRadius: '8px',
                                          padding: '10px',
                                          transition: 'all 0.3s',
-                                         cursor: child.registered ? 'not-allowed' : 'pointer',
-                                         background: child.registered ? '#f8fff9' : 'transparent'
+                                         cursor: (child.registered || !child.is_eligible) ? 'not-allowed' : 'pointer',
+                                         background: child.registered ? '#f8fff9' : (!child.is_eligible ? '#fffbf0' : 'transparent'),
+                                         opacity: (!child.is_eligible && !child.registered) ? 0.7 : 1
                                      }">
                                     <div class="form-check" style="display: flex; align-items: center; gap: 10px;">
-                                        <input v-if="!child.registered"
+                                        <input v-if="child.is_eligible && !child.registered"
                                                class="form-check-input child-checkbox"
                                                type="checkbox"
                                                :value="child.id"
@@ -4043,7 +4049,7 @@ const EventDetailApp = {
                                                disabled
                                                style="width: 18px; height: 18px; cursor: not-allowed; margin: 0; flex-shrink: 0; opacity: 0.5;">
                                         <label :for="'child_' + child.id"
-                                               :style="{ cursor: child.registered ? 'not-allowed' : 'pointer', width: '100%', margin: 0, opacity: child.registered ? 0.7 : 1 }">
+                                               :style="{ cursor: (child.registered || !child.is_eligible) ? 'not-allowed' : 'pointer', width: '100%', margin: 0, opacity: (child.registered || !child.is_eligible) ? 0.7 : 1 }">
                                             <div style="display: flex; align-items: center; gap: 10px;">
                                                 <!-- Photo or Initials -->
                                                 <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%);">
@@ -4060,17 +4066,23 @@ const EventDetailApp = {
                                                         <span v-if="child.registered" style="background: #28a745; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
                                                             <i class="fas fa-check-circle" style="font-size: 0.65rem;"></i>{{ t('registered') }}
                                                         </span>
+                                                        <span v-else-if="!child.is_eligible" style="background: #ffc107; color: #856404; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                                                            <i class="fas fa-exclamation-triangle" style="font-size: 0.65rem;"></i>{{ t('notEligible') }}
+                                                        </span>
                                                     </div>
                                                     <div v-if="child.division" style="font-size: 0.75rem; color: #6c757d; margin-top: 2px;">
                                                         <i class="fas fa-tag me-1" style="color: var(--mlb-red); font-size: 0.65rem;"></i>{{ child.division }}
                                                     </div>
                                                 </div>
                                                 <!-- Price -->
-                                                <div v-if="!child.registered" class="child-price" style="font-weight: 700; color: var(--mlb-red); font-size: 0.95rem; flex-shrink: 0;">
+                                                <div v-if="child.is_eligible && !child.registered" class="child-price" style="font-weight: 700; color: var(--mlb-red); font-size: 0.95rem; flex-shrink: 0;">
                                                     {{ formatPrice(eventData.default_entry_fee) }}
                                                 </div>
-                                                <div v-else style="font-weight: 600; color: #6c757d; font-size: 0.85rem; flex-shrink: 0; font-style: italic;">
+                                                <div v-else-if="child.registered" style="font-weight: 600; color: #6c757d; font-size: 0.85rem; flex-shrink: 0; font-style: italic;">
                                                     {{ t('alreadyRegistered') }}
+                                                </div>
+                                                <div v-else style="font-weight: 600; color: #856404; font-size: 0.85rem; flex-shrink: 0; font-style: italic;">
+                                                    {{ t('notEligibleForDivision') }}
                                                 </div>
                                             </div>
                                         </label>

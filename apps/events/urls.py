@@ -16,6 +16,8 @@ urlpatterns = [
     ),
     path("create/", views.EventCreateView.as_view(), name="create"),
     path("admin/<int:pk>/", views.EventDetailView.as_view(), name="admin_detail"),
+    path("admin/<int:pk>/send-email/", views.SendEventEmailView.as_view(), name="send_email"),
+    path("admin/<int:pk>/recipients/", views.GetEventRecipientsView.as_view(), name="get_recipients"),
     path("<int:pk>/edit/", views.EventUpdateView.as_view(), name="update"),
     path("<int:pk>/delete/", views.EventDeleteView.as_view(), name="delete"),
     path(

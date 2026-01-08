@@ -330,7 +330,7 @@ class PublicPlayerListView(ListView):
         # Filtro por división
         division_filter = self.request.GET.get("division")
         if division_filter:
-            queryset = queryset.filter(division=division_filter)
+            queryset = queryset.filter(division_id=division_filter)
 
         return queryset
 
@@ -384,7 +384,8 @@ class PublicPlayerListView(ListView):
             context["cities"] = City.objects.none()
 
         # Divisiones desde el modelo Player
-        context["divisions"] = Player.DIVISION_CHOICES
+        from apps.events.models import Division
+        context["divisions"] = Division.objects.filter(is_active=True).order_by('name')
 
         # Filtros actuales
         context["current_filters"] = {

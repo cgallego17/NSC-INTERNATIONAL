@@ -919,7 +919,8 @@ class PlayerListView(StaffRequiredMixin, ListView):
         context["cities"] = City.objects.filter(is_active=True).order_by("name")
 
         # Divisiones desde el modelo Player
-        context["divisions"] = Player.DIVISION_CHOICES
+        from apps.events.models import Division
+        context["divisions"] = Division.objects.filter(is_active=True).order_by('name')
 
         # Guardar filtros actuales para mantenerlos en la paginación
         context["current_filters"] = {
@@ -1445,56 +1446,43 @@ class PanelEventDetailView(UserDashboardView):
 
                 player_parents = PlayerParent.objects.filter(
                     parent=user
-                ).select_related("player", "player__user", "player__user__profile")
+                ).select_related("player", "player__user", "player__user__profile", "player__division")
 
-                # Filtrar jugadores que aplican para el evento según divisiones
+                # Obtener todos los jugadores activos
                 all_active_children = [
                     pp.player for pp in player_parents if pp.player.is_active
                 ]
                 event_divisions = event.divisions.all()
-                if event_divisions.exists():
-                    # Obtener los nombres de las divisiones del evento
-                    event_division_names = list(
-                        event_divisions.values_list("name", flat=True)
-                    )
 
-                    # Filtrar jugadores cuya división coincida con alguna división del evento
-                    # La división del jugador es un código (ej: "10U") y las divisiones del evento
-                    # tienen nombres que pueden contener ese código (ej: "Baseball 10U OPEN")
-                    eligible_children = []
-                    ineligible_children = []
+                # Crear lista de jugadores con su estado de elegibilidad
+                children_with_status = []
+                ineligible_player_ids = set()
+
+                if event_divisions.exists():
+                    # Ahora que ambos usan el mismo modelo Division, comparar directamente por ID
+                    event_division_ids = set(event_divisions.values_list("id", flat=True))
+
                     for pp in player_parents:
                         if pp.player.is_active:
+                            is_eligible = False
                             if pp.player.division:
-                                # Verificar si la división del jugador está en alguna división del evento
-                                # Comparar el código de división (ej: "10U") con los nombres de divisiones
-                                player_division = pp.player.division
-                                matches = False
-                                for div_name in event_division_names:
-                                    # Verificar si el código de división está contenido en el nombre
-                                    # o si el nombre contiene el código
-                                    if (
-                                        player_division in div_name
-                                        or div_name in player_division
-                                    ):
-                                        matches = True
-                                        break
-                                if matches:
-                                    eligible_children.append(pp.player)
-                                else:
-                                    ineligible_children.append(pp.player)
-                            else:
-                                # Jugador sin división asignada no aplica
-                                ineligible_children.append(pp.player)
-                    children = eligible_children
-                    # Guardar información sobre jugadores que no aplican
-                    context["ineligible_children"] = ineligible_children
-                    context["has_ineligible_children"] = len(ineligible_children) > 0
+                                # Verificar si la división del jugador está en las divisiones del evento
+                                # Comparar directamente los objetos Division (mismo modelo)
+                                if pp.player.division.id in event_division_ids:
+                                    is_eligible = True
+                            # Siempre agregar el jugador, pero marcar si no es elegible
+                            children_with_status.append(pp.player)
+                            if not is_eligible:
+                                ineligible_player_ids.add(pp.player.id)
                 else:
-                    # Si el evento no tiene divisiones, mostrar todos los jugadores activos
-                    children = all_active_children
-                    context["ineligible_children"] = []
-                    context["has_ineligible_children"] = False
+                    # Si el evento no tiene divisiones, todos los jugadores son elegibles
+                    children_with_status = all_active_children
+
+                # Mostrar TODOS los jugadores (no filtrar)
+                children = children_with_status
+                # Guardar IDs de jugadores ineligibles para marcarlos como disabled en el template
+                context["ineligible_player_ids"] = ineligible_player_ids if ineligible_player_ids else set()
+                context["has_ineligible_children"] = len(ineligible_player_ids) > 0
 
             context["children"] = children
 
