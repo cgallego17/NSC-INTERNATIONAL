@@ -446,14 +446,18 @@ class Event(models.Model):
         """Verifica si el evento ya pasó"""
         from django.utils import timezone
 
-        return self.end_date < timezone.now()
+        if not self.end_date:
+            return False
+        return self.end_date < timezone.now().date()
 
     @property
     def is_ongoing(self):
         """Verifica si el evento está en curso"""
         from django.utils import timezone
 
-        now = timezone.now()
+        if not self.start_date or not self.end_date:
+            return False
+        now = timezone.now().date()
         return self.start_date <= now <= self.end_date
 
     @property
@@ -461,7 +465,9 @@ class Event(models.Model):
         """Verifica si el evento es futuro"""
         from django.utils import timezone
 
-        return self.start_date > timezone.now()
+        if not self.start_date:
+            return False
+        return self.start_date > timezone.now().date()
 
     @property
     def attendees_count(self):
