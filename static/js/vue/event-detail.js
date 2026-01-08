@@ -121,6 +121,9 @@ const translations = {
     editGuest: gettext('Edit Guest'),
     removeGuest: gettext('Remove Guest'),
     capacityExceeded: gettext('Capacity Exceeded'),
+    soldOut: gettext('Sold Out'),
+    available: gettext('available'),
+    fewLeft: gettext('Few left'),
     needMoreRooms: gettext('More Rooms Needed'),
     youHave: gettext('You have'),
     butCapacity: gettext('but the total capacity is'),
@@ -865,8 +868,29 @@ const RoomSelectionModal = {
             return sorted;
         });
 
+        function getAvailableStock(room) {
+            // Si hay available_stock (calculado con reservas), usarlo, sino usar stock
+            if (room.available_stock !== null && room.available_stock !== undefined) {
+                return parseInt(room.available_stock) || 0;
+            }
+            if (room.stock !== null && room.stock !== undefined) {
+                return parseInt(room.stock) || 0;
+            }
+            // Si no hay stock definido (null), considerar como disponible (stock ilimitado)
+            return null;
+        }
+
         function canSelectRoom(room) {
-            if (!room || !room.capacity) return true; // Si no tiene capacidad definida, permitir selección
+            if (!room) return false;
+
+            // Verificar stock: si stock está definido y es 0, no permitir selección
+            const availableStock = getAvailableStock(room);
+            if (availableStock !== null && availableStock === 0) {
+                return false;
+            }
+
+            // Verificar capacidad
+            if (!room.capacity) return true; // Si no tiene capacidad definida, permitir selección (si hay stock)
             const totalGuests = guestsList.value.length;
             const roomCapacity = parseInt(room.capacity || 0);
             // Verificar capacidad total de todas las habitaciones seleccionadas + la nueva
@@ -1263,6 +1287,7 @@ const RoomSelectionModal = {
             onSelectFromDetail,
             isSelected,
             canSelectRoom,
+            getAvailableStock,
             getTotalCapacity,
             needsMoreRooms,
             getAssignedGuestsCount,
@@ -1518,7 +1543,7 @@ const RoomSelectionModal = {
                                                     <!-- Select Room Button -->
                                                      <button type="button"
                                                              @click="onSelectFromDetail"
-                                                             :disabled="detailRoom && !canSelectRoom(detailRoom) && !isSelected(detailRoom.id)"
+                                                             :disabled="detailRoom && ((!canSelectRoom(detailRoom) || getAvailableStock(detailRoom) === 0) && !isSelected(detailRoom.id))"
                                                              :style="{
                                                                  width: isNarrow ? 'auto' : '100%',
                                                                  padding: isNarrow ? '12px 20px' : '16px 24px',
@@ -1527,16 +1552,19 @@ const RoomSelectionModal = {
                                                                  color: 'white',
                                                                  fontWeight: '600',
                                                                  fontSize: isNarrow ? '0.9375rem' : '1rem',
-                                                                 cursor: (detailRoom && !canSelectRoom(detailRoom) && !isSelected(detailRoom.id)) ? 'not-allowed' : 'pointer',
+                                                                 cursor: (detailRoom && ((!canSelectRoom(detailRoom) || getAvailableStock(detailRoom) === 0) && !isSelected(detailRoom.id))) ? 'not-allowed' : 'pointer',
                                                                  transition: 'all 0.2s ease',
                                                                  whiteSpace: 'nowrap',
-                                                                 background: (detailRoom && isSelected(detailRoom.id)) ? '#d32f2f' : ((detailRoom && !canSelectRoom(detailRoom) && !isSelected(detailRoom.id)) ? '#6c757d' : '#0071c2'),
-                                                                 opacity: (detailRoom && !canSelectRoom(detailRoom) && !isSelected(detailRoom.id)) ? '0.6' : '1'
+                                                                 background: (detailRoom && isSelected(detailRoom.id)) ? '#d32f2f' : ((detailRoom && ((!canSelectRoom(detailRoom) || getAvailableStock(detailRoom) === 0) && !isSelected(detailRoom.id))) ? '#6c757d' : '#0071c2'),
+                                                                 opacity: (detailRoom && ((!canSelectRoom(detailRoom) || getAvailableStock(detailRoom) === 0) && !isSelected(detailRoom.id))) ? '0.6' : '1'
                                                              }"
                                                              onmouseover="if (!this.disabled) { this.style.opacity='0.9'; }"
                                                              onmouseout="if (!this.disabled) { this.style.opacity='1'; }">
                                                          <template v-if="detailRoom && isSelected(detailRoom.id)">
                                                              <i class="fas fa-times-circle me-2"></i>{{ t('remove') }}
+                                                         </template>
+                                                         <template v-else-if="detailRoom && getAvailableStock(detailRoom) === 0">
+                                                             <i class="fas fa-times-circle me-2"></i>{{ t('soldOut') || 'Sold Out' }}
                                                          </template>
                                                          <template v-else-if="detailRoom && !canSelectRoom(detailRoom)">
                                                              <i class="fas fa-exclamation-triangle me-2"></i>{{ t('capacityExceeded') }}
@@ -1885,8 +1913,8 @@ const RoomSelectionModal = {
                             <div v-for="room in sortedRooms" :key="room.id"
                                  class="room-listing-inline"
                                  :data-selected="isSelected(room.id)"
-                                 :data-disabled="!canSelectRoom(room) && !isSelected(room.id)"
-                                 :style="!canSelectRoom(room) && !isSelected(room.id) ? 'opacity: 0.6; cursor: not-allowed; pointer-events: none;' : ''"
+                                 :data-disabled="(!canSelectRoom(room) || getAvailableStock(room) === 0) && !isSelected(room.id)"
+                                 :style="(!canSelectRoom(room) || getAvailableStock(room) === 0) && !isSelected(room.id) ? 'opacity: 0.6; cursor: not-allowed; pointer-events: none;' : ''"
                                  @click="handleSelectRoom(room)">
                                 <!-- Room Image Slider -->
                                 <div class="room-image-container"
@@ -1940,8 +1968,32 @@ const RoomSelectionModal = {
                                 <!-- Room Info -->
                                 <div class="room-info">
                                     <div class="room-header">
-                                        <div class="room-title-row" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                                            <div class="room-name" style="flex: 1; min-width: 0;">{{ getRoomDisplayName(room) }}</div>
+                                        <div class="room-title-row" style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+                                            <div class="room-name" style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                <span>{{ getRoomDisplayName(room) }}</span>
+                                                <!-- Stock badge al lado del nombre -->
+                                                <span v-if="room.stock !== null && room.stock !== undefined">
+                                                    <span v-if="getAvailableStock(room) === 0"
+                                                          style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; color: #dc2626; background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border: 1px solid #f87171; box-shadow: 0 1px 3px rgba(220, 38, 38, 0.15); font-size: 0.7rem; font-weight: 700; white-space: nowrap;">
+                                                        <i class="fas fa-times-circle" style="font-size: 0.65rem;"></i>
+                                                        <span>{{ t('soldOut') || 'Sold Out' }}</span>
+                                                    </span>
+                                                    <span v-else-if="getAvailableStock(room) > 0 && getAvailableStock(room) < 10"
+                                                          style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; color: #ea580c; background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%); border: 1px solid #fdba74; box-shadow: 0 1px 3px rgba(234, 88, 12, 0.15); font-size: 0.7rem; font-weight: 700; white-space: nowrap;">
+                                                        <i class="fas fa-exclamation-triangle" style="font-size: 0.65rem;"></i>
+                                                        <span style="font-weight: 600;">{{ t('fewLeft') || 'Few left' }}</span>
+                                                    </span>
+                                                    <span v-else
+                                                          style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; color: #059669; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 1px solid #86efac; box-shadow: 0 1px 3px rgba(5, 150, 105, 0.15); font-size: 0.7rem; font-weight: 700; white-space: nowrap;">
+                                                        <i class="fas fa-box" style="font-size: 0.65rem;"></i>
+                                                        <strong>{{ getAvailableStock(room) }}</strong> <span style="font-weight: 600;">{{ t('available') || 'available' }}</span>
+                                                    </span>
+                                                </span>
+                                                <span v-else style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; color: #059669; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 1px solid #86efac; box-shadow: 0 1px 3px rgba(5, 150, 105, 0.15); font-size: 0.7rem; font-weight: 700; white-space: nowrap;">
+                                                    <i class="fas fa-infinity" style="font-size: 0.65rem;"></i>
+                                                    <span style="font-weight: 600;">{{ t('available') || 'Available' }}</span>
+                                                </span>
+                                            </div>
                                             <span v-if="room.breakfast_included"
                                                   class="room-badge-breakfast"
                                                   style="flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; color: #065f46; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 1px solid #86efac; box-shadow: 0 1px 2px rgba(5, 150, 105, 0.12); white-space: nowrap;">

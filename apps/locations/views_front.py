@@ -105,6 +105,7 @@ class FrontHotelReservationCreateView(LoginRequiredMixin, CreateView):
         "guest_name",
         "guest_email",
         "guest_phone",
+        "additional_guest_names",
         "number_of_guests",
         "check_in",
         "check_out",
@@ -174,11 +175,80 @@ class FrontHotelReservationCreateView(LoginRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
-        # Asignar el usuario actual
+        # Validación: si hay más de 1 huésped, exigir nombres para los adicionales
+        try:
+            number_of_guests = int(form.cleaned_data.get("number_of_guests") or 0)
+        except (TypeError, ValueError):
+            number_of_guests = 0
+
+        additional_names_raw = form.cleaned_data.get("additional_guest_names") or ""
+        additional_names = [
+            line.strip()
+            for line in str(additional_names_raw).splitlines()
+            if line.strip()
+        ]
+        expected_additional = max(0, number_of_guests - 1)
+
+        if expected_additional > 0:
+            if len(additional_names) != expected_additional:
+                form.add_error(
+                    "additional_guest_names",
+                    f"Debes ingresar exactamente {expected_additional} nombre(s) adicional(es), uno por línea.",
+                )
+                return self.form_invalid(form)
+
+        # Validar stock disponible antes de crear la reserva
+        room = form.cleaned_data.get("room")
+        check_in = form.cleaned_data.get("check_in")
+        check_out = form.cleaned_data.get("check_out")
+
+        if room and check_in and check_out:
+            # Validar que la habitación esté disponible
+            if not room.is_available:
+                form.add_error(
+                    "room",
+                    f"La habitación {room.room_number} no está disponible."
+                )
+                return self.form_invalid(form)
+
+            # Validar stock disponible
+            if room.stock is not None and room.stock > 0:
+                from django.db import transaction
+                with transaction.atomic():
+                    room_obj = HotelRoom.objects.select_for_update().get(id=room.id)
+                    active_reservations_count = room_obj.reservations.filter(
+                        check_in__lt=check_out,
+                        check_out__gt=check_in,
+                        status__in=["pending", "confirmed", "checked_in"],
+                    ).count()
+
+                    if active_reservations_count >= room_obj.stock:
+                        form.add_error(
+                            "room",
+                            f"La habitación {room_obj.room_number} no está disponible para las fechas seleccionadas. "
+                            "Todas las habitaciones de este tipo ya están reservadas."
+                        )
+                        return self.form_invalid(form)
+
+        # IMPORTANTE: NO crear la reserva hasta que el pago sea válido
+        # Esta vista debe redirigir a un checkout de Stripe antes de crear la reserva
+        # Por ahora, deshabilitamos la creación directa de reservas
+        # TODO: Implementar integración con Stripe para este flujo
+
+        # Asignar el usuario actual PERO NO guardar todavía
         reservation = form.save(commit=False)
         reservation.user = self.request.user
-        reservation.status = "pending"  # Estado inicial
-        reservation.save()
+        reservation.status = "pending"  # Solo para cálculo, no se guarda hasta pago
+
+        # Calcular total para mostrar al usuario antes de crear checkout de Stripe
+        # NO guardar la reserva en la base de datos todavía
+
+        messages.info(
+            self.request,
+            "Para completar la reserva, debe procesarse el pago a través de Stripe. "
+            "Por favor, use el flujo de checkout de Stripe.",
+        )
+        return redirect("locations:front_hotel_list")
 
         # Procesar servicios adicionales desde el formulario
         services_data = self.request.POST.getlist("services")
@@ -229,18 +299,25 @@ class FrontHotelReservationCheckoutView(LoginRequiredMixin, DetailView):
             messages.error(request, "No tienes permiso para ver esta reserva.")
             return redirect("locations:front_hotel_reservation_list")
 
-        # Manejar confirmación de pago
+        # IMPORTANTE: La confirmación de pago debe pasar por Stripe
+        # NO se puede confirmar una reserva sin un pago válido
+        # Este endpoint NO debe cambiar el status directamente
         if request.method == "POST" and "confirm_payment" in request.POST:
-            if reservation.status == "pending":
-                reservation.status = "confirmed"
-                reservation.save()
-                messages.success(
-                    request,
-                    f"¡Reserva #{reservation.id} confirmada exitosamente! Total pagado: ${reservation.total_amount:.2f}",
-                )
-                return redirect(
-                    "locations:front_hotel_reservation_detail", pk=reservation.pk
-                )
+            # Redirigir a Stripe para procesar el pago
+            # Después del pago exitoso, la reserva se confirmará automáticamente
+            messages.info(
+                request,
+                "El pago debe procesarse a través de Stripe. Esta funcionalidad requiere integración con Stripe.",
+            )
+            # TODO: Implementar integración con Stripe para este flujo
+            # Por ahora, no permitir confirmar sin pago válido
+            messages.warning(
+                request,
+                "Por favor, contacte al administrador para completar el pago.",
+            )
+            return redirect(
+                "locations:front_hotel_reservation_detail", pk=reservation.pk
+            )
 
         return super().dispatch(request, *args, **kwargs)
 
@@ -299,6 +376,12 @@ class FrontHotelReservationDetailView(LoginRequiredMixin, DetailView):
             return redirect("locations:front_hotel_reservation_list")
         return super().dispatch(request, *args, **kwargs)
 
+    def get_template_names(self):
+        """Usar template del panel si viene desde el panel"""
+        if self.request.GET.get('from_panel') == 'true' or 'panel' in self.request.path:
+            return ["accounts/panel_tabs/detalle_reserva.html"]
+        return ["locations/front_hotel_reservation_detail.html"]
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Obtener servicios de la reserva
@@ -342,6 +425,25 @@ def get_hotel_rooms(request, hotel_id):
                 except ValueError:
                     pass
 
+            # Calcular stock disponible
+            available_stock = None
+            stock_total = room.stock if room.stock is not None else None
+            if stock_total is not None and check_in and check_out:
+                try:
+                    check_in_date = datetime.strptime(check_in, "%Y-%m-%d").date()
+                    check_out_date = datetime.strptime(check_out, "%Y-%m-%d").date()
+                    # Contar reservas activas en esas fechas
+                    active_reservations = room.reservations.filter(
+                        check_in__lt=check_out_date,
+                        check_out__gt=check_in_date,
+                        status__in=["pending", "confirmed", "checked_in"],
+                    ).count()
+                    available_stock = max(0, stock_total - active_reservations)
+                except (ValueError, TypeError):
+                    available_stock = stock_total
+            elif stock_total is not None:
+                available_stock = stock_total
+
             rooms_data.append(
                 {
                     "id": room.id,
@@ -349,7 +451,12 @@ def get_hotel_rooms(request, hotel_id):
                     "room_type": room.get_room_type_display(),
                     "capacity": room.capacity,
                     "price_per_night": str(room.price_per_night),
+                    "price_includes_guests": room.price_includes_guests or 1,
+                    "additional_guest_price": str(room.additional_guest_price or 0),
+                    "breakfast_included": room.breakfast_included,
                     "description": room.description or "",
+                    "stock": stock_total,  # Stock total
+                    "available_stock": available_stock,  # Stock disponible (considerando reservas si hay fechas)
                     # Stay defaults (used by Vue "Select Room" flow)
                     "check_in_date": room.check_in_date.isoformat()
                     if room.check_in_date
@@ -481,6 +588,31 @@ def get_room_detail(request, room_id):
             }
         )
 
+    # Calcular stock disponible (considerando reservas activas si hay fechas en el request)
+    available_stock = None
+    stock_available = None
+    if room.stock is not None:
+        stock_available = room.stock
+        # Si hay fechas en el request, calcular disponibilidad real
+        check_in_param = request.GET.get("check_in")
+        check_out_param = request.GET.get("check_out")
+        if check_in_param and check_out_param:
+            try:
+                from datetime import datetime
+                check_in = datetime.strptime(check_in_param, "%Y-%m-%d").date()
+                check_out = datetime.strptime(check_out_param, "%Y-%m-%d").date()
+                # Contar reservas activas en esas fechas
+                active_reservations = room.reservations.filter(
+                    check_in__lt=check_out,
+                    check_out__gt=check_in,
+                    status__in=["pending", "confirmed", "checked_in"],
+                ).count()
+                available_stock = max(0, stock_available - active_reservations)
+            except (ValueError, TypeError):
+                available_stock = stock_available
+        else:
+            available_stock = stock_available
+
     payload = {
         "id": room.id,
         "hotel": {
@@ -496,6 +628,8 @@ def get_room_detail(request, room_id):
         "additional_guest_price": str(room.additional_guest_price or 0),
         "breakfast_included": room.breakfast_included,
         "description": room.description or "",
+        "stock": stock_available,  # Stock total
+        "available_stock": available_stock,  # Stock disponible (considerando reservas si hay fechas)
         # Stay defaults (used by Vue "Select Room" flow)
         "check_in_date": room.check_in_date.isoformat() if room.check_in_date else "",
         "check_out_date": room.check_out_date.isoformat()

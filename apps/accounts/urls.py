@@ -9,6 +9,7 @@ from apps.core.views import custom_logout_view
 
 from . import (
     views,
+    views_admin,
     views_banners,
     views_dashboard_banners,
     views_hotels,
@@ -254,6 +255,17 @@ urlpatterns = [
         "dashboard-banners/<int:pk>/edit/",
         views_dashboard_banners.DashboardBannerUpdateView.as_view(),
         name="dashboard_banner_update",
+    ),
+    # Órdenes (Admin)
+    path(
+        "admin/orders/",
+        views_admin.AdminOrderListView.as_view(),
+        name="admin_order_list",
+    ),
+    path(
+        "admin/orders/<int:pk>/",
+        views_admin.AdminOrderDetailView.as_view(),
+        name="admin_order_detail",
     ),
     path(
         "dashboard-banners/<int:pk>/delete/",

@@ -1,7 +1,8 @@
+from decimal import Decimal
+
+from django.contrib.auth import get_user_model
 from django.core.validators import MaxLengthValidator, MinLengthValidator
 from django.db import models
-from django.contrib.auth import get_user_model
-from decimal import Decimal
 
 User = get_user_model()
 
@@ -646,8 +647,8 @@ class HotelRoom(models.Model):
         help_text="Impuestos aplicables a esta habitación",
     )
     amenities = models.ManyToManyField(
-        'HotelAmenity',
-        related_name='rooms',
+        "HotelAmenity",
+        related_name="rooms",
         blank=True,
         verbose_name="Amenidades",
         help_text="Amenidades específicas de esta habitación",
@@ -704,7 +705,11 @@ class HotelRoom(models.Model):
                 errors["check_out_date"] = (
                     "La fecha de check-out no puede ser anterior a la fecha de check-in."
                 )
-            elif self.check_out_date == self.check_in_date and self.check_in_time and self.check_out_time:
+            elif (
+                self.check_out_date == self.check_in_date
+                and self.check_in_time
+                and self.check_out_time
+            ):
                 if self.check_out_time <= self.check_in_time:
                     errors["check_out_time"] = (
                         "Si la fecha es la misma, la hora de check-out debe ser posterior a la hora de check-in."
@@ -792,9 +797,13 @@ class HotelRoomRule(models.Model):
         from django.core.exceptions import ValidationError
 
         if self.min_adults > self.max_adults:
-            raise ValidationError("Los adultos mínimos no pueden ser mayores que los adultos máximos.")
+            raise ValidationError(
+                "Los adultos mínimos no pueden ser mayores que los adultos máximos."
+            )
         if self.min_children > self.max_children:
-            raise ValidationError("Los niños mínimos no pueden ser mayores que los niños máximos.")
+            raise ValidationError(
+                "Los niños mínimos no pueden ser mayores que los niños máximos."
+            )
         if self.min_adults + self.min_children > self.room.capacity:
             raise ValidationError(
                 f"La suma de adultos mínimos ({self.min_adults}) y niños mínimos ({self.min_children}) "
@@ -1202,6 +1211,15 @@ class HotelReservation(models.Model):
         verbose_name="Usuario",
         help_text="Usuario que realiza la reserva",
     )
+    order = models.ForeignKey(
+        "accounts.Order",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="hotel_reservations_direct",
+        verbose_name="Orden",
+        help_text="Orden asociada a esta reserva (si fue comprada a través de una orden)",
+    )
     guest_name = models.CharField(
         max_length=200,
         verbose_name="Nombre del Huésped",
@@ -1215,6 +1233,24 @@ class HotelReservation(models.Model):
         max_length=20,
         verbose_name="Teléfono del Huésped",
         help_text="Número de teléfono del huésped",
+    )
+    additional_guest_names = models.TextField(
+        blank=True,
+        verbose_name="Nombres de Huéspedes Adicionales",
+        help_text=(
+            "Nombres de los huéspedes adicionales (uno por línea). "
+            "Ej: Juan Pérez\\nMaría Gómez"
+        ),
+    )
+    additional_guest_details_json = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="Detalles Completos de Huéspedes Adicionales",
+        help_text=(
+            "Lista de huéspedes adicionales con información completa: "
+            "nombre, tipo (adult/child), fecha de nacimiento y email. "
+            "Ej: [{'name': 'María García', 'type': 'adult', 'birth_date': '1990-01-01', 'email': 'maria@example.com'}]"
+        ),
     )
     number_of_guests = models.PositiveIntegerField(
         verbose_name="Número de Huéspedes",
@@ -1263,8 +1299,9 @@ class HotelReservation(models.Model):
 
     def calculate_total(self):
         """Calcula el total de la reserva"""
-        from django.utils import timezone
         from datetime import timedelta
+
+        from django.utils import timezone
 
         # Calcular número de noches
         if self.check_in and self.check_out:
@@ -1276,7 +1313,10 @@ class HotelReservation(models.Model):
         if self.room:
             includes = int(self.room.price_includes_guests or 1)
             extra_guests = max(0, int(self.number_of_guests or 0) - includes)
-            per_night_total = self.room.price_per_night + (self.room.additional_guest_price or Decimal("0.00")) * extra_guests
+            per_night_total = (
+                self.room.price_per_night
+                + (self.room.additional_guest_price or Decimal("0.00")) * extra_guests
+            )
             room_total = per_night_total * nights
         else:
             room_total = Decimal("0.00")
@@ -1310,6 +1350,151 @@ class HotelReservation(models.Model):
         if self.check_in and self.check_out:
             return (self.check_out - self.check_in).days
         return 0
+
+    @property
+    def additional_guests_count(self):
+        """Calcula el número de huéspedes adicionales (excluyendo los incluidos en el precio)"""
+        if self.room and self.number_of_guests > self.room.price_includes_guests:
+            return self.number_of_guests - self.room.price_includes_guests
+        return 0
+
+    @property
+    def additional_guest_names_list(self):
+        """
+        Lista de nombres de huéspedes adicionales, parseada desde `additional_guest_names`.
+        Se espera un nombre por línea.
+        """
+        if not self.additional_guest_names:
+            return []
+        return [
+            line.strip()
+            for line in str(self.additional_guest_names).splitlines()
+            if line.strip()
+        ]
+
+    @property
+    def additional_guest_details(self):
+        """
+        Retorna una lista de diccionarios con información detallada de los huéspedes.
+        Prioriza el campo JSON si está disponible, si no, parsea desde additional_guest_names.
+        """
+        # Priorizar datos del campo JSON si está disponible
+        if self.additional_guest_details_json and isinstance(self.additional_guest_details_json, list):
+            return self.additional_guest_details_json
+
+        # Fallback: parsear desde additional_guest_names (código legacy)
+        import re
+
+        details = []
+        for raw_name in self.additional_guest_names_list:
+            match = re.search(r"^(.*?)\s*\((.*?)\)$", raw_name)
+            if match:
+                name = match.group(1).strip()
+                meta = match.group(2).strip()
+                details.append({"name": name, "meta": meta})
+            else:
+                details.append({"name": raw_name, "meta": None})
+        return details
+
+    @property
+    def all_guest_names(self):
+        """
+        Lista con todos los nombres de huéspedes en orden:
+        - Posición 1: guest_name (principal)
+        - Posiciones 2..N: nombres adicionales
+        Para reservas antiguas sin nombres, rellena con placeholders "Guest X".
+        """
+        total = int(self.number_of_guests or 0)
+        names = []
+        if self.guest_name:
+            names.append(self.guest_name)
+        names.extend(self.additional_guest_names_list)
+
+        if total <= 0:
+            return names
+
+        # Completar con placeholders si faltan nombres
+        while len(names) < total:
+            names.append(f"Guest {len(names) + 1}")
+
+        return names[:total]
+
+    @property
+    def related_event(self):
+        """
+        Obtiene el evento relacionado a esta reserva a través de StripeEventCheckout.
+        Busca el stripe_session_id en las notas y encuentra el checkout correspondiente.
+        """
+        if not self.notes:
+            return None
+
+        import re
+
+        # Buscar el stripe_session_id en las notas
+        match = re.search(
+            r"Reserva pagada vía Stripe session ([a-zA-Z0-9_]+)", self.notes
+        )
+        if not match:
+            return None
+
+        stripe_session_id = match.group(1)
+        if not stripe_session_id:
+            return None
+
+        try:
+            from apps.accounts.models import StripeEventCheckout
+
+            checkout = (
+                StripeEventCheckout.objects.filter(
+                    stripe_session_id=stripe_session_id, user=self.user, status="paid"
+                )
+                .select_related("event")
+                .first()
+            )
+
+            if checkout and checkout.event:
+                return checkout.event
+        except Exception:
+            pass
+
+        return None
+
+    @property
+    def registered_players_in_event(self):
+        """
+        Obtiene los jugadores registrados en el evento relacionado a esta reserva.
+        Retorna una lista de objetos Player que están registrados en el evento.
+        """
+        event = self.related_event
+        if not event:
+            return []
+
+        try:
+            from apps.accounts.models import Player
+            from apps.events.models import EventAttendance
+
+            # Obtener los usuarios registrados en el evento (confirmation status)
+            registered_user_ids = EventAttendance.objects.filter(
+                event=event, status__in=["pending", "confirmed"], user__is_active=True
+            ).values_list("user_id", flat=True)
+
+            if not registered_user_ids:
+                return []
+
+            # Obtener los jugadores que pertenecen a este usuario (padre) y están registrados en el evento
+            registered_players = (
+                Player.objects.filter(
+                    user_id__in=registered_user_ids,
+                    player_parents__parent=self.user,
+                    is_active=True,
+                )
+                .select_related("user")
+                .distinct()
+            )
+
+            return list(registered_players)
+        except Exception:
+            return []
 
 
 class HotelReservationService(models.Model):

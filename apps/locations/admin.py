@@ -379,5 +379,57 @@ class HotelReservationAdmin(admin.ModelAdmin):
         "user__email",
     ]
     ordering = ["-check_in"]
-    readonly_fields = ["created_at", "updated_at"]
+    readonly_fields = ["created_at", "updated_at", "additional_guest_details_json", "order"]
     date_hierarchy = "check_in"
+
+    fieldsets = (
+        (
+            "Información de la Reserva",
+            {
+                "fields": (
+                    "hotel",
+                    "room",
+                    "user",
+                    "order",
+                    "status",
+                    "total_amount",
+                )
+            },
+        ),
+        (
+            "Fechas",
+            {
+                "fields": ("check_in", "check_out", "number_of_guests")
+            },
+        ),
+        (
+            "Huésped Principal",
+            {
+                "fields": ("guest_name", "guest_email", "guest_phone")
+            },
+        ),
+        (
+            "Huéspedes Adicionales",
+            {
+                "fields": (
+                    "additional_guest_names",
+                    "additional_guest_details_json",
+                ),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Notas",
+            {
+                "fields": ("notes",),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Fechas del Sistema",
+            {
+                "fields": ("created_at", "updated_at"),
+                "classes": ("collapse",),
+            },
+        ),
+    )

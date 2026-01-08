@@ -351,17 +351,45 @@ class CheckoutCartView(LoginRequiredMixin, View):
                         item_data.get("check_out"), "%Y-%m-%d"
                     ).date()
 
-                    # Verificar disponibilidad nuevamente
-                    # Excluir reservas canceladas y reservas pending del mismo usuario (permite cambiar habitación)
-                    # También excluir reservas checked_out (ya finalizadas)
+                    # Validar que la habitación esté disponible
+                    if not room.is_available:
+                        errors.append(
+                            _("Room #%(room_number)s is not available.")
+                            % {'room_number': room.room_number}
+                        )
+                        continue
+
+                    # Validar stock disponible: contar reservas activas en esas fechas vs stock total
+                    # Usar select_for_update para lock y evitar condiciones de carrera
+                    if room.stock is not None and room.stock > 0:
+                        with transaction.atomic():
+                            room_obj = HotelRoom.objects.select_for_update().get(id=room.id)
+                            active_reservations_count = room_obj.reservations.filter(
+                                check_in__lt=check_out,
+                                check_out__gt=check_in,
+                                status__in=["pending", "confirmed", "checked_in"],
+                            ).count()
+
+                            if active_reservations_count >= room_obj.stock:
+                                errors.append(
+                                    _("Room #%(room_number)s is not available for the selected dates. "
+                                      "All rooms of this type are already reserved.")
+                                    % {'room_number': room_obj.room_number}
+                                )
+                                continue
+
+                        # Refrescar room para usar en la creación de la reserva
+                        room.refresh_from_db()
+
+                    # Verificar disponibilidad (overlapping) - excluir reservas del mismo usuario pending
                     overlapping_reservations = room.reservations.filter(
                         check_in__lt=check_out,
                         check_out__gt=check_in,
                     ).exclude(
-                        status__in=["cancelled", "checked_out"]  # Excluir canceladas y finalizadas
+                        status__in=["cancelled", "checked_out"]
                     ).exclude(
                         user=request.user,
-                        status="pending"  # Permitir que el usuario cambie su propia reserva pending
+                        status="pending"
                     )
 
                     if overlapping_reservations.exists():
@@ -381,47 +409,19 @@ class CheckoutCartView(LoginRequiredMixin, View):
                         )
                         continue
 
-                    # Crear reserva
-                    reservation = HotelReservation.objects.create(
-                        hotel=room.hotel,
-                        room=room,
-                        user=request.user,
-                        guest_name=request.user.get_full_name()
-                        or request.user.username,
-                        guest_email=request.user.email,
-                        guest_phone=(
-                            getattr(request.user.profile, "phone", "")
-                            if hasattr(request.user, "profile")
-                            else ""
-                        ),
-                        number_of_guests=int(item_data.get("guests", 1)),
-                        check_in=check_in,
-                        check_out=check_out,
-                        status="pending",
-                        notes="Reserva desde carrito",
-                    )
-
-                    # Agregar servicios
-                    for service_data in item_data.get("services", []):
-                        try:
-                            service = HotelService.objects.get(
-                                id=service_data.get("service_id"),
-                                hotel=room.hotel,
-                                is_active=True,
-                            )
-                            HotelReservationService.objects.create(
-                                reservation=reservation,
-                                service=service,
-                                quantity=int(service_data.get("quantity", 1)),
-                            )
-                        except HotelService.DoesNotExist:
-                            pass
-
-                    # Recalcular total
-                    reservation.total_amount = reservation.calculate_total()
-                    reservation.save()
-
-                    created_reservations.append(reservation)
+                    # IMPORTANTE: NO crear la reserva hasta que el pago sea válido
+                    # Las reservas SOLO se crean después de un pago exitoso de Stripe
+                    # Ver: apps/accounts/views_private.py:_finalize_stripe_event_checkout
+                    #
+                    # Por ahora, guardar los datos en la sesión para procesarlos después del pago
+                    # TODO: Integrar este flujo con Stripe checkout antes de crear reservas
+                    created_reservations.append({
+                        "room_id": room.id,
+                        "check_in": str(check_in),
+                        "check_out": str(check_out),
+                        "guests": int(item_data.get("guests", 1)),
+                        "services": item_data.get("services", []),
+                    })
             except Exception as e:
                 errors.append(f"Error al crear reserva: {str(e)}")
 

@@ -15,6 +15,8 @@ from .models import (
     DashboardBanner,
     UserWallet,
     WalletTransaction,
+    StripeEventCheckout,
+    Order,
 )
 
 
@@ -327,3 +329,249 @@ class WalletTransactionAdmin(admin.ModelAdmin):
     ]
     readonly_fields = ["created_at"]
     date_hierarchy = "created_at"
+
+
+@admin.register(StripeEventCheckout)
+class StripeEventCheckoutAdmin(admin.ModelAdmin):
+    list_display = [
+        "id",
+        "user",
+        "event",
+        "stripe_session_id",
+        "status",
+        "payment_mode",
+        "amount_total",
+        "currency",
+        "created_at",
+        "paid_at",
+    ]
+    list_filter = ["status", "payment_mode", "currency", "created_at", "paid_at"]
+    search_fields = [
+        "stripe_session_id",
+        "stripe_subscription_id",
+        "user__username",
+        "user__email",
+        "user__first_name",
+        "user__last_name",
+        "event__title",
+    ]
+    readonly_fields = [
+        "created_at",
+        "updated_at",
+        "player_ids",
+        "hotel_cart_snapshot",
+        "breakdown",
+    ]
+    date_hierarchy = "created_at"
+    fieldsets = (
+        (
+            "Información Básica",
+            {
+                "fields": (
+                    "user",
+                    "event",
+                    "status",
+                    "payment_mode",
+                    "currency",
+                )
+            },
+        ),
+        (
+            "Stripe IDs",
+            {
+                "fields": (
+                    "stripe_session_id",
+                    "stripe_subscription_id",
+                    "stripe_subscription_schedule_id",
+                ),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Montos",
+            {
+                "fields": (
+                    "amount_total",
+                    "plan_months",
+                    "plan_monthly_amount",
+                    "discount_percent",
+                )
+            },
+        ),
+        (
+            "Datos del Checkout",
+            {
+                "fields": (
+                    "player_ids",
+                    "hotel_cart_snapshot",
+                    "breakdown",
+                ),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Fechas",
+            {
+                "fields": (
+                    "created_at",
+                    "paid_at",
+                    "updated_at",
+                )
+            },
+        ),
+    )
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = [
+        "order_number",
+        "user",
+        "status",
+        "payment_mode",
+        "total_amount",
+        "currency",
+        "created_at",
+        "paid_at",
+    ]
+    list_filter = ["status", "payment_mode", "payment_method", "currency", "created_at"]
+    search_fields = [
+        "order_number",
+        "user__username",
+        "user__first_name",
+        "user__last_name",
+        "user__email",
+        "stripe_session_id",
+        "stripe_payment_intent_id",
+    ]
+    readonly_fields = [
+        "order_number",
+        "created_at",
+        "updated_at",
+        "hotel_reservations_list",
+        "registered_players_list",
+    ]
+    date_hierarchy = "created_at"
+    fieldsets = (
+        (
+            "Información Básica",
+            {
+                "fields": (
+                    "order_number",
+                    "user",
+                    "status",
+                    "payment_method",
+                    "payment_mode",
+                )
+            },
+        ),
+        (
+            "Evento y Checkout",
+            {
+                "fields": (
+                    "event",
+                    "stripe_checkout",
+                )
+            },
+        ),
+        (
+            "Información de Stripe",
+            {
+                "fields": (
+                    "stripe_session_id",
+                    "stripe_payment_intent_id",
+                    "stripe_customer_id",
+                    "stripe_subscription_id",
+                    "stripe_subscription_schedule_id",
+                ),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Montos",
+            {
+                "fields": (
+                    "subtotal",
+                    "discount_amount",
+                    "tax_amount",
+                    "total_amount",
+                    "currency",
+                )
+            },
+        ),
+        (
+            "Plan de Pagos",
+            {
+                "fields": (
+                    "plan_months",
+                    "plan_monthly_amount",
+                    "plan_total_amount",
+                    "plan_payments_completed",
+                    "plan_payments_remaining",
+                ),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Información Adicional",
+            {
+                "fields": (
+                    "registered_player_ids",
+                    "breakdown",
+                    "notes",
+                    "hotel_reservations_list",
+                    "registered_players_list",
+                ),
+                "classes": ("collapse",),
+            },
+        ),
+        (
+            "Fechas",
+            {
+                "fields": (
+                    "created_at",
+                    "paid_at",
+                    "updated_at",
+                )
+            },
+        ),
+    )
+
+    def hotel_reservations_list(self, obj):
+        """Lista de reservas de hotel relacionadas"""
+        reservations = obj.hotel_reservations_with_guests
+        if not reservations:
+            return "No hay reservas de hotel"
+
+        html = "<ul>"
+        for res in reservations:
+            room_info = f"Habitación {res.get('room_number', 'N/A')}"
+            dates = f"{res.get('check_in', 'N/A')} - {res.get('check_out', 'N/A')}"
+            guests = f"{res.get('number_of_guests', 0)} huéspedes"
+            additional = res.get('additional_guest_names', [])
+            if additional:
+                guests += f" ({len(additional)} adicionales)"
+            html += f"<li><strong>{room_info}</strong><br>{dates}<br>{guests}</li>"
+        html += "</ul>"
+        return html
+
+    hotel_reservations_list.short_description = "Reservas de Hotel"
+
+    def registered_players_list(self, obj):
+        """Lista de jugadores registrados"""
+        players = obj.registered_players
+        if not players:
+            return "No hay jugadores registrados"
+
+        html = "<ul>"
+        for player in players:
+            html += f"<li>{player.user.get_full_name() or player.user.username}</li>"
+        html += "</ul>"
+        return html
+
+    registered_players_list.short_description = "Jugadores Registrados"
+
+    class Media:
+        css = {
+            'all': ('admin/css/widgets.css',)
+        }

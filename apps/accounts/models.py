@@ -1496,3 +1496,377 @@ class StripeEventCheckout(models.Model):
 
     def __str__(self):
         return f"StripeEventCheckout #{self.pk} - {self.event_id} - {self.user_id} - {self.status}"
+
+
+class Order(models.Model):
+    """
+    Modelo centralizado para todas las compras y transacciones.
+    Agrupa registros de eventos, reservas de hoteles y toda la información de pago.
+    """
+
+    ORDER_STATUS_CHOICES = [
+        ("pending", "Pendiente"),
+        ("paid", "Pagado"),
+        ("cancelled", "Cancelado"),
+        ("refunded", "Reembolsado"),
+        ("failed", "Fallido"),
+    ]
+
+    PAYMENT_METHOD_CHOICES = [
+        ("stripe", "Stripe"),
+        ("wallet", "Billetera Digital"),
+        ("cash", "Efectivo"),
+        ("bank_transfer", "Transferencia Bancaria"),
+        ("other", "Otro"),
+    ]
+
+    # Identificación única de la orden
+    order_number = models.CharField(
+        max_length=50,
+        unique=True,
+        verbose_name="Número de Orden",
+        help_text="Número único de identificación de la orden",
+    )
+
+    # Usuario que realiza la compra
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="orders",
+        verbose_name="Usuario",
+        help_text="Usuario que realiza la compra",
+    )
+
+    # Relación con StripeEventCheckout (para órdenes de eventos)
+    stripe_checkout = models.ForeignKey(
+        StripeEventCheckout,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="orders",
+        verbose_name="Checkout de Stripe",
+        help_text="Checkout de Stripe relacionado (si aplica)",
+    )
+
+    # Relación con Event (para órdenes que incluyen registro de evento)
+    event = models.ForeignKey(
+        "events.Event",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="orders",
+        verbose_name="Evento",
+        help_text="Evento relacionado (si aplica)",
+    )
+
+    # Estado de la orden
+    status = models.CharField(
+        max_length=20,
+        choices=ORDER_STATUS_CHOICES,
+        default="pending",
+        verbose_name="Estado",
+        help_text="Estado actual de la orden",
+    )
+
+    # Información de pago
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PAYMENT_METHOD_CHOICES,
+        default="stripe",
+        verbose_name="Método de Pago",
+    )
+
+    # Información de modo de pago (plan o pago único)
+    payment_mode = models.CharField(
+        max_length=10,
+        choices=[
+            ("plan", "Plan de Pagos"),
+            ("now", "Pago Único"),
+        ],
+        default="now",
+        verbose_name="Modo de Pago",
+        help_text="Si es plan de pagos o pago único",
+    )
+
+    # Información de Stripe
+    stripe_session_id = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="ID de Sesión de Stripe",
+        help_text="ID de la sesión de checkout de Stripe",
+    )
+    stripe_payment_intent_id = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="ID de Payment Intent de Stripe",
+        help_text="ID del payment intent de Stripe",
+    )
+    stripe_customer_id = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="ID de Cliente de Stripe",
+        help_text="ID del cliente en Stripe",
+    )
+    stripe_subscription_id = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="ID de Suscripción de Stripe",
+        help_text="ID de la suscripción en Stripe (para planes de pago)",
+    )
+    stripe_subscription_schedule_id = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="ID de Schedule de Suscripción de Stripe",
+        help_text="ID del schedule de la suscripción en Stripe (para planes de pago)",
+    )
+
+    # Información de plan de pagos (si aplica)
+    plan_months = models.PositiveIntegerField(
+        default=1,
+        verbose_name="Meses del Plan",
+        help_text="Número de meses del plan de pagos (1 = pago único)",
+    )
+    plan_monthly_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        verbose_name="Monto Mensual",
+        help_text="Monto a pagar mensualmente en el plan",
+    )
+    plan_total_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        verbose_name="Total del Plan",
+        help_text="Monto total del plan de pagos (plan_months * plan_monthly_amount)",
+    )
+    plan_payments_completed = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Pagos Completados",
+        help_text="Número de pagos completados del plan",
+    )
+    plan_payments_remaining = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Pagos Pendientes",
+        help_text="Número de pagos pendientes del plan",
+    )
+
+    # Montos y moneda
+    subtotal = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        verbose_name="Subtotal",
+        help_text="Subtotal antes de impuestos y descuentos",
+    )
+    discount_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        verbose_name="Descuento",
+        help_text="Monto del descuento aplicado",
+    )
+    tax_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        verbose_name="Impuestos",
+        help_text="Monto de impuestos (IVA, ISH, etc.)",
+    )
+    total_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        verbose_name="Total",
+        help_text="Monto total de la orden",
+    )
+    currency = models.CharField(
+        max_length=10,
+        default="usd",
+        verbose_name="Moneda",
+        help_text="Moneda de la orden",
+    )
+
+    # Desglose detallado (JSON)
+    breakdown = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Desglose",
+        help_text="Desglose detallado de la orden (jugadores, habitaciones, servicios, etc.)",
+    )
+
+    # Información de jugadores registrados (IDs de Player)
+    registered_player_ids = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="IDs de Jugadores Registrados",
+        help_text="Lista de IDs de jugadores registrados en el evento",
+    )
+
+    # Notas adicionales
+    notes = models.TextField(
+        blank=True,
+        verbose_name="Notas",
+        help_text="Notas adicionales sobre la orden",
+    )
+
+    # Fechas
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Fecha de Creación",
+    )
+    paid_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Fecha de Pago",
+        help_text="Fecha y hora en que se completó el pago",
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Fecha de Actualización",
+    )
+
+    class Meta:
+        verbose_name = "Orden"
+        verbose_name_plural = "Órdenes"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["order_number"]),
+            models.Index(fields=["user", "-created_at"]),
+            models.Index(fields=["status", "-created_at"]),
+            models.Index(fields=["stripe_session_id"]),
+        ]
+
+    def __str__(self):
+        return f"Order #{self.order_number} - {self.user.get_full_name()} - {self.get_status_display()}"
+
+    def save(self, *args, **kwargs):
+        """Genera order_number automáticamente si no existe"""
+        if not self.order_number:
+            from datetime import datetime
+
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+            self.order_number = f"ORD-{timestamp}-{self.user_id}"
+        super().save(*args, **kwargs)
+
+    @property
+    def hotel_reservations(self):
+        """
+        Obtiene las reservas de hotel relacionadas a esta orden.
+        Prioriza la relación directa a través de la ForeignKey 'order',
+        con fallback a la búsqueda por stripe_session_id en notes (para compatibilidad con datos antiguos).
+        """
+        from apps.locations.models import HotelReservation
+
+        # Primero intentar obtener por relación directa (más eficiente y robusto)
+        reservations = HotelReservation.objects.filter(order=self)
+        if reservations.exists():
+            return reservations
+
+        # Fallback: búsqueda por stripe_session_id en notes (para datos antiguos)
+        session_id = None
+        if self.stripe_checkout and self.stripe_checkout.stripe_session_id:
+            session_id = self.stripe_checkout.stripe_session_id
+        elif self.stripe_session_id:
+            session_id = self.stripe_session_id
+
+        if session_id:
+            return HotelReservation.objects.filter(
+                notes__icontains=session_id,
+                user=self.user,
+            )
+        return HotelReservation.objects.none()
+
+    @property
+    def hotel_reservations_with_guests(self):
+        """
+        Obtiene información detallada de las reservas de hotel incluyendo huéspedes adicionales.
+        Primero intenta obtener desde el breakdown, luego desde las reservas reales.
+        """
+        # Intentar obtener desde el breakdown
+        breakdown = self.breakdown or {}
+        if "hotel_reservations" in breakdown:
+            return breakdown["hotel_reservations"]
+
+        # Si no está en el breakdown, construir desde las reservas reales
+        reservations = self.hotel_reservations
+        if not reservations.exists():
+            return []
+
+        reservations_info = []
+        for reservation in reservations:
+            reservations_info.append({
+                "reservation_id": reservation.id,
+                "room_id": reservation.room.id,
+                "room_number": reservation.room.room_number,
+                "check_in": str(reservation.check_in),
+                "check_out": str(reservation.check_out),
+                "number_of_guests": reservation.number_of_guests,
+                "guest_name": reservation.guest_name,
+                "guest_email": reservation.guest_email,
+                "guest_phone": reservation.guest_phone,
+                "additional_guest_names": reservation.additional_guest_names_list,
+            })
+
+        return reservations_info
+
+    @property
+    def registered_players(self):
+        """Obtiene los jugadores registrados en el evento de esta orden"""
+        if not self.registered_player_ids:
+            return []
+
+        try:
+            # Player ya está definido en este mismo módulo (apps/accounts/models.py)
+            return Player.objects.filter(
+                id__in=self.registered_player_ids, is_active=True
+            ).select_related("user")
+        except Exception:
+            return []
+
+    @property
+    def has_event_registration(self):
+        """Verifica si la orden incluye registro de evento"""
+        return self.event is not None and bool(self.registered_player_ids)
+
+    @property
+    def has_hotel_reservation(self):
+        """Verifica si la orden incluye reserva de hotel"""
+        return self.hotel_reservations.exists()
+
+    @property
+    def is_payment_plan(self):
+        """Verifica si la orden es un plan de pagos"""
+        return self.payment_mode == "plan" and self.plan_months > 1
+
+    @property
+    def payment_plan_summary(self):
+        """Retorna un resumen del plan de pagos"""
+        if not self.is_payment_plan:
+            return None
+        return {
+            "total_months": self.plan_months,
+            "monthly_amount": self.plan_monthly_amount,
+            "total_amount": self.plan_total_amount,
+            "completed": self.plan_payments_completed,
+            "remaining": self.plan_payments_remaining,
+            "has_subscription": bool(self.stripe_subscription_id),
+        }
+
+    def mark_as_paid(self, paid_at=None):
+        """Marca la orden como pagada"""
+        from django.utils import timezone
+
+        self.status = "paid"
+        self.paid_at = paid_at or timezone.now()
+        self.save(update_fields=["status", "paid_at", "updated_at"])
+
+    def mark_as_cancelled(self):
+        """Marca la orden como cancelada"""
+        self.status = "cancelled"
+        self.save(update_fields=["status", "updated_at"])
+
+    def mark_as_refunded(self):
+        """Marca la orden como reembolsada"""
+        self.status = "refunded"
+        self.save(update_fields=["status", "updated_at"])

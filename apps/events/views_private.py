@@ -212,6 +212,20 @@ class EventAttendanceView(LoginRequiredMixin, CreateView):
             messages.error(self.request, "Este evento está lleno.")
             return self.form_invalid(form)
 
+        # IMPORTANTE: Si el evento tiene entry_fee, NO crear EventAttendance aquí
+        # El registro SOLO se crea después de que el pago sea exitoso
+        # Redirigir al usuario para completar el pago a través de Stripe
+        if event.default_entry_fee and event.default_entry_fee > 0:
+            messages.info(
+                self.request,
+                "Este evento requiere pago. Por favor, complete el registro y pago a través del panel del evento.",
+            )
+            # Redirigir a la página del evento donde puede pagar
+            from django.shortcuts import redirect
+            from django.urls import reverse
+            return redirect(reverse("accounts:panel_event_detail", kwargs={"pk": event.pk}))
+
+        # Si no hay entry_fee, crear el registro (eventos gratuitos)
         form.instance.event = event
         form.instance.user = self.request.user
         form.instance.status = "confirmed"

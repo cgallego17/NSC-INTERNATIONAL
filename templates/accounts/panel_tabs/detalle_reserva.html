@@ -1,24 +1,15 @@
-{% extends 'base.html' %}
-{% load static %}
 {% load i18n %}
+{% load static %}
 {% load url_filters %}
 
-{% block title %}{% trans "Reservation" %} #{{ reservation.id }} - {% trans "Details" %}{% endblock %}
-
-{% block content %}
 <style>
     :root {
         --mlb-blue: #0d2c54;
         --mlb-red: #d50032;
         --mlb-light-blue: #132448;
     }
-    .reservation-detail-header {
-        background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 16px;
-        margin-bottom: 30px;
-        box-shadow: 0 4px 20px rgba(13, 44, 84, 0.2);
+    .reservation-detail-container {
+        padding: 0;
     }
     .hotel-photo-main {
         width: 100%;
@@ -69,6 +60,7 @@
         box-shadow: 0 2px 12px rgba(0,0,0,0.08);
         margin-bottom: 25px;
         overflow: hidden;
+        background: white;
     }
     .info-card-header {
         background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
@@ -143,17 +135,25 @@
         letter-spacing: 0.5px;
         font-size: 0.85rem;
     }
+    .reservation-detail-header {
+        background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+        color: white;
+        padding: 25px 30px;
+        border-radius: 16px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 20px rgba(13, 44, 84, 0.2);
+    }
 </style>
 
-<div class="container-fluid" style="max-width: 1400px;">
+<div class="reservation-detail-container">
     <!-- Header -->
     <div class="reservation-detail-header">
         <div class="d-flex justify-content-between align-items-center flex-wrap">
             <div>
-                <h1 class="mb-2" style="font-weight: 800; font-size: 2rem;">
+                <h4 style="font-weight: 800; font-size: 1.5rem; margin-bottom: 8px;">
                     <i class="fas fa-calendar-check me-2"></i>{% trans "Reservation" %} #{{ reservation.id }}
-                </h1>
-                <p class="mb-0" style="opacity: 0.9; font-size: 1.1rem;">
+                </h4>
+                <p class="mb-0" style="opacity: 0.9; font-size: 1rem;">
                     <i class="fas fa-hotel me-2"></i>{{ reservation.hotel.hotel_name }}
                 </p>
             </div>
@@ -161,9 +161,9 @@
                 <span class="status-badge" style="background: {% if reservation.status == 'confirmed' %}rgba(40, 167, 69, 0.2); color: #28a745;{% elif reservation.status == 'pending' %}rgba(255, 193, 7, 0.2); color: #ffc107;{% elif reservation.status == 'cancelled' %}rgba(220, 53, 69, 0.2); color: #dc3545;{% elif reservation.status == 'checked_in' %}rgba(23, 162, 184, 0.2); color: #17a2b8;{% else %}rgba(108, 117, 125, 0.2); color: #6c757d;{% endif %};">
                     {{ reservation.get_status_display }}
                 </span>
-                <a href="{% url 'locations:front_hotel_reservation_list' %}" class="btn btn-light ms-3" style="border-radius: 10px; font-weight: 700;">
-                    <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Reservations" %}
-                </a>
+                <button type="button" class="btn btn-light ms-3 tab-btn" data-tab="reservas" style="border-radius: 10px; font-weight: 700;">
+                    <i class="fas fa-arrow-left me-2"></i>{% trans "Back" %}
+                </button>
             </div>
         </div>
     </div>
@@ -370,13 +370,69 @@
                             <div>
                                 {% for amenity in amenities %}
                                     <span class="amenity-badge">
-                                        <i class="{{ amenity.get_icon_class }} me-1"></i>{{ amenity.name }}
+                                        <i class="fas {{ amenity.get_icon_class }} me-1"></i>{{ amenity.name }}
                                     </span>
                                 {% endfor %}
                             </div>
                         </div>
                         {% endif %}
                     {% endwith %}
+
+                    {% if reservation.related_event %}
+                    <div class="mt-3 pt-3 border-top">
+                        <div class="detail-item-label mb-2">
+                            <i class="fas fa-calendar-check me-2" style="color: var(--mlb-red);"></i>{% trans "Event Registration" %}
+                        </div>
+                        <div style="background: linear-gradient(135deg, rgba(13, 44, 84, 0.05) 0%, rgba(213, 0, 50, 0.03) 100%); border-left: 4px solid var(--mlb-blue); border-radius: 8px; padding: 15px;">
+                            <div style="margin-bottom: 10px;">
+                                <div style="font-size: 0.85rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px;">{% trans "Event" %}</div>
+                                <div style="font-weight: 700; color: var(--mlb-blue); font-size: 1.1rem;">
+                                    <a href="{% url 'accounts:panel_event_detail' reservation.related_event.pk %}" style="color: var(--mlb-blue); text-decoration: none; transition: color 0.3s;" onmouseover="this.style.color='var(--mlb-red)';" onmouseout="this.style.color='var(--mlb-blue)';">
+                                        {{ reservation.related_event.name }}
+                                    </a>
+                                </div>
+                            </div>
+                            {% if reservation.related_event.start_date and reservation.related_event.end_date %}
+                            <div style="margin-bottom: 10px;">
+                                <div style="font-size: 0.85rem; color: #6c757d; margin-bottom: 3px;">
+                                    <i class="fas fa-calendar me-1" style="color: var(--mlb-red);"></i>{% trans "Event Dates" %}:
+                                </div>
+                                <div style="font-weight: 600; color: var(--mlb-blue);">
+                                    {{ reservation.related_event.start_date|date:"M d, Y" }} - {{ reservation.related_event.end_date|date:"M d, Y" }}
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if reservation.related_event.location %}
+                            <div style="margin-bottom: 10px;">
+                                <div style="font-size: 0.85rem; color: #6c757d; margin-bottom: 3px;">
+                                    <i class="fas fa-map-marker-alt me-1" style="color: var(--mlb-red);"></i>{% trans "Location" %}:
+                                </div>
+                                <div style="font-weight: 600; color: var(--mlb-blue);">
+                                    {{ reservation.related_event.location }}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% with registered_players=reservation.registered_players_in_event %}
+                            {% if registered_players %}
+                            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #dee2e6;">
+                                <div style="font-size: 0.85rem; color: #6c757d; margin-bottom: 8px; font-weight: 600;">
+                                    <i class="fas fa-users me-1" style="color: var(--mlb-red);"></i>{% trans "Registered Players" %}:
+                                </div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                                    {% for player in registered_players %}
+                                        <span style="display: inline-flex; align-items: center; padding: 6px 12px; background: white; border: 1.5px solid var(--mlb-blue); border-radius: 8px; font-weight: 600; color: var(--mlb-blue); font-size: 0.85rem;">
+                                            <i class="fas fa-user me-1" style="color: var(--mlb-red); font-size: 0.75rem;"></i>
+                                            {{ player.user.get_full_name|default:player.user.username }}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -423,48 +479,141 @@
                 </div>
             </div>
 
-            <!-- Información del Huésped -->
+            <!-- Información de los Huéspedes -->
             <div class="info-card">
                 <div class="info-card-header">
-                    <i class="fas fa-user me-2"></i>{% trans "Guest Information" %}
+                    <i class="fas fa-users me-2"></i>{% trans "Guests Information" %}
                 </div>
                 <div class="info-card-body">
+                    <!-- Huésped Principal -->
+                    <div style="background: linear-gradient(135deg, rgba(13, 44, 84, 0.05) 0%, rgba(213, 0, 50, 0.03) 100%); border-left: 4px solid var(--mlb-blue); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.2rem;">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">{% trans "Primary Guest" %}</div>
+                                <div style="font-weight: 700; color: var(--mlb-blue); font-size: 1.1rem;">{{ reservation.guest_name }}</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div style="margin-bottom: 10px;">
+                                    <i class="fas fa-envelope me-2" style="color: var(--mlb-red);"></i>
+                                    <a href="mailto:{{ reservation.guest_email }}" style="color: var(--mlb-blue); text-decoration: none; font-weight: 600;">{{ reservation.guest_email }}</a>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div style="margin-bottom: 10px;">
+                                    <i class="fas fa-phone me-2" style="color: var(--mlb-red);"></i>
+                                    <a href="tel:{{ reservation.guest_phone }}" style="color: var(--mlb-blue); text-decoration: none; font-weight: 600;">{{ reservation.guest_phone }}</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información de Ocupación -->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="detail-item">
-                                <i class="fas fa-user-circle"></i>
+                                <i class="fas fa-user-friends"></i>
                                 <div class="detail-item-content">
-                                    <div class="detail-item-label">{% trans "Name" %}</div>
-                                    <div class="detail-item-value">{{ reservation.guest_name }}</div>
-                                </div>
-                            </div>
-                            <div class="detail-item">
-                                <i class="fas fa-envelope"></i>
-                                <div class="detail-item-content">
-                                    <div class="detail-item-label">{% trans "Email" %}</div>
+                                    <div class="detail-item-label">{% trans "Total Guests" %}</div>
                                     <div class="detail-item-value">
-                                        <a href="mailto:{{ reservation.guest_email }}">{{ reservation.guest_email }}</a>
+                                        <strong style="font-size: 1.2rem; color: var(--mlb-blue);">{{ reservation.number_of_guests }}</strong>
+                                        <span style="color: #6c757d; margin-left: 8px;">{% trans "person" %}{{ reservation.number_of_guests|pluralize }}</span>
+                                    </div>
+                                    <div style="margin-top: 12px; padding: 12px; background: rgba(13, 44, 84, 0.03); border-radius: 8px; border-left: 3px solid var(--mlb-blue);">
+                                        <div style="font-weight: 600; color: var(--mlb-blue); margin-bottom: 10px; font-size: 0.9rem;">
+                                            <i class="fas fa-users me-2"></i>{% trans "Guests Information" %}:
+                                        </div>
+                                        <div style="font-size: 0.9rem; color: #495057;">
+                                            {% for guest_full_name in reservation.all_guest_names %}
+                                                {% if forloop.first %}
+                                                    <div style="margin-bottom: 8px; padding: 8px; background: white; border-radius: 6px; border-left: 3px solid var(--mlb-red);">
+                                                        <i class="fas fa-user me-2" style="color: var(--mlb-red);"></i>
+                                                        <strong style="color: var(--mlb-blue);">{{ guest_full_name }}</strong>
+                                                        <span style="color: #6c757d; font-size: 0.85rem; margin-left: 5px;">{% trans "(Primary Guest)" %}</span>
+                                                    </div>
+                                                {% else %}
+                                                    <div style="margin-bottom: 8px; padding: 8px; background: white; border-radius: 6px; border-left: 3px solid var(--mlb-light-blue);">
+                                                        <i class="fas fa-user me-2" style="color: var(--mlb-light-blue);"></i>
+                                                        <strong style="color: var(--mlb-blue);">{{ guest_full_name }}</strong>
+                                                        <span style="color: #6c757d; font-size: 0.85rem; margin-left: 5px;">{% trans "(Additional Guest)" %}</span>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="detail-item">
-                                <i class="fas fa-phone"></i>
+                                <i class="fas fa-bed"></i>
                                 <div class="detail-item-content">
-                                    <div class="detail-item-label">{% trans "Phone" %}</div>
+                                    <div class="detail-item-label">{% trans "Room Capacity" %}</div>
                                     <div class="detail-item-value">
-                                        <a href="tel:{{ reservation.guest_phone }}">{{ reservation.guest_phone }}</a>
+                                        <strong style="font-size: 1.2rem; color: var(--mlb-blue);">{{ reservation.room.capacity }}</strong>
+                                        <span style="color: #6c757d; margin-left: 8px;">{% trans "people" %} {% trans "maximum" %}</span>
+                                    </div>
+                                    <div style="margin-top: 8px; font-size: 0.85rem;">
+                                        {% if reservation.number_of_guests <= reservation.room.capacity %}
+                                            <span style="color: #28a745; font-weight: 600;">
+                                                <i class="fas fa-check-circle me-1"></i>{% trans "Within capacity" %}
+                                            </span>
+                                        {% else %}
+                                            <span style="color: #dc3545; font-weight: 600;">
+                                                <i class="fas fa-exclamation-circle me-1"></i>{% trans "Exceeds capacity" %}
+                                            </span>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
-                            <div class="detail-item">
-                                <i class="fas fa-user-friends"></i>
-                                <div class="detail-item-content">
-                                    <div class="detail-item-label">{% trans "Number of Guests" %}</div>
-                                    <div class="detail-item-value">{{ reservation.number_of_guests }} {% trans "person" %}{{ reservation.number_of_guests|pluralize }}</div>
-                                </div>
+                        </div>
+                    </div>
+
+                    <!-- Desglose de Precio por Personas -->
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid #e9ecef;">
+                        <div class="detail-item-label mb-3">{% trans "Price Breakdown by Guests" %}</div>
+                        <div style="background: #f8f9fa; border-radius: 10px; padding: 15px;">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span style="color: #6c757d;">
+                                    <i class="fas fa-user-check me-2" style="color: var(--mlb-blue);"></i>
+                                    {% trans "Included in base price" %}:
+                                </span>
+                                <strong style="color: var(--mlb-blue);">{{ reservation.room.price_includes_guests }} {% trans "person" %}{{ reservation.room.price_includes_guests|pluralize }}</strong>
                             </div>
+                            {% if reservation.number_of_guests > reservation.room.price_includes_guests %}
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span style="color: #6c757d;">
+                                        <i class="fas fa-user-plus me-2" style="color: var(--mlb-red);"></i>
+                                        {% trans "Additional guests" %}:
+                                    </span>
+                                    <strong style="color: var(--mlb-red);">
+                                        {{ reservation.additional_guests_count }} {% trans "person" %}{{ reservation.additional_guests_count|pluralize }}
+                                    </strong>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span style="color: #6c757d;">
+                                        <i class="fas fa-dollar-sign me-2" style="color: var(--mlb-red);"></i>
+                                        {% trans "Price per additional guest per night" %}:
+                                    </span>
+                                    <strong style="color: var(--mlb-red);">
+                                        ${{ reservation.room.additional_guest_price|floatformat:2|intcomma_dot }}
+                                    </strong>
+                                </div>
+                                <div style="padding-top: 10px; border-top: 1px solid #dee2e6; margin-top: 10px; background: rgba(13, 44, 84, 0.03); border-radius: 8px; padding: 12px;">
+                                    <div style="color: #6c757d; font-size: 0.9rem;">
+                                        <i class="fas fa-info-circle me-2" style="color: var(--mlb-blue);"></i>
+                                        <strong>{% trans "Note" %}:</strong> {% trans "Additional guest charges are automatically calculated and included in the total reservation amount shown above." %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <div style="color: #28a745; font-weight: 600; margin-top: 10px;">
+                                    <i class="fas fa-check-circle me-2"></i>{% trans "No additional charges for extra guests" %}
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -572,4 +721,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
+

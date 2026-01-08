@@ -929,6 +929,7 @@
             "price_includes_guests": {{ room.price_includes_guests|default:2 }},
             "additional_guest_price": {{ room.additional_guest_price|default:0 }},
             "breakfast_included": {% if room.breakfast_included %}true{% else %}false{% endif %},
+            "stock": {% if room.stock is not None %}{{ room.stock }}{% else %}null{% endif %},
             "check_in_date": "{% if room.check_in_date %}{{ room.check_in_date|date:'Y-m-d' }}{% endif %}",
             "check_out_date": "{% if room.check_out_date %}{{ room.check_out_date|date:'Y-m-d' }}{% endif %}",
             "check_in_time": "{% if room.check_in_time %}{{ room.check_in_time|time:'H:i' }}{% endif %}",

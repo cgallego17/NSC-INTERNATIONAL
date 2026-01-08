@@ -137,6 +137,31 @@
                     </div>
                 </div>
 
+                <!-- Huéspedes Adicionales (Nombres) -->
+                <div class="card mb-4" id="additionalGuestsCard" style="display: none;">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-users me-2"></i>Huéspedes Adicionales</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-3" style="font-size: 0.95rem;">
+                            Ingresa el nombre de cada persona adicional que se hospedará. Se mostrará en el panel y en el detalle de la reserva.
+                        </p>
+
+                        {# Campo real que se guarda en el modelo (uno por línea). Lo llenamos con JS desde inputs. #}
+                        <textarea id="additional_guest_names"
+                                  name="additional_guest_names"
+                                  class="form-control"
+                                  rows="3"
+                                  style="display:none;">{{ form.additional_guest_names.value|default:'' }}</textarea>
+
+                        <div id="additionalGuestsInputs"></div>
+
+                        {% if form.additional_guest_names.errors %}
+                            <div class="text-danger mt-2">{{ form.additional_guest_names.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
                 <!-- Servicios Adicionales -->
                 <div class="card mb-4">
                     <div class="card-header bg-success text-white">
@@ -258,11 +283,79 @@ document.addEventListener('DOMContentLoaded', function() {
     const checkInInput = document.getElementById('check_in');
     const checkOutInput = document.getElementById('check_out');
     const guestsInput = document.getElementById('number_of_guests');
+    const additionalGuestsCard = document.getElementById('additionalGuestsCard');
+    const additionalGuestsInputs = document.getElementById('additionalGuestsInputs');
+    const additionalGuestNamesTextarea = document.getElementById('additional_guest_names');
     const serviceCheckboxes = document.querySelectorAll('.service-checkbox');
     const quantityInputs = document.querySelectorAll('.quantity-input');
 
     let selectedRoom = null;
     let selectedServices = [];
+
+    // ===== Huéspedes adicionales: generar inputs según "Número de Huéspedes" =====
+    function parseAdditionalGuestNames() {
+        const raw = (additionalGuestNamesTextarea?.value || '').toString();
+        return raw.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+    }
+
+    function syncAdditionalGuestNamesTextarea() {
+        if (!additionalGuestNamesTextarea || !additionalGuestsInputs) return;
+        const inputs = additionalGuestsInputs.querySelectorAll('.additional-guest-name-input');
+        const lines = [];
+        inputs.forEach((el) => {
+            const v = (el.value || '').toString().trim();
+            if (v) lines.push(v);
+        });
+        additionalGuestNamesTextarea.value = lines.join('\n');
+    }
+
+    function renderAdditionalGuestInputs() {
+        if (!additionalGuestsCard || !additionalGuestsInputs || !additionalGuestNamesTextarea || !guestsInput) return;
+
+        const total = parseInt(guestsInput.value || '1', 10) || 1;
+        const needed = Math.max(0, total - 1);
+
+        additionalGuestsInputs.innerHTML = '';
+        if (needed <= 0) {
+            additionalGuestsCard.style.display = 'none';
+            additionalGuestNamesTextarea.value = '';
+            return;
+        }
+
+        additionalGuestsCard.style.display = '';
+        const existing = parseAdditionalGuestNames();
+
+        for (let i = 0; i < needed; i++) {
+            const guestNumber = i + 2; // Guest 2..N
+            const wrapper = document.createElement('div');
+            wrapper.className = 'mb-3';
+            const value = existing[i] ? existing[i] : '';
+
+            wrapper.innerHTML = `
+                <label class="form-label" style="font-weight: 600;">
+                    <i class="fas fa-user me-1"></i>Nombre del huésped ${guestNumber} <span class="text-muted">(Adicional)</span>
+                </label>
+                <input type="text"
+                       class="form-control additional-guest-name-input"
+                       placeholder="Nombre completo"
+                       value="${value.replace(/"/g, '&quot;')}"
+                       required>
+            `;
+            additionalGuestsInputs.appendChild(wrapper);
+        }
+
+        syncAdditionalGuestNamesTextarea();
+    }
+
+    // Render inicial y al cambiar el número de huéspedes
+    renderAdditionalGuestInputs();
+    guestsInput.addEventListener('change', renderAdditionalGuestInputs);
+    guestsInput.addEventListener('input', renderAdditionalGuestInputs);
+    additionalGuestsInputs?.addEventListener('input', syncAdditionalGuestNamesTextarea);
+
+    // Asegurar sincronización antes de enviar
+    const reservationForm = document.getElementById('reservationForm');
+    reservationForm?.addEventListener('submit', syncAdditionalGuestNamesTextarea);
 
     // Cargar habitaciones cuando se selecciona un hotel
     hotelSelect.addEventListener('change', function() {

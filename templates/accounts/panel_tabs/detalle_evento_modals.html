@@ -1411,7 +1411,9 @@
                                              data-room-capacity="{{ room.capacity|default:0 }}"
                                              data-room-price="{{ room.price_per_night|default:0 }}"
                                              data-room-includes-guests="{{ room.price_includes_guests|default:1 }}"
-                                             data-room-additional-guest-price="{{ room.additional_guest_price|default:0 }}">
+                                             data-room-additional-guest-price="{{ room.additional_guest_price|default:0 }}"
+                                             data-room-stock="{% if room.stock is not None %}{{ room.stock }}{% else %}null{% endif %}"
+                                             {% if room.stock is not None and room.stock == 0 %}style="opacity: 0.6; cursor: not-allowed; pointer-events: none;"{% endif %}>
                                             <!-- Room Image Slider -->
                                             <div class="room-image-container room-image-slider" data-room-id="{{ room.id }}" data-hotel-pk="{{ event.hotel.pk }}">
                                                 <div class="room-slider-wrapper">
@@ -1451,15 +1453,69 @@
                                             <div class="room-info">
                                                 <!-- Título alineado con la parte superior de la imagen -->
                                                 <div class="room-header">
-                                                    {% if room.name %}
-                                                        <div class="room-name">{{ room.name }}</div>
-                                                        <div class="room-type">{{ room.get_room_type_display }}</div>
-                                                    {% else %}
-                                                        <div class="room-name">{{ room.get_room_type_display }}</div>
-                                                    {% endif %}
+                                                    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                        {% if room.name %}
+                                                            <div class="room-name" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                                <span>{{ room.name }}</span>
+                                                                <!-- Stock badge al lado del nombre -->
+                                                                {% if room.stock is not None %}
+                                                                    {% if room.stock == 0 %}
+                                                                        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; color: #dc2626; background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border: 1px solid #f87171; box-shadow: 0 1px 3px rgba(220, 38, 38, 0.15); font-size: 0.7rem; font-weight: 700; white-space: nowrap;">
+                                                                            <i class="fas fa-times-circle" style="font-size: 0.65rem;"></i>
+                                                                            <span>{% trans "Sold Out" %}</span>
+                                                                        </span>
+                                                                    {% elif room.stock > 0 and room.stock < 10 %}
+                                                                        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; color: #ea580c; background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%); border: 1px solid #fdba74; box-shadow: 0 1px 3px rgba(234, 88, 12, 0.15); font-size: 0.7rem; font-weight: 700; white-space: nowrap;">
+                                                                            <i class="fas fa-exclamation-triangle" style="font-size: 0.65rem;"></i>
+                                                                            <span style="font-weight: 600;">{% trans "Few left" %}</span>
+                                                                        </span>
+                                                                    {% else %}
+                                                                        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; color: #059669; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 1px solid #86efac; box-shadow: 0 1px 3px rgba(5, 150, 105, 0.15); font-size: 0.7rem; font-weight: 700; white-space: nowrap;">
+                                                                            <i class="fas fa-box" style="font-size: 0.65rem;"></i>
+                                                                            <strong>{{ room.stock }}</strong> <span style="font-weight: 600;">{% trans "available" %}</span>
+                                                                        </span>
+                                                                    {% endif %}
+                                                                {% else %}
+                                                                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; color: #059669; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 1px solid #86efac; box-shadow: 0 1px 3px rgba(5, 150, 105, 0.15); font-size: 0.7rem; font-weight: 700; white-space: nowrap;">
+                                                                        <i class="fas fa-infinity" style="font-size: 0.65rem;"></i>
+                                                                        <span style="font-weight: 600;">{% trans "Available" %}</span>
+                                                                    </span>
+                                                                {% endif %}
+                                                            </div>
+                                                            <div class="room-type">{{ room.get_room_type_display }}</div>
+                                                        {% else %}
+                                                            <div class="room-name" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                                <span>{{ room.get_room_type_display }}</span>
+                                                                <!-- Stock badge al lado del nombre -->
+                                                                {% if room.stock is not None %}
+                                                                    {% if room.stock == 0 %}
+                                                                        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; color: #dc2626; background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); border: 1px solid #f87171; box-shadow: 0 1px 3px rgba(220, 38, 38, 0.15); font-size: 0.7rem; font-weight: 700; white-space: nowrap;">
+                                                                            <i class="fas fa-times-circle" style="font-size: 0.65rem;"></i>
+                                                                            <span>{% trans "Sold Out" %}</span>
+                                                                        </span>
+                                                                    {% elif room.stock > 0 and room.stock < 10 %}
+                                                                        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; color: #ea580c; background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%); border: 1px solid #fdba74; box-shadow: 0 1px 3px rgba(234, 88, 12, 0.15); font-size: 0.7rem; font-weight: 700; white-space: nowrap;">
+                                                                            <i class="fas fa-exclamation-triangle" style="font-size: 0.65rem;"></i>
+                                                                            <span style="font-weight: 600;">{% trans "Few left" %}</span>
+                                                                        </span>
+                                                                    {% else %}
+                                                                        <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; color: #059669; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 1px solid #86efac; box-shadow: 0 1px 3px rgba(5, 150, 105, 0.15); font-size: 0.7rem; font-weight: 700; white-space: nowrap;">
+                                                                            <i class="fas fa-box" style="font-size: 0.65rem;"></i>
+                                                                            <strong>{{ room.stock }}</strong> <span style="font-weight: 600;">{% trans "available" %}</span>
+                                                                        </span>
+                                                                    {% endif %}
+                                                                {% else %}
+                                                                    <span style="display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 8px; color: #059669; background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 1px solid #86efac; box-shadow: 0 1px 3px rgba(5, 150, 105, 0.15); font-size: 0.7rem; font-weight: 700; white-space: nowrap;">
+                                                                        <i class="fas fa-infinity" style="font-size: 0.65rem;"></i>
+                                                                        <span style="font-weight: 600;">{% trans "Available" %}</span>
+                                                                    </span>
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
                                                 </div>
 
-                                                <!-- Iconos y características debajo del título HOLAAA -->
+                                                <!-- Iconos y características debajo del título -->
                                                 <div class="room-content-wrapper">
                                                 <div class="room-features">
                                                     {% if room.capacity %}

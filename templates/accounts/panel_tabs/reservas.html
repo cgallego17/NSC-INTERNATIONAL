@@ -1,5 +1,231 @@
 {% load i18n %}
 {% load static %}
+{% load url_filters %}
+
+<style>
+    /* ===== Reservations (Panel) ===== */
+    .reservation-card {
+        border: none;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+        background: #fff;
+    }
+    .reservation-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 14px 45px rgba(0, 0, 0, 0.14);
+    }
+    .reservation-card-header {
+        padding: 18px 20px;
+        border: 0;
+        color: #fff;
+        background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+        box-shadow: 0 2px 8px rgba(13, 44, 84, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    .reservation-card-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+        pointer-events: none;
+    }
+    .reservation-card-header .title {
+        font-weight: 800;
+        font-size: 1.05rem;
+        letter-spacing: 0.3px;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+    .reservation-card-header .subtitle {
+        margin: 8px 0 0;
+        opacity: 0.95;
+        font-size: 0.88rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        position: relative;
+        z-index: 1;
+        font-weight: 600;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+    }
+    .reservation-pill {
+        background: rgba(255, 255, 255, 0.98);
+        color: var(--mlb-blue);
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 0.73rem;
+        font-weight: 800;
+        white-space: nowrap;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        position: relative;
+        z-index: 1;
+    }
+    .reservation-body {
+        padding: 16px 18px;
+    }
+    .reservation-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 14px;
+        margin-top: 10px;
+    }
+    @media (max-width: 575px) {
+        .reservation-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    .reservation-kv {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 10px 12px;
+        background: linear-gradient(135deg, rgba(13, 44, 84, 0.03) 0%, rgba(213, 0, 50, 0.02) 100%);
+        border: 1px solid rgba(13, 44, 84, 0.1);
+        border-radius: 12px;
+        min-height: 54px;
+        transition: all 0.2s ease;
+    }
+    .reservation-kv:hover {
+        background: linear-gradient(135deg, rgba(13, 44, 84, 0.06) 0%, rgba(213, 0, 50, 0.04) 100%);
+        border-color: rgba(13, 44, 84, 0.2);
+    }
+    .reservation-kv .icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 34px;
+        background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+        color: #fff;
+        box-shadow: 0 2px 8px rgba(13, 44, 84, 0.2);
+    }
+    .reservation-kv .label {
+        font-size: 0.72rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        margin: 0;
+        line-height: 1.2;
+    }
+    .reservation-kv .value {
+        margin: 2px 0 0;
+        color: var(--mlb-blue);
+        font-weight: 700;
+        font-size: 0.92rem;
+        line-height: 1.25;
+        word-break: break-word;
+    }
+    .reservation-total {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        padding: 14px 16px;
+        border: 2px solid var(--mlb-blue);
+        border-radius: 12px;
+        margin-top: 12px;
+        background: linear-gradient(135deg, rgba(13, 44, 84, 0.08) 0%, rgba(213, 0, 50, 0.05) 100%);
+        box-shadow: 0 2px 8px rgba(13, 44, 84, 0.1);
+    }
+    .reservation-total .amount {
+        font-weight: 900;
+        font-size: 1.35rem;
+        color: var(--mlb-blue);
+        margin: 0;
+    }
+    .reservation-total .meta {
+        font-size: 0.75rem;
+        color: #6c757d;
+        margin: 0;
+        text-align: right;
+    }
+    .reservation-details-toggle {
+        margin-top: 12px;
+    }
+    .reservation-details-box {
+        margin-top: 10px;
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        padding: 12px;
+        background: #fff;
+    }
+    .reservation-details-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 12px;
+    }
+    @media (max-width: 575px) {
+        .reservation-details-list {
+            grid-template-columns: 1fr;
+        }
+    }
+    .reservation-details-list li {
+        font-size: 0.86rem;
+        color: #495057;
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        line-height: 1.25;
+    }
+    .reservation-details-list i {
+        color: var(--mlb-red);
+        margin-top: 2px;
+        width: 16px;
+        text-align: center;
+        flex: 0 0 16px;
+    }
+    .reservation-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+    }
+    .reservation-chip {
+        background: linear-gradient(135deg, rgba(13, 44, 84, 0.08) 0%, rgba(213, 0, 50, 0.05) 100%);
+        border: 1px solid rgba(13, 44, 84, 0.15);
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        color: var(--mlb-blue);
+        font-weight: 700;
+        transition: all 0.2s ease;
+    }
+    .reservation-chip:hover {
+        background: linear-gradient(135deg, rgba(13, 44, 84, 0.12) 0%, rgba(213, 0, 50, 0.08) 100%);
+        border-color: var(--mlb-blue);
+        transform: translateY(-1px);
+    }
+    .reservation-note {
+        margin-top: 10px;
+        font-size: 0.85rem;
+        background: linear-gradient(135deg, rgba(13, 44, 84, 0.05) 0%, rgba(213, 0, 50, 0.03) 100%);
+        border-left: 4px solid var(--mlb-red);
+        padding: 12px 14px;
+        border-radius: 8px;
+        color: var(--mlb-blue);
+        font-weight: 500;
+    }
+</style>
 
 <div class="tab-content-header mb-4">
     <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
@@ -45,76 +271,171 @@
     <div class="row g-4">
         {% for reservation in reservations %}
             <div class="col-md-6 col-lg-4">
-                <div class="card h-100 shadow-sm" style="border: none; border-radius: 16px; overflow: hidden; transition: all 0.3s ease;"
-                     onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 12px 40px rgba(0,0,0,0.15)';"
-                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.1)';">
+                <div class="reservation-card h-100">
 
                     <!-- Card Header with Status -->
-                    <div class="card-header text-white" style="background: {% if reservation.status == 'confirmed' %}linear-gradient(135deg, #28a745 0%, #20c997 100%){% elif reservation.status == 'pending' %}linear-gradient(135deg, #ffc107 0%, #ff9800 100%){% elif reservation.status == 'cancelled' %}linear-gradient(135deg, #dc3545 0%, #c82333 100%){% elif reservation.status == 'checked_in' %}linear-gradient(135deg, #17a2b8 0%, #138496 100%){% elif reservation.status == 'checked_out' %}linear-gradient(135deg, #6c757d 0%, #5a6268 100%){% else %}#0d2c54{% endif %}; border: none; padding: 15px 20px;">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <strong style="font-size: 1rem;">{% trans "Reservation" %} #{{ reservation.id }}</strong>
-                            <span class="badge bg-light text-dark" style="font-size: 0.75rem; padding: 5px 10px;">
-                                {{ reservation.get_status_display }}
-                            </span>
-                        </div>
+                    <div class="reservation-card-header" style="background: {% if reservation.status == 'confirmed' %}linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%){% elif reservation.status == 'pending' %}linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%){% elif reservation.status == 'cancelled' %}linear-gradient(135deg, #6c757d 0%, #5a6268 100%){% elif reservation.status == 'checked_in' %}linear-gradient(135deg, var(--mlb-light-blue) 0%, var(--mlb-blue) 100%){% elif reservation.status == 'checked_out' %}linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%){% else %}linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%){% endif %};">
+                        <p class="title">
+                            <span>{% trans "Reservation" %} #{{ reservation.id }}</span>
+                            <span class="reservation-pill">{{ reservation.get_status_display }}</span>
+                        </p>
+                        <p class="subtitle">
+                            <i class="fas fa-hotel"></i>
+                            <span style="font-weight: 800;">{{ reservation.hotel.hotel_name }}</span>
+                        </p>
                     </div>
 
                     <!-- Card Body -->
-                    <div class="card-body" style="padding: 20px;">
-                        <h6 class="card-title mb-3" style="color: var(--mlb-blue); font-weight: 700; font-size: 1.1rem;">
-                            <i class="fas fa-hotel me-2" style="color: var(--mlb-red);"></i>{{ reservation.hotel.hotel_name }}
-                        </h6>
+                    <div class="reservation-body">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                            <div style="min-width:0;">
+                                <div style="font-size:0.75rem; color:#6c757d; text-transform:uppercase; letter-spacing:0.6px;">
+                                    {% trans "Guest" %}
+                                </div>
+                                <div style="font-weight: 800; color: var(--mlb-blue); font-size: 1rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                    {{ reservation.guest_name }}
+                                </div>
+                            </div>
+                            <div class="reservation-pill" title="{% trans 'Created' %}">
+                                <i class="fas fa-clock me-1"></i>{{ reservation.created_at|date:"d/m/Y" }}
+                            </div>
+                        </div>
 
-                        <div class="reservation-details" style="margin-bottom: 15px;">
-                            <p class="mb-2" style="color: #6c757d; font-size: 0.9rem;">
-                                <i class="fas fa-bed me-2" style="color: var(--mlb-red); width: 20px;"></i>
-                                <strong>{% trans "Room" %}:</strong> #{{ reservation.room.room_number }}
-                            </p>
-                            <p class="mb-2" style="color: #6c757d; font-size: 0.9rem;">
-                                <i class="fas fa-calendar me-2" style="color: var(--mlb-red); width: 20px;"></i>
-                                <strong>{% trans "Check-in" %}:</strong> {{ reservation.check_in|date:"d/m/Y" }}
-                            </p>
-                            <p class="mb-2" style="color: #6c757d; font-size: 0.9rem;">
-                                <i class="fas fa-calendar-check me-2" style="color: var(--mlb-red); width: 20px;"></i>
-                                <strong>{% trans "Check-out" %}:</strong> {{ reservation.check_out|date:"d/m/Y" }}
-                            </p>
-                            <p class="mb-2" style="color: #6c757d; font-size: 0.9rem;">
-                                <i class="fas fa-moon me-2" style="color: var(--mlb-red); width: 20px;"></i>
-                                <strong>{% trans "Nights" %}:</strong> {{ reservation.number_of_nights }} {% trans "night" %}{{ reservation.number_of_nights|pluralize }}
-                            </p>
-                            <p class="mb-0" style="color: #6c757d; font-size: 0.9rem;">
-                                <i class="fas fa-users me-2" style="color: var(--mlb-red); width: 20px;"></i>
-                                <strong>{% trans "Guests" %}:</strong> {{ reservation.number_of_guests }} {% trans "person" %}{{ reservation.number_of_guests|pluralize }}
+                        <div class="reservation-grid">
+                            <div class="reservation-kv">
+                                <div class="icon"><i class="fas fa-calendar"></i></div>
+                                <div>
+                                    <p class="label">{% trans "Check-in" %}</p>
+                                    <p class="value">{{ reservation.check_in|date:"d/m/Y" }}</p>
+                                </div>
+                            </div>
+                            <div class="reservation-kv">
+                                <div class="icon"><i class="fas fa-calendar-check"></i></div>
+                                <div>
+                                    <p class="label">{% trans "Check-out" %}</p>
+                                    <p class="value">{{ reservation.check_out|date:"d/m/Y" }}</p>
+                                </div>
+                            </div>
+                            <div class="reservation-kv">
+                                <div class="icon"><i class="fas fa-users"></i></div>
+                                <div>
+                                    <p class="label">{% trans "Guests" %}</p>
+                                    <p class="value">{{ reservation.number_of_guests }}</p>
+                                </div>
+                            </div>
+                            <div class="reservation-kv">
+                                <div class="icon"><i class="fas fa-bed"></i></div>
+                                <div>
+                                    <p class="label">{% trans "Room" %}</p>
+                                    <p class="value">
+                                        {% if reservation.room.name %}{{ reservation.room.name }}{% else %}{{ reservation.room.get_room_type_display }}{% endif %}
+                                        {% if reservation.room.room_number %}<span style="font-weight:700; color:#6c757d;"> • #{{ reservation.room.room_number }}</span>{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="reservation-kv">
+                                <div class="icon"><i class="fas fa-moon"></i></div>
+                                <div>
+                                    <p class="label">{% trans "Nights" %}</p>
+                                    <p class="value">{{ reservation.number_of_nights }}</p>
+                                </div>
+                            </div>
+                            <div class="reservation-kv">
+                                <div class="icon"><i class="fas fa-user-friends"></i></div>
+                                <div>
+                                    <p class="label">{% trans "Capacity" %}</p>
+                                    <p class="value">{{ reservation.room.capacity }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="reservation-total">
+                            <div>
+                                <p style="margin:0; font-size:0.75rem; color:#6c757d; text-transform:uppercase; letter-spacing:0.6px;">
+                                    {% trans "Total" %}
+                                </p>
+                                <p class="amount">${{ reservation.total_amount|floatformat:2|intcomma_dot }}</p>
+                            </div>
+                            <p class="meta">
+                                {% trans "Price/night" %}: ${{ reservation.room.price_per_night|floatformat:2|intcomma_dot }}<br>
+                                {% trans "Included" %}: {{ reservation.room.price_includes_guests }} • {% trans "Extra" %}: ${{ reservation.room.additional_guest_price|floatformat:2|intcomma_dot }}
                             </p>
                         </div>
 
-                        <hr style="margin: 15px 0; border-color: #e9ecef;">
+                        <div class="reservation-details-toggle">
+                            <a class="btn btn-sm w-100"
+                               data-bs-toggle="collapse"
+                               href="#reservationDetails{{ reservation.id }}"
+                               role="button"
+                               aria-expanded="false"
+                               aria-controls="reservationDetails{{ reservation.id }}"
+                               style="border-radius: 10px; font-weight: 700; background: var(--mlb-blue); color: white; border: none; transition: all 0.3s;"
+                               onmouseover="this.style.background='var(--mlb-light-blue)'; this.style.transform='translateY(-1px)';"
+                               onmouseout="this.style.background='var(--mlb-blue)'; this.style.transform='translateY(0)';">
+                                <i class="fas fa-info-circle me-1"></i>{% trans "More details" %}
+                            </a>
+                            <div class="collapse" id="reservationDetails{{ reservation.id }}">
+                                <div class="reservation-details-box">
+                                    <ul class="reservation-details-list">
+                                        <li><i class="fas fa-envelope"></i><span><strong>{% trans "Email" %}:</strong> {{ reservation.guest_email }}</span></li>
+                                        <li><i class="fas fa-phone"></i><span><strong>{% trans "Phone" %}:</strong> {{ reservation.guest_phone }}</span></li>
+                                        <li><i class="fas fa-map-marker-alt"></i>
+                                            <span>
+                                                <strong>{% trans "Address" %}:</strong>
+                                                {{ reservation.hotel.address }}
+                                                {% if reservation.hotel.city %}, {{ reservation.hotel.city.name }}{% endif %}
+                                                {% if reservation.hotel.state %}, {{ reservation.hotel.state.name }}{% endif %}
+                                                {% if reservation.hotel.country %}, {{ reservation.hotel.country.name }}{% endif %}
+                                            </span>
+                                        </li>
+                                        <li><i class="fas fa-check"></i><span><strong>{% trans "Included guests" %}:</strong> {{ reservation.room.price_includes_guests }}</span></li>
+                                    </ul>
 
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <small class="text-muted d-block" style="font-size: 0.75rem;">{% trans "Total Amount" %}</small>
-                                <h5 class="text-primary mb-0" style="font-weight: 700; font-size: 1.5rem;">
-                                    ${{ reservation.total_amount|floatformat:2 }}
-                                </h5>
-                            </div>
-                            <div class="text-end">
-                                <small class="text-muted d-block" style="font-size: 0.75rem;">{% trans "Created" %}</small>
-                                <small class="text-muted" style="font-size: 0.75rem;">
-                                    {{ reservation.created_at|date:"d/m/Y" }}
-                                </small>
+                                    {% with services=reservation.service_reservations.all %}
+                                        {% if services|length > 0 %}
+                                            <div style="margin-top: 10px; font-size: 0.85rem; color: #6c757d; font-weight: 800;">
+                                                <i class="fas fa-concierge-bell me-2" style="color: var(--mlb-blue);"></i>{% trans "Additional services" %}
+                                            </div>
+                                            <div class="reservation-chips">
+                                                {% for s in services %}
+                                                    <span class="reservation-chip">
+                                                        {{ s.service.service_name }} × {{ s.quantity }}
+                                                        {% if s.service.is_per_person %}<span class="text-muted">• {% trans "per person" %}</span>{% endif %}
+                                                        {% if s.service.is_per_night %}<span class="text-muted">• {% trans "per night" %}</span>{% endif %}
+                                                    </span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    {% endwith %}
+
+                                    {% if reservation.notes %}
+                                        <div class="reservation-note">
+                                            <i class="fas fa-sticky-note me-2" style="color: var(--mlb-blue);"></i>
+                                            <strong>{% trans "Notes" %}:</strong> {{ reservation.notes|truncatechars:180 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Card Footer -->
-                    <div class="card-footer bg-white" style="border: none; padding: 15px 20px; border-top: 1px solid #e9ecef;">
-                        <a href="{% url 'locations:front_hotel_reservation_detail' reservation.pk %}"
-                           class="btn btn-sm btn-outline-primary w-100 mb-2" style="border-radius: 8px;">
+                    <div class="card-footer bg-white" style="border: none; padding: 15px 20px; border-top: 2px solid rgba(13, 44, 84, 0.1);">
+                        <button type="button"
+                                class="btn btn-sm w-100 mb-2 view-reservation-detail-btn"
+                                data-reservation-id="{{ reservation.pk }}"
+                                data-url="{% url 'locations:front_hotel_reservation_detail' reservation.pk %}?from_panel=true"
+                                style="border-radius: 8px; background: var(--mlb-blue); color: white; border: none; font-weight: 700; transition: all 0.3s;"
+                                onmouseover="this.style.background='var(--mlb-light-blue)'; this.style.transform='translateY(-1px)';"
+                                onmouseout="this.style.background='var(--mlb-blue)'; this.style.transform='translateY(0)';">
                             <i class="fas fa-eye me-1"></i>{% trans "View Details" %}
-                        </a>
+                        </button>
                         {% if reservation.status == 'pending' %}
                             <a href="{% url 'locations:front_hotel_reservation_checkout' reservation.pk %}"
-                               class="btn btn-sm btn-success w-100" style="border-radius: 8px;">
+                               class="btn btn-sm w-100"
+                               style="border-radius: 8px; background: var(--mlb-red); color: white; border: none; font-weight: 700; transition: all 0.3s;"
+                               onmouseover="this.style.background='#b30029'; this.style.transform='translateY(-1px)';"
+                               onmouseout="this.style.background='var(--mlb-red)'; this.style.transform='translateY(0)';">
                                 <i class="fas fa-credit-card me-1"></i>{% trans "Pay Now" %}
                             </a>
                         {% endif %}
@@ -183,6 +504,41 @@
                 // document.getElementById('reservationFilterForm').submit();
             });
         }
+
+        // Cargar detalle de reserva dentro de la tab
+        const viewDetailButtons = document.querySelectorAll('.view-reservation-detail-btn');
+        viewDetailButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const url = this.getAttribute('data-url');
+                const tabContent = document.getElementById('tab-content-reservas');
+
+                if (tabContent && url) {
+                    // Mostrar loading
+                    tabContent.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+
+                    // Cargar contenido
+                    fetch(url)
+                        .then(response => response.text())
+                        .then(html => {
+                            tabContent.innerHTML = html;
+                            // Re-ejecutar scripts si es necesario
+                            const scripts = tabContent.querySelectorAll('script');
+                            scripts.forEach(oldScript => {
+                                const newScript = document.createElement('script');
+                                Array.from(oldScript.attributes).forEach(attr => {
+                                    newScript.setAttribute(attr.name, attr.value);
+                                });
+                                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                                oldScript.parentNode.replaceChild(newScript, oldScript);
+                            });
+                        })
+                        .catch(error => {
+                            console.error('Error loading reservation details:', error);
+                            tabContent.innerHTML = '<div class="alert alert-danger">Error loading reservation details. Please try again.</div>';
+                        });
+                }
+            });
+        });
     });
 </script>
 

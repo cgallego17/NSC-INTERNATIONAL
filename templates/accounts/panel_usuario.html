@@ -1226,7 +1226,16 @@
                         'crear-equipo',
                         'mis-equipos',
                         'ver-jugadores',
+                        'reservas',
                     ];
+
+                    // Si este tab tiene contenido directo, eliminar cualquier iframe existente
+                    if (tabsWithDirectContent.includes(tabId)) {
+                        const existingIframe = targetContent.querySelector('iframe');
+                        if (existingIframe) {
+                            existingIframe.remove();
+                        }
+                    }
 
                     // Si hay una URL, manejar iframe
                     // Nota: si este tab usa iframe embed (data-src), NO sobrescribir su src con data-url legacy.
@@ -1387,9 +1396,19 @@
 
                         // Manejar iframes si es necesario
                         const url = activeTabButton.getAttribute('data-url');
+                        // Tabs que tienen contenido incluido directamente, no necesitan iframe
+                        const tabsWithDirectContent = [
+                            'registrar-hijo',
+                            'mis-hijos',
+                            'registrar-jugador',
+                            'crear-equipo',
+                            'mis-equipos',
+                            'ver-jugadores',
+                            'reservas',
+                        ];
                         // No sobrescribir iframes embed (data-src)
                         const embedIframe = activeTabContent.querySelector('iframe[data-src]');
-                        if (url && !embedIframe) {
+                        if (url && !embedIframe && !tabsWithDirectContent.includes(activeTabId)) {
                             const existingIframe = activeTabContent.querySelector('iframe');
                             if (existingIframe) {
                                 let absoluteUrl = url;

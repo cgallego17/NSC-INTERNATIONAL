@@ -1,0 +1,1008 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% load url_filters %}
+
+{% block title %}{% trans "Order Detail" %} #{{ order.order_number }} - NCS International{% endblock %}
+
+{% block breadcrumb %}
+    <a href="{% url 'accounts:admin_order_list' %}">{% trans "Orders" %}</a>
+    <span>{% trans "Order Detail" %}</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .order-detail-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        padding: 2rem 2rem 2rem 3rem;
+        min-height: 100vh;
+    }
+
+    @media (max-width: 992px) {
+        .order-detail-container {
+            padding: 2rem 1.5rem;
+        }
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .info-card-header {
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+        font-weight: 700;
+        color: var(--mlb-blue);
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .section-divider {
+        border-top: 2px solid #e9ecef;
+        margin: 20px 0;
+    }
+
+    .info-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .info-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+        font-weight: 600;
+    }
+
+    .info-value {
+        font-size: 0.95rem;
+        color: #212529;
+        font-weight: 500;
+    }
+
+    .highlight-box {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-left: 4px solid var(--mlb-blue);
+        padding: 12px 15px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+    }
+
+    .detail-item {
+        margin-bottom: 15px;
+    }
+
+    .detail-item-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+
+    .detail-item-value {
+        font-size: 1rem;
+        color: #212529;
+        font-weight: 500;
+    }
+
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-paid {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-refunded {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-failed {
+        background-color: #f5c6cb;
+        color: #721c24;
+    }
+
+    .reservation-card {
+        background: #f8f9fa;
+        border-left: 4px solid var(--mlb-blue);
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .player-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        background: var(--mlb-blue);
+        color: white;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        margin: 4px;
+    }
+
+    code {
+        background: #f8f9fa;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="order-detail-container">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 mb-0 text-gray-800">
+                            <i class="fas fa-receipt me-2" style="color: var(--mlb-blue);"></i>{% trans "Order Detail" %}
+                        </h1>
+                        <p class="text-muted">{% trans "Order Number" %}: <strong>{{ order.order_number }}</strong></p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'accounts:admin_order_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>{% trans "Back to List" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-lg-8">
+                <!-- Order Summary -->
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <div>
+                            <i class="fas fa-receipt me-2"></i>{% trans "Order Summary" %}
+                        </div>
+                        <span class="status-badge status-{{ order.status }}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <div>
+                            <div class="info-label">{% trans "Order Number" %}</div>
+                            <div class="info-value"><strong>{{ order.order_number }}</strong></div>
+                        </div>
+                        <div>
+                            <div class="info-label">{% trans "Payment Method" %}</div>
+                            <div class="info-value">{{ order.get_payment_method_display }}</div>
+                        </div>
+                        <div>
+                            <div class="info-label">{% trans "Payment Mode" %}</div>
+                            <div class="info-value">
+                                {% if order.is_payment_plan %}
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-calendar-alt me-1"></i>{% trans "Plan" %} ({{ order.plan_months }}m)
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "Single" %}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div>
+                            <div class="info-label">{% trans "Created" %}</div>
+                            <div class="info-value">{{ order.created_at|date:"M d, Y H:i" }}</div>
+                        </div>
+                        {% if order.paid_at %}
+                        <div>
+                            <div class="info-label">{% trans "Paid At" %}</div>
+                            <div class="info-value">{{ order.paid_at|date:"M d, Y H:i" }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Customer Information -->
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <i class="fas fa-user me-2"></i>{% trans "Customer Information" %}
+                    </div>
+                    <div class="info-row">
+                        <div>
+                            <div class="info-label">{% trans "Name" %}</div>
+                            <div class="info-value"><strong>{{ order.user.get_full_name|default:order.user.username }}</strong></div>
+                        </div>
+                        <div>
+                            <div class="info-label">{% trans "Username" %}</div>
+                            <div class="info-value">{{ order.user.username }}</div>
+                        </div>
+                        <div>
+                            <div class="info-label">{% trans "Email" %}</div>
+                            <div class="info-value">{{ order.user.email }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event & Registration -->
+                {% if order.event %}
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <div>
+                            <i class="fas fa-calendar-check me-2"></i>{% trans "Event & Registration" %}
+                        </div>
+                        <a href="{% url 'events:admin_detail' order.event.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-external-link-alt me-1"></i>{% trans "View Event" %}
+                        </a>
+                    </div>
+
+                    <div class="highlight-box">
+                        <div class="d-flex align-items-start">
+                            <i class="fas fa-calendar-alt me-2 mt-1" style="color: var(--mlb-blue); font-size: 1.2rem;"></i>
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1" style="color: var(--mlb-blue);">{{ order.event.title }}</h5>
+                                {% if order.event.start_date %}
+                                    <div class="mb-1">
+                                        <i class="fas fa-calendar me-1 text-muted"></i>
+                                        <small class="text-muted">
+                                            {{ order.event.start_date|date:"M d, Y" }} - {{ order.event.end_date|date:"M d, Y" }}
+                                        </small>
+                                    </div>
+                                {% endif %}
+                                {% if order.event.location %}
+                                    <div>
+                                        <i class="fas fa-map-marker-alt me-1 text-muted"></i>
+                                        <small class="text-muted">{{ order.event.location }}</small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if registered_players %}
+                    <div class="section-divider"></div>
+                    <div>
+                        <div class="info-label mb-3">
+                            {% trans "Registered Players" %}
+                            <span class="badge bg-primary">{{ registered_players|length }}</span>
+                        </div>
+                        <div>
+                            {% for player in registered_players %}
+                                <div class="mb-3 p-3" style="background: #f8f9fa; border-radius: 8px; border-left: 4px solid var(--mlb-blue);">
+                                    <div class="d-flex align-items-start mb-3">
+                                        <i class="fas fa-user-check me-3 text-success mt-1" style="font-size: 1.3rem;"></i>
+                                        <div class="flex-grow-1">
+                                            <h5 class="mb-2" style="color: var(--mlb-blue);">
+                                                {{ player.user.get_full_name|default:player.user.username }}
+                                                {% if player.jersey_number %}
+                                                    <span class="badge bg-secondary ms-2">#{{ player.jersey_number }}</span>
+                                                {% endif %}
+                                                <small class="ms-2 text-muted" style="font-size: 0.7rem;">ID: {{ player.id }}</small>
+                                            </h5>
+
+                                            <!-- Información Básica -->
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-md-6">
+                                                    <small class="text-muted d-block mb-1">
+                                                        <i class="fas fa-envelope me-1"></i>{% trans "Email" %}
+                                                    </small>
+                                                    <div>{{ player.user.email }}</div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <small class="text-muted d-block mb-1">
+                                                        <i class="fas fa-phone me-1"></i>{% trans "Phone" %}
+                                                    </small>
+                                                    {% if player.user.profile.phone %}
+                                                        <div>{{ player.user.profile.phone }}</div>
+                                                    {% else %}
+                                                        <div class="text-muted">-</div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+
+                                            <!-- Información de Jugador -->
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-md-4">
+                                                    <small class="text-muted d-block mb-1">
+                                                        <i class="fas fa-tag me-1"></i>{% trans "Division" %}
+                                                    </small>
+                                                    <strong>{{ player.division|default:"-" }}</strong>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <small class="text-muted d-block mb-1">
+                                                        <i class="fas fa-map-marker-alt me-1"></i>{% trans "Position" %}
+                                                    </small>
+                                                    <strong>{{ player.get_position_display|default:"-" }}</strong>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <small class="text-muted d-block mb-1">
+                                                        <i class="fas fa-baseball-ball me-1"></i>{% trans "Pitcher" %}
+                                                    </small>
+                                                    <strong>{% if player.is_pitcher %}{% trans "Yes" %}{% else %}{% trans "No" %}{% endif %}</strong>
+                                                </div>
+                                            </div>
+
+                                            <!-- Información Física y Académica -->
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-md-3">
+                                                    <small class="text-muted d-block mb-1">
+                                                        <i class="fas fa-ruler-vertical me-1"></i>{% trans "Height" %}
+                                                    </small>
+                                                    <div>{{ player.height|default:"-" }}</div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <small class="text-muted d-block mb-1">
+                                                        <i class="fas fa-weight me-1"></i>{% trans "Weight" %}
+                                                    </small>
+                                                    <div>{{ player.weight|default:"-" }}{% if player.weight %} lbs{% endif %}</div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <small class="text-muted d-block mb-1">
+                                                        <i class="fas fa-birthday-cake me-1"></i>{% trans "Birth Date" %}
+                                                    </small>
+                                                    <div>{{ player.user.profile.birth_date|date:"M d, Y"|default:"-" }}</div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <small class="text-muted d-block mb-1">
+                                                        <i class="fas fa-graduation-cap me-1"></i>{% trans "Grade" %}
+                                                    </small>
+                                                    <div>{{ player.get_grade_display|default:"-" }}</div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Información de Bateo y Lanzamiento -->
+                                            {% if player.batting_hand or player.throwing_hand %}
+                                            <div class="row g-2 mb-2 pt-2 border-top">
+                                                {% if player.batting_hand %}
+                                                <div class="col-md-6">
+                                                    <small class="text-muted d-block mb-1">
+                                                        <i class="fas fa-hand-paper me-1"></i>{% trans "Batting Hand" %}
+                                                    </small>
+                                                    <span class="badge bg-info">{{ player.get_batting_hand_display }}</span>
+                                                </div>
+                                                {% endif %}
+                                                {% if player.throwing_hand %}
+                                                <div class="col-md-6">
+                                                    <small class="text-muted d-block mb-1">
+                                                        <i class="fas fa-baseball-ball me-1"></i>{% trans "Throwing Hand" %}
+                                                    </small>
+                                                    <span class="badge bg-success">{{ player.get_throwing_hand_display }}</span>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            {% endif %}
+
+                                            <!-- Contacto de Emergencia -->
+                                            {% if player.emergency_contact_name or player.emergency_contact_phone %}
+                                            <div class="row g-2 mb-2 pt-2 border-top">
+                                                <div class="col-md-12">
+                                                    <small class="text-muted d-block mb-2">
+                                                        <i class="fas fa-exclamation-triangle me-1"></i>{% trans "Emergency Contact" %}
+                                                    </small>
+                                                    <div class="p-2" style="background: #fff3cd; border-radius: 6px;">
+                                                        {% if player.emergency_contact_name %}
+                                                        <div><strong>{{ player.emergency_contact_name }}</strong></div>
+                                                        {% endif %}
+                                                        {% if player.emergency_contact_relation %}
+                                                        <div><small class="text-muted">{{ player.emergency_contact_relation }}</small></div>
+                                                        {% endif %}
+                                                        {% if player.emergency_contact_phone %}
+                                                        <div><small><i class="fas fa-phone me-1"></i>{{ player.emergency_contact_phone }}</small></div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+
+                                            <!-- Condiciones Médicas -->
+                                            {% if player.medical_conditions %}
+                                            <div class="row g-2 mb-2 pt-2 border-top">
+                                                <div class="col-md-12">
+                                                    <small class="text-muted d-block mb-1">
+                                                        <i class="fas fa-heartbeat me-1"></i>{% trans "Medical Conditions" %}
+                                                    </small>
+                                                    <div class="p-2" style="background: #f8d7da; border-radius: 6px; font-size: 0.9rem;">
+                                                        {{ player.medical_conditions|linebreaks }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endif %}
+
+                                            <!-- Información de Contacto y Ubicación -->
+                                            {% if player.user.profile %}
+                                                {% if player.user.profile.address or player.user.profile.city %}
+                                                <div class="row g-2 mb-2 pt-2 border-top">
+                                                    {% if player.user.profile.address %}
+                                                    <div class="col-md-6">
+                                                        <small class="text-muted d-block mb-1">
+                                                            <i class="fas fa-map-marker-alt me-1"></i>{% trans "Address" %}
+                                                        </small>
+                                                        <div style="font-size: 0.9rem;">{{ player.user.profile.address }}</div>
+                                                        {% if player.user.profile.address_line_2 %}
+                                                        <div style="font-size: 0.9rem;">{{ player.user.profile.address_line_2 }}</div>
+                                                        {% endif %}
+                                                        {% if player.user.profile.city %}
+                                                        <div style="font-size: 0.9rem;">
+                                                            {{ player.user.profile.city.name }}{% if player.user.profile.state %}, {{ player.user.profile.state.name }}{% endif %}
+                                                            {% if player.user.profile.country %}<br>{{ player.user.profile.country.name }}{% endif %}
+                                                            {% if player.user.profile.postal_code %}<br>{% trans "Postal Code" %}: {{ player.user.profile.postal_code }}{% endif %}
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                    {% endif %}
+                                                    {% if player.team %}
+                                                    <div class="col-md-6">
+                                                        <small class="text-muted d-block mb-1">
+                                                            <i class="fas fa-users me-1"></i>{% trans "Team" %}
+                                                        </small>
+                                                        <div>{{ player.team.name }}</div>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                                {% endif %}
+                                            {% endif %}
+
+                                            <!-- Estado de Registro en Evento -->
+                                            {% if event_attendances %}
+                                                {% for attendance in event_attendances %}
+                                                    {% if attendance.user_id == player.user_id %}
+                                                    <div class="mt-2 pt-2 border-top">
+                                                        <small class="text-muted d-block mb-1">
+                                                            <i class="fas fa-info-circle me-1"></i>{% trans "Event Registration Status" %}
+                                                        </small>
+                                                        <span class="badge {% if attendance.status == 'confirmed' %}bg-success{% elif attendance.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                                            {{ attendance.get_status_display }}
+                                                        </span>
+                                                    </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-warning mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>{% trans "No players registered in this order" %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Hotel Reservations -->
+                {% if hotel_reservations %}
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <div>
+                            <i class="fas fa-bed me-2"></i>{% trans "Hotel Reservations" %}
+                            <span class="badge bg-info ms-2">{{ hotel_reservations|length }}</span>
+                            {% if order.event %}
+                            <span class="badge bg-success ms-1">
+                                <i class="fas fa-link me-1"></i>{% trans "Linked to Event" %}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if order.event %}
+                    <div class="highlight-box mb-3" style="background: linear-gradient(135deg, #e7f3ff 0%, #cfe2ff 100%); border-left-color: #0d6efd;">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-calendar-check me-2" style="color: #0d6efd;"></i>
+                            <strong style="color: #0d6efd;">{% trans "Related Event" %}</strong>
+                        </div>
+                        <div class="ms-4">
+                            <div><strong>{{ order.event.title }}</strong></div>
+                            {% if order.event.start_date %}
+                                <small class="text-muted">
+                                    {{ order.event.start_date|date:"M d, Y" }} - {{ order.event.end_date|date:"M d, Y" }}
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if hotel_reservations %}
+                        {% for reservation in hotel_reservations %}
+                            <div class="reservation-card mb-3">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div>
+                                        <h5 class="mb-1" style="color: var(--mlb-blue);">
+                                            <i class="fas fa-hotel me-2"></i>{{ reservation.hotel.hotel_name }}
+                                        </h5>
+                                        <div>
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-door-open me-1"></i>{% trans "Room" %} {{ reservation.room.room_number }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="info-label">{% trans "Check-in" %}</div>
+                                        <div class="info-value">
+                                            <i class="fas fa-calendar-check me-1 text-success"></i>{{ reservation.check_in|date:"M d, Y" }}
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="info-label">{% trans "Check-out" %}</div>
+                                        <div class="info-value">
+                                            <i class="fas fa-calendar-times me-1 text-danger"></i>{{ reservation.check_out|date:"M d, Y" }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="section-divider"></div>
+
+                                <div>
+                                    <div class="info-label mb-3">
+                                        <i class="fas fa-users me-1"></i>{% trans "Guests Information" %}
+                                        <span class="badge bg-primary">{{ reservation.number_of_guests }} {% trans "Total" %}</span>
+                                    </div>
+
+                                    <!-- Primary Guest Information -->
+                                    <div class="p-3 mb-3" style="background: white; border-radius: 8px; border: 1px solid #dee2e6; border-left: 4px solid var(--mlb-blue);">
+                                        <div class="d-flex align-items-start mb-2">
+                                            <i class="fas fa-user-circle me-3 mt-1 text-primary" style="font-size: 1.3rem;"></i>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-2" style="color: var(--mlb-blue);">
+                                                    <i class="fas fa-star me-1"></i>{% trans "Primary Guest" %}: {{ reservation.guest_name }}
+                                                </h6>
+                                                <div class="row g-2">
+                                                    <div class="col-md-6">
+                                                        <small class="text-muted d-block mb-1">
+                                                            <i class="fas fa-envelope me-1"></i>{% trans "Email" %}
+                                                        </small>
+                                                        <div style="font-size: 0.9rem;">{{ reservation.guest_email }}</div>
+                                                    </div>
+                                                    {% if reservation.guest_phone %}
+                                                    <div class="col-md-6">
+                                                        <small class="text-muted d-block mb-1">
+                                                            <i class="fas fa-phone me-1"></i>{% trans "Phone" %}
+                                                        </small>
+                                                        <div style="font-size: 0.9rem;">{{ reservation.guest_phone }}</div>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Huéspedes adicionales -->
+                                    {% if reservation.extra_guests or reservation.additional_guest_details_json %}
+                                    <div class="mt-2 pt-2 border-top">
+                                        <div class="info-label mb-3">
+                                            <i class="fas fa-user-plus me-1"></i>{% trans "Additional Guests" %}
+                                            <span class="badge bg-info">
+                                                {% if reservation.extra_guests %}{{ reservation.extra_guests|length }}{% elif reservation.additional_guest_details_json %}{{ reservation.additional_guest_details_json|length }}{% else %}0{% endif %}
+                                            </span>
+                                        </div>
+                                        {% if reservation.additional_guest_details_json %}
+                                        <div>
+                                            {% for guest_dict in reservation.additional_guest_details_json %}
+                                                {% with name=guest_dict.name type=guest_dict.type birth_date=guest_dict.birth_date email=guest_dict.email %}
+                                                <div class="p-3 mb-3" style="background: white; border-radius: 8px; border: 1px solid #dee2e6; border-left: 4px solid var(--mlb-blue); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                                    <div class="d-flex align-items-start">
+                                                        <i class="fas fa-user-circle me-3 mt-1 {% if type == 'child' %}text-warning{% else %}text-info{% endif %}" style="font-size: 1.3rem;"></i>
+                                                        <div class="flex-grow-1">
+                                                            <h6 class="mb-2" style="color: var(--mlb-blue);">
+                                                                <strong>{{ name|default:"N/A" }}</strong>
+                                                                {% if type %}
+                                                                    <span class="badge {% if type == 'child' %}bg-warning{% else %}bg-info{% endif %} ms-2">
+                                                                        {% if type == 'child' %}
+                                                                            <i class="fas fa-child me-1"></i>{% trans "Child" %}
+                                                                        {% else %}
+                                                                            <i class="fas fa-user me-1"></i>{% trans "Adult" %}
+                                                                        {% endif %}
+                                                                    </span>
+                                                                {% endif %}
+                                                            </h6>
+                                                            <div class="row g-2">
+                                                                {% if birth_date %}
+                                                                <div class="col-md-6">
+                                                                    <small class="text-muted d-block mb-1">
+                                                                        <i class="fas fa-birthday-cake me-1"></i>{% trans "Birth Date" %}
+                                                                    </small>
+                                                                    <div style="font-size: 0.9rem;">{{ birth_date }}</div>
+                                                                </div>
+                                                                {% endif %}
+                                                                {% if email %}
+                                                                <div class="col-md-6">
+                                                                    <small class="text-muted d-block mb-1">
+                                                                        <i class="fas fa-envelope me-1"></i>{% trans "Email" %}
+                                                                    </small>
+                                                                    <div style="font-size: 0.9rem;">
+                                                                        <a href="mailto:{{ email }}">{{ email }}</a>
+                                                                    </div>
+                                                                </div>
+                                                                {% endif %}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                {% endwith %}
+                                            {% endfor %}
+                                        </div>
+                                        {% elif reservation.extra_guests %}
+                                        <div class="d-flex flex-wrap gap-2">
+                                            {% for guest in reservation.extra_guests %}
+                                                <div class="p-2" style="background: white; border-radius: 8px; border: 1px solid #dee2e6; min-width: 180px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="fas fa-user me-2 text-info" style="font-size: 1.1rem;"></i>
+                                                        <div>
+                                                            <strong class="d-block" style="font-size: 0.9rem; color: #212529;">
+                                                                {% if guest.name %}{{ guest.name }}{% elif guest.get %}{{ guest.get.name }}{% else %}Guest{% endif %}
+                                                            </strong>
+                                                            {% if guest.meta or guest.get.meta %}
+                                                                <small class="text-muted" style="font-size: 0.75rem;">
+                                                                    <i class="fas fa-info-circle me-1"></i>{% if guest.meta %}{{ guest.meta }}{% else %}{{ guest.get.meta }}{% endif %}
+                                                                </small>
+                                                            {% endif %}
+                                                            {% if guest.type or guest.get.type %}
+                                                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                                                                    <i class="fas fa-{% if guest.type == 'child' or guest.get.type == 'child' %}child{% else %}user{% endif %} me-1"></i>
+                                                                    {% if guest.type %}{{ guest.type|capfirst }}{% else %}{{ guest.get.type|capfirst }}{% endif %}
+                                                                </small>
+                                                            {% endif %}
+                                                            {% if guest.birth_date or guest.get.birth_date %}
+                                                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                                                                    <i class="fas fa-birthday-cake me-1"></i>
+                                                                    {% if guest.birth_date %}{{ guest.birth_date }}{% else %}{{ guest.get.birth_date }}{% endif %}
+                                                                </small>
+                                                            {% endif %}
+                                                            {% if guest.email or guest.get.email %}
+                                                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                                                                    <i class="fas fa-envelope me-1"></i>
+                                                                    {% if guest.email %}{{ guest.email }}{% else %}{{ guest.get.email }}{% endif %}
+                                                                </small>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>{% trans "No hotel reservations found for this order" %}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-lg-4">
+                <!-- Payment Summary -->
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <i class="fas fa-dollar-sign me-2"></i>{% trans "Payment Summary" %}
+                    </div>
+                    <div class="detail-item">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{% trans "Subtotal" %}:</span>
+                            <strong>${{ order.subtotal|floatformat:2|intcomma_dot }}</strong>
+                        </div>
+                        {% if order.discount_amount > 0 %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-success">{% trans "Discount" %}:</span>
+                            <strong class="text-success">-${{ order.discount_amount|floatformat:2|intcomma_dot }}</strong>
+                        </div>
+                        {% endif %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{% trans "Taxes" %}:</span>
+                            <strong>${{ order.tax_amount|floatformat:2|intcomma_dot }}</strong>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <strong>{% trans "Total" %}:</strong>
+                            <strong style="font-size: 1.2rem; color: var(--mlb-blue);">
+                                ${{ order.total_amount|floatformat:2|intcomma_dot }}
+                            </strong>
+                        </div>
+                        <div class="text-center mt-2">
+                            <small class="text-muted">{{ order.currency|upper }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Plan Details -->
+                {% if order.is_payment_plan and payment_plan_summary %}
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <i class="fas fa-calendar-alt me-2"></i>{% trans "Payment Plan Details" %}
+                    </div>
+                    <div class="detail-item">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{% trans "Total Months" %}:</span>
+                            <strong>{{ payment_plan_summary.total_months }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{% trans "Monthly Amount" %}:</span>
+                            <strong>${{ payment_plan_summary.monthly_amount|floatformat:2|intcomma_dot }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{% trans "Plan Total" %}:</span>
+                            <strong>${{ payment_plan_summary.total_amount|floatformat:2|intcomma_dot }}</strong>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{% trans "Completed" %}:</span>
+                            <strong class="text-success">{{ payment_plan_summary.completed }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>{% trans "Remaining" %}:</span>
+                            <strong class="text-warning">{{ payment_plan_summary.remaining }}</strong>
+                        </div>
+                        {% if payment_plan_summary.has_subscription %}
+                        <div class="mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-check-circle me-1"></i>{% trans "Stripe subscription active" %}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Stripe Information -->
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <i class="fab fa-stripe me-2"></i>{% trans "Stripe Information" %}
+                    </div>
+                    <div class="detail-item">
+                        {% if order.stripe_session_id %}
+                        <div class="mb-2">
+                            <div class="detail-item-label">{% trans "Session ID" %}</div>
+                            <div class="detail-item-value">
+                                <code style="font-size: 0.8rem; word-break: break-all;">{{ order.stripe_session_id }}</code>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if order.stripe_payment_intent_id %}
+                        <div class="mb-2">
+                            <div class="detail-item-label">{% trans "Payment Intent ID" %}</div>
+                            <div class="detail-item-value">
+                                <code style="font-size: 0.8rem; word-break: break-all;">{{ order.stripe_payment_intent_id }}</code>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if order.stripe_customer_id %}
+                        <div class="mb-2">
+                            <div class="detail-item-label">{% trans "Customer ID" %}</div>
+                            <div class="detail-item-value">
+                                <code style="font-size: 0.8rem; word-break: break-all;">{{ order.stripe_customer_id }}</code>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if order.stripe_subscription_id %}
+                        <div class="mb-2">
+                            <div class="detail-item-label">{% trans "Subscription ID" %}</div>
+                            <div class="detail-item-value">
+                                <code style="font-size: 0.8rem; word-break: break-all;">{{ order.stripe_subscription_id }}</code>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if order.stripe_subscription_schedule_id %}
+                        <div class="mb-2">
+                            <div class="detail-item-label">{% trans "Subscription Schedule ID" %}</div>
+                            <div class="detail-item-value">
+                                <code style="font-size: 0.8rem; word-break: break-all;">{{ order.stripe_subscription_schedule_id }}</code>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if order.stripe_checkout %}
+                        <div class="mt-3">
+                            <a href="{% url 'admin:accounts_stripeeventcheckout_change' order.stripe_checkout.pk %}"
+                               class="btn btn-sm btn-outline-primary" target="_blank">
+                                <i class="fas fa-external-link-alt me-1"></i>{% trans "View Checkout" %}
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Stripe Breakdown (JSON Organizado) -->
+                {% if breakdown %}
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <i class="fas fa-file-invoice me-2"></i>{% trans "Payment Breakdown" %}
+                    </div>
+                    <div class="detail-item">
+                        <div style="max-height: 500px; overflow-y: auto; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                            {% if breakdown.players_total %}
+                            <div class="mb-4 p-3" style="background: white; border-radius: 6px; border-left: 4px solid var(--mlb-blue);">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-calendar-check me-2" style="color: var(--mlb-blue);"></i>
+                                    <strong style="color: var(--mlb-blue); font-size: 1rem;">{% trans "Event Registration" %}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span style="color: #6c757d; font-size: 0.9rem;">{% trans "Players Registration Fee" %}</span>
+                                    <strong style="color: #28a745; font-size: 1.1rem;">${{ breakdown.players_total|intcomma_dot }}</strong>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if breakdown.hotel_total or breakdown.hotel_room_base %}
+                            <div class="mb-4 p-3" style="background: white; border-radius: 6px; border-left: 4px solid #0d6efd;">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-bed me-2" style="color: #0d6efd;"></i>
+                                    <strong style="color: #0d6efd; font-size: 1rem;">{% trans "Hotel Reservations" %}</strong>
+                                </div>
+                                <div style="font-size: 0.9rem;">
+                                    {% if breakdown.hotel_nights %}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span style="color: #6c757d;">{% trans "Nights" %}:</span>
+                                        <strong style="color: #007bff;">{{ breakdown.hotel_nights }}</strong>
+                                    </div>
+                                    {% endif %}
+                                    {% if breakdown.hotel_room_base %}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span style="color: #6c757d;">{% trans "Room Base" %}:</span>
+                                        <strong style="color: #28a745;">${{ breakdown.hotel_room_base|intcomma_dot }}</strong>
+                                    </div>
+                                    {% endif %}
+                                    {% if breakdown.hotel_services_total %}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span style="color: #6c757d;">{% trans "Services" %}:</span>
+                                        <strong style="color: #28a745;">${{ breakdown.hotel_services_total|intcomma_dot }}</strong>
+                                    </div>
+                                    {% endif %}
+                                    {% if breakdown.hotel_iva %}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span style="color: #6c757d;">{% trans "IVA" %}:</span>
+                                        <strong style="color: #28a745;">${{ breakdown.hotel_iva|intcomma_dot }}</strong>
+                                    </div>
+                                    {% endif %}
+                                    {% if breakdown.hotel_ish %}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span style="color: #6c757d;">{% trans "ISH" %}:</span>
+                                        <strong style="color: #28a745;">${{ breakdown.hotel_ish|intcomma_dot }}</strong>
+                                    </div>
+                                    {% endif %}
+                                    {% if breakdown.hotel_total_taxes %}
+                                    <div class="d-flex justify-content-between mb-2 pt-2 border-top">
+                                        <span style="color: #6c757d; font-weight: 600;">{% trans "Total Taxes" %}:</span>
+                                        <strong style="color: #28a745;">${{ breakdown.hotel_total_taxes|intcomma_dot }}</strong>
+                                    </div>
+                                    {% endif %}
+                                    {% if breakdown.hotel_total %}
+                                    <div class="d-flex justify-content-between mb-0 pt-2 border-top">
+                                        <span style="color: #0d6efd; font-weight: 700; font-size: 1rem;">{% trans "Hotel Total" %}:</span>
+                                        <strong style="color: #0d6efd; font-size: 1.1rem;">${{ breakdown.hotel_total|intcomma_dot }}</strong>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            {% if breakdown.no_show_fee %}
+                            <div class="mb-4 p-3" style="background: white; border-radius: 6px; border-left: 4px solid #ffc107;">
+                                <div class="d-flex align-items-center mb-2">
+                                    <i class="fas fa-exclamation-triangle me-2" style="color: #ffc107;"></i>
+                                    <strong style="color: #856404; font-size: 1rem;">{% trans "Additional Fees" %}</strong>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span style="color: #6c757d; font-size: 0.9rem;">{% trans "No-Show Fee" %}</span>
+                                    <strong style="color: #856404; font-size: 1.1rem;">${{ breakdown.no_show_fee|intcomma_dot }}</strong>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="mb-3 p-3 border-top pt-3" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 6px;">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-calculator me-2" style="color: var(--mlb-blue);"></i>
+                                    <strong style="color: var(--mlb-blue); font-size: 1rem;">{% trans "Order Totals" %}</strong>
+                                </div>
+                                <div style="font-size: 0.95rem;">
+                                    {% if breakdown.subtotal %}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span style="color: #6c757d;">{% trans "Subtotal" %}:</span>
+                                        <strong style="color: #212529;">${{ breakdown.subtotal|intcomma_dot }}</strong>
+                                    </div>
+                                    {% endif %}
+                                    {% if breakdown.discount_percent %}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span style="color: #6c757d;">{% trans "Discount" %}:</span>
+                                        <strong style="color: #dc3545;">-{{ breakdown.discount_percent }}%</strong>
+                                    </div>
+                                    {% endif %}
+                                    {% if breakdown.total %}
+                                    <div class="d-flex justify-content-between pt-2 border-top mt-2">
+                                        <strong style="color: var(--mlb-blue); font-size: 1.2rem;">{% trans "Total" %}:</strong>
+                                        <strong style="color: var(--mlb-blue); font-size: 1.3rem;">${{ breakdown.total|intcomma_dot }}</strong>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if breakdown.hotel_reservations %}
+                            <div class="mt-4 pt-3 border-top">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fas fa-list-ul me-2" style="color: var(--mlb-blue);"></i>
+                                    <strong style="color: var(--mlb-blue); font-size: 1rem;">{% trans "Reservation Details" %}</strong>
+                                </div>
+                                <div>
+                                    {% for res in breakdown.hotel_reservations %}
+                                    <div class="mb-3 p-3" style="background: white; border-left: 3px solid var(--mlb-blue); border-radius: 6px;">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <i class="fas fa-door-open me-2 text-primary"></i>
+                                            <strong>{% trans "Room" %} #{{ res.room_number }}</strong>
+                                        </div>
+                                        <div class="small text-muted mb-2">
+                                            <i class="fas fa-calendar me-1"></i>{{ res.check_in }} → {{ res.check_out }}
+                                        </div>
+                                        <div class="small text-muted mb-2">
+                                            <i class="fas fa-users me-1"></i>{% trans "Guests" %}: {{ res.number_of_guests }}
+                                        </div>
+                                        {% if res.hotel_name %}
+                                        <div class="small text-muted mb-2">
+                                            <i class="fas fa-hotel me-1"></i>{{ res.hotel_name }}
+                                        </div>
+                                        {% endif %}
+                                        {% if res.additional_guest_names %}
+                                        <div class="mt-2 pt-2 border-top">
+                                            <small class="text-muted d-block mb-1"><strong>{% trans "Additional Guests" %}:</strong></small>
+                                            {% for guest in res.additional_guest_names %}
+                                                <span class="badge bg-info me-1 mb-1">{{ guest }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Notes -->
+                {% if order.notes %}
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <i class="fas fa-sticky-note me-2"></i>{% trans "Notes" %}
+                    </div>
+                    <div class="detail-item-value">
+                        {{ order.notes|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

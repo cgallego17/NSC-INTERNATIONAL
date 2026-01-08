@@ -26,24 +26,24 @@
                         </a>
                     </div>
                 </div>
-                
+
                 <div class="card-body">
                     <form method="post" class="needs-validation" novalidate>
                         {% csrf_token %}
-                        
+
                         {% if form.non_field_errors %}
                             <div class="alert alert-danger">
                                 <i class="fas fa-exclamation-triangle me-2"></i>
                                 {{ form.non_field_errors }}
                             </div>
                         {% endif %}
-                        
+
                         <!-- INFORMACIÓN DEL HOTEL Y HABITACIÓN -->
                         <div class="form-section">
                             <h5 class="section-title">
                                 <i class="fas fa-hotel me-2"></i>Hotel y Habitación
                             </h5>
-                            
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
@@ -53,7 +53,7 @@
                                         <select id="hotel" name="hotel" class="form-select" required>
                                             <option value="">Selecciona Hotel</option>
                                             {% for choice in form.hotel.field.queryset %}
-                                                <option value="{{ choice.id }}" 
+                                                <option value="{{ choice.id }}"
                                                         {% if form.hotel.value == choice.id %}selected{% endif %}>
                                                     {{ choice.hotel_name }}
                                                 </option>
@@ -72,7 +72,7 @@
                                         <select id="room" name="room" class="form-select" required>
                                             <option value="">Selecciona Habitación</option>
                                             {% for choice in form.room.field.queryset %}
-                                                <option value="{{ choice.id }}" 
+                                                <option value="{{ choice.id }}"
                                                         {% if form.room.value == choice.id %}selected{% endif %}
                                                         data-hotel="{{ choice.hotel_id }}">
                                                     {{ choice.hotel.hotel_name }} - Habitación #{{ choice.room_number }} ({{ choice.get_room_type_display }})
@@ -92,7 +92,7 @@
                             <h5 class="section-title">
                                 <i class="fas fa-user me-2"></i>Información del Huésped
                             </h5>
-                            
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
@@ -102,7 +102,7 @@
                                         <select id="user" name="user" class="form-select" required>
                                             <option value="">Selecciona Usuario</option>
                                             {% for choice in form.user.field.queryset %}
-                                                <option value="{{ choice.id }}" 
+                                                <option value="{{ choice.id }}"
                                                         {% if form.user.value == choice.id %}selected{% endif %}>
                                                     {{ choice.get_full_name|default:choice.username }} ({{ choice.email }})
                                                 </option>
@@ -118,10 +118,10 @@
                                         <label for="guest_name" class="form-label">
                                             <i class="fas fa-id-card me-1"></i>Nombre del Huésped <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" 
-                                               id="guest_name" 
-                                               name="guest_name" 
-                                               class="form-control" 
+                                        <input type="text"
+                                               id="guest_name"
+                                               name="guest_name"
+                                               class="form-control"
                                                value="{{ form.guest_name.value|default:'' }}"
                                                placeholder="Nombre completo del huésped principal"
                                                required>
@@ -138,10 +138,10 @@
                                         <label for="guest_email" class="form-label">
                                             <i class="fas fa-envelope me-1"></i>Email del Huésped <span class="text-danger">*</span>
                                         </label>
-                                        <input type="email" 
-                                               id="guest_email" 
-                                               name="guest_email" 
-                                               class="form-control" 
+                                        <input type="email"
+                                               id="guest_email"
+                                               name="guest_email"
+                                               class="form-control"
                                                value="{{ form.guest_email.value|default:'' }}"
                                                placeholder="huésped@email.com"
                                                required>
@@ -155,16 +155,37 @@
                                         <label for="guest_phone" class="form-label">
                                             <i class="fas fa-phone me-1"></i>Teléfono del Huésped <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" 
-                                               id="guest_phone" 
-                                               name="guest_phone" 
-                                               class="form-control" 
+                                        <input type="text"
+                                               id="guest_phone"
+                                               name="guest_phone"
+                                               class="form-control"
                                                value="{{ form.guest_phone.value|default:'' }}"
                                                placeholder="+1 (555) 123-4567"
                                                required>
                                         {% if form.guest_phone.errors %}
                                             <div class="text-danger">{{ form.guest_phone.errors.0 }}</div>
                                         {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="form-group mb-3">
+                                        <label for="additional_guest_names" class="form-label">
+                                            <i class="fas fa-users me-1"></i>Nombres de Huéspedes Adicionales
+                                        </label>
+                                        <textarea id="additional_guest_names"
+                                                  name="additional_guest_names"
+                                                  class="form-control"
+                                                  rows="3"
+                                                  placeholder="Uno por línea (ej: Juan Pérez&#10;María Gómez)">{{ form.additional_guest_names.value|default:'' }}</textarea>
+                                        {% if form.additional_guest_names.errors %}
+                                            <div class="text-danger">{{ form.additional_guest_names.errors.0 }}</div>
+                                        {% endif %}
+                                        <small class="text-muted">
+                                            Si la reserva tiene más de 1 huésped, puedes registrar aquí los nombres de las personas adicionales.
+                                        </small>
                                     </div>
                                 </div>
                             </div>
@@ -175,17 +196,17 @@
                             <h5 class="section-title">
                                 <i class="fas fa-calendar me-2"></i>Fechas y Detalles
                             </h5>
-                            
+
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="form-group mb-3">
                                         <label for="check_in" class="form-label">
                                             <i class="fas fa-sign-in-alt me-1"></i>Check-in <span class="text-danger">*</span>
                                         </label>
-                                        <input type="date" 
-                                               id="check_in" 
-                                               name="check_in" 
-                                               class="form-control" 
+                                        <input type="date"
+                                               id="check_in"
+                                               name="check_in"
+                                               class="form-control"
                                                value="{{ form.check_in.value|default:'' }}"
                                                required>
                                         {% if form.check_in.errors %}
@@ -198,10 +219,10 @@
                                         <label for="check_out" class="form-label">
                                             <i class="fas fa-sign-out-alt me-1"></i>Check-out <span class="text-danger">*</span>
                                         </label>
-                                        <input type="date" 
-                                               id="check_out" 
-                                               name="check_out" 
-                                               class="form-control" 
+                                        <input type="date"
+                                               id="check_out"
+                                               name="check_out"
+                                               class="form-control"
                                                value="{{ form.check_out.value|default:'' }}"
                                                required>
                                         {% if form.check_out.errors %}
@@ -214,10 +235,10 @@
                                         <label for="number_of_guests" class="form-label">
                                             <i class="fas fa-users me-1"></i>Número de Huéspedes <span class="text-danger">*</span>
                                         </label>
-                                        <input type="number" 
-                                               id="number_of_guests" 
-                                               name="number_of_guests" 
-                                               class="form-control" 
+                                        <input type="number"
+                                               id="number_of_guests"
+                                               name="number_of_guests"
+                                               class="form-control"
                                                value="{{ form.number_of_guests.value|default:'' }}"
                                                min="1"
                                                placeholder="1"
@@ -238,7 +259,7 @@
                                         <select id="status" name="status" class="form-select" required>
                                             {% for value, label in form.status.field.choices %}
                                                 {% if value %}
-                                                    <option value="{{ value }}" 
+                                                    <option value="{{ value }}"
                                                             {% if form.status.value == value %}selected{% endif %}>
                                                         {{ label }}
                                                     </option>
@@ -258,16 +279,16 @@
                             <h5 class="section-title">
                                 <i class="fas fa-sticky-note me-2"></i>Notas Adicionales
                             </h5>
-                            
+
                             <div class="row">
                                 <div class="col-md-12">
                                     <div class="form-group mb-3">
                                         <label for="notes" class="form-label">
                                             <i class="fas fa-comment me-1"></i>Notas
                                         </label>
-                                        <textarea id="notes" 
-                                                  name="notes" 
-                                                  class="form-control" 
+                                        <textarea id="notes"
+                                                  name="notes"
+                                                  class="form-control"
                                                   rows="4"
                                                   placeholder="Notas adicionales sobre la reserva">{{ form.notes.value|default:'' }}</textarea>
                                         {% if form.notes.errors %}
@@ -352,7 +373,7 @@
     font-size: 0.875rem;
 }
 
-[data-theme="dark"] .form-control, 
+[data-theme="dark"] .form-control,
 [data-theme="dark"] .form-select {
     background-color: #374151;
     border-color: #4b5563;
@@ -364,7 +385,7 @@
     box-shadow: 0 0 0 0.2rem rgba(74, 85, 104, 0.25);
 }
 
-[data-theme="dark"] .form-control:focus, 
+[data-theme="dark"] .form-control:focus,
 [data-theme="dark"] .form-select:focus {
     border-color: #6b7280;
     box-shadow: 0 0 0 0.2rem rgba(107, 114, 128, 0.25);
@@ -375,22 +396,22 @@
 document.addEventListener('DOMContentLoaded', function() {
     const hotelSelect = document.getElementById('hotel');
     const roomSelect = document.getElementById('room');
-    
+
     // Filtrar habitaciones cuando se selecciona un hotel
     if (hotelSelect && roomSelect) {
         hotelSelect.addEventListener('change', function() {
             const selectedHotelId = this.value;
             const roomOptions = roomSelect.querySelectorAll('option');
-            
+
             roomSelect.innerHTML = '<option value="">Selecciona Habitación</option>';
-            
+
             roomOptions.forEach(option => {
                 if (option.value && option.dataset.hotel === selectedHotelId) {
                     roomSelect.appendChild(option.cloneNode(true));
                 }
             });
         });
-        
+
         // Si hay un hotel seleccionado, filtrar habitaciones al cargar
         if (hotelSelect.value) {
             hotelSelect.dispatchEvent(new Event('change'));
