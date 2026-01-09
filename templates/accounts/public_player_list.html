@@ -733,9 +733,9 @@
                     <label for="division" class="form-label"><i class="fas fa-layer-group me-1"></i>{% trans "Division" %}</label>
                     <select class="form-select" id="division" name="division">
                         <option value="">{% trans "All" %}</option>
-                        {% for div_value, div_label in divisions %}
-                            <option value="{{ div_value }}" {% if current_filters.division == div_value %}selected{% endif %}>
-                                {{ div_label }}
+                        {% for division in divisions %}
+                            <option value="{{ division.id }}" {% if current_filters.division == division.id|stringformat:"s" %}selected{% endif %}>
+                                {{ division.name }}
                             </option>
                         {% endfor %}
                     </select>
