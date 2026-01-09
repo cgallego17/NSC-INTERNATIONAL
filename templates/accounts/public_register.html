@@ -316,9 +316,9 @@
 
         .user-type-selector {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 35px;
             width: 100%;
         }
 
@@ -338,47 +338,175 @@
         .user-type-option label {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 25px 20px;
-            border: 3px solid #e9ecef;
-            border-radius: 8px;
-            text-align: center;
+            padding: 0;
+            border: 2px solid #e8ecef;
+            border-radius: 16px;
             cursor: pointer;
-            transition: all 0.3s;
-            background: white;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #ffffff;
             width: 100%;
-            min-height: 150px;
+            min-height: 240px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            position: relative;
+        }
+
+        .user-type-option label::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--mlb-blue), var(--mlb-red));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .user-type-option label:hover {
+            border-color: var(--mlb-blue);
+            transform: translateY(-6px);
+            box-shadow: 0 12px 28px rgba(13, 44, 84, 0.18);
+        }
+
+        .user-type-option label:hover::before {
+            opacity: 0.3;
         }
 
         .user-type-option input[type="radio"]:checked + label {
             border-color: var(--mlb-blue);
-            background: var(--mlb-blue);
+            border-width: 3px;
+            background: linear-gradient(135deg, #0d2c54 0%, #1a3a6e 100%);
             color: white;
-            box-shadow: 0 4px 15px rgba(13, 44, 84, 0.3);
+            box-shadow: 0 16px 32px rgba(13, 44, 84, 0.35);
+            transform: translateY(-4px);
         }
 
-        .user-type-option label:hover {
-            border-color: var(--mlb-light-blue);
+        .user-type-option input[type="radio"]:checked + label::before {
+            opacity: 1;
+            height: 8px;
+        }
+
+        .user-type-header {
+            padding: 24px 20px 16px;
+            text-align: center;
+            border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+            background: linear-gradient(180deg, rgba(248, 249, 250, 0.8) 0%, rgba(255, 255, 255, 0) 100%);
+            position: relative;
+        }
+
+        .user-type-option input[type="radio"]:checked + label .user-type-header {
+            border-bottom-color: rgba(255, 255, 255, 0.15);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+        }
+
+        .user-type-body {
+            padding: 18px 20px 20px;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .user-type-icon {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            display: block;
+            font-size: 2.8rem;
+            margin-bottom: 12px;
+            display: inline-block;
+            color: var(--mlb-blue);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            background: linear-gradient(135deg, var(--mlb-blue), var(--mlb-light-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .user-type-option label:hover .user-type-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .user-type-option input[type="radio"]:checked + label .user-type-icon {
+            color: white;
+            -webkit-text-fill-color: white;
+            transform: scale(1.15);
+            filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.3));
         }
 
         .user-type-title {
-            font-weight: 700;
-            font-size: 1.1rem;
+            font-weight: 800;
+            font-size: 1rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
+            color: var(--mlb-blue);
+            line-height: 1.2;
+            display: block;
+        }
+
+        .user-type-option input[type="radio"]:checked + label .user-type-title {
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .user-type-subtitle {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-top: 4px;
+            line-height: 1.3;
+            font-style: italic;
+            display: block;
+        }
+
+        .user-type-option input[type="radio"]:checked + label .user-type-subtitle {
+            color: rgba(255, 255, 255, 0.9);
         }
 
         .user-type-desc {
             font-size: 0.85rem;
-            margin-top: 5px;
-            opacity: 0.8;
+            line-height: 1.5;
+            color: #475569;
+            margin: 0;
+            text-align: center;
+            font-weight: 400;
+        }
+
+        .user-type-option input[type="radio"]:checked + label .user-type-desc {
+            color: rgba(255, 255, 255, 0.95);
+        }
+
+        /* Badge de selección */
+        .user-type-option input[type="radio"]:checked + label::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            background: white;
+            color: var(--mlb-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            animation: checkmarkPop 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes checkmarkPop {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2) rotate(180deg);
+            }
+            100% {
+                transform: scale(1) rotate(360deg);
+                opacity: 1;
+            }
         }
 
         .btn-mlb {
@@ -438,27 +566,79 @@
         }
 
         .photo-preview {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid var(--mlb-blue);
-            margin-top: 15px;
+            max-width: 200px;
+            max-height: 200px;
+            margin: 15px auto 0;
+            border-radius: 12px;
             display: none;
+            border: 3px solid var(--mlb-blue);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            object-fit: cover;
         }
 
         .photo-upload-area {
-            border: 2px dashed var(--mlb-blue);
-            border-radius: 8px;
-            padding: 20px;
+            border: 3px dashed #cbd5e1;
+            border-radius: 12px;
+            padding: 40px 20px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .photo-upload-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(13, 44, 84, 0.03) 0%, rgba(213, 0, 50, 0.03) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .photo-upload-area:hover {
-            background: #f8f9fa;
-            border-color: var(--mlb-red);
+            background: linear-gradient(135deg, #e0f2fe 0%, #dbeafe 100%);
+            border-color: var(--mlb-blue);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(13, 44, 84, 0.1);
+        }
+
+        .photo-upload-area:hover::before {
+            opacity: 1;
+        }
+
+        .photo-upload-area i {
+            transition: all 0.3s ease;
+        }
+
+        .photo-upload-area:hover i {
+            transform: translateY(-4px) scale(1.1);
+            color: var(--mlb-red) !important;
+        }
+
+        /* Ocultar el input file nativo */
+        input[type="file"]#id_profile_picture {
+            display: none !important;
+            position: absolute !important;
+            width: 0 !important;
+            height: 0 !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+
+        .photo-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 15px;
+            border-radius: 8px;
+            display: none;
+            border: 3px solid var(--mlb-blue);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         /* Footer MLB Style */
@@ -1110,11 +1290,40 @@
             }
 
             .user-type-selector {
-                gap: 15px;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 16px;
             }
 
             .user-type-option label {
-                padding: 18px 15px;
+                min-height: 200px;
+            }
+
+            .user-type-header {
+                padding: 18px 14px 12px;
+            }
+
+            .user-type-body {
+                padding: 14px 14px 16px;
+            }
+
+            .user-type-icon {
+                font-size: 2.3rem;
+                margin-bottom: 10px;
+            }
+
+            .user-type-title {
+                font-size: 0.88rem;
+                line-height: 1.2;
+            }
+
+            .user-type-subtitle {
+                font-size: 0.73rem;
+                line-height: 1.3;
+            }
+
+            .user-type-desc {
+                font-size: 0.78rem;
+                line-height: 1.45;
             }
         }
 
@@ -1151,12 +1360,41 @@
             }
 
             .user-type-selector {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 15px;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 14px;
             }
 
             .user-type-option label {
-                padding: 20px;
+                min-height: 190px;
+            }
+
+            .user-type-header {
+                padding: 16px 12px 10px;
+            }
+
+            .user-type-body {
+                padding: 12px 12px 14px;
+            }
+
+            .user-type-icon {
+                font-size: 2.1rem;
+                margin-bottom: 8px;
+            }
+
+            .user-type-title {
+                font-size: 0.82rem;
+                line-height: 1.2;
+            }
+
+            .user-type-subtitle {
+                font-size: 0.68rem;
+                line-height: 1.3;
+                margin-top: 3px;
+            }
+
+            .user-type-desc {
+                font-size: 0.72rem;
+                line-height: 1.4;
             }
 
             .form-label {
@@ -1241,20 +1479,37 @@
 
             .user-type-selector {
                 grid-template-columns: 1fr;
-                gap: 12px;
+                gap: 16px;
                 margin-bottom: 25px;
             }
 
             .user-type-option label {
-                padding: 18px 15px;
+                min-height: 200px;
+            }
+
+            .user-type-header {
+                padding: 18px 16px 12px;
+            }
+
+            .user-type-body {
+                padding: 14px 16px 16px;
             }
 
             .user-type-icon {
-                font-size: 2rem;
+                font-size: 2.4rem;
+                margin-bottom: 10px;
             }
 
             .user-type-title {
-                font-size: 1rem;
+                font-size: 0.92rem;
+            }
+
+            .user-type-subtitle {
+                font-size: 0.75rem;
+            }
+
+            .user-type-desc {
+                font-size: 0.8rem;
             }
 
             .form-label {
@@ -1366,26 +1621,38 @@
 
             .user-type-selector {
                 grid-template-columns: 1fr;
-                gap: 10px;
+                gap: 14px;
                 margin-bottom: 20px;
             }
 
             .user-type-option label {
-                padding: 15px 12px;
+                min-height: 190px;
+            }
+
+            .user-type-header {
+                padding: 16px 14px 10px;
+            }
+
+            .user-type-body {
+                padding: 12px 14px 14px;
             }
 
             .user-type-icon {
-                font-size: 1.8rem;
+                font-size: 2.2rem;
                 margin-bottom: 8px;
             }
 
             .user-type-title {
-                font-size: 0.95rem;
+                font-size: 0.88rem;
+            }
+
+            .user-type-subtitle {
+                font-size: 0.72rem;
             }
 
             .user-type-desc {
-                font-size: 0.8rem;
-                margin-top: 4px;
+                font-size: 0.78rem;
+                line-height: 1.4;
             }
 
             .form-label {
@@ -1608,29 +1875,51 @@
                                 <!-- Tipo de Usuario -->
                                 <div class="form-section">
                                     <div class="form-section-title">{% trans "Registration Type" %}</div>
-                                    <div class="alert alert-info" id="parentInfoAlert" style="background: #e3f2fd; border-left: 4px solid var(--mlb-blue); padding: 15px; margin-bottom: 20px; display: none;">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        <strong>{% trans "Important:" %}</strong> {% trans "This form is to register your information as a parent/guardian. After completing registration, you will be able to register your child(ren) or ward(s) as players from your dashboard." %}
-                                    </div>
+                                    <p class="text-muted mb-4" style="font-size: 0.95rem; line-height: 1.6;">{% trans "Please select the registration type that best describes your role:" %}</p>
                                     <div class="user-type-selector">
                                         <div class="user-type-option">
-                                            <input type="radio" name="user_type" value="parent" id="parent_type" {% if form.user_type.value == 'parent' %}checked{% endif %} required>
-                                            <label for="parent_type">
-                                                <span class="user-type-icon">
-                                                    <i class="fas fa-users"></i>
-                                                </span>
-                                                <span class="user-type-title">{% trans "Parent/Guardian" %}</span>
-                                                <span class="user-type-desc">{% trans "I am a parent or guardian of a player" %}</span>
+                                            <input type="radio" name="user_type" value="player" id="player_type" {% if form.user_type.value == 'player' %}checked{% endif %} required>
+                                            <label for="player_type">
+                                                <div class="user-type-header">
+                                                    <span class="user-type-icon">
+                                                        <i class="fas fa-user"></i>
+                                                    </span>
+                                                    <span class="user-type-title">Parent / Guardian – Individual Player</span>
+                                                    <span class="user-type-subtitle">For families with players participating as individuals</span>
+                                                </div>
+                                                <div class="user-type-body">
+                                                    <p class="user-type-desc">Designed for parents whose player is attending Prospect Games or World Series events as an individual player at the National or International level.</p>
+                                                </div>
                                             </label>
                                         </div>
                                         <div class="user-type-option">
                                             <input type="radio" name="user_type" value="team_manager" id="manager_type" {% if form.user_type.value == 'team_manager' %}checked{% endif %} required>
                                             <label for="manager_type">
-                                                <span class="user-type-icon">
-                                                    <i class="fas fa-user-tie"></i>
-                                                </span>
-                                                <span class="user-type-title">{% trans "Team Manager" %}</span>
-                                                <span class="user-type-desc">{% trans "I manage baseball teams" %}</span>
+                                                <div class="user-type-header">
+                                                    <span class="user-type-icon">
+                                                        <i class="fas fa-user-tie"></i>
+                                                    </span>
+                                                    <span class="user-type-title">Coach / Manager</span>
+                                                    <span class="user-type-subtitle">For coaches managing teams and rosters</span>
+                                                </div>
+                                                <div class="user-type-body">
+                                                    <p class="user-type-desc">Designed for coaches looking to create teams, manage rosters, and register for National and International events.</p>
+                                                </div>
+                                            </label>
+                                        </div>
+                                        <div class="user-type-option">
+                                            <input type="radio" name="user_type" value="spectator" id="spectator_type" {% if form.user_type.value == 'spectator' %}checked{% endif %} required>
+                                            <label for="spectator_type">
+                                                <div class="user-type-header">
+                                                    <span class="user-type-icon">
+                                                        <i class="fas fa-users"></i>
+                                                    </span>
+                                                    <span class="user-type-title">Spectator / Guardian – Travel Team</span>
+                                                    <span class="user-type-subtitle">For families attending events with a travel team</span>
+                                                </div>
+                                                <div class="user-type-body">
+                                                    <p class="user-type-desc">Designed for parents whose player is competing with a travel team at a National or International event and requires coordinated travel services.</p>
+                                                </div>
                                             </label>
                                         </div>
                                     </div>
@@ -1926,18 +2215,22 @@
                                             </span>
                                         </label>
                                         <div class="photo-upload-area" onclick="document.getElementById('id_profile_picture').click()">
-                                            <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--mlb-blue);"></i>
-                                            <p class="mb-0">{% trans "Click to upload your photo" %}</p>
-                                            <small class="text-muted">{% trans "JPG, PNG or GIF (max. 5MB)" %}</small>
+                                            <div style="position: relative; z-index: 1;">
+                                                <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--mlb-blue);"></i>
+                                                <p class="mb-1" style="font-size: 1.05rem; font-weight: 600; color: var(--mlb-blue);">{% trans "Click to upload your photo" %}</p>
+                                                <small class="text-muted" style="font-size: 0.875rem;">{% trans "JPG, PNG or GIF (max. 5MB)" %}</small>
+                                            </div>
                                         </div>
                                         {{ form.profile_picture }}
-                                        <img id="photoPreview" class="photo-preview" alt="{% trans 'Preview' %}">
+                                        <div style="text-align: center;">
+                                            <img id="photoPreview" class="photo-preview" alt="{% trans 'Preview' %}">
+                                        </div>
                                         {% if form.profile_picture.errors %}
                                             <div class="error-message">{{ form.profile_picture.errors }}</div>
                                         {% endif %}
                                         <div class="field-help-text">
                                             <i class="fas fa-info-circle"></i>
-                                            <span>{% trans "Photo of the parent/guardian. Recommended: Square image, good lighting, face clearly visible." %}</span>
+                                            <span>{% trans "Upload a clear, recent photo for your profile. This helps us verify your identity and improves security for your account." %}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -2388,48 +2681,43 @@
             });
         }
 
-        // Actualizar texto del botón y mostrar/ocultar alertas según el tipo de registro seleccionado
+        // Actualizar texto del botón según el tipo de registro seleccionado
         const userTypeInputs = document.querySelectorAll('input[name="user_type"]');
         const submitBtn = document.getElementById('submitBtn');
-        const parentInfoAlert = document.getElementById('parentInfoAlert');
         const successAlert = document.querySelector('.alert-success');
 
         userTypeInputs.forEach(input => {
             input.addEventListener('change', function() {
-                if (this.value === 'parent') {
-                    submitBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>' + translations.registerAsParent;
-                    if (parentInfoAlert) {
-                        parentInfoAlert.style.display = 'block';
-                    }
-                    if (successAlert) {
-                        successAlert.style.display = 'block';
-                    }
+                // Actualizar el botón según la selección
+                if (this.value === 'player') {
+                    submitBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>' + translations.register;
                 } else if (this.value === 'team_manager') {
-                    submitBtn.innerHTML = '<i class="fas fa-user-tie me-2"></i>' + translations.registerAsManager;
-                    if (parentInfoAlert) {
-                        parentInfoAlert.style.display = 'none';
-                    }
-                    if (successAlert) {
-                        successAlert.style.display = 'none';
-                    }
+                    submitBtn.innerHTML = '<i class="fas fa-user-tie me-2"></i>' + translations.register;
+                } else if (this.value === 'spectator') {
+                    submitBtn.innerHTML = '<i class="fas fa-users me-2"></i>' + translations.register;
+                }
+
+                if (successAlert) {
+                    successAlert.style.display = 'block';
                 }
             });
         });
 
         // Establecer estado inicial
         const checkedType = document.querySelector('input[name="user_type"]:checked');
-        if (checkedType && checkedType.value === 'parent') {
-            submitBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>' + translations.registerAsParent;
-            if (parentInfoAlert) {
-                parentInfoAlert.style.display = 'block';
+        if (checkedType) {
+            if (checkedType.value === 'player') {
+                submitBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>' + translations.register;
+            } else if (checkedType.value === 'team_manager') {
+                submitBtn.innerHTML = '<i class="fas fa-user-tie me-2"></i>' + translations.register;
+            } else if (checkedType.value === 'spectator') {
+                submitBtn.innerHTML = '<i class="fas fa-users me-2"></i>' + translations.register;
             }
+
             if (successAlert) {
                 successAlert.style.display = 'block';
             }
         } else {
-            if (parentInfoAlert) {
-                parentInfoAlert.style.display = 'none';
-            }
             if (successAlert) {
                 successAlert.style.display = 'none';
             }

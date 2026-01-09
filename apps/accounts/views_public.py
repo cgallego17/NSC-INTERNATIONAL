@@ -646,13 +646,57 @@ class PublicLoginView(BaseLoginView):
 
 
 class PublicRegistrationView(CreateView):
-    """Vista pública de registro"""
+    """
+    Vista pública de registro
+
+    Security Features:
+    - Rate Limiting: Máximo 3 registros por hora por IP
+    - Protección contra spam y bots
+    """
 
     form_class = PublicRegistrationForm
     template_name = "accounts/public_register.html"
     success_url = reverse_lazy("accounts:profile")
 
+    def dispatch(self, request, *args, **kwargs):
+        """Verificar rate limiting antes de procesar el request"""
+        from django.core.cache import cache
+        from django.http import HttpResponseForbidden
+
+        # Obtener IP del cliente
+        ip_address = _get_client_ip(request)
+
+        # Configuración de rate limiting
+        MAX_REGISTRATIONS_PER_HOUR = 3
+        RATE_LIMIT_WINDOW = 3600  # 1 hora en segundos
+
+        # Clave de caché única por IP
+        cache_key = f"registration_attempts_{ip_address}"
+
+        # Obtener intentos actuales
+        attempts = cache.get(cache_key, 0)
+
+        if attempts >= MAX_REGISTRATIONS_PER_HOUR:
+            messages.error(
+                request,
+                _(
+                    "Too many registration attempts from your IP address. "
+                    "Please try again later. Maximum %(max)d registrations per hour allowed."
+                ) % {"max": MAX_REGISTRATIONS_PER_HOUR}
+            )
+            return redirect("accounts:public_register")
+
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
+        from django.core.cache import cache
+
+        # Incrementar contador de intentos de registro
+        ip_address = _get_client_ip(self.request)
+        cache_key = f"registration_attempts_{ip_address}"
+        attempts = cache.get(cache_key, 0)
+        cache.set(cache_key, attempts + 1, 3600)  # Incrementar y guardar por 1 hora
+
         response = super().form_valid(form)
         # Autenticar al usuario después del registro
         login(self.request, self.object)

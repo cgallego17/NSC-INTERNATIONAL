@@ -21,6 +21,10 @@ class EventForm(forms.ModelForm):
             "season",  # TEMPORADA DEL EVENTO SELECT
             "title",  # NOMBRE DEL EVENTO
             "description",  # DESCRIPCION DEL EVENTO HTML
+            "title_team_manager",  # NOMBRE DEL EVENTO TEAM MANAGER
+            "description_team_manager",  # DESCRIPCION DEL EVENTO TEAM MANAGER
+            "title_spectator",  # NOMBRE DEL EVENTO SPECTATOR
+            "description_spectator",  # DESCRIPCION DEL EVENTO SPECTATOR
             "country",  # PAIS SELECT
             "state",  # ESTADO SELECT
             "city",  # CIUDAD SELECT
@@ -32,6 +36,14 @@ class EventForm(forms.ModelForm):
             "entry_deadline",  # DIA LIMITE DE REGISTRO DATE
             "default_entry_fee",  # PRECIO EVENTO
             "payment_deadline",  # DIA LIMITE DE PAGO DATE
+            "default_entry_fee_team_manager",  # PRECIO EVENTO TEAM MANAGER
+            "payment_deadline_team_manager",  # DIA LIMITE DE PAGO TEAM MANAGER
+            "gate_fee_amount_team_manager",  # PRECIO GATE FEE TEAM MANAGER
+            "service_fee_team_manager",  # SERVICE FEE TEAM MANAGER (%)
+            "default_entry_fee_spectator",  # PRECIO EVENTO SPECTATOR
+            "payment_deadline_spectator",  # DIA LIMITE DE PAGO SPECTATOR
+            "gate_fee_amount_spectator",  # PRECIO GATE FEE SPECTATOR
+            "service_fee_spectator",  # SERVICE FEE SPECTATOR (%)
             "gate_fee_type",  # TIPO DE GATE FEE
             "gate_fee_amount",  # PRECIO GATE FEE
             "service_fee",  # SERVICE FEE (%)

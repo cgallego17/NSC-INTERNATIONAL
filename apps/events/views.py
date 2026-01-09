@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Case, When, IntegerField, Value
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
@@ -58,8 +58,16 @@ class EventListView(StaffRequiredMixin, ListView):
         if event_type:
             queryset = queryset.filter(event_type__id=event_type)
 
-        if status:
+        # Default to 'published' if no status filter is provided
+        # But if status is explicitly 'all', don't filter by status
+        if status == 'all':
+            # Don't filter by status - show all
+            pass
+        elif status:
             queryset = queryset.filter(status=status)
+        else:
+            # Default to 'published' when no status parameter
+            queryset = queryset.filter(status='published')
 
         if time_filter:
             now = timezone.now()
@@ -76,8 +84,21 @@ class EventListView(StaffRequiredMixin, ListView):
                     start_date__gte=today_start, start_date__lt=today_end
                 )
 
-        # Ordenar por fecha de inicio más próxima primero
-        return queryset.order_by("start_date")
+        # Ordenar: completados primero (por fecha de inicio descendente), luego el resto por fecha ascendente
+        status_filter = self.request.GET.get("status")
+        if status_filter == 'completed':
+            # Para completados, ordenar por fecha descendente (más recientes primero)
+            queryset = queryset.order_by('-start_date')
+        else:
+            # Para otros estados, ordenar por fecha ascendente (próximos primero)
+            queryset = queryset.annotate(
+                status_priority=Case(
+                    When(status='completed', then=Value(0)),
+                    default=Value(1),
+                    output_field=IntegerField(),
+                )
+            ).order_by('status_priority', 'start_date')
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -136,7 +157,7 @@ class EventListView(StaffRequiredMixin, ListView):
         }
 
         # Estado activo actual (default: 'all')
-        context["active_status"] = self.request.GET.get("status", "all")
+        context["active_status"] = self.request.GET.get("status", "published")  # Default to published
 
         return context
 

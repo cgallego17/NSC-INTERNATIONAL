@@ -15,6 +15,7 @@ class UserProfile(models.Model):
         ("player", "Jugador"),
         ("parent", "Padre/Acudiente"),
         ("team_manager", "Manager de Equipo"),
+        ("spectator", "Espectador"),
         ("admin", "Administrador"),
     ]
 
@@ -117,6 +118,10 @@ class UserProfile(models.Model):
     @property
     def is_parent(self):
         return self.user_type == "parent"
+
+    @property
+    def is_spectator(self):
+        return self.user_type == "spectator"
 
     def get_absolute_url(self):
         return reverse("accounts:profile")

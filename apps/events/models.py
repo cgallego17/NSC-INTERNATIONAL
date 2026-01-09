@@ -158,6 +158,32 @@ class Event(models.Model):
     description = models.TextField(verbose_name="Short Description")
     tags = models.CharField(max_length=500, blank=True, verbose_name="Tags")
 
+    # Información específica por tipo de usuario - Team Manager
+    title_team_manager = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="Event Name (Team Manager)",
+        help_text="Nombre del evento para Team Managers",
+    )
+    description_team_manager = models.TextField(
+        blank=True,
+        verbose_name="Description (Team Manager)",
+        help_text="Descripción del evento para Team Managers",
+    )
+
+    # Información específica por tipo de usuario - Spectator
+    title_spectator = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name="Event Name (Spectator)",
+        help_text="Nombre del evento para Spectators",
+    )
+    description_spectator = models.TextField(
+        blank=True,
+        verbose_name="Description (Spectator)",
+        help_text="Descripción del evento para Spectators",
+    )
+
     # Categorización
     category = models.ForeignKey(
         EventCategory,
@@ -294,6 +320,61 @@ class Event(models.Model):
     payment_deadline = models.DateField(
         verbose_name="Payment Deadline", null=True, blank=True
     )
+
+    # Tarifas y pagos específicos por tipo de usuario - Team Manager
+    default_entry_fee_team_manager = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Default Entry Fee (Team Manager)",
+        null=True,
+        blank=True,
+    )
+    payment_deadline_team_manager = models.DateField(
+        verbose_name="Payment Deadline (Team Manager)", null=True, blank=True
+    )
+    gate_fee_amount_team_manager = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Gate Fee Amount (Team Manager)",
+        null=True,
+        blank=True,
+    )
+    service_fee_team_manager = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        verbose_name="Service Fee (%) (Team Manager)",
+        null=True,
+        blank=True,
+        default=0.00,
+    )
+
+    # Tarifas y pagos específicos por tipo de usuario - Spectator
+    default_entry_fee_spectator = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Default Entry Fee (Spectator)",
+        null=True,
+        blank=True,
+    )
+    payment_deadline_spectator = models.DateField(
+        verbose_name="Payment Deadline (Spectator)", null=True, blank=True
+    )
+    gate_fee_amount_spectator = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Gate Fee Amount (Spectator)",
+        null=True,
+        blank=True,
+    )
+    service_fee_spectator = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        verbose_name="Service Fee (%) (Spectator)",
+        null=True,
+        blank=True,
+        default=0.00,
+    )
+
     accept_deposits = models.BooleanField(default=False, verbose_name="Accept Deposits")
     default_deposit_amount = models.DecimalField(
         max_digits=10,

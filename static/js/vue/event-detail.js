@@ -3162,6 +3162,56 @@ const EventDetailApp = {
             if (eventDataEl) {
                 try {
                     eventData.value = JSON.parse(eventDataEl.textContent);
+
+                    // Sincronizar datos según el tipo de usuario
+                    if (eventData.value && eventData.value.user_type) {
+                        const userType = eventData.value.user_type;
+
+                        // Para Team Manager
+                        if (userType === 'team_manager') {
+                            if (eventData.value.title_team_manager) {
+                                eventData.value.title = eventData.value.title_team_manager;
+                            }
+                            if (eventData.value.description_team_manager) {
+                                eventData.value.description = eventData.value.description_team_manager;
+                            }
+                            if (eventData.value.default_entry_fee_team_manager !== undefined) {
+                                eventData.value.default_entry_fee = eventData.value.default_entry_fee_team_manager;
+                            }
+                            if (eventData.value.payment_deadline_team_manager) {
+                                eventData.value.payment_deadline = eventData.value.payment_deadline_team_manager;
+                            }
+                            if (eventData.value.gate_fee_amount_team_manager !== undefined) {
+                                eventData.value.gate_fee_amount = eventData.value.gate_fee_amount_team_manager;
+                            }
+                            if (eventData.value.service_fee_team_manager !== undefined) {
+                                eventData.value.service_fee = eventData.value.service_fee_team_manager;
+                            }
+                        }
+                        // Para Spectator
+                        else if (userType === 'spectator') {
+                            if (eventData.value.title_spectator) {
+                                eventData.value.title = eventData.value.title_spectator;
+                            }
+                            if (eventData.value.description_spectator) {
+                                eventData.value.description = eventData.value.description_spectator;
+                            }
+                            if (eventData.value.default_entry_fee_spectator !== undefined) {
+                                eventData.value.default_entry_fee = eventData.value.default_entry_fee_spectator;
+                            }
+                            if (eventData.value.payment_deadline_spectator) {
+                                eventData.value.payment_deadline = eventData.value.payment_deadline_spectator;
+                            }
+                            if (eventData.value.gate_fee_amount_spectator !== undefined) {
+                                eventData.value.gate_fee_amount = eventData.value.gate_fee_amount_spectator;
+                            }
+                            if (eventData.value.service_fee_spectator !== undefined) {
+                                eventData.value.service_fee = eventData.value.service_fee_spectator;
+                            }
+                        }
+                        // Para Player (individual player) - usar valores por defecto
+                        // No se necesita hacer nada, ya están en title y description
+                    }
                 } catch (e) {
                     console.error('Error loading event data:', e);
                 }

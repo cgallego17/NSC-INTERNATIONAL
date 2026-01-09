@@ -3,8 +3,10 @@ import re
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
+from PIL import Image
 
 from apps.locations.models import City, Country, State
 
@@ -84,8 +86,9 @@ class PublicRegistrationForm(UserCreationForm):
     """Formulario de registro público completo"""
 
     USER_TYPE_CHOICES = [
-        ("parent", _("Parent/Guardian")),
+        ("player", _("Individual Player")),
         ("team_manager", _("Team Manager")),
+        ("spectator", _("Spectator")),
     ]
 
     # Información básica de usuario
@@ -520,6 +523,142 @@ class PublicRegistrationForm(UserCreationForm):
             )
 
         return password
+
+    def clean_profile_picture(self):
+        """
+        Validar imagen de perfil con seguridad robusta
+
+        Validaciones:
+        - Tamaño máximo: 5MB
+        - Tipos permitidos: JPEG, PNG, GIF, WEBP
+        - Verificación del contenido real (no solo extensión)
+        - Dimensiones máximas: 4000x4000 pixels
+        - Validar que sea una imagen real y no corrupta
+        """
+        file = self.cleaned_data.get('profile_picture')
+
+        if not file:
+            return file
+
+        # 1. Validar tamaño del archivo (5MB máximo)
+        max_size = 5 * 1024 * 1024  # 5MB en bytes
+        if file.size > max_size:
+            raise ValidationError(
+                _("File size exceeds the maximum allowed size of 5MB. "
+                  "Your file is %(size).2f MB.")
+                % {"size": file.size / (1024 * 1024)}
+            )
+
+        # 2. Validar extensión del archivo
+        allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+        file_name = file.name.lower()
+        if not any(file_name.endswith(ext) for ext in allowed_extensions):
+            raise ValidationError(
+                _("Invalid file extension. Only JPG, PNG, GIF, and WEBP files are allowed.")
+            )
+
+        # 3. Intentar validar con python-magic si está disponible
+        try:
+            import magic
+
+            # Leer los primeros 2048 bytes para determinar el tipo MIME
+            file.seek(0)
+            file_start = file.read(2048)
+            file.seek(0)  # Reset file pointer
+
+            # Determinar el tipo MIME real
+            try:
+                mime_type = magic.from_buffer(file_start, mime=True)
+            except AttributeError:
+                # Fallback si magic no tiene from_buffer
+                mime = magic.Magic(mime=True)
+                mime_type = mime.from_buffer(file_start)
+
+            # Tipos MIME permitidos
+            allowed_mimes = [
+                'image/jpeg',
+                'image/png',
+                'image/gif',
+                'image/webp'
+            ]
+
+            if mime_type not in allowed_mimes:
+                raise ValidationError(
+                    _("Invalid file type detected. The file you uploaded is a %(type)s file. "
+                      "Only JPEG, PNG, GIF, and WEBP images are allowed.")
+                    % {"type": mime_type}
+                )
+        except ImportError:
+            # python-magic no está instalado, continuar con validación PIL
+            pass
+
+        # 4. Validar que sea una imagen válida usando PIL
+        try:
+            file.seek(0)
+            img = Image.open(file)
+
+            # Verificar la imagen
+            img.verify()
+
+            # Reabrir para obtener dimensiones (verify() cierra el archivo)
+            file.seek(0)
+            img = Image.open(file)
+
+            # 5. Validar dimensiones
+            max_width = 4000
+            max_height = 4000
+
+            if img.width > max_width or img.height > max_height:
+                raise ValidationError(
+                    _("Image dimensions are too large. Maximum allowed size is "
+                      "%(max_width)dx%(max_height)d pixels. "
+                      "Your image is %(width)dx%(height)d pixels.")
+                    % {
+                        "max_width": max_width,
+                        "max_height": max_height,
+                        "width": img.width,
+                        "height": img.height
+                    }
+                )
+
+            # 6. Validar dimensiones mínimas (opcional, pero recomendado)
+            min_width = 100
+            min_height = 100
+
+            if img.width < min_width or img.height < min_height:
+                raise ValidationError(
+                    _("Image is too small. Minimum size is %(min_width)dx%(min_height)d pixels. "
+                      "Your image is %(width)dx%(height)d pixels.")
+                    % {
+                        "min_width": min_width,
+                        "min_height": min_height,
+                        "width": img.width,
+                        "height": img.height
+                    }
+                )
+
+            # 7. Verificar formato de imagen
+            if img.format not in ['JPEG', 'PNG', 'GIF', 'WEBP']:
+                raise ValidationError(
+                    _("Unsupported image format: %(format)s. "
+                      "Please upload a JPEG, PNG, GIF, or WEBP image.")
+                    % {"format": img.format}
+                )
+
+        except ValidationError:
+            # Re-raise ValidationError as-is
+            raise
+        except Exception as e:
+            # Capturar cualquier otro error (imagen corrupta, etc.)
+            raise ValidationError(
+                _("Invalid or corrupted image file. Please upload a valid image. Error: %(error)s")
+                % {"error": str(e)}
+            )
+        finally:
+            # Asegurarse de resetear el puntero del archivo
+            file.seek(0)
+
+        return file
 
     def save(self, commit=True):
         # Generar username automáticamente

@@ -840,6 +840,10 @@
     "id": {{ event.pk }},
     "title": "{{ event.title|escapejs }}",
     "description": {% if event.description %}"{{ event.description|escapejs }}"{% else %}null{% endif %},
+    "title_team_manager": {% if event.title_team_manager %}"{{ event.title_team_manager|escapejs }}"{% else %}null{% endif %},
+    "description_team_manager": {% if event.description_team_manager %}"{{ event.description_team_manager|escapejs }}"{% else %}null{% endif %},
+    "title_spectator": {% if event.title_spectator %}"{{ event.title_spectator|escapejs }}"{% else %}null{% endif %},
+    "description_spectator": {% if event.description_spectator %}"{{ event.description_spectator|escapejs }}"{% else %}null{% endif %},
     "start_date": "{{ event.start_date|date:'Y-m-d' }}",
     "end_date": "{{ event.end_date|date:'Y-m-d'|default:'' }}",
     "banner": "{% if event.banner %}{{ event.banner|clean_localhost_url }}{% endif %}",
@@ -848,6 +852,14 @@
     "external_link": "{{ event.external_link|default:''|escapejs }}",
     "default_entry_fee": {{ event.default_entry_fee|default:0 }},
     "service_fee": {{ event.service_fee|default_if_none:0 }},
+    "default_entry_fee_team_manager": {{ event.default_entry_fee_team_manager|default:0 }},
+    "service_fee_team_manager": {{ event.service_fee_team_manager|default_if_none:0 }},
+    "gate_fee_amount_team_manager": {{ event.gate_fee_amount_team_manager|default:0 }},
+    "payment_deadline_team_manager": "{{ event.payment_deadline_team_manager|date:'Y-m-d'|default:'' }}",
+    "default_entry_fee_spectator": {{ event.default_entry_fee_spectator|default:0 }},
+    "service_fee_spectator": {{ event.service_fee_spectator|default_if_none:0 }},
+    "gate_fee_amount_spectator": {{ event.gate_fee_amount_spectator|default:0 }},
+    "payment_deadline_spectator": "{{ event.payment_deadline_spectator|date:'Y-m-d'|default:'' }}",
     "stripe_checkout_url": "{% url 'accounts:create_stripe_event_checkout_session' event.pk %}",
     "payment_deadline": "{{ event.payment_deadline|date:'Y-m-d'|default:'' }}",
     "category": {% if event.category %}{"id": {{ event.category.id }}, "name": "{{ event.category.name|escapejs }}"}{% else %}null{% endif %},
@@ -878,7 +890,8 @@
             "name": "{{ division.name|escapejs }}"
         }{% if not forloop.last %},{% endif %}
         {% endfor %}
-    ]
+    ],
+    "user_type": "{{ user_type|default:'player' }}"
 }
 {% endlocalize %}
 </script>

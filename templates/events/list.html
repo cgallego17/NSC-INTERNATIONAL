@@ -253,24 +253,47 @@
         font-weight: 600;
     }
 
-    /* Estilos para el dropdown de estado */
+    /* Estilos para el botón de estado (icono) */
     .btn-status-toggle {
-        border: 1px solid #dee2e6;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        transition: all 0.2s ease;
+    }
+
+    .btn-status-toggle:hover {
+        background-color: #f8f9fa;
+        border-color: #6c757d;
+        transform: scale(1.05);
     }
 
     .btn-status-toggle:disabled {
-        opacity: 0.6;
+        opacity: 0.5;
         cursor: not-allowed;
+    }
+
+    .btn-status-toggle:focus {
+        box-shadow: 0 0 0 0.2rem rgba(108, 117, 125, 0.25);
+    }
+
+    /* Estilos para el dropdown de estado */
+    .status-dropdown-menu {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        border: 1px solid #dee2e6;
+    }
+
+    .status-dropdown-menu .dropdown-header {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
     .status-dropdown-menu .dropdown-item {
         display: flex;
         align-items: center;
-        padding: 0.5rem 1rem;
+        justify-content: space-between;
+        padding: 0.625rem 1rem;
         cursor: pointer;
+        transition: background-color 0.15s ease;
     }
 
     .status-dropdown-menu .dropdown-item:hover {
@@ -284,12 +307,12 @@
     }
 
     .status-dropdown-menu .dropdown-item .badge {
-        font-size: 0.7rem;
-        width: 8px;
-        height: 8px;
+        width: 10px;
+        height: 10px;
         padding: 0;
         border-radius: 50%;
         display: inline-block;
+        flex-shrink: 0;
     }
 </style>
 {% endblock %}
@@ -398,12 +421,6 @@
                 <div class="card-body p-0" style="background: white; border-bottom: 1px solid #dee2e6;">
                     <ul class="nav nav-tabs nav-tabs-custom" id="statusTabs" role="tablist" style="border-bottom: none; padding: 0 1rem; margin: 0;">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link status-tab-btn {% if active_status == 'all' or not request.GET.status %}active{% endif %}"
-                                    data-status="all" type="button" style="border: none; border-bottom: 2px solid {% if active_status == 'all' or not request.GET.status %}#0d6efd{% else %}transparent{% endif %}; color: {% if active_status == 'all' or not request.GET.status %}#0d6efd{% else %}#6c757d{% endif %}; font-weight: 600; padding: 0.75rem 1rem;">
-                                <i class="fas fa-list me-1"></i>Todos <span class="badge bg-secondary ms-1">{{ status_counts.all }}</span>
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
                             <button class="nav-link status-tab-btn {% if active_status == 'published' %}active{% endif %}"
                                     data-status="published" type="button" style="border: none; border-bottom: 2px solid {% if active_status == 'published' %}#198754{% else %}transparent{% endif %}; color: {% if active_status == 'published' %}#198754{% else %}#6c757d{% endif %}; font-weight: 600; padding: 0.75rem 1rem;">
                                 <i class="fas fa-check-circle me-1"></i>Publicados <span class="badge bg-success ms-1">{{ status_counts.published }}</span>
@@ -425,6 +442,12 @@
                             <button class="nav-link status-tab-btn {% if active_status == 'cancelled' %}active{% endif %}"
                                     data-status="cancelled" type="button" style="border: none; border-bottom: 2px solid {% if active_status == 'cancelled' %}#dc3545{% else %}transparent{% endif %}; color: {% if active_status == 'cancelled' %}#dc3545{% else %}#6c757d{% endif %}; font-weight: 600; padding: 0.75rem 1rem;">
                                 <i class="fas fa-times-circle me-1"></i>Cancelados <span class="badge bg-danger ms-1">{{ status_counts.cancelled }}</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link status-tab-btn {% if active_status == 'all' %}active{% endif %}"
+                                    data-status="all" type="button" style="border: none; border-bottom: 2px solid {% if active_status == 'all' %}#0d6efd{% else %}transparent{% endif %}; color: {% if active_status == 'all' %}#0d6efd{% else %}#6c757d{% endif %}; font-weight: 600; padding: 0.75rem 1rem;">
+                                <i class="fas fa-list me-1"></i>Todos <span class="badge bg-secondary ms-1">{{ status_counts.all }}</span>
                             </button>
                         </li>
                     </ul>
@@ -537,44 +560,64 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <div class="d-flex flex-column gap-2">
-                                                <div class="d-flex gap-1">
-                                                    <a href="{% url 'events:admin_detail' event.pk %}" class="btn btn-outline-primary btn-sm" title="Ver detalles">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                    <a href="{% url 'events:update' event.pk %}" class="btn btn-outline-secondary btn-sm" title="Editar">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                </div>
-                                                <div class="btn-group" style="position: relative;">
-                                                    <button type="button" class="btn btn-sm btn-status-toggle dropdown-toggle"
+                                            <div class="d-flex gap-1 align-items-center">
+                                                <a href="{% url 'events:admin_detail' event.pk %}" class="btn btn-outline-primary btn-sm" title="Ver detalles" style="width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'events:update' event.pk %}" class="btn btn-outline-secondary btn-sm" title="Editar" style="width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <div class="dropdown">
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-secondary btn-status-toggle"
                                                             data-event-id="{{ event.pk }}"
+                                                            id="statusBtn{{ event.pk }}"
                                                             data-bs-toggle="dropdown"
                                                             aria-expanded="false"
-                                                            style="font-size: 0.8125rem; font-weight: 600; min-width: 120px;">
-                                                        {% if event.status == 'published' %}
-                                                            <span class="badge bg-success me-1">●</span>Publicado
-                                                        {% elif event.status == 'draft' %}
-                                                            <span class="badge bg-secondary me-1">●</span>Borrador
-                                                        {% elif event.status == 'cancelled' %}
-                                                            <span class="badge bg-danger me-1">●</span>Cancelado
-                                                        {% elif event.status == 'completed' %}
-                                                            <span class="badge bg-info me-1">●</span>Completado
-                                                        {% endif %}
+                                                            title="Cambiar estado"
+                                                            style="width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%;">
+                                                        <i class="fas fa-cog" style="font-size: 0.875rem;"></i>
                                                     </button>
-                                                    <ul class="dropdown-menu status-dropdown-menu" data-event-id="{{ event.pk }}">
-                                                        <li><a class="dropdown-item status-option {% if event.status == 'draft' %}active{% endif %}" href="#" data-status="draft">
-                                                            <span class="badge bg-secondary me-2">●</span>Borrador
-                                                        </a></li>
-                                                        <li><a class="dropdown-item status-option {% if event.status == 'published' %}active{% endif %}" href="#" data-status="published">
-                                                            <span class="badge bg-success me-2">●</span>Publicado
-                                                        </a></li>
-                                                        <li><a class="dropdown-item status-option {% if event.status == 'completed' %}active{% endif %}" href="#" data-status="completed">
-                                                            <span class="badge bg-info me-2">●</span>Completado
-                                                        </a></li>
-                                                        <li><a class="dropdown-item status-option {% if event.status == 'cancelled' %}active{% endif %}" href="#" data-status="cancelled">
-                                                            <span class="badge bg-danger me-2">●</span>Cancelado
-                                                        </a></li>
+                                                    <ul class="dropdown-menu status-dropdown-menu dropdown-menu-end"
+                                                        data-event-id="{{ event.pk }}"
+                                                        aria-labelledby="statusBtn{{ event.pk }}"
+                                                        style="min-width: 180px;">
+                                                        <li>
+                                                            <a class="dropdown-item status-option {% if event.status == 'draft' %}active{% endif %}"
+                                                               href="#"
+                                                               data-status="draft"
+                                                               style="cursor: pointer;">
+                                                                <span class="badge bg-secondary me-2" style="width: 10px; height: 10px; padding: 0; border-radius: 50%; display: inline-block;"></span>Borrador
+                                                                {% if event.status == 'draft' %}<i class="fas fa-check ms-2 text-success"></i>{% endif %}
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item status-option {% if event.status == 'published' %}active{% endif %}"
+                                                               href="#"
+                                                               data-status="published"
+                                                               style="cursor: pointer;">
+                                                                <span class="badge bg-success me-2" style="width: 10px; height: 10px; padding: 0; border-radius: 50%; display: inline-block;"></span>Publicado
+                                                                {% if event.status == 'published' %}<i class="fas fa-check ms-2 text-success"></i>{% endif %}
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item status-option {% if event.status == 'completed' %}active{% endif %}"
+                                                               href="#"
+                                                               data-status="completed"
+                                                               style="cursor: pointer;">
+                                                                <span class="badge bg-info me-2" style="width: 10px; height: 10px; padding: 0; border-radius: 50%; display: inline-block;"></span>Completado
+                                                                {% if event.status == 'completed' %}<i class="fas fa-check ms-2 text-success"></i>{% endif %}
+                                                            </a>
+                                                        </li>
+                                                        <li>
+                                                            <a class="dropdown-item status-option {% if event.status == 'cancelled' %}active{% endif %}"
+                                                               href="#"
+                                                               data-status="cancelled"
+                                                               style="cursor: pointer;">
+                                                                <span class="badge bg-danger me-2" style="width: 10px; height: 10px; padding: 0; border-radius: 50%; display: inline-block;"></span>Cancelado
+                                                                {% if event.status == 'cancelled' %}<i class="fas fa-check ms-2 text-success"></i>{% endif %}
+                                                            </a>
+                                                        </li>
                                                     </ul>
                                                 </div>
                                             </div>
@@ -670,10 +713,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Inicializar dropdowns de Bootstrap
+    // Inicializar dropdowns de Bootstrap (ya están con data-bs-toggle, pero los inicializamos para mayor control)
     const statusToggleButtons = document.querySelectorAll('.btn-status-toggle');
     statusToggleButtons.forEach(button => {
-        new bootstrap.Dropdown(button);
+        // Bootstrap debería inicializarlos automáticamente con data-bs-toggle="dropdown"
+        // Pero los inicializamos manualmente para asegurar que funcionen
+        if (!bootstrap.Dropdown.getInstance(button)) {
+            new bootstrap.Dropdown(button);
+        }
     });
 
     // Manejar cambio de estado desde el dropdown
@@ -685,9 +732,13 @@ document.addEventListener('DOMContentLoaded', function() {
         e.stopPropagation();
 
         const menu = statusOption.closest('.status-dropdown-menu');
+        if (!menu) return;
+
         const eventId = menu.dataset.eventId;
         const newStatus = statusOption.dataset.status;
         const toggleButton = document.querySelector(`.btn-status-toggle[data-event-id="${eventId}"]`);
+
+        if (!toggleButton) return;
 
         // Si el estado seleccionado es el mismo, solo cerrar el dropdown
         if (statusOption.classList.contains('active')) {
@@ -722,14 +773,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Actualizar botón con nuevo estado
-                const statusLabels = {
-                    'draft': '<span class="badge bg-secondary me-1">●</span>Borrador',
-                    'published': '<span class="badge bg-success me-1">●</span>Publicado',
-                    'cancelled': '<span class="badge bg-danger me-1">●</span>Cancelado',
-                    'completed': '<span class="badge bg-info me-1">●</span>Completado'
-                };
-                toggleButton.innerHTML = statusLabels[newStatus] || newStatus;
+                // El botón es solo un icono, no necesita actualización de texto
 
                 // Actualizar clase activa en el menú
                 const allOptions = menu.querySelectorAll('.status-option');

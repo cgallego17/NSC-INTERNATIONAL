@@ -1538,6 +1538,14 @@ class PanelEventDetailEmbedView(PanelEventDetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["inner_template"] = "accounts/panel_tabs/detalle_evento_vue.html"
+
+        # Agregar el tipo de usuario del usuario actual al contexto
+        user = self.request.user
+        if hasattr(user, "profile"):
+            context["user_type"] = user.profile.user_type
+        else:
+            context["user_type"] = "player"  # Default
+
         return context
 
 
