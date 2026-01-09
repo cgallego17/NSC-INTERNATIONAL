@@ -886,7 +886,7 @@ class PlayerListView(StaffRequiredMixin, ListView):
             queryset = queryset.filter(user__profile__city_id=city_filter)
 
         if division_filter:
-            queryset = queryset.filter(division=division_filter)
+            queryset = queryset.filter(division_id=division_filter)
 
         if is_active_filter:
             is_active = is_active_filter.lower() == "true"
