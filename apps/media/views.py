@@ -320,14 +320,15 @@ def media_file_update_ajax(request, pk):
 
 @require_http_methods(["GET"])
 def media_file_list_ajax(request):
-    """Vista AJAX para listar archivos multimedia"""
+    """Vista AJAX para listar archivos multimedia con paginación"""
     if not request.user.is_staff:
         return JsonResponse({"error": "No autorizado"}, status=403)
 
     try:
         file_type = request.GET.get("type", "").strip()
         search = request.GET.get("search", "").strip()
-        limit = int(request.GET.get("limit", 50))
+        page = int(request.GET.get("page", 1))
+        per_page = int(request.GET.get("per_page", 24))  # Cambiar de limit a per_page
 
         # Construir queryset base
         queryset = MediaFile.objects.filter(status="active").order_by("-created_at")
@@ -344,12 +345,17 @@ def media_file_list_ajax(request):
                 | Q(tags__icontains=search)
             )
 
-        # Limitar resultados
-        queryset = queryset[:limit]
+        # Paginar resultados
+        paginator = Paginator(queryset, per_page)
+        try:
+            page_obj = paginator.page(page)
+        except Exception:
+            page_obj = paginator.page(1)
+            page = 1
 
         # Serializar resultados
         results = []
-        for media in queryset:
+        for media in page_obj:
             # Obtener URL relativa
             relative_url = media.get_file_url()
             # Construir URL absoluta
@@ -373,7 +379,20 @@ def media_file_list_ajax(request):
                 }
             )
 
-        return JsonResponse({"success": True, "results": results})
+        return JsonResponse({
+            "success": True,
+            "results": results,
+            "pagination": {
+                "current_page": page_obj.number,
+                "total_pages": paginator.num_pages,
+                "total_items": paginator.count,
+                "per_page": per_page,
+                "has_previous": page_obj.has_previous(),
+                "has_next": page_obj.has_next(),
+                "previous_page": page_obj.previous_page_number() if page_obj.has_previous() else None,
+                "next_page": page_obj.next_page_number() if page_obj.has_next() else None,
+            }
+        })
 
     except Exception as e:
         import logging

@@ -335,112 +335,7 @@
     </style>
 </head>
 <body>
-    <!-- Top Bar -->
-    <div class="top-bar">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    {% if site_settings.contact_phone %}
-                        <span><i class="fas fa-phone me-2"></i>{{ site_settings.contact_phone }}</span>
-                    {% endif %}
-                    {% if site_settings.contact_email %}
-                        <span class="{% if site_settings.contact_phone %}ms-4{% endif %}"><i class="fas fa-envelope me-2"></i>{{ site_settings.contact_email }}</span>
-                    {% endif %}
-                </div>
-                <div class="col-md-6 text-end">
-                    <!-- Language Selector with Flags Dropdown -->
-                    {% get_current_language as CURRENT_LANGUAGE %}
-                    {% if not CURRENT_LANGUAGE or CURRENT_LANGUAGE == '' %}{% get_language_info for 'en' as lang_info %}{% endif %}
-                    <div class="language-selector-wrapper">
-                        <button type="button" class="language-selector-btn" id="languageSelectorBtn" onclick="toggleLanguageDropdown()">
-                            <span class="flag-icon {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}flag-es{% else %}flag-us{% endif %}"></span>
-                            <span class="language-text">
-                                {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}
-                                    ES
-                                {% else %}
-                                    EN
-                                {% endif %}
-                            </span>
-                            <i class="fas fa-chevron-down arrow-icon"></i>
-                        </button>
-                        <div class="language-dropdown" id="languageDropdown">
-                            <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-en">
-                                {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/accounts/panel/' }}">
-                                <input type="hidden" name="language" value="en">
-                                <button type="submit" class="language-option {% if CURRENT_LANGUAGE != 'es' and CURRENT_LANGUAGE|slice:":2" != 'es' %}active{% endif %}" style="background: none; border: none; width: 100%; text-align: left; padding: 10px; cursor: pointer;">
-                                    <span class="flag-icon flag-us"></span>
-                                    <span class="language-name">English</span>
-                                </button>
-                            </form>
-                            <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-es">
-                                {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.get_full_path|default:request.path|default:'/accounts/panel/' }}">
-                                <input type="hidden" name="language" value="es">
-                                <button type="submit" class="language-option {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}active{% endif %}" style="background: none; border: none; width: 100%; text-align: left; padding: 10px; cursor: pointer;">
-                                    <span class="flag-icon flag-es"></span>
-                                    <span class="language-name">{% trans "Spanish" %}</span>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    <span class="mx-2">|</span>
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'panel' %}" title="{% trans 'My Account' %}"><i class="fas fa-user me-1"></i>{% trans "My Account" %}</a>
-                        {% if user.is_staff or user.is_superuser %}
-                            <span class="mx-2">|</span>
-                            <a href="{% url 'dashboard' %}" title="{% trans 'Admin Dashboard' %}" style="color: var(--mlb-gold, #ffd700); font-weight: 600;"><i class="fas fa-tachometer-alt me-1"></i>{% trans 'Dashboard' %}</a>
-                        {% endif %}
-                        <span class="mx-2">|</span>
-                        <a href="{% url 'accounts:logout' %}" title="{% trans 'Log Out' %}">{% trans "Log Out" %}</a>
-                    {% else %}
-                        <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal">{% trans "Log In" %}</a>
-                        <span class="mx-2">|</span>
-                        <a href="/accounts/register/">{% trans "Sign Up" %}</a>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Navbar MLB Style -->
-    <nav class="navbar navbar-expand-lg navbar-mlb">
-        <div class="container-fluid px-0">
-            <a class="navbar-brand" href="/">
-                <img src="/multimedia/image/2025/12/ncs_international.png" alt="NCS International" class="navbar-logo">
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="border-color: white;">
-                <span style="color: white;"><i class="fas fa-bars"></i></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/">{% trans "Home" %}</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'events:list' %}">{% trans "Events" %}</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/accounts/teams/">{% trans "Teams" %}</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'public_player_list' %}">{% trans "Players" %}</a>
-                    </li>
-                    {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'panel' %}">{% trans "My Account" %}</a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="/accounts/register/">
-                                <span class="badge-mlb">{% trans "Sign Up" %}</span>
-                            </a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
+    {% include 'includes/navbar_mlb.html' %}
 
     <!-- Messages (hidden, converted to toasts) -->
     <div class="messages-container" style="display: none;">
@@ -751,25 +646,6 @@
             modifyPlayerInfo: "{% trans 'Modify player information'|escapejs %}"
         });
 
-        // Language Selector Dropdown
-        function toggleLanguageDropdown() {
-            const dropdown = document.getElementById('languageDropdown');
-            const btn = document.getElementById('languageSelectorBtn');
-            dropdown.classList.toggle('show');
-            btn.classList.toggle('active');
-        }
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            const wrapper = document.querySelector('.language-selector-wrapper');
-            const dropdown = document.getElementById('languageDropdown');
-            const btn = document.getElementById('languageSelectorBtn');
-
-            if (wrapper && !wrapper.contains(event.target)) {
-                dropdown.classList.remove('show');
-                btn.classList.remove('active');
-            }
-        });
 
         // Inicializar el carousel del dashboard banner con barra de progreso flotante
         document.addEventListener('DOMContentLoaded', function() {

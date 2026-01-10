@@ -2541,42 +2541,43 @@
     <script>
         // Traducciones para JavaScript
         const translations = {
-            selectState: "{% trans 'Select a state' %}",
-            selectCity: "{% trans 'Select a city' %}",
-            errorLoadingStates: "{% trans 'Error loading states' %}",
-            enterPassword: "{% trans 'Enter a password' %}",
-            weak: "{% trans 'Weak' %}",
-            medium: "{% trans 'Medium' %}",
-            strong: "{% trans 'Strong' %}",
-            emailRequired: "{% trans 'Email is required' %}",
-            emailInvalid: "{% trans 'Please enter a valid email (e.g.: user@domain.com)' %}",
-            emailValid: "{% trans '✓ Valid email' %}",
-            confirmPassword: "{% trans 'Please confirm your password' %}",
-            passwordsDontMatch: "{% trans 'Passwords do not match' %}",
-            passwordsMatch: "{% trans '✓ Passwords match' %}",
-            firstNameRequired: "{% trans 'First name is required' %}",
-            firstNameInvalid: "{% trans 'First name can only contain letters and spaces (2-30 characters)' %}",
-            firstNameValid: "{% trans '✓ Valid first name' %}",
-            lastNameRequired: "{% trans 'First last name is required' %}",
-            lastNameInvalid: "{% trans 'Last name can only contain letters and spaces (2-30 characters)' %}",
-            lastNameValid: "{% trans '✓ Valid last name' %}",
-            lastName2Invalid: "{% trans 'Second last name can only contain letters and spaces (2-30 characters)' %}",
-            valid: "{% trans '✓ Valid' %}",
-            birthDateFuture: "{% trans 'Date of birth cannot be in the future' %}",
-            birthDateUnder18: "{% trans 'You must be 18 years or older to register' %}",
-            birthDateInvalid: "{% trans 'Please verify your date of birth' %}",
-            birthDateValid: "{% trans '✓ Valid date' %}",
-            phoneRequired: "{% trans 'Phone number is required' %}",
-            phonePrefixRequired: "{% trans 'Please select the country prefix' %}",
-            phoneValid: "{% trans '✓ Valid phone' %}",
-            urlInvalid: "{% trans 'Please enter a valid URL (e.g.: https://www.example.com)' %}",
-            urlValid: "{% trans '✓ Valid URL' %}",
-            postalCodeValid: "{% trans '✓ Valid postal code' %}",
-            phoneInvalidDigits: "{% trans 'Phone number must contain between 7 and 15 digits' %}",
-            phoneMinDigits: "{% trans 'Number must have at least 7 digits' %}",
-            registerAsParent: "{% trans 'Register as Parent/Guardian' %}",
-            registerAsManager: "{% trans 'Register as Team Manager' %}",
-            password: "{% trans 'Password' %}"
+            selectState: "{% trans 'Select a state'|escapejs %}",
+            selectCity: "{% trans 'Select a city'|escapejs %}",
+            errorLoadingStates: "{% trans 'Error loading states'|escapejs %}",
+            enterPassword: "{% trans 'Enter a password'|escapejs %}",
+            weak: "{% trans 'Weak'|escapejs %}",
+            medium: "{% trans 'Medium'|escapejs %}",
+            strong: "{% trans 'Strong'|escapejs %}",
+            emailRequired: "{% trans 'Email is required'|escapejs %}",
+            emailInvalid: "{% trans 'Please enter a valid email (e.g.: user@domain.com)'|escapejs %}",
+            emailValid: "{% trans '✓ Valid email'|escapejs %}",
+            confirmPassword: "{% trans 'Please confirm your password'|escapejs %}",
+            passwordsDontMatch: "{% trans 'Passwords do not match'|escapejs %}",
+            passwordsMatch: "{% trans '✓ Passwords match'|escapejs %}",
+            firstNameRequired: "{% trans 'First name is required'|escapejs %}",
+            firstNameInvalid: "{% trans 'First name can only contain letters and spaces (2-30 characters)'|escapejs %}",
+            firstNameValid: "{% trans '✓ Valid first name'|escapejs %}",
+            lastNameRequired: "{% trans 'First last name is required'|escapejs %}",
+            lastNameInvalid: "{% trans 'Last name can only contain letters and spaces (2-30 characters)'|escapejs %}",
+            lastNameValid: "{% trans '✓ Valid last name'|escapejs %}",
+            lastName2Invalid: "{% trans 'Second last name can only contain letters and spaces (2-30 characters)'|escapejs %}",
+            valid: "{% trans '✓ Valid'|escapejs %}",
+            birthDateFuture: "{% trans 'Date of birth cannot be in the future'|escapejs %}",
+            birthDateUnder18: "{% trans 'You must be 18 years or older to register'|escapejs %}",
+            birthDateInvalid: "{% trans 'Please verify your date of birth'|escapejs %}",
+            birthDateValid: "{% trans '✓ Valid date'|escapejs %}",
+            phoneRequired: "{% trans 'Phone number is required'|escapejs %}",
+            phonePrefixRequired: "{% trans 'Please select the country prefix'|escapejs %}",
+            phoneValid: "{% trans '✓ Valid phone'|escapejs %}",
+            urlInvalid: "{% trans 'Please enter a valid URL (e.g.: https://www.example.com)'|escapejs %}",
+            urlValid: "{% trans '✓ Valid URL'|escapejs %}",
+            postalCodeValid: "{% trans '✓ Valid postal code'|escapejs %}",
+            phoneInvalidDigits: "{% trans 'Phone number must contain between 7 and 15 digits'|escapejs %}",
+            phoneMinDigits: "{% trans 'Number must have at least 7 digits'|escapejs %}",
+            registerAsParent: "{% trans 'Register as Parent/Guardian'|escapejs %}",
+            registerAsManager: "{% trans 'Register as Team Manager'|escapejs %}",
+            register: "{% trans 'Register'|escapejs %}",
+            password: "{% trans 'Password'|escapejs %}"
         };
         // Preview de foto
         document.getElementById('id_profile_picture').addEventListener('change', function(e) {
@@ -2681,46 +2682,91 @@
             });
         }
 
-        // Actualizar texto del botón según el tipo de registro seleccionado
+        // Obtener referencias a elementos
         const userTypeInputs = document.querySelectorAll('input[name="user_type"]');
         const submitBtn = document.getElementById('submitBtn');
         const successAlert = document.querySelector('.alert-success');
 
-        userTypeInputs.forEach(input => {
-            input.addEventListener('change', function() {
-                // Actualizar el botón según la selección
-                if (this.value === 'player') {
-                    submitBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>' + translations.register;
-                } else if (this.value === 'team_manager') {
-                    submitBtn.innerHTML = '<i class="fas fa-user-tie me-2"></i>' + translations.register;
-                } else if (this.value === 'spectator') {
-                    submitBtn.innerHTML = '<i class="fas fa-users me-2"></i>' + translations.register;
-                    }
+        // Función para actualizar el botón según el tipo de registro seleccionado
+        function updateSubmitButton(userType) {
+            if (!submitBtn) return;
 
-                    if (successAlert) {
-                        successAlert.style.display = 'block';
-                }
-            });
-        });
-
-        // Establecer estado inicial
-        const checkedType = document.querySelector('input[name="user_type"]:checked');
-        if (checkedType) {
-            if (checkedType.value === 'player') {
+            if (userType === 'player') {
                 submitBtn.innerHTML = '<i class="fas fa-user-plus me-2"></i>' + translations.register;
-            } else if (checkedType.value === 'team_manager') {
+            } else if (userType === 'team_manager') {
                 submitBtn.innerHTML = '<i class="fas fa-user-tie me-2"></i>' + translations.register;
-            } else if (checkedType.value === 'spectator') {
+            } else if (userType === 'spectator') {
                 submitBtn.innerHTML = '<i class="fas fa-users me-2"></i>' + translations.register;
             }
 
             if (successAlert) {
                 successAlert.style.display = 'block';
             }
-        } else {
-            if (successAlert) {
-                successAlert.style.display = 'none';
+        }
+
+        userTypeInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                updateSubmitButton(this.value);
+            });
+        });
+
+        // Pre-seleccionar tipo de usuario desde parámetros de URL o Django
+        function preselectUserType() {
+            // Mapeo de valores a IDs de radio buttons
+            const userTypeIdMap = {
+                'player': 'player_type',
+                'team_manager': 'manager_type',
+                'spectator': 'spectator_type'
+            };
+
+            let userTypeToSelect = null;
+            let radioId = null;
+
+            // Primero verificar parámetros de URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const userTypeFromUrl = urlParams.get('user_type');
+            if (userTypeFromUrl && userTypeIdMap[userTypeFromUrl]) {
+                userTypeToSelect = userTypeFromUrl;
+                radioId = userTypeIdMap[userTypeFromUrl];
             }
+
+            // También verificar si hay un valor pre-seleccionado desde Django
+            {% if preselected_user_type %}
+            if (!userTypeToSelect) {
+                const djangoUserType = '{{ preselected_user_type }}';
+                if (djangoUserType && userTypeIdMap[djangoUserType]) {
+                    userTypeToSelect = djangoUserType;
+                    radioId = userTypeIdMap[djangoUserType];
+                }
+            }
+            {% endif %}
+
+            // Seleccionar el radio button si se encontró un tipo
+            if (userTypeToSelect && radioId) {
+                const userTypeRadio = document.getElementById(radioId);
+                if (userTypeRadio) {
+                    userTypeRadio.checked = true;
+                    // Actualizar el botón inmediatamente
+                    updateSubmitButton(userTypeToSelect);
+                }
+            } else {
+                // Establecer estado inicial si no hay pre-selección
+                const checkedType = document.querySelector('input[name="user_type"]:checked');
+                if (checkedType) {
+                    updateSubmitButton(checkedType.value);
+                } else {
+                    if (successAlert) {
+                        successAlert.style.display = 'none';
+                    }
+                }
+            }
+        }
+
+        // Ejecutar pre-selección cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', preselectUserType);
+        } else {
+            preselectUserType();
         }
 
         // Password Strength Indicator
@@ -3205,13 +3251,13 @@
                 const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
 
                 if (!allowedTypes.includes(file.type)) {
-                    alert("{% trans 'Please select a valid image (JPG, PNG or GIF)' %}");
+                    alert("{% trans 'Please select a valid image (JPG, PNG or GIF)'|escapejs %}");
                     this.value = '';
                     return;
                 }
 
                 if (file.size > maxSize) {
-                    alert("{% trans 'The image is too large. Maximum size is 5MB' %}");
+                    alert("{% trans 'The image is too large. Maximum size is 5MB'|escapejs %}");
                     this.value = '';
                     return;
                 }
@@ -3222,10 +3268,8 @@
     </script>
 
     <script>
-
         // Mostrar modal de login si hay errores en la URL o si show_login_modal está activo
-        (function initPublicRegisterLocationFilters() {
-            function setupFilters() {
+        (function() {
             const urlParams = new URLSearchParams(window.location.search);
             const loginError = urlParams.get('login_error');
             const loginModal = document.getElementById('loginModal');
@@ -3241,7 +3285,7 @@
                     window.history.replaceState({}, '', newUrl);
                 }
             }
-        });
+        })();
 
         // Manejar envío del formulario del modal
         const loginForm = document.querySelector('#loginModal form');
@@ -3402,91 +3446,91 @@
         (function initPublicRegisterLocationFilters() {
             function setupFilters() {
                 const countrySelect = document.getElementById('id_country');
-            const stateSelect = document.getElementById('id_state');
-            const citySelect = document.getElementById('id_city');
-            const stateLoader = document.getElementById('stateLoader');
-            const cityLoader = document.getElementById('cityLoader');
+                const stateSelect = document.getElementById('id_state');
+                const citySelect = document.getElementById('id_city');
+                const stateLoader = document.getElementById('stateLoader');
+                const cityLoader = document.getElementById('cityLoader');
 
-            if (!countrySelect || !stateSelect || !citySelect) {
-                return;
-            }
+                if (!countrySelect || !stateSelect || !citySelect) {
+                    return;
+                }
 
-            function updateStates() {
-                const countryId = countrySelect.value;
-                stateSelect.innerHTML = '<option value="">{% trans "Select a state"|escapejs %}</option>';
-                citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
+                function updateStates() {
+                    const countryId = countrySelect.value;
+                    stateSelect.innerHTML = '<option value="">{% trans "Select a state"|escapejs %}</option>';
+                    citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
 
-                if (countryId) {
-                    if (stateLoader) stateLoader.style.display = 'block';
-                    stateSelect.disabled = true;
-                    citySelect.disabled = true;
+                    if (countryId) {
+                        if (stateLoader) stateLoader.style.display = 'block';
+                        stateSelect.disabled = true;
+                        citySelect.disabled = true;
 
-                    fetch(`/locations/ajax/states/${countryId}/`)
-                        .then(response => response.json())
-                        .then(data => {
-                            data.forEach(state => {
-                                const option = document.createElement('option');
-                                option.value = state.id;
-                                option.textContent = state.name;
-                                stateSelect.appendChild(option);
+                        fetch(`/locations/ajax/states/${countryId}/`)
+                            .then(response => response.json())
+                            .then(data => {
+                                data.forEach(state => {
+                                    const option = document.createElement('option');
+                                    option.value = state.id;
+                                    option.textContent = state.name;
+                                    stateSelect.appendChild(option);
+                                });
+                            })
+                            .catch(error => {
+                                console.error('Error loading states:', error);
+                                stateSelect.innerHTML = '<option value="">{% trans "Error loading states"|escapejs %}</option>';
+                            })
+                            .finally(() => {
+                                if (stateLoader) stateLoader.style.display = 'none';
+                                stateSelect.disabled = false;
+                                citySelect.disabled = false;
                             });
-                        })
-                        .catch(error => {
-                            console.error('Error loading states:', error);
-                            stateSelect.innerHTML = '<option value="">{% trans "Error loading states"|escapejs %}</option>';
-                        })
-                        .finally(() => {
-                            if (stateLoader) stateLoader.style.display = 'none';
-                            stateSelect.disabled = false;
-                            citySelect.disabled = false;
-                        });
+                    }
+                }
+
+                function updateCities() {
+                    const stateId = stateSelect.value;
+                    citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
+
+                    if (stateId) {
+                        if (cityLoader) cityLoader.style.display = 'block';
+                        citySelect.disabled = true;
+
+                        fetch(`/locations/ajax/cities/${stateId}/`)
+                            .then(response => response.json())
+                            .then(data => {
+                                data.forEach(city => {
+                                    const option = document.createElement('option');
+                                    option.value = city.id;
+                                    option.textContent = city.name;
+                                    citySelect.appendChild(option);
+                                });
+                            })
+                            .catch(error => {
+                                console.error('Error loading cities:', error);
+                                citySelect.innerHTML = '<option value="">{% trans "Error loading cities"|escapejs %}</option>';
+                            })
+                            .finally(() => {
+                                if (cityLoader) cityLoader.style.display = 'none';
+                                citySelect.disabled = false;
+                            });
+                    }
+                }
+
+                countrySelect.addEventListener('change', updateStates);
+                stateSelect.addEventListener('change', updateCities);
+
+                // Cargar inicial si ya hay valores
+                if (countrySelect.value && stateSelect.options.length <= 1) {
+                    updateStates();
                 }
             }
 
-            function updateCities() {
-                const stateId = stateSelect.value;
-                citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
-
-                if (stateId) {
-                    if (cityLoader) cityLoader.style.display = 'block';
-                    citySelect.disabled = true;
-
-                    fetch(`/locations/ajax/cities/${stateId}/`)
-                        .then(response => response.json())
-                        .then(data => {
-                            data.forEach(city => {
-                                const option = document.createElement('option');
-                                option.value = city.id;
-                                option.textContent = city.name;
-                                citySelect.appendChild(option);
-                            });
-                        })
-                        .catch(error => {
-                            console.error('Error loading cities:', error);
-                            citySelect.innerHTML = '<option value="">{% trans "Error loading cities"|escapejs %}</option>';
-                        })
-                        .finally(() => {
-                            if (cityLoader) cityLoader.style.display = 'none';
-                            citySelect.disabled = false;
-                        });
-                }
-            }
-
-            countrySelect.addEventListener('change', updateStates);
-            stateSelect.addEventListener('change', updateCities);
-
-            // Cargar inicial si ya hay valores
-            if (countrySelect.value && stateSelect.options.length <= 1) {
-                updateStates();
-            }
-            }
-
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', setupFilters);
-            } else {
-                setupFilters();
-            }
-        })();
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupFilters);
+        } else {
+            setupFilters();
+        }
+    })();
     </script>
 </body>
 </html>

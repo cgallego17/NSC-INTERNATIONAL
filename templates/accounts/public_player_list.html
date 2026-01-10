@@ -34,192 +34,6 @@
             color: #333;
         }
 
-        /* Top Bar */
-        .top-bar {
-            background: var(--mlb-dark);
-            color: white;
-            padding: 8px 0;
-            font-size: 0.85rem;
-        }
-
-        .top-bar a {
-            color: #ccc;
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .top-bar a:hover {
-            color: white;
-        }
-
-        /* Language Selector with Flags Dropdown */
-        .language-selector-wrapper {
-            position: relative;
-            display: inline-block;
-            margin-right: 0;
-        }
-
-        .language-selector-btn {
-            background: transparent;
-            border: 1px solid #555;
-            color: #ccc;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            min-width: 80px;
-            justify-content: space-between;
-        }
-
-        .language-selector-btn:hover {
-            border-color: var(--mlb-gold);
-            background: rgba(255, 215, 0, 0.1);
-            color: white;
-        }
-
-        .language-selector-btn .flag-icon {
-            width: 20px;
-            height: 15px;
-            display: inline-block;
-            background-size: cover;
-            background-position: center;
-            border-radius: 2px;
-            flex-shrink: 0;
-        }
-
-        .flag-icon.flag-us {
-            background-image: url('https://flagcdn.com/w20/us.png');
-        }
-
-        .flag-icon.flag-es {
-            background-image: url('https://flagcdn.com/w20/es.png');
-        }
-
-        .language-selector-btn .arrow-icon {
-            font-size: 0.7rem;
-            transition: transform 0.3s;
-        }
-
-        .language-selector-btn.active {
-            border-color: var(--mlb-gold);
-            background: rgba(255, 215, 0, 0.15);
-        }
-
-        .language-selector-btn.active .arrow-icon {
-            transform: rotate(180deg);
-        }
-
-        .language-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 5px;
-            background: var(--mlb-dark);
-            border: 1px solid #555;
-            border-radius: 4px;
-            min-width: 150px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-10px);
-            transition: all 0.3s;
-            z-index: 1000;
-            overflow: hidden;
-        }
-
-        .language-dropdown.show {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .language-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 15px;
-            color: #ccc;
-            text-decoration: none;
-            transition: all 0.2s;
-            border-bottom: 1px solid #333;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: inherit;
-        }
-
-        .language-option:last-child {
-            border-bottom: none;
-        }
-
-        .language-option:hover {
-            background: rgba(255, 215, 0, 0.15);
-            color: white;
-        }
-
-        .language-option.active {
-            background: rgba(255, 215, 0, 0.2);
-            color: var(--mlb-gold);
-        }
-
-        .language-option .flag-icon {
-            width: 24px;
-            height: 18px;
-            display: inline-block;
-            background-size: cover;
-            background-position: center;
-            border-radius: 2px;
-            flex-shrink: 0;
-        }
-
-        .language-option .language-name {
-            flex: 1;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        /* Navbar */
-        .navbar-mlb {
-            background: var(--mlb-blue) !important;
-            padding: 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
-
-        .navbar-mlb .navbar-brand {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: white !important;
-            padding: 15px 20px;
-            background: var(--mlb-red);
-            display: flex;
-            align-items: center;
-        }
-
-        .navbar-logo {
-            height: 40px;
-            width: auto;
-            max-width: 180px;
-            object-fit: contain;
-        }
-
-        .navbar-mlb .nav-link {
-            color: white !important;
-            font-weight: 600;
-            padding: 20px 15px !important;
-            text-transform: uppercase;
-            font-size: 0.9rem;
-            letter-spacing: 0.5px;
-            transition: background 0.3s;
-        }
-
-        .navbar-mlb .nav-link:hover,
-        .navbar-mlb .nav-link.active {
-            background: var(--mlb-red);
-        }
-
         .badge-mlb {
             background: var(--mlb-red);
             color: white;
@@ -648,24 +462,167 @@
 
         /* Responsive */
         @media (max-width: 768px) {
-            .language-selector-btn {
-                min-width: 70px;
-                padding: 4px 8px;
-                font-size: 0.8rem;
+            .page-hero h1 {
+                font-size: 2rem;
             }
 
-            .language-selector-btn .language-text {
-                display: none;
+            .player-card {
+                margin-bottom: 20px;
             }
+        }
 
-            .language-dropdown {
-                min-width: 130px;
-            }
+        /* Modal Login Styles */
+        .modal-mlb .modal-content {
+            border-radius: 15px;
+            border: none;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
 
-            .top-bar .col-md-6 {
-                text-align: center !important;
-                margin-bottom: 5px;
-            }
+        .modal-mlb .modal-header {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            padding: 30px;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-mlb .modal-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        }
+
+        .modal-mlb .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+            opacity: 0.9;
+        }
+
+        .modal-mlb .modal-header .btn-close:hover {
+            opacity: 1;
+        }
+
+        .modal-mlb .modal-title {
+            font-size: 1.8rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .modal-mlb .modal-body {
+            padding: 40px;
+        }
+
+        .modal-mlb .form-label {
+            font-weight: 600;
+            color: var(--mlb-blue);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-mlb .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 12px 15px;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .modal-mlb .form-control:focus {
+            border-color: var(--mlb-blue);
+            box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.25);
+        }
+
+        .modal-mlb .form-check-input {
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #e9ecef;
+            margin-top: 0.3rem;
+        }
+
+        .modal-mlb .form-check-input:checked {
+            background-color: var(--mlb-red);
+            border-color: var(--mlb-red);
+        }
+
+        .modal-mlb .form-check-label {
+            font-weight: 500;
+            color: #555;
+            margin-left: 8px;
+        }
+
+        .modal-mlb .error-message {
+            background: #fee;
+            border: 1px solid var(--mlb-red);
+            color: var(--mlb-red);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .modal-mlb .field-error {
+            color: var(--mlb-red);
+            font-size: 0.85rem;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+
+        .modal-mlb .modal-footer {
+            padding: 20px 40px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            text-align: center;
+        }
+
+        .modal-mlb .modal-footer a {
+            color: var(--mlb-blue);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .modal-mlb .modal-footer a:hover {
+            color: var(--mlb-red);
+            text-decoration: underline;
+        }
+
+        .login-icon-modal {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .btn-mlb {
+            background: var(--mlb-red);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+        }
+
+        .btn-mlb:hover {
+            background: #b30029;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(213, 0, 50, 0.4);
         }
     </style>
 </head>
@@ -992,6 +949,91 @@
             }
         });
     </script>
+
+    <!-- Login Modal -->
+    <div class="modal fade modal-mlb" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="login-icon-modal">
+                        <i class="fas fa-baseball-ball"></i>
+                    </div>
+                    <h5 class="modal-title" id="loginModalLabel">{% trans "Log In" %}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Close' %}"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-center mb-4" style="color: #666; position: relative; z-index: 1;">{% trans "Access your NCS International account" %}</p>
+
+                    <form method="post" action="{% url 'accounts:login' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.GET.next|default:request.path }}">
+
+                        {% if form.non_field_errors %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                {{ form.non_field_errors.0 }}
+                            </div>
+                        {% elif show_login_modal %}
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                {% trans "Please verify your credentials and try again." %}
+                            </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="id_username_modal" class="form-label">
+                                <i class="fas fa-envelope me-1"></i>{% trans "Email" %}
+                            </label>
+                            <input type="email"
+                                   id="id_username_modal"
+                                   name="username"
+                                   class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+                                   placeholder="{% trans 'your@email.com' %}"
+                                   value="{% if form.username.value %}{{ form.username.value }}{% elif request.POST.username %}{{ request.POST.username }}{% endif %}"
+                                   required
+                                   autofocus>
+                            {% if form.username.errors %}
+                                <div class="field-error">{{ form.username.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="id_password_modal" class="form-label">
+                                <i class="fas fa-lock me-1"></i>{% trans "Password" %}
+                            </label>
+                            <input type="password"
+                                   id="id_password_modal"
+                                   name="password"
+                                   class="form-control {% if form.password.errors %}is-invalid{% endif %}"
+                                   placeholder="{% trans 'Enter your password' %}"
+                                   required>
+                            {% if form.password.errors %}
+                                <div class="field-error">{{ form.password.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me_modal">
+                                <label class="form-check-label" for="remember_me_modal">
+                                    {% trans "Remember me" %}
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-mlb w-100">
+                            <i class="fas fa-sign-in-alt me-2"></i>{% trans "Log In" %}
+                        </button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <p class="mb-0 w-100">
+                        {% blocktrans %}Don't have an account? <a href="/accounts/register/">Sign up here</a>{% endblocktrans %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 

@@ -242,6 +242,11 @@ class PublicRegistrationView(CreateView):
             # Guardar también en la sesión para usarlo después del registro
             self.request.session['registration_event_id'] = event_id
 
+        # Pasar user_type al contexto para pre-seleccionar en el template
+        user_type = self.request.GET.get('user_type')
+        if user_type in ['player', 'team_manager', 'spectator']:
+            context['preselected_user_type'] = user_type
+
         return context
 
     def form_valid(self, form):
@@ -256,8 +261,12 @@ class PublicRegistrationView(CreateView):
             f"¡Registro exitoso! Bienvenido. Tu nombre de usuario es: {username}",
         )
 
-        # Obtener event_id de la sesión o de los parámetros GET
-        event_id = self.request.session.pop('registration_event_id', None) or self.request.GET.get('event_id')
+        # Obtener event_id de la sesión (se guarda en get_context_data)
+        # También intentar obtenerlo de los parámetros POST por si acaso
+        event_id = self.request.session.pop('registration_event_id', None)
+        if not event_id:
+            # Intentar obtenerlo de los parámetros POST o GET
+            event_id = self.request.POST.get('event_id') or self.request.GET.get('event_id')
 
         # Si hay event_id, redirigir al panel del evento para hacer checkout
         if event_id:
@@ -269,7 +278,8 @@ class PublicRegistrationView(CreateView):
                     _("Now you can complete your event registration and payment."),
                 )
                 return redirect("accounts:panel_event_detail", pk=event_id)
-            except Event.DoesNotExist:
+            except (Event.DoesNotExist, ValueError):
+                # Si el evento no existe o el ID es inválido, continuar con el flujo normal
                 pass
 
         # Si es manager y no hay evento, redirigir a crear equipo

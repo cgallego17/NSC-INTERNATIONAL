@@ -1933,6 +1933,13 @@
                     <!-- Los archivos se cargarán aquí -->
                 </div>
 
+                <!-- Paginación -->
+                <nav id="mediaSelectorPagination" aria-label="Page navigation" style="display: none; margin-top: 2rem;">
+                    <ul class="pagination justify-content-center mb-0">
+                        <!-- Los controles de paginación se cargarán aquí -->
+                    </ul>
+                </nav>
+
                 <div id="mediaSelectorEmpty" class="video-selector-empty" style="display: none;">
                     <div class="empty-state">
                         <div class="empty-icon">
@@ -5261,16 +5268,24 @@ document.addEventListener('DOMContentLoaded', function() {
         let selectedMedia = null;
         let searchTimeout = null;
         let isLoadingMedia = false;
+        let currentPage = 1;
+        let paginationInfo = null;
 
-        // Función para cargar medios
-        function loadMedia(search = '', type = '') {
+        // Función para cargar medios con paginación
+        function loadMedia(search = '', type = '', page = 1) {
             if (!mediaSelectorGrid || !mediaSelectorLoading || !mediaSelectorEmpty) return;
             if (isLoadingMedia) return;
 
             isLoadingMedia = true;
+            currentPage = page;
             mediaSelectorGrid.innerHTML = '';
             mediaSelectorLoading.style.display = 'block';
             mediaSelectorEmpty.style.display = 'none';
+
+            const mediaSelectorPagination = document.getElementById('mediaSelectorPagination');
+            if (mediaSelectorPagination) {
+                mediaSelectorPagination.style.display = 'none';
+            }
 
             // Construir URL con parámetros correctamente
             const baseUrl = '{% url "media:list_ajax" %}';
@@ -5281,7 +5296,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (search) {
                 params.append('search', search);
             }
-            params.append('limit', '50');
+            params.append('page', page.toString());
+            params.append('per_page', '24');  // Cambiar de limit a per_page
             const url = baseUrl + (params.toString() ? '?' + params.toString() : '');
 
             fetch(url, {
@@ -5305,8 +5321,24 @@ document.addEventListener('DOMContentLoaded', function() {
                             mediaSelectorGrid.appendChild(mediaItem);
                         }
                     });
+
+                    // Renderizar paginación si existe
+                    if (data.pagination && data.pagination.total_pages > 1) {
+                        paginationInfo = data.pagination;
+                        renderPagination(data.pagination, search, type);
+                        if (mediaSelectorPagination) {
+                            mediaSelectorPagination.style.display = 'block';
+                        }
+                    } else {
+                        if (mediaSelectorPagination) {
+                            mediaSelectorPagination.style.display = 'none';
+                        }
+                    }
                 } else {
                     mediaSelectorEmpty.style.display = 'block';
+                    if (mediaSelectorPagination) {
+                        mediaSelectorPagination.style.display = 'none';
+                    }
                 }
             })
             .catch(error => {
@@ -5314,7 +5346,109 @@ document.addEventListener('DOMContentLoaded', function() {
                 mediaSelectorLoading.style.display = 'none';
                 mediaSelectorEmpty.style.display = 'block';
                 isLoadingMedia = false;
+                const mediaSelectorPagination = document.getElementById('mediaSelectorPagination');
+                if (mediaSelectorPagination) {
+                    mediaSelectorPagination.style.display = 'none';
+                }
             });
+        }
+
+        // Función para renderizar controles de paginación
+        function renderPagination(pagination, search = '', type = '') {
+            const paginationContainer = document.querySelector('#mediaSelectorPagination ul');
+            if (!paginationContainer) return;
+
+            paginationContainer.innerHTML = '';
+
+            // Botón Anterior
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${!pagination.has_previous ? 'disabled' : ''}`;
+            prevLi.innerHTML = `
+                <a class="page-link" href="#" data-page="${pagination.previous_page || 1}" ${!pagination.has_previous ? 'tabindex="-1" aria-disabled="true"' : ''}>
+                    <i class="fas fa-chevron-left me-1"></i>Anterior
+                </a>
+            `;
+            if (pagination.has_previous) {
+                prevLi.querySelector('a').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    loadMedia(search, type, pagination.previous_page);
+                });
+            }
+            paginationContainer.appendChild(prevLi);
+
+            // Números de página
+            const totalPages = pagination.total_pages;
+            const currentPageNum = pagination.current_page;
+            const startPage = Math.max(1, currentPageNum - 2);
+            const endPage = Math.min(totalPages, currentPageNum + 2);
+
+            // Primera página si no está visible
+            if (startPage > 1) {
+                const firstLi = document.createElement('li');
+                firstLi.className = 'page-item';
+                firstLi.innerHTML = `<a class="page-link" href="#" data-page="1">1</a>`;
+                firstLi.querySelector('a').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    loadMedia(search, type, 1);
+                });
+                paginationContainer.appendChild(firstLi);
+                if (startPage > 2) {
+                    const ellipsisLi = document.createElement('li');
+                    ellipsisLi.className = 'page-item disabled';
+                    ellipsisLi.innerHTML = '<span class="page-link">...</span>';
+                    paginationContainer.appendChild(ellipsisLi);
+                }
+            }
+
+            // Páginas visibles
+            for (let i = startPage; i <= endPage; i++) {
+                const pageLi = document.createElement('li');
+                pageLi.className = `page-item ${i === currentPageNum ? 'active' : ''}`;
+                if (i === currentPageNum) {
+                    pageLi.innerHTML = `<span class="page-link">${i}</span>`;
+                } else {
+                    pageLi.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                    pageLi.querySelector('a').addEventListener('click', function(e) {
+                        e.preventDefault();
+                        loadMedia(search, type, i);
+                    });
+                }
+                paginationContainer.appendChild(pageLi);
+            }
+
+            // Última página si no está visible
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const ellipsisLi = document.createElement('li');
+                    ellipsisLi.className = 'page-item disabled';
+                    ellipsisLi.innerHTML = '<span class="page-link">...</span>';
+                    paginationContainer.appendChild(ellipsisLi);
+                }
+                const lastLi = document.createElement('li');
+                lastLi.className = 'page-item';
+                lastLi.innerHTML = `<a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a>`;
+                lastLi.querySelector('a').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    loadMedia(search, type, totalPages);
+                });
+                paginationContainer.appendChild(lastLi);
+            }
+
+            // Botón Siguiente
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${!pagination.has_next ? 'disabled' : ''}`;
+            nextLi.innerHTML = `
+                <a class="page-link" href="#" data-page="${pagination.next_page || 1}" ${!pagination.has_next ? 'tabindex="-1" aria-disabled="true"' : ''}>
+                    Siguiente<i class="fas fa-chevron-right ms-1"></i>
+                </a>
+            `;
+            if (pagination.has_next) {
+                nextLi.querySelector('a').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    loadMedia(search, type, pagination.next_page);
+                });
+            }
+            paginationContainer.appendChild(nextLi);
         }
 
         // Función para crear item de medio
@@ -5508,7 +5642,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Cargar medios cuando se abre el modal
         mediaSelectorModal.addEventListener('show.bs.modal', function() {
-            loadMedia('', currentMediaType);
+            currentPage = 1;
+            loadMedia('', currentMediaType, 1);
         });
 
         // Actualizar vista previa cuando se escribe manualmente una URL
@@ -5665,7 +5800,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {
                     const type = mediaTypeFilter ? mediaTypeFilter.value : currentMediaType;
-                    loadMedia(this.value, type);
+                    currentPage = 1;  // Reiniciar a página 1 cuando se busca
+                    loadMedia(this.value, type, 1);
                 }, 500);
             });
         }
@@ -5677,7 +5813,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     mediaSearchInput.value = '';
                     clearMediaSearchBtn.style.display = 'none';
                     const type = mediaTypeFilter ? mediaTypeFilter.value : currentMediaType;
-                    loadMedia('', type);
+                    currentPage = 1;  // Reiniciar a página 1 cuando se limpia la búsqueda
+                    loadMedia('', type, 1);
                 }
             });
         }
@@ -5686,7 +5823,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (mediaTypeFilter) {
             mediaTypeFilter.addEventListener('change', function() {
                 const search = mediaSearchInput ? mediaSearchInput.value : '';
-                loadMedia(search, this.value);
+                currentPage = 1;  // Reiniciar a página 1 cuando se cambia el filtro
+                loadMedia(search, this.value, 1);
             });
         }
 
@@ -5750,7 +5888,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                     setTimeout(() => {
                                         const type = mediaTypeFilter ? mediaTypeFilter.value : currentMediaType;
                                         const search = mediaSearchInput ? mediaSearchInput.value : '';
-                                        loadMedia(search, type);
+                                        currentPage = 1;  // Reiniciar a página 1 después de subir archivos
+                                        loadMedia(search, type, 1);
                                         mediaUploadProgress.style.display = 'none';
                                         mediaUploadInput.value = '';
                                     }, 1000);
