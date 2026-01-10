@@ -1510,21 +1510,21 @@
 
                 // Remover el símbolo $ si existe y limpiar espacios
                 let cleanStr = priceStr.toString().replace('$', '').trim();
-                
+
                 // Si ya tiene coma como separador decimal (formato español), ya está formateado
                 if (cleanStr.includes(',')) {
                     return cleanStr; // Ya está formateado, no procesar
                 }
-                
+
                 // Verificar que sea un número válido (con punto decimal opcional)
                 if (!cleanStr.match(/^\d+(?:\.\d+)?$/)) {
                     return priceStr; // Formato inválido, retornar original
                 }
-                
+
                 // Separar parte entera y decimal (el template usa punto como decimal)
                 let parts = cleanStr.split('.');
                 let integerPart = parts[0];
-                
+
                 // Manejar la parte decimal
                 // floatformat:2 siempre muestra 2 decimales, así que siempre habrá parte decimal
                 let decimalPart = '00';
@@ -1567,13 +1567,13 @@
             // Formatear todos los precios en los detalles
             document.querySelectorAll('.plan-detail-value:not([data-formatted])').forEach(function(element) {
                 let html = element.innerHTML;
-                
+
                 // Verificar si ya está formateado (tiene coma como separador decimal)
                 if (html.includes(',') && html.match(/\$\d{1,3}(?:\.\d{3})*,\d{2}/)) {
                     element.setAttribute('data-formatted', 'true');
                     return; // Ya está formateado, no procesar
                 }
-                
+
                 // Buscar precio con formato simple: $número.decimales
                 let match = html.match(/\$(\d+(?:\.\d{1,2})?)/);
                 if (match) {
