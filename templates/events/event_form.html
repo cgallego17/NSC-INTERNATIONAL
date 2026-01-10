@@ -714,6 +714,80 @@
         opacity: 0.5 !important;
         cursor: not-allowed !important;
     }
+
+    /* Estilos para el Itinerario */
+    .itinerary-day-card {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .itinerary-day-card:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-color: #adb5bd;
+    }
+
+    .itinerary-day-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .itinerary-day-title {
+        font-weight: 600;
+        color: #495057;
+        font-size: 1.05rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .itinerary-day-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: #0d6efd;
+        color: white;
+        font-weight: 600;
+        font-size: 0.875rem;
+    }
+
+    .itinerary-schedule-item {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 0.375rem;
+        padding: 0.875rem;
+        margin-bottom: 0.75rem;
+        display: flex;
+        gap: 1rem;
+        align-items: start;
+    }
+
+    .itinerary-schedule-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .itinerary-time-input {
+        flex: 0 0 120px;
+    }
+
+    .itinerary-activity-input {
+        flex: 1;
+    }
+
+    .itinerary-schedule-remove {
+        flex: 0 0 auto;
+        padding-top: 0.375rem;
+    }
 </style>
 {% endblock %}
 
@@ -834,6 +908,35 @@
                                     <small class="text-muted d-block mt-1">
                                         <i class="fas fa-info-circle me-1"></i>Puede usar HTML para formatear el texto (etiquetas como &lt;strong&gt;, &lt;em&gt;, &lt;p&gt;, &lt;br&gt;, etc.)
                                     </small>
+                                        </div>
+
+                                        <!-- ITINERARIO DEL EVENTO -->
+                                        <div class="col-12 mt-4" id="itinerary-section">
+                                            <div class="border-top pt-3">
+                                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="fas fa-route text-primary me-2"></i>
+                                                        <h6 class="mb-0 text-primary fw-bold">Itinerario del Evento</h6>
+                                                    </div>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary" id="generate-itinerary-btn" style="display: none;">
+                                                        <i class="fas fa-magic me-1"></i>Generar Días Automáticamente
+                                                    </button>
+                                                </div>
+
+                                                <div class="alert alert-info mb-3">
+                                                    <i class="fas fa-info-circle me-2"></i>
+                                                    <strong>Nota:</strong> El itinerario se generará automáticamente según las fechas de inicio y fin del evento.
+                                                    Puedes agregar, editar o eliminar días según sea necesario.
+                                                </div>
+
+                                                <div id="itinerary-container">
+                                                    <!-- Los días del itinerario se generarán aquí dinámicamente -->
+                                                </div>
+
+                                                <button type="button" class="btn btn-outline-success btn-sm mt-3" id="add-day-btn">
+                                                    <i class="fas fa-plus me-1"></i>Agregar Día Manualmente
+                                                </button>
+                                            </div>
                                         </div>
 
                                         <!-- PRECIOS Y PAGOS - Individual Player -->
@@ -5914,12 +6017,339 @@ document.addEventListener('DOMContentLoaded', function() {
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM cargado, inicializando selector de medios...');
             initUnifiedMediaSelector();
+            initItineraryManager();
         });
     } else {
         console.log('DOM ya está listo, inicializando selector de medios...');
         initUnifiedMediaSelector();
+        initItineraryManager();
     }
 });
+
+// Sistema de gestión de itinerario
+function initItineraryManager() {
+    const startDateInput = document.getElementById('id_start_date');
+    const endDateInput = document.getElementById('id_end_date');
+    const itineraryContainer = document.getElementById('itinerary-container');
+    const generateBtn = document.getElementById('generate-itinerary-btn');
+    const addDayBtn = document.getElementById('add-day-btn');
+    let dayCounter = 0;
+    let itineraryDays = [];
+
+    // Cargar itinerario existente si está editando
+    {% if form.instance.pk %}
+        {% for item in form.instance.itinerary_items.all|dictsort:"day" %}
+            itineraryDays.push({
+                id: {{ item.id }},
+                day: '{{ item.day|date:"Y-m-d" }}',
+                dayNumber: {{ item.day_number }},
+                title: {{ item.title|escapejs }},
+                description: {{ item.description|escapejs }},
+                scheduleItems: {% if item.schedule_items %}{{ item.schedule_items|safe }}{% else %}[]{% endif %}
+            });
+        {% endfor %}
+        if (itineraryDays.length > 0) {
+            dayCounter = itineraryDays.reduce((max, d) => Math.max(max, d.dayNumber), 0);
+            renderItinerary();
+        }
+    {% endif %}
+
+    // Función para generar días automáticamente
+    function generateDaysFromDates() {
+        if (!startDateInput || !endDateInput) return;
+
+        const startDate = new Date(startDateInput.value);
+        const endDate = new Date(endDateInput.value);
+
+        if (!startDateInput.value || !endDateInput.value || startDate >= endDate) {
+            alert('Por favor, selecciona fechas válidas de inicio y fin del evento.');
+            return;
+        }
+
+        itineraryDays = [];
+        let currentDate = new Date(startDate);
+        let dayNumber = 1;
+
+        while (currentDate <= endDate) {
+            const dayStr = currentDate.toISOString().split('T')[0];
+            const dayName = currentDate.toLocaleDateString('es-ES', { weekday: 'long' });
+            const dayMonth = currentDate.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+
+            itineraryDays.push({
+                id: null,
+                day: dayStr,
+                dayNumber: dayNumber,
+                title: `Día ${dayNumber} - ${dayMonth.charAt(0).toUpperCase() + dayMonth.slice(1)}`,
+                description: '',
+                scheduleItems: []
+            });
+
+            currentDate.setDate(currentDate.getDate() + 1);
+            dayNumber++;
+        }
+
+        dayCounter = itineraryDays.length;
+        renderItinerary();
+    }
+
+    // Función para renderizar el itinerario
+    function renderItinerary() {
+        if (!itineraryContainer) return;
+
+        itineraryContainer.innerHTML = '';
+
+        // Ordenar por día
+        itineraryDays.sort((a, b) => new Date(a.day) - new Date(b.day));
+
+        itineraryDays.forEach((day, index) => {
+            const dayCard = createDayCard(day, index);
+            itineraryContainer.appendChild(dayCard);
+        });
+
+        updateGenerateButton();
+    }
+
+    // Función para crear tarjeta de día
+    function createDayCard(dayData, index) {
+        const card = document.createElement('div');
+        card.className = 'itinerary-day-card';
+        card.dataset.dayIndex = index;
+
+        const dayDate = new Date(dayData.day);
+        const dayName = dayDate.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+        card.innerHTML = `
+            <div class="itinerary-day-header">
+                <div class="itinerary-day-title">
+                    <span class="itinerary-day-number">${dayData.dayNumber}</span>
+                    <input type="text"
+                           class="form-control form-control-sm d-inline-block"
+                           style="width: auto; min-width: 300px; margin-left: 0.5rem;"
+                           value="${escapeHtml(dayData.title)}"
+                           placeholder="Título del día"
+                           data-field="title"
+                           data-day-index="${index}">
+                    <span class="text-muted ms-2">(${dayName})</span>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeDay(${index})">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </div>
+
+            <input type="hidden" name="itinerary_days" value='${JSON.stringify(dayData).replace(/'/g, "&#39;")}' data-day-index="${index}">
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">
+                    <i class="fas fa-calendar-day me-1 text-muted"></i>Fecha del Día
+                </label>
+                <input type="date"
+                       class="form-control"
+                       value="${dayData.day}"
+                       data-field="day"
+                       data-day-index="${index}"
+                       required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">
+                    <i class="fas fa-align-left me-1 text-muted"></i>Descripción del Día
+                </label>
+                <textarea class="form-control"
+                          rows="3"
+                          placeholder="Descripción detallada de las actividades del día..."
+                          data-field="description"
+                          data-day-index="${index}">${escapeHtml(dayData.description)}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <label class="form-label fw-semibold mb-0">
+                        <i class="fas fa-clock me-1 text-muted"></i>Horario de Actividades
+                    </label>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="addScheduleItem(${index})">
+                        <i class="fas fa-plus me-1"></i>Agregar Actividad
+                    </button>
+                </div>
+                <div class="schedule-items-container" data-day-index="${index}">
+                    ${renderScheduleItems(dayData.scheduleItems, index)}
+                </div>
+            </div>
+        `;
+
+        // Agregar listeners a los campos
+        card.querySelectorAll('[data-field]').forEach(input => {
+            input.addEventListener('change', function() {
+                updateDayData(index, this.dataset.field, this.value);
+            });
+            input.addEventListener('input', function() {
+                if (this.dataset.field === 'title' || this.dataset.field === 'description') {
+                    updateDayData(index, this.dataset.field, this.value);
+                }
+            });
+        });
+
+        return card;
+    }
+
+    // Función para renderizar actividades del horario
+    function renderScheduleItems(scheduleItems, dayIndex) {
+        if (!scheduleItems || scheduleItems.length === 0) {
+            return '<p class="text-muted small mb-0">No hay actividades programadas. Haz clic en "Agregar Actividad" para comenzar.</p>';
+        }
+
+        return scheduleItems.map((item, itemIndex) => `
+            <div class="itinerary-schedule-item" data-item-index="${itemIndex}">
+                <div class="itinerary-time-input">
+                    <input type="time"
+                           class="form-control"
+                           value="${item.time || ''}"
+                           data-field="time"
+                           data-day-index="${dayIndex}"
+                           data-item-index="${itemIndex}"
+                           required>
+                </div>
+                <div class="itinerary-activity-input">
+                    <input type="text"
+                           class="form-control"
+                           value="${escapeHtml(item.activity || '')}"
+                           placeholder="Descripción de la actividad..."
+                           data-field="activity"
+                           data-day-index="${dayIndex}"
+                           data-item-index="${itemIndex}"
+                           required>
+                </div>
+                <div class="itinerary-schedule-remove">
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeScheduleItem(${dayIndex}, ${itemIndex})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // Función para actualizar datos del día
+    function updateDayData(dayIndex, field, value) {
+        if (itineraryDays[dayIndex]) {
+            if (field === 'day') {
+                itineraryDays[dayIndex].day = value;
+            } else if (field === 'title') {
+                itineraryDays[dayIndex].title = value;
+            } else if (field === 'description') {
+                itineraryDays[dayIndex].description = value;
+            }
+
+            // Actualizar el input hidden
+            const hiddenInput = document.querySelector(`input[name="itinerary_days"][data-day-index="${dayIndex}"]`);
+            if (hiddenInput) {
+                hiddenInput.value = JSON.stringify(itineraryDays[dayIndex]).replace(/'/g, "&#39;");
+            }
+        }
+    }
+
+    // Función para agregar día manualmente
+    window.addDayManually = function() {
+        const today = new Date().toISOString().split('T')[0];
+        itineraryDays.push({
+            id: null,
+            day: today,
+            dayNumber: ++dayCounter,
+            title: `Día ${dayCounter}`,
+            description: '',
+            scheduleItems: []
+        });
+        renderItinerary();
+    };
+
+    // Función para eliminar día
+    window.removeDay = function(dayIndex) {
+        if (confirm('¿Estás seguro de que deseas eliminar este día del itinerario?')) {
+            itineraryDays.splice(dayIndex, 1);
+            // Renumerar días
+            itineraryDays.forEach((day, index) => {
+                day.dayNumber = index + 1;
+            });
+            renderItinerary();
+        }
+    };
+
+    // Función para agregar actividad al horario
+    window.addScheduleItem = function(dayIndex) {
+        if (itineraryDays[dayIndex]) {
+            if (!itineraryDays[dayIndex].scheduleItems) {
+                itineraryDays[dayIndex].scheduleItems = [];
+            }
+            itineraryDays[dayIndex].scheduleItems.push({
+                time: '',
+                activity: ''
+            });
+            renderItinerary();
+
+            // Focus en el campo de tiempo del nuevo item
+            setTimeout(() => {
+                const newItem = document.querySelector(`.schedule-items-container[data-day-index="${dayIndex}"] .itinerary-schedule-item:last-child input[data-field="time"]`);
+                if (newItem) newItem.focus();
+            }, 100);
+        }
+    };
+
+    // Función para eliminar actividad del horario
+    window.removeScheduleItem = function(dayIndex, itemIndex) {
+        if (itineraryDays[dayIndex] && itineraryDays[dayIndex].scheduleItems) {
+            itineraryDays[dayIndex].scheduleItems.splice(itemIndex, 1);
+            renderItinerary();
+        }
+    };
+
+    // Función para actualizar botón de generar
+    function updateGenerateButton() {
+        if (generateBtn) {
+            generateBtn.style.display = (itineraryDays.length === 0 && startDateInput && endDateInput && startDateInput.value && endDateInput.value) ? 'block' : 'none';
+        }
+    }
+
+    // Función helper para escapar HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Event listeners
+    if (generateBtn) {
+        generateBtn.addEventListener('click', generateDaysFromDates);
+    }
+
+    if (addDayBtn) {
+        addDayBtn.addEventListener('click', addDayManually);
+    }
+
+    if (startDateInput && endDateInput) {
+        startDateInput.addEventListener('change', updateGenerateButton);
+        endDateInput.addEventListener('change', updateGenerateButton);
+    }
+
+    // Actualizar actividades cuando cambian
+    document.addEventListener('change', function(e) {
+        if (e.target.matches('.schedule-items-container input[data-field="time"], .schedule-items-container input[data-field="activity"]')) {
+            const dayIndex = parseInt(e.target.dataset.dayIndex);
+            const itemIndex = parseInt(e.target.dataset.itemIndex);
+            const field = e.target.dataset.field;
+
+            if (itineraryDays[dayIndex] && itineraryDays[dayIndex].scheduleItems && itineraryDays[dayIndex].scheduleItems[itemIndex]) {
+                itineraryDays[dayIndex].scheduleItems[itemIndex][field] = e.target.value;
+
+                // Actualizar el input hidden
+                const hiddenInput = document.querySelector(`input[name="itinerary_days"][data-day-index="${dayIndex}"]`);
+                if (hiddenInput) {
+                    hiddenInput.value = JSON.stringify(itineraryDays[dayIndex]).replace(/'/g, "&#39;");
+                }
+            }
+        }
+    });
+
+    // Inicializar
+    updateGenerateButton();
+}
 </script>
 {% endblock %}
 

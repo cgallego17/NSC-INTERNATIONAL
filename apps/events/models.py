@@ -676,6 +676,55 @@ class EventComment(models.Model):
         return f"Comentario de {self.user.get_full_name()} en {self.event.title}"
 
 
+class EventItinerary(models.Model):
+    """Itinerario diario del evento"""
+
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        related_name="itinerary_items",
+        verbose_name="Evento"
+    )
+    day = models.DateField(
+        verbose_name="Día",
+        help_text="Fecha del día del itinerario"
+    )
+    day_number = models.PositiveIntegerField(
+        verbose_name="Número de Día",
+        help_text="Número del día en el evento (Día 1, Día 2, etc.)"
+    )
+    title = models.CharField(
+        max_length=200,
+        verbose_name="Título del Día",
+        help_text="Título o nombre del día (ej: 'Día de Apertura', 'Día de Competencia', etc.)"
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name="Descripción",
+        help_text="Descripción detallada de las actividades del día"
+    )
+    schedule_items = models.JSONField(
+        default=list,
+        blank=True,
+        verbose_name="Actividades del Día",
+        help_text="Lista de actividades con hora y descripción (formato JSON)"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Item de Itinerario"
+        verbose_name_plural = "Items de Itinerario"
+        ordering = ["day", "day_number"]
+        unique_together = ["event", "day"]
+        indexes = [
+            models.Index(fields=["event", "day"]),
+        ]
+
+    def __str__(self):
+        return f"{self.event.title} - {self.title} ({self.day})"
+
+
 class EventReminder(models.Model):
     """Recordatorios de eventos"""
 

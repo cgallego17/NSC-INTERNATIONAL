@@ -22,7 +22,7 @@ from django.views.generic import (
 from apps.core.mixins import StaffRequiredMixin, SuperuserRequiredMixin
 
 from .forms import EventForm
-from .models import Division, Event, EventAttendance, EventCategory
+from .models import Division, Event, EventAttendance, EventCategory, EventItinerary
 
 
 class EventListView(StaffRequiredMixin, ListView):
@@ -468,8 +468,44 @@ class EventCreateView(StaffRequiredMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.organizer = self.request.user
+        response = super().form_valid(form)
+
+        # Procesar itinerario después de guardar el evento
+        self.save_itinerary(self.object)
+
         messages.success(self.request, "Evento creado exitosamente.")
-        return super().form_valid(form)
+        return response
+
+    def save_itinerary(self, event):
+        """Guarda el itinerario del evento"""
+        import json
+
+        # Obtener todos los días del itinerario del formulario
+        itinerary_days_data = self.request.POST.getlist('itinerary_days')
+
+        # Eliminar itinerario existente si estamos editando
+        EventItinerary.objects.filter(event=event).delete()
+
+        # Procesar cada día del itinerario
+        for day_data_str in itinerary_days_data:
+            try:
+                # Decodificar el HTML entity
+                day_data_str = day_data_str.replace('&#39;', "'")
+                day_data = json.loads(day_data_str)
+
+                # Crear el item de itinerario
+                EventItinerary.objects.create(
+                    event=event,
+                    day=day_data.get('day'),
+                    day_number=day_data.get('dayNumber', 1),
+                    title=day_data.get('title', ''),
+                    description=day_data.get('description', ''),
+                    schedule_items=day_data.get('scheduleItems', [])
+                )
+            except (json.JSONDecodeError, KeyError, ValueError) as e:
+                # Si hay un error, simplemente continuar con el siguiente
+                print(f"Error al procesar día del itinerario: {e}")
+                continue
 
 
 class EventUpdateView(StaffRequiredMixin, UpdateView):
@@ -497,8 +533,44 @@ class EventUpdateView(StaffRequiredMixin, UpdateView):
         return context
 
     def form_valid(self, form):
+        response = super().form_valid(form)
+
+        # Procesar itinerario después de actualizar el evento
+        self.save_itinerary(self.object)
+
         messages.success(self.request, "Evento actualizado exitosamente.")
-        return super().form_valid(form)
+        return response
+
+    def save_itinerary(self, event):
+        """Guarda el itinerario del evento"""
+        import json
+
+        # Obtener todos los días del itinerario del formulario
+        itinerary_days_data = self.request.POST.getlist('itinerary_days')
+
+        # Eliminar itinerario existente si estamos editando
+        EventItinerary.objects.filter(event=event).delete()
+
+        # Procesar cada día del itinerario
+        for day_data_str in itinerary_days_data:
+            try:
+                # Decodificar el HTML entity
+                day_data_str = day_data_str.replace('&#39;', "'")
+                day_data = json.loads(day_data_str)
+
+                # Crear el item de itinerario
+                EventItinerary.objects.create(
+                    event=event,
+                    day=day_data.get('day'),
+                    day_number=day_data.get('dayNumber', 1),
+                    title=day_data.get('title', ''),
+                    description=day_data.get('description', ''),
+                    schedule_items=day_data.get('scheduleItems', [])
+                )
+            except (json.JSONDecodeError, KeyError, ValueError) as e:
+                # Si hay un error, simplemente continuar con el siguiente
+                print(f"Error al procesar día del itinerario: {e}")
+                continue
 
 
 class EventDeleteView(SuperuserRequiredMixin, DeleteView):
