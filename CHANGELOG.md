@@ -7,5 +7,30 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-09 22:26:37
+
+- **[9ea0d07]** feat: Implement pagination and user type pre-selection in media file management
+  - *Fecha:* 2026-01-09 22:26:36
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 15 archivo(s)
+    - `CHANGELOG.md`
+    - `apps/accounts/views.py`
+    - `apps/media/views.py`
+    - `docs/CHANGELOG_SETUP.md`
+    - `scripts/test_changelog_hook.py`
+    - `templates/accounts/front_player_profile.html`
+    - `templates/accounts/panel_usuario.html`
+    - `templates/accounts/parent_player_register.html`
+    - `templates/accounts/player_register.html`
+    - `templates/accounts/profile_edit.html`
+    - ... y 5 archivo(s) más
+  - *Detalles:*
+    - - Enhanced the media file list AJAX view to support pagination, allowing users to navigate through media files more efficiently.
+    - - Updated the public registration view to pre-select user type based on URL parameters, improving user experience during registration.
+    - - Refactored event ID retrieval logic to ensure it can be obtained from both session and request parameters, enhancing robustness.
+    - - Improved error handling in the registration process to manage invalid event IDs gracefully.
+
+
+
 ### [Fecha de última actualización]
 - Proyecto inicializado
