@@ -7,6 +7,7 @@ from django.contrib.auth.views import LoginView as BaseLoginView
 from django.conf import settings
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import (
     CreateView,
     DetailView,
@@ -219,12 +220,28 @@ class PublicRegistrationView(CreateView):
     template_name = "accounts/public_register.html"
     success_url = reverse_lazy("accounts:profile")
 
+    def get_initial(self):
+        """Pre-seleccionar el tipo de usuario desde los parámetros GET"""
+        initial = super().get_initial()
+        user_type = self.request.GET.get('user_type')
+        if user_type in ['player', 'team_manager', 'spectator']:
+            initial['user_type'] = user_type
+        return initial
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         # Asegurar que el idioma esté activado
         from django.utils import translation
         language = translation.get_language() or 'en'
         translation.activate(language)
+
+        # Pasar event_id al contexto para usarlo después del registro
+        event_id = self.request.GET.get('event_id')
+        if event_id:
+            context['event_id'] = event_id
+            # Guardar también en la sesión para usarlo después del registro
+            self.request.session['registration_event_id'] = event_id
+
         return context
 
     def form_valid(self, form):
@@ -239,7 +256,23 @@ class PublicRegistrationView(CreateView):
             f"¡Registro exitoso! Bienvenido. Tu nombre de usuario es: {username}",
         )
 
-        # Si es manager, redirigir a crear equipo
+        # Obtener event_id de la sesión o de los parámetros GET
+        event_id = self.request.session.pop('registration_event_id', None) or self.request.GET.get('event_id')
+
+        # Si hay event_id, redirigir al panel del evento para hacer checkout
+        if event_id:
+            try:
+                from apps.events.models import Event
+                event = Event.objects.get(pk=event_id)
+                messages.info(
+                    self.request,
+                    _("Now you can complete your event registration and payment."),
+                )
+                return redirect("accounts:panel_event_detail", pk=event_id)
+            except Event.DoesNotExist:
+                pass
+
+        # Si es manager y no hay evento, redirigir a crear equipo
         user_type = form.cleaned_data.get("user_type")
         if user_type == "team_manager":
             messages.info(
