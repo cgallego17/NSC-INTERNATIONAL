@@ -7,6 +7,20 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-09 23:08:19
+
+- **[9b784a2]** feat: Update user panel to enhance spectator experience
+  - *Fecha:* 2026-01-09 23:08:19
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/panel_usuario.html`
+  - *Detalles:*
+    - - Modified the user panel template to display relevant tabs for spectators, including Events, Reservations, and Plans & Payments.
+    - - Adjusted tab activation logic to default to the Events tab for spectators and the Home tab for other user types.
+    - - Removed unnecessary buttons and streamlined the quick actions for better usability based on user roles.
+
+
+
 ### Actualizado: 2026-01-09 23:02:20
 
 - **[3cfd2ff]** feat: Add Event Itinerary model and management functionality
