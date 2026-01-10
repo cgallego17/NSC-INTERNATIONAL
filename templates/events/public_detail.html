@@ -1,6 +1,7 @@
 {% load static %}
 {% load i18n %}
 {% load translation_tags %}
+{% load humanize %}
 {% get_current_language as CURRENT_LANGUAGE %}
 <!DOCTYPE html>
 <html lang="{% if CURRENT_LANGUAGE %}{{ CURRENT_LANGUAGE|slice:":2" }}{% else %}en{% endif %}">
@@ -80,18 +81,17 @@
             overflow: hidden;
         }
 
-        .event-hero::before {
-            content: '';
+        .event-hero-bg {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background-image: url('{{ event.banner }}');
             background-size: cover;
             background-position: center;
             opacity: 0.15;
             z-index: 0;
+            pointer-events: none;
         }
 
         .event-hero-content {
@@ -1028,6 +1028,9 @@
 
     <!-- Hero Section -->
     <section class="event-hero">
+        {% if event.banner %}
+        <div class="event-hero-bg" style="background-image: url('{{ event.banner }}');"></div>
+        {% endif %}
         <div class="event-hero-content">
             <div class="event-hero-main">
                 <div class="event-breadcrumb">
@@ -1500,6 +1503,61 @@
             if (eventContent) {
                 eventContent.style.display = 'block';
             }
+
+
+            // Función para formatear números con separadores de miles (puntos)
+            function formatPrice(priceStr) {
+                if (!priceStr || priceStr === '-' || priceStr === '') return priceStr;
+
+                // Remover el símbolo $ si existe y limpiar el texto
+                let numStr = priceStr.toString().replace('$', '').replace(/\./g, '').replace(/,/g, '').trim();
+
+                // Convertir a número
+                let num = parseFloat(numStr);
+                if (isNaN(num)) return priceStr;
+
+                // Formatear manualmente con puntos como separadores de miles
+                let parts = num.toFixed(2).split('.');
+                let integerPart = parts[0];
+                let decimalPart = parts[1];
+
+                // Agregar puntos cada 3 dígitos desde la derecha
+                let formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+                return formattedInteger + ',' + decimalPart;
+            }
+
+            // Formatear todos los precios principales
+            document.querySelectorAll('.plan-main-price').forEach(function(element) {
+                let text = element.textContent.trim();
+                if (text.startsWith('$') && text !== '-') {
+                    let price = text.substring(1);
+                    let formatted = formatPrice(price);
+                    if (formatted !== price) {
+                        element.textContent = '$' + formatted;
+                    }
+                }
+            });
+
+            // Formatear todos los precios en los detalles
+            document.querySelectorAll('.plan-detail-value').forEach(function(element) {
+                let html = element.innerHTML;
+                // Buscar precio con regex que incluye decimales (ej: $1234.56 o $1,234.56)
+                let match = html.match(/\$([0-9]{1,3}(?:,?[0-9]{3})*(?:\.[0-9]{2})?)/);
+                if (!match) {
+                    // Intentar con formato más simple (número con decimales opcionales)
+                    match = html.match(/\$([0-9]+(?:\.[0-9]{1,2})?)/);
+                }
+                if (match) {
+                    let price = match[1].replace(/,/g, '');
+                    let formatted = formatPrice(price);
+                    if (formatted !== price && !isNaN(parseFloat(price))) {
+                        // Reemplazar solo el precio, manteniendo el resto del HTML
+                        let newHtml = html.replace(/\$[0-9,]+\.?[0-9]*/, '$' + formatted);
+                        element.innerHTML = newHtml;
+                    }
+                }
+            });
         });
     </script>
 </body>
