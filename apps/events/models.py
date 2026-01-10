@@ -374,6 +374,24 @@ class Event(models.Model):
         blank=True,
         default=0.00,
     )
+    gate_fee_type_team_manager = models.ForeignKey(
+        "GateFeeType",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="events_team_manager",
+        verbose_name="Tipo de Tarifa de Entrada (Team Manager)",
+        help_text="Tipo de tarifa de entrada para Team Manager",
+    )
+    gate_fee_type_spectator = models.ForeignKey(
+        "GateFeeType",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="events_spectator",
+        verbose_name="Tipo de Tarifa de Entrada (Spectator)",
+        help_text="Tipo de tarifa de entrada para Spectator",
+    )
 
     accept_deposits = models.BooleanField(default=False, verbose_name="Accept Deposits")
     default_deposit_amount = models.DecimalField(

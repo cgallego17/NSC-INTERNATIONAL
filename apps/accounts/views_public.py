@@ -15,12 +15,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext as _
-from django.views.generic import (
-    CreateView,
-    DetailView,
-    ListView,
-    TemplateView,
-)
+from django.views.generic import CreateView, DetailView, ListView, TemplateView
 
 from .forms import EmailAuthenticationForm, PublicRegistrationForm
 from .models import Player, PlayerParent, Team
@@ -41,23 +36,18 @@ class PublicHomeView(TemplateView):
             now = timezone.now()
             # Mostrar solo eventos futuros publicados
             upcoming_events = (
-                Event.objects.filter(
-                    status="published",
-                    start_date__gte=now.date()
-                )
+                Event.objects.filter(status="published", start_date__gte=now.date())
                 .select_related("category")
                 .prefetch_related("divisions")
                 .order_by("start_date")[:6]  # Ordenar por fecha más próxima primero
             )
 
             # Eventos de hoy (solo publicados)
-            today_events = (
-                Event.objects.filter(
-                    status="published",
-                    start_date=now.date()
-                )
-                .order_by("start_date")[:3]
-            )  # Ordenar por fecha/hora más próxima primero
+            today_events = Event.objects.filter(
+                status="published", start_date=now.date()
+            ).order_by("start_date")[
+                :3
+            ]  # Ordenar por fecha/hora más próxima primero
 
             context["upcoming_events"] = upcoming_events
             context["today_events"] = today_events
@@ -94,10 +84,7 @@ class PublicHomeView(TemplateView):
             # Si aún no hay evento de Mérida, usar el primer evento próximo como fallback (solo publicados)
             if not future_merida:
                 future_merida = (
-                    Event.objects.filter(
-                        status="published",
-                        start_date__gte=now.date()
-                    )
+                    Event.objects.filter(status="published", start_date__gte=now.date())
                     .select_related("category", "event_type", "city", "state")
                     .prefetch_related("divisions")
                     .order_by("start_date")
@@ -147,12 +134,10 @@ class PublicHomeView(TemplateView):
             )
             # Buscar tipos específicos para los botones de showcase y prospect games
             showcase_type = EventType.objects.filter(
-                is_active=True,
-                name__icontains="showcase"
+                is_active=True, name__icontains="showcase"
             ).first()
             prospect_type = EventType.objects.filter(
-                is_active=True,
-                name__icontains="prospect"
+                is_active=True, name__icontains="prospect"
             ).first()
             context["showcase_event_type"] = showcase_type
             context["prospect_event_type"] = prospect_type
@@ -260,7 +245,9 @@ class PublicTeamListView(ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        queryset = Team.objects.filter(is_active=True).select_related("city", "state", "country", "manager")
+        queryset = Team.objects.filter(is_active=True).select_related(
+            "city", "state", "country", "manager"
+        )
         search = self.request.GET.get("search")
         if search:
             queryset = queryset.filter(
@@ -282,7 +269,14 @@ class PublicPlayerListView(ListView):
     def get_queryset(self):
         queryset = (
             Player.objects.filter(is_active=True)
-            .select_related("user", "user__profile", "team", "user__profile__country", "user__profile__state", "user__profile__city")
+            .select_related(
+                "user",
+                "user__profile",
+                "team",
+                "user__profile__country",
+                "user__profile__state",
+                "user__profile__city",
+            )
             .only(
                 "id",
                 "jersey_number",
@@ -338,8 +332,9 @@ class PublicPlayerListView(ListView):
         context = super().get_context_data(**kwargs)
 
         # Importar modelos de locations
-        from apps.locations.models import Country, State, City
         from django.db.models import Count
+
+        from apps.locations.models import City, Country, State
 
         # Optimizar: Solo cargar países/estados/ciudades que tienen jugadores activos
         # Esto reduce significativamente la carga si hay muchos países/estados/ciudades
@@ -348,21 +343,26 @@ class PublicPlayerListView(ListView):
         )
 
         # Países que tienen jugadores activos
-        country_ids = active_players.exclude(
-            user__profile__country__isnull=True
-        ).values_list("user__profile__country_id", flat=True).distinct()
+        country_ids = (
+            active_players.exclude(user__profile__country__isnull=True)
+            .values_list("user__profile__country_id", flat=True)
+            .distinct()
+        )
         context["countries"] = Country.objects.filter(
             id__in=country_ids, is_active=True
-        ).order_by("name")[:100]  # Limitar a 100 para evitar cargar demasiados
+        ).order_by("name")[
+            :100
+        ]  # Limitar a 100 para evitar cargar demasiados
 
         # Estados que tienen jugadores activos (solo si hay filtro de país)
         country_filter = self.request.GET.get("country")
         if country_filter:
-            state_ids = active_players.filter(
-                user__profile__country_id=country_filter
-            ).exclude(
-                user__profile__state__isnull=True
-            ).values_list("user__profile__state_id", flat=True).distinct()
+            state_ids = (
+                active_players.filter(user__profile__country_id=country_filter)
+                .exclude(user__profile__state__isnull=True)
+                .values_list("user__profile__state_id", flat=True)
+                .distinct()
+            )
             context["states"] = State.objects.filter(
                 id__in=state_ids, is_active=True
             ).order_by("name")[:100]
@@ -372,11 +372,12 @@ class PublicPlayerListView(ListView):
         # Ciudades que tienen jugadores activos (solo si hay filtro de estado)
         state_filter = self.request.GET.get("state")
         if state_filter:
-            city_ids = active_players.filter(
-                user__profile__state_id=state_filter
-            ).exclude(
-                user__profile__city__isnull=True
-            ).values_list("user__profile__city_id", flat=True).distinct()
+            city_ids = (
+                active_players.filter(user__profile__state_id=state_filter)
+                .exclude(user__profile__city__isnull=True)
+                .values_list("user__profile__city_id", flat=True)
+                .distinct()
+            )
             context["cities"] = City.objects.filter(
                 id__in=city_ids, is_active=True
             ).order_by("name")[:100]
@@ -385,7 +386,8 @@ class PublicPlayerListView(ListView):
 
         # Divisiones desde el modelo Player
         from apps.events.models import Division
-        context["divisions"] = Division.objects.filter(is_active=True).order_by('name')
+
+        context["divisions"] = Division.objects.filter(is_active=True).order_by("name")
 
         # Filtros actuales
         context["current_filters"] = {
@@ -401,11 +403,11 @@ class PublicPlayerListView(ListView):
 
 def _get_client_ip(request):
     """Obtiene la IP del cliente, considerando proxies"""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0].strip()
+        ip = x_forwarded_for.split(",")[0].strip()
     else:
-        ip = request.META.get('REMOTE_ADDR', 'unknown')
+        ip = request.META.get("REMOTE_ADDR", "unknown")
     return ip
 
 
@@ -434,6 +436,7 @@ def _check_login_rate_limit(request):
     blocked_until = cache.get(blocked_key)
     if blocked_until:
         import time
+
         current_time = time.time()
         if current_time < blocked_until:
             seconds_remaining = int(blocked_until - current_time)
@@ -463,8 +466,9 @@ def _increment_login_attempts(request, is_successful=False):
         request: HttpRequest object
         is_successful: Si el login fue exitoso
     """
-    from django.core.cache import cache
     import time
+
+    from django.core.cache import cache
 
     ip_address = _get_client_ip(request)
 
@@ -515,14 +519,17 @@ class PublicLoginView(BaseLoginView):
     def dispatch(self, request, *args, **kwargs):
         """Verificar rate limiting antes de procesar el request"""
         # Verificar rate limiting
-        is_allowed, remaining, is_blocked, seconds_remaining = _check_login_rate_limit(request)
+        is_allowed, remaining, is_blocked, seconds_remaining = _check_login_rate_limit(
+            request
+        )
 
         if is_blocked:
             messages.error(
                 request,
                 _(
                     "Too many failed login attempts. Please try again in %(minutes)d minutes."
-                ) % {"minutes": (seconds_remaining // 60) + 1},
+                )
+                % {"minutes": (seconds_remaining // 60) + 1},
             )
             # Redirigir a home con mensaje de error
             request.session["login_error"] = True
@@ -535,7 +542,8 @@ class PublicLoginView(BaseLoginView):
                 request,
                 _(
                     "Too many login attempts. Please try again later. (Remaining attempts: %(remaining)d)"
-                ) % {"remaining": remaining},
+                )
+                % {"remaining": remaining},
             )
             request.session["login_error"] = True
             return redirect(f"/?login_error=1&rate_limit=1")
@@ -614,7 +622,9 @@ class PublicLoginView(BaseLoginView):
         _increment_login_attempts(self.request, is_successful=False)
 
         # Verificar si ahora está bloqueado después de este intento
-        is_allowed, remaining, is_blocked, seconds_remaining = _check_login_rate_limit(self.request)
+        is_allowed, remaining, is_blocked, seconds_remaining = _check_login_rate_limit(
+            self.request
+        )
 
         # Guardar los datos del formulario y errores en la sesión
         self.request.session["login_error"] = True
@@ -629,7 +639,8 @@ class PublicLoginView(BaseLoginView):
                 self.request,
                 _(
                     "Too many failed login attempts. Your IP has been temporarily blocked. Please try again in %(minutes)d minutes."
-                ) % {"minutes": (seconds_remaining // 60) + 1},
+                )
+                % {"minutes": (seconds_remaining // 60) + 1},
             )
             return redirect(f"/?login_error=1&blocked=1")
         elif not is_allowed:
@@ -637,7 +648,8 @@ class PublicLoginView(BaseLoginView):
                 self.request,
                 _(
                     "Too many login attempts. Please try again later. (Remaining attempts: %(remaining)d)"
-                ) % {"remaining": remaining},
+                )
+                % {"remaining": remaining},
             )
             return redirect(f"/?login_error=1&rate_limit=1")
 
@@ -682,7 +694,8 @@ class PublicRegistrationView(CreateView):
                 _(
                     "Too many registration attempts from your IP address. "
                     "Please try again later. Maximum %(max)d registrations per hour allowed."
-                ) % {"max": MAX_REGISTRATIONS_PER_HOUR}
+                )
+                % {"max": MAX_REGISTRATIONS_PER_HOUR},
             )
             return redirect("accounts:public_register")
 
@@ -749,7 +762,7 @@ class PublicPlayerProfileView(DetailView):
             queryset = self.get_queryset()
 
         # Verificar si viene pk primero (URL con int tiene prioridad)
-        pk = self.kwargs.get('pk')
+        pk = self.kwargs.get("pk")
         if pk is not None:
             try:
                 player = queryset.get(pk=pk)
@@ -759,6 +772,7 @@ class PublicPlayerProfileView(DetailView):
                 return player
             except Player.DoesNotExist:
                 from django.http import Http404
+
                 raise Http404("No se encontró el jugador con ese ID")
 
         # Si no hay pk, buscar por slug
@@ -768,6 +782,7 @@ class PublicPlayerProfileView(DetailView):
                 return queryset.get(slug=slug)
             except Player.DoesNotExist:
                 from django.http import Http404
+
                 raise Http404("No se encontró el jugador con ese slug")
 
         # Si no hay ni pk ni slug, usar el método por defecto
@@ -779,6 +794,7 @@ class PublicPlayerProfileView(DetailView):
 
         # Calcular edad actual basada en fecha de nacimiento
         from datetime import date
+
         current_age = None
         if player.user.profile.birth_date:
             today = date.today()
@@ -792,9 +808,10 @@ class PublicPlayerProfileView(DetailView):
         # Generar código QR para el perfil del jugador
         context["player_qr_code"] = None
         try:
-            import qrcode
-            from io import BytesIO
             import base64
+            from io import BytesIO
+
+            import qrcode
 
             player_url = player.get_absolute_url()
             if player_url and player_url != "#":
@@ -817,18 +834,20 @@ class PublicPlayerProfileView(DetailView):
 
             # Convertir a base64 para incluir en el HTML
             buffer = BytesIO()
-            img.save(buffer, format='PNG')
+            img.save(buffer, format="PNG")
             img_str = base64.b64encode(buffer.getvalue()).decode()
             context["player_qr_code"] = f"data:image/png;base64,{img_str}"
         except ImportError as e:
             # Si no está instalada la librería, usar fallback
             import logging
+
             logger = logging.getLogger(__name__)
             logger.warning(f"qrcode library not installed: {e}")
             context["player_qr_code"] = None
         except Exception as e:
             # Log del error pero continuar
             import logging
+
             logger = logging.getLogger(__name__)
             logger.error(f"Error generating QR code: {e}")
             context["player_qr_code"] = None
@@ -901,6 +920,7 @@ class FrontPlayerProfileView(LoginRequiredMixin, DetailView):
 
         return context
 
+
 def _check_rate_limit(request, cache_key_prefix, max_requests=100, window_seconds=3600):
     """
     Verifica rate limiting usando caché de Django.
@@ -918,9 +938,9 @@ def _check_rate_limit(request, cache_key_prefix, max_requests=100, window_second
     from django.utils import timezone
 
     # Obtener IP del cliente
-    ip_address = request.META.get('HTTP_X_FORWARDED_FOR', '').split(',')[0].strip()
+    ip_address = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
     if not ip_address:
-        ip_address = request.META.get('REMOTE_ADDR', 'unknown')
+        ip_address = request.META.get("REMOTE_ADDR", "unknown")
 
     # Crear clave de caché única por IP
     cache_key = f"{cache_key_prefix}_{ip_address}"
@@ -946,22 +966,19 @@ def instagram_posts_api(request):
     Rate Limiting: 100 requests por hora por IP
     Caché: 15 minutos
     """
+    from urllib.parse import quote
+
     from django.core.cache import cache
     from django.http import JsonResponse
-    from urllib.parse import quote
 
     # Rate limiting: 100 requests por hora por IP
     is_allowed, remaining = _check_rate_limit(
-        request,
-        "instagram_posts_api",
-        max_requests=100,
-        window_seconds=3600
+        request, "instagram_posts_api", max_requests=100, window_seconds=3600
     )
 
     if not is_allowed:
         return JsonResponse(
-            {"error": "Rate limit exceeded. Please try again later."},
-            status=429
+            {"error": "Rate limit exceeded. Please try again later."}, status=429
         )
 
     # Validar parámetros GET
@@ -981,8 +998,8 @@ def instagram_posts_api(request):
     if cached_posts is not None:
         # Agregar header de rate limit
         response = JsonResponse(cached_posts, safe=False)
-        response['X-RateLimit-Remaining'] = str(remaining)
-        response['X-RateLimit-Limit'] = '100'
+        response["X-RateLimit-Remaining"] = str(remaining)
+        response["X-RateLimit-Limit"] = "100"
         return response
 
     try:
@@ -1014,8 +1031,8 @@ def instagram_posts_api(request):
 
         # Agregar headers de rate limit
         response = JsonResponse(posts, safe=False)
-        response['X-RateLimit-Remaining'] = str(remaining)
-        response['X-RateLimit-Limit'] = '100'
+        response["X-RateLimit-Remaining"] = str(remaining)
+        response["X-RateLimit-Limit"] = "100"
         return response
 
     except Exception as e:
@@ -1025,8 +1042,8 @@ def instagram_posts_api(request):
 
         traceback.print_exc()
         response = JsonResponse([], safe=False)
-        response['X-RateLimit-Remaining'] = str(remaining)
-        response['X-RateLimit-Limit'] = '100'
+        response["X-RateLimit-Remaining"] = str(remaining)
+        response["X-RateLimit-Limit"] = "100"
         return response
 
 
@@ -1039,24 +1056,19 @@ def instagram_image_proxy(request):
     Validación: Solo URLs de Instagram permitidas
     Caché: 1 hora
     """
+    import hashlib
+    from urllib.parse import unquote, urlparse
+
     from django.core.cache import cache
     from django.http import HttpResponse
-    from urllib.parse import urlparse, unquote
-    import hashlib
 
     # Rate limiting: 200 requests por hora por IP (más permisivo para imágenes)
     is_allowed, remaining = _check_rate_limit(
-        request,
-        "instagram_image_proxy",
-        max_requests=200,
-        window_seconds=3600
+        request, "instagram_image_proxy", max_requests=200, window_seconds=3600
     )
 
     if not is_allowed:
-        return HttpResponse(
-            "Rate limit exceeded. Please try again later.",
-            status=429
-        )
+        return HttpResponse("Rate limit exceeded. Please try again later.", status=429)
 
     # Validar y obtener URL
     image_url = request.GET.get("url")
@@ -1077,11 +1089,11 @@ def instagram_image_proxy(request):
 
         # Validar que sea de un dominio permitido (Instagram)
         allowed_domains = [
-            'instagram.com',
-            'cdninstagram.com',
-            'fbcdn.net',
-            'scontent',
-            'scontent.cdninstagram.com',
+            "instagram.com",
+            "cdninstagram.com",
+            "fbcdn.net",
+            "scontent",
+            "scontent.cdninstagram.com",
         ]
 
         domain_valid = any(
@@ -1090,18 +1102,16 @@ def instagram_image_proxy(request):
         )
 
         if not domain_valid:
-            return HttpResponse(
-                "Only Instagram image URLs are allowed",
-                status=403
-            )
+            return HttpResponse("Only Instagram image URLs are allowed", status=403)
     except Exception as e:
         return HttpResponse(f"Invalid URL: {str(e)}", status=400)
 
     # Validar referer (opcional pero recomendado)
-    referer = request.META.get('HTTP_REFERER', '')
+    referer = request.META.get("HTTP_REFERER", "")
     if referer:
         from django.conf import settings
-        allowed_hosts = getattr(settings, 'ALLOWED_HOSTS', [])
+
+        allowed_hosts = getattr(settings, "ALLOWED_HOSTS", [])
         referer_host = urlparse(referer).netloc
         # Permitir si el referer es de nuestro dominio o está vacío
         if referer_host and referer_host not in allowed_hosts:
@@ -1120,8 +1130,8 @@ def instagram_image_proxy(request):
         response["Access-Control-Allow-Origin"] = "*"
         response["Access-Control-Allow-Methods"] = "GET"
         response["Cache-Control"] = "public, max-age=3600"
-        response['X-RateLimit-Remaining'] = str(remaining)
-        response['X-RateLimit-Limit'] = '200'
+        response["X-RateLimit-Remaining"] = str(remaining)
+        response["X-RateLimit-Limit"] = "200"
         return response
 
     try:
@@ -1138,7 +1148,7 @@ def instagram_image_proxy(request):
         content_type = response.headers.get("Content-Type", "image/jpeg")
 
         # Validar que sea una imagen
-        if not content_type.startswith('image/'):
+        if not content_type.startswith("image/"):
             return HttpResponse("URL does not point to an image", status=400)
 
         # Limitar tamaño de imagen (10MB máximo)
@@ -1156,8 +1166,8 @@ def instagram_image_proxy(request):
         django_response["Access-Control-Allow-Methods"] = "GET"
         # Cache por 1 hora
         django_response["Cache-Control"] = "public, max-age=3600"
-        django_response['X-RateLimit-Remaining'] = str(remaining)
-        django_response['X-RateLimit-Limit'] = '200'
+        django_response["X-RateLimit-Remaining"] = str(remaining)
+        django_response["X-RateLimit-Limit"] = "200"
         return django_response
 
     except requests.exceptions.Timeout:

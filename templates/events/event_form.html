@@ -129,15 +129,13 @@
         z-index: 1;
     }
 
-    /* Estilos para los tabs de Información del Evento y Precios */
-    #eventInfoTabs,
-    #pricingTabs {
+    /* Estilos para los tabs de Información del Evento */
+    #eventInfoTabs {
         border-bottom: 2px solid #dee2e6;
         margin-bottom: 1.5rem;
     }
 
-    #eventInfoTabs .nav-link,
-    #pricingTabs .nav-link {
+    #eventInfoTabs .nav-link {
         color: #6c757d;
         font-weight: 500;
         padding: 0.75rem 1.25rem;
@@ -147,15 +145,13 @@
         transition: all 0.3s ease;
     }
 
-    #eventInfoTabs .nav-link:hover,
-    #pricingTabs .nav-link:hover {
+    #eventInfoTabs .nav-link:hover {
         color: #0d6efd;
         border-bottom-color: #0d6efd;
         background: rgba(13, 110, 253, 0.05);
     }
 
-    #eventInfoTabs .nav-link.active,
-    #pricingTabs .nav-link.active {
+    #eventInfoTabs .nav-link.active {
         color: #0d6efd;
         border-bottom-color: #0d6efd;
         background: transparent;
@@ -807,37 +803,119 @@
                                 <!-- Individual Player Tab -->
                                 <div class="tab-pane fade show active" id="individual-player" role="tabpanel" aria-labelledby="individual-player-tab">
                                     <div class="row g-3">
-                                        <div class="col-12">
-                                            <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold">
-                                                <i class="fas fa-heading me-1 text-muted"></i>
+                                <div class="col-12">
+                                    <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-heading me-1 text-muted"></i>
                                                 Nombre del Evento
-                                                {% if form.title.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            {{ form.title }}
-                                            {% if form.title.errors %}
-                                                <div class="text-danger small mt-1">{{ form.title.errors }}</div>
-                                            {% endif %}
-                                        </div>
+                                        {% if form.title.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.title }}
+                                    {% if form.title.errors %}
+                                        <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+                                    {% endif %}
+                                </div>
 
-                                        <div class="col-12">
-                                            <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">
-                                                <i class="fas fa-align-left me-1 text-muted"></i>
+                                <div class="col-12">
+                                    <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-align-left me-1 text-muted"></i>
                                                 Descripción del Evento
-                                                {% if form.description.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            <div class="html-editor-wrapper">
-                                                {{ form.description }}
+                                        {% if form.description.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    <div class="html-editor-wrapper">
+                                        {{ form.description }}
                                                 <div id="description-editor-container">
-                                                    <div id="description-editor" style="min-height: 300px;"></div>
+                                        <div id="description-editor" style="min-height: 300px;"></div>
                                                     <textarea id="description-html-editor" class="form-control" style="display: none; min-height: 300px; font-family: 'Courier New', monospace; font-size: 13px;" placeholder="Edite el HTML directamente aquí..."></textarea>
                                                 </div>
+                                    </div>
+                                    {% if form.description.errors %}
+                                        <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                                    {% endif %}
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>Puede usar HTML para formatear el texto (etiquetas como &lt;strong&gt;, &lt;em&gt;, &lt;p&gt;, &lt;br&gt;, etc.)
+                                    </small>
+                                        </div>
+
+                                        <!-- PRECIOS Y PAGOS - Individual Player -->
+                                        <div class="col-12 mt-4">
+                                            <div class="border-top pt-3">
+                                                <h6 class="text-muted mb-3">
+                                                    <i class="fas fa-dollar-sign me-2"></i>Precios y Pagos
+                                                </h6>
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label for="{{ form.default_entry_fee.id_for_label }}" class="form-label fw-semibold">
+                                                            <i class="fas fa-money-bill-wave me-1 text-muted"></i>
+                                                            {{ form.default_entry_fee.label }}
+                                                            {% if form.default_entry_fee.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text">$</span>
+                                                            {{ form.default_entry_fee }}
+                                                        </div>
+                                                        {% if form.default_entry_fee.errors %}
+                                                            <div class="text-danger small mt-1">{{ form.default_entry_fee.errors }}</div>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <label for="{{ form.payment_deadline.id_for_label }}" class="form-label fw-semibold">
+                                                            <i class="fas fa-calendar-exclamation me-1 text-muted"></i>
+                                                            {{ form.payment_deadline.label }}
+                                                            {% if form.payment_deadline.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                        </label>
+                                                        {{ form.payment_deadline }}
+                                                        {% if form.payment_deadline.errors %}
+                                                            <div class="text-danger small mt-1">{{ form.payment_deadline.errors }}</div>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <label for="{{ form.gate_fee_type.id_for_label }}" class="form-label fw-semibold">
+                                                            <i class="fas fa-ticket-alt me-1 text-muted"></i>
+                                                            {{ form.gate_fee_type.label }}
+                                                            {% if form.gate_fee_type.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                        </label>
+                                                        {{ form.gate_fee_type }}
+                                                        {% if form.gate_fee_type.errors %}
+                                                            <div class="text-danger small mt-1">{{ form.gate_fee_type.errors }}</div>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <label for="{{ form.gate_fee_amount.id_for_label }}" class="form-label fw-semibold">
+                                                            <i class="fas fa-dollar-sign me-1 text-muted"></i>
+                                                            {{ form.gate_fee_amount.label }}
+                                                            {% if form.gate_fee_amount.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text">$</span>
+                                                            {{ form.gate_fee_amount }}
+                                                        </div>
+                                                        {% if form.gate_fee_amount.errors %}
+                                                            <div class="text-danger small mt-1">{{ form.gate_fee_amount.errors }}</div>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <label for="{{ form.service_fee.id_for_label }}" class="form-label fw-semibold">
+                                                            <i class="fas fa-percentage me-1 text-muted"></i>
+                                                            {{ form.service_fee.label }}
+                                                            {% if form.service_fee.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                        </label>
+                                                        <div class="input-group">
+                                                            {{ form.service_fee }}
+                                                            <span class="input-group-text">%</span>
+                                                        </div>
+                                                        {% if form.service_fee.errors %}
+                                                            <div class="text-danger small mt-1">{{ form.service_fee.errors }}</div>
+                                                        {% endif %}
+                                                        <small class="text-muted d-block mt-1">
+                                                            <i class="fas fa-info-circle me-1"></i>Porcentaje que se aplicará al total del checkout
+                                                        </small>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            {% if form.description.errors %}
-                                                <div class="text-danger small mt-1">{{ form.description.errors }}</div>
-                                            {% endif %}
-                                            <small class="text-muted d-block mt-1">
-                                                <i class="fas fa-info-circle me-1"></i>Puede usar HTML para formatear el texto (etiquetas como &lt;strong&gt;, &lt;em&gt;, &lt;p&gt;, &lt;br&gt;, etc.)
-                                            </small>
                                         </div>
                                     </div>
                                 </div>
@@ -871,6 +949,80 @@
                                                 <i class="fas fa-info-circle me-1"></i>Puede usar HTML para formatear el texto (etiquetas como &lt;strong&gt;, &lt;em&gt;, &lt;p&gt;, &lt;br&gt;, etc.)
                                             </small>
                                         </div>
+
+                                        <!-- PRECIOS Y PAGOS - Team Manager -->
+                                        <div class="col-12 mt-4">
+                                            <div class="border-top pt-3">
+                                                <h6 class="text-muted mb-3">
+                                                    <i class="fas fa-dollar-sign me-2"></i>Precios y Pagos
+                                                </h6>
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label for="id_default_entry_fee_team_manager" class="form-label fw-semibold">
+                                                            <i class="fas fa-money-bill-wave me-1 text-muted"></i>
+                                                            {{ form.default_entry_fee.label }}
+                                                            {% if form.default_entry_fee.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text">$</span>
+                                                            <input type="number" name="default_entry_fee_team_manager" id="id_default_entry_fee_team_manager" class="form-control" step="0.01" placeholder="0.00" value="{{ form.default_entry_fee_team_manager.value|default:'' }}">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <label for="id_payment_deadline_team_manager" class="form-label fw-semibold">
+                                                            <i class="fas fa-calendar-exclamation me-1 text-muted"></i>
+                                                            {{ form.payment_deadline.label }}
+                                                            {% if form.payment_deadline.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                        </label>
+                                                        <input type="date" name="payment_deadline_team_manager" id="id_payment_deadline_team_manager" class="form-control" value="{{ form.payment_deadline_team_manager.value|default:'' }}">
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <label for="id_gate_fee_type_team_manager" class="form-label fw-semibold">
+                                                            <i class="fas fa-ticket-alt me-1 text-muted"></i>
+                                                            {{ form.gate_fee_type.label }}
+                                                            {% if form.gate_fee_type.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                        </label>
+                                                        <select name="gate_fee_type_team_manager" id="id_gate_fee_type_team_manager" class="form-select">
+                                                            <option value="">---------</option>
+                                                            {% for value, label in form.gate_fee_type.field.choices %}
+                                                                {% if value %}
+                                                                    <option value="{{ value }}" {% if form.gate_fee_type_team_manager.value == value %}selected{% endif %}>{{ label }}</option>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <label for="id_gate_fee_amount_team_manager" class="form-label fw-semibold">
+                                                            <i class="fas fa-dollar-sign me-1 text-muted"></i>
+                                                            {{ form.gate_fee_amount.label }}
+                                                            {% if form.gate_fee_amount.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text">$</span>
+                                                            <input type="number" name="gate_fee_amount_team_manager" id="id_gate_fee_amount_team_manager" class="form-control" step="0.01" placeholder="0.00" value="{{ form.gate_fee_amount_team_manager.value|default:'' }}">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <label for="id_service_fee_team_manager" class="form-label fw-semibold">
+                                                            <i class="fas fa-percentage me-1 text-muted"></i>
+                                                            {{ form.service_fee.label }}
+                                                            {% if form.service_fee.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <input type="number" name="service_fee_team_manager" id="id_service_fee_team_manager" class="form-control" step="0.01" placeholder="0.00" value="{{ form.service_fee_team_manager.value|default:'' }}">
+                                                            <span class="input-group-text">%</span>
+                                                        </div>
+                                                        <small class="text-muted d-block mt-1">
+                                                            <i class="fas fa-info-circle me-1"></i>Porcentaje que se aplicará al total del checkout
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -902,6 +1054,80 @@
                                             <small class="text-muted d-block mt-1">
                                                 <i class="fas fa-info-circle me-1"></i>Puede usar HTML para formatear el texto (etiquetas como &lt;strong&gt;, &lt;em&gt;, &lt;p&gt;, &lt;br&gt;, etc.)
                                             </small>
+                                        </div>
+
+                                        <!-- PRECIOS Y PAGOS - Spectator -->
+                                        <div class="col-12 mt-4">
+                                            <div class="border-top pt-3">
+                                                <h6 class="text-muted mb-3">
+                                                    <i class="fas fa-dollar-sign me-2"></i>Precios y Pagos
+                                                </h6>
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        <label for="id_default_entry_fee_spectator" class="form-label fw-semibold">
+                                                            <i class="fas fa-money-bill-wave me-1 text-muted"></i>
+                                                            {{ form.default_entry_fee.label }}
+                                                            {% if form.default_entry_fee.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text">$</span>
+                                                            <input type="number" name="default_entry_fee_spectator" id="id_default_entry_fee_spectator" class="form-control" step="0.01" placeholder="0.00" value="{{ form.default_entry_fee_spectator.value|default:'' }}">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <label for="id_payment_deadline_spectator" class="form-label fw-semibold">
+                                                            <i class="fas fa-calendar-exclamation me-1 text-muted"></i>
+                                                            {{ form.payment_deadline.label }}
+                                                            {% if form.payment_deadline.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                        </label>
+                                                        <input type="date" name="payment_deadline_spectator" id="id_payment_deadline_spectator" class="form-control" value="{{ form.payment_deadline_spectator.value|default:'' }}">
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <label for="id_gate_fee_type_spectator" class="form-label fw-semibold">
+                                                            <i class="fas fa-ticket-alt me-1 text-muted"></i>
+                                                            {{ form.gate_fee_type.label }}
+                                                            {% if form.gate_fee_type.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                        </label>
+                                                        <select name="gate_fee_type_spectator" id="id_gate_fee_type_spectator" class="form-select">
+                                                            <option value="">---------</option>
+                                                            {% for value, label in form.gate_fee_type.field.choices %}
+                                                                {% if value %}
+                                                                    <option value="{{ value }}" {% if form.gate_fee_type_spectator.value == value %}selected{% endif %}>{{ label }}</option>
+                                                                {% endif %}
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <label for="id_gate_fee_amount_spectator" class="form-label fw-semibold">
+                                                            <i class="fas fa-dollar-sign me-1 text-muted"></i>
+                                                            {{ form.gate_fee_amount.label }}
+                                                            {% if form.gate_fee_amount.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <span class="input-group-text">$</span>
+                                                            <input type="number" name="gate_fee_amount_spectator" id="id_gate_fee_amount_spectator" class="form-control" step="0.01" placeholder="0.00" value="{{ form.gate_fee_amount_spectator.value|default:'' }}">
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-6">
+                                                        <label for="id_service_fee_spectator" class="form-label fw-semibold">
+                                                            <i class="fas fa-percentage me-1 text-muted"></i>
+                                                            {{ form.service_fee.label }}
+                                                            {% if form.service_fee.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                        </label>
+                                                        <div class="input-group">
+                                                            <input type="number" name="service_fee_spectator" id="id_service_fee_spectator" class="form-control" step="0.01" placeholder="0.00" value="{{ form.service_fee_spectator.value|default:'' }}">
+                                                            <span class="input-group-text">%</span>
+                                                        </div>
+                                                        <small class="text-muted d-block mt-1">
+                                                            <i class="fas fa-info-circle me-1"></i>Porcentaje que se aplicará al total del checkout
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -1560,7 +1786,7 @@
                                     <div class="html-editor-wrapper">
                                         {{ form.email_welcome_body }}
                                         <div id="email-body-editor-container">
-                                            <div id="email-body-editor" style="min-height: 300px;"></div>
+                                        <div id="email-body-editor" style="min-height: 300px;"></div>
                                             <textarea id="email-body-html-editor" class="form-control" style="display: none; min-height: 300px; font-family: 'Courier New', monospace; font-size: 13px;" placeholder="Edite el HTML directamente aquí..."></textarea>
                                         </div>
                                     </div>
@@ -1616,237 +1842,6 @@
                                     {% if form.entry_deadline.errors %}
                                         <div class="text-danger small mt-1">{{ form.entry_deadline.errors }}</div>
                                     {% endif %}
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- PRECIOS Y PAGOS -->
-                        <div class="form-section mb-4">
-                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
-                                <i class="fas fa-dollar-sign text-primary me-2"></i>
-                                <h6 class="mb-0 text-primary fw-bold">Precios y Pagos</h6>
-                            </div>
-
-                            <!-- Tabs Navigation -->
-                            <ul class="nav nav-tabs mb-4" id="pricingTabs" role="tablist">
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="pricing-individual-player-tab" data-bs-toggle="tab" data-bs-target="#pricing-individual-player" type="button" role="tab" aria-controls="pricing-individual-player" aria-selected="true">
-                                        <i class="fas fa-user me-2"></i>Individual Player
-                                    </button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="pricing-team-manager-tab" data-bs-toggle="tab" data-bs-target="#pricing-team-manager" type="button" role="tab" aria-controls="pricing-team-manager" aria-selected="false">
-                                        <i class="fas fa-users me-2"></i>Team Manager
-                                    </button>
-                                </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="pricing-spectator-tab" data-bs-toggle="tab" data-bs-target="#pricing-spectator" type="button" role="tab" aria-controls="pricing-spectator" aria-selected="false">
-                                        <i class="fas fa-eye me-2"></i>Spectator
-                                    </button>
-                                </li>
-                            </ul>
-
-                            <!-- Tabs Content -->
-                            <div class="tab-content" id="pricingTabsContent">
-                                <!-- Individual Player Tab -->
-                                <div class="tab-pane fade show active" id="pricing-individual-player" role="tabpanel" aria-labelledby="pricing-individual-player-tab">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label for="{{ form.default_entry_fee.id_for_label }}" class="form-label fw-semibold">
-                                                <i class="fas fa-money-bill-wave me-1 text-muted"></i>
-                                                {{ form.default_entry_fee.label }}
-                                                {% if form.default_entry_fee.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">$</span>
-                                                {{ form.default_entry_fee }}
-                                            </div>
-                                            {% if form.default_entry_fee.errors %}
-                                                <div class="text-danger small mt-1">{{ form.default_entry_fee.errors }}</div>
-                                            {% endif %}
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <label for="{{ form.payment_deadline.id_for_label }}" class="form-label fw-semibold">
-                                                <i class="fas fa-calendar-exclamation me-1 text-muted"></i>
-                                                {{ form.payment_deadline.label }}
-                                                {% if form.payment_deadline.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            {{ form.payment_deadline }}
-                                            {% if form.payment_deadline.errors %}
-                                                <div class="text-danger small mt-1">{{ form.payment_deadline.errors }}</div>
-                                            {% endif %}
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <label for="{{ form.gate_fee_type.id_for_label }}" class="form-label fw-semibold">
-                                                <i class="fas fa-ticket-alt me-1 text-muted"></i>
-                                                {{ form.gate_fee_type.label }}
-                                                {% if form.gate_fee_type.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            {{ form.gate_fee_type }}
-                                            {% if form.gate_fee_type.errors %}
-                                                <div class="text-danger small mt-1">{{ form.gate_fee_type.errors }}</div>
-                                            {% endif %}
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <label for="{{ form.gate_fee_amount.id_for_label }}" class="form-label fw-semibold">
-                                                <i class="fas fa-dollar-sign me-1 text-muted"></i>
-                                                {{ form.gate_fee_amount.label }}
-                                                {% if form.gate_fee_amount.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">$</span>
-                                                {{ form.gate_fee_amount }}
-                                            </div>
-                                            {% if form.gate_fee_amount.errors %}
-                                                <div class="text-danger small mt-1">{{ form.gate_fee_amount.errors }}</div>
-                                            {% endif %}
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <label for="{{ form.service_fee.id_for_label }}" class="form-label fw-semibold">
-                                                <i class="fas fa-percentage me-1 text-muted"></i>
-                                                {{ form.service_fee.label }}
-                                                {% if form.service_fee.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            <div class="input-group">
-                                                {{ form.service_fee }}
-                                                <span class="input-group-text">%</span>
-                                            </div>
-                                            {% if form.service_fee.errors %}
-                                                <div class="text-danger small mt-1">{{ form.service_fee.errors }}</div>
-                                            {% endif %}
-                                            <small class="text-muted d-block mt-1">
-                                                <i class="fas fa-info-circle me-1"></i>Porcentaje que se aplicará al total del checkout
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Team Manager Tab -->
-                                <div class="tab-pane fade" id="pricing-team-manager" role="tabpanel" aria-labelledby="pricing-team-manager-tab">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label for="id_default_entry_fee_team_manager" class="form-label fw-semibold">
-                                                <i class="fas fa-money-bill-wave me-1 text-muted"></i>
-                                                {{ form.default_entry_fee.label }}
-                                                {% if form.default_entry_fee.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">$</span>
-                                                <input type="number" name="default_entry_fee_team_manager" id="id_default_entry_fee_team_manager" class="form-control" step="0.01" placeholder="0.00" value="{{ form.default_entry_fee_team_manager.value|default:'' }}">
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <label for="id_payment_deadline_team_manager" class="form-label fw-semibold">
-                                                <i class="fas fa-calendar-exclamation me-1 text-muted"></i>
-                                                {{ form.payment_deadline.label }}
-                                                {% if form.payment_deadline.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            <input type="date" name="payment_deadline_team_manager" id="id_payment_deadline_team_manager" class="form-control" value="{{ form.payment_deadline_team_manager.value|default:'' }}">
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <label for="id_gate_fee_type_team_manager" class="form-label fw-semibold">
-                                                <i class="fas fa-ticket-alt me-1 text-muted"></i>
-                                                {{ form.gate_fee_type.label }}
-                                                {% if form.gate_fee_type.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            {{ form.gate_fee_type }}
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <label for="id_gate_fee_amount_team_manager" class="form-label fw-semibold">
-                                                <i class="fas fa-dollar-sign me-1 text-muted"></i>
-                                                {{ form.gate_fee_amount.label }}
-                                                {% if form.gate_fee_amount.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">$</span>
-                                                <input type="number" name="gate_fee_amount_team_manager" id="id_gate_fee_amount_team_manager" class="form-control" step="0.01" placeholder="0.00" value="{{ form.gate_fee_amount_team_manager.value|default:'' }}">
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <label for="id_service_fee_team_manager" class="form-label fw-semibold">
-                                                <i class="fas fa-percentage me-1 text-muted"></i>
-                                                {{ form.service_fee.label }}
-                                                {% if form.service_fee.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            <div class="input-group">
-                                                <input type="number" name="service_fee_team_manager" id="id_service_fee_team_manager" class="form-control" step="0.01" placeholder="0.00" value="{{ form.service_fee_team_manager.value|default:'' }}">
-                                                <span class="input-group-text">%</span>
-                                            </div>
-                                            <small class="text-muted d-block mt-1">
-                                                <i class="fas fa-info-circle me-1"></i>Porcentaje que se aplicará al total del checkout
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Spectator Tab -->
-                                <div class="tab-pane fade" id="pricing-spectator" role="tabpanel" aria-labelledby="pricing-spectator-tab">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label for="id_default_entry_fee_spectator" class="form-label fw-semibold">
-                                                <i class="fas fa-money-bill-wave me-1 text-muted"></i>
-                                                {{ form.default_entry_fee.label }}
-                                                {% if form.default_entry_fee.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">$</span>
-                                                <input type="number" name="default_entry_fee_spectator" id="id_default_entry_fee_spectator" class="form-control" step="0.01" placeholder="0.00" value="{{ form.default_entry_fee_spectator.value|default:'' }}">
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <label for="id_payment_deadline_spectator" class="form-label fw-semibold">
-                                                <i class="fas fa-calendar-exclamation me-1 text-muted"></i>
-                                                {{ form.payment_deadline.label }}
-                                                {% if form.payment_deadline.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            <input type="date" name="payment_deadline_spectator" id="id_payment_deadline_spectator" class="form-control" value="{{ form.payment_deadline_spectator.value|default:'' }}">
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <label for="id_gate_fee_type_spectator" class="form-label fw-semibold">
-                                                <i class="fas fa-ticket-alt me-1 text-muted"></i>
-                                                {{ form.gate_fee_type.label }}
-                                                {% if form.gate_fee_type.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            {{ form.gate_fee_type }}
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <label for="id_gate_fee_amount_spectator" class="form-label fw-semibold">
-                                                <i class="fas fa-dollar-sign me-1 text-muted"></i>
-                                                {{ form.gate_fee_amount.label }}
-                                                {% if form.gate_fee_amount.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            <div class="input-group">
-                                                <span class="input-group-text">$</span>
-                                                <input type="number" name="gate_fee_amount_spectator" id="id_gate_fee_amount_spectator" class="form-control" step="0.01" placeholder="0.00" value="{{ form.gate_fee_amount_spectator.value|default:'' }}">
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <label for="id_service_fee_spectator" class="form-label fw-semibold">
-                                                <i class="fas fa-percentage me-1 text-muted"></i>
-                                                {{ form.service_fee.label }}
-                                                {% if form.service_fee.field.required %}<span class="text-danger">*</span>{% endif %}
-                                            </label>
-                                            <div class="input-group">
-                                                <input type="number" name="service_fee_spectator" id="id_service_fee_spectator" class="form-control" step="0.01" placeholder="0.00" value="{{ form.service_fee_spectator.value|default:'' }}">
-                                                <span class="input-group-text">%</span>
-                                            </div>
-                                            <small class="text-muted d-block mt-1">
-                                                <i class="fas fa-info-circle me-1"></i>Porcentaje que se aplicará al total del checkout
-                                            </small>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -4612,14 +4607,14 @@ document.addEventListener('DOMContentLoaded', function() {
         modules: {
             toolbar: {
                 container: [
-                    [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                    ['bold', 'italic', 'underline', 'strike'],
-                    [{ 'color': [] }, { 'background': [] }],
-                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                    [{ 'align': [] }],
-                    ['link', 'image'],
-                    ['blockquote', 'code-block'],
-                    ['clean']
+                [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'color': [] }, { 'background': [] }],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'align': [] }],
+                ['link', 'image'],
+                ['blockquote', 'code-block'],
+                ['clean']
                 ],
                 handlers: {
                     'html-toggle': function() {
@@ -4684,7 +4679,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Sincronizar contenido con el textarea original
         descriptionEditor.on('text-change', function() {
             if (!descriptionHtmlMode) {
-                descriptionField.value = descriptionEditor.root.innerHTML;
+            descriptionField.value = descriptionEditor.root.innerHTML;
                 if (descriptionHtmlEditor) {
                     descriptionHtmlEditor.value = descriptionEditor.root.innerHTML;
                 }
@@ -4814,7 +4809,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Sincronizar contenido con el textarea original
         emailBodyEditor.on('text-change', function() {
             if (!emailBodyHtmlMode) {
-                emailBodyField.value = emailBodyEditor.root.innerHTML;
+            emailBodyField.value = emailBodyEditor.root.innerHTML;
                 if (emailHtmlEditor) {
                     emailHtmlEditor.value = emailBodyEditor.root.innerHTML;
                 }
@@ -5107,7 +5102,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (descriptionHtmlMode && descriptionHtmlEditor) {
                     descriptionField.value = descriptionHtmlEditor.value;
                 } else {
-                    descriptionField.value = descriptionEditor.root.innerHTML;
+                descriptionField.value = descriptionEditor.root.innerHTML;
                 }
             }
             if (emailBodyEditor && emailBodyField) {
@@ -5115,7 +5110,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (emailBodyHtmlMode && emailHtmlEditor) {
                     emailBodyField.value = emailHtmlEditor.value;
                 } else {
-                    emailBodyField.value = emailBodyEditor.root.innerHTML;
+                emailBodyField.value = emailBodyEditor.root.innerHTML;
                 }
             }
             // Sincronizar editores de Team Manager y Spectator

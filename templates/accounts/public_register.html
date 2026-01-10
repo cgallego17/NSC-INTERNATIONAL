@@ -1881,9 +1881,9 @@
                                             <input type="radio" name="user_type" value="player" id="player_type" {% if form.user_type.value == 'player' %}checked{% endif %} required>
                                             <label for="player_type">
                                                 <div class="user-type-header">
-                                                    <span class="user-type-icon">
+                                                <span class="user-type-icon">
                                                         <i class="fas fa-user"></i>
-                                                    </span>
+                                                </span>
                                                     <span class="user-type-title">Parent / Guardian – Individual Player</span>
                                                     <span class="user-type-subtitle">For families with players participating as individuals</span>
                                                 </div>
@@ -1896,9 +1896,9 @@
                                             <input type="radio" name="user_type" value="team_manager" id="manager_type" {% if form.user_type.value == 'team_manager' %}checked{% endif %} required>
                                             <label for="manager_type">
                                                 <div class="user-type-header">
-                                                    <span class="user-type-icon">
-                                                        <i class="fas fa-user-tie"></i>
-                                                    </span>
+                                                <span class="user-type-icon">
+                                                    <i class="fas fa-user-tie"></i>
+                                                </span>
                                                     <span class="user-type-title">Coach / Manager</span>
                                                     <span class="user-type-subtitle">For coaches managing teams and rosters</span>
                                                 </div>
@@ -2216,14 +2216,14 @@
                                         </label>
                                         <div class="photo-upload-area" onclick="document.getElementById('id_profile_picture').click()">
                                             <div style="position: relative; z-index: 1;">
-                                                <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--mlb-blue);"></i>
+                                            <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--mlb-blue);"></i>
                                                 <p class="mb-1" style="font-size: 1.05rem; font-weight: 600; color: var(--mlb-blue);">{% trans "Click to upload your photo" %}</p>
                                                 <small class="text-muted" style="font-size: 0.875rem;">{% trans "JPG, PNG or GIF (max. 5MB)" %}</small>
                                             </div>
                                         </div>
                                         {{ form.profile_picture }}
                                         <div style="text-align: center;">
-                                            <img id="photoPreview" class="photo-preview" alt="{% trans 'Preview' %}">
+                                        <img id="photoPreview" class="photo-preview" alt="{% trans 'Preview' %}">
                                         </div>
                                         {% if form.profile_picture.errors %}
                                             <div class="error-message">{{ form.profile_picture.errors }}</div>
@@ -2695,10 +2695,10 @@
                     submitBtn.innerHTML = '<i class="fas fa-user-tie me-2"></i>' + translations.register;
                 } else if (this.value === 'spectator') {
                     submitBtn.innerHTML = '<i class="fas fa-users me-2"></i>' + translations.register;
-                }
+                    }
 
-                if (successAlert) {
-                    successAlert.style.display = 'block';
+                    if (successAlert) {
+                        successAlert.style.display = 'block';
                 }
             });
         });

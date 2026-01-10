@@ -1,0 +1,1271 @@
+{% load static %}
+{% load i18n %}
+{% load translation_tags %}
+{% get_current_language as CURRENT_LANGUAGE %}
+<!DOCTYPE html>
+<html lang="{% if CURRENT_LANGUAGE %}{{ CURRENT_LANGUAGE|slice:":2" }}{% else %}en{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ event.title }} - {% trans "NCS International" %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --mlb-blue: #0d2c54;
+            --mlb-red: #d50032;
+            --mlb-light-blue: #132448;
+            --mlb-gold: #ffd700;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #fafafa;
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+
+        /* Navbar */
+        .navbar-mlb {
+            background: var(--mlb-blue) !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 0;
+        }
+
+        .navbar-mlb .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white !important;
+            padding: 12px 20px;
+            background: var(--mlb-red);
+        }
+
+        .navbar-logo {
+            height: 35px;
+            width: auto;
+            max-width: 160px;
+            object-fit: contain;
+        }
+
+        .navbar-mlb .nav-link {
+            color: white !important;
+            font-weight: 600;
+            padding: 15px 18px !important;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            transition: background 0.2s;
+        }
+
+        .navbar-mlb .nav-link:hover {
+            background: var(--mlb-light-blue);
+        }
+
+        /* Hero Section - Enhanced */
+        .event-hero {
+            position: relative;
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            padding: 90px 0 70px;
+            overflow: hidden;
+        }
+
+        .event-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('{{ event.logo }}');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.1;
+            z-index: 0;
+        }
+
+        /* Decorative bottom line */
+        .event-hero::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg,
+                var(--mlb-red) 0%,
+                var(--mlb-gold) 50%,
+                var(--mlb-red) 100%);
+            z-index: 2;
+        }
+
+        .event-hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 30px;
+        }
+
+        .event-breadcrumb {
+            font-size: 0.85rem;
+            margin-bottom: 30px;
+            opacity: 0.85;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: slideInDown 0.5s ease-out;
+        }
+
+        .event-breadcrumb a {
+            color: white;
+            text-decoration: none;
+            transition: all 0.2s;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .event-breadcrumb a:hover {
+            background: rgba(255, 255, 255, 0.1);
+            opacity: 1;
+        }
+
+        .event-breadcrumb span {
+            opacity: 0.5;
+        }
+
+        .event-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            line-height: 1.1;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            animation: slideInDown 0.6s ease-out 0.1s backwards;
+        }
+
+        .event-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            margin-bottom: 35px;
+            max-width: 750px;
+            line-height: 1.6;
+            animation: slideInDown 0.6s ease-out 0.2s backwards;
+        }
+
+        .event-meta {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            animation: slideInDown 0.6s ease-out 0.3s backwards;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 18px 25px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s;
+            min-width: 160px;
+        }
+
+        .meta-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .meta-item i {
+            font-size: 1.4rem;
+            color: var(--mlb-gold);
+            margin-bottom: 5px;
+        }
+
+        .meta-label {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+        }
+
+        .meta-value {
+            font-size: 1.05rem;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        /* Animations */
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Main Container */
+        .event-container {
+            max-width: 1200px;
+            margin: -40px auto 60px;
+            padding: 0 30px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* White Card Container */
+        .content-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+
+        /* Section */
+        .section {
+            padding: 40px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--mlb-blue);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid var(--mlb-blue);
+            display: inline-block;
+        }
+
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .info-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--mlb-blue);
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1rem;
+        }
+
+        .info-content {
+            flex: 1;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            font-size: 1rem;
+            color: #1a1a1a;
+            font-weight: 600;
+        }
+
+        /* Description */
+        .description-content {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: #495057;
+        }
+
+        .description-content h1,
+        .description-content h2,
+        .description-content h3 {
+            color: var(--mlb-blue);
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        .description-content p {
+            margin-bottom: 15px;
+        }
+
+        .description-content ul,
+        .description-content ol {
+            margin-bottom: 15px;
+            padding-left: 25px;
+        }
+
+        /* Price Table */
+        .price-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .price-table tr {
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .price-table tr:last-child {
+            border-bottom: none;
+        }
+
+        .price-table td {
+            padding: 18px 15px;
+        }
+
+        .price-table td:first-child {
+            font-weight: 600;
+            color: #495057;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .price-table td:first-child i {
+            color: var(--mlb-blue);
+            width: 20px;
+            text-align: center;
+        }
+
+        .price-table td:last-child {
+            text-align: right;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--mlb-blue);
+        }
+
+        .price-detail {
+            font-size: 0.85rem;
+            color: #6c757d;
+            font-weight: 400;
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            text-align: center;
+            padding: 50px 40px;
+            margin: 40px 0 0;
+        }
+
+        .cta-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .cta-subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--mlb-red);
+            color: white;
+            padding: 14px 32px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .btn-primary:hover {
+            background: #b30029;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(213, 0, 50, 0.3);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--mlb-blue);
+            padding: 14px 32px;
+            font-weight: 600;
+            border: 2px solid white;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .btn-secondary:hover {
+            background: transparent;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: white;
+            padding: 14px 32px;
+            font-weight: 600;
+            border: 2px solid white;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .btn-outline:hover {
+            background: white;
+            color: var(--mlb-blue);
+        }
+
+        /* User Type Selection Modal */
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.6) !important;
+            backdrop-filter: blur(8px) !important;
+        }
+
+        .modal-user-type .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-user-type .modal-header {
+            padding: 40px 40px 20px;
+            border-bottom: none;
+            text-align: center;
+            display: block;
+        }
+
+        .modal-user-type .modal-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin: 0;
+        }
+
+        .modal-user-type .modal-body {
+            padding: 20px 40px 50px;
+        }
+
+        .type-selector {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .type-card {
+            background: white;
+            border: 2px solid #e8e8e8;
+            border-radius: 12px;
+            padding: 35px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .type-card:hover {
+            border-color: var(--mlb-blue);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(13, 44, 84, 0.15);
+        }
+
+        .type-card.selected {
+            background: var(--mlb-blue);
+            border-color: var(--mlb-blue);
+            color: white;
+            box-shadow: 0 8px 20px rgba(13, 44, 84, 0.3);
+        }
+
+        .type-card i {
+            font-size: 2.5rem;
+            color: var(--mlb-blue);
+            transition: all 0.25s;
+        }
+
+        .type-card:hover i {
+            color: var(--mlb-red);
+            transform: scale(1.1);
+        }
+
+        .type-card.selected i {
+            color: white;
+            transform: scale(1.15);
+        }
+
+        .type-card span {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            line-height: 1.3;
+        }
+
+        .type-card.selected span {
+            color: white;
+        }
+
+        /* Floating Change Button */
+        .fab-change {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--mlb-blue);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(13, 44, 84, 0.3);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 1040;
+        }
+
+        .fab-change:hover {
+            background: var(--mlb-red);
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(213, 0, 50, 0.4);
+        }
+
+        /* Footer */
+        .footer-mlb {
+            background: var(--mlb-blue);
+            color: white;
+            padding: 50px 0 20px;
+            margin-top: 60px;
+        }
+
+        .footer-mlb .container {
+            max-width: 1200px;
+        }
+
+        .footer-mlb h5 {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--mlb-gold);
+        }
+
+        .footer-mlb a {
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            transition: color 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .footer-mlb a:hover {
+            color: white;
+        }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 20px 0;
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* Responsive */
+        @media (max-width: 991px) {
+            .type-selector {
+                grid-template-columns: 1fr;
+            }
+
+            .type-card {
+                aspect-ratio: auto;
+                padding: 25px;
+            }
+
+            .modal-user-type .modal-header,
+            .modal-user-type .modal-body {
+                padding-left: 25px;
+                padding-right: 25px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .event-hero {
+                padding: 60px 0 40px;
+            }
+
+            .event-title {
+                font-size: 2rem;
+            }
+
+            .event-subtitle {
+                font-size: 1rem;
+            }
+
+            .event-meta {
+                gap: 15px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .meta-item {
+                min-width: auto;
+            }
+
+            .event-container {
+                margin-top: -30px;
+                padding: 0 15px;
+            }
+
+            .section {
+                padding: 30px 20px;
+            }
+
+            .section-title {
+                font-size: 1.25rem;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-section {
+                padding: 40px 20px;
+            }
+
+            .cta-title {
+                font-size: 1.5rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+
+            .cta-buttons .btn-primary,
+            .cta-buttons .btn-secondary,
+            .cta-buttons .btn-outline {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .fab-change {
+                bottom: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+            }
+        }
+
+        /* Fade In Animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .content-card {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    {% include 'includes/navbar_mlb.html' %}
+
+    <!-- User Type Selection Modal -->
+    <div class="modal fade modal-user-type" id="userTypeModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">{% trans "How are you registering?" %}</h2>
+                </div>
+                <div class="modal-body">
+                    <div class="type-selector">
+                        <div class="type-card" data-type="player">
+                            <i class="fas fa-user"></i>
+                            <span>{% trans "Individual Player" %}</span>
+                        </div>
+                        <div class="type-card" data-type="team_manager">
+                            <i class="fas fa-users-cog"></i>
+                            <span>{% trans "Team Manager" %}</span>
+                        </div>
+                        <div class="type-card" data-type="spectator">
+                            <i class="fas fa-eye"></i>
+                            <span>{% trans "Spectator" %}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Change Button -->
+    <button id="fabChange" class="fab-change" title="{% trans 'Change Registration Type' %}">
+        <i class="fas fa-user-circle"></i>
+    </button>
+
+    <!-- Hero Section -->
+    <section class="event-hero">
+        <div class="event-hero-content">
+            <div class="event-breadcrumb">
+                <a href="/">{% trans "Home" %}</a>
+                <span>/</span>
+                <a href="{% url 'events:public_list' %}">{% trans "Events" %}</a>
+                <span>/</span>
+                <span>{{ event.title|truncatechars:40 }}</span>
+            </div>
+            <h1 class="event-title">{{ event.title }}</h1>
+            {% if event.short_name %}
+                <p class="event-subtitle">{{ event.short_name }}</p>
+            {% elif event.description %}
+                <p class="event-subtitle">{{ event.description|striptags|truncatewords:25 }}</p>
+            {% endif %}
+
+            <div class="event-meta">
+                {% if event.start_date %}
+                <div class="meta-item">
+                    <i class="fas fa-calendar"></i>
+                    <div>
+                        <div class="meta-label">{% trans "Date" %}</div>
+                        <div class="meta-value">
+                            {% if event.end_date and event.end_date != event.start_date %}
+                                {{ event.start_date|date:"M d" }} - {{ event.end_date|date:"M d, Y" }}
+                            {% else %}
+                                {{ event.start_date|date:"M d, Y" }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if event.city %}
+                <div class="meta-item">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <div>
+                        <div class="meta-label">{% trans "Location" %}</div>
+                        <div class="meta-value">{{ event.city.name }}{% if event.state %}, {{ event.state.name }}{% endif %}</div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if event.entry_deadline %}
+                <div class="meta-item">
+                    <i class="fas fa-clock"></i>
+                    <div>
+                        <div class="meta-label">{% trans "Registration Deadline" %}</div>
+                        <div class="meta-value">{{ event.entry_deadline|date:"M d, Y" }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="event-container" id="eventContent" style="display: none;">
+        <div class="content-card">
+            <!-- Event Details -->
+            <div class="section">
+                <h2 class="section-title">{% trans "Event Details" %}</h2>
+                <div class="info-grid">
+                    {% if event.start_date %}
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-calendar-check"></i></div>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "Start Date" %}</div>
+                            <div class="info-value">{{ event.start_date|date:"F d, Y" }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if event.end_date %}
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-calendar-times"></i></div>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "End Date" %}</div>
+                            <div class="info-value">{{ event.end_date|date:"F d, Y" }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if event.city %}
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-map-pin"></i></div>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "City" %}</div>
+                            <div class="info-value">{{ event.city.name }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if event.entry_deadline %}
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-clock"></i></div>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "Registration Deadline" %}</div>
+                            <div class="info-value">{{ event.entry_deadline|date:"F d, Y" }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if event.divisions.all %}
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-layer-group"></i></div>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "Divisions" %}</div>
+                            <div class="info-value">
+                                {% for division in event.divisions.all %}
+                                    {{ division.name }}{% if not forloop.last %}, {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="section">
+                <h2 class="section-title">{% trans "About This Event" %}</h2>
+
+                <!-- Individual Player -->
+                <div class="description-content user-type-content" id="desc-player" style="display: none;">
+                    {{ event.description|safe }}
+                </div>
+
+                <!-- Team Manager -->
+                <div class="description-content user-type-content" id="desc-team_manager" style="display: none;">
+                    {{ event.description_team_manager|default:event.description|safe }}
+                </div>
+
+                <!-- Spectator -->
+                <div class="description-content user-type-content" id="desc-spectator" style="display: none;">
+                    {{ event.description_spectator|default:event.description|safe }}
+                </div>
+            </div>
+
+            <!-- Pricing -->
+            <div class="section">
+                <h2 class="section-title">{% trans "Pricing & Payment" %}</h2>
+
+                <!-- Individual Player Pricing -->
+                <div class="user-type-content" id="price-player" style="display: none;">
+                    <table class="price-table">
+                        {% if event.default_entry_fee %}
+                        <tr>
+                            <td><i class="fas fa-ticket-alt"></i> {% trans "Entry Fee" %}</td>
+                            <td>${{ event.default_entry_fee|floatformat:2 }}</td>
+                        </tr>
+                        {% endif %}
+
+                        {% if event.payment_deadline %}
+                        <tr>
+                            <td><i class="fas fa-calendar-check"></i> {% trans "Payment Deadline" %}</td>
+                            <td style="font-size: 1rem; font-weight: 600;">{{ event.payment_deadline|date:"F d, Y" }}</td>
+                        </tr>
+                        {% endif %}
+
+                        {% if event.gate_fee_amount %}
+                        <tr>
+                            <td><i class="fas fa-door-open"></i> {% trans "Gate Fee" %}</td>
+                            <td>
+                                ${{ event.gate_fee_amount|floatformat:2 }}
+                                {% if event.gate_fee_type == 'per_person' %}
+                                    <span class="price-detail">{% trans "per person" %}</span>
+                                {% elif event.gate_fee_type == 'per_day' %}
+                                    <span class="price-detail">{% trans "per day" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endif %}
+
+                        {% if event.service_fee %}
+                        <tr>
+                            <td><i class="fas fa-percentage"></i> {% trans "Service Fee" %}</td>
+                            <td>{{ event.service_fee }}%</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+
+                <!-- Team Manager Pricing -->
+                <div class="user-type-content" id="price-team_manager" style="display: none;">
+                    <table class="price-table">
+                        {% if event.default_entry_fee_team_manager or event.default_entry_fee %}
+                        <tr>
+                            <td><i class="fas fa-ticket-alt"></i> {% trans "Entry Fee" %}</td>
+                            <td>${{ event.default_entry_fee_team_manager|default:event.default_entry_fee|floatformat:2 }}</td>
+                        </tr>
+                        {% endif %}
+
+                        {% if event.payment_deadline_team_manager or event.payment_deadline %}
+                        <tr>
+                            <td><i class="fas fa-calendar-check"></i> {% trans "Payment Deadline" %}</td>
+                            <td style="font-size: 1rem; font-weight: 600;">
+                                {% if event.payment_deadline_team_manager %}
+                                    {{ event.payment_deadline_team_manager|date:"F d, Y" }}
+                                {% else %}
+                                    {{ event.payment_deadline|date:"F d, Y" }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endif %}
+
+                        {% if event.gate_fee_amount_team_manager or event.gate_fee_amount %}
+                        <tr>
+                            <td><i class="fas fa-door-open"></i> {% trans "Gate Fee" %}</td>
+                            <td>
+                                {% if event.gate_fee_amount_team_manager %}
+                                    ${{ event.gate_fee_amount_team_manager|floatformat:2 }}
+                                {% else %}
+                                    ${{ event.gate_fee_amount|floatformat:2 }}
+                                {% endif %}
+                                {% if event.gate_fee_type_team_manager == 'per_person' or event.gate_fee_type == 'per_person' %}
+                                    <span class="price-detail">{% trans "per person" %}</span>
+                                {% elif event.gate_fee_type_team_manager == 'per_day' or event.gate_fee_type == 'per_day' %}
+                                    <span class="price-detail">{% trans "per day" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endif %}
+
+                        {% if event.service_fee_team_manager or event.service_fee %}
+                        <tr>
+                            <td><i class="fas fa-percentage"></i> {% trans "Service Fee" %}</td>
+                            <td>{{ event.service_fee_team_manager|default:event.service_fee }}%</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+
+                <!-- Spectator Pricing -->
+                <div class="user-type-content" id="price-spectator" style="display: none;">
+                    <table class="price-table">
+                        {% if event.default_entry_fee_spectator or event.default_entry_fee %}
+                        <tr>
+                            <td><i class="fas fa-ticket-alt"></i> {% trans "Entry Fee" %}</td>
+                            <td>${{ event.default_entry_fee_spectator|default:event.default_entry_fee|floatformat:2 }}</td>
+                        </tr>
+                        {% endif %}
+
+                        {% if event.payment_deadline_spectator or event.payment_deadline %}
+                        <tr>
+                            <td><i class="fas fa-calendar-check"></i> {% trans "Payment Deadline" %}</td>
+                            <td style="font-size: 1rem; font-weight: 600;">
+                                {% if event.payment_deadline_spectator %}
+                                    {{ event.payment_deadline_spectator|date:"F d, Y" }}
+                                {% else %}
+                                    {{ event.payment_deadline|date:"F d, Y" }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endif %}
+
+                        {% if event.gate_fee_amount_spectator or event.gate_fee_amount %}
+                        <tr>
+                            <td><i class="fas fa-door-open"></i> {% trans "Gate Fee" %}</td>
+                            <td>
+                                {% if event.gate_fee_amount_spectator %}
+                                    ${{ event.gate_fee_amount_spectator|floatformat:2 }}
+                                {% else %}
+                                    ${{ event.gate_fee_amount|floatformat:2 }}
+                                {% endif %}
+                                {% if event.gate_fee_type_spectator == 'per_person' or event.gate_fee_type == 'per_person' %}
+                                    <span class="price-detail">{% trans "per person" %}</span>
+                                {% elif event.gate_fee_type_spectator == 'per_day' or event.gate_fee_type == 'per_day' %}
+                                    <span class="price-detail">{% trans "per day" %}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endif %}
+
+                        {% if event.service_fee_spectator or event.service_fee %}
+                        <tr>
+                            <td><i class="fas fa-percentage"></i> {% trans "Service Fee" %}</td>
+                            <td>{{ event.service_fee_spectator|default:event.service_fee }}%</td>
+                        </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+
+            <!-- Location (if available) -->
+            {% if event.location or event.address or event.primary_site %}
+            <div class="section">
+                <h2 class="section-title">{% trans "Location" %}</h2>
+                <div class="info-grid">
+                    {% if event.location %}
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-map-marker-alt"></i></div>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "Venue" %}</div>
+                            <div class="info-value">{{ event.location }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if event.address %}
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-map"></i></div>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "Address" %}</div>
+                            <div class="info-value">{{ event.address|linebreaks }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if event.primary_site %}
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-building"></i></div>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "Primary Site" %}</div>
+                            <div class="info-value">
+                                {{ event.primary_site.site_name }}
+                                {% if event.primary_site.full_address %}
+                                    <br><small style="color: #6c757d;">{{ event.primary_site.full_address }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Hotels (if available) -->
+            {% if event.hotel or event.additional_hotels.all %}
+            <div class="section">
+                <h2 class="section-title">{% trans "Accommodation" %}</h2>
+                <div class="info-grid">
+                    {% if event.hotel %}
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-hotel"></i></div>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "Main Hotel" %}</div>
+                            <div class="info-value">
+                                {{ event.hotel.hotel_name }}
+                                {% if event.hotel.address %}
+                                    <br><small style="color: #6c757d;">{{ event.hotel.address }}</small>
+                                {% endif %}
+                                {% if event.hotel.contact_phone %}
+                                    <br><small style="color: #6c757d;"><i class="fas fa-phone"></i> {{ event.hotel.contact_phone }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% for hotel in event.additional_hotels.all %}
+                    <div class="info-item">
+                        <div class="info-icon"><i class="fas fa-bed"></i></div>
+                        <div class="info-content">
+                            <div class="info-label">{% trans "Hotel" %} {{ forloop.counter }}</div>
+                            <div class="info-value">
+                                {{ hotel.hotel_name }}
+                                {% if hotel.address %}
+                                    <br><small style="color: #6c757d;">{{ hotel.address }}</small>
+                                {% endif %}
+                                {% if hotel.contact_phone %}
+                                    <br><small style="color: #6c757d;"><i class="fas fa-phone"></i> {{ hotel.contact_phone }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- CTA Section -->
+        <div class="cta-section">
+            <h3 class="cta-title">{% trans "Ready to Join?" %}</h3>
+            <p class="cta-subtitle">{% trans "Don't miss this opportunity to be part of an amazing event" %}</p>
+            <div class="cta-buttons">
+                {% if not user.is_authenticated %}
+                    <a href="/accounts/register/" class="btn-primary">
+                        <i class="fas fa-user-plus"></i>
+                        {% trans "Register Now" %}
+                    </a>
+                {% endif %}
+                <a href="{% url 'events:public_list' %}" class="btn-secondary">
+                    <i class="fas fa-calendar-alt"></i>
+                    {% trans "View All Events" %}
+                </a>
+                <a href="/" class="btn-outline">
+                    <i class="fas fa-home"></i>
+                    {% trans "Back to Home" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    {% include 'includes/footer_mlb.html' %}
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = new bootstrap.Modal(document.getElementById('userTypeModal'));
+            const typeCards = document.querySelectorAll('.type-card');
+            const eventContent = document.getElementById('eventContent');
+            const fabChange = document.getElementById('fabChange');
+            const eventId = '{{ event.id }}';
+            const storageKey = `selectedUserType_${eventId}`;
+
+            let selectedType = null;
+
+            // Check if user has already selected a type
+            try {
+                selectedType = localStorage.getItem(storageKey);
+            } catch (e) {
+                console.error('localStorage error:', e);
+            }
+
+            // Show modal or content based on saved preference
+            if (selectedType) {
+                showContent(selectedType);
+            } else {
+                setTimeout(() => modal.show(), 300);
+            }
+
+            // Handle type card clicks
+            typeCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    typeCards.forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedType = this.dataset.type;
+
+                    // Save to localStorage
+                    try {
+                        localStorage.setItem(storageKey, selectedType);
+                    } catch (e) {
+                        console.error('localStorage error:', e);
+                    }
+
+                    // Hide modal and show content
+                    setTimeout(() => {
+                        modal.hide();
+                        showContent(selectedType);
+                    }, 250);
+                });
+            });
+
+            // Handle FAB click
+            fabChange.addEventListener('click', function() {
+                // Mark current selection in modal
+                typeCards.forEach(card => {
+                    card.classList.remove('selected');
+                    if (card.dataset.type === selectedType) {
+                        card.classList.add('selected');
+                    }
+                });
+                modal.show();
+            });
+
+            // Show content based on selected type
+            function showContent(type) {
+                // Hide all user-type-content
+                document.querySelectorAll('.user-type-content').forEach(el => {
+                    el.style.display = 'none';
+                });
+
+                // Show selected type content
+                const descElement = document.getElementById(`desc-${type}`);
+                const priceElement = document.getElementById(`price-${type}`);
+
+                if (descElement) descElement.style.display = 'block';
+                if (priceElement) priceElement.style.display = 'block';
+
+                // Show main content
+                eventContent.style.display = 'block';
+
+                // Show FAB
+                setTimeout(() => {
+                    fabChange.style.display = 'flex';
+                }, 600);
+
+                // Smooth scroll to content
+                setTimeout(() => {
+                    eventContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+
+            // Hide content when modal is shown
+            document.getElementById('userTypeModal').addEventListener('show.bs.modal', function() {
+                fabChange.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>

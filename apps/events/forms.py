@@ -38,10 +38,12 @@ class EventForm(forms.ModelForm):
             "payment_deadline",  # DIA LIMITE DE PAGO DATE
             "default_entry_fee_team_manager",  # PRECIO EVENTO TEAM MANAGER
             "payment_deadline_team_manager",  # DIA LIMITE DE PAGO TEAM MANAGER
+            "gate_fee_type_team_manager",  # TIPO DE GATE FEE TEAM MANAGER
             "gate_fee_amount_team_manager",  # PRECIO GATE FEE TEAM MANAGER
             "service_fee_team_manager",  # SERVICE FEE TEAM MANAGER (%)
             "default_entry_fee_spectator",  # PRECIO EVENTO SPECTATOR
             "payment_deadline_spectator",  # DIA LIMITE DE PAGO SPECTATOR
+            "gate_fee_type_spectator",  # TIPO DE GATE FEE SPECTATOR
             "gate_fee_amount_spectator",  # PRECIO GATE FEE SPECTATOR
             "service_fee_spectator",  # SERVICE FEE SPECTATOR (%)
             "gate_fee_type",  # TIPO DE GATE FEE
@@ -186,6 +188,90 @@ class EventForm(forms.ModelForm):
                     "required": False,
                 }
             ),
+            "default_entry_fee_team_manager": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "min": "0",
+                    "placeholder": "0.00",
+                    "required": False,
+                }
+            ),
+            "payment_deadline_team_manager": forms.DateInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "date",
+                    "required": False,
+                },
+                format="%Y-%m-%d",
+            ),
+            "gate_fee_type_team_manager": forms.Select(
+                attrs={
+                    "class": "form-select",
+                    "required": False,
+                }
+            ),
+            "gate_fee_amount_team_manager": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "min": "0",
+                    "placeholder": "0.00",
+                    "required": False,
+                }
+            ),
+            "service_fee_team_manager": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "min": "0",
+                    "max": "100",
+                    "placeholder": "0.00",
+                    "required": False,
+                }
+            ),
+            "default_entry_fee_spectator": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "min": "0",
+                    "placeholder": "0.00",
+                    "required": False,
+                }
+            ),
+            "payment_deadline_spectator": forms.DateInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "date",
+                    "required": False,
+                },
+                format="%Y-%m-%d",
+            ),
+            "gate_fee_type_spectator": forms.Select(
+                attrs={
+                    "class": "form-select",
+                    "required": False,
+                }
+            ),
+            "gate_fee_amount_spectator": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "min": "0",
+                    "placeholder": "0.00",
+                    "required": False,
+                }
+            ),
+            "service_fee_spectator": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "step": "0.01",
+                    "min": "0",
+                    "max": "100",
+                    "placeholder": "0.00",
+                    "required": False,
+                }
+            ),
             "primary_site": forms.Select(
                 attrs={
                     "class": "form-select",
@@ -277,6 +363,16 @@ class EventForm(forms.ModelForm):
             "gate_fee_type": "Tipo de Gate Fee",
             "gate_fee_amount": "Precio Gate Fee",
             "service_fee": "Service Fee (%)",
+            "default_entry_fee_team_manager": "Precio Evento (Team Manager)",
+            "payment_deadline_team_manager": "Día Límite de Pago (Team Manager)",
+            "gate_fee_type_team_manager": "Tipo de Gate Fee (Team Manager)",
+            "gate_fee_amount_team_manager": "Precio Gate Fee (Team Manager)",
+            "service_fee_team_manager": "Service Fee % (Team Manager)",
+            "default_entry_fee_spectator": "Precio Evento (Spectator)",
+            "payment_deadline_spectator": "Día Límite de Pago (Spectator)",
+            "gate_fee_type_spectator": "Tipo de Gate Fee (Spectator)",
+            "gate_fee_amount_spectator": "Precio Gate Fee (Spectator)",
+            "service_fee_spectator": "Service Fee % (Spectator)",
             "primary_site": "Sitio del Evento (Primary)",
             "additional_sites": "Sitios del Evento (Adicionales)",
             "hotel": "Hotel Sede",
@@ -309,6 +405,14 @@ class EventForm(forms.ModelForm):
             if self.instance.payment_deadline:
                 self.fields["payment_deadline"].initial = (
                     self.instance.payment_deadline.strftime("%Y-%m-%d")
+                )
+            if self.instance.payment_deadline_team_manager:
+                self.fields["payment_deadline_team_manager"].initial = (
+                    self.instance.payment_deadline_team_manager.strftime("%Y-%m-%d")
+                )
+            if self.instance.payment_deadline_spectator:
+                self.fields["payment_deadline_spectator"].initial = (
+                    self.instance.payment_deadline_spectator.strftime("%Y-%m-%d")
                 )
 
             # Asegurar que primary_site y additional_sites estén en el queryset
@@ -430,6 +534,22 @@ class EventForm(forms.ModelForm):
 
         if not self.fields["gate_fee_type"].empty_label:
             self.fields["gate_fee_type"].empty_label = "Seleccione un tipo de gate fee"
+
+        # Gate Fee Type Team Manager: configurar queryset
+        self.fields["gate_fee_type_team_manager"].queryset = GateFeeType.objects.filter(
+            is_active=True
+        ).order_by("name")
+
+        if not self.fields["gate_fee_type_team_manager"].empty_label:
+            self.fields["gate_fee_type_team_manager"].empty_label = "Seleccione un tipo de gate fee"
+
+        # Gate Fee Type Spectator: configurar queryset
+        self.fields["gate_fee_type_spectator"].queryset = GateFeeType.objects.filter(
+            is_active=True
+        ).order_by("name")
+
+        if not self.fields["gate_fee_type_spectator"].empty_label:
+            self.fields["gate_fee_type_spectator"].empty_label = "Seleccione un tipo de gate fee"
 
         # Primary Site: configurar queryset
         # Filtrar sitios activos - sin límite para evitar problemas de validación
