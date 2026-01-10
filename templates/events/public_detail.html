@@ -1,7 +1,6 @@
 {% load static %}
 {% load i18n %}
 {% load translation_tags %}
-{% load humanize %}
 {% get_current_language as CURRENT_LANGUAGE %}
 <!DOCTYPE html>
 <html lang="{% if CURRENT_LANGUAGE %}{{ CURRENT_LANGUAGE|slice:":2" }}{% else %}en{% endif %}">
