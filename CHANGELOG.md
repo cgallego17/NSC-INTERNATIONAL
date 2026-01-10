@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-09 23:02:20
+
+- **[3cfd2ff]** feat: Add Event Itinerary model and management functionality
+  - *Fecha:* 2026-01-09 23:02:19
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 4 archivo(s)
+    - `apps/events/migrations/0033_eventitinerary.py`
+    - `apps/events/models.py`
+    - `apps/events/views.py`
+    - `templates/events/event_form.html`
+  - *Detalles:*
+    - - Introduced the EventItinerary model to manage daily itineraries for events, including fields for day, title, description, and schedule items.
+    - - Updated EventCreateView and EventUpdateView to handle itinerary saving and processing upon event creation and updates.
+    - - Enhanced the event form template with a dynamic itinerary management interface, allowing users to add, edit, and remove itinerary days and activities.
+    - - Implemented JavaScript functionality for automatic day generation based on event start and end dates.
+
+
+
 ### Actualizado: 2026-01-09 22:32:20
 
 - **[44474d7]** Update CHANGELOG.md to include recent enhancements in media file management, documenting pagination implementation, user type pre-selection in registration, and improvements in event ID retrieval and error handling.
