@@ -7,6 +7,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-09 22:32:20
+
+- **[44474d7]** Update CHANGELOG.md to include recent enhancements in media file management, documenting pagination implementation, user type pre-selection in registration, and improvements in event ID retrieval and error handling.
+  - *Fecha:* 2026-01-09 22:32:19
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `CHANGELOG.md`
+
+
+
 ### Actualizado: 2026-01-09 22:31:15
 
 - **[a86c69b]** Update CHANGELOG.md to reflect recent enhancements in media file management, including pagination implementation, user type pre-selection in registration, and improvements in event ID retrieval and error handling.
