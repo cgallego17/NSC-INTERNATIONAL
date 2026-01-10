@@ -7,6 +7,20 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-09 22:29:39
+
+- **[eb25c2b]** Update CHANGELOG.md to include recent enhancements in media file management
+  - *Fecha:* 2026-01-09 22:29:39
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `CHANGELOG.md`
+  - *Detalles:*
+    - - Documented the implementation of pagination in the media file list AJAX view for improved navigation.
+    - - Added details on user type pre-selection in the public registration view based on URL parameters.
+    - - Noted refactoring of event ID retrieval logic and improvements in error handling during registration.
+
+
+
 ### Actualizado: 2026-01-09 22:26:37
 
 - **[9ea0d07]** feat: Implement pagination and user type pre-selection in media file management
