@@ -135,6 +135,27 @@ class PublicEventDetailView(DetailView):
             .select_related("category", "event_type", "city", "state")
             .order_by("start_date")[:6]
         )
+
+        # Obtener includes filtrados por user_type y activos
+        try:
+            from .models import EventIncludes
+            context["includes_player"] = (
+                EventIncludes.objects.filter(event=event, user_type="player", is_active=True)
+                .order_by("order", "title")
+            )
+            context["includes_team_manager"] = (
+                EventIncludes.objects.filter(event=event, user_type="team_manager", is_active=True)
+                .order_by("order", "title")
+            )
+            context["includes_spectator"] = (
+                EventIncludes.objects.filter(event=event, user_type="spectator", is_active=True)
+                .order_by("order", "title")
+            )
+        except ImportError:
+            context["includes_player"] = []
+            context["includes_team_manager"] = []
+            context["includes_spectator"] = []
+
         return context
 
 

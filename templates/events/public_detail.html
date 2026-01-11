@@ -535,6 +535,86 @@
             font-size: 1rem;
         }
 
+        /* Includes Section */
+        .plan-includes-section {
+            margin-top: 20px;
+            padding-top: 18px;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .plan-includes-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #7d8694;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .plan-includes-title i {
+            font-size: 0.9rem;
+            color: #95a5a6;
+        }
+
+        .plan-includes-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .plan-includes-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 0;
+            color: #495057;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .plan-includes-item:last-child {
+            padding-bottom: 0;
+        }
+
+        .plan-includes-item i {
+            color: #28a745;
+            margin-top: 3px;
+            font-size: 0.75rem;
+            width: 16px;
+            flex-shrink: 0;
+        }
+
+        .plan-card.player .plan-includes-item i {
+            color: var(--mlb-blue);
+        }
+
+        .plan-card.team .plan-includes-item i {
+            color: var(--mlb-red);
+        }
+
+        .plan-card.spectator .plan-includes-item i {
+            color: #28a745;
+        }
+
+        .plan-includes-item-content {
+            flex: 1;
+        }
+
+        .plan-includes-item-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 2px;
+        }
+
+        .plan-includes-item-description {
+            font-size: 0.8rem;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
         /* Select Button for Pricing */
         .pricing-select-btn {
             width: 100%;
@@ -1222,6 +1302,28 @@
                                 {% endif %}
                             </ul>
 
+                            {% if includes_player %}
+                            <div class="plan-includes-section">
+                                <div class="plan-includes-title">
+                                    <i class="fas fa-check-circle"></i>
+                                    {% trans "What's Included" %}
+                                </div>
+                                <ul class="plan-includes-list">
+                                    {% for include in includes_player %}
+                                    <li class="plan-includes-item">
+                                        <i class="fas fa-check"></i>
+                                        <div class="plan-includes-item-content">
+                                            <div class="plan-includes-item-title">{{ include.title }}</div>
+                                            {% if include.description %}
+                                            <div class="plan-includes-item-description">{{ include.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+
                             <a href="{% url 'accounts:register' %}?user_type=player&event_id={{ event.id }}" class="plan-register-btn">
                                 <i class="fas fa-user-plus"></i>
                                 {% trans "Register as Player" %}
@@ -1294,6 +1396,28 @@
                                 {% endif %}
                             </ul>
 
+                            {% if includes_team_manager %}
+                            <div class="plan-includes-section">
+                                <div class="plan-includes-title">
+                                    <i class="fas fa-check-circle"></i>
+                                    {% trans "What's Included" %}
+                                </div>
+                                <ul class="plan-includes-list">
+                                    {% for include in includes_team_manager %}
+                                    <li class="plan-includes-item">
+                                        <i class="fas fa-check"></i>
+                                        <div class="plan-includes-item-content">
+                                            <div class="plan-includes-item-title">{{ include.title }}</div>
+                                            {% if include.description %}
+                                            <div class="plan-includes-item-description">{{ include.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+
                             <a href="{% url 'accounts:register' %}?user_type=team_manager&event_id={{ event.id }}" class="plan-register-btn">
                                 <i class="fas fa-users-cog"></i>
                                 {% trans "Register as Team Manager" %}
@@ -1312,8 +1436,11 @@
                         </div>
                         <div class="plan-body">
                             <div class="plan-price-section">
-                                {% if event.default_entry_fee_spectator or event.default_entry_fee %}
-                                    <div class="plan-main-price">${{ event.default_entry_fee_spectator|default:event.default_entry_fee|floatformat:2 }}</div>
+                                {% if event.default_entry_fee_spectator is not None %}
+                                    <div class="plan-main-price">${{ event.default_entry_fee_spectator|floatformat:2 }}</div>
+                                    <div class="plan-main-price-label">{% trans "Entry Fee" %}</div>
+                                {% elif event.default_entry_fee is not None %}
+                                    <div class="plan-main-price">${{ event.default_entry_fee|floatformat:2 }}</div>
                                     <div class="plan-main-price-label">{% trans "Entry Fee" %}</div>
                                 {% else %}
                                     <div class="plan-main-price">-</div>
@@ -1365,6 +1492,28 @@
                                 </li>
                                 {% endif %}
                             </ul>
+
+                            {% if includes_spectator %}
+                            <div class="plan-includes-section">
+                                <div class="plan-includes-title">
+                                    <i class="fas fa-check-circle"></i>
+                                    {% trans "What's Included" %}
+                                </div>
+                                <ul class="plan-includes-list">
+                                    {% for include in includes_spectator %}
+                                    <li class="plan-includes-item">
+                                        <i class="fas fa-check"></i>
+                                        <div class="plan-includes-item-content">
+                                            <div class="plan-includes-item-title">{{ include.title }}</div>
+                                            {% if include.description %}
+                                            <div class="plan-includes-item-description">{{ include.description }}</div>
+                                            {% endif %}
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
 
                             <a href="{% url 'accounts:register' %}?user_type=spectator&event_id={{ event.id }}" class="plan-register-btn">
                                 <i class="fas fa-eye"></i>

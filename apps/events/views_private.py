@@ -6,7 +6,10 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Q
+from datetime import datetime
+from decimal import Decimal
+
+from django.db.models import Count, Q, Sum, Avg
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
@@ -461,6 +464,136 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             attendee_count=Count("attendees")
         ).order_by("-attendee_count")[:5]
 
+        # Estadísticas de órdenes y reservas (solo para staff)
+        orders_stats = {}
+        reservations_stats = {}
+        recent_orders = []
+        upcoming_reservations = []
+        monthly_revenue = Decimal("0.00")
+        total_revenue = Decimal("0.00")
+
+        if self.request.user.is_staff or self.request.user.is_superuser:
+            try:
+                from apps.accounts.models import Order
+                from apps.locations.models import HotelReservation
+                from django.db.models.functions import TruncMonth
+
+                # Estadísticas de órdenes
+                total_orders = Order.objects.count()
+                pending_orders = Order.objects.filter(status="pending").count()
+                paid_orders = Order.objects.filter(status="paid").count()
+                cancelled_orders = Order.objects.filter(status="cancelled").count()
+
+                # Ingresos
+                total_revenue_result = Order.objects.filter(status="paid").aggregate(
+                    total=Sum("total_amount")
+                )
+                total_revenue = total_revenue_result.get("total")
+                if total_revenue is None:
+                    total_revenue = Decimal("0.00")
+                else:
+                    total_revenue = Decimal(str(total_revenue))
+
+                # Ingresos del mes actual
+                current_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                monthly_revenue_result = Order.objects.filter(
+                    status="paid",
+                    created_at__gte=current_month_start
+                ).aggregate(total=Sum("total_amount"))
+                monthly_revenue = monthly_revenue_result.get("total")
+                if monthly_revenue is None:
+                    monthly_revenue = Decimal("0.00")
+                else:
+                    monthly_revenue = Decimal(str(monthly_revenue))
+
+                # Órdenes recientes
+                recent_orders = list(Order.objects.select_related(
+                    "user", "event"
+                ).order_by("-created_at")[:10])
+
+                orders_stats = {
+                    "total": total_orders,
+                    "pending": pending_orders,
+                    "paid": paid_orders,
+                    "cancelled": cancelled_orders,
+                    "total_revenue": total_revenue,
+                    "monthly_revenue": monthly_revenue,
+                }
+
+                # Estadísticas de reservas
+                total_reservations = HotelReservation.objects.count()
+                pending_reservations = HotelReservation.objects.filter(status="pending").count()
+                confirmed_reservations = HotelReservation.objects.filter(status="confirmed").count()
+                checked_in_reservations = HotelReservation.objects.filter(status="checked_in").count()
+                cancelled_reservations = HotelReservation.objects.filter(status="cancelled").count()
+
+                # Reservas próximas (check-in en los próximos 7 días)
+                today_date = now.date()
+                next_week = today_date + timedelta(days=7)
+                upcoming_reservations = list(HotelReservation.objects.filter(
+                    status__in=["confirmed", "pending"],
+                    check_in__gte=today_date,
+                    check_in__lte=next_week
+                ).select_related(
+                    "hotel", "room", "user"
+                ).order_by("check_in")[:10])
+
+                # Ingresos de reservas
+                reservations_revenue_result = HotelReservation.objects.filter(
+                    status__in=["confirmed", "checked_in"]
+                ).aggregate(total=Sum("total_amount"))
+                reservations_revenue = reservations_revenue_result.get("total") or Decimal("0.00")
+
+                reservations_stats = {
+                    "total": total_reservations,
+                    "pending": pending_reservations,
+                    "confirmed": confirmed_reservations,
+                    "checked_in": checked_in_reservations,
+                    "cancelled": cancelled_reservations,
+                    "revenue": reservations_revenue,
+                }
+
+            except Exception as e:
+                # Si hay algún error, registrar pero continuar con stats vacíos
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error al obtener estadísticas de órdenes y reservas: {e}", exc_info=True)
+                # Asegurar que los diccionarios existan aunque estén vacíos
+                if not orders_stats:
+                    orders_stats = {
+                        "total": 0,
+                        "pending": 0,
+                        "paid": 0,
+                        "cancelled": 0,
+                        "total_revenue": Decimal("0.00"),
+                        "monthly_revenue": Decimal("0.00"),
+                    }
+                if not reservations_stats:
+                    reservations_stats = {
+                        "total": 0,
+                        "pending": 0,
+                        "confirmed": 0,
+                        "checked_in": 0,
+                        "cancelled": 0,
+                        "revenue": Decimal("0.00"),
+                    }
+
+        # Estadísticas de usuarios (solo para staff)
+        total_users = 0
+        active_users = 0
+        total_players = 0
+
+        if self.request.user.is_staff or self.request.user.is_superuser:
+            try:
+                from django.contrib.auth.models import User
+                from apps.accounts.models import Profile
+
+                total_users = User.objects.count()
+                active_users = User.objects.filter(is_active=True).count()
+                total_players = Profile.objects.filter(user_type="player").count()
+            except ImportError:
+                pass
+
         context.update(
             {
                 "total_events": total_events,
@@ -475,6 +608,13 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "total_attendances": total_attendances,
                 "confirmed_attendances": confirmed_attendances,
                 "recent_events": recent_events,
+                "orders_stats": orders_stats,
+                "reservations_stats": reservations_stats,
+                "recent_orders": recent_orders,
+                "upcoming_reservations": upcoming_reservations,
+                "total_users": total_users,
+                "active_users": active_users,
+                "total_players": total_players,
             }
         )
 

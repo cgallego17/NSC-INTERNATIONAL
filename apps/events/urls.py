@@ -132,4 +132,5 @@ urlpatterns = [
     ),
     # API endpoints
     path("api/detail/<int:pk>/", views.EventDetailAPIView.as_view(), name="api_detail"),
+    path("ajax/<int:event_id>/services/", views.get_event_services, name="get_event_services"),
 ]

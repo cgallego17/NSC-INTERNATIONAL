@@ -722,14 +722,20 @@ class PublicRegistrationView(CreateView):
             % {"username": username},
         )
 
+        # Redirigir según el tipo real guardado en el perfil (puede venir mapeado desde el form)
+        profile_user_type = None
+        if hasattr(self.object, "profile"):
+            profile_user_type = self.object.profile.user_type
+        else:
+            profile_user_type = form.cleaned_data.get("user_type")
+
         # Si es manager, redirigir a crear equipo
-        user_type = form.cleaned_data.get("user_type")
-        if user_type == "team_manager":
+        if profile_user_type == "team_manager":
             messages.info(
                 self.request, _("Now you can create your first team to get started.")
             )
             return redirect("accounts:team_create")
-        elif user_type == "parent":
+        elif profile_user_type == "parent":
             messages.info(
                 self.request,
                 _(

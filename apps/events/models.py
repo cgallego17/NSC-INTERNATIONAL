@@ -158,6 +158,13 @@ class Event(models.Model):
     description = models.TextField(verbose_name="Short Description")
     tags = models.CharField(max_length=500, blank=True, verbose_name="Tags")
 
+    # Información específica por tipo de usuario - Individual Player
+    description_player = models.TextField(
+        blank=True,
+        verbose_name="Description (Individual Player)",
+        help_text="Descripción del evento para Individual Players",
+    )
+
     # Información específica por tipo de usuario - Team Manager
     title_team_manager = models.CharField(
         max_length=200,
@@ -679,11 +686,24 @@ class EventComment(models.Model):
 class EventItinerary(models.Model):
     """Itinerario diario del evento"""
 
+    USER_TYPE_CHOICES = [
+        ("player", "Jugador"),
+        ("team_manager", "Team Manager"),
+        ("spectator", "Spectator"),
+    ]
+
     event = models.ForeignKey(
         Event,
         on_delete=models.CASCADE,
         related_name="itinerary_items",
         verbose_name="Evento"
+    )
+    user_type = models.CharField(
+        max_length=20,
+        choices=USER_TYPE_CHOICES,
+        default="player",
+        verbose_name="Tipo de Usuario",
+        help_text="Tipo de usuario para el que es este itinerario"
     )
     day = models.DateField(
         verbose_name="Día",
@@ -715,14 +735,74 @@ class EventItinerary(models.Model):
     class Meta:
         verbose_name = "Item de Itinerario"
         verbose_name_plural = "Items de Itinerario"
-        ordering = ["day", "day_number"]
-        unique_together = ["event", "day"]
+        ordering = ["user_type", "day", "day_number"]
+        unique_together = [["event", "user_type", "day"]]
         indexes = [
-            models.Index(fields=["event", "day"]),
+            models.Index(fields=["event", "user_type", "day"]),
         ]
 
     def __str__(self):
-        return f"{self.event.title} - {self.title} ({self.day})"
+        user_type_display = self.get_user_type_display()
+        return f"{self.event.title} - {self.title} ({user_type_display}) - {self.day}"
+
+
+class EventIncludes(models.Model):
+    """Items incluidos en el evento por tipo de usuario"""
+
+    USER_TYPE_CHOICES = [
+        ("player", "Jugador"),
+        ("team_manager", "Team Manager"),
+        ("spectator", "Spectator"),
+    ]
+
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        related_name="includes_items",
+        verbose_name="Evento"
+    )
+    user_type = models.CharField(
+        max_length=20,
+        choices=USER_TYPE_CHOICES,
+        default="player",
+        verbose_name="Tipo de Usuario",
+        help_text="Tipo de usuario para el que es este item incluido"
+    )
+    title = models.CharField(
+        max_length=200,
+        verbose_name="Título",
+        help_text="Título del item incluido (ej: 'Comida incluida', 'Transporte incluido', etc.)"
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name="Descripción",
+        help_text="Descripción detallada del item incluido (opcional)"
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Orden",
+        help_text="Orden de visualización (menor número aparece primero)"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Activo",
+        help_text="Indica si este item está activo y se mostrará"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Item Incluido"
+        verbose_name_plural = "Items Incluidos"
+        ordering = ["user_type", "order", "title"]
+        unique_together = [["event", "user_type", "title"]]
+        indexes = [
+            models.Index(fields=["event", "user_type", "order"]),
+        ]
+
+    def __str__(self):
+        user_type_display = self.get_user_type_display()
+        return f"{self.event.title} - {self.title} ({user_type_display})"
 
 
 class EventReminder(models.Model):
@@ -857,3 +937,115 @@ class EventContact(models.Model):
         elif self.organization:
             return self.organization
         return ""
+
+
+class EventService(models.Model):
+    """Servicios adicionales que ofrece el evento con costo"""
+
+    SERVICE_TYPE_CHOICES = [
+        ("breakfast", "Desayuno"),
+        ("lunch", "Almuerzo"),
+        ("dinner", "Cena"),
+        ("parking", "Estacionamiento"),
+        ("wifi", "WiFi"),
+        ("laundry", "Lavandería"),
+        ("airport_shuttle", "Transporte al Aeropuerto"),
+        ("gym", "Gimnasio"),
+        ("pool", "Piscina"),
+        ("spa", "Spa"),
+        ("transportation", "Transporte"),
+        ("meal_plan", "Plan de Comidas"),
+        ("equipment_rental", "Alquiler de Equipo"),
+        ("tournament_fee", "Tarifa de Torneo"),
+        ("registration_packet", "Paquete de Registro"),
+        ("merchandise", "Mercancía"),
+        ("other", "Otro"),
+    ]
+
+    event = models.ForeignKey(
+        Event,
+        on_delete=models.CASCADE,
+        related_name="additional_services",
+        verbose_name="Evento",
+        help_text="Evento al que pertenece este servicio adicional",
+    )
+    service_name = models.CharField(
+        max_length=200,
+        verbose_name="Nombre del Servicio",
+        help_text="Nombre del servicio adicional",
+    )
+    service_type = models.CharField(
+        max_length=30,
+        choices=SERVICE_TYPE_CHOICES,
+        default="other",
+        verbose_name="Tipo de Servicio",
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name="Descripción",
+        help_text="Descripción detallada del servicio",
+    )
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Precio",
+        help_text="Precio del servicio",
+    )
+    is_per_person = models.BooleanField(
+        default=False,
+        verbose_name="Por Persona",
+        help_text="Indica si el precio es por persona o por servicio",
+    )
+    is_per_night = models.BooleanField(
+        default=False,
+        verbose_name="Por Noche",
+        help_text="Indica si el precio es por noche (útil para servicios de hotel)",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Activo",
+        help_text="Indica si el servicio está disponible para este evento",
+    )
+    order = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Orden",
+        help_text="Orden de visualización (menor número aparece primero)",
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Fecha de Creación"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, verbose_name="Fecha de Actualización"
+    )
+
+    class Meta:
+        verbose_name = "Servicio Adicional del Evento"
+        verbose_name_plural = "Servicios Adicionales del Evento"
+        ordering = ["event", "order", "service_name"]
+
+    def __str__(self):
+        return f"{self.event.title if self.event else 'Sin Evento'} - {self.service_name}"
+
+    def get_service_type_display_with_icon(self):
+        """Retorna el tipo de servicio con un ícono"""
+        icon_mapping = {
+            "breakfast": "fa-coffee",
+            "lunch": "fa-utensils",
+            "dinner": "fa-utensils",
+            "parking": "fa-parking",
+            "wifi": "fa-wifi",
+            "laundry": "fa-tshirt",
+            "airport_shuttle": "fa-shuttle-van",
+            "gym": "fa-dumbbell",
+            "pool": "fa-swimming-pool",
+            "spa": "fa-spa",
+            "transportation": "fa-bus",
+            "meal_plan": "fa-plate-wheat",
+            "equipment_rental": "fa-baseball-bat-ball",
+            "tournament_fee": "fa-trophy",
+            "registration_packet": "fa-box",
+            "merchandise": "fa-tshirt",
+            "other": "fa-star",
+        }
+        icon = icon_mapping.get(self.service_type, "fa-check-circle")
+        return f"<i class='fas {icon}'></i> {self.get_service_type_display()}"

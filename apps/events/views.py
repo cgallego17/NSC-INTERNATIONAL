@@ -1,8 +1,10 @@
 from datetime import timedelta
+from decimal import Decimal
 
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Q, Case, When, IntegerField, Value
+from django.db.models import Count, Q, Case, When, IntegerField, Value, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
@@ -22,7 +24,7 @@ from django.views.generic import (
 from apps.core.mixins import StaffRequiredMixin, SuperuserRequiredMixin
 
 from .forms import EventForm
-from .models import Division, Event, EventAttendance, EventCategory, EventItinerary
+from .models import Division, Event, EventAttendance, EventCategory, EventItinerary, EventIncludes, EventService
 
 
 class EventListView(StaffRequiredMixin, ListView):
@@ -472,40 +474,144 @@ class EventCreateView(StaffRequiredMixin, CreateView):
 
         # Procesar itinerario después de guardar el evento
         self.save_itinerary(self.object)
+        # Procesar includes después de guardar el evento
+        self.save_includes(self.object)
 
         messages.success(self.request, "Evento creado exitosamente.")
         return response
 
     def save_itinerary(self, event):
-        """Guarda el itinerario del evento"""
+        """Guarda el itinerario del evento para cada tipo de usuario"""
         import json
+        import logging
+        from datetime import datetime
+        from django.db import IntegrityError
 
-        # Obtener todos los días del itinerario del formulario
-        itinerary_days_data = self.request.POST.getlist('itinerary_days')
+        logger = logging.getLogger(__name__)
 
         # Eliminar itinerario existente si estamos editando
         EventItinerary.objects.filter(event=event).delete()
 
-        # Procesar cada día del itinerario
-        for day_data_str in itinerary_days_data:
-            try:
-                # Decodificar el HTML entity
-                day_data_str = day_data_str.replace('&#39;', "'")
-                day_data = json.loads(day_data_str)
+        # Procesar itinerarios para cada tipo de usuario
+        user_types = ['player', 'team_manager', 'spectator']
 
-                # Crear el item de itinerario
-                EventItinerary.objects.create(
-                    event=event,
-                    day=day_data.get('day'),
-                    day_number=day_data.get('dayNumber', 1),
-                    title=day_data.get('title', ''),
-                    description=day_data.get('description', ''),
-                    schedule_items=day_data.get('scheduleItems', [])
-                )
-            except (json.JSONDecodeError, KeyError, ValueError) as e:
-                # Si hay un error, simplemente continuar con el siguiente
-                print(f"Error al procesar día del itinerario: {e}")
-                continue
+        for user_type in user_types:
+            # Obtener todos los días del itinerario para este tipo de usuario
+            field_name = f'itinerary_days_{user_type}'
+            itinerary_days_data = self.request.POST.getlist(field_name)
+
+            logger.info(f"Guardando itinerario para {user_type}: {len(itinerary_days_data)} días encontrados")
+
+            # Validar días duplicados antes de crear
+            seen_days = set()
+
+            # Procesar cada día del itinerario
+            for idx, day_data_str in enumerate(itinerary_days_data):
+                try:
+                    # Decodificar el HTML entity
+                    day_data_str = day_data_str.replace('&#39;', "'").replace('&quot;', '"')
+                    day_data = json.loads(day_data_str)
+
+                    # Convertir el string de fecha a objeto date
+                    day_str = day_data.get('day', '').strip()
+                    if not day_str:
+                        logger.warning(f"Día {idx} de {user_type} sin fecha, omitiendo...")
+                        continue
+
+                    try:
+                        # Intentar parsear la fecha (formato ISO: YYYY-MM-DD)
+                        day_date = datetime.strptime(day_str, '%Y-%m-%d').date()
+                    except (ValueError, TypeError) as e:
+                        logger.error(f"Error al parsear fecha '{day_str}' en día {idx} de {user_type}: {e}")
+                        continue
+
+                    # Validar que no sea un día duplicado para este user_type
+                    day_key = (user_type, day_date)
+                    if day_key in seen_days:
+                        logger.warning(f"Día duplicado ignorado: {user_type} - {day_date} (día {idx})")
+                        continue
+                    seen_days.add(day_key)
+
+                    # Crear el item de itinerario con el user_type correcto
+                    try:
+                        itinerary_obj = EventItinerary.objects.create(
+                            event=event,
+                            user_type=user_type,
+                            day=day_date,
+                            day_number=int(day_data.get('dayNumber', 1)) or 1,
+                            title=day_data.get('title', '').strip() or '',
+                            description=day_data.get('description', '').strip() or '',
+                            schedule_items=day_data.get('scheduleItems', []) or []
+                        )
+                        logger.info(f"Itinerario creado: {itinerary_obj.title} ({user_type}) - {day_date} - Día #{itinerary_obj.day_number}")
+
+                    except IntegrityError as e:
+                        logger.error(f"Error de integridad al guardar día {idx} ({user_type}): {e}. Día: {day_date}")
+                        # Este error no debería ocurrir si validamos bien los duplicados, pero lo capturamos por seguridad
+                        continue
+
+                except (json.JSONDecodeError, KeyError, ValueError) as e:
+                    logger.error(f"Error al procesar día del itinerario {idx} ({user_type}): {e}. Datos: {day_data_str[:200]}")
+                    import traceback
+                    logger.error(traceback.format_exc())
+                    continue
+
+    def save_includes(self, event):
+        """Guarda los items incluidos del evento para cada tipo de usuario"""
+        import json
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+        # Eliminar includes existentes si estamos editando
+        EventIncludes.objects.filter(event=event).delete()
+
+        # Procesar includes para cada tipo de usuario
+        user_types = ['player', 'team_manager', 'spectator']
+
+        for user_type in user_types:
+            # Obtener todos los items incluidos para este tipo de usuario
+            field_name = f'includes_items_{user_type}'
+            includes_items_data = self.request.POST.getlist(field_name)
+
+            logger.info(f"Guardando includes para {user_type}: {len(includes_items_data)} items encontrados")
+
+            # Procesar cada item incluido
+            for idx, item_data_str in enumerate(includes_items_data):
+                try:
+                    # Decodificar el HTML entity
+                    item_data_str = item_data_str.replace('&#39;', "'").replace('&quot;', '"')
+
+                    # Intentar parsear el JSON
+                    try:
+                        item_data = json.loads(item_data_str)
+                    except json.JSONDecodeError as e:
+                        logger.error(f"Error de JSON en item {idx} de {user_type}: {e}. String recibido: {item_data_str[:100]}")
+                        continue
+
+                    # Validar que el título no esté vacío
+                    title = item_data.get('title', '').strip()
+                    if not title:
+                        logger.warning(f"Item {idx} de {user_type} sin título, omitiendo...")
+                        continue
+
+                    # Crear el item incluido con el user_type correcto
+                    include_obj = EventIncludes.objects.create(
+                        event=event,
+                        user_type=user_type,
+                        title=title,
+                        description=item_data.get('description', '').strip() or '',
+                        order=int(item_data.get('order', 0)) or 0,
+                        is_active=bool(item_data.get('isActive', True)) if 'isActive' in item_data else True
+                    )
+                    logger.info(f"Include creado: {include_obj.title} ({include_obj.user_type}) - Orden: {include_obj.order}")
+
+                except (json.JSONDecodeError, KeyError, ValueError, Exception) as e:
+                    # Si hay un error, registrar y continuar con el siguiente
+                    logger.error(f"Error al procesar item incluido {idx} ({user_type}): {e}. Datos: {item_data_str[:200]}")
+                    import traceback
+                    logger.error(traceback.format_exc())
+                    continue
 
 
 class EventUpdateView(StaffRequiredMixin, UpdateView):
@@ -537,40 +643,144 @@ class EventUpdateView(StaffRequiredMixin, UpdateView):
 
         # Procesar itinerario después de actualizar el evento
         self.save_itinerary(self.object)
+        # Procesar includes después de actualizar el evento
+        self.save_includes(self.object)
 
         messages.success(self.request, "Evento actualizado exitosamente.")
         return response
 
     def save_itinerary(self, event):
-        """Guarda el itinerario del evento"""
+        """Guarda el itinerario del evento para cada tipo de usuario"""
         import json
+        import logging
+        from datetime import datetime
+        from django.db import IntegrityError
 
-        # Obtener todos los días del itinerario del formulario
-        itinerary_days_data = self.request.POST.getlist('itinerary_days')
+        logger = logging.getLogger(__name__)
 
         # Eliminar itinerario existente si estamos editando
         EventItinerary.objects.filter(event=event).delete()
 
-        # Procesar cada día del itinerario
-        for day_data_str in itinerary_days_data:
-            try:
-                # Decodificar el HTML entity
-                day_data_str = day_data_str.replace('&#39;', "'")
-                day_data = json.loads(day_data_str)
+        # Procesar itinerarios para cada tipo de usuario
+        user_types = ['player', 'team_manager', 'spectator']
 
-                # Crear el item de itinerario
-                EventItinerary.objects.create(
-                    event=event,
-                    day=day_data.get('day'),
-                    day_number=day_data.get('dayNumber', 1),
-                    title=day_data.get('title', ''),
-                    description=day_data.get('description', ''),
-                    schedule_items=day_data.get('scheduleItems', [])
-                )
-            except (json.JSONDecodeError, KeyError, ValueError) as e:
-                # Si hay un error, simplemente continuar con el siguiente
-                print(f"Error al procesar día del itinerario: {e}")
-                continue
+        for user_type in user_types:
+            # Obtener todos los días del itinerario para este tipo de usuario
+            field_name = f'itinerary_days_{user_type}'
+            itinerary_days_data = self.request.POST.getlist(field_name)
+
+            logger.info(f"Guardando itinerario para {user_type}: {len(itinerary_days_data)} días encontrados")
+
+            # Validar días duplicados antes de crear
+            seen_days = set()
+
+            # Procesar cada día del itinerario
+            for idx, day_data_str in enumerate(itinerary_days_data):
+                try:
+                    # Decodificar el HTML entity
+                    day_data_str = day_data_str.replace('&#39;', "'").replace('&quot;', '"')
+                    day_data = json.loads(day_data_str)
+
+                    # Convertir el string de fecha a objeto date
+                    day_str = day_data.get('day', '').strip()
+                    if not day_str:
+                        logger.warning(f"Día {idx} de {user_type} sin fecha, omitiendo...")
+                        continue
+
+                    try:
+                        # Intentar parsear la fecha (formato ISO: YYYY-MM-DD)
+                        day_date = datetime.strptime(day_str, '%Y-%m-%d').date()
+                    except (ValueError, TypeError) as e:
+                        logger.error(f"Error al parsear fecha '{day_str}' en día {idx} de {user_type}: {e}")
+                        continue
+
+                    # Validar que no sea un día duplicado para este user_type
+                    day_key = (user_type, day_date)
+                    if day_key in seen_days:
+                        logger.warning(f"Día duplicado ignorado: {user_type} - {day_date} (día {idx})")
+                        continue
+                    seen_days.add(day_key)
+
+                    # Crear el item de itinerario con el user_type correcto
+                    try:
+                        itinerary_obj = EventItinerary.objects.create(
+                            event=event,
+                            user_type=user_type,
+                            day=day_date,
+                            day_number=int(day_data.get('dayNumber', 1)) or 1,
+                            title=day_data.get('title', '').strip() or '',
+                            description=day_data.get('description', '').strip() or '',
+                            schedule_items=day_data.get('scheduleItems', []) or []
+                        )
+                        logger.info(f"Itinerario creado: {itinerary_obj.title} ({user_type}) - {day_date} - Día #{itinerary_obj.day_number}")
+
+                    except IntegrityError as e:
+                        logger.error(f"Error de integridad al guardar día {idx} ({user_type}): {e}. Día: {day_date}")
+                        # Este error no debería ocurrir si validamos bien los duplicados, pero lo capturamos por seguridad
+                        continue
+
+                except (json.JSONDecodeError, KeyError, ValueError) as e:
+                    logger.error(f"Error al procesar día del itinerario {idx} ({user_type}): {e}. Datos: {day_data_str[:200]}")
+                    import traceback
+                    logger.error(traceback.format_exc())
+                    continue
+
+    def save_includes(self, event):
+        """Guarda los items incluidos del evento para cada tipo de usuario"""
+        import json
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+        # Eliminar includes existentes si estamos editando
+        EventIncludes.objects.filter(event=event).delete()
+
+        # Procesar includes para cada tipo de usuario
+        user_types = ['player', 'team_manager', 'spectator']
+
+        for user_type in user_types:
+            # Obtener todos los items incluidos para este tipo de usuario
+            field_name = f'includes_items_{user_type}'
+            includes_items_data = self.request.POST.getlist(field_name)
+
+            logger.info(f"Guardando includes para {user_type}: {len(includes_items_data)} items encontrados")
+
+            # Procesar cada item incluido
+            for idx, item_data_str in enumerate(includes_items_data):
+                try:
+                    # Decodificar el HTML entity
+                    item_data_str = item_data_str.replace('&#39;', "'").replace('&quot;', '"')
+
+                    # Intentar parsear el JSON
+                    try:
+                        item_data = json.loads(item_data_str)
+                    except json.JSONDecodeError as e:
+                        logger.error(f"Error de JSON en item {idx} de {user_type}: {e}. String recibido: {item_data_str[:100]}")
+                        continue
+
+                    # Validar que el título no esté vacío
+                    title = item_data.get('title', '').strip()
+                    if not title:
+                        logger.warning(f"Item {idx} de {user_type} sin título, omitiendo...")
+                        continue
+
+                    # Crear el item incluido con el user_type correcto
+                    include_obj = EventIncludes.objects.create(
+                        event=event,
+                        user_type=user_type,
+                        title=title,
+                        description=item_data.get('description', '').strip() or '',
+                        order=int(item_data.get('order', 0)) or 0,
+                        is_active=bool(item_data.get('isActive', True)) if 'isActive' in item_data else True
+                    )
+                    logger.info(f"Include creado: {include_obj.title} ({include_obj.user_type}) - Orden: {include_obj.order}")
+
+                except (json.JSONDecodeError, KeyError, ValueError, Exception) as e:
+                    # Si hay un error, registrar y continuar con el siguiente
+                    logger.error(f"Error al procesar item incluido {idx} ({user_type}): {e}. Datos: {item_data_str[:200]}")
+                    import traceback
+                    logger.error(traceback.format_exc())
+                    continue
 
 
 class EventDeleteView(SuperuserRequiredMixin, DeleteView):
@@ -1032,6 +1242,124 @@ class DashboardView(StaffRequiredMixin, TemplateView):
                 }
             )
 
+        # Estadísticas de órdenes y reservas (solo para staff)
+        orders_stats = {
+            "total": 0,
+            "pending": 0,
+            "paid": 0,
+            "cancelled": 0,
+            "total_revenue": Decimal("0.00"),
+            "monthly_revenue": Decimal("0.00"),
+        }
+        reservations_stats = {
+            "total": 0,
+            "pending": 0,
+            "confirmed": 0,
+            "checked_in": 0,
+            "cancelled": 0,
+            "revenue": Decimal("0.00"),
+        }
+        recent_orders = []
+        upcoming_reservations = []
+
+        if self.request.user.is_staff or self.request.user.is_superuser:
+            try:
+                from apps.accounts.models import Order
+                from apps.locations.models import HotelReservation
+
+                # Estadísticas de órdenes
+                total_orders = Order.objects.count()
+                pending_orders = Order.objects.filter(status="pending").count()
+                paid_orders = Order.objects.filter(status="paid").count()
+                cancelled_orders = Order.objects.filter(status="cancelled").count()
+
+                # Ingresos
+                total_revenue_result = Order.objects.filter(status="paid").aggregate(
+                    total=Sum("total_amount")
+                )
+                total_revenue = total_revenue_result.get("total")
+                if total_revenue is None:
+                    total_revenue = Decimal("0.00")
+                else:
+                    total_revenue = Decimal(str(total_revenue))
+
+                # Ingresos del mes actual
+                current_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                monthly_revenue_result = Order.objects.filter(
+                    status="paid",
+                    created_at__gte=current_month_start
+                ).aggregate(total=Sum("total_amount"))
+                monthly_revenue = monthly_revenue_result.get("total")
+                if monthly_revenue is None:
+                    monthly_revenue = Decimal("0.00")
+                else:
+                    monthly_revenue = Decimal(str(monthly_revenue))
+
+                # Órdenes recientes
+                recent_orders = list(Order.objects.select_related(
+                    "user", "event"
+                ).order_by("-created_at")[:10])
+
+                orders_stats = {
+                    "total": total_orders,
+                    "pending": pending_orders,
+                    "paid": paid_orders,
+                    "cancelled": cancelled_orders,
+                    "total_revenue": total_revenue,
+                    "monthly_revenue": monthly_revenue,
+                }
+
+                # Estadísticas de reservas
+                total_reservations = HotelReservation.objects.count()
+                pending_reservations = HotelReservation.objects.filter(status="pending").count()
+                confirmed_reservations = HotelReservation.objects.filter(status="confirmed").count()
+                checked_in_reservations = HotelReservation.objects.filter(status="checked_in").count()
+                cancelled_reservations = HotelReservation.objects.filter(status="cancelled").count()
+
+                # Reservas próximas (check-in en los próximos 7 días)
+                today_date = now.date()
+                next_week = today_date + timedelta(days=7)
+                upcoming_reservations = list(HotelReservation.objects.filter(
+                    status__in=["confirmed", "pending"],
+                    check_in__gte=today_date,
+                    check_in__lte=next_week
+                ).select_related(
+                    "hotel", "room", "user"
+                ).order_by("check_in")[:10])
+
+                # Ingresos de reservas
+                reservations_revenue_result = HotelReservation.objects.filter(
+                    status__in=["confirmed", "checked_in"]
+                ).aggregate(total=Sum("total_amount"))
+                reservations_revenue = reservations_revenue_result.get("total")
+                if reservations_revenue is None:
+                    reservations_revenue = Decimal("0.00")
+                else:
+                    reservations_revenue = Decimal(str(reservations_revenue))
+
+                reservations_stats = {
+                    "total": total_reservations,
+                    "pending": pending_reservations,
+                    "confirmed": confirmed_reservations,
+                    "checked_in": checked_in_reservations,
+                    "cancelled": cancelled_reservations,
+                    "revenue": reservations_revenue,
+                }
+
+            except Exception as e:
+                # Si hay algún error, registrar pero continuar con stats vacíos
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error al obtener estadísticas de órdenes y reservas: {e}", exc_info=True)
+
+        # Actualizar el contexto con las estadísticas de órdenes y reservas
+        context.update({
+            "orders_stats": orders_stats,
+            "reservations_stats": reservations_stats,
+            "recent_orders": recent_orders,
+            "upcoming_reservations": upcoming_reservations,
+        })
+
         return context
 
 
@@ -1360,3 +1688,32 @@ class SendEventEmailView(StaffRequiredMixin, View):
         except Exception as e:
             messages.error(request, f"Error al enviar emails: {str(e)}")
             return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+@login_required
+def get_event_services(request, event_id):
+    """API para obtener servicios adicionales disponibles de un evento"""
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Authentication required"}, status=401)
+
+    try:
+        event = Event.objects.get(id=event_id, status="published")
+        services = event.additional_services.filter(is_active=True).order_by("order", "service_name")
+
+        services_data = []
+        for service in services:
+            services_data.append(
+                {
+                    "id": service.id,
+                    "service_name": service.service_name,
+                    "service_type": service.get_service_type_display(),
+                    "price": str(service.price),
+                    "is_per_person": service.is_per_person,
+                    "is_per_night": service.is_per_night,
+                    "description": service.description or "",
+                }
+            )
+
+        return JsonResponse({"services": services_data}, safe=False)
+    except Event.DoesNotExist:
+        return JsonResponse({"error": "Event not found"}, status=404)

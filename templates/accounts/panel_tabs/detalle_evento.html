@@ -1089,7 +1089,8 @@
                     <i class="fas fa-shopping-cart me-2" style="color: var(--mlb-red);"></i>{% trans "Checkout" %}
                 </h4>
 
-                <!-- Paso 1: Seleccionar Jugadores -->
+                <!-- Paso 1: Seleccionar Jugadores (Solo si NO es espectador) -->
+                {% if not is_spectator %}
                 {% if has_ineligible_children %}
                     <div class="alert alert-warning mb-4" style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 12px; padding: 15px;">
                         <div style="display: flex; align-items: flex-start; gap: 12px;">
@@ -1206,12 +1207,25 @@
                         </div>
                     </div>
                 {% endif %}
+                {% else %}
+                    <!-- Para espectadores: Mensaje informativo -->
+                    <div class="alert alert-info mb-4" style="background: #d1ecf1; border: 2px solid #0dcaf0; border-radius: 12px; padding: 15px;">
+                        <div style="display: flex; align-items: flex-start; gap: 12px;">
+                            <i class="fas fa-info-circle" style="color: #0c5460; font-size: 1.2rem; margin-top: 2px; flex-shrink: 0;"></i>
+                            <div style="flex: 1;">
+                                <p style="color: #0c5460; font-weight: 600; margin-bottom: 0; font-size: 0.9rem;">
+                                    {% trans "As a spectator, you can book hotel accommodations and additional services without registering players." %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
 
-                <!-- Paso 2: Add Hotel Stay -->
+                <!-- Paso 2: Add Hotel Stay (Paso 1 para espectadores) -->
                         {% if event.hotel %}
                     <div class="checkout-step mb-4" id="step-hotel">
                         <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 12px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
-                            <span style="background: var(--mlb-red); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">2</span>
+                            <span style="background: var(--mlb-red); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">{% if is_spectator %}1{% else %}2{% endif %}</span>
                             <i class="fas fa-hotel me-1" style="color: var(--mlb-red);"></i>{% trans "Add Hotel Stay" %}
                         </h5>
 
@@ -1399,7 +1413,7 @@
                     </div>
                 </div>
 
-                {% if not children %}
+                {% if not children and not is_spectator %}
                     <div class="alert alert-warning alert-persistent" style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 12px; padding: 20px; text-align: center; margin-top: 20px;">
                         <i class="fas fa-exclamation-triangle fa-2x mb-3" style="color: #856404;"></i>
                         <p style="color: #856404; font-weight: 600; margin-bottom: 10px;">
@@ -1839,11 +1853,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Shared handler: open hotel room selector from checkout buttons
     window.openHotelRoomSelector = function openHotelRoomSelector() {
+        {% if not is_spectator %}
         const selectedPlayersCount = document.querySelectorAll('.child-checkbox:checked:not(:disabled)').length;
         if (selectedPlayersCount <= 0) {
             alert('{% trans "Please select at least 1 player before adding a hotel stay." %}');
             return;
         }
+        {% endif %}
         if (!window.NSC_HotelReservation) {
             console.error('NSC_HotelReservation not found');
             return;
@@ -1870,6 +1886,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        const isSpectator = {% if is_spectator %}true{% else %}false{% endif %};
         const playersCount = document.querySelectorAll('.child-checkbox:checked:not(:disabled)').length;
         const playersTotal = playersCount * pricePerPlayer;
         const addHotelBtn = document.getElementById('add-hotel-stay-btn');
@@ -1885,14 +1902,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Actualizar resumen de jugadores
+        // Actualizar resumen de jugadores (solo si NO es espectador o si hay jugadores seleccionados)
         const playersSummary = document.getElementById('checkout-players-summary');
         const playersCountSpan = document.getElementById('checkout-players-count');
         const playersTotalSpan = document.getElementById('checkout-players-total');
         const emptyMessage = document.getElementById('checkout-empty-message');
 
         if (playersSummary) {
-            if (playersCount > 0) {
+            if (!isSpectator && playersCount > 0) {
                 playersSummary.style.display = 'block';
                 if (playersCountSpan) {
                     playersCountSpan.textContent = playersCount;
@@ -1905,14 +1922,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Step 2: require players before allowing hotel selection
+        // Step 2: require players before allowing hotel selection (solo si NO es espectador)
         if (addHotelBtn) {
-            addHotelBtn.disabled = playersCount <= 0;
+            addHotelBtn.disabled = !isSpectator && playersCount <= 0;
         }
         if (addHotelHint) {
-            addHotelHint.textContent = (playersCount <= 0)
-                ? '{% trans "Select player(s) first to continue." %}'
-                : '';
+            if (!isSpectator && playersCount <= 0) {
+                addHotelHint.textContent = '{% trans "Select player(s) first to continue." %}';
+            } else {
+                addHotelHint.textContent = '';
+            }
         }
 
         // Actualizar resumen de hotel con información detallada e impuestos
@@ -2306,10 +2325,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Habilitar/deshabilitar botones de pago
+        // Para espectadores: habilitar si hay hotel o adicionales; para otros: requerir jugadores
+        const isSpectator = {% if is_spectator %}true{% else %}false{% endif %};
+        const hasHotelOrAddons = window.checkoutItems && (window.checkoutItems.hotel || (window.checkoutItems.addons && window.checkoutItems.addons.length > 0));
         const payPlanBtn = document.getElementById('pay-plan-btn');
         const payNowBtn = document.getElementById('pay-now-btn');
         if (payPlanBtn && payNowBtn) {
-            if (playersCount > 0) {
+            const canProceed = isSpectator ? (hasHotelOrAddons || playersCount > 0) : (playersCount > 0);
+            if (canProceed) {
                 [payPlanBtn, payNowBtn].forEach((btn) => {
                     btn.disabled = false;
                     btn.style.opacity = '1';
@@ -2391,10 +2414,19 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Verificar que hay jugadores seleccionados y calcular valores
+        // Verificar que hay jugadores seleccionados o hotel/adicionales (solo si NO es espectador, requerir jugadores)
+        const isSpectator = {% if is_spectator %}true{% else %}false{% endif %};
         const playersCount = document.querySelectorAll('.child-checkbox:checked:not(:disabled)').length;
-        if (playersCount === 0) {
+        const hasHotelOrAddons = window.checkoutItems && (window.checkoutItems.hotel || (window.checkoutItems.addons && window.checkoutItems.addons.length > 0));
+
+        if (!isSpectator && playersCount === 0) {
             alert('{% trans "Please select at least one player to register." %}');
+            return;
+        }
+
+        // Para espectadores: al menos debe haber hotel o adicionales
+        if (isSpectator && playersCount === 0 && !hasHotelOrAddons) {
+            alert('{% trans "Please add hotel accommodation or additional services to continue." %}');
             return;
         }
 
@@ -2407,9 +2439,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const discountAllowed = (mode === 'now') && !!window.checkoutItems.hotel;
         if (discountPercentInput) discountPercentInput.value = discountAllowed ? '5' : '0';
 
-        // Compute current no-show fee like the UI (reutilizar playersCount ya declarado arriba)
+        // Compute current no-show fee like the UI
+        // Para no espectadores: aplicar si hay hotel del evento, jugadores seleccionados, y no se reservó hotel
+        // Para espectadores: aplicar si hay hotel del evento y no se reservó hotel (no requiere jugadores)
         const hasEventHotel = {% if event.hotel %}true{% else %}false{% endif %};
-        const applyNoShowFee = hasEventHotel && (playersCount > 0) && !window.checkoutItems.hotel;
+        const applyNoShowFee = hasEventHotel && !window.checkoutItems.hotel && (isSpectator || playersCount > 0);
         const noShowFee = applyNoShowFee ? 1000 : 0;
         const noShowFeeInput = document.getElementById('no-show-fee-input');
         if (noShowFeeInput) noShowFeeInput.value = String(noShowFee);
@@ -2848,11 +2882,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Override openHotelRoomSelector to use Vue
         const originalOpenHotelRoomSelector = window.openHotelRoomSelector;
         window.openHotelRoomSelector = function() {
+            const isSpectator = {% if is_spectator %}true{% else %}false{% endif %};
+            {% if not is_spectator %}
             const selectedPlayersCount = document.querySelectorAll('.child-checkbox:checked:not(:disabled)').length;
             if (selectedPlayersCount <= 0) {
                 alert('{% trans "Please select at least 1 player before adding a hotel stay." %}');
                 return;
             }
+            {% endif %}
 
             // Show Vue app container
             if (appElement) {

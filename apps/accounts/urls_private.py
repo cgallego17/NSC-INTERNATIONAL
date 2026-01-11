@@ -35,6 +35,9 @@ urlpatterns = [
     path('events/<int:pk>/', views_private.PanelEventDetailView.as_view(), name='panel_event_detail'),
     path('events/<int:pk>/register/', views_private.register_children_to_event, name='register_children_to_event'),
 
+    # API para obtener servicios adicionales del evento
+    path('events/<int:event_id>/services/', views_private.get_event_services, name='get_event_services'),
+
     # Stripe checkout (evento)
     path('events/<int:pk>/stripe/create-checkout-session/', views_private.create_stripe_event_checkout_session, name='create_stripe_event_checkout_session'),
     path('events/<int:pk>/stripe/success/', views_private.stripe_event_checkout_success, name='stripe_event_checkout_success'),

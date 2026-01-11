@@ -3314,6 +3314,17 @@ const EventDetailApp = {
 
         // Computed properties
         const selectedChildrenCount = computed(() => selectedChildren.value.length);
+        const isSpectator = computed(() => eventData.value?.user_type === 'spectator');
+        const hasHotelOrRooms = computed(() => reservation.state.rooms && reservation.state.rooms.length > 0);
+
+        // Para espectadores: habilitar si hay jugadores O hotel/adicionales; para otros: requerir jugadores
+        const canProceedToCheckout = computed(() => {
+            if (isSpectator.value) {
+                return selectedChildrenCount.value > 0 || hasHotelOrRooms.value;
+            }
+            return selectedChildrenCount.value > 0;
+        });
+
         const playersTotal = computed(() => {
             if (!eventData.value) return 0;
             return selectedChildrenCount.value * (eventData.value.default_entry_fee || 0);
@@ -3351,7 +3362,7 @@ const EventDetailApp = {
         // Handle hotel room selector
         function openHotelRoomSelector() {
             const count = selectedChildrenCount.value || 0;
-            if (count <= 0) {
+            if (!isSpectator.value && count <= 0) {
                 const msg = $t('selectPlayersBeforeHotel') || 'Please select at least 1 player before adding a hotel stay.';
                 toast.show(msg, 'warning');
                 // Alerta de respaldo para asegurar visibilidad
@@ -3520,8 +3531,15 @@ const EventDetailApp = {
             console.log('═══════════════════════════════════════════════════════════════');
             console.log('═══════════════════════════════════════════════════════════════');
 
-            if (selectedChildrenCount.value === 0) {
+            // Si NO es espectador, requerir jugadores
+            if (!isSpectator.value && selectedChildrenCount.value === 0) {
                 toast.show($t('selectPlayersBeforeCheckout') || 'Please select at least one player to register.', 'warning');
+                return;
+            }
+
+            // Para espectadores: al menos debe haber hotel o adicionales
+            if (isSpectator.value && selectedChildrenCount.value === 0 && !hasHotelOrRooms.value) {
+                toast.show('Please add hotel accommodation or additional services to continue.' || 'Please add hotel accommodation or additional services to continue.', 'warning');
                 return;
             }
 
@@ -3808,6 +3826,9 @@ const EventDetailApp = {
             registrant,
             selectedChildren,
             selectedChildrenCount,
+            isSpectator,
+            hasHotelOrRooms,
+            canProceedToCheckout,
             playersTotal,
             checkoutTotals,
             videoInfo,
@@ -4322,7 +4343,7 @@ const EventDetailApp = {
                                 <button type="button"
                                         class="btn"
                                         @click="handlePaymentPlan"
-                                        :disabled="selectedChildrenCount === 0 || loading"
+                                        :disabled="!canProceedToCheckout || loading"
                                         :style="{
                                             flex: 1,
                                             background: '#f8f9fa',
@@ -4332,7 +4353,7 @@ const EventDetailApp = {
                                             padding: '12px',
                                             fontWeight: '800',
                                             transition: 'all 0.2s',
-                                            opacity: (selectedChildrenCount === 0 || loading) ? 0.5 : 1,
+                                            opacity: (!canProceedToCheckout || loading) ? 0.5 : 1,
                                             cursor: (selectedChildrenCount === 0 || loading) ? 'not-allowed' : 'pointer',
                                             textAlign: 'left'
                                         }">
@@ -4351,7 +4372,7 @@ const EventDetailApp = {
                                 <button type="button"
                                         class="btn"
                                         @click="handlePayNow"
-                                        :disabled="selectedChildrenCount === 0 || loading"
+                                        :disabled="!canProceedToCheckout || loading"
                                         :style="{
                                             flex: 1,
                                             background: 'linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%)',
@@ -4361,7 +4382,7 @@ const EventDetailApp = {
                                             padding: '12px',
                                             fontWeight: '800',
                                             transition: 'all 0.2s',
-                                            opacity: (selectedChildrenCount === 0 || loading) ? 0.5 : 1,
+                                            opacity: (!canProceedToCheckout || loading) ? 0.5 : 1,
                                             cursor: (selectedChildrenCount === 0 || loading) ? 'not-allowed' : 'pointer',
                                             textAlign: 'left'
                                         }">

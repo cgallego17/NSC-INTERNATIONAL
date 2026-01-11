@@ -79,7 +79,15 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             # Crear perfil si no existe
             profile = UserProfile.objects.create(user=user, user_type="player")
 
+        # Si el usuario tiene relación PlayerParent pero su perfil quedó como "player",
+        # corregirlo para que el panel muestre las tabs correctas.
+        has_children_relation = PlayerParent.objects.filter(parent=user).exists()
+        if profile.user_type == "player" and has_children_relation:
+            profile.user_type = "parent"
+            profile.save(update_fields=["user_type"])
+
         context["profile"] = profile
+        context["is_parent_user"] = profile.is_parent or has_children_relation
 
         # Si es jugador, obtener información del jugador
         if profile.is_player:
@@ -920,7 +928,8 @@ class PlayerListView(StaffRequiredMixin, ListView):
 
         # Divisiones desde el modelo Player
         from apps.events.models import Division
-        context["divisions"] = Division.objects.filter(is_active=True).order_by('name')
+
+        context["divisions"] = Division.objects.filter(is_active=True).order_by("name")
 
         # Guardar filtros actuales para mantenerlos en la paginación
         context["current_filters"] = {
@@ -1438,6 +1447,18 @@ class PanelEventDetailView(UserDashboardView):
             context["active_tab"] = "detalle-eventos"
             context["event_detail_template"] = "accounts/panel_tabs/detalle_evento.html"
 
+            # Verificar si el usuario es espectador
+            context["is_spectator"] = (
+                hasattr(user, "profile") and user.profile.is_spectator
+            )
+
+            # Obtener servicios adicionales del evento (en lugar del hotel)
+            from apps.events.models import EventService
+
+            context["event_services"] = EventService.objects.filter(
+                event=event, is_active=True
+            ).order_by("order", "service_name")
+
             # Obtener los hijos/jugadores del usuario
             children = []
             if hasattr(user, "profile") and user.profile.is_parent:
@@ -1446,7 +1467,12 @@ class PanelEventDetailView(UserDashboardView):
 
                 player_parents = PlayerParent.objects.filter(
                     parent=user
-                ).select_related("player", "player__user", "player__user__profile", "player__division")
+                ).select_related(
+                    "player",
+                    "player__user",
+                    "player__user__profile",
+                    "player__division",
+                )
 
                 # Obtener todos los jugadores activos
                 all_active_children = [
@@ -1460,7 +1486,9 @@ class PanelEventDetailView(UserDashboardView):
 
                 if event_divisions.exists():
                     # Ahora que ambos usan el mismo modelo Division, comparar directamente por ID
-                    event_division_ids = set(event_divisions.values_list("id", flat=True))
+                    event_division_ids = set(
+                        event_divisions.values_list("id", flat=True)
+                    )
 
                     for pp in player_parents:
                         if pp.player.is_active:
@@ -1481,7 +1509,9 @@ class PanelEventDetailView(UserDashboardView):
                 # Mostrar TODOS los jugadores (no filtrar)
                 children = children_with_status
                 # Guardar IDs de jugadores ineligibles para marcarlos como disabled en el template
-                context["ineligible_player_ids"] = ineligible_player_ids if ineligible_player_ids else set()
+                context["ineligible_player_ids"] = (
+                    ineligible_player_ids if ineligible_player_ids else set()
+                )
                 context["has_ineligible_children"] = len(ineligible_player_ids) > 0
 
             context["children"] = children
@@ -1834,6 +1864,14 @@ def _compute_hotel_amount_from_vue_payload(payload: dict) -> dict:
     }
 
 
+@login_required
+def get_event_services(request, event_id):
+    """API para obtener servicios adicionales disponibles de un evento (wrapper para acceso desde panel)"""
+    from apps.events.views import get_event_services as events_get_event_services
+
+    return events_get_event_services(request, event_id)
+
+
 def _plan_months_until_deadline(payment_deadline):
     """
     Matches the frontend: inclusive months from current month through deadline month.
@@ -1880,66 +1918,99 @@ def create_stripe_event_checkout_session(request, pk):
     event = get_object_or_404(Event, pk=pk)
     user = request.user
 
-    if not (hasattr(user, "profile") and user.profile.is_parent):
+    # Verificar si el usuario es espectador
+    is_spectator = hasattr(user, "profile") and user.profile.is_spectator
+
+    # Solo padres y espectadores pueden pagar por registros
+    if not (hasattr(user, "profile") and (user.profile.is_parent or is_spectator)):
         return JsonResponse(
-            {"success": False, "error": _("Only parents can pay for registrations.")},
+            {
+                "success": False,
+                "error": _("Only parents and spectators can pay for registrations."),
+            },
             status=403,
         )
 
     player_ids = request.POST.getlist("players")
-    if not player_ids:
-        return JsonResponse(
-            {"success": False, "error": _("Select at least 1 player.")}, status=400
-        )
+    valid_players = []
 
-    player_parents = PlayerParent.objects.filter(
-        parent=user, player_id__in=player_ids
-    ).select_related("player", "player__user")
-    valid_players = [
-        pp.player for pp in player_parents if getattr(pp.player, "is_active", True)
-    ]
-    if len(valid_players) != len(player_ids):
-        return JsonResponse(
-            {
-                "success": False,
-                "error": _(
-                    "There are invalid players or players that do not belong to the user."
-                ),
-            },
-            status=400,
-        )
-
-    # Verificar que ningún jugador ya esté registrado en el evento (solo confirmed, no pending)
-    # porque pendientes pueden existir de intentos anteriores que no completaron el pago
-    from apps.events.models import EventAttendance
-
-    already_registered = []
-    for player in valid_players:
-        # Solo verificar status="confirmed", no "pending", porque pending puede existir sin pago
-        if EventAttendance.objects.filter(
-            event=event, user=player.user, status="confirmed"
-        ).exists():
-            already_registered.append(
-                player.user.get_full_name() or player.user.username
+    # Si NO es espectador, requerir jugadores
+    if not is_spectator:
+        if not player_ids:
+            return JsonResponse(
+                {"success": False, "error": _("Select at least 1 player.")}, status=400
             )
 
-    if already_registered:
-        return JsonResponse(
-            {
-                "success": False,
-                "error": _(
-                    "The following players are already registered and confirmed for this event: %(players)s"
+        player_parents = PlayerParent.objects.filter(
+            parent=user, player_id__in=player_ids
+        ).select_related("player", "player__user")
+        valid_players = [
+            pp.player for pp in player_parents if getattr(pp.player, "is_active", True)
+        ]
+        if len(valid_players) != len(player_ids):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": _(
+                        "There are invalid players or players that do not belong to the user."
+                    ),
+                },
+                status=400,
+            )
+
+        # Verificar que ningún jugador ya esté registrado en el evento (solo confirmed, no pending)
+        # porque pendientes pueden existir de intentos anteriores que no completaron el pago
+        from apps.events.models import EventAttendance
+
+        already_registered = []
+        for player in valid_players:
+            # Solo verificar status="confirmed", no "pending", porque pending puede existir sin pago
+            if EventAttendance.objects.filter(
+                event=event, user=player.user, status="confirmed"
+            ).exists():
+                already_registered.append(
+                    player.user.get_full_name() or player.user.username
                 )
-                % {"players": ", ".join(already_registered)},
-            },
-            status=400,
-        )
+
+        if already_registered:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": _(
+                        "The following players are already registered and confirmed for this event: %(players)s"
+                    )
+                    % {"players": ", ".join(already_registered)},
+                },
+                status=400,
+            )
+
+    # Si es espectador y no hay jugadores ni hotel/adicionales, requerir al menos hotel
+    if is_spectator and not player_ids:
+        hotel_payload_raw = request.POST.get("hotel_reservation_json") or ""
+        cart = request.session.get("hotel_cart", {}) or {}
+        if not hotel_payload_raw and not cart:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": _(
+                        "Spectators must select hotel accommodation or additional services."
+                    ),
+                },
+                status=400,
+            )
 
     payment_mode = request.POST.get("payment_mode", "plan")
     if payment_mode not in ("plan", "now"):
         payment_mode = "plan"
 
-    entry_fee = _decimal(getattr(event, "default_entry_fee", None), default="0.00")
+    # Usar entry_fee específico según el tipo de usuario
+    if is_spectator:
+        entry_fee = _decimal(
+            getattr(event, "default_entry_fee_spectator", None), default="0.00"
+        )
+    else:
+        entry_fee = _decimal(getattr(event, "default_entry_fee", None), default="0.00")
+
     players_count = int(len(valid_players))
     players_total = (entry_fee * Decimal(str(players_count))).quantize(Decimal("0.01"))
 
@@ -2251,13 +2322,15 @@ def create_stripe_event_checkout_session(request, pk):
         else Decimal("0.00")
     )
 
-    subtotal = (players_total + hotel_total + hotel_buy_out_fee).quantize(Decimal("0.01"))
+    subtotal = (players_total + hotel_total + hotel_buy_out_fee).quantize(
+        Decimal("0.01")
+    )
 
     # Service fee: porcentaje del subtotal
     service_fee_percent = _decimal(getattr(event, "service_fee", None), default="0.00")
-    service_fee_amount = (
-        subtotal * (service_fee_percent / Decimal("100"))
-    ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    service_fee_amount = (subtotal * (service_fee_percent / Decimal("100"))).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
 
     # Aplicar descuento al subtotal + service fee
     total_before_discount = (subtotal + service_fee_amount).quantize(Decimal("0.01"))
@@ -2332,9 +2405,9 @@ def create_stripe_event_checkout_session(request, pk):
 
     if payment_mode == "plan":
         # Plan doesn't apply discount. Monthly amount is approximate = (subtotal + service_fee) / months.
-        plan_monthly_amount = (total_before_discount / Decimal(str(plan_months))).quantize(
-            Decimal("0.01"), rounding=ROUND_HALF_UP
-        )
+        plan_monthly_amount = (
+            total_before_discount / Decimal(str(plan_months))
+        ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
         if plan_monthly_amount <= 0:
             return JsonResponse(
                 {"success": False, "error": _("There is nothing to charge.")},
@@ -2347,9 +2420,7 @@ def create_stripe_event_checkout_session(request, pk):
             f"Ends automatically."
         )
         if service_fee_amount > 0:
-            plan_description += (
-                f" Includes service fee ({service_fee_percent}%)."
-            )
+            plan_description += f" Includes service fee ({service_fee_percent}%)."
 
         line_items = [
             {
@@ -2534,7 +2605,9 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
         players_total = breakdown_data.get("players_total", Decimal("0.00"))
         hotel_total = breakdown_data.get("hotel_total", Decimal("0.00"))
         # Soporte para ambos nombres (legacy: no_show_fee, nuevo: hotel_buy_out_fee)
-        hotel_buy_out_fee = breakdown_data.get("hotel_buy_out_fee") or breakdown_data.get("no_show_fee", Decimal("0.00"))
+        hotel_buy_out_fee = breakdown_data.get(
+            "hotel_buy_out_fee"
+        ) or breakdown_data.get("no_show_fee", Decimal("0.00"))
         # Asegurar que son Decimal
         if isinstance(players_total, str):
             players_total = Decimal(players_total)
@@ -2547,7 +2620,11 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
         if isinstance(hotel_buy_out_fee, str):
             hotel_buy_out_fee = Decimal(hotel_buy_out_fee)
         elif not isinstance(hotel_buy_out_fee, Decimal):
-            hotel_buy_out_fee = Decimal(str(hotel_buy_out_fee)) if hotel_buy_out_fee else Decimal("0.00")
+            hotel_buy_out_fee = (
+                Decimal(str(hotel_buy_out_fee))
+                if hotel_buy_out_fee
+                else Decimal("0.00")
+            )
         subtotal = players_total + hotel_total + hotel_buy_out_fee
 
     tax_amount = breakdown.get("tax_amount", Decimal("0.00"))

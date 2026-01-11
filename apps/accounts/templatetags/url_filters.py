@@ -38,20 +38,29 @@ def intcomma_dot(value):
     Usa puntos para miles y comas para decimales.
     """
     if value is None or value == '':
-        return ''
+        return '0,00'
 
     try:
         # Convertir a string (ya viene formateado con floatformat)
         value_str = str(value).strip()
 
+        # Si el valor es "0" o "0.00", retornar "0,00"
+        if value_str in ['0', '0.0', '0.00', '0,0', '0,00']:
+            return '0,00'
+
         # Si es un número decimal, separar parte entera y decimal
         if '.' in value_str:
             parts = value_str.split('.')
             integer_part = parts[0]
-            decimal_part = parts[1] if len(parts) > 1 else ''
+            decimal_part = parts[1] if len(parts) > 1 else '00'
+            # Asegurar que siempre tenga 2 decimales
+            if len(decimal_part) == 1:
+                decimal_part = decimal_part + '0'
+            elif len(decimal_part) == 0:
+                decimal_part = '00'
         else:
             integer_part = value_str
-            decimal_part = ''
+            decimal_part = '00'
 
         # Agregar puntos como separadores de miles a la parte entera
         # Invertir la cadena, agregar puntos cada 3 dígitos, y volver a invertir
@@ -61,12 +70,9 @@ def intcomma_dot(value):
             integer_part = integer_part[::-1]
 
         # Reconstruir el número: usar punto para miles y coma para decimales (formato español)
-        if decimal_part:
-            return f"{integer_part},{decimal_part}"
-        else:
-            return integer_part
+        return f"{integer_part},{decimal_part}"
     except (ValueError, TypeError):
-        return value
+        return str(value) if value else '0,00'
 
 
 @register.filter

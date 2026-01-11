@@ -1,12 +1,12 @@
 import re
 
+from PIL import Image
+
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
-from PIL import Image
 
 from apps.locations.models import City, Country, State
 
@@ -87,6 +87,7 @@ class PublicRegistrationForm(UserCreationForm):
 
     USER_TYPE_CHOICES = [
         ("player", _("Individual Player")),
+        ("parent", _("Parent / Guardian")),
         ("team_manager", _("Team Manager")),
         ("spectator", _("Spectator")),
     ]
@@ -535,7 +536,7 @@ class PublicRegistrationForm(UserCreationForm):
         - Dimensiones máximas: 4000x4000 pixels
         - Validar que sea una imagen real y no corrupta
         """
-        file = self.cleaned_data.get('profile_picture')
+        file = self.cleaned_data.get("profile_picture")
 
         if not file:
             return file
@@ -544,17 +545,21 @@ class PublicRegistrationForm(UserCreationForm):
         max_size = 5 * 1024 * 1024  # 5MB en bytes
         if file.size > max_size:
             raise ValidationError(
-                _("File size exceeds the maximum allowed size of 5MB. "
-                  "Your file is %(size).2f MB.")
+                _(
+                    "File size exceeds the maximum allowed size of 5MB. "
+                    "Your file is %(size).2f MB."
+                )
                 % {"size": file.size / (1024 * 1024)}
             )
 
         # 2. Validar extensión del archivo
-        allowed_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp']
+        allowed_extensions = [".jpg", ".jpeg", ".png", ".gif", ".webp"]
         file_name = file.name.lower()
         if not any(file_name.endswith(ext) for ext in allowed_extensions):
             raise ValidationError(
-                _("Invalid file extension. Only JPG, PNG, GIF, and WEBP files are allowed.")
+                _(
+                    "Invalid file extension. Only JPG, PNG, GIF, and WEBP files are allowed."
+                )
             )
 
         # 3. Intentar validar con python-magic si está disponible
@@ -575,17 +580,14 @@ class PublicRegistrationForm(UserCreationForm):
                 mime_type = mime.from_buffer(file_start)
 
             # Tipos MIME permitidos
-            allowed_mimes = [
-                'image/jpeg',
-                'image/png',
-                'image/gif',
-                'image/webp'
-            ]
+            allowed_mimes = ["image/jpeg", "image/png", "image/gif", "image/webp"]
 
             if mime_type not in allowed_mimes:
                 raise ValidationError(
-                    _("Invalid file type detected. The file you uploaded is a %(type)s file. "
-                      "Only JPEG, PNG, GIF, and WEBP images are allowed.")
+                    _(
+                        "Invalid file type detected. The file you uploaded is a %(type)s file. "
+                        "Only JPEG, PNG, GIF, and WEBP images are allowed."
+                    )
                     % {"type": mime_type}
                 )
         except ImportError:
@@ -610,14 +612,16 @@ class PublicRegistrationForm(UserCreationForm):
 
             if img.width > max_width or img.height > max_height:
                 raise ValidationError(
-                    _("Image dimensions are too large. Maximum allowed size is "
-                      "%(max_width)dx%(max_height)d pixels. "
-                      "Your image is %(width)dx%(height)d pixels.")
+                    _(
+                        "Image dimensions are too large. Maximum allowed size is "
+                        "%(max_width)dx%(max_height)d pixels. "
+                        "Your image is %(width)dx%(height)d pixels."
+                    )
                     % {
                         "max_width": max_width,
                         "max_height": max_height,
                         "width": img.width,
-                        "height": img.height
+                        "height": img.height,
                     }
                 )
 
@@ -627,21 +631,25 @@ class PublicRegistrationForm(UserCreationForm):
 
             if img.width < min_width or img.height < min_height:
                 raise ValidationError(
-                    _("Image is too small. Minimum size is %(min_width)dx%(min_height)d pixels. "
-                      "Your image is %(width)dx%(height)d pixels.")
+                    _(
+                        "Image is too small. Minimum size is %(min_width)dx%(min_height)d pixels. "
+                        "Your image is %(width)dx%(height)d pixels."
+                    )
                     % {
                         "min_width": min_width,
                         "min_height": min_height,
                         "width": img.width,
-                        "height": img.height
+                        "height": img.height,
                     }
                 )
 
             # 7. Verificar formato de imagen
-            if img.format not in ['JPEG', 'PNG', 'GIF', 'WEBP']:
+            if img.format not in ["JPEG", "PNG", "GIF", "WEBP"]:
                 raise ValidationError(
-                    _("Unsupported image format: %(format)s. "
-                      "Please upload a JPEG, PNG, GIF, or WEBP image.")
+                    _(
+                        "Unsupported image format: %(format)s. "
+                        "Please upload a JPEG, PNG, GIF, or WEBP image."
+                    )
                     % {"format": img.format}
                 )
 
@@ -651,7 +659,9 @@ class PublicRegistrationForm(UserCreationForm):
         except Exception as e:
             # Capturar cualquier otro error (imagen corrupta, etc.)
             raise ValidationError(
-                _("Invalid or corrupted image file. Please upload a valid image. Error: %(error)s")
+                _(
+                    "Invalid or corrupted image file. Please upload a valid image. Error: %(error)s"
+                )
                 % {"error": str(e)}
             )
         finally:
@@ -692,10 +702,17 @@ class PublicRegistrationForm(UserCreationForm):
                 else phone_number
             )
 
+            # En el flujo actual, "Individual Player" representa al padre/acudiente que gestiona hijos.
+            # Por eso, si el usuario selecciona user_type="player", lo convertimos a "parent".
+            selected_user_type = self.cleaned_data["user_type"]
+            mapped_user_type = (
+                "parent" if selected_user_type == "player" else selected_user_type
+            )
+
             # Crear perfil de usuario
-            profile = UserProfile.objects.create(
+            UserProfile.objects.create(
                 user=user,
-                user_type=self.cleaned_data["user_type"],
+                user_type=mapped_user_type,
                 phone=full_phone,
                 phone_secondary=self.cleaned_data.get("phone_secondary", ""),
                 birth_date=self.cleaned_data.get("birth_date"),
@@ -1134,7 +1151,9 @@ class PlayerRegistrationForm(forms.ModelForm):
         self.fields["age_verification_document"].required = False
 
         # Actualizar el queryset de division para usar solo divisiones activas
-        self.fields["division"].queryset = Division.objects.filter(is_active=True).order_by('name')
+        self.fields["division"].queryset = Division.objects.filter(
+            is_active=True
+        ).order_by("name")
 
         if self.manager:
             # Solo mostrar equipos que el manager gestiona

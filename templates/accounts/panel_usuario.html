@@ -458,7 +458,7 @@
                         </button>
                     {% endif %}
                     {# Tab "verificaciones-pendientes" removida de Quick Actions a pedido (el contenido/tab sigue existiendo) #}
-                    {% if profile.is_parent %}
+                    {% if is_parent_user %}
                         <button type="button" class="quick-action-btn tab-btn" data-tab="registrar-hijo" data-url="{% url 'accounts:parent_player_register' %}">
                             <i class="fas fa-user-plus"></i>
                             <span>{% trans "Register Child" %}</span>
@@ -468,7 +468,7 @@
                             <span>{% trans "My Children/Players" %}</span>
                         </button>
                     {% endif %}
-                    {% if not profile.is_team_manager and not profile.is_parent %}
+                    {% if not profile.is_team_manager and not is_parent_user %}
                         {% if user.player_profile %}
                             <button type="button" class="quick-action-btn tab-btn" data-tab="mi-perfil" data-url="{% url 'accounts:player_detail' user.player_profile.pk %}">
                                 <i class="fas fa-user"></i>
@@ -537,7 +537,7 @@
             {% endif %}
 
             <!-- Tabs para Parents -->
-            {% if profile.is_parent %}
+            {% if is_parent_user %}
                 <div id="tab-content-registrar-hijo" class="tab-content {% if active_tab == 'registrar-hijo' %}active{% endif %}" style="{% if active_tab == 'registrar-hijo' %}display: block;{% else %}display: none;{% endif %}">
                     {% include 'accounts/panel_tabs/registrar_hijo.html' %}
                 </div>
@@ -557,7 +557,7 @@
             {% endif %}
 
             <!-- Tabs para Players (no managers ni parents) -->
-            {% if not profile.is_team_manager and not profile.is_parent %}
+            {% if not profile.is_team_manager and not is_parent_user %}
                 {% if user.player_profile %}
                     <div id="tab-content-mi-perfil" class="tab-content {% if active_tab == 'mi-perfil' %}active{% endif %}" style="{% if active_tab == 'mi-perfil' %}display: block;{% else %}display: none;{% endif %}">
                         {% include 'accounts/panel_tabs/mi_perfil.html' %}

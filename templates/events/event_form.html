@@ -788,8 +788,396 @@
         flex: 0 0 auto;
         padding-top: 0.375rem;
     }
+
+    /* Estilos para los Items de "Incluye" */
+    .includes-item-card {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .includes-item-card:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border-color: #adb5bd;
+    }
+
+    .includes-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid #dee2e6;
+    }
+
+    .includes-item-title-input {
+        flex: 1;
+        margin-right: 1rem;
+    }
+
+    .includes-item-order-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: #28a745;
+        color: white;
+        font-weight: 600;
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    .includes-item-description-textarea {
+        width: 100%;
+        margin-bottom: 1rem;
+        min-height: 80px;
+    }
+
+    .includes-item-actions {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .includes-item-active-toggle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .includes-container {
+        margin-top: 1rem;
+    }
+
+    .add-include-btn {
+        margin-top: 1rem;
+    }
+
+    /* Estilos adicionales para editores HTML */
+    .html-editor-wrapper {
+        position: relative;
+    }
+    .html-editor-wrapper .ql-container {
+        border-bottom-left-radius: 0.375rem;
+        border-bottom-right-radius: 0.375rem;
+        border: 1px solid #dee2e6;
+        border-top: none;
+    }
+    .html-editor-wrapper .ql-toolbar {
+        border-top-left-radius: 0.375rem;
+        border-top-right-radius: 0.375rem;
+        border: 1px solid #dee2e6;
+        border-bottom: none;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    .html-editor-wrapper .ql-editor {
+        min-height: 300px;
+        font-family: Inter, sans-serif;
+        font-size: 14px;
+    }
+    /* Ocultar el textarea original pero mantenerlo para el formulario */
+    .html-editor-wrapper textarea[name="description"],
+    .html-editor-wrapper textarea[name="email_welcome_body"],
+    .html-editor-wrapper textarea#id_description,
+    .html-editor-wrapper textarea#id_email_welcome_body {
+        display: none !important;
+        visibility: hidden !important;
+        position: absolute !important;
+        width: 0 !important;
+        height: 0 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    /* Asegurar que solo el textarea HTML del editor esté visible cuando corresponde */
+    #description-html-editor,
+    #email-body-html-editor {
+        display: none;
+    }
+
+    /* Estilos para el botón de alternancia HTML/Visual */
+    .ql-html-toggle {
+        padding: 4px 8px !important;
+        background: #fff !important;
+        border: 1px solid #ccc !important;
+        border-radius: 3px !important;
+        cursor: pointer !important;
+        font-size: 12px !important;
+        color: #444 !important;
+        transition: all 0.2s ease !important;
+        display: inline-flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        margin: 0 !important;
+        font-weight: 500 !important;
+        white-space: nowrap !important;
+        vertical-align: middle !important;
+        line-height: 1.4 !important;
+        height: 24px !important;
+        width: auto !important;
+        min-width: auto !important;
+        box-sizing: border-box !important;
+    }
+
+    .ql-html-toggle:hover {
+        background: #f0f0f0 !important;
+        border-color: #999 !important;
+        color: #000 !important;
+    }
+
+    .ql-html-toggle.active {
+        background: #0d6efd !important;
+        border-color: #0d6efd !important;
+        color: #fff !important;
+    }
+
+    .ql-html-toggle.active:hover {
+        background: #0b5ed7 !important;
+        border-color: #0a58ca !important;
+        color: #fff !important;
+    }
+
+    .ql-html-toggle i {
+        font-size: 11px !important;
+        line-height: 1 !important;
+        display: inline-block !important;
+        flex-shrink: 0 !important;
+        width: auto !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        vertical-align: middle !important;
+    }
+
+    .ql-html-toggle span {
+        font-size: 12px !important;
+        line-height: 1 !important;
+        display: inline-block !important;
+        white-space: nowrap !important;
+        width: auto !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        vertical-align: middle !important;
+    }
+
+    /* Asegurar que el contenedor del botón se alinee correctamente */
+    .ql-toolbar .ql-formats:last-child {
+        margin-left: auto !important;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        border-left: 1px solid #ccc !important;
+        padding-left: 8px !important;
+        margin-left: 8px !important;
+    }
+
+    /* Estilos para el editor HTML (solo visible cuando se activa el modo HTML) */
+    #description-html-editor,
+    #email-body-html-editor {
+        border: 1px solid #dee2e6;
+        border-top: none;
+        border-radius: 0 0 0.375rem 0.375rem;
+        padding: 12px;
+        resize: vertical;
+        line-height: 1.5;
+        width: 100%;
+        box-sizing: border-box;
+        background: #fff;
+        display: none !important;
+    }
+
+    /* Mostrar el editor HTML solo cuando está activo */
+    #description-html-editor[style*="display: block"],
+    #email-body-html-editor[style*="display: block"] {
+        display: block !important;
+    }
+
+    #description-html-editor:focus,
+    #email-body-html-editor:focus {
+        border-color: #86b7fe;
+        outline: 0;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    /* Cuando el editor HTML está visible, mantener el borde superior de la toolbar */
+    .html-editor-wrapper .ql-toolbar {
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    /* Asegurar que el contenedor del editor HTML tenga el mismo estilo que el contenedor de Quill */
+    #description-editor-container,
+    #email-body-editor-container,
+    #description-player-editor-container,
+    #description-team-manager-editor-container,
+    #description-spectator-editor-container {
+        position: relative;
+        display: block !important;
+        visibility: visible !important;
+        width: 100%;
+    }
+
+    /* Asegurar que el editor Quill sea visible */
+    #description-editor,
+    #description-player-editor,
+    #description-team-manager-editor,
+    #description-spectator-editor {
+        display: block !important;
+        visibility: visible !important;
+        min-height: 300px !important;
+    }
+
+    /* Asegurar que el editor Quill tenga el estilo correcto */
+    #description-editor .ql-editor,
+    #description-player-editor .ql-editor,
+    #description-team-manager-editor .ql-editor,
+    #description-spectator-editor .ql-editor {
+        min-height: 300px !important;
+        padding: 12px 15px !important;
+        font-size: 14px !important;
+        line-height: 1.6 !important;
+        pointer-events: auto !important;
+        user-select: text !important;
+        cursor: text !important;
+    }
+
+    /* Asegurar que el editor Quill esté habilitado para escribir */
+    #description-team-manager-editor .ql-editor[contenteditable="true"],
+    #description-spectator-editor .ql-editor[contenteditable="true"],
+    #description-team-manager-editor .ql-editor,
+    #description-spectator-editor .ql-editor {
+        pointer-events: auto !important;
+        user-select: text !important;
+        cursor: text !important;
+        -webkit-user-select: text !important;
+        -moz-user-select: text !important;
+        -ms-user-select: text !important;
+    }
+
+    /* Asegurar que el contenedor del editor permita interacción */
+    #description-team-manager-editor-container,
+    #description-spectator-editor-container {
+        pointer-events: auto !important;
+    }
+
+    /* Asegurar que el contenedor de Quill permita interacción */
+    #description-team-manager-editor .ql-container,
+    #description-spectator-editor .ql-container {
+        pointer-events: auto !important;
+    }
+
+    /* Asegurar que la toolbar de Quill sea visible */
+    #description-editor .ql-toolbar,
+    #description-player-editor .ql-toolbar,
+    #description-team-manager-editor .ql-toolbar,
+    #description-spectator-editor .ql-toolbar {
+        display: flex !important;
+        visibility: visible !important;
+        border: 1px solid #ccc !important;
+        border-bottom: none !important;
+        background: #fafafa !important;
+    }
+
+    /* Botón flotante de submit (sticky) */
+    .floating-submit-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: white;
+        border-top: 2px solid #dee2e6;
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.15);
+        padding: 1rem 2rem;
+        z-index: 1050;
+        display: none;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .floating-submit-container.show {
+        display: block;
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .floating-submit-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .floating-submit-container .btn {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s ease;
+    }
+
+    .floating-submit-container .btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    .floating-submit-container .btn-outline-light {
+        background: white;
+        color: #495057;
+        border-color: #dee2e6;
+    }
+
+    .floating-submit-container .btn-outline-light:hover {
+        background: #f8f9fa;
+        color: #212529;
+        border-color: #adb5bd;
+    }
+
+    /* Espaciado adicional al final del formulario para que el botón flotante no cubra contenido */
+    #submit-buttons-section {
+        margin-bottom: 100px;
+    }
+
+    /* Ajustar padding cuando el botón flotante está visible */
+    @media (max-width: 768px) {
+        .floating-submit-container {
+            padding: 0.75rem 1rem;
+        }
+
+        .floating-submit-content {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .floating-submit-content .btn {
+            width: 100%;
+        }
+
+        #submit-buttons-section {
+            margin-bottom: 120px;
+        }
+    }
 </style>
-{% endblock %}
+{% endblock extra_css %}
 
 {% block content %}
 <div class="event-form-container">
@@ -846,11 +1234,54 @@
                             </div>
                         {% endif %}
 
-                        <!-- INFORMACIÓN DEL EVENTO -->
+                        <!-- INFORMACIÓN GENERAL DEL EVENTO -->
+                        <div class="form-section mb-4">
+                            <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
+                                <i class="fas fa-info-circle text-primary me-2"></i>
+                                <h6 class="mb-0 text-primary fw-bold">Información General del Evento</h6>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-heading me-1 text-muted"></i>
+                                        Nombre del Evento
+                                        {% if form.title.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    {{ form.title }}
+                                    {% if form.title.errors %}
+                                        <div class="text-danger small mt-1">{{ form.title.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-12">
+                                    <label for="id_description" class="form-label fw-semibold">
+                                        <i class="fas fa-align-left me-1 text-muted"></i>
+                                        Descripción General del Evento
+                                        {% if form.description.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    <div class="html-editor-wrapper">
+                                        <textarea name="description" id="id_description" class="form-control" style="display: none;">{{ form.description.value|default:'' }}</textarea>
+                                        <div id="description-editor-container">
+                                            <div id="description-editor" style="min-height: 300px;"></div>
+                                            <textarea id="description-html-editor" class="form-control" style="display: none; min-height: 300px; font-family: 'Courier New', monospace; font-size: 13px;" placeholder="Edite el HTML directamente aquí..."></textarea>
+                                        </div>
+                                    </div>
+                                    {% if form.description.errors %}
+                                        <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                                    {% endif %}
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>Puede usar HTML para formatear el texto (etiquetas como &lt;strong&gt;, &lt;em&gt;, &lt;p&gt;, &lt;br&gt;, etc.)
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- INFORMACIÓN DEL EVENTO POR TIPO DE USUARIO -->
                         <div class="form-section mb-4">
                             <div class="d-flex align-items-center mb-3 pb-2 border-bottom">
                                 <i class="fas fa-file-alt text-primary me-2"></i>
-                                <h6 class="mb-0 text-primary fw-bold">Información del Evento</h6>
+                                <h6 class="mb-0 text-primary fw-bold">Información del Evento por Tipo de Usuario</h6>
                             </div>
 
                             <!-- Tabs Navigation -->
@@ -878,32 +1309,20 @@
                                 <div class="tab-pane fade show active" id="individual-player" role="tabpanel" aria-labelledby="individual-player-tab">
                                     <div class="row g-3">
                                 <div class="col-12">
-                                    <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold">
-                                        <i class="fas fa-heading me-1 text-muted"></i>
-                                                Nombre del Evento
-                                        {% if form.title.field.required %}<span class="text-danger">*</span>{% endif %}
-                                    </label>
-                                    {{ form.title }}
-                                    {% if form.title.errors %}
-                                        <div class="text-danger small mt-1">{{ form.title.errors }}</div>
-                                    {% endif %}
-                                </div>
-
-                                <div class="col-12">
-                                    <label for="{{ form.description.id_for_label }}" class="form-label fw-semibold">
+                                    <label for="id_description_player" class="form-label fw-semibold">
                                         <i class="fas fa-align-left me-1 text-muted"></i>
-                                                Descripción del Evento
+                                        Descripción del Evento (Player)
                                         {% if form.description.field.required %}<span class="text-danger">*</span>{% endif %}
                                     </label>
                                     <div class="html-editor-wrapper">
-                                        {{ form.description }}
-                                                <div id="description-editor-container">
-                                        <div id="description-editor" style="min-height: 300px;"></div>
-                                                    <textarea id="description-html-editor" class="form-control" style="display: none; min-height: 300px; font-family: 'Courier New', monospace; font-size: 13px;" placeholder="Edite el HTML directamente aquí..."></textarea>
+                                        <textarea name="description_player" id="id_description_player" class="form-control" style="display: none;">{{ form.description_player.value|default:'' }}</textarea>
+                                        <div id="description-player-editor-container">
+                                            <div id="description-player-editor" style="min-height: 300px;"></div>
+                                            <textarea id="description-player-html-editor" class="form-control" style="display: none; min-height: 300px; font-family: 'Courier New', monospace; font-size: 13px;" placeholder="Edite el HTML directamente aquí..."></textarea>
                                                 </div>
                                     </div>
-                                    {% if form.description.errors %}
-                                        <div class="text-danger small mt-1">{{ form.description.errors }}</div>
+                                    {% if form.description_player.errors %}
+                                        <div class="text-danger small mt-1">{{ form.description_player.errors }}</div>
                                     {% endif %}
                                     <small class="text-muted d-block mt-1">
                                         <i class="fas fa-info-circle me-1"></i>Puede usar HTML para formatear el texto (etiquetas como &lt;strong&gt;, &lt;em&gt;, &lt;p&gt;, &lt;br&gt;, etc.)
@@ -1020,6 +1439,29 @@
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <!-- INCLUYE - Individual Player -->
+                                        <div class="col-12 mt-4" id="includes-section-player">
+                                            <div class="border-top pt-3">
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                                    <h6 class="mb-0 text-primary fw-bold">Incluye (Player)</h6>
+                                                </div>
+
+                                                <div class="alert alert-info mb-3">
+                                                    <i class="fas fa-info-circle me-2"></i>
+                                                    <strong>Nota:</strong> Agrega los items que están incluidos en este evento para jugadores individuales.
+                                                </div>
+
+                                                <div id="includes-container-player" class="includes-container">
+                                                    <!-- Los items incluidos se generarán aquí dinámicamente -->
+                                                </div>
+
+                                                <button type="button" class="btn btn-outline-success btn-sm mt-3 add-include-btn" data-user-type="player">
+                                                    <i class="fas fa-plus me-1"></i>Agregar Item
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1038,8 +1480,7 @@
                                         <div class="col-12">
                                             <label for="id_description_team_manager" class="form-label fw-semibold">
                                                 <i class="fas fa-align-left me-1 text-muted"></i>
-                                                Descripción del Evento
-                                                {% if form.description.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                Descripción del Evento (Team Manager)
                                             </label>
                                             <div class="html-editor-wrapper">
                                                 <textarea name="description_team_manager" id="id_description_team_manager" class="form-control" style="display: none;">{{ form.description_team_manager.value|default:'' }}</textarea>
@@ -1126,6 +1567,29 @@
                                                 </div>
                                             </div>
                                         </div>
+
+                                        <!-- INCLUYE - Team Manager -->
+                                        <div class="col-12 mt-4" id="includes-section-team-manager">
+                                            <div class="border-top pt-3">
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                                    <h6 class="mb-0 text-primary fw-bold">Incluye (Team Manager)</h6>
+                                                </div>
+
+                                                <div class="alert alert-info mb-3">
+                                                    <i class="fas fa-info-circle me-2"></i>
+                                                    <strong>Nota:</strong> Agrega los items que están incluidos en este evento para team managers.
+                                                </div>
+
+                                                <div id="includes-container-team-manager" class="includes-container">
+                                                    <!-- Los items incluidos se generarán aquí dinámicamente -->
+                                                </div>
+
+                                                <button type="button" class="btn btn-outline-success btn-sm mt-3 add-include-btn" data-user-type="team_manager">
+                                                    <i class="fas fa-plus me-1"></i>Agregar Item
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1144,8 +1608,7 @@
                                         <div class="col-12">
                                             <label for="id_description_spectator" class="form-label fw-semibold">
                                                 <i class="fas fa-align-left me-1 text-muted"></i>
-                                                Descripción del Evento
-                                                {% if form.description.field.required %}<span class="text-danger">*</span>{% endif %}
+                                                Descripción del Evento (Spectator)
                                             </label>
                                             <div class="html-editor-wrapper">
                                                 <textarea name="description_spectator" id="id_description_spectator" class="form-control" style="display: none;">{{ form.description_spectator.value|default:'' }}</textarea>
@@ -1230,6 +1693,29 @@
                                                         </small>
                                                     </div>
                                                 </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- INCLUYE - Spectator -->
+                                        <div class="col-12 mt-4" id="includes-section-spectator">
+                                            <div class="border-top pt-3">
+                                                <div class="d-flex align-items-center mb-3">
+                                                    <i class="fas fa-check-circle text-primary me-2"></i>
+                                                    <h6 class="mb-0 text-primary fw-bold">Incluye (Spectator)</h6>
+                                    </div>
+
+                                                <div class="alert alert-info mb-3">
+                                                    <i class="fas fa-info-circle me-2"></i>
+                                                    <strong>Nota:</strong> Agrega los items que están incluidos en este evento para espectadores.
+                                </div>
+
+                                                <div id="includes-container-spectator" class="includes-container">
+                                                    <!-- Los items incluidos se generarán aquí dinámicamente -->
+                                                </div>
+
+                                                <button type="button" class="btn btn-outline-success btn-sm mt-3 add-include-btn" data-user-type="spectator">
+                                                    <i class="fas fa-plus me-1"></i>Agregar Item
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -1950,14 +2436,14 @@
                         </div>
 
                         <!-- Botones de Acción -->
-                        <div class="form-section mt-4 pt-4 border-top">
+                        <div class="form-section mt-4 pt-4 border-top" id="submit-buttons-section">
                             <div class="row">
                                 <div class="col-12">
                                     <div class="d-flex gap-2 justify-content-end">
                                         <a href="{% url 'events:list' %}" class="btn btn-outline-secondary">
                                             <i class="fas fa-times me-2"></i>Cancelar
                                         </a>
-                                        <button type="submit" class="btn btn-primary">
+                                        <button type="submit" class="btn btn-primary" id="submit-event-btn">
                                             <i class="fas fa-save me-2"></i>{% if form.instance.pk %}Actualizar Evento{% else %}Guardar Evento{% endif %}
                                         </button>
                                     </div>
@@ -2064,6 +2550,19 @@
         </div>
     </div>
 </div>
+
+<!-- Botón flotante de actualizar (sticky) - Fuera del contenedor principal -->
+<div class="floating-submit-container" id="floating-submit-container">
+    <div class="floating-submit-content">
+        <a href="{% url 'events:list' %}" class="btn btn-outline-light btn-sm me-2">
+            <i class="fas fa-times me-1"></i>Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary btn-lg" form="eventForm" id="floating-submit-btn">
+            <i class="fas fa-save me-2"></i>{% if form.instance.pk %}Actualizar Evento{% else %}Guardar Evento{% endif %}
+        </button>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -4737,13 +5236,20 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     let descriptionEditor = null;
+    let descriptionPlayerEditor = null;
     let emailBodyEditor = null;
     let descriptionHtmlMode = false;
+    let descriptionPlayerHtmlMode = false;
 
-    // Inicializar Quill para descripción
+    // Inicializar Quill para descripción general
     const descriptionField = document.getElementById('id_description');
     const descriptionEditorDiv = document.getElementById('description-editor');
     const descriptionHtmlEditor = document.getElementById('description-html-editor');
+
+    // Inicializar Quill para descripción de Player
+    const descriptionPlayerField = document.getElementById('id_description_player');
+    const descriptionPlayerEditorDiv = document.getElementById('description-player-editor');
+    const descriptionPlayerHtmlEditor = document.getElementById('description-player-html-editor');
 
     // Ocultar el textarea original del formulario
     if (descriptionField) {
@@ -4756,59 +5262,98 @@ document.addEventListener('DOMContentLoaded', function() {
         descriptionField.style.pointerEvents = 'none';
     }
 
+    // Ocultar el textarea original de description_player
+    if (descriptionPlayerField) {
+        descriptionPlayerField.style.display = 'none';
+        descriptionPlayerField.style.visibility = 'hidden';
+        descriptionPlayerField.style.position = 'absolute';
+        descriptionPlayerField.style.width = '0';
+        descriptionPlayerField.style.height = '0';
+        descriptionPlayerField.style.opacity = '0';
+        descriptionPlayerField.style.pointerEvents = 'none';
+    }
+
+    // Inicialización simple de editores
     if (descriptionField && descriptionEditorDiv) {
-        descriptionEditor = new Quill('#description-editor', quillConfig);
+        try {
+            if (typeof Quill !== 'undefined') {
+                descriptionEditor = new Quill('#description-editor', quillConfig);
+                console.log('✅ Editor Quill inicializado para descripción general');
 
-        // Agregar botón de alternancia HTML a la toolbar
-        const toolbar = descriptionEditor.getModule('toolbar');
-        const toolbarElement = descriptionEditor.container.previousElementSibling;
-        if (toolbarElement) {
-            // Crear un contenedor para el botón que se integre mejor con Quill
-            const buttonContainer = document.createElement('span');
-            buttonContainer.className = 'ql-formats';
-
-            const htmlToggleBtn = createHtmlToggleButton();
-            htmlToggleBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                toggleHtmlMode('description');
-            });
-
-            buttonContainer.appendChild(htmlToggleBtn);
-            toolbarElement.appendChild(buttonContainer);
-        }
-
-        // Cargar contenido inicial si existe
-        if (descriptionField.value) {
-            descriptionEditor.root.innerHTML = descriptionField.value;
-            if (descriptionHtmlEditor) {
-                descriptionHtmlEditor.value = descriptionField.value;
-            }
-        }
-
-        // Sincronizar contenido con el textarea original
-        descriptionEditor.on('text-change', function() {
-            if (!descriptionHtmlMode) {
-            descriptionField.value = descriptionEditor.root.innerHTML;
-                if (descriptionHtmlEditor) {
-                    descriptionHtmlEditor.value = descriptionEditor.root.innerHTML;
+                const toolbarElement = descriptionEditor.container ? descriptionEditor.container.previousElementSibling : null;
+                if (toolbarElement) {
+                    const buttonContainer = document.createElement('span');
+                    buttonContainer.className = 'ql-formats';
+                    const htmlToggleBtn = createHtmlToggleButton();
+                    htmlToggleBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleHtmlMode('description');
+                    });
+                    buttonContainer.appendChild(htmlToggleBtn);
+                    toolbarElement.appendChild(buttonContainer);
                 }
-            }
-        });
 
-        // Sincronizar cuando se edita el HTML directamente
-        if (descriptionHtmlEditor) {
-            descriptionHtmlEditor.addEventListener('input', function() {
-                if (descriptionHtmlMode) {
-                    descriptionField.value = descriptionHtmlEditor.value;
-                    // Actualizar el editor visual sin cambiar el modo
-                    try {
-                        descriptionEditor.root.innerHTML = descriptionHtmlEditor.value;
-                    } catch (e) {
-                        console.warn('Error al actualizar editor visual desde HTML:', e);
+                if (descriptionField.value) {
+                    descriptionEditor.root.innerHTML = descriptionField.value;
+                    if (descriptionHtmlEditor) {
+                        descriptionHtmlEditor.value = descriptionField.value;
                     }
                 }
-            });
+
+                descriptionEditor.on('text-change', function() {
+                    if (!descriptionHtmlMode) {
+                        descriptionField.value = descriptionEditor.root.innerHTML;
+                        if (descriptionHtmlEditor) {
+                            descriptionHtmlEditor.value = descriptionEditor.root.innerHTML;
+                        }
+                    }
+                });
+
+                if (descriptionHtmlEditor) {
+                    descriptionHtmlEditor.addEventListener('input', function() {
+                        if (descriptionHtmlMode) {
+                            descriptionField.value = descriptionHtmlEditor.value;
+                            try {
+                                descriptionEditor.root.innerHTML = descriptionHtmlEditor.value;
+                            } catch (e) {
+                                console.warn('Error al actualizar editor visual desde HTML:', e);
+                            }
+                        }
+                    });
+                }
+            } else {
+                console.warn('⚠️ Quill no disponible para descripción general');
+                descriptionField.style.display = 'block';
+                descriptionField.style.visibility = 'visible';
+                descriptionField.style.position = 'relative';
+                descriptionField.style.width = '100%';
+                descriptionField.style.height = '300px';
+                descriptionField.style.opacity = '1';
+                descriptionField.style.pointerEvents = 'auto';
+            }
+        } catch (e) {
+            console.error('Error inicializando editor general:', e);
+            descriptionField.style.display = 'block';
+            descriptionField.style.visibility = 'visible';
+            descriptionField.style.position = 'relative';
+            descriptionField.style.width = '100%';
+            descriptionField.style.height = '300px';
+            descriptionField.style.opacity = '1';
+            descriptionField.style.pointerEvents = 'auto';
+        }
+    }
+
+    if (descriptionPlayerField && descriptionPlayerEditorDiv) {
+        if (typeof Quill === 'undefined') {
+            console.warn('⚠️ Quill no disponible para Player');
+            descriptionPlayerField.style.display = 'block';
+            descriptionPlayerField.style.visibility = 'visible';
+            descriptionPlayerField.style.position = 'relative';
+            descriptionPlayerField.style.width = '100%';
+            descriptionPlayerField.style.height = '300px';
+            descriptionPlayerField.style.opacity = '1';
+            descriptionPlayerField.style.pointerEvents = 'auto';
         }
     }
 
@@ -4861,11 +5406,120 @@ document.addEventListener('DOMContentLoaded', function() {
                     toggleBtn.classList.remove('active');
                 }
             }
+        } else if (editorType === 'description_player') {
+            descriptionPlayerHtmlMode = !descriptionPlayerHtmlMode;
+            const editorDiv = document.getElementById('description-player-editor');
+            const htmlEditor = document.getElementById('description-player-html-editor');
+            const toolbarElement = descriptionPlayerEditor ? descriptionPlayerEditor.container.previousElementSibling : null;
+            const toggleBtn = toolbarElement ? toolbarElement.querySelector('.ql-html-toggle') : null;
+
+            if (descriptionPlayerHtmlMode) {
+                if (editorDiv) editorDiv.style.display = 'none';
+                if (htmlEditor) {
+                    htmlEditor.style.display = 'block';
+                    if (descriptionPlayerEditor) {
+                        htmlEditor.value = descriptionPlayerEditor.root.innerHTML;
+                    }
+                }
+                if (toggleBtn) {
+                    toggleBtn.innerHTML = '<i class="fas fa-eye" style="display: inline-block !important; margin-right: 4px;"></i><span style="display: inline-block !important;">Visual</span>';
+                    toggleBtn.classList.add('active');
+                }
+            } else {
+                if (editorDiv) editorDiv.style.display = 'block';
+                if (htmlEditor) {
+                    htmlEditor.style.display = 'none';
+                    if (descriptionPlayerEditor && htmlEditor) {
+                        try {
+                            descriptionPlayerEditor.root.innerHTML = htmlEditor.value;
+                            if (descriptionPlayerField) {
+                                descriptionPlayerField.value = htmlEditor.value;
+                            }
+                        } catch (e) {
+                            console.warn('Error al actualizar editor visual:', e);
+                        }
+                    }
+                }
+                if (toggleBtn) {
+                    toggleBtn.innerHTML = '<i class="fas fa-code" style="display: inline-block !important; margin-right: 4px;"></i><span style="display: inline-block !important;">HTML</span>';
+                    toggleBtn.classList.remove('active');
+                }
+            }
         }
     }
 
     // Hacer la función accesible globalmente para el botón
     window.toggleHtmlMode = toggleHtmlMode;
+
+    // Inicializar editor para Player
+    if (descriptionPlayerField && descriptionPlayerEditorDiv) {
+        // Si ya existe Quill en el DOM (por doble ejecución del script), reutilizar instancia
+        if (descriptionPlayerEditorDiv.querySelector('.ql-container') || descriptionPlayerEditorDiv.querySelector('.ql-editor')) {
+            try {
+                if (typeof Quill !== 'undefined' && Quill.find) {
+                    descriptionPlayerEditor = Quill.find(descriptionPlayerEditorDiv);
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
+
+        // Inicializar si aún no existe instancia
+        if (!descriptionPlayerEditor && typeof Quill !== 'undefined') {
+            descriptionPlayerEditor = new Quill('#description-player-editor', quillConfig);
+        }
+
+        // Agregar botón de alternancia HTML (una sola vez)
+        const playerToolbarElement = descriptionPlayerEditor && descriptionPlayerEditor.container
+            ? descriptionPlayerEditor.container.previousElementSibling
+            : null;
+        if (playerToolbarElement && !playerToolbarElement.querySelector('.ql-html-toggle')) {
+            const playerButtonContainer = document.createElement('span');
+            playerButtonContainer.className = 'ql-formats';
+
+            const playerHtmlToggleBtn = createHtmlToggleButton();
+            playerHtmlToggleBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleHtmlMode('description_player');
+            });
+
+            playerButtonContainer.appendChild(playerHtmlToggleBtn);
+            playerToolbarElement.appendChild(playerButtonContainer);
+        }
+
+        // Cargar contenido inicial
+        if (descriptionPlayerField.value) {
+            descriptionPlayerEditor.root.innerHTML = descriptionPlayerField.value;
+            if (descriptionPlayerHtmlEditor) {
+                descriptionPlayerHtmlEditor.value = descriptionPlayerField.value;
+            }
+        }
+
+        // Sincronizar contenido
+        descriptionPlayerEditor.on('text-change', function() {
+            if (!descriptionPlayerHtmlMode) {
+                descriptionPlayerField.value = descriptionPlayerEditor.root.innerHTML;
+                if (descriptionPlayerHtmlEditor) {
+                    descriptionPlayerHtmlEditor.value = descriptionPlayerEditor.root.innerHTML;
+                }
+            }
+        });
+
+        // Sincronizar cuando se edita el HTML directamente
+        if (descriptionPlayerHtmlEditor) {
+            descriptionPlayerHtmlEditor.addEventListener('input', function() {
+                if (descriptionPlayerHtmlMode) {
+                    descriptionPlayerField.value = descriptionPlayerHtmlEditor.value;
+                    try {
+                        descriptionPlayerEditor.root.innerHTML = descriptionPlayerHtmlEditor.value;
+                    } catch (e) {
+                        console.warn('Error al actualizar editor visual desde HTML:', e);
+                    }
+                }
+            });
+        }
+    }
 
     // Inicializar Quill para email_welcome_body
     const emailBodyField = document.getElementById('id_email_welcome_body');
@@ -4990,13 +5644,26 @@ document.addEventListener('DOMContentLoaded', function() {
     let spectatorEditor = null;
     let teamManagerHtmlMode = false;
     let spectatorHtmlMode = false;
+    let teamManagerEditorInitialized = false;
+    let spectatorEditorInitialized = false;
 
-    // Inicializar editor para Team Manager
-    const teamManagerField = document.getElementById('id_description_team_manager');
-    const teamManagerEditorDiv = document.getElementById('description-team-manager-editor');
-    const teamManagerHtmlEditor = document.getElementById('description-team-manager-html-editor');
+    // Función para inicializar el editor de Team Manager
+    function initializeTeamManagerEditor() {
+        if (teamManagerEditorInitialized && teamManagerEditor) return;
 
-    if (teamManagerField && teamManagerEditorDiv) {
+        const teamManagerField = document.getElementById('id_description_team_manager');
+        const teamManagerEditorDiv = document.getElementById('description-team-manager-editor');
+        const teamManagerHtmlEditor = document.getElementById('description-team-manager-html-editor');
+
+        if (!teamManagerField || !teamManagerEditorDiv) return;
+
+        // Verificar si el contenedor ya tiene un editor Quill inicializado
+        if (teamManagerEditorDiv.querySelector('.ql-container')) {
+            // Ya hay un editor, no inicializar de nuevo
+            teamManagerEditorInitialized = true;
+            return;
+        }
+
         // Ocultar el textarea original
         teamManagerField.style.display = 'none';
         teamManagerField.style.visibility = 'hidden';
@@ -5006,102 +5673,160 @@ document.addEventListener('DOMContentLoaded', function() {
         teamManagerField.style.opacity = '0';
         teamManagerField.style.pointerEvents = 'none';
 
-        teamManagerEditor = new Quill('#description-team-manager-editor', quillConfig);
-
-        // Agregar botón de alternancia HTML
-        const teamManagerToolbarElement = teamManagerEditor.container.previousElementSibling;
-        if (teamManagerToolbarElement) {
-            const teamManagerButtonContainer = document.createElement('span');
-            teamManagerButtonContainer.className = 'ql-formats';
-
-            const teamManagerHtmlToggleBtn = createHtmlToggleButton();
-            teamManagerHtmlToggleBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                toggleTeamManagerHtmlMode();
-            });
-
-            teamManagerButtonContainer.appendChild(teamManagerHtmlToggleBtn);
-            teamManagerToolbarElement.appendChild(teamManagerButtonContainer);
+        // Asegurar que el contenedor sea visible
+        const container = document.getElementById('description-team-manager-editor-container');
+        if (container) {
+            container.style.display = 'block';
+            container.style.visibility = 'visible';
+            container.style.width = '100%';
         }
+        teamManagerEditorDiv.style.display = 'block';
+        teamManagerEditorDiv.style.visibility = 'visible';
+        teamManagerEditorDiv.style.minHeight = '300px';
 
-        // Cargar contenido inicial
-        if (teamManagerField.value) {
-            teamManagerEditor.root.innerHTML = teamManagerField.value;
-            if (teamManagerHtmlEditor) {
-                teamManagerHtmlEditor.value = teamManagerField.value;
+        try {
+            teamManagerEditor = new Quill('#description-team-manager-editor', quillConfig);
+            teamManagerEditorInitialized = true;
+
+            // Agregar botón de alternancia HTML
+            const teamManagerToolbarElement = teamManagerEditor.container.previousElementSibling;
+            if (teamManagerToolbarElement) {
+                const teamManagerButtonContainer = document.createElement('span');
+                teamManagerButtonContainer.className = 'ql-formats';
+
+                const teamManagerHtmlToggleBtn = createHtmlToggleButton();
+                teamManagerHtmlToggleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleTeamManagerHtmlMode();
+                });
+
+                teamManagerButtonContainer.appendChild(teamManagerHtmlToggleBtn);
+                teamManagerToolbarElement.appendChild(teamManagerButtonContainer);
             }
-        }
 
-        // Sincronizar contenido
-        teamManagerEditor.on('text-change', function() {
-            if (!teamManagerHtmlMode) {
-                teamManagerField.value = teamManagerEditor.root.innerHTML;
+            // Cargar contenido inicial
+            if (teamManagerField.value) {
+                teamManagerEditor.root.innerHTML = teamManagerField.value;
                 if (teamManagerHtmlEditor) {
-                    teamManagerHtmlEditor.value = teamManagerEditor.root.innerHTML;
+                    teamManagerHtmlEditor.value = teamManagerField.value;
                 }
             }
-        });
 
-        // Sincronizar cuando se edita el HTML directamente
-        if (teamManagerHtmlEditor) {
-            teamManagerHtmlEditor.addEventListener('input', function() {
-                if (teamManagerHtmlMode) {
-                    teamManagerField.value = teamManagerHtmlEditor.value;
-                    try {
-                        teamManagerEditor.root.innerHTML = teamManagerHtmlEditor.value;
-                    } catch (e) {
-                        console.warn('Error al actualizar editor visual desde HTML:', e);
+            // Sincronizar contenido
+            teamManagerEditor.on('text-change', function() {
+                if (!teamManagerHtmlMode) {
+                    teamManagerField.value = teamManagerEditor.root.innerHTML;
+                    if (teamManagerHtmlEditor) {
+                        teamManagerHtmlEditor.value = teamManagerEditor.root.innerHTML;
                     }
                 }
             });
-        }
 
-        // Función para alternar modo HTML del Team Manager
-        function toggleTeamManagerHtmlMode() {
-            teamManagerHtmlMode = !teamManagerHtmlMode;
-            const editorDiv = document.getElementById('description-team-manager-editor');
-            const htmlEditor = document.getElementById('description-team-manager-html-editor');
-            const toolbarElement = teamManagerEditor ? teamManagerEditor.container.previousElementSibling : null;
-            const toggleBtn = toolbarElement ? toolbarElement.querySelector('.ql-html-toggle') : null;
-
-            if (teamManagerHtmlMode) {
-                if (editorDiv) editorDiv.style.display = 'none';
-                if (htmlEditor) {
-                    htmlEditor.style.display = 'block';
-                    htmlEditor.value = teamManagerEditor.root.innerHTML;
-                }
-                if (toggleBtn) {
-                    toggleBtn.innerHTML = '<i class="fas fa-eye" style="display: inline-block !important; margin-right: 4px;"></i><span style="display: inline-block !important;">Visual</span>';
-                    toggleBtn.classList.add('active');
-                }
-            } else {
-                if (editorDiv) editorDiv.style.display = 'block';
-                if (htmlEditor) {
-                    htmlEditor.style.display = 'none';
-                    try {
-                        teamManagerEditor.root.innerHTML = htmlEditor.value;
-                        teamManagerField.value = htmlEditor.value;
-                    } catch (e) {
-                        console.warn('Error al actualizar editor visual:', e);
+            // Sincronizar cuando se edita el HTML directamente
+            if (teamManagerHtmlEditor) {
+                teamManagerHtmlEditor.addEventListener('input', function() {
+                    if (teamManagerHtmlMode) {
+                        teamManagerField.value = teamManagerHtmlEditor.value;
+                        try {
+                            teamManagerEditor.root.innerHTML = teamManagerHtmlEditor.value;
+                        } catch (e) {
+                            console.warn('Error al actualizar editor visual desde HTML:', e);
+                        }
                     }
-                }
-                if (toggleBtn) {
-                    toggleBtn.innerHTML = '<i class="fas fa-code" style="display: inline-block !important; margin-right: 4px;"></i><span style="display: inline-block !important;">HTML</span>';
-                    toggleBtn.classList.remove('active');
-                }
+                });
             }
-        }
 
-        window.toggleTeamManagerHtmlMode = toggleTeamManagerHtmlMode;
+            // Habilitar el editor para escritura
+            teamManagerEditor.enable(true);
+            teamManagerEditor.root.setAttribute('contenteditable', 'true');
+
+        } catch (e) {
+            console.error('Error inicializando editor de Team Manager:', e);
+        }
     }
 
-    // Inicializar editor para Spectator
-    const spectatorField = document.getElementById('id_description_spectator');
-    const spectatorEditorDiv = document.getElementById('description-spectator-editor');
-    const spectatorHtmlEditor = document.getElementById('description-spectator-html-editor');
+    // Función para alternar modo HTML del Team Manager
+    function toggleTeamManagerHtmlMode() {
+        teamManagerHtmlMode = !teamManagerHtmlMode;
+        const editorDiv = document.getElementById('description-team-manager-editor');
+        const htmlEditor = document.getElementById('description-team-manager-html-editor');
+        const toolbarElement = teamManagerEditor ? teamManagerEditor.container.previousElementSibling : null;
+        const toggleBtn = toolbarElement ? toolbarElement.querySelector('.ql-html-toggle') : null;
 
-    if (spectatorField && spectatorEditorDiv) {
+        if (teamManagerHtmlMode) {
+            if (editorDiv) editorDiv.style.display = 'none';
+            if (htmlEditor) {
+                htmlEditor.style.display = 'block';
+                htmlEditor.value = teamManagerEditor ? teamManagerEditor.root.innerHTML : '';
+            }
+            if (toggleBtn) {
+                toggleBtn.innerHTML = '<i class="fas fa-eye" style="display: inline-block !important; margin-right: 4px;"></i><span style="display: inline-block !important;">Visual</span>';
+                toggleBtn.classList.add('active');
+            }
+        } else {
+            if (editorDiv) editorDiv.style.display = 'block';
+            if (htmlEditor) {
+                htmlEditor.style.display = 'none';
+                try {
+                    if (teamManagerEditor) {
+                        teamManagerEditor.root.innerHTML = htmlEditor.value;
+                        const teamManagerField = document.getElementById('id_description_team_manager');
+                        if (teamManagerField) {
+                            teamManagerField.value = htmlEditor.value;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Error al actualizar editor visual:', e);
+                }
+            }
+            if (toggleBtn) {
+                toggleBtn.innerHTML = '<i class="fas fa-code" style="display: inline-block !important; margin-right: 4px;"></i><span style="display: inline-block !important;">HTML</span>';
+                toggleBtn.classList.remove('active');
+            }
+        }
+    }
+
+    window.toggleTeamManagerHtmlMode = toggleTeamManagerHtmlMode;
+
+    // Inicializar el editor cuando el tab de Team Manager se muestre
+    const teamManagerTabPane = document.getElementById('team-manager');
+    if (teamManagerTabPane) {
+        // Verificar si el tab ya está visible al cargar
+        if (teamManagerTabPane.classList.contains('show') || teamManagerTabPane.classList.contains('active')) {
+            setTimeout(function() {
+                initializeTeamManagerEditor();
+            }, 100);
+        }
+
+        // Agregar listener para cuando se muestre el tab
+        const teamManagerTab = document.getElementById('team-manager-tab');
+        if (teamManagerTab) {
+            teamManagerTab.addEventListener('shown.bs.tab', function() {
+                setTimeout(function() {
+                    initializeTeamManagerEditor();
+                }, 100);
+            });
+        }
+    }
+
+    // Función para inicializar el editor de Spectator
+    function initializeSpectatorEditor() {
+        if (spectatorEditorInitialized && spectatorEditor) return;
+
+        const spectatorField = document.getElementById('id_description_spectator');
+        const spectatorEditorDiv = document.getElementById('description-spectator-editor');
+        const spectatorHtmlEditor = document.getElementById('description-spectator-html-editor');
+
+        if (!spectatorField || !spectatorEditorDiv) return;
+
+        // Verificar si el contenedor ya tiene un editor Quill inicializado
+        if (spectatorEditorDiv.querySelector('.ql-container')) {
+            // Ya hay un editor, no inicializar de nuevo
+            spectatorEditorInitialized = true;
+            return;
+        }
+
         // Ocultar el textarea original
         spectatorField.style.display = 'none';
         spectatorField.style.visibility = 'hidden';
@@ -5111,94 +5836,141 @@ document.addEventListener('DOMContentLoaded', function() {
         spectatorField.style.opacity = '0';
         spectatorField.style.pointerEvents = 'none';
 
-        spectatorEditor = new Quill('#description-spectator-editor', quillConfig);
-
-        // Agregar botón de alternancia HTML
-        const spectatorToolbarElement = spectatorEditor.container.previousElementSibling;
-        if (spectatorToolbarElement) {
-            const spectatorButtonContainer = document.createElement('span');
-            spectatorButtonContainer.className = 'ql-formats';
-
-            const spectatorHtmlToggleBtn = createHtmlToggleButton();
-            spectatorHtmlToggleBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                toggleSpectatorHtmlMode();
-            });
-
-            spectatorButtonContainer.appendChild(spectatorHtmlToggleBtn);
-            spectatorToolbarElement.appendChild(spectatorButtonContainer);
+        // Asegurar que el contenedor sea visible
+        const container = document.getElementById('description-spectator-editor-container');
+        if (container) {
+            container.style.display = 'block';
+            container.style.visibility = 'visible';
+            container.style.width = '100%';
         }
+        spectatorEditorDiv.style.display = 'block';
+        spectatorEditorDiv.style.visibility = 'visible';
+        spectatorEditorDiv.style.minHeight = '300px';
 
-        // Cargar contenido inicial
-        if (spectatorField && spectatorField.value) {
-            spectatorEditor.root.innerHTML = spectatorField.value;
-            if (spectatorHtmlEditor) {
-                spectatorHtmlEditor.value = spectatorField.value;
+        try {
+            spectatorEditor = new Quill('#description-spectator-editor', quillConfig);
+            spectatorEditorInitialized = true;
+
+            // Agregar botón de alternancia HTML
+            const spectatorToolbarElement = spectatorEditor.container.previousElementSibling;
+            if (spectatorToolbarElement) {
+                const spectatorButtonContainer = document.createElement('span');
+                spectatorButtonContainer.className = 'ql-formats';
+
+                const spectatorHtmlToggleBtn = createHtmlToggleButton();
+                spectatorHtmlToggleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleSpectatorHtmlMode();
+                });
+
+                spectatorButtonContainer.appendChild(spectatorHtmlToggleBtn);
+                spectatorToolbarElement.appendChild(spectatorButtonContainer);
             }
-        }
 
-        // Sincronizar contenido
-        spectatorEditor.on('text-change', function() {
-            if (!spectatorHtmlMode) {
-                spectatorField.value = spectatorEditor.root.innerHTML;
+            // Cargar contenido inicial
+            if (spectatorField.value) {
+                spectatorEditor.root.innerHTML = spectatorField.value;
                 if (spectatorHtmlEditor) {
-                    spectatorHtmlEditor.value = spectatorEditor.root.innerHTML;
+                    spectatorHtmlEditor.value = spectatorField.value;
                 }
             }
-        });
 
-        // Sincronizar cuando se edita el HTML directamente
-        if (spectatorHtmlEditor) {
-            spectatorHtmlEditor.addEventListener('input', function() {
-                if (spectatorHtmlMode) {
-                    spectatorField.value = spectatorHtmlEditor.value;
-                    try {
-                        spectatorEditor.root.innerHTML = spectatorHtmlEditor.value;
-                    } catch (e) {
-                        console.warn('Error al actualizar editor visual desde HTML:', e);
+            // Sincronizar contenido
+            spectatorEditor.on('text-change', function() {
+                if (!spectatorHtmlMode) {
+                    spectatorField.value = spectatorEditor.root.innerHTML;
+                    if (spectatorHtmlEditor) {
+                        spectatorHtmlEditor.value = spectatorEditor.root.innerHTML;
                     }
                 }
             });
-        }
 
-        // Función para alternar modo HTML del Spectator
-        function toggleSpectatorHtmlMode() {
-            spectatorHtmlMode = !spectatorHtmlMode;
-            const editorDiv = document.getElementById('description-spectator-editor');
-            const htmlEditor = document.getElementById('description-spectator-html-editor');
-            const toolbarElement = spectatorEditor ? spectatorEditor.container.previousElementSibling : null;
-            const toggleBtn = toolbarElement ? toolbarElement.querySelector('.ql-html-toggle') : null;
-
-            if (spectatorHtmlMode) {
-                if (editorDiv) editorDiv.style.display = 'none';
-                if (htmlEditor) {
-                    htmlEditor.style.display = 'block';
-                    htmlEditor.value = spectatorEditor.root.innerHTML;
-                }
-                if (toggleBtn) {
-                    toggleBtn.innerHTML = '<i class="fas fa-eye" style="display: inline-block !important; margin-right: 4px;"></i><span style="display: inline-block !important;">Visual</span>';
-                    toggleBtn.classList.add('active');
-                }
-            } else {
-                if (editorDiv) editorDiv.style.display = 'block';
-                if (htmlEditor) {
-                    htmlEditor.style.display = 'none';
-                    try {
-                        spectatorEditor.root.innerHTML = htmlEditor.value;
-                        spectatorField.value = htmlEditor.value;
-                    } catch (e) {
-                        console.warn('Error al actualizar editor visual:', e);
+            // Sincronizar cuando se edita el HTML directamente
+            if (spectatorHtmlEditor) {
+                spectatorHtmlEditor.addEventListener('input', function() {
+                    if (spectatorHtmlMode) {
+                        spectatorField.value = spectatorHtmlEditor.value;
+                        try {
+                            spectatorEditor.root.innerHTML = spectatorHtmlEditor.value;
+                        } catch (e) {
+                            console.warn('Error al actualizar editor visual desde HTML:', e);
+                        }
                     }
-                }
-                if (toggleBtn) {
-                    toggleBtn.innerHTML = '<i class="fas fa-code" style="display: inline-block !important; margin-right: 4px;"></i><span style="display: inline-block !important;">HTML</span>';
-                    toggleBtn.classList.remove('active');
+                });
+            }
+
+            // Habilitar el editor para escritura
+            spectatorEditor.enable(true);
+            spectatorEditor.root.setAttribute('contenteditable', 'true');
+
+        } catch (e) {
+            console.error('Error inicializando editor de Spectator:', e);
+        }
+    }
+
+    // Función para alternar modo HTML del Spectator
+    function toggleSpectatorHtmlMode() {
+        spectatorHtmlMode = !spectatorHtmlMode;
+        const editorDiv = document.getElementById('description-spectator-editor');
+        const htmlEditor = document.getElementById('description-spectator-html-editor');
+        const toolbarElement = spectatorEditor ? spectatorEditor.container.previousElementSibling : null;
+        const toggleBtn = toolbarElement ? toolbarElement.querySelector('.ql-html-toggle') : null;
+
+        if (spectatorHtmlMode) {
+            if (editorDiv) editorDiv.style.display = 'none';
+            if (htmlEditor) {
+                htmlEditor.style.display = 'block';
+                htmlEditor.value = spectatorEditor ? spectatorEditor.root.innerHTML : '';
+            }
+            if (toggleBtn) {
+                toggleBtn.innerHTML = '<i class="fas fa-eye" style="display: inline-block !important; margin-right: 4px;"></i><span style="display: inline-block !important;">Visual</span>';
+                toggleBtn.classList.add('active');
+            }
+        } else {
+            if (editorDiv) editorDiv.style.display = 'block';
+            if (htmlEditor) {
+                htmlEditor.style.display = 'none';
+                try {
+                    if (spectatorEditor) {
+                        spectatorEditor.root.innerHTML = htmlEditor.value;
+                        const spectatorField = document.getElementById('id_description_spectator');
+                        if (spectatorField) {
+                            spectatorField.value = htmlEditor.value;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Error al actualizar editor visual:', e);
                 }
             }
+            if (toggleBtn) {
+                toggleBtn.innerHTML = '<i class="fas fa-code" style="display: inline-block !important; margin-right: 4px;"></i><span style="display: inline-block !important;">HTML</span>';
+                toggleBtn.classList.remove('active');
+            }
+        }
+    }
+
+    window.toggleSpectatorHtmlMode = toggleSpectatorHtmlMode;
+
+    // Inicializar el editor cuando el tab de Spectator se muestre
+    const spectatorTabPane = document.getElementById('spectator');
+    if (spectatorTabPane) {
+        // Verificar si el tab ya está visible al cargar
+        if (spectatorTabPane.classList.contains('show') || spectatorTabPane.classList.contains('active')) {
+            setTimeout(function() {
+                initializeSpectatorEditor();
+            }, 100);
         }
 
-        window.toggleSpectatorHtmlMode = toggleSpectatorHtmlMode;
+        // Agregar listener para cuando se muestre el tab
+        const spectatorTab = document.getElementById('spectator-tab');
+        if (spectatorTab) {
+            spectatorTab.addEventListener('shown.bs.tab', function() {
+                setTimeout(function() {
+                    initializeSpectatorEditor();
+                }, 100);
+            });
+        }
     }
 
     // Asegurar que el contenido se envíe al formulario
@@ -6015,14 +6787,19 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Inicializando sistema unificado de medios...');
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM cargado, inicializando selector de medios...');
+            console.log('DOM cargado, inicializando...');
             initUnifiedMediaSelector();
             initItineraryManager();
+            initAllIncludesManagers();
         });
     } else {
-        console.log('DOM ya está listo, inicializando selector de medios...');
+        console.log('DOM ya está listo, inicializando...');
+        // Pequeño delay para asegurar que todos los elementos estén en el DOM
+        setTimeout(function() {
         initUnifiedMediaSelector();
         initItineraryManager();
+            initAllIncludesManagers();
+        }, 100);
     }
 });
 
@@ -6043,8 +6820,8 @@ function initItineraryManager() {
                 id: {{ item.id }},
                 day: '{{ item.day|date:"Y-m-d" }}',
                 dayNumber: {{ item.day_number }},
-                title: {{ item.title|escapejs }},
-                description: {{ item.description|escapejs }},
+                title: '{{ item.title|default:""|escapejs }}',
+                description: '{{ item.description|default:""|escapejs }}',
                 scheduleItems: {% if item.schedule_items %}{{ item.schedule_items|safe }}{% else %}[]{% endif %}
             });
         {% endfor %}
@@ -6350,178 +7127,278 @@ function initItineraryManager() {
     // Inicializar
     updateGenerateButton();
 }
+
+// Inicializar múltiples managers de includes (uno por cada tipo de usuario)
+function initAllIncludesManagers() {
+    initIncludesManager('player');
+    initIncludesManager('team_manager');
+    initIncludesManager('spectator');
+}
+
+// Sistema de gestión de "Incluye" (por tipo de usuario)
+function initIncludesManager(userType) {
+    const includesContainer = document.getElementById(`includes-container-${userType}`);
+    const addIncludeBtn = document.querySelector(`.add-include-btn[data-user-type="${userType}"]`);
+
+    if (!includesContainer) {
+        console.warn(`Contenedor de includes no encontrado para ${userType}`);
+        return;
+    }
+
+    let includesItems = [];
+    let itemCounter = 0;
+
+    // Cargar includes existentes si está editando (filtrar por user_type)
+    {% if form.instance.pk %}
+        {% for item in form.instance.includes_items.all %}
+            if (userType === '{{ item.user_type }}') {
+                includesItems.push({
+                    id: {% if item.id %}{{ item.id }}{% else %}null{% endif %},
+                    userType: '{{ item.user_type }}',
+                    title: '{{ item.title|escapejs|default:"" }}',
+                    description: '{{ item.description|escapejs|default:"" }}',
+                    order: {{ item.order|default:0 }},
+                    isActive: {% if item.is_active %}true{% else %}false{% endif %}
+                });
+                itemCounter = Math.max(itemCounter, {{ item.order|default:0 }});
+            }
+        {% endfor %}
+        if (includesItems.length > 0) {
+            renderIncludes();
+        }
+    {% endif %}
+
+    // Función para renderizar includes
+    function renderIncludes() {
+        if (!includesContainer) return;
+
+        // Limpiar contenedor
+        includesContainer.innerHTML = '';
+
+        // Limpiar todos los inputs hidden existentes para este userType
+        document.querySelectorAll(`input[name="includes_items_${userType}"]`).forEach(input => {
+            input.remove();
+        });
+
+        // Ordenar por order
+        includesItems.sort((a, b) => a.order - b.order);
+
+        // Renderizar cada item
+        includesItems.forEach((item, index) => {
+            const card = createIncludeCard(item, index);
+            includesContainer.appendChild(card);
+
+            // Crear input hidden para este item
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = `includes_items_${userType}`;
+            hiddenInput.setAttribute('data-item-index', index);
+            hiddenInput.value = JSON.stringify(item).replace(/'/g, "&#39;").replace(/"/g, '&quot;');
+            includesContainer.appendChild(hiddenInput);
+        });
+    }
+
+    // Función para crear card de include
+    function createIncludeCard(item, index) {
+        const card = document.createElement('div');
+        card.className = 'includes-item-card';
+        card.innerHTML = `
+            <div class="includes-item-header">
+                <div class="includes-item-title-input">
+                    <input type="text" class="form-control" placeholder="Título del item" value="${(item.title || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}" data-item-index="${index}" data-field="title">
+                </div>
+                <div class="includes-item-order-badge">${item.order || index + 1}</div>
+            </div>
+            <div class="includes-item-description-textarea">
+                <textarea class="form-control" placeholder="Descripción (opcional)" rows="3" data-item-index="${index}" data-field="description">${(item.description || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;')}</textarea>
+            </div>
+            <div class="includes-item-actions">
+                <div class="includes-item-active-toggle">
+                    <input type="checkbox" class="form-check-input" id="include-active-${userType}-${index}" ${item.isActive !== false ? 'checked' : ''} data-item-index="${index}" data-field="isActive">
+                    <label class="form-check-label" for="include-active-${userType}-${index}">Activo</label>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm" onclick="removeInclude_${userType}(${index})">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </div>
+        `;
+
+        // Event listeners para actualizar datos
+        card.querySelector('input[data-field="title"]').addEventListener('input', function(e) {
+            updateIncludeData(index, 'title', e.target.value);
+        });
+
+        card.querySelector('textarea[data-field="description"]').addEventListener('input', function(e) {
+            updateIncludeData(index, 'description', e.target.value);
+        });
+
+        card.querySelector('input[data-field="isActive"]').addEventListener('change', function(e) {
+            updateIncludeData(index, 'isActive', e.target.checked);
+        });
+
+        return card;
+    }
+
+    // Función para actualizar datos del item
+    function updateIncludeData(itemIndex, field, value) {
+        if (itemIndex >= 0 && itemIndex < includesItems.length) {
+            const item = includesItems[itemIndex];
+
+            if (field === 'order') {
+                item.order = parseInt(value) || 0;
+            } else if (field === 'title') {
+                item.title = value || '';
+            } else if (field === 'description') {
+                item.description = value || '';
+            } else if (field === 'isActive') {
+                item.isActive = value;
+            }
+
+            // Actualizar el input hidden correspondiente
+            const hiddenInput = document.querySelector(`input[name="includes_items_${userType}"][data-item-index="${itemIndex}"]`);
+            if (hiddenInput) {
+                hiddenInput.value = JSON.stringify(item).replace(/'/g, "&#39;").replace(/"/g, '&quot;');
+            } else {
+                // Si no existe el input hidden, regenerar todo
+                console.warn(`Input hidden no encontrado para índice ${itemIndex}, regenerando...`);
+                renderIncludes();
+            }
+        }
+    }
+
+    // Función para agregar item manualmente
+    window[`addIncludeManually_${userType}`] = function() {
+        itemCounter++;
+        includesItems.push({
+            id: null,
+            userType: userType,
+            title: '',
+            description: '',
+            order: itemCounter,
+            isActive: true
+        });
+        renderIncludes();
+    };
+
+    // Función para eliminar item
+    window[`removeInclude_${userType}`] = function(itemIndex) {
+        if (confirm('¿Estás seguro de que deseas eliminar este item?')) {
+            includesItems.splice(itemIndex, 1);
+            // Renumerar items
+            includesItems.forEach((item, idx) => {
+                item.order = idx + 1;
+            });
+            renderIncludes();
+        }
+    };
+
+    // Event listeners para addIncludeBtn
+    if (addIncludeBtn) {
+        addIncludeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log(`Botón "Agregar Item" clickeado para ${userType}`);
+            if (window[`addIncludeManually_${userType}`]) {
+                window[`addIncludeManually_${userType}`]();
+            } else {
+                console.error(`Función addIncludeManually_${userType} no encontrada`);
+            }
+        });
+        console.log(`✅ Listener agregado al botón "Agregar Item" para ${userType}`);
+    } else {
+        console.warn(`⚠️ Botón "Agregar Item" no encontrado para ${userType}. Buscando de nuevo...`);
+        // Intentar buscar de nuevo después de un pequeño delay
+        setTimeout(() => {
+            const retryBtn = document.querySelector(`.add-include-btn[data-user-type="${userType}"]`);
+            if (retryBtn) {
+                retryBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log(`Botón "Agregar Item" clickeado para ${userType} (retry)`);
+                    if (window[`addIncludeManually_${userType}`]) {
+                        window[`addIncludeManually_${userType}`]();
+                    }
+                });
+                console.log(`✅ Listener agregado al botón "Agregar Item" para ${userType} (retry exitoso)`);
+            } else {
+                console.error(`❌ Botón "Agregar Item" NO encontrado para ${userType} después del retry.`);
+            }
+        }, 500);
+    }
+
+    // Inicializar
+    renderIncludes();
+}
+
+// Botón flotante de submit - mostrar/ocultar según scroll
+(function() {
+    function initFloatingSubmitButton() {
+        const floatingContainer = document.getElementById('floating-submit-container');
+        const submitButtonsSection = document.getElementById('submit-buttons-section');
+
+        if (!floatingContainer || !submitButtonsSection) {
+            console.warn('Botón flotante: contenedores no encontrados. Reintentando...');
+            setTimeout(initFloatingSubmitButton, 500);
+            return;
+        }
+
+        console.log('✅ Botón flotante inicializado correctamente');
+
+        function toggleFloatingButton() {
+            try {
+                const rect = submitButtonsSection.getBoundingClientRect();
+                const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+
+                // Mostrar el botón flotante cuando la sección de botones original está fuera de la vista (más abajo)
+                if (rect.bottom < windowHeight - 20) {
+                    floatingContainer.classList.add('show');
+                } else {
+                    floatingContainer.classList.remove('show');
+                }
+            } catch (e) {
+                console.error('Error en toggleFloatingButton:', e);
+            }
+        }
+
+        // Verificar posición al hacer scroll
+        window.addEventListener('scroll', function() {
+            toggleFloatingButton();
+        }, { passive: true });
+
+        // Verificar posición al cargar la página y al cambiar el tamaño de la ventana
+        window.addEventListener('resize', toggleFloatingButton);
+        window.addEventListener('load', function() {
+            setTimeout(toggleFloatingButton, 100);
+        });
+
+        // Verificar inicialmente con un pequeño delay
+        setTimeout(toggleFloatingButton, 300);
+
+        // Verificar periódicamente durante los primeros segundos por si hay carga dinámica
+        let checkCount = 0;
+        const checkInterval = setInterval(function() {
+            toggleFloatingButton();
+            checkCount++;
+            if (checkCount >= 6) {
+                clearInterval(checkInterval);
+            }
+        }, 500);
+    }
+
+    // Inicializar cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(initFloatingSubmitButton, 200);
+        });
+    } else {
+        setTimeout(initFloatingSubmitButton, 300);
+    }
+})();
+
+
+
 </script>
-{% endblock %}
-
-<style>
-.html-editor-wrapper {
-    position: relative;
-}
-.html-editor-wrapper .ql-container {
-    border-bottom-left-radius: 0.375rem;
-    border-bottom-right-radius: 0.375rem;
-    border: 1px solid #dee2e6;
-    border-top: none;
-}
-.html-editor-wrapper .ql-toolbar {
-    border-top-left-radius: 0.375rem;
-    border-top-right-radius: 0.375rem;
-    border: 1px solid #dee2e6;
-    border-bottom: none;
-    background: #f8f9fa;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    justify-content: space-between;
-}
-.html-editor-wrapper .ql-editor {
-    min-height: 300px;
-    font-family: Inter, sans-serif;
-    font-size: 14px;
-}
-/* Ocultar el textarea original pero mantenerlo para el formulario */
-.html-editor-wrapper textarea[name="description"],
-.html-editor-wrapper textarea[name="email_welcome_body"],
-.html-editor-wrapper textarea#id_description,
-.html-editor-wrapper textarea#id_email_welcome_body {
-    display: none !important;
-    visibility: hidden !important;
-    position: absolute !important;
-    width: 0 !important;
-    height: 0 !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-}
-
-/* Asegurar que solo el textarea HTML del editor esté visible cuando corresponde */
-#description-html-editor,
-#email-body-html-editor {
-    display: none;
-}
-
-/* Estilos para el botón de alternancia HTML/Visual */
-.ql-html-toggle {
-    padding: 4px 8px !important;
-    background: #fff !important;
-    border: 1px solid #ccc !important;
-    border-radius: 3px !important;
-    cursor: pointer !important;
-    font-size: 12px !important;
-    color: #444 !important;
-    transition: all 0.2s ease !important;
-    display: inline-flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 4px !important;
-    margin: 0 !important;
-    font-weight: 500 !important;
-    white-space: nowrap !important;
-    vertical-align: middle !important;
-    line-height: 1.4 !important;
-    height: 24px !important;
-    width: auto !important;
-    min-width: auto !important;
-    box-sizing: border-box !important;
-}
-
-.ql-html-toggle:hover {
-    background: #f0f0f0 !important;
-    border-color: #999 !important;
-    color: #000 !important;
-}
-
-.ql-html-toggle.active {
-    background: #0d6efd !important;
-    border-color: #0d6efd !important;
-    color: #fff !important;
-}
-
-.ql-html-toggle.active:hover {
-    background: #0b5ed7 !important;
-    border-color: #0a58ca !important;
-    color: #fff !important;
-}
-
-.ql-html-toggle i {
-    font-size: 11px !important;
-    line-height: 1 !important;
-    display: inline-block !important;
-    flex-shrink: 0 !important;
-    width: auto !important;
-    height: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    vertical-align: middle !important;
-}
-
-.ql-html-toggle span {
-    font-size: 12px !important;
-    line-height: 1 !important;
-    display: inline-block !important;
-    white-space: nowrap !important;
-    width: auto !important;
-    height: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    vertical-align: middle !important;
-}
-
-/* Asegurar que el contenedor del botón se alinee correctamente */
-.ql-toolbar .ql-formats:last-child {
-    margin-left: auto !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    flex-wrap: nowrap !important;
-    border-left: 1px solid #ccc !important;
-    padding-left: 8px !important;
-    margin-left: 8px !important;
-}
-
-/* Estilos para el editor HTML (solo visible cuando se activa el modo HTML) */
-#description-html-editor,
-#email-body-html-editor {
-    border: 1px solid #dee2e6;
-    border-top: none;
-    border-radius: 0 0 0.375rem 0.375rem;
-    padding: 12px;
-    resize: vertical;
-    line-height: 1.5;
-    width: 100%;
-    box-sizing: border-box;
-    background: #fff;
-    display: none !important;
-}
-
-/* Mostrar el editor HTML solo cuando está activo */
-#description-html-editor[style*="display: block"],
-#email-body-html-editor[style*="display: block"] {
-    display: block !important;
-}
-
-#description-html-editor:focus,
-#email-body-html-editor:focus {
-    border-color: #86b7fe;
-    outline: 0;
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-}
-
-/* Cuando el editor HTML está visible, mantener el borde superior de la toolbar */
-.html-editor-wrapper .ql-toolbar {
-    border-bottom: 1px solid #dee2e6;
-}
-
-/* Asegurar que el contenedor del editor HTML tenga el mismo estilo que el contenedor de Quill */
-#description-editor-container,
-#email-body-editor-container {
-    position: relative;
-}
-
-/* Asegurar que el contenedor del editor tenga el espacio correcto */
-#description-editor-container {
-    position: relative;
-}
+{% endblock extra_js %}
 
 
 

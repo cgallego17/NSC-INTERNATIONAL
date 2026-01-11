@@ -21,6 +21,7 @@ class EventForm(forms.ModelForm):
             "season",  # TEMPORADA DEL EVENTO SELECT
             "title",  # NOMBRE DEL EVENTO
             "description",  # DESCRIPCION DEL EVENTO HTML
+            "description_player",  # DESCRIPCION DEL EVENTO INDIVIDUAL PLAYER
             "title_team_manager",  # NOMBRE DEL EVENTO TEAM MANAGER
             "description_team_manager",  # DESCRIPCION DEL EVENTO TEAM MANAGER
             "title_spectator",  # NOMBRE DEL EVENTO SPECTATOR
@@ -627,6 +628,27 @@ class EventForm(forms.ModelForm):
         elif self.fields["rule"].required:
             raise forms.ValidationError("Debe seleccionar un reglamento.")
         return rule
+
+    def clean_default_entry_fee_spectator(self):
+        """Validar que el precio del spectator sea válido si se proporciona"""
+        value = self.cleaned_data.get("default_entry_fee_spectator")
+        if value is not None:
+            from decimal import Decimal, InvalidOperation
+            try:
+                # Asegurar que el valor es un Decimal válido
+                if isinstance(value, str):
+                    if value.strip() == "":
+                        return None
+                    value = Decimal(value)
+                elif isinstance(value, (int, float)):
+                    value = Decimal(str(value))
+                # Validar que sea positivo
+                if value < 0:
+                    raise forms.ValidationError("El precio debe ser positivo o cero.")
+                return value
+            except (InvalidOperation, ValueError, TypeError):
+                raise forms.ValidationError("Ingrese un precio válido.")
+        return None
 
     def clean_divisions(self):
         divisions = self.cleaned_data.get("divisions")
