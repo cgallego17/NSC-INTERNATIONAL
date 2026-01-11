@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-10 21:25:19
+
+- **[0a5e52d]** Varios
+  - *Fecha:* 2026-01-10 21:25:19
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 21 archivo(s)
+    - `apps/accounts/forms.py`
+    - `apps/accounts/templatetags/url_filters.py`
+    - `apps/accounts/urls_private.py`
+    - `apps/accounts/views_private.py`
+    - `apps/accounts/views_public.py`
+    - `apps/events/forms.py`
+    - `apps/events/migrations/0034_add_event_service.py`
+    - `apps/events/migrations/0035_add_user_type_to_event_itinerary.py`
+    - `apps/events/migrations/0036_add_description_player_to_event.py`
+    - `apps/events/migrations/0037_add_event_includes_model.py`
+    - ... y 11 archivo(s) más
+
+
+
 ### Actualizado: 2026-01-09 23:08:19
 
 - **[9b784a2]** feat: Update user panel to enhance spectator experience
