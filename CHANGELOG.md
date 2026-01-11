@@ -7,6 +7,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-10 21:39:01
+
+- **[cd04294]** settings
+  - *Fecha:* 2026-01-10 21:39:01
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `nsc_admin/settings_simple.py`
+
+
+
 ### Actualizado: 2026-01-10 21:25:19
 
 - **[0a5e52d]** Varios
