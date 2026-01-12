@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-12 18:28:39
+
+- **[936c003]** refactor: Improve JSON serialization and Vue app initialization
+  - *Fecha:* 2026-01-12 18:28:39
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 4 archivo(s)
+    - `apps/events/views.py`
+    - `templates/accounts/panel_tabs/detalle_evento_vue.html`
+    - `templates/base.html`
+    - `templates/events/dashboard.html`
+  - *Detalles:*
+    - - Add json module import to events views
+    - - Serialize events_by_category and events_by_division to JSON in DashboardView
+    - - Pass JSON-serialized data to dashboard template for Chart.js consumption
+    - - Refactor Vue app initialization with safeParseJsonScript helper function
+    - - Simplify error handling and reduce code duplication in detalle_evento_vue.html
+    - - Fix script tag closure in base.html template
+
+
+
 ### Actualizado: 2026-01-12 18:10:22
 
 - **[008b6b7]** refactor: Improve event banner responsiveness and modal z-index handling
