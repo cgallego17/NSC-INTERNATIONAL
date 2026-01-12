@@ -4173,7 +4173,7 @@ const EventDetailApp = {
                 <div class="col-lg-8">
                     <div class="event-info-card" style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
                         <!-- Banner/Logo -->
-                        <div v-if="displayBanner || eventData.logo" style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 25px; background: #f8f9fa;">
+                        <div v-if="displayBanner || eventData.logo" style="width: 100%; height: clamp(180px, 35vw, 300px); border-radius: 12px; overflow: hidden; margin-bottom: 25px; background: #f8f9fa;">
                             <img v-if="displayBanner" :src="displayBanner" :alt="eventData.title" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
                             <img v-else-if="eventData.logo" :src="eventData.logo" :alt="eventData.title" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
                         </div>
