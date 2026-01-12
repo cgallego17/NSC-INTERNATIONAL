@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Q, Case, When, IntegerField, Value, Sum
+from django.db.models import Case, Count, IntegerField, Q, Sum, Value, When
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
@@ -24,7 +24,14 @@ from django.views.generic import (
 from apps.core.mixins import StaffRequiredMixin, SuperuserRequiredMixin
 
 from .forms import EventForm
-from .models import Division, Event, EventAttendance, EventCategory, EventItinerary, EventIncludes, EventService
+from .models import (
+    Division,
+    Event,
+    EventAttendance,
+    EventCategory,
+    EventIncludes,
+    EventItinerary,
+)
 
 
 class EventListView(StaffRequiredMixin, ListView):
@@ -62,14 +69,14 @@ class EventListView(StaffRequiredMixin, ListView):
 
         # Default to 'published' if no status filter is provided
         # But if status is explicitly 'all', don't filter by status
-        if status == 'all':
+        if status == "all":
             # Don't filter by status - show all
             pass
         elif status:
             queryset = queryset.filter(status=status)
         else:
             # Default to 'published' when no status parameter
-            queryset = queryset.filter(status='published')
+            queryset = queryset.filter(status="published")
 
         if time_filter:
             now = timezone.now()
@@ -88,18 +95,18 @@ class EventListView(StaffRequiredMixin, ListView):
 
         # Ordenar: completados primero (por fecha de inicio descendente), luego el resto por fecha ascendente
         status_filter = self.request.GET.get("status")
-        if status_filter == 'completed':
+        if status_filter == "completed":
             # Para completados, ordenar por fecha descendente (más recientes primero)
-            queryset = queryset.order_by('-start_date')
+            queryset = queryset.order_by("-start_date")
         else:
             # Para otros estados, ordenar por fecha ascendente (próximos primero)
             queryset = queryset.annotate(
                 status_priority=Case(
-                    When(status='completed', then=Value(0)),
+                    When(status="completed", then=Value(0)),
                     default=Value(1),
                     output_field=IntegerField(),
                 )
-            ).order_by('status_priority', 'start_date')
+            ).order_by("status_priority", "start_date")
         return queryset
 
     def get_context_data(self, **kwargs):
@@ -139,7 +146,9 @@ class EventListView(StaffRequiredMixin, ListView):
             if time_filter == "upcoming":
                 base_queryset = base_queryset.filter(start_date__gt=now)
             elif time_filter == "ongoing":
-                base_queryset = base_queryset.filter(start_date__lte=now, end_date__gte=now)
+                base_queryset = base_queryset.filter(
+                    start_date__lte=now, end_date__gte=now
+                )
             elif time_filter == "past":
                 base_queryset = base_queryset.filter(end_date__lt=now)
             elif time_filter == "today":
@@ -159,7 +168,9 @@ class EventListView(StaffRequiredMixin, ListView):
         }
 
         # Estado activo actual (default: 'all')
-        context["active_status"] = self.request.GET.get("status", "published")  # Default to published
+        context["active_status"] = self.request.GET.get(
+            "status", "published"
+        )  # Default to published
 
         return context
 
@@ -485,6 +496,7 @@ class EventCreateView(StaffRequiredMixin, CreateView):
         import json
         import logging
         from datetime import datetime
+
         from django.db import IntegrityError
 
         logger = logging.getLogger(__name__)
@@ -493,14 +505,16 @@ class EventCreateView(StaffRequiredMixin, CreateView):
         EventItinerary.objects.filter(event=event).delete()
 
         # Procesar itinerarios para cada tipo de usuario
-        user_types = ['player', 'team_manager', 'spectator']
+        user_types = ["player", "team_manager", "spectator"]
 
         for user_type in user_types:
             # Obtener todos los días del itinerario para este tipo de usuario
-            field_name = f'itinerary_days_{user_type}'
+            field_name = f"itinerary_days_{user_type}"
             itinerary_days_data = self.request.POST.getlist(field_name)
 
-            logger.info(f"Guardando itinerario para {user_type}: {len(itinerary_days_data)} días encontrados")
+            logger.info(
+                f"Guardando itinerario para {user_type}: {len(itinerary_days_data)} días encontrados"
+            )
 
             # Validar días duplicados antes de crear
             seen_days = set()
@@ -509,26 +523,34 @@ class EventCreateView(StaffRequiredMixin, CreateView):
             for idx, day_data_str in enumerate(itinerary_days_data):
                 try:
                     # Decodificar el HTML entity
-                    day_data_str = day_data_str.replace('&#39;', "'").replace('&quot;', '"')
+                    day_data_str = day_data_str.replace("&#39;", "'").replace(
+                        "&quot;", '"'
+                    )
                     day_data = json.loads(day_data_str)
 
                     # Convertir el string de fecha a objeto date
-                    day_str = day_data.get('day', '').strip()
+                    day_str = day_data.get("day", "").strip()
                     if not day_str:
-                        logger.warning(f"Día {idx} de {user_type} sin fecha, omitiendo...")
+                        logger.warning(
+                            f"Día {idx} de {user_type} sin fecha, omitiendo..."
+                        )
                         continue
 
                     try:
                         # Intentar parsear la fecha (formato ISO: YYYY-MM-DD)
-                        day_date = datetime.strptime(day_str, '%Y-%m-%d').date()
+                        day_date = datetime.strptime(day_str, "%Y-%m-%d").date()
                     except (ValueError, TypeError) as e:
-                        logger.error(f"Error al parsear fecha '{day_str}' en día {idx} de {user_type}: {e}")
+                        logger.error(
+                            f"Error al parsear fecha '{day_str}' en día {idx} de {user_type}: {e}"
+                        )
                         continue
 
                     # Validar que no sea un día duplicado para este user_type
                     day_key = (user_type, day_date)
                     if day_key in seen_days:
-                        logger.warning(f"Día duplicado ignorado: {user_type} - {day_date} (día {idx})")
+                        logger.warning(
+                            f"Día duplicado ignorado: {user_type} - {day_date} (día {idx})"
+                        )
                         continue
                     seen_days.add(day_key)
 
@@ -538,21 +560,28 @@ class EventCreateView(StaffRequiredMixin, CreateView):
                             event=event,
                             user_type=user_type,
                             day=day_date,
-                            day_number=int(day_data.get('dayNumber', 1)) or 1,
-                            title=day_data.get('title', '').strip() or '',
-                            description=day_data.get('description', '').strip() or '',
-                            schedule_items=day_data.get('scheduleItems', []) or []
+                            day_number=int(day_data.get("dayNumber", 1)) or 1,
+                            title=day_data.get("title", "").strip() or "",
+                            description=day_data.get("description", "").strip() or "",
+                            schedule_items=day_data.get("scheduleItems", []) or [],
                         )
-                        logger.info(f"Itinerario creado: {itinerary_obj.title} ({user_type}) - {day_date} - Día #{itinerary_obj.day_number}")
+                        logger.info(
+                            f"Itinerario creado: {itinerary_obj.title} ({user_type}) - {day_date} - Día #{itinerary_obj.day_number}"
+                        )
 
                     except IntegrityError as e:
-                        logger.error(f"Error de integridad al guardar día {idx} ({user_type}): {e}. Día: {day_date}")
+                        logger.error(
+                            f"Error de integridad al guardar día {idx} ({user_type}): {e}. Día: {day_date}"
+                        )
                         # Este error no debería ocurrir si validamos bien los duplicados, pero lo capturamos por seguridad
                         continue
 
                 except (json.JSONDecodeError, KeyError, ValueError) as e:
-                    logger.error(f"Error al procesar día del itinerario {idx} ({user_type}): {e}. Datos: {day_data_str[:200]}")
+                    logger.error(
+                        f"Error al procesar día del itinerario {idx} ({user_type}): {e}. Datos: {day_data_str[:200]}"
+                    )
                     import traceback
+
                     logger.error(traceback.format_exc())
                     continue
 
@@ -567,32 +596,40 @@ class EventCreateView(StaffRequiredMixin, CreateView):
         EventIncludes.objects.filter(event=event).delete()
 
         # Procesar includes para cada tipo de usuario
-        user_types = ['player', 'team_manager', 'spectator']
+        user_types = ["player", "team_manager", "spectator"]
 
         for user_type in user_types:
             # Obtener todos los items incluidos para este tipo de usuario
-            field_name = f'includes_items_{user_type}'
+            field_name = f"includes_items_{user_type}"
             includes_items_data = self.request.POST.getlist(field_name)
 
-            logger.info(f"Guardando includes para {user_type}: {len(includes_items_data)} items encontrados")
+            logger.info(
+                f"Guardando includes para {user_type}: {len(includes_items_data)} items encontrados"
+            )
 
             # Procesar cada item incluido
             for idx, item_data_str in enumerate(includes_items_data):
                 try:
                     # Decodificar el HTML entity
-                    item_data_str = item_data_str.replace('&#39;', "'").replace('&quot;', '"')
+                    item_data_str = item_data_str.replace("&#39;", "'").replace(
+                        "&quot;", '"'
+                    )
 
                     # Intentar parsear el JSON
                     try:
                         item_data = json.loads(item_data_str)
                     except json.JSONDecodeError as e:
-                        logger.error(f"Error de JSON en item {idx} de {user_type}: {e}. String recibido: {item_data_str[:100]}")
+                        logger.error(
+                            f"Error de JSON en item {idx} de {user_type}: {e}. String recibido: {item_data_str[:100]}"
+                        )
                         continue
 
                     # Validar que el título no esté vacío
-                    title = item_data.get('title', '').strip()
+                    title = item_data.get("title", "").strip()
                     if not title:
-                        logger.warning(f"Item {idx} de {user_type} sin título, omitiendo...")
+                        logger.warning(
+                            f"Item {idx} de {user_type} sin título, omitiendo..."
+                        )
                         continue
 
                     # Crear el item incluido con el user_type correcto
@@ -600,16 +637,25 @@ class EventCreateView(StaffRequiredMixin, CreateView):
                         event=event,
                         user_type=user_type,
                         title=title,
-                        description=item_data.get('description', '').strip() or '',
-                        order=int(item_data.get('order', 0)) or 0,
-                        is_active=bool(item_data.get('isActive', True)) if 'isActive' in item_data else True
+                        description=item_data.get("description", "").strip() or "",
+                        order=int(item_data.get("order", 0)) or 0,
+                        is_active=(
+                            bool(item_data.get("isActive", True))
+                            if "isActive" in item_data
+                            else True
+                        ),
                     )
-                    logger.info(f"Include creado: {include_obj.title} ({include_obj.user_type}) - Orden: {include_obj.order}")
+                    logger.info(
+                        f"Include creado: {include_obj.title} ({include_obj.user_type}) - Orden: {include_obj.order}"
+                    )
 
                 except (json.JSONDecodeError, KeyError, ValueError, Exception) as e:
                     # Si hay un error, registrar y continuar con el siguiente
-                    logger.error(f"Error al procesar item incluido {idx} ({user_type}): {e}. Datos: {item_data_str[:200]}")
+                    logger.error(
+                        f"Error al procesar item incluido {idx} ({user_type}): {e}. Datos: {item_data_str[:200]}"
+                    )
                     import traceback
+
                     logger.error(traceback.format_exc())
                     continue
 
@@ -654,6 +700,7 @@ class EventUpdateView(StaffRequiredMixin, UpdateView):
         import json
         import logging
         from datetime import datetime
+
         from django.db import IntegrityError
 
         logger = logging.getLogger(__name__)
@@ -662,14 +709,16 @@ class EventUpdateView(StaffRequiredMixin, UpdateView):
         EventItinerary.objects.filter(event=event).delete()
 
         # Procesar itinerarios para cada tipo de usuario
-        user_types = ['player', 'team_manager', 'spectator']
+        user_types = ["player", "team_manager", "spectator"]
 
         for user_type in user_types:
             # Obtener todos los días del itinerario para este tipo de usuario
-            field_name = f'itinerary_days_{user_type}'
+            field_name = f"itinerary_days_{user_type}"
             itinerary_days_data = self.request.POST.getlist(field_name)
 
-            logger.info(f"Guardando itinerario para {user_type}: {len(itinerary_days_data)} días encontrados")
+            logger.info(
+                f"Guardando itinerario para {user_type}: {len(itinerary_days_data)} días encontrados"
+            )
 
             # Validar días duplicados antes de crear
             seen_days = set()
@@ -678,26 +727,34 @@ class EventUpdateView(StaffRequiredMixin, UpdateView):
             for idx, day_data_str in enumerate(itinerary_days_data):
                 try:
                     # Decodificar el HTML entity
-                    day_data_str = day_data_str.replace('&#39;', "'").replace('&quot;', '"')
+                    day_data_str = day_data_str.replace("&#39;", "'").replace(
+                        "&quot;", '"'
+                    )
                     day_data = json.loads(day_data_str)
 
                     # Convertir el string de fecha a objeto date
-                    day_str = day_data.get('day', '').strip()
+                    day_str = day_data.get("day", "").strip()
                     if not day_str:
-                        logger.warning(f"Día {idx} de {user_type} sin fecha, omitiendo...")
+                        logger.warning(
+                            f"Día {idx} de {user_type} sin fecha, omitiendo..."
+                        )
                         continue
 
                     try:
                         # Intentar parsear la fecha (formato ISO: YYYY-MM-DD)
-                        day_date = datetime.strptime(day_str, '%Y-%m-%d').date()
+                        day_date = datetime.strptime(day_str, "%Y-%m-%d").date()
                     except (ValueError, TypeError) as e:
-                        logger.error(f"Error al parsear fecha '{day_str}' en día {idx} de {user_type}: {e}")
+                        logger.error(
+                            f"Error al parsear fecha '{day_str}' en día {idx} de {user_type}: {e}"
+                        )
                         continue
 
                     # Validar que no sea un día duplicado para este user_type
                     day_key = (user_type, day_date)
                     if day_key in seen_days:
-                        logger.warning(f"Día duplicado ignorado: {user_type} - {day_date} (día {idx})")
+                        logger.warning(
+                            f"Día duplicado ignorado: {user_type} - {day_date} (día {idx})"
+                        )
                         continue
                     seen_days.add(day_key)
 
@@ -707,21 +764,28 @@ class EventUpdateView(StaffRequiredMixin, UpdateView):
                             event=event,
                             user_type=user_type,
                             day=day_date,
-                            day_number=int(day_data.get('dayNumber', 1)) or 1,
-                            title=day_data.get('title', '').strip() or '',
-                            description=day_data.get('description', '').strip() or '',
-                            schedule_items=day_data.get('scheduleItems', []) or []
+                            day_number=int(day_data.get("dayNumber", 1)) or 1,
+                            title=day_data.get("title", "").strip() or "",
+                            description=day_data.get("description", "").strip() or "",
+                            schedule_items=day_data.get("scheduleItems", []) or [],
                         )
-                        logger.info(f"Itinerario creado: {itinerary_obj.title} ({user_type}) - {day_date} - Día #{itinerary_obj.day_number}")
+                        logger.info(
+                            f"Itinerario creado: {itinerary_obj.title} ({user_type}) - {day_date} - Día #{itinerary_obj.day_number}"
+                        )
 
                     except IntegrityError as e:
-                        logger.error(f"Error de integridad al guardar día {idx} ({user_type}): {e}. Día: {day_date}")
+                        logger.error(
+                            f"Error de integridad al guardar día {idx} ({user_type}): {e}. Día: {day_date}"
+                        )
                         # Este error no debería ocurrir si validamos bien los duplicados, pero lo capturamos por seguridad
                         continue
 
                 except (json.JSONDecodeError, KeyError, ValueError) as e:
-                    logger.error(f"Error al procesar día del itinerario {idx} ({user_type}): {e}. Datos: {day_data_str[:200]}")
+                    logger.error(
+                        f"Error al procesar día del itinerario {idx} ({user_type}): {e}. Datos: {day_data_str[:200]}"
+                    )
                     import traceback
+
                     logger.error(traceback.format_exc())
                     continue
 
@@ -736,32 +800,40 @@ class EventUpdateView(StaffRequiredMixin, UpdateView):
         EventIncludes.objects.filter(event=event).delete()
 
         # Procesar includes para cada tipo de usuario
-        user_types = ['player', 'team_manager', 'spectator']
+        user_types = ["player", "team_manager", "spectator"]
 
         for user_type in user_types:
             # Obtener todos los items incluidos para este tipo de usuario
-            field_name = f'includes_items_{user_type}'
+            field_name = f"includes_items_{user_type}"
             includes_items_data = self.request.POST.getlist(field_name)
 
-            logger.info(f"Guardando includes para {user_type}: {len(includes_items_data)} items encontrados")
+            logger.info(
+                f"Guardando includes para {user_type}: {len(includes_items_data)} items encontrados"
+            )
 
             # Procesar cada item incluido
             for idx, item_data_str in enumerate(includes_items_data):
                 try:
                     # Decodificar el HTML entity
-                    item_data_str = item_data_str.replace('&#39;', "'").replace('&quot;', '"')
+                    item_data_str = item_data_str.replace("&#39;", "'").replace(
+                        "&quot;", '"'
+                    )
 
                     # Intentar parsear el JSON
                     try:
                         item_data = json.loads(item_data_str)
                     except json.JSONDecodeError as e:
-                        logger.error(f"Error de JSON en item {idx} de {user_type}: {e}. String recibido: {item_data_str[:100]}")
+                        logger.error(
+                            f"Error de JSON en item {idx} de {user_type}: {e}. String recibido: {item_data_str[:100]}"
+                        )
                         continue
 
                     # Validar que el título no esté vacío
-                    title = item_data.get('title', '').strip()
+                    title = item_data.get("title", "").strip()
                     if not title:
-                        logger.warning(f"Item {idx} de {user_type} sin título, omitiendo...")
+                        logger.warning(
+                            f"Item {idx} de {user_type} sin título, omitiendo..."
+                        )
                         continue
 
                     # Crear el item incluido con el user_type correcto
@@ -769,16 +841,25 @@ class EventUpdateView(StaffRequiredMixin, UpdateView):
                         event=event,
                         user_type=user_type,
                         title=title,
-                        description=item_data.get('description', '').strip() or '',
-                        order=int(item_data.get('order', 0)) or 0,
-                        is_active=bool(item_data.get('isActive', True)) if 'isActive' in item_data else True
+                        description=item_data.get("description", "").strip() or "",
+                        order=int(item_data.get("order", 0)) or 0,
+                        is_active=(
+                            bool(item_data.get("isActive", True))
+                            if "isActive" in item_data
+                            else True
+                        ),
                     )
-                    logger.info(f"Include creado: {include_obj.title} ({include_obj.user_type}) - Orden: {include_obj.order}")
+                    logger.info(
+                        f"Include creado: {include_obj.title} ({include_obj.user_type}) - Orden: {include_obj.order}"
+                    )
 
                 except (json.JSONDecodeError, KeyError, ValueError, Exception) as e:
                     # Si hay un error, registrar y continuar con el siguiente
-                    logger.error(f"Error al procesar item incluido {idx} ({user_type}): {e}. Datos: {item_data_str[:200]}")
+                    logger.error(
+                        f"Error al procesar item incluido {idx} ({user_type}): {e}. Datos: {item_data_str[:200]}"
+                    )
                     import traceback
+
                     logger.error(traceback.format_exc())
                     continue
 
@@ -801,7 +882,9 @@ class EventChangeStatusView(StaffRequiredMixin, View):
         new_status = request.POST.get("status")
 
         if new_status not in dict(Event.STATUS_CHOICES):
-            return JsonResponse({"success": False, "error": "Estado inválido"}, status=400)
+            return JsonResponse(
+                {"success": False, "error": "Estado inválido"}, status=400
+            )
 
         event.status = new_status
         event.save()
@@ -1092,48 +1175,43 @@ class DashboardView(StaffRequiredMixin, TemplateView):
         # Marcar la sección activa en el sidebar
         context["active_section"] = "dashboard"
         now = timezone.now()
+        today = now.date()
 
         # Estadísticas generales (solo eventos publicados)
         total_events = Event.objects.filter(status="published").count()
         upcoming_events = Event.objects.filter(
-            status="published", start_date__gt=now
+            status="published", start_date__gt=today
         ).count()
         ongoing_events = Event.objects.filter(
-            status="published", start_date__lte=now, end_date__gte=now
+            status="published", start_date__lte=today, end_date__gte=today
         ).count()
-        past_events = Event.objects.filter(status="published", end_date__lt=now).count()
+        past_events = Event.objects.filter(
+            status="published", end_date__lt=today
+        ).count()
 
         # Eventos de hoy (solo publicados)
-        today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        today_end = today_start + timedelta(days=1)
         try:
             today_events = (
-                Event.objects.filter(
-                    status="published",
-                    start_date__gte=today_start,
-                    start_date__lt=today_end,
-                )
+                Event.objects.filter(status="published", start_date=today)
                 .select_related("category")
                 .prefetch_related("divisions")
                 .order_by("start_date")
             )
         except Exception:
             today_events = (
-                Event.objects.filter(
-                    status="published",
-                    start_date__gte=today_start,
-                    start_date__lt=today_end,
-                )
+                Event.objects.filter(status="published", start_date=today)
                 .select_related("category")
                 .order_by("start_date")
             )
 
+        today_events_count = today_events.count()
+
         # Próximos eventos (próximos 7 días, solo publicados)
-        week_end = now + timedelta(days=7)
+        week_end = today + timedelta(days=7)
         try:
             upcoming_week = (
                 Event.objects.filter(
-                    status="published", start_date__gt=now, start_date__lte=week_end
+                    status="published", start_date__gt=today, start_date__lte=week_end
                 )
                 .select_related("category")
                 .prefetch_related("divisions")
@@ -1142,11 +1220,15 @@ class DashboardView(StaffRequiredMixin, TemplateView):
         except Exception:
             upcoming_week = (
                 Event.objects.filter(
-                    status="published", start_date__gt=now, start_date__lte=week_end
+                    status="published", start_date__gt=today, start_date__lte=week_end
                 )
                 .select_related("category")
                 .order_by("start_date")[:5]
             )
+
+        upcoming_week_count = Event.objects.filter(
+            status="published", start_date__gt=today, start_date__lte=week_end
+        ).count()
 
         # Eventos por categoría (solo publicados)
         events_by_category = (
@@ -1190,7 +1272,7 @@ class DashboardView(StaffRequiredMixin, TemplateView):
         try:
             from django.contrib.auth import get_user_model
 
-            from apps.accounts.models import Player, UserProfile
+            from apps.accounts.models import Player
 
             User = get_user_model()
             total_users = User.objects.count()
@@ -1207,7 +1289,9 @@ class DashboardView(StaffRequiredMixin, TemplateView):
                     "ongoing_events": ongoing_events,
                     "past_events": past_events,
                     "today_events": today_events,
+                    "today_events_count": today_events_count,
                     "upcoming_week": upcoming_week,
+                    "upcoming_week_count": upcoming_week_count,
                     "events_by_category": events_by_category,
                     "events_by_division": events_by_division,
                     "popular_events": popular_events,
@@ -1228,7 +1312,9 @@ class DashboardView(StaffRequiredMixin, TemplateView):
                     "ongoing_events": ongoing_events,
                     "past_events": past_events,
                     "today_events": today_events,
+                    "today_events_count": today_events_count,
                     "upcoming_week": upcoming_week,
+                    "upcoming_week_count": upcoming_week_count,
                     "events_by_category": events_by_category,
                     "events_by_division": events_by_division,
                     "popular_events": popular_events,
@@ -1284,10 +1370,11 @@ class DashboardView(StaffRequiredMixin, TemplateView):
                     total_revenue = Decimal(str(total_revenue))
 
                 # Ingresos del mes actual
-                current_month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+                current_month_start = now.replace(
+                    day=1, hour=0, minute=0, second=0, microsecond=0
+                )
                 monthly_revenue_result = Order.objects.filter(
-                    status="paid",
-                    created_at__gte=current_month_start
+                    status="paid", created_at__gte=current_month_start
                 ).aggregate(total=Sum("total_amount"))
                 monthly_revenue = monthly_revenue_result.get("total")
                 if monthly_revenue is None:
@@ -1296,9 +1383,11 @@ class DashboardView(StaffRequiredMixin, TemplateView):
                     monthly_revenue = Decimal(str(monthly_revenue))
 
                 # Órdenes recientes
-                recent_orders = list(Order.objects.select_related(
-                    "user", "event"
-                ).order_by("-created_at")[:10])
+                recent_orders = list(
+                    Order.objects.select_related("user", "event").order_by(
+                        "-created_at"
+                    )[:10]
+                )
 
                 orders_stats = {
                     "total": total_orders,
@@ -1311,21 +1400,31 @@ class DashboardView(StaffRequiredMixin, TemplateView):
 
                 # Estadísticas de reservas
                 total_reservations = HotelReservation.objects.count()
-                pending_reservations = HotelReservation.objects.filter(status="pending").count()
-                confirmed_reservations = HotelReservation.objects.filter(status="confirmed").count()
-                checked_in_reservations = HotelReservation.objects.filter(status="checked_in").count()
-                cancelled_reservations = HotelReservation.objects.filter(status="cancelled").count()
+                pending_reservations = HotelReservation.objects.filter(
+                    status="pending"
+                ).count()
+                confirmed_reservations = HotelReservation.objects.filter(
+                    status="confirmed"
+                ).count()
+                checked_in_reservations = HotelReservation.objects.filter(
+                    status="checked_in"
+                ).count()
+                cancelled_reservations = HotelReservation.objects.filter(
+                    status="cancelled"
+                ).count()
 
                 # Reservas próximas (check-in en los próximos 7 días)
                 today_date = now.date()
                 next_week = today_date + timedelta(days=7)
-                upcoming_reservations = list(HotelReservation.objects.filter(
-                    status__in=["confirmed", "pending"],
-                    check_in__gte=today_date,
-                    check_in__lte=next_week
-                ).select_related(
-                    "hotel", "room", "user"
-                ).order_by("check_in")[:10])
+                upcoming_reservations = list(
+                    HotelReservation.objects.filter(
+                        status__in=["confirmed", "pending"],
+                        check_in__gte=today_date,
+                        check_in__lte=next_week,
+                    )
+                    .select_related("hotel", "room", "user")
+                    .order_by("check_in")[:10]
+                )
 
                 # Ingresos de reservas
                 reservations_revenue_result = HotelReservation.objects.filter(
@@ -1349,16 +1448,58 @@ class DashboardView(StaffRequiredMixin, TemplateView):
             except Exception as e:
                 # Si hay algún error, registrar pero continuar con stats vacíos
                 import logging
+
                 logger = logging.getLogger(__name__)
-                logger.error(f"Error al obtener estadísticas de órdenes y reservas: {e}", exc_info=True)
+                logger.error(
+                    f"Error al obtener estadísticas de órdenes y reservas: {e}",
+                    exc_info=True,
+                )
 
         # Actualizar el contexto con las estadísticas de órdenes y reservas
-        context.update({
-            "orders_stats": orders_stats,
-            "reservations_stats": reservations_stats,
-            "recent_orders": recent_orders,
-            "upcoming_reservations": upcoming_reservations,
-        })
+        context.update(
+            {
+                "orders_stats": orders_stats,
+                "reservations_stats": reservations_stats,
+                "recent_orders": recent_orders,
+                "upcoming_reservations": upcoming_reservations,
+            }
+        )
+
+        # Alertas / pendientes (contenido accionable)
+        missing_dates_events = (
+            Event.objects.filter(Q(start_date__isnull=True) | Q(end_date__isnull=True))
+            .select_related("category")
+            .order_by("-created_at")[:5]
+        )
+        draft_events_count = Event.objects.filter(status="draft").count()
+        missing_dates_count = Event.objects.filter(
+            Q(start_date__isnull=True) | Q(end_date__isnull=True)
+        ).count()
+
+        entry_deadline_soon_events = (
+            Event.objects.filter(
+                entry_deadline__isnull=False,
+                entry_deadline__gte=today,
+                entry_deadline__lte=today + timedelta(days=7),
+            )
+            .select_related("category")
+            .order_by("entry_deadline")[:5]
+        )
+        entry_deadline_soon_count = Event.objects.filter(
+            entry_deadline__isnull=False,
+            entry_deadline__gte=today,
+            entry_deadline__lte=today + timedelta(days=7),
+        ).count()
+
+        context.update(
+            {
+                "draft_events_count": draft_events_count,
+                "missing_dates_events": missing_dates_events,
+                "missing_dates_count": missing_dates_count,
+                "entry_deadline_soon_events": entry_deadline_soon_events,
+                "entry_deadline_soon_count": entry_deadline_soon_count,
+            }
+        )
 
         return context
 
@@ -1698,7 +1839,9 @@ def get_event_services(request, event_id):
 
     try:
         event = Event.objects.get(id=event_id, status="published")
-        services = event.additional_services.filter(is_active=True).order_by("order", "service_name")
+        services = event.additional_services.filter(is_active=True).order_by(
+            "order", "service_name"
+        )
 
         services_data = []
         for service in services:

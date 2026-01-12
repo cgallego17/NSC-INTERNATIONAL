@@ -9,13 +9,13 @@
 <style>
     .event-form-container {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        padding: 2rem 2rem 2rem 3rem;
+        padding: 0;
         min-height: 100vh;
     }
-    
+
     @media (max-width: 992px) {
         .event-form-container {
-            padding: 2rem 1.5rem;
+            padding: 0;
         }
     }
 </style>
@@ -56,7 +56,7 @@
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
-                        
+
                         <div class="row mb-4">
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">
@@ -76,8 +76,8 @@
                                 </label>
                                 <div class="input-group">
                                     {{ form.color }}
-                                    <input type="color" class="form-control form-control-color" 
-                                           id="colorPicker" value="{{ form.color.value|default:'#0d2c54' }}" 
+                                    <input type="color" class="form-control form-control-color"
+                                           id="colorPicker" value="{{ form.color.value|default:'#0d2c54' }}"
                                            title="Seleccionar color">
                                 </div>
                                 {% if form.color.errors %}
@@ -103,9 +103,9 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Estado</label>
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" 
-                                           type="checkbox" 
-                                           id="{{ form.is_active.id_for_label }}" 
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           id="{{ form.is_active.id_for_label }}"
                                            name="{{ form.is_active.name }}"
                                            {% if form.is_active.value %}checked{% endif %}>
                                     <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
@@ -155,12 +155,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     const colorInput = document.getElementById('{{ form.color.id_for_label }}');
     const colorPicker = document.getElementById('colorPicker');
-    
+
     // Sincronizar color picker con input
     colorPicker.addEventListener('input', function() {
         colorInput.value = this.value;
     });
-    
+
     colorInput.addEventListener('input', function() {
         if (this.value.match(/^#[0-9A-Fa-f]{6}$/)) {
             colorPicker.value = this.value;

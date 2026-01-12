@@ -13,13 +13,13 @@
 <style>
     .events-dashboard-container {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        padding: 2rem 2rem 2rem 3rem;
+        padding: 0;
         min-height: 100vh;
     }
 
     @media (max-width: 992px) {
         .events-dashboard-container {
-            padding: 2rem 1.5rem;
+            padding: 0;
         }
     }
 
@@ -76,12 +76,12 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: #4a5568;">
-                                Total Eventos
+                                Eventos de Hoy
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_events }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ today_events_count|default:0 }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-calendar-alt fa-2x" style="color: #4a5568;"></i>
+                            <i class="fas fa-calendar-day fa-2x" style="color: #4a5568;"></i>
                         </div>
                     </div>
                 </div>
@@ -94,12 +94,12 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: #4a5568;">
-                                Próximos Eventos
+                                Próximos 7 Días
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ upcoming_events }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ upcoming_week_count|default:0 }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-clock fa-2x" style="color: #4a5568;"></i>
+                            <i class="fas fa-calendar-plus fa-2x" style="color: #4a5568;"></i>
                         </div>
                     </div>
                 </div>
@@ -112,12 +112,12 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: #4a5568;">
-                                En Curso
+                                Eventos Borrador
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ ongoing_events }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ draft_events_count|default:0 }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-play-circle fa-2x" style="color: #4a5568;"></i>
+                            <i class="fas fa-edit fa-2x" style="color: #4a5568;"></i>
                         </div>
                     </div>
                 </div>
@@ -130,12 +130,12 @@
                     <div class="row no-gutters align-items-center">
                         <div class="col mr-2">
                             <div class="text-xs font-weight-bold text-uppercase mb-1" style="color: #4a5568;">
-                                Asistencias Confirmadas
+                                Eventos sin Fechas
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ confirmed_attendances }}</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ missing_dates_count|default:0 }}</div>
                         </div>
                         <div class="col-auto">
-                            <i class="fas fa-users fa-2x" style="color: #4a5568;"></i>
+                            <i class="fas fa-exclamation-triangle fa-2x" style="color: #4a5568;"></i>
                         </div>
                     </div>
                 </div>
@@ -257,7 +257,7 @@
                                             <p class="text-muted mb-1">{{ event.description|truncatechars:100 }}</p>
                                             <small class="text-muted">
                                                 <i class="fas fa-clock me-1"></i>
-                                                {{ event.start_date|time:"H:i" }} - {{ event.end_date|time:"H:i" }}
+                                                {{ event.start_date|date:"d/m/Y" }}{% if event.end_date %} - {{ event.end_date|date:"d/m/Y" }}{% endif %}
                                                 {% if event.divisions.all %}
                                                     {% for division in event.divisions.all %}
                                                         <span class="badge bg-primary ms-2">{{ division.name }}</span>
@@ -366,7 +366,7 @@
                             <div class="flex-grow-1 ms-3">
                                 <h6 class="mb-1">{{ event.title }}</h6>
                                 <small class="text-muted">
-                                    {{ event.start_date|date:"M d, Y" }} a las {{ event.start_date|time:"H:i" }}
+                                    {{ event.start_date|date:"M d, Y" }}
                                     {% if event.divisions.all %}
                                         {% for division in event.divisions.all %}
                                             <span class="badge bg-secondary ms-1">{{ division.name }}</span>
@@ -415,68 +415,59 @@
             </div>
 
             {% if user.is_staff or user.is_superuser %}
-            <!-- Órdenes Recientes -->
+            <!-- Eventos de Hoy -->
             <div class="card shadow mb-4">
                 <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
                     <h6 class="m-0 font-weight-bold text-primary">
-                        <i class="fas fa-shopping-cart me-2"></i>Órdenes Recientes
+                        <i class="fas fa-exclamation-circle me-2"></i>Alertas y Pendientes
                     </h6>
-                    <a href="{% url 'accounts:admin_order_list' %}" class="btn btn-sm btn-outline-primary">Ver Todas</a>
+                    <a href="{% url 'events:list' %}" class="btn btn-sm btn-outline-primary">Ver Todos</a>
                 </div>
                 <div class="card-body">
-                    {% if recent_orders %}
-                    <div class="table-responsive">
-                        <table class="table table-sm table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Número</th>
-                                    <th>Usuario</th>
-                                    <th>Evento</th>
-                                    <th>Total</th>
-                                    <th>Estado</th>
-                                    <th>Fecha</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for order in recent_orders|slice:":5" %}
-                                <tr>
-                                    <td>
-                                        <a href="{% url 'accounts:admin_order_detail' order.pk %}" class="text-primary">
-                                            #{{ order.order_number|truncatechars:10 }}
-                                        </a>
-                                    </td>
-                                    <td>{{ order.user.get_full_name|default:order.user.username }}</td>
-                                    <td>
-                                        {% if order.event %}
-                                            {{ order.event.title|truncatechars:30 }}
-                                        {% else %}
-                                            <span class="text-muted">N/A</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>${{ order.total_amount|default:0|floatformat:2|intcomma_dot }}</td>
-                                    <td>
-                                        {% if order.status == 'paid' %}
-                                            <span class="badge bg-success">Pagado</span>
-                                        {% elif order.status == 'pending' %}
-                                            <span class="badge bg-warning">Pendiente</span>
-                                        {% elif order.status == 'cancelled' %}
-                                            <span class="badge bg-danger">Cancelado</span>
-                                        {% else %}
-                                            <span class="badge bg-secondary">{{ order.get_status_display }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td><small class="text-muted">{{ order.created_at|date:"d/m/Y" }}</small></td>
-                                </tr>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted">
+                                <i class="fas fa-edit me-1"></i>Borradores
+                            </div>
+                            <span class="badge bg-warning">{{ draft_events_count|default:0 }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted">
+                                <i class="fas fa-exclamation-triangle me-1"></i>Sin fechas
+                            </div>
+                            <span class="badge bg-danger">{{ missing_dates_count|default:0 }}</span>
+                        </div>
+                        {% if missing_dates_events %}
+                            <div class="mt-2">
+                                {% for event in missing_dates_events %}
+                                    <div class="d-flex justify-content-between align-items-start py-1">
+                                        <a href="{% url 'events:update' event.pk %}" class="text-primary">{{ event.title|truncatechars:35 }}</a>
+                                        <small class="text-muted">{{ event.created_at|date:"d/m/Y" }}</small>
+                                    </div>
                                 {% endfor %}
-                            </tbody>
-                        </table>
+                            </div>
+                        {% endif %}
                     </div>
-                    {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-shopping-cart fa-3x text-gray-300 mb-3"></i>
-                        <h6 class="text-gray-500">No hay órdenes recientes</h6>
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="text-muted">
+                                <i class="fas fa-hourglass-end me-1"></i>Entry deadline (7 días)
+                            </div>
+                            <span class="badge bg-info">{{ entry_deadline_soon_count|default:0 }}</span>
+                        </div>
+                        {% if entry_deadline_soon_events %}
+                            <div class="mt-2">
+                                {% for event in entry_deadline_soon_events %}
+                                    <div class="d-flex justify-content-between align-items-start py-1">
+                                        <a href="{% url 'events:admin_detail' event.pk %}" class="text-primary">{{ event.title|truncatechars:35 }}</a>
+                                        <small class="text-muted">{{ event.entry_deadline|date:"d/m/Y" }}</small>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
                 </div>
             </div>
 

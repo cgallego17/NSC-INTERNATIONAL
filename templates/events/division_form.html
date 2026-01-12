@@ -9,13 +9,13 @@
 <style>
     .event-form-container {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        padding: 2rem 2rem 2rem 3rem;
+        padding: 0;
         min-height: 100vh;
     }
-    
+
     @media (max-width: 992px) {
         .event-form-container {
-            padding: 2rem 1.5rem;
+            padding: 0;
         }
     }
 </style>
@@ -56,7 +56,7 @@
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
-                        
+
                         <!-- Información Básica -->
                         <div class="row mb-4">
                             <div class="col-12">
@@ -64,16 +64,16 @@
                                     <i class="bi bi-info-circle me-2"></i>Información Básica
                                 </h6>
                             </div>
-                            
+
                             <!-- Nombre -->
                             <div class="col-md-6 mb-3">
                                 <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">
                                     {{ form.name.label }} <span class="text-danger">*</span>
                                 </label>
-                                <input type="text" 
-                                       class="form-control form-control-lg" 
-                                       id="{{ form.name.id_for_label }}" 
-                                       name="{{ form.name.name }}" 
+                                <input type="text"
+                                       class="form-control form-control-lg"
+                                       id="{{ form.name.id_for_label }}"
+                                       name="{{ form.name.name }}"
                                        value="{{ form.name.value|default:'' }}"
                                        placeholder="Ej: Baseball 10U D1"
                                        required>
@@ -90,8 +90,8 @@
                                 <label for="{{ form.skill_level.id_for_label }}" class="form-label fw-bold">
                                     {{ form.skill_level.label }}
                                 </label>
-                                <select class="form-select form-select-lg" 
-                                        id="{{ form.skill_level.id_for_label }}" 
+                                <select class="form-select form-select-lg"
+                                        id="{{ form.skill_level.id_for_label }}"
                                         name="{{ form.skill_level.name }}">
                                     <option value="">Seleccionar nivel...</option>
                                     <option value="T-Ball" {% if form.skill_level.value == "T-Ball" %}selected{% endif %}>T-Ball</option>
@@ -126,12 +126,12 @@
                                 <label for="{{ form.age_min.id_for_label }}" class="form-label fw-bold">
                                     {{ form.age_min.label }}
                                 </label>
-                                <input type="number" 
-                                       class="form-control form-control-lg" 
-                                       id="{{ form.age_min.id_for_label }}" 
-                                       name="{{ form.age_min.name }}" 
+                                <input type="number"
+                                       class="form-control form-control-lg"
+                                       id="{{ form.age_min.id_for_label }}"
+                                       name="{{ form.age_min.name }}"
                                        value="{{ form.age_min.value|default:'' }}"
-                                       min="4" 
+                                       min="4"
                                        max="19"
                                        placeholder="Ej: 10">
                                 {% if form.age_min.errors %}
@@ -147,12 +147,12 @@
                                 <label for="{{ form.age_max.id_for_label }}" class="form-label fw-bold">
                                     {{ form.age_max.label }}
                                 </label>
-                                <input type="number" 
-                                       class="form-control form-control-lg" 
-                                       id="{{ form.age_max.id_for_label }}" 
-                                       name="{{ form.age_max.name }}" 
+                                <input type="number"
+                                       class="form-control form-control-lg"
+                                       id="{{ form.age_max.id_for_label }}"
+                                       name="{{ form.age_max.name }}"
                                        value="{{ form.age_max.value|default:'' }}"
-                                       min="4" 
+                                       min="4"
                                        max="19"
                                        placeholder="Ej: 11">
                                 {% if form.age_max.errors %}
@@ -183,9 +183,9 @@
                                 <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
                                     {{ form.description.label }}
                                 </label>
-                                <textarea class="form-control" 
-                                          id="{{ form.description.id_for_label }}" 
-                                          name="{{ form.description.name }}" 
+                                <textarea class="form-control"
+                                          id="{{ form.description.id_for_label }}"
+                                          name="{{ form.description.name }}"
                                           rows="4"
                                           placeholder="Descripción opcional de la división...">{{ form.description.value|default:'' }}</textarea>
                                 {% if form.description.errors %}
@@ -206,9 +206,9 @@
                             </div>
                             <div class="col-12 mb-3">
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" 
-                                           type="checkbox" 
-                                           id="{{ form.is_active.id_for_label }}" 
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           id="{{ form.is_active.id_for_label }}"
                                            name="{{ form.is_active.name }}"
                                            {% if form.is_active.value %}checked{% endif %}>
                                     <label class="form-check-label fw-bold" for="{{ form.is_active.id_for_label }}">
@@ -329,11 +329,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const ageMinInput = document.getElementById('{{ form.age_min.id_for_label }}');
     const ageMaxInput = document.getElementById('{{ form.age_max.id_for_label }}');
     const ageRangeText = document.getElementById('ageRangeText');
-    
+
     function updateAgeRangePreview() {
         const min = ageMinInput.value;
         const max = ageMaxInput.value;
-        
+
         let rangeText = '';
         if (min && max) {
             if (parseInt(min) === parseInt(max)) {
@@ -348,32 +348,32 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             rangeText = 'Sin restricción de edad';
         }
-        
+
         ageRangeText.textContent = rangeText;
     }
-    
+
     // Actualizar vista previa cuando cambien los valores
     ageMinInput.addEventListener('input', updateAgeRangePreview);
     ageMaxInput.addEventListener('input', updateAgeRangePreview);
-    
+
     // Actualizar vista previa inicial
     updateAgeRangePreview();
-    
+
     // Validación de edades
     ageMinInput.addEventListener('change', function() {
         const min = parseInt(this.value);
         const max = parseInt(ageMaxInput.value);
-        
+
         if (min && max && min > max) {
             alert('La edad mínima no puede ser mayor que la edad máxima');
             this.value = '';
         }
     });
-    
+
     ageMaxInput.addEventListener('change', function() {
         const min = parseInt(ageMinInput.value);
         const max = parseInt(this.value);
-        
+
         if (min && max && max < min) {
             alert('La edad máxima no puede ser menor que la edad mínima');
             this.value = '';

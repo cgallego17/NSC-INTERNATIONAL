@@ -19,6 +19,7 @@
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="{% static 'css/fontawesome.min.css' %}" rel="stylesheet">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -26,6 +27,30 @@
     <link href="{% static 'css/admin.css' %}" rel="stylesheet">
 
     <style>
+        /* Variables CSS para Font Awesome */
+        :root {
+            --fa-style-family: "Font Awesome 6 Free";
+            --fa-style: 900;
+            --fa-display: inline-block;
+            --fa-li-margin: 2.5em;
+            --fa-li-width: 2em;
+            --fa-border-radius: .1em;
+            --fa-border-width: .08em;
+            --fa-border-style: solid;
+            --fa-border-color: #eee;
+            --fa-border-padding: .2em .25em .15em;
+            --fa-pull-margin: .3em;
+        }
+
+        /* Fuente y tamaño consistente para toda la base */
+        html, body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+            font-size: 14px !important;
+            line-height: 1.5 !important;
+            color: #333 !important;
+            font-weight: 400 !important;
+        }
+
         /* Estilos MLB Navbar (para páginas que no son dashboard) */
         :root {
             --mlb-blue: #0d2c54;
@@ -163,20 +188,20 @@
             {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'home_content_admin' or request.resolver_match.url_name == 'age_verification_list' or request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'player_list' or request.resolver_match.url_name == 'player_detail' or request.resolver_match.url_name == 'player_register' or request.resolver_match.url_name == 'player_edit' or request.resolver_match.url_name == 'admin_order_list' or request.resolver_match.url_name == 'admin_order_detail' or request.resolver_match.url_name == 'admin_wallet_topups' or request.resolver_match.namespace == 'events' or request.resolver_match.namespace == 'locations' or request.resolver_match.namespace == 'media' or '/accounts/home-content' in request.path or '/accounts/banner' in request.path or '/accounts/sponsor' in request.path or '/accounts/dashboard-banner' in request.path or '/accounts/age-verifications' in request.path or '/accounts/users' in request.path or '/accounts/players' in request.path or '/accounts/admin/orders' in request.path or '/accounts/admin/wallet-topups' in request.path or request.path|slice:":8" == '/admin/' %}
             <!-- Topbar (solo para dashboard/admin) -->
             <header class="topbar">
-        <div class="topbar-container">
-            <!-- Left Section -->
-            <div class="topbar-left">
-                <button class="sidebar-toggle" id="sidebarToggle" aria-label="Alternar sidebar" title="Alternar sidebar">
-                    <i class="fas fa-bars"></i>
-                </button>
+                <div class="topbar-container">
+                    <!-- Left Section -->
+                    <div class="topbar-left">
+                        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Alternar sidebar" title="Alternar sidebar">
+                            <i class="fas fa-bars"></i>
+                        </button>
 
-                <button class="mobile-toggle" id="mobileToggle" aria-label="Menú móvil">
-                    <i class="fas fa-bars"></i>
-                </button>
+                        <button class="mobile-toggle" id="mobileToggle" aria-label="Menú móvil">
+                            <i class="fas fa-bars"></i>
+                        </button>
 
-                <div class="page-info">
-                    <div class="breadcrumb-nav">
-                        {% block breadcrumb %}
+                        <div class="page-info">
+                            <div class="breadcrumb-nav">
+                                {% block breadcrumb %}
                             <span class="breadcrumb-item">Dashboard</span>
                         {% endblock %}
                     </div>
@@ -348,6 +373,8 @@
                 <a class="link{% if active_subsection == 'list' %} active{% endif %}" href="{% url 'events:list' %}">Lista de Eventos</a>
                 <a class="link{% if active_subsection == 'create' %} active{% endif %}" href="{% url 'events:create' %}">Crear Evento</a>
                 <a class="link{% if active_subsection == 'calendar' %} active{% endif %}" href="{% url 'events:calendar' %}">Calendario</a>
+                <a class="link{% if active_subsection == 'event_types' %} active{% endif %}" href="{% url 'events:eventtype_list' %}">Tipos de Evento</a>
+                <a class="link{% if active_subsection == 'gate_fee_types' %} active{% endif %}" href="{% url 'events:gatefeetype_list' %}">Tipos de Gate Fee</a>
             </div>
 
             <!-- Órdenes (solo staff) -->
@@ -368,14 +395,25 @@
             {% endif %}
 
             <!-- Usuarios (solo staff) -->
-            {% if user.is_staff or user.is_superuser %}
-            <button class="sb-item w-100{% if active_section == 'users' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbUsers" aria-expanded="{% if active_section == 'users' %}true{% else %}false{% endif %}" data-bs-title="Usuarios">
+            {% if user.is_staff or user.is_superuser or user.profile.is_team_manager %}
+            <button class="sb-item w-100{% if active_section == 'users' or active_section == 'age_verifications' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbUsers" aria-expanded="{% if active_section == 'users' or active_section == 'age_verifications' %}true{% else %}false{% endif %}" data-bs-title="Usuarios">
                 <i class="sb-ico bi bi-people"></i>
                 <span class="hide-mini">Usuarios</span>
-                <i class="sb-right bi {% if active_section == 'users' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
+                <i class="sb-right bi {% if active_section == 'users' or active_section == 'age_verifications' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
             </button>
-            <div id="sbUsers" class="collapse sb-sub{% if active_section == 'users' %} show{% endif %}">
+            <div id="sbUsers" class="collapse sb-sub{% if active_section == 'users' or active_section == 'age_verifications' %} show{% endif %}">
+                {% if user.is_staff or user.is_superuser %}
                 <a class="link{% if active_subsection == 'user_list' %} active{% endif %}" href="{% url 'accounts:user_list' %}">Lista de Usuarios</a>
+                {% endif %}
+
+                {% if pending_verifications_count %}
+                    {% if user.is_staff or user.is_superuser or user.profile.is_team_manager %}
+                    <a class="link{% if active_section == 'age_verifications' %} active{% endif %}" href="{% url 'accounts:age_verification_list' %}">
+                        Verificaciones de Edad
+                        <span class="badge bg-danger ms-auto" style="font-size: 0.7rem; padding: 2px 6px;">{{ pending_verifications_count }}</span>
+                    </a>
+                    {% endif %}
+                {% endif %}
             </div>
             {% endif %}
 
@@ -388,19 +426,6 @@
             <div id="sbPlayers" class="collapse sb-sub{% if active_section == 'players' %} show{% endif %}">
                 <a class="link{% if active_subsection == 'player_list' %} active{% endif %}" href="{% url 'accounts:player_list' %}">Lista de Jugadores</a>
             </div>
-
-            <!-- Verificaciones de Edad (solo para managers y staff) -->
-            {% if pending_verifications_count %}
-                {% if user.is_staff or user.is_superuser or user.profile.is_team_manager %}
-                <a href="{% url 'accounts:age_verification_list' %}" class="sb-item{% if active_section == 'age_verifications' %} active{% endif %}" data-bs-title="Verificaciones de Edad">
-                    <i class="sb-ico bi bi-file-check"></i>
-                    <span class="hide-mini">Verificaciones de Edad</span>
-                    <span class="badge bg-danger ms-auto" style="font-size: 0.7rem; padding: 2px 6px;">{{ pending_verifications_count }}</span>
-                </a>
-                {% endif %}
-            {% endif %}
-
-            <div class="sb-label hide-mini">Gestión</div>
 
             <!-- Hoteles -->
             <button class="sb-item w-100{% if active_section == 'hotels' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbHotels" aria-expanded="{% if active_section == 'hotels' %}true{% else %}false{% endif %}" data-bs-title="Hoteles">
@@ -459,17 +484,6 @@
 
             <div class="sb-label hide-mini">Configuración</div>
 
-            <!-- Gestión de Datos -->
-            <button class="sb-item w-100{% if active_section == 'data_management' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbDataManagement" aria-expanded="{% if active_section == 'data_management' %}true{% else %}false{% endif %}" data-bs-title="Gestión de Datos">
-                <i class="sb-ico bi bi-database"></i>
-                <span class="hide-mini">Gestión de Datos</span>
-                <i class="sb-right bi {% if active_section == 'data_management' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
-            </button>
-            <div id="sbDataManagement" class="collapse sb-sub{% if active_section == 'data_management' %} show{% endif %}">
-                <a class="link{% if active_subsection == 'event_types' %} active{% endif %}" href="{% url 'events:eventtype_list' %}">Tipos de Evento</a>
-                <a class="link{% if active_subsection == 'gate_fee_types' %} active{% endif %}" href="{% url 'events:gatefeetype_list' %}">Tipos de Gate Fee</a>
-            </div>
-
             <!-- Configuración -->
             <button class="sb-item w-100{% if active_section == 'configuration' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbConfiguration" aria-expanded="{% if active_section == 'configuration' %}true{% else %}false{% endif %}" data-bs-title="Configuración">
                 <i class="sb-ico bi bi-gear"></i>
@@ -509,23 +523,20 @@
     {% endif %}
     {% endif %}
 
-    <!-- Main Content -->
-    <div class="main-content{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'home_content_admin' and request.resolver_match.url_name != 'age_verification_list' and request.resolver_match.url_name != 'user_list' and request.resolver_match.url_name != 'player_list' and request.resolver_match.url_name != 'player_detail' and request.resolver_match.url_name != 'player_register' and request.resolver_match.url_name != 'player_edit' and request.resolver_match.url_name != 'admin_order_list' and request.resolver_match.url_name != 'admin_order_detail' and request.resolver_match.url_name != 'admin_wallet_topups' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'media' and '/accounts/home-content' not in request.path and '/accounts/banner' not in request.path and '/accounts/sponsor' not in request.path and '/accounts/dashboard-banner' not in request.path and '/accounts/age-verifications' not in request.path and '/accounts/users' not in request.path and '/accounts/players' not in request.path and '/accounts/admin/orders' not in request.path and '/accounts/admin/wallet-topups' not in request.path and request.path|slice:":8" != '/admin/' %} container{% endif %}" id="mainContent"{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'home_content_admin' and request.resolver_match.url_name != 'age_verification_list' and request.resolver_match.url_name != 'user_list' and request.resolver_match.url_name != 'player_list' and request.resolver_match.url_name != 'player_detail' and request.resolver_match.url_name != 'player_register' and request.resolver_match.url_name != 'player_edit' and request.resolver_match.url_name != 'admin_order_list' and request.resolver_match.url_name != 'admin_order_detail' and request.resolver_match.url_name != 'admin_wallet_topups' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'media' and '/accounts/home-content' not in request.path and '/accounts/banner' not in request.path and '/accounts/sponsor' not in request.path and '/accounts/dashboard-banner' not in request.path and '/accounts/age-verifications' not in request.path and '/accounts/users' not in request.path and '/accounts/players' not in request.path and '/accounts/admin/orders' not in request.path and '/accounts/admin/wallet-topups' not in request.path and request.path|slice:":8" != '/admin/' %} style="padding: 40px 0; min-height: calc(100vh - 200px);"{% endif %}>
-        <!-- Page Content -->
-        <main class="page-content{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'home_content_admin' and request.resolver_match.url_name != 'age_verification_list' and request.resolver_match.url_name != 'user_list' and request.resolver_match.url_name != 'player_list' and request.resolver_match.url_name != 'player_detail' and request.resolver_match.url_name != 'player_register' and request.resolver_match.url_name != 'player_edit' and request.resolver_match.url_name != 'admin_order_list' and request.resolver_match.url_name != 'admin_order_detail' and request.resolver_match.url_name != 'admin_wallet_topups' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'media' and '/accounts/home-content' not in request.path and '/accounts/banner' not in request.path and '/accounts/sponsor' not in request.path and '/accounts/dashboard-banner' not in request.path and '/accounts/age-verifications' not in request.path and '/accounts/users' not in request.path and '/accounts/players' not in request.path and '/accounts/admin/orders' not in request.path and '/accounts/admin/wallet-topups' not in request.path and request.path|slice:":8" != '/admin/' %}" style="padding: 0;"{% endif %}>
-            {% if messages %}
-                <div class="messages-container" style="display: none;">
-                    {% for message in messages %}
-                        <div class="django-message"
-                             data-tag="{{ message.tags }}"
-                             data-message="{{ message|escapejs }}"
-                             style="display: none;"></div>
-                    {% endfor %}
-                </div>
-            {% endif %}
+    <!-- Main Content Container -->
+    <div class="main-content" id="mainContent">
+        {% if messages %}
+            <div class="messages-container" style="display: none;">
+                {% for message in messages %}
+                    <div class="django-message"
+                         data-tag="{{ message.tags }}"
+                         data-message="{{ message|escapejs }}"
+                         style="display: none;"></div>
+                {% endfor %}
+            </div>
+        {% endif %}
 
-            {% block content %}{% endblock %}
-        </main>
+        {% block content %}{% endblock %}
     </div>
 
     <!-- Bootstrap 5 JS -->
@@ -546,6 +557,34 @@
                 script.src = script.src.split('?')[0] + '?v=' + version;
             }
         })();
+
+        // Forzar auto-dismiss de toasts - método más directo
+        document.addEventListener('DOMContentLoaded', function() {
+            // Revisar periódicamente si hay toasts nuevos
+            setInterval(function() {
+                const toastContainer = document.getElementById('toastContainer');
+                if (toastContainer) {
+                    const toasts = toastContainer.querySelectorAll('.toast, .modern-toast, .alert');
+                    toasts.forEach(function(toast) {
+                        // Si no tiene auto-dismiss programado
+                        if (!toast.hasAttribute('data-auto-dismiss')) {
+                            toast.setAttribute('data-auto-dismiss', 'true');
+
+                            // Auto-dismiss después de 3 segundos
+                            setTimeout(function() {
+                                if (toast && toast.parentNode) {
+                                    toast.style.transition = 'opacity 0.3s ease';
+                                    toast.style.opacity = '0';
+
+                                    setTimeout(function() {
+                                        if (toast && toast.parentNode) {
+                                            toast.remove();
+                                        }
+                                    }, 300);
+                                }
+                            }, 3000);
+                        }
+        });
     </script>
     <script>
         // Prevenir auto-dismiss de alerts - Los alerts NO se desvanecerán automáticamente
@@ -630,8 +669,362 @@
         })();
     </script>
 
-    <!-- Toast Container - Fuera de main-content para evitar problemas de z-index -->
-    <div id="toastContainer" class="modern-toast-container" style="position: fixed !important; top: 20px !important; right: 20px !important; z-index: 999999 !important;"></div>
+    <style>
+        /* Toast container completamente aislado del flujo del documento */
+        #toastContainer {
+            position: fixed !important;
+            top: 20px !important;
+            right: 20px !important;
+            z-index: 999999 !important;
+            pointer-events: none !important;
+            width: auto !important;
+            height: auto !important;
+            overflow: visible !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            background: transparent !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 10px !important;
+            align-items: flex-end !important;
+        }
+
+        /* Toasts completamente fuera del flujo */
+        #toastContainer .toast,
+        #toastContainer .alert {
+            position: relative !important;
+            top: auto !important;
+            right: auto !important;
+            pointer-events: auto !important;
+            min-width: 300px !important;
+            max-width: 400px !important;
+            margin: 0 !important;
+            transform: translateX(0) !important;
+            float: none !important;
+            clear: none !important;
+            display: block !important;
+            flex-shrink: 0 !important;
+            opacity: 1 !important;
+            transition: opacity 0.3s ease !important;
+        }
+
+        #toastContainer .toast.hide {
+            opacity: 0 !important;
+        }
+
+        #toastContainer .toast.show {
+            opacity: 1 !important;
+        }
+
+
+        /* Contenido del toast */
+        .toast-content {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            padding: 12px 16px !important;
+            background: white !important;
+            border-radius: 8px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+            border-left: 4px solid #28a745 !important;
+            position: relative !important;
+            margin: 0 !important;
+        }
+
+        .toast-icon {
+            flex-shrink: 0 !important;
+            color: #28a745 !important;
+            font-size: 18px !important;
+            background: rgba(40, 167, 69, 0.1) !important;
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .toast-body-wrapper {
+            flex: 1 !important;
+            min-width: 0 !important;
+        }
+
+        .toast-message {
+            color: #333 !important;
+            font-size: 14px !important;
+            line-height: 1.4 !important;
+            margin: 0 !important;
+        }
+
+        .toast-close {
+            flex-shrink: 0 !important;
+            background: none !important;
+            border: none !important;
+            color: #666 !important;
+            cursor: pointer !important;
+            padding: 4px !important;
+            border-radius: 4px !important;
+            transition: all 0.2s ease !important;
+        }
+
+        .toast-close:hover {
+            background: rgba(0,0,0,0.1) !important;
+            color: #333 !important;
+        }
+
+        /* Asegurar que el body no se vea afectado */
+        body {
+            overflow-x: hidden !important;
+        }
+
+        /* Layout robusto con flexbox */
+        html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            height: 100% !important;
+            overflow-x: hidden !important;
+        }
+
+        body {
+            display: flex !important;
+            flex-direction: row !important;
+        }
+
+        /* Sidebar positioning - SOBREESCRITIR */
+        body .sidebar {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 280px !important;
+            height: 100vh !important;
+            z-index: 1000 !important;
+            transition: width 0.3s ease !important;
+        }
+
+        body .sidebar.collapsed,
+        body .sidebar.mini {
+            width: 80px !important;
+        }
+
+        /* Sobreescribir admin-container para que use todo el espacio */
+        .admin-container {
+            max-width: none !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+            font-size: 14px !important;
+            line-height: 1.5 !important;
+            color: #333 !important;
+        }
+
+        /* Asegurar consistencia de fuente en todos los elementos */
+        body *:not(.fa):not(.fas):not(.far):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands):not(.bi):not([class^="bi-"]):not([class*=" bi-"]) {
+            font-family: inherit !important;
+        }
+
+        /* Elementos específicos con tamaño ajustado */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+            font-weight: 600 !important;
+            line-height: 1.3 !important;
+        }
+
+        h1 { font-size: 1.75rem !important; }
+        h2 { font-size: 1.5rem !important; }
+        h3 { font-size: 1.25rem !important; }
+        h4 { font-size: 1.125rem !important; }
+        h5 { font-size: 1rem !important; }
+        h6 { font-size: 0.875rem !important; }
+
+        p, span, div, td, th, li, a, button, input, select, textarea {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+            font-size: 14px !important;
+            line-height: 1.5 !important;
+        }
+
+        /* Textos pequeños */
+        small, .small, .text-muted, .caption {
+            font-size: 0.75rem !important;
+        }
+
+        /* Textos grandes */
+        .display-1, .display-2, .display-3, .display-4 {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+        }
+
+        /* Botones y formularios */
+        .btn {
+            font-size: 14px !important;
+        }
+
+        .form-control, .form-select {
+            font-size: 14px !important;
+        }
+
+        /* Navegación y menús */
+        .nav-link, .nav-item {
+            font-size: 14px !important;
+        }
+
+        /* Tablas */
+        .table {
+            font-size: 14px !important;
+        }
+
+        /* Badges */
+        .badge {
+            font-size: 0.75rem !important;
+        }
+
+        /* Reducir padding excesivo en cards dentro del main content */
+        #mainContent .card-body.p-4 {
+            padding: 1rem !important;
+        }
+
+        @media (max-width: 768px) {
+            #mainContent .card-body.p-4 {
+                padding: 0.75rem !important;
+            }
+        }
+
+        /* Asegurar que los iconos se muestren correctamente */
+        .fas, .fa, .fab, .far, .fal, .fad, .fass, .fasr, .fasl {
+            display: inline-block !important;
+            font-style: normal !important;
+            font-variant: normal !important;
+            text-rendering: auto !important;
+            line-height: 1 !important;
+            font-weight: 900 !important;
+        }
+
+        /* User dropdown: evitar que se recorte por overflow y asegurar z-index alto */
+        .topbar,
+        .topbar-container,
+        .topbar-right,
+        .user-menu {
+            overflow: visible !important;
+        }
+
+        .user-dropdown {
+            z-index: 2000 !important;
+        }
+
+        .bi, .bootstrap-icons {
+            display: inline-block !important;
+            font-style: normal !important;
+            font-variant: normal !important;
+            text-rendering: auto !important;
+            line-height: 1 !important;
+        }
+
+        /* Prevenir que los iconos sean afectados por estilos de fuente */
+        i:not(.fa):not(.fas):not(.far):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-brands):not(.bi):not([class^="bi-"]):not([class*=" bi-"]) {
+            font-style: normal !important;
+        }
+
+        /* Fallback Unicode para iconos si Font Awesome falla */
+        body.force-unicode-icons .fa-check-circle:before,
+        body.force-unicode-icons .fa-check:before {
+            content: "\2713" !important;
+            font-family: inherit !important;
+            font-weight: bold !important;
+        }
+
+        body.force-unicode-icons .fa-times:before,
+        body.force-unicode-icons .fa-times-circle:before,
+        body.force-unicode-icons .fa-close:before {
+            content: "\u00d7" !important;
+            font-family: inherit !important;
+            font-weight: bold !important;
+        }
+
+        body.force-unicode-icons .fa-bars:before {
+            content: "\u2630" !important;
+            font-family: inherit !important;
+        }
+
+        body.force-unicode-icons .fa-user:before {
+            content: "\u263f" !important;
+            font-family: inherit !important;
+        }
+
+        body.force-unicode-icons .fa-cog:before,
+        body.force-unicode-icons .fa-gear:before {
+            content: "\u2699" !important;
+            font-family: inherit !important;
+        }
+
+        body.force-unicode-icons .fa-bell:before {
+            content: "\ud83d\udd14" !important;
+            font-family: inherit !important;
+        }
+
+        body.force-unicode-icons .fa-home:before {
+            content: "\ud83c\udfe0" !important;
+            font-family: inherit !important;
+        }
+
+        body.force-unicode-icons .fa-moon:before {
+            content: "\ud83c\udf19" !important;
+            font-family: inherit !important;
+        }
+
+        body.force-unicode-icons .fa-sun:before {
+            content: "\u2600\ufe0f" !important;
+            font-family: inherit !important;
+        }
+
+        body.force-unicode-icons .fa-expand:before {
+            content: "\u26f6" !important;
+            font-family: inherit !important;
+        }
+
+        body.force-unicode-icons .fa-sign-out-alt:before,
+        body.force-unicode-icons .fa-sign-out:before {
+            content: "\u21a9" !important;
+            font-family: inherit !important;
+        }
+
+        body.force-unicode-icons .fa-exclamation-triangle:before {
+            content: "\u26a0\ufe0f" !important;
+            font-family: inherit !important;
+        }
+
+        body.force-unicode-icons .fa-info-circle:before {
+            content: "\u2139\ufe0f" !important;
+            font-family: inherit !important;
+        }
+
+        /* Main content */
+        #mainContent {
+            flex: 1 !important;
+            margin-left: 280px !important;
+            margin-top: 60px !important; /* Espacio para topbar */
+            padding: 12px 12px !important;
+            min-height: calc(100vh - 60px) !important; /* Restar altura topbar */
+            box-sizing: border-box !important;
+            overflow-y: auto !important;
+            width: auto !important;
+        }
+
+        @media (max-width: 768px) {
+            #mainContent {
+                padding: 10px !important;
+            }
+        }
+
+        /* Cuando sidebar está colapsado */
+        .sidebar.collapsed ~ #mainContent,
+        .sidebar.mini ~ #mainContent {
+            margin-left: 80px !important;
+        }
+    </style>
+
+    <!-- Toast Container - Completamente aislado -->
+    <div id="toastContainer"></div>
 
     {% block extra_js %}{% endblock %}
 </body>

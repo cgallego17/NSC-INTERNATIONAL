@@ -3,7 +3,6 @@ Vistas para gestión de datos maestros (EventContact, EventType, GateFeeType)
 """
 
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.urls import reverse_lazy
 from django.views.generic import (
@@ -151,7 +150,7 @@ class EventTypeListView(StaffRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context["search"] = self.request.GET.get("search", "")
         context["status_filter"] = self.request.GET.get("status", "")
-        context["active_section"] = "data_management"
+        context["active_section"] = "events"
         context["active_subsection"] = "event_types"
         return context
 
@@ -163,7 +162,7 @@ class EventTypeDetailView(StaffRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["active_section"] = "data_management"
+        context["active_section"] = "events"
         context["active_subsection"] = "event_types"
         return context
 
@@ -176,7 +175,7 @@ class EventTypeCreateView(StaffRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["active_section"] = "data_management"
+        context["active_section"] = "events"
         context["active_subsection"] = "event_types"
         return context
 
@@ -193,7 +192,7 @@ class EventTypeUpdateView(StaffRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["active_section"] = "data_management"
+        context["active_section"] = "events"
         context["active_subsection"] = "event_types"
         return context
 
@@ -209,7 +208,7 @@ class EventTypeDeleteView(StaffRequiredMixin, DeleteView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["active_section"] = "data_management"
+        context["active_section"] = "events"
         context["active_subsection"] = "event_types"
         return context
 
@@ -245,7 +244,7 @@ class GateFeeTypeListView(StaffRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context["search"] = self.request.GET.get("search", "")
         context["status_filter"] = self.request.GET.get("status", "")
-        context["active_section"] = "data_management"
+        context["active_section"] = "events"
         context["active_subsection"] = "gate_fee_types"
         return context
 
@@ -257,7 +256,7 @@ class GateFeeTypeDetailView(StaffRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["active_section"] = "data_management"
+        context["active_section"] = "events"
         context["active_subsection"] = "gate_fee_types"
         return context
 
@@ -270,7 +269,7 @@ class GateFeeTypeCreateView(StaffRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["active_section"] = "data_management"
+        context["active_section"] = "events"
         context["active_subsection"] = "gate_fee_types"
         return context
 
@@ -287,7 +286,7 @@ class GateFeeTypeUpdateView(StaffRequiredMixin, UpdateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["active_section"] = "data_management"
+        context["active_section"] = "events"
         context["active_subsection"] = "gate_fee_types"
         return context
 
@@ -303,16 +302,10 @@ class GateFeeTypeDeleteView(StaffRequiredMixin, DeleteView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["active_section"] = "data_management"
+        context["active_section"] = "events"
         context["active_subsection"] = "gate_fee_types"
         return context
 
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, "Tipo de gate fee eliminado exitosamente.")
         return super().delete(request, *args, **kwargs)
-
-
-
-
-
-
