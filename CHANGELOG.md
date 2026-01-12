@@ -7,6 +7,21 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-12 18:10:22
+
+- **[008b6b7]** refactor: Improve event banner responsiveness and modal z-index handling
+  - *Fecha:* 2026-01-12 18:10:22
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `static/js/vue/event-detail.js`
+    - `templates/base.html`
+  - *Detalles:*
+    - - Update event banner height to use clamp() for responsive sizing (180px-300px based on viewport)
+    - - Add z-index override for mainContent when modal is open to ensure proper layering
+    - - Improve mobile viewing experience with adaptive banner dimensions
+
+
+
 ### Actualizado: 2026-01-12 17:51:08
 
 - **[a5d63a9]** refactor: Apply code formatting and improve date comparison logic
