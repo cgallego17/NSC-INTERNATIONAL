@@ -146,12 +146,15 @@ class AdminCountryCreateView(StaffRequiredMixin, CreateView):
             if related_events.exists():
                 context["events_list"] = related_events.order_by("-start_date")
             else:
-                context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
+                context["events_list"] = Event.objects.all().order_by("-start_date")[
+                    :50
+                ]
 
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -215,12 +218,15 @@ class AdminCountryUpdateView(StaffRequiredMixin, UpdateView):
             if related_events.exists():
                 context["events_list"] = related_events.order_by("-start_date")
             else:
-                context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
+                context["events_list"] = Event.objects.all().order_by("-start_date")[
+                    :50
+                ]
 
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -372,12 +378,15 @@ class AdminStateCreateView(StaffRequiredMixin, CreateView):
             if related_events.exists():
                 context["events_list"] = related_events.order_by("-start_date")
             else:
-                context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
+                context["events_list"] = Event.objects.all().order_by("-start_date")[
+                    :50
+                ]
 
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -441,12 +450,15 @@ class AdminStateUpdateView(StaffRequiredMixin, UpdateView):
             if related_events.exists():
                 context["events_list"] = related_events.order_by("-start_date")
             else:
-                context["events_list"] = Event.objects.all().order_by("-start_date")[:50]
+                context["events_list"] = Event.objects.all().order_by("-start_date")[
+                    :50
+                ]
 
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -607,7 +619,11 @@ class AdminCityCreateView(StaffRequiredMixin, CreateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                try:
+                    if getattr(self.object, "room_id", None):
+                        tax_filters |= Q(rooms=self.object.room)
+                except Exception:
+                    pass
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -672,7 +688,8 @@ class AdminCityUpdateView(StaffRequiredMixin, UpdateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -822,7 +839,8 @@ class AdminSeasonCreateView(StaffRequiredMixin, CreateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -895,7 +913,8 @@ class AdminSeasonUpdateView(StaffRequiredMixin, UpdateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -1018,7 +1037,8 @@ class AdminRuleCreateView(StaffRequiredMixin, CreateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -1079,7 +1099,8 @@ class AdminRuleUpdateView(StaffRequiredMixin, UpdateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -1223,7 +1244,8 @@ class AdminSiteCreateView(StaffRequiredMixin, CreateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -1297,7 +1319,8 @@ class AdminSiteUpdateView(StaffRequiredMixin, UpdateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -1429,7 +1452,8 @@ class AdminHotelCreateView(StaffRequiredMixin, CreateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -1622,7 +1646,8 @@ class AdminHotelUpdateView(StaffRequiredMixin, UpdateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -1903,7 +1928,8 @@ class AdminHotelRoomCreateView(StaffRequiredMixin, CreateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -1938,9 +1964,14 @@ class AdminHotelRoomCreateView(StaffRequiredMixin, CreateView):
             if min_adults_key not in self.request.POST:
                 break
 
-            description = self.request.POST.get(f"rule_description_{rule_index}", "").strip()
+            description = self.request.POST.get(
+                f"rule_description_{rule_index}", ""
+            ).strip()
             if not description:
-                form.add_error(None, f"La descripción de la regla #{rule_index + 1} es obligatoria.")
+                form.add_error(
+                    None,
+                    f"La descripción de la regla #{rule_index + 1} es obligatoria.",
+                )
 
             rule_index += 1
 
@@ -2160,7 +2191,8 @@ class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -2195,9 +2227,14 @@ class AdminHotelRoomUpdateView(StaffRequiredMixin, UpdateView):
             if min_adults_key not in self.request.POST:
                 break
 
-            description = self.request.POST.get(f"rule_description_{rule_index}", "").strip()
+            description = self.request.POST.get(
+                f"rule_description_{rule_index}", ""
+            ).strip()
             if not description:
-                form.add_error(None, f"La descripción de la regla #{rule_index + 1} es obligatoria.")
+                form.add_error(
+                    None,
+                    f"La descripción de la regla #{rule_index + 1} es obligatoria.",
+                )
 
             rule_index += 1
 
@@ -2615,8 +2652,8 @@ def admin_hotel_room_tax_delete_ajax(request, room_id: int, tax_id: int):
     - Siempre intenta desasociar el impuesto de la habitación.
     - Solo elimina el objeto impuesto si no está asociado a otras habitaciones.
     """
-    import logging
     import json
+    import logging
 
     logger = logging.getLogger(__name__)
 
@@ -2757,7 +2794,8 @@ class AdminHotelServiceCreateView(StaffRequiredMixin, CreateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -2827,7 +2865,8 @@ class AdminHotelServiceUpdateView(StaffRequiredMixin, UpdateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -2981,7 +3020,8 @@ class AdminHotelReservationCreateView(StaffRequiredMixin, CreateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -3066,7 +3106,8 @@ class AdminHotelReservationUpdateView(StaffRequiredMixin, UpdateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)
@@ -3166,7 +3207,8 @@ class AdminHotelImageCreateView(StaffRequiredMixin, CreateView):
             # Filtrar impuestos: los del evento O globales
             tax_filters = Q(event__in=related_events) | Q(event__isnull=True)
             if hasattr(self, "object") and self.object:
-                tax_filters |= Q(rooms=self.object)
+                if getattr(self.object, "room_id", None):
+                    tax_filters |= Q(rooms=self.object.room)
 
             context["taxes_list"] = (
                 HotelRoomTax.objects.filter(tax_filters, is_active=True)

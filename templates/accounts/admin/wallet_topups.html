@@ -1,0 +1,569 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% load url_filters %}
+
+{% block title %}{% trans "Wallet Top-ups" %} - NCS International{% endblock %}
+
+{% block breadcrumb %}
+    <a href="{% url 'accounts:admin_order_list' %}">{% trans "Orders" %}</a>
+    <span>{% trans "Wallet Top-ups" %}</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .events-list-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        padding: 2rem 2rem 2rem 3rem;
+        min-height: 100vh;
+    }
+    @media (max-width: 992px) {
+        .events-list-container { padding: 2rem 1.5rem; }
+    }
+    .stats-card {
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .stats-card h5 {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.9rem;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+    .stats-card h3 {
+        color: white;
+        font-weight: 700;
+        margin: 0;
+        font-size: 1.8rem;
+    }
+    .card-soft {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 24px;
+        margin-bottom: 20px;
+        border: none;
+    }
+    .table thead th {
+        background: #f8f9fa;
+        font-weight: 700;
+        border-bottom: 2px solid #e9ecef;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #495057;
+    }
+    .amount-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        font-weight: 800;
+        background: linear-gradient(135deg, rgba(40, 167, 69, 0.1) 0%, rgba(32, 201, 151, 0.1) 100%);
+        border: 1px solid rgba(40, 167, 69, 0.3);
+        color: #28a745;
+        white-space: nowrap;
+        font-size: 0.9rem;
+    }
+    .user-search-container {
+        position: relative;
+    }
+    .user-search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 1000;
+        margin-top: 4px;
+        display: none;
+    }
+    .user-search-results.show {
+        display: block;
+    }
+    .user-search-item {
+        padding: 12px 16px;
+        cursor: pointer;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background-color 0.2s;
+    }
+    .user-search-item:last-child {
+        border-bottom: none;
+    }
+    .user-search-item:hover {
+        background-color: #f8f9fa;
+    }
+    .user-search-item.selected {
+        background-color: #e7f3ff;
+    }
+    .user-search-item strong {
+        color: #0d2c54;
+        font-weight: 700;
+        display: block;
+        margin-bottom: 4px;
+    }
+    .user-search-item small {
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+    .user-selected {
+        padding: 12px;
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        margin-top: 8px;
+        display: none;
+    }
+    .user-selected.show {
+        display: block;
+    }
+    .user-selected strong {
+        color: #0d2c54;
+        font-weight: 700;
+        display: block;
+        margin-bottom: 4px;
+    }
+    .user-selected small {
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+    .user-selected .btn-remove {
+        margin-top: 8px;
+        padding: 4px 8px;
+        font-size: 0.8rem;
+    }
+    .modal-content {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    .modal-body {
+        color: #212529 !important;
+    }
+    .modal-body .form-label {
+        color: #212529 !important;
+        font-weight: 700 !important;
+    }
+    .modal-body .form-control,
+    .modal-body .form-select {
+        color: #212529 !important;
+        background-color: #fff !important;
+        border: 1px solid #ced4da;
+    }
+    .modal-body .form-control:focus,
+    .modal-body .form-select:focus {
+        border-color: #0d2c54;
+        box-shadow: 0 0 0 0.2rem rgba(13, 44, 84, 0.25);
+    }
+    .modal-body .form-text {
+        color: #6c757d !important;
+    }
+    .modal-body .alert {
+        color: #0c5460 !important;
+    }
+    .modal-body .alert strong {
+        color: #0d2c54 !important;
+    }
+    .modal-header {
+        background: linear-gradient(135deg, #0d2c54 0%, #132448 100%) !important;
+        color: white !important;
+        border-bottom: none !important;
+    }
+    .modal-header .modal-title {
+        color: white !important;
+        font-weight: 800 !important;
+    }
+    .modal-header .btn-close {
+        filter: brightness(0) invert(1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="events-list-container">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                        <h1 class="h3 mb-0 text-gray-800">
+                            <i class="fas fa-wallet me-2" style="color: var(--mlb-blue);"></i>{% trans "Wallet Top-ups" %}
+                        </h1>
+                        <p class="text-muted mb-0">{% trans "Staff-only tool to credit user wallets with full audit trail." %}</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTopUpModal" style="background: #0d2c54; border-color: #0d2c54; font-weight: 800;">
+                            <i class="fas fa-circle-plus me-2"></i>{% trans "Create Top-up" %}
+                        </button>
+                        <a href="{% url 'accounts:admin_order_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-receipt me-1"></i>{% trans "Orders" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);">
+                    <h5>{% trans "Total Top-ups" %}</h5>
+                    <h3>{{ total_topups }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                    <h5>{% trans "Total Credited" %}</h5>
+                    <h3>${{ total_amount|floatformat:2|intcomma_dot }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                    <h5>{% trans "This Month" %}</h5>
+                    <h3>${{ this_month_amount|floatformat:2|intcomma_dot }}</h3>
+                    <small style="opacity: 0.9;">{{ this_month_count }} {% trans "top-ups" %}</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, rgba(13, 44, 84, 0.9) 0%, rgba(13, 44, 84, 0.7) 100%);">
+                    <h5>{% trans "Average Amount" %}</h5>
+                    <h3>${{ average_amount|floatformat:2|intcomma_dot }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card-soft">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                        <h5 style="font-weight: 800; color: #0d2c54 !important; margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-clock-rotate-left" style="color: #d50032 !important;"></i>{% trans "Top-up History" %}
+                        </h5>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="card shadow-sm mb-4" style="border: none; border-radius: 12px;">
+                        <div class="card-header bg-white border-bottom py-3">
+                            <h6 class="mb-0" style="color: #0d2c54 !important; font-weight: 700;">
+                                <i class="fas fa-filter me-2"></i>{% trans "Filters" %}
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <form method="get" class="row g-3">
+                                <div class="col-md-12 col-lg-4">
+                                    <label for="search" class="form-label">
+                                        <i class="fas fa-search me-1"></i>{% trans "Search User" %}
+                                    </label>
+                                    <input type="text" class="form-control" id="search" name="search"
+                                           value="{{ search }}" placeholder="{% trans 'Username, name, or email...' %}">
+                                </div>
+                                <div class="col-md-6 col-lg-3">
+                                    <label for="created_by" class="form-label">
+                                        <i class="fas fa-user-shield me-1"></i>{% trans "Created By" %}
+                                    </label>
+                                    <input type="text" class="form-control" id="created_by" name="created_by"
+                                           value="{{ created_by_filter }}" placeholder="{% trans 'Staff username...' %}">
+                                </div>
+                                <div class="col-md-6 col-lg-2">
+                                    <label for="date_from" class="form-label">
+                                        <i class="fas fa-calendar me-1"></i>{% trans "From Date" %}
+                                    </label>
+                                    <input type="date" class="form-control" id="date_from" name="date_from" value="{{ date_from }}">
+                                </div>
+                                <div class="col-md-6 col-lg-2">
+                                    <label for="date_to" class="form-label">
+                                        <i class="fas fa-calendar me-1"></i>{% trans "To Date" %}
+                                    </label>
+                                    <input type="date" class="form-control" id="date_to" name="date_to" value="{{ date_to }}">
+                                </div>
+                                <div class="col-md-6 col-lg-1 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="fas fa-filter"></i>
+                                    </button>
+                                </div>
+                                <div class="col-12">
+                                    <a href="{% url 'accounts:admin_wallet_topups' %}" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-times me-1"></i>{% trans "Clear Filters" %}
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table align-middle table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="min-width: 150px;">{% trans "Date" %}</th>
+                                    <th style="min-width: 220px;">{% trans "User" %}</th>
+                                    <th style="min-width: 120px;">{% trans "Amount" %}</th>
+                                    <th style="min-width: 160px;">{% trans "Created By" %}</th>
+                                    <th>{% trans "Description" %}</th>
+                                    <th style="min-width: 140px;">{% trans "Balance After" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in topups %}
+                                    <tr>
+                                        <td>
+                                            <div style="font-weight: 700; color: #212529;">{{ t.created_at|date:"M d, Y" }}</div>
+                                            <div class="text-muted small">{{ t.created_at|date:"H:i" }}</div>
+                                        </td>
+                                        <td>
+                                            <div style="font-weight: 800; color: var(--mlb-blue);">
+                                                {{ t.user.get_full_name|default:t.user.username }}
+                                            </div>
+                                            <div class="text-muted small">{{ t.user.email }}</div>
+                                        </td>
+                                        <td>
+                                            <span class="amount-pill">
+                                                <i class="fas fa-arrow-up"></i>
+                                                ${{ t.amount|floatformat:2|intcomma_dot }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if t.created_by %}
+                                                <div style="font-weight: 700;">{{ t.created_by.get_full_name|default:t.created_by.username }}</div>
+                                                <div class="text-muted small">@{{ t.created_by.username }}</div>
+                                            {% else %}
+                                                <div class="text-muted">—</div>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-muted">
+                                            {% if t.description %}
+                                                {{ t.description|truncatewords:10 }}
+                                            {% else %}
+                                                <span class="text-muted fst-italic">—</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if t.balance_after != None %}
+                                                <span style="font-weight: 700; color: #28a745;">
+                                                    ${{ t.balance_after|floatformat:2|intcomma_dot }}
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted fst-italic">—</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-5">
+                                            <i class="fas fa-inbox fa-3x mb-3 d-block" style="opacity: 0.3;"></i>
+                                            <div>{% trans "No top-ups found." %}</div>
+                                            {% if search or created_by_filter or date_from or date_to %}
+                                                <small class="d-block mt-2">
+                                                    <a href="{% url 'accounts:admin_wallet_topups' %}" class="text-decoration-none">{% trans "Clear filters" %}</a>
+                                                </small>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if is_paginated %}
+                        <nav aria-label="Pagination" class="mt-4">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ search }}&created_by={{ created_by_filter }}&date_from={{ date_from }}&date_to={{ date_to }}">{% trans "Previous" %}</a>
+                                    </li>
+                                {% endif %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ page_obj.number }} / {{ paginator.num_pages }}</span>
+                                </li>
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ search }}&created_by={{ created_by_filter }}&date_from={{ date_from }}&date_to={{ date_to }}">{% trans "Next" %}</a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Top-up Modal -->
+<div class="modal fade" id="createTopUpModal" tabindex="-1" aria-labelledby="createTopUpModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #0d2c54 0%, #132448 100%); color: white; border-bottom: none;">
+                <h5 class="modal-title" id="createTopUpModalLabel" style="font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-circle-plus" style="color: #d50032;"></i>{% trans "Create Top-up" %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <form method="post" id="topUpForm" novalidate>
+                    {% csrf_token %}
+                    {{ form.user_id }}
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold" for="userSearch">
+                            <i class="fas fa-user me-1"></i>{% trans "User" %} <span class="text-danger">*</span>
+                        </label>
+                        <div class="user-search-container">
+                            <input type="text" class="form-control" id="userSearch" placeholder="{% trans 'Search by name or email...' %}" autocomplete="off">
+                            <div class="user-search-results" id="userSearchResults"></div>
+                        </div>
+                        <div class="user-selected" id="userSelected">
+                            <strong id="selectedUserName"></strong>
+                            <small id="selectedUserEmail"></small>
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-remove" id="removeUserBtn">
+                                <i class="fas fa-times me-1"></i>{% trans "Remove" %}
+                            </button>
+                        </div>
+                        {% if form.user_id.errors %}<div class="text-danger small mt-1">{{ form.user_id.errors|striptags }}</div>{% endif %}
+                        <div class="form-text">{% trans "Type at least 2 characters to search for users." %}</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold" for="{{ form.amount.id_for_label }}">
+                            <i class="fas fa-dollar-sign me-1"></i>{% trans "Amount" %} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.amount }}
+                        {% if form.amount.errors %}<div class="text-danger small mt-1">{{ form.amount.errors|striptags }}</div>{% endif %}
+                        <div class="form-text">{% trans "This will immediately increase the user's wallet balance." %}</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold" for="{{ form.description.id_for_label }}">
+                            <i class="fas fa-comment me-1"></i>{% trans "Description" %}
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors|striptags }}</div>{% endif %}
+                        <div class="form-text">{% trans "Optional note explaining the reason for this top-up." %}</div>
+                    </div>
+
+                    <div class="alert alert-info mb-0" style="background: linear-gradient(135deg, rgba(13, 44, 84, 0.05) 0%, rgba(213, 0, 50, 0.03) 100%); border-left: 4px solid #0d2c54;">
+                        <small>
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>{% trans "Note:" %}</strong> {% trans "Each top-up creates a wallet transaction with an audit reference. Top-ups are immutable once created." %}
+                        </small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #dee2e6;">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans "Cancel" %}</button>
+                <button type="submit" form="topUpForm" class="btn btn-primary" style="background: #0d2c54; border-color: #0d2c54; font-weight: 800;">
+                    <i class="fas fa-wallet me-2"></i>{% trans "Credit Wallet" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userSearchInput = document.getElementById('userSearch');
+    const userSearchResults = document.getElementById('userSearchResults');
+    const userSelected = document.getElementById('userSelected');
+    const selectedUserName = document.getElementById('selectedUserName');
+    const selectedUserEmail = document.getElementById('selectedUserEmail');
+    const userIdField = document.getElementById('id_user_id');
+    const removeUserBtn = document.getElementById('removeUserBtn');
+    let searchTimeout;
+
+    function searchUsers(query) {
+        if (query.length < 2) {
+            userSearchResults.classList.remove('show');
+            return;
+        }
+
+        fetch('{% url "accounts:admin_wallet_topups_search_users" %}?q=' + encodeURIComponent(query))
+            .then(response => response.json())
+            .then(data => {
+                userSearchResults.innerHTML = '';
+                if (data.users && data.users.length > 0) {
+                    data.users.forEach(user => {
+                        const item = document.createElement('div');
+                        item.className = 'user-search-item';
+                        item.innerHTML = `
+                            <strong>${escapeHtml(user.full_name)}</strong>
+                            <small>${escapeHtml(user.email)}</small>
+                        `;
+                        item.addEventListener('click', function() {
+                            selectUser(user);
+                        });
+                        userSearchResults.appendChild(item);
+                    });
+                    userSearchResults.classList.add('show');
+                } else {
+                    userSearchResults.classList.remove('show');
+                }
+            })
+            .catch(error => {
+                console.error('Error searching users:', error);
+                userSearchResults.classList.remove('show');
+            });
+    }
+
+    function selectUser(user) {
+        userIdField.value = user.id;
+        selectedUserName.textContent = user.full_name;
+        selectedUserEmail.textContent = user.email;
+        userSearchInput.value = '';
+        userSearchResults.classList.remove('show');
+        userSelected.classList.add('show');
+    }
+
+    function removeUser() {
+        userIdField.value = '';
+        userSelected.classList.remove('show');
+        userSearchInput.value = '';
+        userSearchInput.focus();
+    }
+
+    function escapeHtml(text) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    userSearchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+        searchTimeout = setTimeout(() => searchUsers(query), 300);
+    });
+
+    removeUserBtn.addEventListener('click', removeUser);
+
+    // Close search results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!userSearchInput.contains(e.target) && !userSearchResults.contains(e.target)) {
+            userSearchResults.classList.remove('show');
+        }
+    });
+
+    // Reset form when modal is closed
+    const modal = document.getElementById('createTopUpModal');
+    modal.addEventListener('hidden.bs.modal', function() {
+        userIdField.value = '';
+        userSearchInput.value = '';
+        userSelected.classList.remove('show');
+        userSearchResults.classList.remove('show');
+        document.getElementById('topUpForm').reset();
+    });
+});
+</script>
+{% endblock %}

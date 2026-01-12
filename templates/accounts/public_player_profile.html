@@ -415,13 +415,11 @@
                     </div>
 
                     <div>
-                        <p><strong>DOB:</strong> {% if player.user.profile.birth_date %}{{ player.user.profile.birth_date|date:"m/d/Y" }}{% else %}01/01/2006{% endif %}</p>
                         <p><strong>HEIGHT:</strong> {% if player.height %}{{ player.height }}{% else %}N/A{% endif %}</p>
                         <p><strong>WEIGHT:</strong> {% if player.weight %}{{ player.weight }} lbs{% else %}N/A{% endif %}</p>
                         <p><strong>POSITION:</strong> {% if player.position %}{{ player.get_position_display }}{% if player.secondary_position %} / {{ player.get_secondary_position_display }}{% endif %}{% else %}C / Utility{% endif %}</p>
                         <p><strong>BATS:</strong> {% if player.batting_hand %}{{ player.get_batting_hand_display }}{% else %}Switch{% endif %}</p>
                         <p><strong>THROWS:</strong> {% if player.throwing_hand %}{{ player.get_throwing_hand_display }}{% else %}Left / Right{% endif %}</p>
-                        <p><strong>DATE OF BIRTH:</strong> {% if player.user.profile.birth_date %}{{ player.user.profile.birth_date|date:"m/d/Y" }}{% else %}N/A{% endif %}</p>
                         <p><strong>AGE:</strong> {% if current_age %}{{ current_age }}{% else %}N/A{% endif %}</p>
 
                         <h4>NCS EVENT RESULTS</h4>

@@ -395,16 +395,43 @@ class AdminDashboard {
         const closeNotifications = document.getElementById('closeNotifications');
         const markAllRead = document.getElementById('markAllRead');
 
+        console.log('Setting up notification system:', {
+            notificationBtn: !!notificationBtn,
+            notificationPanel: !!notificationPanel,
+            closeNotifications: !!closeNotifications,
+            markAllRead: !!markAllRead
+        });
+
         if (notificationBtn && notificationPanel) {
-            notificationBtn.addEventListener('click', () => this.toggleNotifications());
+            notificationBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.toggleNotifications();
+            });
+        } else {
+            console.warn('Notification button or panel not found');
         }
 
         if (closeNotifications) {
-            closeNotifications.addEventListener('click', () => this.closeNotifications());
+            closeNotifications.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.closeNotifications();
+            });
         }
 
         if (markAllRead) {
-            markAllRead.addEventListener('click', () => this.markAllNotificationsRead());
+            markAllRead.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.markAllNotificationsRead();
+            });
+        }
+
+        // Close panel when clicking on overlay
+        const notificationOverlay = document.getElementById('notificationOverlay');
+        if (notificationOverlay) {
+            notificationOverlay.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.closeNotifications();
+            });
         }
     }
 
@@ -479,87 +506,77 @@ class AdminDashboard {
 
     toggleNotifications() {
         const notificationPanel = document.getElementById('notificationPanel');
-        notificationPanel.classList.toggle('show');
+        const notificationBtn = document.getElementById('notificationsBtn');
+        const notificationOverlay = document.getElementById('notificationOverlay');
 
-        if (notificationPanel.classList.contains('show')) {
+        if (!notificationPanel) {
+            console.error('Notification panel not found');
+            return;
+        }
+
+        const isShowing = notificationPanel.classList.contains('show');
+
+        if (isShowing) {
+            this.closeNotifications();
+        } else {
+            notificationPanel.classList.add('show');
+            if (notificationBtn) {
+                notificationBtn.classList.add('active');
+            }
+            if (notificationOverlay) {
+                notificationOverlay.classList.add('show');
+                document.body.classList.add('notification-panel-open');
+            }
             this.loadNotifications();
         }
     }
 
     closeNotifications() {
         const notificationPanel = document.getElementById('notificationPanel');
-        notificationPanel.classList.remove('show');
-    }
+        const notificationBtn = document.getElementById('notificationsBtn');
+        const notificationOverlay = document.getElementById('notificationOverlay');
 
-    loadNotificationCount() {
-        // Simulate loading notification count
-        const notificationCount = document.getElementById('notificationCount');
-        if (notificationCount) {
-            // In a real app, this would be an AJAX call
-            const count = Math.floor(Math.random() * 10);
-            notificationCount.textContent = count;
-            notificationCount.style.display = count > 0 ? 'flex' : 'none';
+        if (notificationPanel) {
+            notificationPanel.classList.remove('show');
+        }
+
+        if (notificationBtn) {
+            notificationBtn.classList.remove('active');
+        }
+
+        if (notificationOverlay) {
+            notificationOverlay.classList.remove('show');
+            document.body.classList.remove('notification-panel-open');
         }
     }
 
-    loadNotifications() {
-        const notificationList = document.getElementById('notificationList');
-        if (!notificationList) return;
-
-        // Simulate loading notifications
-        const notifications = [
-            {
-                id: 1,
-                avatar: 'EJ',
-                title: 'Emily Johnson comentó en una tarea',
-                message: 'Design Sprint',
-                time: '12 minutos',
-                type: 'comment'
+    loadNotificationCount() {
+        // Load notification count from API
+        fetch('/accounts/api/notifications/count/', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
             },
-            {
-                id: 2,
-                avatar: 'ML',
-                title: 'Michael Lee subió archivos',
-                message: 'Marketing Assets',
-                time: '25 minutos',
-                type: 'upload'
-            },
-            {
-                id: 3,
-                avatar: 'SR',
-                title: 'Sophia Ray marcó un problema',
-                message: 'Bug Tracker',
-                time: '40 minutos',
-                type: 'alert'
-            },
-            {
-                id: 4,
-                avatar: 'DK',
-                title: 'David Kim programó una reunión',
-                message: 'UX Review',
-                time: '1 hora',
-                type: 'event'
-            },
-            {
-                id: 5,
-                avatar: 'IW',
-                title: 'Isabella White actualizó el documento',
-                message: 'Product Specs',
-                time: '2 horas',
-                type: 'edit'
+            credentials: 'same-origin'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                AdminDashboard.prototype.updateBadgeUI.call(this, data.count || 0);
+            } else {
+                AdminDashboard.prototype.updateBadgeUI.call(this, 0);
             }
-        ];
+        })
+        .catch(error => {
+            console.error('Error loading notification count:', error);
+            AdminDashboard.prototype.updateBadgeUI.call(this, 0);
+        });
+    }
 
-        notificationList.innerHTML = notifications.map(notification => `
-            <div class="notification-item">
-                <div class="notification-avatar">${notification.avatar}</div>
-                <div class="notification-content">
-                    <h6>${notification.title}</h6>
-                    <p>${notification.message}</p>
-                </div>
-                <div class="notification-time">${notification.time}</div>
-            </div>
-        `).join('');
+    loadNotifications() {
+        // Delegate to the prototype method which has the full implementation
+        // This ensures we use the same implementation that updates the badge
+        AdminDashboard.prototype.loadNotifications.call(this);
     }
 
     handleGlobalSearch(query) {
@@ -601,8 +618,22 @@ class AdminDashboard {
 
     // Utility methods
     showToast(message, type = 'info', title = null, duration = 5000, imageUrl = null) {
+        // Validate message
+        if (!message || message.trim() === '') {
+            console.warn('showToast called with empty message');
+            return;
+        }
+
         // Modern toast notification implementation
-        const toastContainer = document.getElementById('toastContainer') || this.createToastContainer();
+        let toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) {
+            toastContainer = this.createToastContainer();
+        }
+
+        if (!toastContainer) {
+            console.error('Failed to create toast container');
+            return;
+        }
 
         // Generate unique ID for this toast
         const toastId = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -669,19 +700,54 @@ class AdminDashboard {
         toast.style.pointerEvents = 'all';
 
         toastContainer.appendChild(toast);
+
+        // Prevenir que Bootstrap afecte el body cuando aparece el toast
+        const originalBodyPadding = document.body.style.paddingRight;
+        const originalBodyOverflow = document.body.style.overflow;
+
         // Animate in
         setTimeout(() => {
             toast.classList.add('show');
+
+            // Forzar que el body mantenga su estado original
+            if (document.body.style.paddingRight) {
+                document.body.style.paddingRight = '';
+            }
+            if (document.body.style.overflow === 'hidden') {
+                document.body.style.overflow = '';
+            }
         }, 10);
 
-        // Start progress bar animation
+        // Limpiar cuando el toast se oculte
+        const cleanupOnHide = () => {
+            document.body.style.paddingRight = originalBodyPadding || '';
+            document.body.style.overflow = originalBodyOverflow || '';
+
+            // Restaurar main-content si es necesario
+            if (mainContent) {
+                mainContent.style.paddingRight = originalMainContentPadding || '';
+            }
+        };
+
+        // Agregar listener para cuando se oculte el toast
+        toast.addEventListener('transitionend', function handler(e) {
+            if (e.propertyName === 'opacity' && toast.classList.contains('hide')) {
+                cleanupOnHide();
+                toast.removeEventListener('transitionend', handler);
+            }
+        });
+
+        // Start progress bar animation (only if duration > 0)
         const progressBar = toast.querySelector('.toast-progress-bar');
         if (progressBar && duration > 0) {
             progressBar.style.animationDuration = `${duration}ms`;
             progressBar.style.animationPlayState = 'running';
+        } else if (progressBar) {
+            // Hide progress bar if duration is 0 (no auto-close)
+            progressBar.style.display = 'none';
         }
 
-        // Auto-remove after duration
+        // Auto-remove after duration (only if duration > 0)
         let autoRemoveTimer;
         if (duration > 0) {
             autoRemoveTimer = setTimeout(() => {
@@ -706,7 +772,7 @@ class AdminDashboard {
             }
         });
 
-        // Resume progress on leave
+        // Resume progress on leave (only if duration > 0)
         toast.addEventListener('mouseleave', () => {
             if (progressBar && duration > 0) {
                 const toastTimestamp = parseInt(toastId.split('-')[1]);
@@ -722,6 +788,7 @@ class AdminDashboard {
                     }, remaining);
                 }
             }
+            // If duration is 0, do nothing - toast stays visible
         });
 
         return toast;
@@ -735,6 +802,14 @@ class AdminDashboard {
                 return;
             }
 
+            // Restaurar el estado del body si Bootstrap lo modificó
+            if (document.body.style.paddingRight) {
+                document.body.style.paddingRight = '';
+            }
+            if (document.body.style.overflow === 'hidden') {
+                document.body.style.overflow = '';
+            }
+
             toast.classList.remove('show');
             toast.classList.add('hide');
 
@@ -744,6 +819,9 @@ class AdminDashboard {
                     if (toast.isConnected && toast.parentNode) {
                         toast.remove(); // Usar remove() en lugar de removeChild() (más moderno y seguro)
                     }
+                    // Asegurar que el body esté limpio después de remover el toast
+                    document.body.style.paddingRight = '';
+                    document.body.style.overflow = '';
                 } catch (error) {
                     console.error('Error removing toast:', error);
                 }
@@ -754,11 +832,19 @@ class AdminDashboard {
     }
 
     createToastContainer() {
-        const container = document.getElementById('toastContainer');
+        let container = document.getElementById('toastContainer');
         if (container) {
             return container;
         }
 
+        // Try to find existing container in base.html
+        container = document.querySelector('.modern-toast-container');
+        if (container) {
+            container.id = 'toastContainer';
+            return container;
+        }
+
+        // Create new container if it doesn't exist
         const newContainer = document.createElement('div');
         newContainer.id = 'toastContainer';
         newContainer.className = 'modern-toast-container';
@@ -767,24 +853,44 @@ class AdminDashboard {
         newContainer.style.position = 'fixed';
         newContainer.style.top = '20px';
         newContainer.style.right = '20px';
-        newContainer.style.zIndex = '9999';
+        newContainer.style.zIndex = '999999'; // Más alto que cualquier otro elemento
         newContainer.style.display = 'flex';
         newContainer.style.flexDirection = 'column';
         newContainer.style.gap = '12px';
         newContainer.style.maxWidth = '400px';
         newContainer.style.pointerEvents = 'none';
+        // NO usar isolation: isolate porque crea un nuevo contexto de apilamiento que puede causar problemas
 
-        document.body.appendChild(newContainer);
+        // Ensure body exists before appending
+        if (document.body) {
+            document.body.appendChild(newContainer);
+        } else {
+            // If body doesn't exist yet, wait for it
+            document.addEventListener('DOMContentLoaded', () => {
+                if (document.body && !document.getElementById('toastContainer')) {
+                    document.body.appendChild(newContainer);
+                }
+            });
+        }
+
         return newContainer;
     }
 
     convertDjangoMessagesToToasts() {
         try {
+            // Ensure toast container exists
+            if (!document.getElementById('toastContainer')) {
+                this.createToastContainer();
+            }
+
             // Find all Django messages and convert them to toasts
             const messages = document.querySelectorAll('.django-message');
             if (messages.length === 0) {
+                console.log('No Django messages found to convert');
                 return;
             }
+
+            console.log(`Found ${messages.length} Django message(s) to convert`);
 
             // Array para rastrear mensajes procesados
             const processedMessages = [];
@@ -816,7 +922,7 @@ class AdminDashboard {
 
                     // Special handling for player registration and updates
                     let title = null;
-                    let duration = 5000;
+                    let duration = 0; // Default: no auto-close - toasts stay until manually closed
                     const messageLower = message.toLowerCase();
 
                     // Detect player registration messages in both Spanish and English
@@ -841,7 +947,7 @@ class AdminDashboard {
                         } else {
                             title = 'Registration Successful!';
                         }
-                        duration = 7000; // Show longer for important messages
+                        duration = 0; // No auto-close - user must manually close
                     } else if (isPlayerUpdate) {
                         toastType = 'success';
                         // Detect language and set appropriate title
@@ -850,11 +956,12 @@ class AdminDashboard {
                         } else {
                             title = 'Update Successful!';
                         }
-                        duration = 6000; // Show longer for important messages
+                        duration = 0; // No auto-close - user must manually close
                     }
+                    // All messages now have duration = 0 (no auto-close)
 
-                    // Show toast
-                    this.showToast(message, toastType, title, duration);
+                    // Show toast - duration = 0 means no auto-close (toasts stay until manually closed)
+                    this.showToast(message, toastType, title, 0);
 
                     // Marcar como procesado solo si el nodo todavía existe
                     if (msg.isConnected) {
@@ -920,9 +1027,125 @@ class AdminDashboard {
     }
 }
 
+// Interceptar cambios de Bootstrap al body cuando aparecen toasts
+const preventBootstrapBodyChanges = () => {
+    // Observar cambios en el body y main-content
+    const bodyObserver = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                const body = document.body;
+                const mainContent = document.getElementById('mainContent');
+
+                // Si Bootstrap agregó padding-right al body, removerlo inmediatamente
+                if (body.style.paddingRight && body.style.paddingRight !== '0px') {
+                    const toastContainer = document.getElementById('toastContainer');
+                    if (toastContainer && toastContainer.querySelector('.modern-toast.show')) {
+                        body.style.setProperty('padding-right', '0px', 'important');
+                    }
+                }
+
+                // Si Bootstrap cambió overflow a hidden, restaurarlo
+                if (body.style.overflow === 'hidden') {
+                    const toastContainer = document.getElementById('toastContainer');
+                    if (toastContainer && toastContainer.querySelector('.modern-toast.show')) {
+                        body.style.setProperty('overflow', 'visible', 'important');
+                    }
+                }
+
+                // Prevenir que main-content sea modificado
+                if (mainContent) {
+                    // Asegurar que main-content mantenga su padding-right en 0
+                    if (mainContent.style.paddingRight && mainContent.style.paddingRight !== '0px') {
+                        mainContent.style.setProperty('padding-right', '0px', 'important');
+                    }
+                    // Prevenir cambios en overflow del main-content
+                    if (mainContent.style.overflow === 'hidden') {
+                        const toastContainer = document.getElementById('toastContainer');
+                        if (toastContainer && toastContainer.querySelector('.modern-toast.show')) {
+                            mainContent.style.setProperty('overflow', 'auto', 'important');
+                        }
+                    }
+                }
+            }
+            // Prevenir que Bootstrap agregue la clase modal-open cuando hay toasts
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                const body = document.body;
+                if (body.classList.contains('modal-open')) {
+                    const toastContainer = document.getElementById('toastContainer');
+                    if (toastContainer && toastContainer.querySelector('.modern-toast.show')) {
+                        body.classList.remove('modal-open');
+                    }
+                }
+            }
+        });
+    });
+
+    // Observar cambios en el body y main-content
+    bodyObserver.observe(document.body, {
+        attributes: true,
+        attributeFilter: ['style', 'class']
+    });
+
+    // También observar main-content directamente
+    const mainContent = document.getElementById('mainContent');
+    if (mainContent) {
+        bodyObserver.observe(mainContent, {
+            attributes: true,
+            attributeFilter: ['style', 'class']
+        });
+    }
+};
+
 // Initialize dashboard when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
+    // Prevenir cambios de Bootstrap al body
+    preventBootstrapBodyChanges();
+    // Ensure toast container exists before initializing
+    // Primero verificar si ya existe en el HTML (base.html)
+    let toastContainer = document.getElementById('toastContainer');
+
+    if (!toastContainer) {
+        // Buscar contenedor existente por clase
+        toastContainer = document.querySelector('.modern-toast-container');
+        if (toastContainer) {
+            toastContainer.id = 'toastContainer';
+        } else {
+            // Crear nuevo contenedor solo si no existe
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toastContainer';
+            toastContainer.className = 'modern-toast-container';
+            // Aplicar estilos inline para asegurar visibilidad
+            toastContainer.style.position = 'fixed';
+            toastContainer.style.top = '20px';
+            toastContainer.style.right = '20px';
+            toastContainer.style.zIndex = '999999';
+            toastContainer.style.display = 'flex';
+            toastContainer.style.flexDirection = 'column';
+            toastContainer.style.gap = '12px';
+            toastContainer.style.maxWidth = '400px';
+            toastContainer.style.pointerEvents = 'none';
+            // NO usar isolation: isolate porque crea un nuevo contexto de apilamiento que puede causar problemas
+
+            // Asegurar que se agregue al body, no dentro de main-content
+            if (document.body) {
+                document.body.appendChild(toastContainer);
+            }
+        }
+    } else {
+        // Si ya existe, asegurar que tenga los estilos correctos
+        toastContainer.style.position = 'fixed';
+        toastContainer.style.zIndex = '999999';
+        // NO usar isolation: isolate porque crea un nuevo contexto de apilamiento que puede causar problemas
+    }
+
     window.adminDashboard = new AdminDashboard();
+
+    // Also try to convert messages after a short delay to ensure everything is ready
+    setTimeout(() => {
+        if (window.adminDashboard && typeof window.adminDashboard.convertDjangoMessagesToToasts === 'function') {
+            window.adminDashboard.convertDjangoMessagesToToasts();
+        }
+    }, 100);
 });
 
 // Global utility functions
@@ -5701,74 +5924,99 @@ AdminDashboard.prototype.loadNotifications = function () {
     const notificationList = document.getElementById('notificationList');
     if (!notificationList) return;
 
-    // Mock notifications - replace with real API call
-    const notifications = [
-        {
-            id: 1,
-            title: 'Nuevo evento creado',
-            message: 'Se ha creado el evento "Conferencia de Tecnología"',
-            time: 'Hace 5 minutos',
-            read: false,
-            type: 'success'
-        },
-        {
-            id: 2,
-            title: 'Usuario registrado',
-            message: 'Juan Pérez se ha registrado en el sistema',
-            time: 'Hace 1 hora',
-            read: false,
-            type: 'info'
-        },
-        {
-            id: 3,
-            title: 'Sistema actualizado',
-            message: 'El sistema se ha actualizado a la versión 2.1.0',
-            time: 'Hace 2 horas',
-            read: true,
-            type: 'warning'
-        }
-    ];
+    // Show loading state
+    notificationList.innerHTML = `
+        <div class="notification-loading" style="text-align: center; padding: 2rem;">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p style="margin-top: 1rem; color: #6b7280;">Cargando notificaciones...</p>
+        </div>
+    `;
 
-    if (notifications.length > 0) {
-        notificationList.innerHTML = notifications.map(notification => `
-            <div class="notification-item ${notification.read ? 'read' : 'unread'}" data-id="${notification.id}">
-                <div class="notification-icon ${notification.type}">
-                    <i class="fas fa-${this.getNotificationIcon(notification.type)}"></i>
-                </div>
-                <div class="notification-content">
-                    <h6>${notification.title}</h6>
-                    <p>${notification.message}</p>
-                    <small>${notification.time}</small>
-                </div>
-                <button class="notification-mark-read" data-id="${notification.id}">
-                    <i class="fas fa-check"></i>
-                </button>
-            </div>
-        `).join('');
+    // Fetch notifications from API
+    fetch('/accounts/api/notifications/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.notifications) {
+            const notifications = data.notifications;
 
-        // Add click handlers
-        notificationList.querySelectorAll('.notification-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                if (!e.target.closest('.notification-mark-read')) {
-                    this.markNotificationAsRead(item.dataset.id);
+            if (notifications.length > 0) {
+                notificationList.innerHTML = notifications.map(notification => {
+                    const actionUrl = notification.action_url ? `onclick="window.location.href='${notification.action_url}'" style="cursor: pointer;"` : '';
+                    return `
+                        <div class="notification-item ${notification.read ? 'read' : 'unread'}" data-id="${notification.id}" ${actionUrl}>
+                            <div class="notification-icon ${notification.type}">
+                                <i class="fas fa-${this.getNotificationIcon(notification.type)}"></i>
+                            </div>
+                            <div class="notification-content">
+                                <h6>${this.escapeHtml(notification.title)}</h6>
+                                <p>${this.escapeHtml(notification.message)}</p>
+                                <small>${this.escapeHtml(notification.time)}</small>
+                            </div>
+                            <button class="notification-mark-read" data-id="${notification.id}">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+
+                // Add click handlers
+                notificationList.querySelectorAll('.notification-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        if (!e.target.closest('.notification-mark-read')) {
+                            const notificationId = item.dataset.id;
+                            this.markNotificationAsRead(notificationId);
+                        }
+                    });
+                });
+
+                notificationList.querySelectorAll('.notification-mark-read').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const notificationId = btn.dataset.id;
+                        this.markNotificationAsRead(notificationId);
+                    });
+                });
+
+                // Update badge with real count from API response
+                if (data.unread_count !== undefined) {
+                    AdminDashboard.prototype.updateBadgeUI.call(this, data.unread_count);
+                } else {
+                    this.updateNotificationBadgeFromAPI();
                 }
-            });
-        });
-
-        notificationList.querySelectorAll('.notification-mark-read').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.markNotificationAsRead(btn.dataset.id);
-            });
-        });
-    } else {
+            } else {
+                notificationList.innerHTML = `
+                    <div class="notification-empty">
+                        <i class="fas fa-bell-slash"></i>
+                        <p>No hay notificaciones</p>
+                    </div>
+                `;
+                // Update badge to 0 when no notifications
+                AdminDashboard.prototype.updateBadgeUI.call(this, 0);
+            }
+        } else {
+            notificationList.innerHTML = `
+                <div class="notification-empty">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Error al cargar notificaciones</p>
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error loading notifications:', error);
         notificationList.innerHTML = `
             <div class="notification-empty">
-                <i class="fas fa-bell-slash"></i>
-                <p>No hay notificaciones</p>
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error al cargar notificaciones</p>
             </div>
         `;
-    }
+    });
 }
 
 AdminDashboard.prototype.getNotificationIcon = function (type) {
@@ -5782,39 +6030,160 @@ AdminDashboard.prototype.getNotificationIcon = function (type) {
 }
 
 AdminDashboard.prototype.markNotificationAsRead = function (notificationId) {
-    // Update UI
+    // Update UI immediately for better UX
     const notificationItem = document.querySelector(`[data-id="${notificationId}"]`);
     if (notificationItem) {
         notificationItem.classList.remove('unread');
         notificationItem.classList.add('read');
     }
 
-    // Update badge count
-    this.updateNotificationBadge();
-
-    // Here you would make an API call to mark as read
-    console.log(`Marking notification ${notificationId} as read`);
+    // Make API call to mark as read
+    fetch(`/accounts/api/notifications/${notificationId}/mark-read/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': this.getCsrfToken(),
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update badge with new count from server
+            AdminDashboard.prototype.updateBadgeUI.call(this, data.unread_count || 0);
+        } else {
+            // Revert UI change if API call failed
+            if (notificationItem) {
+                notificationItem.classList.remove('read');
+                notificationItem.classList.add('unread');
+            }
+            console.error('Error marking notification as read:', data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error marking notification as read:', error);
+        // Revert UI change if API call failed
+        if (notificationItem) {
+            notificationItem.classList.remove('read');
+            notificationItem.classList.add('unread');
+        }
+    });
 }
 
 AdminDashboard.prototype.markAllNotificationsRead = function () {
+    // Update UI immediately
     const notificationItems = document.querySelectorAll('.notification-item.unread');
     notificationItems.forEach(item => {
         item.classList.remove('unread');
         item.classList.add('read');
     });
 
-    this.updateNotificationBadge();
-    console.log('All notifications marked as read');
+    // Make API call to mark all as read
+    fetch('/accounts/api/notifications/mark-all-read/', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json',
+            'X-CSRFToken': this.getCsrfToken(),
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update badge
+            AdminDashboard.prototype.updateBadgeUI.call(this, 0);
+        } else {
+            console.error('Error marking all notifications as read:', data.error);
+            // Revert UI changes if API call failed
+            notificationItems.forEach(item => {
+                item.classList.remove('read');
+                item.classList.add('unread');
+            });
+            this.updateNotificationBadgeFromAPI();
+        }
+    })
+    .catch(error => {
+        console.error('Error marking all notifications as read:', error);
+        // Revert UI changes if API call failed
+        notificationItems.forEach(item => {
+            item.classList.remove('read');
+            item.classList.add('unread');
+        });
+        this.updateNotificationBadgeFromAPI();
+    });
 }
 
 AdminDashboard.prototype.updateNotificationBadge = function () {
-    const badge = document.getElementById('notificationBadge');
+    // Legacy method - count from DOM (fallback)
     const unreadCount = document.querySelectorAll('.notification-item.unread').length;
+    this.updateBadgeUI(unreadCount);
+}
 
-    if (badge) {
-        badge.textContent = unreadCount;
-        badge.style.display = unreadCount > 0 ? 'flex' : 'none';
+AdminDashboard.prototype.updateNotificationBadgeFromAPI = function () {
+    // Update badge from API (more accurate)
+    const self = this;
+    fetch('/accounts/api/notifications/count/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            self.updateBadgeUI(data.count || 0);
+        }
+    })
+    .catch(error => {
+        console.error('Error updating notification badge:', error);
+        // Fallback to DOM count
+        const unreadCount = document.querySelectorAll('.notification-item.unread').length;
+        self.updateBadgeUI(unreadCount);
+    });
+}
+
+AdminDashboard.prototype.updateBadgeUI = function (count) {
+    const notificationBadge = document.getElementById('notificationBadge');
+    if (!notificationBadge) return;
+
+    if (count > 0) {
+        // Show badge with count
+        notificationBadge.textContent = count > 99 ? '99+' : count.toString();
+        notificationBadge.style.display = 'flex';
+        notificationBadge.classList.add('has-notifications');
+    } else {
+        // Hide badge
+        notificationBadge.textContent = '0';
+        notificationBadge.style.display = 'none';
+        notificationBadge.classList.remove('has-notifications');
     }
+}
+
+AdminDashboard.prototype.getCsrfToken = function () {
+    // Get CSRF token from cookies
+    const name = 'csrftoken';
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue || '';
+}
+
+AdminDashboard.prototype.escapeHtml = function (text) {
+    // Escape HTML to prevent XSS
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // User Menu Functions

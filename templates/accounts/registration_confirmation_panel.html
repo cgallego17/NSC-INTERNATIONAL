@@ -1,0 +1,805 @@
+{% load static %}
+{% load i18n %}
+{% load translation_tags %}
+{% load url_filters %}
+{% language 'en' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Registration Confirmation" %} - NCS International</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Panel Usuario CSS -->
+    <link id="panel-usuario-css" href="{% static 'css/panel_usuario.css' %}" rel="stylesheet">
+    <script>
+        (function() {
+            const link = document.getElementById('panel-usuario-css');
+            if (link) {
+                const now = new Date();
+                const version = now.getFullYear().toString() +
+                               String(now.getMonth() + 1).padStart(2, '0') +
+                               String(now.getDate()).padStart(2, '0') +
+                               String(now.getHours()).padStart(2, '0') +
+                               String(now.getMinutes()).padStart(2, '0');
+                link.href = link.href.split('?')[0] + '?v=' + version;
+            }
+        })();
+    </script>
+
+    <style>
+        :root {
+            --mlb-blue: #0d2c54;
+            --mlb-red: #d50032;
+            --mlb-light-blue: #132448;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            padding: 20px;
+        }
+
+        .tab-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .tab-content-header {
+            padding: 0 0 12px 0;
+            margin-bottom: 30px;
+        }
+
+        .tab-content-header h4 {
+            color: var(--mlb-blue);
+            font-weight: 800;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .tab-content-header p {
+            color: #6c757d;
+            margin-bottom: 0;
+        }
+
+        .success-banner {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            border-radius: 16px;
+            padding: 40px 30px;
+            box-shadow: 0 4px 20px rgba(13, 44, 84, 0.2);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .success-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .success-icon-wrapper {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            position: relative;
+            z-index: 1;
+        }
+
+        .success-icon-wrapper i {
+            font-size: 3rem;
+            color: var(--mlb-blue);
+        }
+
+        .success-banner h2 {
+            color: white;
+            font-weight: 800;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .success-banner p {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 1.1rem;
+            text-align: center;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            border: 1px solid rgba(13, 44, 84, 0.08);
+            margin-bottom: 24px;
+        }
+
+        .info-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .info-card-header i {
+            font-size: 1.5rem;
+            color: var(--mlb-red);
+        }
+
+        .info-card-header h5 {
+            color: var(--mlb-blue);
+            font-weight: 800;
+            font-size: 1.25rem;
+            margin: 0;
+        }
+
+        .event-info-box {
+            background: linear-gradient(135deg, rgba(13, 44, 84, 0.05) 0%, rgba(213, 0, 50, 0.03) 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border-left: 4px solid var(--mlb-blue);
+        }
+
+        .event-info-box h3 {
+            color: var(--mlb-blue);
+            font-weight: 800;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+        }
+
+        .event-info-box p {
+            color: #6c757d;
+            margin: 0;
+        }
+
+        .player-card {
+            background: linear-gradient(135deg, rgba(13, 44, 84, 0.03) 0%, rgba(213, 0, 50, 0.02) 100%);
+            border: 1px solid rgba(13, 44, 84, 0.1);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .player-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: var(--mlb-blue);
+        }
+
+        .player-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .player-avatar {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .player-details h6 {
+            color: var(--mlb-blue);
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 6px;
+        }
+
+        .player-details .player-meta {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin: 4px 0;
+        }
+
+        .player-details .player-meta i {
+            color: var(--mlb-red);
+            margin-right: 6px;
+            width: 16px;
+        }
+
+        .warning-card {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 234, 167, 0.08) 100%);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            border-left: 4px solid #ffc107;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .warning-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .warning-card-header i {
+            font-size: 1.5rem;
+            color: #856404;
+        }
+
+        .warning-card-header h5 {
+            color: #856404;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .warning-card p {
+            color: #856404;
+            margin: 8px 0 0;
+        }
+
+        .order-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .order-info-item {
+            background: linear-gradient(135deg, rgba(13, 44, 84, 0.05) 0%, rgba(213, 0, 50, 0.03) 100%);
+            border: 1px solid rgba(13, 44, 84, 0.1);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .order-info-item label {
+            display: block;
+            color: #6c757d;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .order-info-item .value {
+            color: var(--mlb-blue);
+            font-size: 1.1rem;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+
+        .kv-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .kv {
+            background: #fff;
+            border: 1px solid rgba(13, 44, 84, 0.08);
+            border-radius: 12px;
+            padding: 14px 14px;
+        }
+
+        .kv .k {
+            font-size: 0.72rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .kv .v {
+            font-size: 0.95rem;
+            color: var(--mlb-blue);
+            font-weight: 800;
+            word-break: break-word;
+        }
+
+        .mono {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 0.78rem;
+        }
+
+        .pill-blue {
+            background: rgba(13, 44, 84, 0.08);
+            color: var(--mlb-blue);
+            border: 1px solid rgba(13, 44, 84, 0.18);
+        }
+
+        .pill-red {
+            background: rgba(213, 0, 50, 0.08);
+            color: var(--mlb-red);
+            border: 1px solid rgba(213, 0, 50, 0.18);
+        }
+
+        /* (JSON blocks removed by request) */
+
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-action {
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary-action {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+        }
+
+        .btn-primary-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(13, 44, 84, 0.3);
+            background: linear-gradient(135deg, var(--mlb-light-blue) 0%, var(--mlb-blue) 100%);
+            color: white;
+        }
+
+        .btn-warning-action {
+            background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+            color: #856404;
+        }
+
+        .btn-warning-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+            background: linear-gradient(135deg, #ff9800 0%, #ffc107 100%);
+            color: #856404;
+        }
+
+        .btn-outline-action {
+            background: white;
+            color: var(--mlb-blue);
+            border: 2px solid var(--mlb-blue);
+        }
+
+        .btn-outline-action:hover {
+            background: var(--mlb-blue);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(13, 44, 84, 0.2);
+        }
+
+        @media (max-width: 768px) {
+            .order-info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn-action {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .success-banner h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="tab-container">
+        <!-- Header -->
+        <div class="tab-content-header">
+            <h4>
+                <i class="fas fa-check-circle me-2" style="color: var(--mlb-red);"></i>
+                {% trans "Registration Confirmation" %}
+            </h4>
+            <p>{% trans "Your registration has been successfully processed" %}</p>
+        </div>
+
+        <!-- Success Banner -->
+        <div class="success-banner">
+            <div class="success-icon-wrapper">
+                <i class="fas fa-check"></i>
+            </div>
+            <h2>{% trans "Registration Confirmed!" %}</h2>
+            <p>
+                {% trans "Your registration is saved." %}
+                {% if order and order.status != "paid" %}
+                    {% trans "Payment is still pending." %}
+                {% else %}
+                    {% trans "Payment completed." %}
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Registration Summary -->
+        <div class="info-card">
+            <div class="info-card-header">
+                <i class="fas fa-id-badge"></i>
+                <h5>{% trans "Registration Summary" %}</h5>
+            </div>
+            <div class="kv-grid">
+                <div class="kv">
+                    <div class="k">{% trans "Checkout Status" %}</div>
+                    <div class="v">
+                        <span class="pill pill-blue">
+                            <i class="fas fa-circle-info"></i>
+                            {{ checkout.get_status_display|default:checkout.status }}
+                        </span>
+                    </div>
+                </div>
+                <div class="kv">
+                    <div class="k">{% trans "Payment Mode" %}</div>
+                    <div class="v">
+                        <span class="pill pill-red">
+                            <i class="fas fa-credit-card"></i>
+                            {{ checkout.get_payment_mode_display|default:checkout.payment_mode }}
+                        </span>
+                    </div>
+                </div>
+                <div class="kv">
+                    <div class="k">{% trans "Checkout ID" %}</div>
+                    <div class="v mono">{{ checkout.pk }}</div>
+                </div>
+                <div class="kv">
+                    <div class="k">{% trans "Created" %}</div>
+                    <div class="v">{{ checkout.created_at|date:"M d, Y H:i" }}</div>
+                </div>
+                <div class="kv">
+                    <div class="k">{% trans "Total (estimated)" %}</div>
+                    <div class="v">${{ checkout.amount_total|floatformat:2|intcomma_dot }}</div>
+                </div>
+                <div class="kv">
+                    <div class="k">{% trans "Discount" %}</div>
+                    <div class="v">{{ checkout.discount_percent|default:0 }}%</div>
+                </div>
+                <div class="kv">
+                    <div class="k">{% trans "Stripe Session" %}</div>
+                    <div class="v mono">{{ checkout.stripe_session_id }}</div>
+                </div>
+                <div class="kv">
+                    <div class="k">{% trans "Subscription / Plan" %}</div>
+                    <div class="v mono">
+                        {% if checkout.payment_mode == "plan" %}
+                            {{ checkout.plan_months }} mo · ${{ checkout.plan_monthly_amount|floatformat:2|intcomma_dot }}/mo
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Information -->
+        <div class="info-card">
+            <div class="info-card-header">
+                <i class="fas fa-calendar-alt"></i>
+                <h5>{% trans "Event Information" %}</h5>
+            </div>
+            <div class="event-info-box">
+                <h3>{{ event.title }}</h3>
+                {% if event.start_date %}
+                <p>
+                    <i class="fas fa-calendar me-2" style="color: var(--mlb-red);"></i>
+                    {{ event.start_date|date:"F d, Y" }}
+                    {% if event.end_date and event.end_date != event.start_date %}
+                        - {{ event.end_date|date:"F d, Y" }}
+                    {% endif %}
+                </p>
+                {% endif %}
+                {% if event.location or event.city %}
+                <p>
+                    <i class="fas fa-map-marker-alt me-2" style="color: var(--mlb-red);"></i>
+                    {% if event.city %}{{ event.city.name }}{% endif %}
+                    {% if event.state %}{% if event.city %}, {% endif %}{{ event.state.name }}{% endif %}
+                    {% if not event.city and not event.state and event.location %}{{ event.location|truncatewords:10 }}{% endif %}
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Registered Players -->
+        {% if registered_players %}
+        <div class="info-card">
+            <div class="info-card-header">
+                <i class="fas fa-users"></i>
+                <h5>{% trans "Registered Players" %} ({{ registered_players|length }})</h5>
+            </div>
+            {% for player in registered_players %}
+            <div class="player-card">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="player-avatar">
+                        {{ player.name|first|upper }}
+                    </div>
+                    <div class="player-details flex-grow-1">
+                        <h6>{{ player.name }}</h6>
+                        {% if player.email %}
+                        <div class="player-meta">
+                            <i class="fas fa-envelope"></i>
+                            <strong>{% trans "Email:" %}</strong> {{ player.email }}
+                        </div>
+                        {% endif %}
+                        {% if player.team %}
+                        <div class="player-meta">
+                            <i class="fas fa-users"></i>
+                            <strong>{% trans "Team:" %}</strong> {{ player.team }}
+                        </div>
+                        {% endif %}
+                        {% if player.division %}
+                        <div class="player-meta">
+                            <i class="fas fa-tag"></i>
+                            <strong>{% trans "Division:" %}</strong> {{ player.division }}
+                        </div>
+                        {% endif %}
+                        <div class="player-meta">
+                            <i class="fas fa-id-card"></i>
+                            <strong>{% trans "Player ID:" %}</strong> <span class="mono">{{ player.id }}</span>
+                            {% if player.jersey_number %} · <strong>{% trans "Jersey:" %}</strong> #{{ player.jersey_number }}{% endif %}
+                        </div>
+                        {% if player.position or player.secondary_position %}
+                        <div class="player-meta">
+                            <i class="fas fa-baseball-bat-ball"></i>
+                            <strong>{% trans "Positions:" %}</strong>
+                            {{ player.position|default:"" }}{% if player.secondary_position %} / {{ player.secondary_position }}{% endif %}
+                        </div>
+                        {% endif %}
+                        {% if player.batting_hand or player.throwing_hand %}
+                        <div class="player-meta">
+                            <i class="fas fa-hand"></i>
+                            <strong>{% trans "Bats/Throws:" %}</strong>
+                            {{ player.batting_hand|default:"" }} / {{ player.throwing_hand|default:"" }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Hotel Details -->
+        {% if has_hotel %}
+        <div class="info-card">
+            <div class="info-card-header">
+                <i class="fas fa-hotel"></i>
+                <h5>{% trans "Hotel Details" %}</h5>
+            </div>
+
+            {% if hotel_rooms %}
+                <div class="kv-grid" style="margin-bottom: 16px;">
+                    <div class="kv">
+                        <div class="k">{% trans "Rooms" %}</div>
+                        <div class="v">{{ hotel_rooms|length }}</div>
+                    </div>
+                    <div class="kv">
+                        <div class="k">{% trans "Hotel Total" %}</div>
+                        <div class="v">
+                            {% if checkout.breakdown.hotel_total %}
+                                ${{ checkout.breakdown.hotel_total|floatformat:2|intcomma_dot }}
+                            {% else %}
+                                —
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {% for r in hotel_rooms %}
+                    <div class="player-card" style="background: #fcfcfc;">
+                        <div class="d-flex align-items-start justify-content-between gap-3">
+                            <div style="min-width:0; flex:1;">
+                                <h6 style="margin-bottom: 6px;">
+                                    <i class="fas fa-bed me-2" style="color: var(--mlb-red);"></i>
+                                    {{ r.room_name|default:"Room" }}
+                                </h6>
+                                <div class="player-meta">
+                                    <i class="fas fa-calendar"></i>
+                                    <strong>{% trans "Dates:" %}</strong>
+                                    {{ r.check_in|default:"—" }} → {{ r.check_out|default:"—" }}
+                                </div>
+                                <div class="player-meta">
+                                    <i class="fas fa-users"></i>
+                                    <strong>{% trans "Guests:" %}</strong>
+                                    {{ r.guests|default:"—" }}
+                                    {% if r.guests_included %} · <strong>{% trans "Included:" %}</strong> {{ r.guests_included }}{% endif %}
+                                    {% if r.extra_guests %} · <strong>{% trans "Extra:" %}</strong> {{ r.extra_guests }}{% endif %}
+                                </div>
+                                {% if r.services and r.services|length %}
+                                <div class="player-meta">
+                                    <i class="fas fa-concierge-bell"></i>
+                                    <strong>{% trans "Services:" %}</strong>
+                                    {{ r.services|length }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div style="text-align:right; flex:0 0 auto;">
+                                <div style="font-size:0.72rem; color:#6c757d; font-weight:800; text-transform:uppercase; letter-spacing:0.6px;">
+                                    {% trans "Room Total" %}
+                                </div>
+                                <div style="font-weight:900; color: var(--mlb-blue); font-size: 1.1rem;">
+                                    {% if r.total_price %}${{ r.total_price|floatformat:2|intcomma_dot }}{% else %}—{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="warning-card">
+                    <div class="warning-card-header">
+                        <i class="fas fa-circle-exclamation"></i>
+                        <h5>{% trans "Hotel pending" %}</h5>
+                    </div>
+                    <p>{% trans "Hotel data exists but could not be summarized." %}</p>
+                </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Hotel Payment Pending -->
+        {% if has_hotel %}
+            {% if not order or order.status != "paid" %}
+            <div class="info-card warning-card">
+                <div class="warning-card-header">
+                    <i class="fas fa-hotel"></i>
+                    <h5>{% trans "Hotel Payment Pending" %}</h5>
+                </div>
+                <p>{% trans "Your hotel reservation is ready but payment is still pending." %}</p>
+                <p style="margin-top: 8px; font-weight: 600;">{% trans "You can complete the hotel payment anytime before the event." %}</p>
+            </div>
+            {% endif %}
+        {% endif %}
+
+        <!-- Order Information -->
+        <div class="info-card">
+            <div class="info-card-header">
+                <i class="fas fa-receipt"></i>
+                <h5>{% trans "Order Details" %}</h5>
+            </div>
+            <div class="order-info-grid">
+                <div class="order-info-item">
+                    <label>{% trans "Order ID" %}</label>
+                    <div class="value">
+                        {% if order %}{{ order.order_number }}{% else %}—{% endif %}
+                    </div>
+                </div>
+                <div class="order-info-item">
+                    <label>{% trans "Checkout ID" %}</label>
+                    <div class="value">{{ checkout.pk }}</div>
+                </div>
+            </div>
+            <div class="kv-grid" style="margin-top: 16px;">
+                <div class="kv">
+                    <div class="k">{% trans "Order Status" %}</div>
+                    <div class="v">{% if order %}{{ order.get_status_display|default:order.status }}{% else %}—{% endif %}</div>
+                </div>
+                <div class="kv">
+                    <div class="k">{% trans "Amount Due / Paid" %}</div>
+                    <div class="v">
+                        {% if order %}
+                            {% if order.status == "paid" %}
+                                ${{ order.total_amount|floatformat:2|intcomma_dot }} · {% trans "Paid" %}
+                            {% else %}
+                                ${{ order.total_amount|floatformat:2|intcomma_dot }} · {% trans "Due" %}
+                            {% endif %}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="kv">
+                    <div class="k">{% trans "Currency" %}</div>
+                    <div class="v mono">{% if order %}{{ order.currency }}{% else %}—{% endif %}</div>
+                </div>
+                <div class="kv">
+                    <div class="k">{% trans "Paid at" %}</div>
+                    <div class="v">{% if order and order.paid_at %}{{ order.paid_at|date:"M d, Y H:i" }}{% else %}—{% endif %}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed breakdown -->
+        <div class="info-card">
+            <div class="info-card-header">
+                <i class="fas fa-calculator"></i>
+                <h5>{% trans "Detailed Breakdown" %}</h5>
+            </div>
+            <div class="kv-grid">
+                <div class="kv">
+                    <div class="k">{% trans "Players total" %}</div>
+                    <div class="v">${{ checkout.breakdown.players_total|default:"0.00"|floatformat:2|intcomma_dot }}</div>
+                </div>
+                <div class="kv">
+                    <div class="k">{% trans "Hotel total" %}</div>
+                    <div class="v">${{ checkout.breakdown.hotel_total|default:"0.00"|floatformat:2|intcomma_dot }}</div>
+                </div>
+                <div class="kv">
+                    <div class="k">{% trans "Hotel buy out fee" %}</div>
+                    <div class="v">${{ checkout.breakdown.hotel_buy_out_fee|default:"0.00"|floatformat:2|intcomma_dot }}</div>
+                </div>
+                <div class="kv">
+                    <div class="k">{% trans "Service fee" %}</div>
+                    <div class="v">${{ checkout.breakdown.service_fee_amount|default:"0.00"|floatformat:2|intcomma_dot }}</div>
+                </div>
+                <div class="kv">
+                    <div class="k">{% trans "Total before discount" %}</div>
+                    <div class="v">${{ checkout.breakdown.total_before_discount|default:"0.00"|floatformat:2|intcomma_dot }}</div>
+                </div>
+                <div class="kv">
+                    <div class="k">{% trans "Total" %}</div>
+                    <div class="v">${{ checkout.breakdown.total|default:"0.00"|floatformat:2|intcomma_dot }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="info-card">
+            <div class="action-buttons">
+                <a href="{% url 'accounts:panel_event_detail' event.pk %}" class="btn-action btn-outline-action" target="_top">
+                    <i class="fas fa-arrow-left"></i>
+                    {% trans "Back to Event" %}
+                </a>
+                <a href="{% url 'panel' %}?tab=registros"
+                   class="btn-action btn-outline-action"
+                   target="_top"
+                   onclick="try { (window.top || window).location.href = this.href; } catch(e) { window.location.href = this.href; } return false;">
+                    <i class="fas fa-list-alt"></i>
+                    {% trans "View All Registrations" %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+{% endlanguage %}

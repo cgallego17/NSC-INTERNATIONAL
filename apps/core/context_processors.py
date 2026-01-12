@@ -157,6 +157,7 @@ def sidebar_context(request):
         "accounts:user_list": {"section": "users", "subsection": "user_list"},
         "accounts:admin_order_list": {"section": "orders", "subsection": "admin_order_list"},
         "accounts:admin_order_detail": {"section": "orders", "subsection": "admin_order_list"},
+        "accounts:admin_wallet_topups": {"section": "orders", "subsection": "wallet_topups"},
         "accounts:age_verification_list": {
             "section": "age_verifications",
             "subsection": "pending_verifications",
@@ -280,6 +281,9 @@ def sidebar_context(request):
             elif "/admin/orders" in current_path:
                 active_section = "orders"
                 active_subsection = "admin_order_list"
+            elif "/admin/wallet-topups" in current_path:
+                active_section = "orders"
+                active_subsection = "wallet_topups"
             elif "/age-verifications" in current_path or "verificaciones-pendientes" in current_path or "tab=verificaciones-pendientes" in current_path:
                 active_section = "age_verifications"
                 active_subsection = "pending_verifications"

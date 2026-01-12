@@ -116,6 +116,12 @@
         color: #856404;
     }
 
+    .status-pending_registration {
+        background: rgba(13, 44, 84, 0.08);
+        color: var(--mlb-blue);
+        border: 1px solid rgba(13, 44, 84, 0.18);
+    }
+
     .status-cancelled {
         background-color: #f8d7da;
         color: #721c24;
@@ -174,6 +180,9 @@
                     <div class="d-flex gap-2">
                         <a href="{% url 'accounts:admin_order_list' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left me-2"></i>{% trans "Back to List" %}
+                        </a>
+                        <a href="{% url 'accounts:admin_wallet_topups' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-wallet me-1"></i>{% trans "Wallet Top-ups" %}
                         </a>
                     </div>
                 </div>

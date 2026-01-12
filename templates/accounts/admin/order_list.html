@@ -3,7 +3,7 @@
 {% load i18n %}
 {% load url_filters %}
 
-{% block title %}{% trans "Orders List" %} - NCS International{% endblock %}
+{% block title %}{% trans "Orders List" %} - NSC International{% endblock %}
 
 {% block breadcrumb %}
     <span>{% trans "Orders" %}</span>
@@ -11,23 +11,224 @@
 
 {% block extra_css %}
 <style>
-    .events-list-container {
+    .orders-admin-container {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-        padding: 2rem 2rem 2rem 3rem;
+        padding: 1.5rem;
         min-height: 100vh;
     }
 
-    @media (max-width: 992px) {
-        .events-list-container {
-            padding: 2rem 1.5rem;
+    /* Header */
+    .page-header h1 {
+        color: #212529;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .page-header p {
+        color: #6c757d;
+        font-size: 0.875rem;
+        margin-bottom: 0;
+    }
+
+    /* Statistics Cards */
+    .stats-card-col {
+        flex: 0 0 20%;
+        max-width: 20%;
+    }
+
+    .stats-card {
+        border-radius: 8px;
+        padding: 0.75rem;
+        margin-bottom: 0;
+        color: #ffffff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        height: 100%;
+    }
+
+    .stats-card h3 {
+        font-size: 1.25rem;
+    }
+
+    @media (max-width: 1200px) {
+        .stats-card-col {
+            flex: 0 0 20%;
+            max-width: 20%;
+        }
+
+        .stats-card h3 {
+            font-size: 1.1rem;
+        }
+
+        .stats-card h5 {
+            font-size: 0.7rem;
         }
     }
 
-    .status-badge {
-        padding: 4px 12px;
-        border-radius: 12px;
-        font-size: 0.85rem;
+    .stats-card h5 {
+        color: #ffffff;
+        font-size: 0.75rem;
         font-weight: 600;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        opacity: 0.95;
+    }
+
+    .stats-card h3 {
+        color: #ffffff;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .stats-card-blue {
+        background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+    }
+
+    .stats-card-green {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+
+    .stats-card-yellow {
+        background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+    }
+
+    .stats-card-red {
+        background: linear-gradient(135deg, var(--mlb-red) 0%, #dc3545 100%);
+    }
+
+    .stats-card-dark {
+        background: linear-gradient(135deg, rgba(13, 44, 84, 0.9) 0%, rgba(13, 44, 84, 0.7) 100%);
+    }
+
+    /* Filters Card */
+    .filters-card {
+        margin-bottom: 1.5rem;
+    }
+
+    .filters-card .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        padding: 0.75rem 1rem;
+    }
+
+    .filters-card .card-header h6 {
+        color: var(--mlb-blue);
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .filters-card .form-label {
+        color: #495057;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .filters-card .form-control,
+    .filters-card .form-select {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.5rem;
+    }
+
+    /* Table */
+    .table-card {
+        margin-bottom: 1.5rem;
+    }
+
+    .table-card .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        padding: 0.75rem 1rem;
+    }
+
+    .table-card .card-header h6 {
+        color: var(--mlb-blue);
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin: 0;
+    }
+
+    .table-card .card-header .text-muted {
+        color: #6c757d;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .table {
+        font-size: 0.75rem;
+        margin-bottom: 0;
+    }
+
+    .table thead th {
+        background-color: #f8f9fa;
+        color: var(--mlb-blue);
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.5rem 0.4rem;
+        border-bottom: 2px solid #dee2e6;
+        white-space: nowrap;
+    }
+
+    .table tbody td {
+        padding: 0.5rem 0.4rem;
+        vertical-align: middle;
+        color: #212529;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    /* Order Number */
+    .order-number-link {
+        color: var(--mlb-blue);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .order-number-link:hover {
+        text-decoration: underline;
+    }
+
+    .copy-btn {
+        border: none;
+        background: transparent;
+        padding: 0 4px;
+        color: #6c757d;
+        font-size: 0.7rem;
+        cursor: pointer;
+    }
+
+    .copy-btn:hover {
+        color: var(--mlb-blue);
+    }
+
+    /* User Info */
+    .user-name {
+        color: #212529;
+        font-weight: 600;
+        font-size: 0.75rem;
+        margin-bottom: 2px;
+    }
+
+    .user-email {
+        color: #6c757d;
+        font-size: 0.7rem;
+    }
+
+    /* Status Badges */
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
     }
 
     .status-paid {
@@ -38,6 +239,12 @@
     .status-pending {
         background-color: #fff3cd;
         color: #856404;
+    }
+
+    .status-pending_registration {
+        background: rgba(13, 44, 84, 0.08);
+        color: var(--mlb-blue);
+        border: 1px solid rgba(13, 44, 84, 0.18);
     }
 
     .status-cancelled {
@@ -55,85 +262,150 @@
         color: #721c24;
     }
 
-    .stats-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 20px;
+    /* Payment Mode Badges */
+    .badge {
+        font-size: 0.7rem;
+        padding: 4px 8px;
     }
 
-    .stats-card h5 {
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 0.9rem;
-        margin-bottom: 8px;
-    }
-
-    .stats-card h3 {
-        color: white;
+    /* Amount */
+    .amount-value {
+        color: #28a745;
         font-weight: 700;
-        margin: 0;
+        font-size: 0.875rem;
+    }
+
+    .amount-currency {
+        color: #6c757d;
+        font-size: 0.7rem;
+    }
+
+    /* Event Link */
+    .event-link {
+        color: var(--mlb-blue);
+        text-decoration: none;
+    }
+
+    .event-link:hover {
+        text-decoration: underline;
+    }
+
+    /* Dates */
+    .date-text {
+        color: #495057;
+        font-size: 0.75rem;
+    }
+
+    .date-empty {
+        color: #6c757d;
+        font-size: 0.75rem;
+    }
+
+    /* Buttons */
+    .btn-sm {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    /* Pagination */
+    .pagination {
+        font-size: 0.75rem;
+    }
+
+    .page-link {
+        padding: 0.375rem 0.75rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .orders-admin-container {
+            padding: 1rem;
+        }
+
+        .table {
+            font-size: 0.7rem;
+        }
+
+        .table thead th {
+            font-size: 0.65rem;
+            padding: 0.4rem 0.3rem;
+        }
+
+        .table tbody td {
+            padding: 0.4rem 0.3rem;
+        }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="events-list-container">
+<div class="orders-admin-container">
     <div class="container-fluid">
         <!-- Header -->
-        <div class="row mb-4">
+        <div class="row mb-3">
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h1 class="h3 mb-0 text-gray-800">
-                            <i class="fas fa-receipt me-2" style="color: var(--mlb-blue);"></i>{% trans "Orders Management" %}
+                    <div class="page-header">
+                        <h1>
+                            <i class="fas fa-receipt me-2" style="color: var(--mlb-blue);"></i>
+                            {% trans "Orders Management" %}
                         </h1>
-                        <p class="text-muted">{% trans "Manage all system orders" %}</p>
+                        <p>{% trans "Manage all system orders" %}</p>
+                    </div>
+                    <div>
+                        <a href="{% url 'accounts:admin_wallet_topups' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-wallet me-1"></i>{% trans "Wallet Top-ups" %}
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Statistics Cards -->
-        <div class="row mb-4">
-            <div class="col-md-3">
-                <div class="stats-card" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);">
+        <div class="row mb-3 g-2">
+            <div class="col stats-card-col">
+                <div class="stats-card stats-card-blue">
                     <h5>{% trans "Total Orders" %}</h5>
                     <h3>{{ total_orders }}</h3>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+            <div class="col stats-card-col">
+                <div class="stats-card stats-card-green">
                     <h5>{% trans "Total Revenue" %}</h5>
                     <h3>${{ total_revenue|floatformat:2|intcomma_dot }}</h3>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+            <div class="col stats-card-col">
+                <div class="stats-card stats-card-yellow">
                     <h5>{% trans "Paid Orders" %}</h5>
                     <h3>{{ paid_orders }}</h3>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="stats-card" style="background: linear-gradient(135deg, var(--mlb-red) 0%, #dc3545 100%);">
+            <div class="col stats-card-col">
+                <div class="stats-card stats-card-red">
                     <h5>{% trans "Payment Plans" %}</h5>
                     <h3>{{ payment_plans }}</h3>
+                </div>
+            </div>
+            <div class="col stats-card-col">
+                <div class="stats-card stats-card-dark">
+                    <h5>{% trans "Pending Registration" %}</h5>
+                    <h3>{{ pending_registration_orders }}</h3>
                 </div>
             </div>
         </div>
 
         <!-- Filters -->
-        <div class="row mb-4">
+        <div class="row mb-3">
             <div class="col-12">
-                <div class="card shadow">
-                    <div class="card-header bg-white border-bottom py-3">
-                        <h6 class="mb-0 text-primary">
+                <div class="card shadow-sm filters-card">
+                    <div class="card-header">
+                        <h6>
                             <i class="fas fa-filter me-2"></i>{% trans "Filters" %}
                         </h6>
                     </div>
                     <div class="card-body">
-                        <form method="get" class="row g-3">
-                            <!-- Búsqueda general -->
+                        <form method="get" class="row g-2">
                             <div class="col-md-12 col-lg-4">
                                 <label for="search" class="form-label">
                                     <i class="fas fa-search me-1"></i>{% trans "Search" %}
@@ -143,7 +415,6 @@
                                        placeholder="{% trans 'Search by order number, user, email, or Stripe session ID...' %}">
                             </div>
 
-                            <!-- Filtro por estado -->
                             <div class="col-md-6 col-lg-2">
                                 <label for="status" class="form-label">
                                     <i class="fas fa-tag me-1"></i>{% trans "Status" %}
@@ -158,7 +429,6 @@
                                 </select>
                             </div>
 
-                            <!-- Filtro por modo de pago -->
                             <div class="col-md-6 col-lg-2">
                                 <label for="payment_mode" class="form-label">
                                     <i class="fas fa-credit-card me-1"></i>{% trans "Payment Mode" %}
@@ -173,7 +443,20 @@
                                 </select>
                             </div>
 
-                            <!-- Filtro por fecha desde -->
+                            <div class="col-md-6 col-lg-2">
+                                <label for="payment_method" class="form-label">
+                                    <i class="fas fa-wallet me-1"></i>{% trans "Payment Method" %}
+                                </label>
+                                <select class="form-select" id="payment_method" name="payment_method">
+                                    <option value="">{% trans "All" %}</option>
+                                    {% for value, label in payment_method_choices %}
+                                        <option value="{{ value }}" {% if payment_method_filter == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
                             <div class="col-md-6 col-lg-2">
                                 <label for="date_from" class="form-label">
                                     <i class="fas fa-calendar me-1"></i>{% trans "From Date" %}
@@ -181,7 +464,6 @@
                                 <input type="date" class="form-control" id="date_from" name="date_from" value="{{ date_from }}">
                             </div>
 
-                            <!-- Filtro por fecha hasta -->
                             <div class="col-md-6 col-lg-2">
                                 <label for="date_to" class="form-label">
                                     <i class="fas fa-calendar me-1"></i>{% trans "To Date" %}
@@ -189,13 +471,28 @@
                                 <input type="date" class="form-control" id="date_to" name="date_to" value="{{ date_to }}">
                             </div>
 
-                            <!-- Botones de acción -->
+                            <div class="col-md-6 col-lg-2">
+                                <label for="sort" class="form-label">
+                                    <i class="fas fa-sort me-1"></i>{% trans "Sort" %}
+                                </label>
+                                <select class="form-select" id="sort" name="sort">
+                                    <option value="-created_at" {% if sort == "-created_at" %}selected{% endif %}>{% trans "Created (newest)" %}</option>
+                                    <option value="created_at" {% if sort == "created_at" %}selected{% endif %}>{% trans "Created (oldest)" %}</option>
+                                    <option value="-paid_at" {% if sort == "-paid_at" %}selected{% endif %}>{% trans "Paid (newest)" %}</option>
+                                    <option value="paid_at" {% if sort == "paid_at" %}selected{% endif %}>{% trans "Paid (oldest)" %}</option>
+                                    <option value="-total_amount" {% if sort == "-total_amount" %}selected{% endif %}>{% trans "Total (high → low)" %}</option>
+                                    <option value="total_amount" {% if sort == "total_amount" %}selected{% endif %}>{% trans "Total (low → high)" %}</option>
+                                    <option value="order_number" {% if sort == "order_number" %}selected{% endif %}>{% trans "Order Number (A→Z)" %}</option>
+                                    <option value="-order_number" {% if sort == "-order_number" %}selected{% endif %}>{% trans "Order Number (Z→A)" %}</option>
+                                </select>
+                            </div>
+
                             <div class="col-12">
                                 <div class="d-flex gap-2">
-                                    <button type="submit" class="btn btn-primary">
+                                    <button type="submit" class="btn btn-primary btn-sm">
                                         <i class="fas fa-search me-2"></i>{% trans "Filter" %}
                                     </button>
-                                    <a href="{% url 'accounts:admin_order_list' %}" class="btn btn-outline-secondary">
+                                    <a href="{% url 'accounts:admin_order_list' %}" class="btn btn-outline-secondary btn-sm">
                                         <i class="fas fa-times me-2"></i>{% trans "Clear Filters" %}
                                     </a>
                                 </div>
@@ -209,9 +506,9 @@
         <!-- Orders Table -->
         <div class="row">
             <div class="col-12">
-                <div class="card shadow">
-                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                        <h6 class="m-0 font-weight-bold text-primary">{% trans "Orders List" %}</h6>
+                <div class="card shadow-sm table-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6>{% trans "Orders List" %}</h6>
                         <div class="text-muted">
                             {% if is_paginated %}
                                 {% trans "Showing" %} {{ page_obj.start_index }} - {{ page_obj.end_index }} {% trans "of" %} {{ page_obj.paginator.count }} {% trans "orders" %}
@@ -220,11 +517,11 @@
                             {% endif %}
                         </div>
                     </div>
-                    <div class="card-body">
+                    <div class="card-body p-0">
                         {% if orders %}
                             <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead class="table-light">
+                                <table class="table table-hover mb-0">
+                                    <thead>
                                         <tr>
                                             <th>{% trans "Order Number" %}</th>
                                             <th>{% trans "User" %}</th>
@@ -241,13 +538,16 @@
                                         {% for order in orders %}
                                             <tr>
                                                 <td>
-                                                    <strong>{{ order.order_number }}</strong>
+                                                    <a href="{% url 'accounts:admin_order_detail' order.pk %}" class="order-number-link">
+                                                        {{ order.order_number }}
+                                                    </a>
+                                                    <button class="copy-btn" type="button" data-copy="{{ order.order_number }}" title="{% trans 'Copy' %}">
+                                                        <i class="far fa-copy"></i>
+                                                    </button>
                                                 </td>
                                                 <td>
-                                                    <div>
-                                                        <strong>{{ order.user.get_full_name|default:order.user.username }}</strong><br>
-                                                        <small class="text-muted">{{ order.user.email }}</small>
-                                                    </div>
+                                                    <div class="user-name">{{ order.user.get_full_name|default:order.user.username }}</div>
+                                                    <div class="user-email">{{ order.user.email }}</div>
                                                 </td>
                                                 <td>
                                                     <span class="status-badge status-{{ order.status }}">
@@ -264,26 +564,28 @@
                                                     {% endif %}
                                                 </td>
                                                 <td>
-                                                    <strong>${{ order.total_amount|floatformat:2|intcomma_dot }}</strong><br>
-                                                    <small class="text-muted">{{ order.currency|upper }}</small>
+                                                    <div class="amount-value">${{ order.total_amount|floatformat:2|intcomma_dot }}</div>
+                                                    <div class="amount-currency">{{ order.currency|upper }}</div>
                                                 </td>
                                                 <td>
                                                     {% if order.event %}
-                                                        <a href="{% url 'events:admin_detail' order.event.pk %}" class="text-decoration-none">
+                                                        <a href="{% url 'events:admin_detail' order.event.pk %}" class="event-link">
                                                             {{ order.event.title|truncatewords:5 }}
                                                         </a>
                                                     {% else %}
-                                                        <span class="text-muted">-</span>
+                                                        <span class="date-empty">-</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>
-                                                    <small>{{ order.created_at|date:"M d, Y H:i" }}</small>
+                                                    <div class="date-text">{{ order.created_at|date:"M d, Y" }}</div>
+                                                    <div class="date-text" style="font-size: 0.65rem;">{{ order.created_at|date:"H:i" }}</div>
                                                 </td>
                                                 <td>
                                                     {% if order.paid_at %}
-                                                        <small>{{ order.paid_at|date:"M d, Y H:i" }}</small>
+                                                        <div class="date-text">{{ order.paid_at|date:"M d, Y" }}</div>
+                                                        <div class="date-text" style="font-size: 0.65rem;">{{ order.paid_at|date:"H:i" }}</div>
                                                     {% else %}
-                                                        <span class="text-muted">-</span>
+                                                        <span class="date-empty">-</span>
                                                     {% endif %}
                                                 </td>
                                                 <td>
@@ -299,11 +601,13 @@
 
                             <!-- Pagination -->
                             {% if is_paginated %}
-                                <nav aria-label="{% trans 'Orders pagination' %}">
-                                    <ul class="pagination justify-content-center">
+                                <nav aria-label="{% trans 'Orders pagination' %}" class="p-3">
+                                    <ul class="pagination justify-content-center mb-0">
                                         {% if page_obj.has_previous %}
                                             <li class="page-item">
-                                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if payment_mode_filter %}&payment_mode={{ payment_mode_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">{% trans "Previous" %}</a>
+                                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if payment_mode_filter %}&payment_mode={{ payment_mode_filter }}{% endif %}{% if payment_method_filter %}&payment_method={{ payment_method_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">
+                                                    {% trans "Previous" %}
+                                                </a>
                                             </li>
                                         {% endif %}
 
@@ -315,14 +619,16 @@
 
                                         {% if page_obj.has_next %}
                                             <li class="page-item">
-                                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if payment_mode_filter %}&payment_mode={{ payment_mode_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">{% trans "Next" %}</a>
+                                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if payment_mode_filter %}&payment_mode={{ payment_mode_filter }}{% endif %}{% if payment_method_filter %}&payment_method={{ payment_method_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">
+                                                    {% trans "Next" %}
+                                                </a>
                                             </li>
                                         {% endif %}
                                     </ul>
                                 </nav>
                             {% endif %}
                         {% else %}
-                            <div class="alert alert-info text-center">
+                            <div class="alert alert-info text-center m-3">
                                 <i class="fas fa-info-circle me-2"></i>{% trans "No orders found." %}
                             </div>
                         {% endif %}
@@ -334,3 +640,32 @@
 </div>
 {% endblock %}
 
+{% block extra_js %}
+<script>
+(function() {
+    function copyText(text) {
+        if (!text) return;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text);
+            return;
+        }
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+    }
+
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest && e.target.closest('[data-copy]');
+        if (!btn) return;
+        e.preventDefault();
+        copyText(btn.getAttribute('data-copy'));
+        btn.blur();
+    });
+})();
+</script>
+{% endblock %}

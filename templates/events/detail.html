@@ -16,6 +16,12 @@
         margin: 0 auto;
         padding: 1.5rem;
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        /* Asegurar que no interfiera con el layout del main-content */
+        position: relative;
+        z-index: 1;
+        /* Aceleración por hardware para evitar reflows */
+        transform: translateZ(0);
+        backface-visibility: hidden;
     }
 
     /* Header */
@@ -609,7 +615,13 @@
                                     <td><small>{{ player.user.email|default:"-" }}</small></td>
                                     <td><span class="badge bg-info">{% if player.division %}{{ player.division.name }}{% else %}-{% endif %}</span></td>
                                     <td>{{ player.get_grade_display|default:"-" }}</td>
-                                    <td>{% if player.user.profile.date_of_birth %}{{ player.user.profile.age }}{% else %}-{% endif %}</td>
+                                    <td>
+                                        {% if player.user.profile.birth_date %}
+                                            {{ player.user.profile.age|default:"-" }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
                                     <td><small>{% if player.parents.exists %}{{ player.parents.first.parent.get_full_name|default:player.parents.first.parent.username }}{% else %}-{% endif %}</small></td>
                                     <td>
                                         <a href="{% url 'accounts:front_player_profile' player.id %}" class="btn btn-sm btn-outline-primary" target="_blank" title="Ver perfil del jugador">

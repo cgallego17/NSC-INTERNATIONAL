@@ -1,0 +1,505 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+{% load url_filters %}
+
+{% block title %}{% trans "Orders List" %} - NCS International{% endblock %}
+
+{% block breadcrumb %}
+    <span>{% trans "Orders" %}</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .events-list-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        padding: 2rem 2rem 2rem 3rem;
+        min-height: 100vh;
+    }
+
+    @media (max-width: 992px) {
+        .events-list-container {
+            padding: 2rem 1.5rem;
+        }
+    }
+
+    /* Mejoras de tipografía y espaciado */
+    .card-header h6 {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .form-label {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+
+    .form-control, .form-select {
+        font-size: 0.95rem;
+        padding: 0.6rem 0.75rem;
+    }
+
+    .table {
+        font-size: 0.95rem;
+    }
+
+    .table thead th {
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 1rem 0.75rem;
+        border-bottom: 2px solid #dee2e6;
+        color: var(--mlb-blue);
+    }
+
+    .table tbody td {
+        padding: 1rem 0.75rem;
+        vertical-align: middle;
+    }
+
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 12px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-paid {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-pending_registration {
+        background: rgba(13, 44, 84, 0.08);
+        color: var(--mlb-blue);
+        border: 1px solid rgba(13, 44, 84, 0.18);
+    }
+
+    .status-cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-refunded {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .status-failed {
+        background-color: #f5c6cb;
+        color: #721c24;
+    }
+
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .stats-card h5 {
+        color: rgba(255, 255, 255, 0.95);
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+        letter-spacing: 0.3px;
+    }
+
+    .stats-card h3 {
+        color: white;
+        font-weight: 800;
+        font-size: 2rem;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .copy-btn {
+        border: none;
+        background: transparent;
+        padding: 0 6px;
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    .copy-btn:hover { color: var(--mlb-blue); }
+
+    /* Mejoras adicionales */
+    h1.h3 {
+        font-size: 1.75rem !important;
+        font-weight: 700 !important;
+    }
+
+    .card-header {
+        background-color: #f8f9fa !important;
+        border-bottom: 2px solid #dee2e6 !important;
+    }
+
+    .card-body {
+        padding: 1.5rem !important;
+    }
+
+    .btn {
+        font-size: 0.95rem;
+        padding: 0.6rem 1.2rem;
+    }
+
+    .btn-sm {
+        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="events-list-container">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 mb-1 text-gray-800" style="font-size: 1.75rem; font-weight: 700;">
+                            <i class="fas fa-receipt me-2" style="color: var(--mlb-blue);"></i>{% trans "Orders Management" %}
+                        </h1>
+                        <p class="text-muted mb-0" style="font-size: 1rem;">{% trans "Manage all system orders" %}</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'accounts:admin_wallet_topups' %}" class="btn btn-outline-primary" style="font-size: 0.95rem; padding: 0.6rem 1.2rem;">
+                            <i class="fas fa-wallet me-1"></i>{% trans "Wallet Top-ups" %}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);">
+                    <h5>{% trans "Total Orders" %}</h5>
+                    <h3>{{ total_orders }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                    <h5>{% trans "Total Revenue" %}</h5>
+                    <h3>${{ total_revenue|floatformat:2|intcomma_dot }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);">
+                    <h5>{% trans "Paid Orders" %}</h5>
+                    <h3>{{ paid_orders }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, var(--mlb-red) 0%, #dc3545 100%);">
+                    <h5>{% trans "Payment Plans" %}</h5>
+                    <h3>{{ payment_plans }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, rgba(13, 44, 84, 0.9) 0%, rgba(13, 44, 84, 0.7) 100%);">
+                    <h5>{% trans "Pending Registration" %}</h5>
+                    <h3>{{ pending_registration_orders }}</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-white border-bottom py-3" style="background-color: #f8f9fa !important;">
+                        <h6 class="mb-0 text-primary" style="font-size: 1.1rem; font-weight: 600;">
+                            <i class="fas fa-filter me-2"></i>{% trans "Filters" %}
+                        </h6>
+                    </div>
+                    <div class="card-body" style="padding: 1.5rem;">
+                        <form method="get" class="row g-3">
+                            <!-- Búsqueda general -->
+                            <div class="col-md-12 col-lg-4">
+                                <label for="search" class="form-label">
+                                    <i class="fas fa-search me-1"></i>{% trans "Search" %}
+                                </label>
+                                <input type="text" class="form-control" id="search" name="search"
+                                       value="{{ search }}"
+                                       placeholder="{% trans 'Search by order number, user, email, or Stripe session ID...' %}">
+                            </div>
+
+                            <!-- Filtro por estado -->
+                            <div class="col-md-6 col-lg-2">
+                                <label for="status" class="form-label">
+                                    <i class="fas fa-tag me-1"></i>{% trans "Status" %}
+                                </label>
+                                <select class="form-select" id="status" name="status">
+                                    <option value="">{% trans "All" %}</option>
+                                    {% for value, label in status_choices %}
+                                        <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Filtro por modo de pago -->
+                            <div class="col-md-6 col-lg-2">
+                                <label for="payment_mode" class="form-label">
+                                    <i class="fas fa-credit-card me-1"></i>{% trans "Payment Mode" %}
+                                </label>
+                                <select class="form-select" id="payment_mode" name="payment_mode">
+                                    <option value="">{% trans "All" %}</option>
+                                    {% for value, label in payment_mode_choices %}
+                                        <option value="{{ value }}" {% if payment_mode_filter == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Filtro por método de pago -->
+                            <div class="col-md-6 col-lg-2">
+                                <label for="payment_method" class="form-label">
+                                    <i class="fas fa-wallet me-1"></i>{% trans "Payment Method" %}
+                                </label>
+                                <select class="form-select" id="payment_method" name="payment_method">
+                                    <option value="">{% trans "All" %}</option>
+                                    {% for value, label in payment_method_choices %}
+                                        <option value="{{ value }}" {% if payment_method_filter == value %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Filtro por fecha desde -->
+                            <div class="col-md-6 col-lg-2">
+                                <label for="date_from" class="form-label">
+                                    <i class="fas fa-calendar me-1"></i>{% trans "From Date" %}
+                                </label>
+                                <input type="date" class="form-control" id="date_from" name="date_from" value="{{ date_from }}">
+                            </div>
+
+                            <!-- Filtro por fecha hasta -->
+                            <div class="col-md-6 col-lg-2">
+                                <label for="date_to" class="form-label">
+                                    <i class="fas fa-calendar me-1"></i>{% trans "To Date" %}
+                                </label>
+                                <input type="date" class="form-control" id="date_to" name="date_to" value="{{ date_to }}">
+                            </div>
+
+                            <!-- Ordenamiento -->
+                            <div class="col-md-6 col-lg-2">
+                                <label for="sort" class="form-label">
+                                    <i class="fas fa-sort me-1"></i>{% trans "Sort" %}
+                                </label>
+                                <select class="form-select" id="sort" name="sort">
+                                    <option value="-created_at" {% if sort == "-created_at" %}selected{% endif %}>{% trans "Created (newest)" %}</option>
+                                    <option value="created_at" {% if sort == "created_at" %}selected{% endif %}>{% trans "Created (oldest)" %}</option>
+                                    <option value="-paid_at" {% if sort == "-paid_at" %}selected{% endif %}>{% trans "Paid (newest)" %}</option>
+                                    <option value="paid_at" {% if sort == "paid_at" %}selected{% endif %}>{% trans "Paid (oldest)" %}</option>
+                                    <option value="-total_amount" {% if sort == "-total_amount" %}selected{% endif %}>{% trans "Total (high → low)" %}</option>
+                                    <option value="total_amount" {% if sort == "total_amount" %}selected{% endif %}>{% trans "Total (low → high)" %}</option>
+                                    <option value="order_number" {% if sort == "order_number" %}selected{% endif %}>{% trans "Order Number (A→Z)" %}</option>
+                                    <option value="-order_number" {% if sort == "-order_number" %}selected{% endif %}>{% trans "Order Number (Z→A)" %}</option>
+                                </select>
+                            </div>
+
+                            <!-- Botones de acción -->
+                            <div class="col-12">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary" style="font-size: 0.95rem; padding: 0.6rem 1.2rem;">
+                                        <i class="fas fa-search me-2"></i>{% trans "Filter" %}
+                                    </button>
+                                    <a href="{% url 'accounts:admin_order_list' %}" class="btn btn-outline-secondary" style="font-size: 0.95rem; padding: 0.6rem 1.2rem;">
+                                        <i class="fas fa-times me-2"></i>{% trans "Clear Filters" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between" style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                        <h6 class="m-0 font-weight-bold text-primary" style="font-size: 1.1rem;">{% trans "Orders List" %}</h6>
+                        <div class="text-muted" style="font-size: 0.95rem; font-weight: 500;">
+                            {% if is_paginated %}
+                                {% trans "Showing" %} {{ page_obj.start_index }} - {{ page_obj.end_index }} {% trans "of" %} {{ page_obj.paginator.count }} {% trans "orders" %}
+                            {% else %}
+                                {% trans "Total" %}: {{ orders|length }} {% trans "orders" %}
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 1.5rem;">
+                        {% if orders %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>{% trans "Order Number" %}</th>
+                                            <th>{% trans "User" %}</th>
+                                            <th>{% trans "Status" %}</th>
+                                            <th>{% trans "Payment Mode" %}</th>
+                                            <th>{% trans "Total Amount" %}</th>
+                                            <th>{% trans "Event" %}</th>
+                                            <th>{% trans "Created At" %}</th>
+                                            <th>{% trans "Paid At" %}</th>
+                                            <th>{% trans "Actions" %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for order in orders %}
+                                            <tr>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <a class="text-decoration-none fw-bold" href="{% url 'accounts:admin_order_detail' order.pk %}" style="font-size: 0.95rem; color: var(--mlb-blue);">
+                                                            {{ order.order_number }}
+                                                        </a>
+                                                        <button class="copy-btn" type="button" data-copy="{{ order.order_number }}" title="{% trans 'Copy' %}" style="font-size: 0.9rem;">
+                                                            <i class="far fa-copy"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div>
+                                                        <div class="fw-semibold" style="font-size: 0.95rem; margin-bottom: 2px;">{{ order.user.get_full_name|default:order.user.username }}</div>
+                                                        <small class="text-muted" style="font-size: 0.85rem;">{{ order.user.email }}</small>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="status-badge status-{{ order.status }}">
+                                                        {{ order.get_status_display }}
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    {% if order.is_payment_plan %}
+                                                        <span class="badge bg-info" style="font-size: 0.85rem; padding: 0.4rem 0.7rem;">
+                                                            <i class="fas fa-calendar-alt me-1"></i>{% trans "Plan" %} ({{ order.plan_months }}m)
+                                                        </span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary" style="font-size: 0.85rem; padding: 0.4rem 0.7rem;">{% trans "Single Payment" %}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <div class="fw-bold" style="font-size: 1rem; color: #28a745;">${{ order.total_amount|floatformat:2|intcomma_dot }}</div>
+                                                    <small class="text-muted" style="font-size: 0.8rem;">{{ order.currency|upper }}</small>
+                                                </td>
+                                                <td>
+                                                    {% if order.event %}
+                                                        <a href="{% url 'events:admin_detail' order.event.pk %}" class="text-decoration-none" style="font-size: 0.9rem; color: var(--mlb-blue);">
+                                                            {{ order.event.title|truncatewords:5 }}
+                                                        </a>
+                                                    {% else %}
+                                                        <span class="text-muted" style="font-size: 0.9rem;">-</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <div style="font-size: 0.9rem; color: #495057;">{{ order.created_at|date:"M d, Y" }}</div>
+                                                    <small class="text-muted" style="font-size: 0.8rem;">{{ order.created_at|date:"H:i" }}</small>
+                                                </td>
+                                                <td>
+                                                    {% if order.paid_at %}
+                                                        <div style="font-size: 0.9rem; color: #495057;">{{ order.paid_at|date:"M d, Y" }}</div>
+                                                        <small class="text-muted" style="font-size: 0.8rem;">{{ order.paid_at|date:"H:i" }}</small>
+                                                    {% else %}
+                                                        <span class="text-muted" style="font-size: 0.9rem;">-</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <a href="{% url 'accounts:admin_order_detail' order.pk %}" class="btn btn-sm btn-primary" style="font-size: 0.9rem; padding: 0.4rem 0.8rem;">
+                                                        <i class="fas fa-eye me-1"></i>{% trans "View" %}
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination -->
+                            {% if is_paginated %}
+                                <nav aria-label="{% trans 'Orders pagination' %}">
+                                    <ul class="pagination justify-content-center">
+                                        {% if page_obj.has_previous %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if payment_mode_filter %}&payment_mode={{ payment_mode_filter }}{% endif %}{% if payment_method_filter %}&payment_method={{ payment_method_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">{% trans "Previous" %}</a>
+                                            </li>
+                                        {% endif %}
+
+                                        <li class="page-item active">
+                                            <span class="page-link">
+                                                {% trans "Page" %} {{ page_obj.number }} {% trans "of" %} {{ page_obj.paginator.num_pages }}
+                                            </span>
+                                        </li>
+
+                                        {% if page_obj.has_next %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if payment_mode_filter %}&payment_mode={{ payment_mode_filter }}{% endif %}{% if payment_method_filter %}&payment_method={{ payment_method_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}{% if sort %}&sort={{ sort }}{% endif %}">{% trans "Next" %}</a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </nav>
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i>{% trans "No orders found." %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    function copyText(text) {
+      if (!text) return;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text);
+        return;
+      }
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+
+    document.addEventListener('click', function (e) {
+      const btn = e.target.closest && e.target.closest('[data-copy]');
+      if (!btn) return;
+      e.preventDefault();
+      copyText(btn.getAttribute('data-copy'));
+      btn.blur();
+    });
+  })();
+</script>
+{% endblock %}

@@ -3,7 +3,7 @@ Vistas privadas - Requieren autenticación
 """
 
 import json
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 from django.conf import settings
 from django.contrib import messages
@@ -12,9 +12,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.db import models, transaction
-from django.db.models import Q
+from django.db.models import Q, Sum
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone, translation
 from django.utils.decorators import method_decorator
@@ -49,6 +49,7 @@ from .forms import (
 from .models import (
     DashboardContent,
     MarqueeMessage,
+    Notification,
     Order,
     Player,
     PlayerParent,
@@ -79,15 +80,51 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             # Crear perfil si no existe
             profile = UserProfile.objects.create(user=user, user_type="player")
 
-        # Si el usuario tiene relación PlayerParent pero su perfil quedó como "player",
+        # Si el usuario tiene relación PlayerParent pero su perfil quedó como "player" o "spectator",
         # corregirlo para que el panel muestre las tabs correctas.
         has_children_relation = PlayerParent.objects.filter(parent=user).exists()
-        if profile.user_type == "player" and has_children_relation:
+        if profile.user_type in ("player", "spectator") and has_children_relation:
             profile.user_type = "parent"
             profile.save(update_fields=["user_type"])
 
         context["profile"] = profile
         context["is_parent_user"] = profile.is_parent or has_children_relation
+
+        # Pending registrations (unpaid): used as badge counter in /panel/?tab=registros
+        try:
+            context["pending_registrations_count"] = Order.objects.filter(
+                user=user, status="pending_registration"
+            ).count()
+        except Exception:
+            context["pending_registrations_count"] = 0
+
+        # Active tab: allow opening a tab directly via /panel/?tab=<id>
+        # (Panel JS also reads this param, but we set it server-side as a reliable fallback.)
+        tab_param = (self.request.GET.get("tab") or "").strip()
+        if tab_param:
+            # Whitelist known tabs (and enforce role restrictions)
+            spectator_tabs = {"eventos", "reservas", "plan-pagos"}
+            default_tabs = {
+                "inicio",
+                "eventos",
+                "registros",
+                "reservas",
+                "plan-pagos",
+                "perfil",
+                "detalle-eventos",  # internal tab (opened from events)
+                "crear-equipo",
+                "registrar-jugador",
+                "mis-equipos",
+                "ver-jugadores",
+                "registrar-hijo",
+                "mis-hijos",
+                "mi-perfil",
+                "perfil-publico",
+            }
+
+            allowed = spectator_tabs if profile.is_spectator else default_tabs
+            if tab_param in allowed:
+                context["active_tab"] = tab_param
 
         # Si es jugador, obtener información del jugador
         if profile.is_player:
@@ -1518,14 +1555,40 @@ class PanelEventDetailView(UserDashboardView):
 
             # Verificar si ya hay registros para este evento
             registered_players = []
-            for child in children:
-                try:
-                    attendance = EventAttendance.objects.get(
-                        event=event, user=child.user
-                    )
-                    registered_players.append(child.pk)
-                except EventAttendance.DoesNotExist:
-                    pass
+            # IMPORTANT: treat a player as "registered" (locked) ONLY if the registration is PAID.
+            # If a player has a pending/unpaid checkout, the user must be able to edit the checkout.
+            try:
+                paid_player_ids = set()
+
+                # 1) Paid Orders (source of truth for panel payment state)
+                for o in (
+                    Order.objects.filter(event=event, status="paid")
+                    .only("registered_player_ids")
+                    .iterator()
+                ):
+                    for pid in o.registered_player_ids or []:
+                        try:
+                            paid_player_ids.add(int(pid))
+                        except Exception:
+                            continue
+
+                # 2) Paid Stripe checkouts (fallback)
+                for co in (
+                    StripeEventCheckout.objects.filter(event=event, status="paid")
+                    .only("player_ids")
+                    .iterator()
+                ):
+                    for pid in co.player_ids or []:
+                        try:
+                            paid_player_ids.add(int(pid))
+                        except Exception:
+                            continue
+
+                for child in children:
+                    if child.pk in paid_player_ids:
+                        registered_players.append(child.pk)
+            except Exception:
+                registered_players = []
 
             context["registered_players"] = registered_players
 
@@ -1535,6 +1598,21 @@ class PanelEventDetailView(UserDashboardView):
         except ImportError:
             context["event"] = None
             messages.error(self.request, _("Events app is not available."))
+
+        # Get user wallet balance (available balance = balance - pending)
+        try:
+            from .models import UserWallet
+
+            wallet, _created = UserWallet.objects.get_or_create(user=user)
+            context["wallet_balance"] = wallet.available_balance  # Balance disponible
+            context["wallet_balance_total"] = wallet.balance  # Balance total
+            context["wallet_balance_pending"] = (
+                wallet.pending_balance
+            )  # Balance reservado
+        except Exception:
+            context["wallet_balance"] = Decimal("0.00")
+            context["wallet_balance_total"] = Decimal("0.00")
+            context["wallet_balance_pending"] = Decimal("0.00")
 
         return context
 
@@ -1897,22 +1975,6 @@ def _plan_months_until_deadline(payment_deadline):
 @require_POST
 @csrf_exempt
 def create_stripe_event_checkout_session(request, pk):
-    if not settings.STRIPE_SECRET_KEY:
-        return JsonResponse(
-            {
-                "success": False,
-                "error": _("Stripe is not configured (STRIPE_SECRET_KEY)."),
-            },
-            status=500,
-        )
-
-    try:
-        import stripe  # type: ignore
-    except Exception:
-        return JsonResponse(
-            {"success": False, "error": _("Stripe SDK is not installed.")}, status=500
-        )
-
     from apps.events.models import Event
 
     event = get_object_or_404(Event, pk=pk)
@@ -1958,16 +2020,38 @@ def create_stripe_event_checkout_session(request, pk):
                 status=400,
             )
 
-        # Verificar que ningún jugador ya esté registrado en el evento (solo confirmed, no pending)
-        # porque pendientes pueden existir de intentos anteriores que no completaron el pago
-        from apps.events.models import EventAttendance
-
+        # Verificar que ningún jugador ya esté PAGADO para este evento.
+        # Si existe un checkout/orden pendiente, debe poder editarse y pagarse (resume flow).
         already_registered = []
+        try:
+            paid_player_ids = set()
+
+            for o in (
+                Order.objects.filter(event=event, status="paid")
+                .only("registered_player_ids")
+                .iterator()
+            ):
+                for pid in o.registered_player_ids or []:
+                    try:
+                        paid_player_ids.add(int(pid))
+                    except Exception:
+                        continue
+
+            for co in (
+                StripeEventCheckout.objects.filter(event=event, status="paid")
+                .only("player_ids")
+                .iterator()
+            ):
+                for pid in co.player_ids or []:
+                    try:
+                        paid_player_ids.add(int(pid))
+                    except Exception:
+                        continue
+        except Exception:
+            paid_player_ids = set()
+
         for player in valid_players:
-            # Solo verificar status="confirmed", no "pending", porque pending puede existir sin pago
-            if EventAttendance.objects.filter(
-                event=event, user=player.user, status="confirmed"
-            ).exists():
+            if player.pk in paid_player_ids:
                 already_registered.append(
                     player.user.get_full_name() or player.user.username
                 )
@@ -2000,7 +2084,7 @@ def create_stripe_event_checkout_session(request, pk):
             )
 
     payment_mode = request.POST.get("payment_mode", "plan")
-    if payment_mode not in ("plan", "now"):
+    if payment_mode not in ("plan", "now", "register_only"):
         payment_mode = "plan"
 
     # Usar entry_fee específico según el tipo de usuario
@@ -2338,6 +2422,50 @@ def create_stripe_event_checkout_session(request, pk):
         Decimal("0.01"), rounding=ROUND_HALF_UP
     )
 
+    # Wallet payment handling
+    use_wallet = request.POST.get("use_wallet") == "1"
+    wallet_amount_used = Decimal("0.00")
+    wallet_deduction = Decimal("0.00")
+
+    if use_wallet:
+        try:
+            from .models import UserWallet
+
+            wallet, _created = UserWallet.objects.get_or_create(user=user)
+            wallet_amount_str = request.POST.get("wallet_amount", "0")
+            try:
+                wallet_amount_used = Decimal(str(wallet_amount_str))
+            except (ValueError, TypeError, InvalidOperation):
+                wallet_amount_used = Decimal("0.00")
+
+            # Reserve wallet amount (cannot exceed available balance or total)
+            # available_balance = balance - pending_balance
+            if (
+                wallet_amount_used > 0
+                and wallet.available_balance >= wallet_amount_used
+            ):
+                wallet_deduction = min(wallet_amount_used, total)
+                try:
+                    wallet.reserve_funds(
+                        amount=wallet_deduction,
+                        description=f"Reserva para checkout: {event.title}",
+                        reference_id=f"event_checkout_pending:{event.pk}",
+                    )
+                except ValueError as e:
+                    # Wallet balance insufficient or error
+                    return JsonResponse({"success": False, "error": str(e)}, status=400)
+        except Exception as e:
+            # If wallet processing fails, continue without wallet
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(f"Wallet processing error: {e}")
+            use_wallet = False
+            wallet_deduction = Decimal("0.00")
+
+    # Adjust total after wallet deduction
+    total_after_wallet = max(Decimal("0.00"), total - wallet_deduction)
+
     # Debug log to compare totals (helps diagnose mismatches with frontend)
     try:
         import logging
@@ -2396,18 +2524,14 @@ def create_stripe_event_checkout_session(request, pk):
             Decimal("0.01"), rounding=ROUND_HALF_UP
         )
 
-    # Build Stripe line items differently for pay-now vs plan:
-    # - now: one-time payment line items
-    # - plan: recurring monthly subscription line item (card saved + auto charges)
-    line_items = []
     plan_months = _plan_months_until_deadline(getattr(event, "payment_deadline", None))
     plan_monthly_amount = Decimal("0.00")
 
     if payment_mode == "plan":
-        # Plan doesn't apply discount. Monthly amount is approximate = (subtotal + service_fee) / months.
-        plan_monthly_amount = (
-            total_before_discount / Decimal(str(plan_months))
-        ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+        # Plan monthly amount should be calculated from total_after_wallet (after wallet deduction)
+        plan_monthly_amount = (total_after_wallet / Decimal(str(plan_months))).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        )
         if plan_monthly_amount <= 0:
             return JsonResponse(
                 {"success": False, "error": _("There is nothing to charge.")},
@@ -2436,18 +2560,170 @@ def create_stripe_event_checkout_session(request, pk):
                 "quantity": 1,
             }
         ]
+    elif payment_mode == "register_only":
+        # Register now, pay later: DO NOT create a Stripe session.
+        # We create/update a pending StripeEventCheckout + pending Order and redirect to confirmation.
+        from uuid import uuid4
+
+        placeholder_session_id = f"manual_{uuid4().hex}"
+
+        resume_checkout_id = request.POST.get("resume_checkout") or request.GET.get(
+            "resume_checkout"
+        )
+
+        if resume_checkout_id:
+            checkout = get_object_or_404(
+                StripeEventCheckout, pk=resume_checkout_id, user=user, event=event
+            )
+            if checkout.status == "paid":
+                return JsonResponse(
+                    {
+                        "success": False,
+                        "error": _("This registration is already paid."),
+                    },
+                    status=400,
+                )
+            checkout.stripe_session_id = placeholder_session_id
+            checkout.payment_mode = "register_only"
+            checkout.discount_percent = 0
+            checkout.player_ids = [int(p.pk) for p in valid_players]
+            checkout.hotel_cart_snapshot = enriched_cart
+            checkout.breakdown = {
+                "players_total": str(players_total),
+                "hotel_room_base": str(hotel_breakdown["room_base"]),
+                "hotel_services_total": str(
+                    hotel_breakdown.get("services_total", Decimal("0.00"))
+                ),
+                "hotel_iva": str(hotel_breakdown.get("iva", Decimal("0.00"))),
+                "hotel_ish": str(hotel_breakdown.get("ish", Decimal("0.00"))),
+                "hotel_total_taxes": str(
+                    hotel_breakdown.get("total_taxes", Decimal("0.00"))
+                ),
+                "hotel_nights": str(hotel_breakdown.get("nights", "")),
+                "hotel_total": str(hotel_total),
+                "hotel_buy_out_fee": str(hotel_buy_out_fee),
+                "service_fee_percent": str(service_fee_percent),
+                "service_fee_amount": str(service_fee_amount),
+                "subtotal": str(subtotal),
+                "total_before_discount": str(total_before_discount),
+                "discount_percent": 0,
+                "wallet_deduction": str(wallet_deduction),
+                "total": str(total_after_wallet),
+            }
+            checkout.amount_total = total_after_wallet
+            checkout.plan_months = plan_months
+            checkout.plan_monthly_amount = plan_monthly_amount
+            checkout.status = "registered"
+            checkout.save()
+        else:
+            checkout = StripeEventCheckout.objects.create(
+                user=user,
+                event=event,
+                stripe_session_id=placeholder_session_id,
+                payment_mode="register_only",
+                discount_percent=0,
+                player_ids=[int(p.pk) for p in valid_players],
+                hotel_cart_snapshot=enriched_cart,
+                breakdown={
+                    "players_total": str(players_total),
+                    "hotel_room_base": str(hotel_breakdown["room_base"]),
+                    "hotel_services_total": str(
+                        hotel_breakdown.get("services_total", Decimal("0.00"))
+                    ),
+                    "hotel_iva": str(hotel_breakdown.get("iva", Decimal("0.00"))),
+                    "hotel_ish": str(hotel_breakdown.get("ish", Decimal("0.00"))),
+                    "hotel_total_taxes": str(
+                        hotel_breakdown.get("total_taxes", Decimal("0.00"))
+                    ),
+                    "hotel_nights": str(hotel_breakdown.get("nights", "")),
+                    "hotel_total": str(hotel_total),
+                    "hotel_buy_out_fee": str(hotel_buy_out_fee),
+                    "service_fee_percent": str(service_fee_percent),
+                    "service_fee_amount": str(service_fee_amount),
+                    "subtotal": str(subtotal),
+                    "total_before_discount": str(total_before_discount),
+                    "discount_percent": 0,
+                    "wallet_deduction": str(wallet_deduction),
+                    "total": str(total_after_wallet),
+                },
+                amount_total=total_after_wallet,
+                plan_months=plan_months,
+                plan_monthly_amount=plan_monthly_amount,
+                status="registered",
+            )
+
+        # Ensure there's a pending order tied to this checkout
+        order = (
+            Order.objects.filter(user=user, stripe_checkout=checkout)
+            .order_by("-created_at")
+            .first()
+        )
+        if not order:
+            Order.objects.create(
+                user=user,
+                stripe_checkout=checkout,
+                event=event,
+                status="pending_registration",
+                payment_method="stripe",
+                payment_mode="register_only",
+                stripe_session_id="",
+                subtotal=subtotal,
+                total_amount=total_after_wallet,
+                currency=currency,
+                breakdown=checkout.breakdown or {},
+                registered_player_ids=checkout.player_ids or [],
+            )
+        else:
+            order.payment_mode = "register_only"
+            order.stripe_session_id = ""
+            order.subtotal = subtotal
+            order.total_amount = total_after_wallet
+            order.currency = currency
+            order.breakdown = checkout.breakdown or {}
+            order.registered_player_ids = checkout.player_ids or []
+            if order.status != "paid":
+                order.status = "pending_registration"
+            order.save(
+                update_fields=[
+                    "payment_mode",
+                    "stripe_session_id",
+                    "subtotal",
+                    "total_amount",
+                    "currency",
+                    "breakdown",
+                    "registered_player_ids",
+                    "status",
+                    "updated_at",
+                ]
+            )
+
+        return JsonResponse(
+            {
+                "success": True,
+                "redirect_url": reverse(
+                    "accounts:registration_confirmation", kwargs={"pk": checkout.pk}
+                ),
+            }
+        )
     else:
+        # Build Stripe line items (pay now)
+        # When wallet is used, we need to adjust line_items to sum to total_after_wallet
+        line_items = []
+        line_items_total = Decimal("0.00")
+
         if players_total > 0 and players_count > 0:
+            item_amount = scale(entry_fee)
             line_items.append(
                 {
                     "price_data": {
                         "currency": currency,
                         "product_data": {"name": f"Event registration - {event.title}"},
-                        "unit_amount": _money_to_cents(scale(entry_fee)),
+                        "unit_amount": _money_to_cents(item_amount),
                     },
                     "quantity": players_count,
                 }
             )
+            line_items_total += item_amount * players_count
 
         if hotel_total > 0:
             hotel_name = ""
@@ -2455,6 +2731,7 @@ def create_stripe_event_checkout_session(request, pk):
                 hotel_name = event.hotel.hotel_name if event.hotel else ""
             except Exception:
                 hotel_name = ""
+            item_amount = scale(hotel_total)
             line_items.append(
                 {
                     "price_data": {
@@ -2462,25 +2739,29 @@ def create_stripe_event_checkout_session(request, pk):
                         "product_data": {
                             "name": f"Hotel stay{(' - ' + hotel_name) if hotel_name else ''}"
                         },
-                        "unit_amount": _money_to_cents(scale(hotel_total)),
+                        "unit_amount": _money_to_cents(item_amount),
                     },
                     "quantity": 1,
                 }
             )
+            line_items_total += item_amount
 
         if hotel_buy_out_fee > 0:
+            item_amount = scale(hotel_buy_out_fee)
             line_items.append(
                 {
                     "price_data": {
                         "currency": currency,
                         "product_data": {"name": "Hotel buy out fee"},
-                        "unit_amount": _money_to_cents(scale(hotel_buy_out_fee)),
+                        "unit_amount": _money_to_cents(item_amount),
                     },
                     "quantity": 1,
                 }
             )
+            line_items_total += item_amount
 
         if service_fee_amount > 0:
+            item_amount = scale(service_fee_amount)
             line_items.append(
                 {
                     "price_data": {
@@ -2488,17 +2769,122 @@ def create_stripe_event_checkout_session(request, pk):
                         "product_data": {
                             "name": f"Service fee ({service_fee_percent}%)"
                         },
-                        "unit_amount": _money_to_cents(scale(service_fee_amount)),
+                        "unit_amount": _money_to_cents(item_amount),
                     },
                     "quantity": 1,
                 }
             )
+            line_items_total += item_amount
+
+        # Adjust line_items to match total_after_wallet if wallet was used
+        if (
+            use_wallet
+            and wallet_deduction > 0
+            and line_items_total > total_after_wallet
+        ):
+            # Calculate the exact difference
+            difference = line_items_total - total_after_wallet
+
+            if difference > 0 and line_items:
+                # Recalculate line_items_total to be exact
+                # Adjust items from last to first to distribute the difference
+                remaining_diff = difference
+
+                # Start from the last item and work backwards
+                for i in range(len(line_items) - 1, -1, -1):
+                    if remaining_diff <= 0:
+                        break
+
+                    item = line_items[i]
+                    if "price_data" in item and "unit_amount" in item["price_data"]:
+                        current_amount = Decimal(
+                            item["price_data"]["unit_amount"]
+                        ) / Decimal("100")
+                        quantity = item.get("quantity", 1)
+                        item_total = current_amount * quantity
+
+                        # Adjust this item, but don't go below 0.01
+                        adjustment = min(
+                            remaining_diff, item_total - Decimal("0.01") * quantity
+                        )
+                        if adjustment > 0:
+                            new_item_amount = max(
+                                Decimal("0.01"), (item_total - adjustment) / quantity
+                            )
+                            item["price_data"]["unit_amount"] = _money_to_cents(
+                                new_item_amount
+                            )
+                            remaining_diff -= adjustment
+
+                # Final verification: recalculate total
+                recalculated_total = Decimal("0.00")
+                for item in line_items:
+                    if "price_data" in item and "unit_amount" in item["price_data"]:
+                        amount = Decimal(item["price_data"]["unit_amount"]) / Decimal(
+                            "100"
+                        )
+                        quantity = item.get("quantity", 1)
+                        recalculated_total += amount * quantity
+
+                # If there's still a small rounding difference, adjust the last item
+                final_diff = recalculated_total - total_after_wallet
+                if abs(final_diff) > Decimal("0.005") and line_items:
+                    last_item = line_items[-1]
+                    if (
+                        "price_data" in last_item
+                        and "unit_amount" in last_item["price_data"]
+                    ):
+                        current_amount = Decimal(
+                            last_item["price_data"]["unit_amount"]
+                        ) / Decimal("100")
+                        quantity = last_item.get("quantity", 1)
+                        adjusted_amount = max(
+                            Decimal("0.01"), current_amount - (final_diff / quantity)
+                        )
+                        last_item["price_data"]["unit_amount"] = _money_to_cents(
+                            adjusted_amount
+                        )
+
+                # Log the adjustment for debugging
+                import logging
+
+                logger = logging.getLogger(__name__)
+                final_total = sum(
+                    Decimal(item["price_data"]["unit_amount"])
+                    / Decimal("100")
+                    * item.get("quantity", 1)
+                    for item in line_items
+                    if "price_data" in item and "unit_amount" in item["price_data"]
+                )
+                logger.info(
+                    f"Wallet adjustment: original_total={line_items_total}, "
+                    f"wallet_deduction={wallet_deduction}, "
+                    f"target_total={total_after_wallet}, "
+                    f"final_total={final_total}"
+                )
 
         if not line_items:
             return JsonResponse(
                 {"success": False, "error": _("There is nothing to charge.")},
                 status=400,
             )
+
+    # From here on we need Stripe configured (plan / now)
+    if not settings.STRIPE_SECRET_KEY:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": _("Stripe is not configured (STRIPE_SECRET_KEY)."),
+            },
+            status=500,
+        )
+
+    try:
+        import stripe  # type: ignore
+    except Exception:
+        return JsonResponse(
+            {"success": False, "error": _("Stripe SDK is not installed.")}, status=500
+        )
 
     stripe.api_key = settings.STRIPE_SECRET_KEY
     stripe_account = (
@@ -2540,16 +2926,21 @@ def create_stripe_event_checkout_session(request, pk):
         session_params["payment_method_types"] = ["card"]
     session = stripe.checkout.Session.create(**session_params)
 
-    StripeEventCheckout.objects.create(
-        user=user,
-        event=event,
-        stripe_session_id=session.id,
-        currency=currency,
-        payment_mode=payment_mode,
-        discount_percent=discount_percent,
-        player_ids=[int(p.pk) for p in valid_players],
-        hotel_cart_snapshot=enriched_cart,  # Usar el carrito enriquecido con info de extra guests
-        breakdown={
+    # If resuming an existing pending checkout (from Registrations -> Pay),
+    # update it instead of creating a new one so the pending order remains editable.
+    resume_checkout_id = request.POST.get("resume_checkout") or request.GET.get(
+        "resume_checkout"
+    )
+    if resume_checkout_id:
+        checkout = get_object_or_404(
+            StripeEventCheckout, pk=resume_checkout_id, user=user, event=event
+        )
+        checkout.stripe_session_id = session.id
+        checkout.payment_mode = payment_mode
+        checkout.discount_percent = discount_percent
+        checkout.player_ids = [int(p.pk) for p in valid_players]
+        checkout.hotel_cart_snapshot = enriched_cart
+        checkout.breakdown = {
             "players_total": str(players_total),
             "hotel_room_base": str(hotel_breakdown["room_base"]),
             "hotel_services_total": str(
@@ -2568,13 +2959,103 @@ def create_stripe_event_checkout_session(request, pk):
             "subtotal": str(subtotal),
             "total_before_discount": str(total_before_discount),
             "discount_percent": discount_percent,
-            "total": str(total),
-        },
-        amount_total=total,
-        plan_months=plan_months,
-        plan_monthly_amount=plan_monthly_amount,
-        status="created",
-    )
+            "wallet_deduction": str(wallet_deduction),
+            "total": str(total_after_wallet),
+        }
+        checkout.amount_total = total_after_wallet
+        checkout.plan_months = plan_months
+        checkout.plan_monthly_amount = plan_monthly_amount
+        # Keep status as created/registered (do not mark paid here)
+        checkout.status = "created"
+        checkout.save()
+
+        # Ensure there's a pending order tied to this checkout
+        order = (
+            Order.objects.filter(user=user, stripe_checkout=checkout)
+            .order_by("-created_at")
+            .first()
+        )
+        if not order:
+            # Crear orden con status "pending" cuando se redirige a Stripe
+            # Si el usuario no completa el pago, se marcará como "abandoned" más tarde
+            Order.objects.create(
+                user=user,
+                stripe_checkout=checkout,
+                event=event,
+                status="pending",
+                payment_method="stripe",
+                payment_mode=payment_mode,
+                stripe_session_id=session.id,
+                subtotal=subtotal,
+                total_amount=total_after_wallet,
+                currency=currency,
+                breakdown=checkout.breakdown or {},
+                registered_player_ids=checkout.player_ids or [],
+            )
+        else:
+            order.payment_mode = payment_mode
+            order.stripe_session_id = session.id
+            order.subtotal = subtotal
+            order.total_amount = total_after_wallet
+            order.currency = currency
+            order.breakdown = checkout.breakdown or {}
+            order.registered_player_ids = checkout.player_ids or []
+            if order.status != "paid":
+                # Actualizar status según el modo de pago
+                order.status = (
+                    "pending"
+                    if payment_mode != "register_only"
+                    else "pending_registration"
+                )
+            order.save(
+                update_fields=[
+                    "payment_mode",
+                    "stripe_session_id",
+                    "subtotal",
+                    "total_amount",
+                    "currency",
+                    "breakdown",
+                    "registered_player_ids",
+                    "status",
+                    "updated_at",
+                ]
+            )
+    else:
+        StripeEventCheckout.objects.create(
+            user=user,
+            event=event,
+            stripe_session_id=session.id,
+            payment_mode=payment_mode,
+            discount_percent=discount_percent,
+            player_ids=[int(p.pk) for p in valid_players],
+            hotel_cart_snapshot=enriched_cart,  # Usar el carrito enriquecido con info de extra guests
+            breakdown={
+                "players_total": str(players_total),
+                "hotel_room_base": str(hotel_breakdown["room_base"]),
+                "hotel_services_total": str(
+                    hotel_breakdown.get("services_total", Decimal("0.00"))
+                ),
+                "hotel_iva": str(hotel_breakdown.get("iva", Decimal("0.00"))),
+                "hotel_ish": str(hotel_breakdown.get("ish", Decimal("0.00"))),
+                "hotel_total_taxes": str(
+                    hotel_breakdown.get("total_taxes", Decimal("0.00"))
+                ),
+                "hotel_nights": str(hotel_breakdown.get("nights", "")),
+                "hotel_total": str(hotel_total),
+                "hotel_buy_out_fee": str(hotel_buy_out_fee),
+                "service_fee_percent": str(service_fee_percent),
+                "service_fee_amount": str(service_fee_amount),
+                "subtotal": str(subtotal),
+                "total_before_discount": str(total_before_discount),
+                "discount_percent": discount_percent,
+                "wallet_deduction": str(wallet_deduction),
+                "total": str(total_after_wallet),
+            },
+            amount_total=total_after_wallet,
+            plan_months=plan_months,
+            plan_monthly_amount=plan_monthly_amount,
+            status="created",
+        )
 
     return JsonResponse(
         {"success": True, "checkout_url": session.url, "session_id": session.id}
@@ -2585,10 +3066,28 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
     """
     Crea un Order desde un StripeEventCheckout completado.
     Centraliza toda la información de la compra.
+    Si ya existe una Order para este checkout, la actualiza a "paid".
     """
     # Verificar si ya existe una Order para este checkout
-    if Order.objects.filter(stripe_checkout=checkout).exists():
-        return Order.objects.get(stripe_checkout=checkout)
+    existing_order = Order.objects.filter(stripe_checkout=checkout).first()
+    if existing_order:
+        # Si ya existe, actualizarla a "paid" y actualizar campos importantes
+        existing_order.status = "paid"
+        existing_order.paid_at = checkout.paid_at or timezone.now()
+        existing_order.total_amount = checkout.amount_total
+        existing_order.breakdown = checkout.breakdown or {}
+        existing_order.registered_player_ids = checkout.player_ids or []
+        existing_order.save(
+            update_fields=[
+                "status",
+                "paid_at",
+                "total_amount",
+                "breakdown",
+                "registered_player_ids",
+                "updated_at",
+            ]
+        )
+        return existing_order
 
     # Calcular desglose desde breakdown o desde el checkout
     breakdown = checkout.breakdown or {}
@@ -2801,6 +3300,12 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
     if hotel_reservations_info:
         breakdown["hotel_reservations"] = hotel_reservations_info
 
+    # StripeEventCheckout ya no guarda currency (fue removido en migración 0044),
+    # así que usamos la moneda configurada del sistema.
+    from django.conf import settings
+
+    currency = (getattr(settings, "STRIPE_CURRENCY", "usd") or "usd").lower()
+
     # Crear la Order
     order = Order.objects.create(
         user=checkout.user,
@@ -2817,7 +3322,7 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
         discount_amount=discount_amount,
         tax_amount=tax_amount,
         total_amount=checkout.amount_total,
-        currency=checkout.currency,
+        currency=currency,
         breakdown=breakdown,
         registered_player_ids=checkout.player_ids or [],
         plan_months=plan_months,
@@ -3122,12 +3627,24 @@ def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
                 room.stock -= 1
                 room.save(update_fields=["stock"])
 
+        # Crear Order para esta transacción ANTES de marcar como paid
+        # Si falla la creación de la Order, el checkout no se marca como paid
+        try:
+            order = _create_order_from_stripe_checkout(checkout)
+        except Exception as e:
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.error(
+                f"Error creating order from checkout {checkout.pk}: {e}", exc_info=True
+            )
+            # Re-lanzar la excepción para que la transacción se revierta
+            raise
+
+        # Solo marcar como paid si la Order se creó exitosamente
         checkout.status = "paid"
         checkout.paid_at = timezone.now()
         checkout.save(update_fields=["status", "paid_at", "updated_at"])
-
-        # Crear Order para esta transacción
-        order = _create_order_from_stripe_checkout(checkout)
 
         # Actualizar las reservas para asignar la relación con la orden
         if order and reservations_to_update:
@@ -3263,6 +3780,29 @@ def stripe_event_checkout_success(request, pk):
         ]
     )
 
+    # Confirmar y descontar fondos reservados del wallet
+    breakdown = checkout.breakdown or {}
+    wallet_deduction_str = breakdown.get("wallet_deduction", "0")
+    try:
+        wallet_deduction = Decimal(str(wallet_deduction_str))
+        if wallet_deduction > 0:
+            try:
+                from .models import UserWallet
+
+                wallet, _created = UserWallet.objects.get_or_create(user=checkout.user)
+                wallet.confirm_reserved_funds(
+                    amount=wallet_deduction,
+                    description=f"Pago confirmado para: {checkout.event.title}",
+                    reference_id=f"checkout_confirmed:{checkout.pk}",
+                )
+            except Exception as e:
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error confirming wallet funds: {e}")
+    except (ValueError, TypeError, InvalidOperation):
+        pass
+
     _finalize_stripe_event_checkout(checkout)
 
     # Clear live session cart (UX)
@@ -3276,7 +3816,136 @@ def stripe_event_checkout_success(request, pk):
 
 @login_required
 def stripe_event_checkout_cancel(request, pk):
-    messages.info(request, _("Payment cancelled."))
+    """
+    Maneja la cancelación del checkout de Stripe.
+    Si se usó wallet, libera los fondos reservados.
+    """
+    import logging
+
+    from apps.events.models import Event
+
+    from .models import UserWallet
+
+    logger = logging.getLogger(__name__)
+    event = get_object_or_404(Event, pk=pk)
+
+    # Buscar el checkout más reciente del usuario para este evento
+    # Buscar primero en estado "created", luego en cualquier estado reciente (últimos 10 minutos)
+    try:
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        # Primero intentar encontrar checkout en estado "created"
+        checkout = (
+            StripeEventCheckout.objects.filter(
+                user=request.user, event=event, status="created"
+            )
+            .order_by("-created_at")
+            .first()
+        )
+
+        # Si no se encuentra, buscar cualquier checkout reciente (últimas 24 horas)
+        # que no esté pagado ni cancelado. Las sesiones de Stripe expiran después de 24 horas.
+        if not checkout:
+            recent_time = timezone.now() - timedelta(hours=24)
+            checkout = (
+                StripeEventCheckout.objects.filter(
+                    user=request.user,
+                    event=event,
+                    created_at__gte=recent_time,
+                    status__in=["created", "registered"],
+                )
+                .order_by("-created_at")
+                .first()
+            )
+
+        if checkout:
+            logger.info(
+                f"Processing cancel for checkout {checkout.pk}, status: {checkout.status}"
+            )
+
+            # Verificar si se usó wallet (está en breakdown)
+            breakdown = checkout.breakdown or {}
+            wallet_deduction_str = breakdown.get("wallet_deduction", "0")
+            logger.info(
+                f"Checkout {checkout.pk} breakdown: {breakdown}, wallet_deduction: {wallet_deduction_str}"
+            )
+
+            try:
+                wallet_deduction = Decimal(str(wallet_deduction_str))
+
+                if wallet_deduction > 0:
+                    # Liberar fondos reservados del wallet
+                    try:
+                        wallet, _created = UserWallet.objects.get_or_create(
+                            user=request.user
+                        )
+                        logger.info(
+                            f"Releasing ${wallet_deduction} reserved funds from wallet {wallet.pk} for cancelled checkout {checkout.pk}"
+                        )
+                        wallet.release_reserved_funds(
+                            amount=wallet_deduction,
+                            description=f"Reserva liberada por cancelación: {event.title}",
+                            reference_id=f"checkout_cancel:{checkout.pk}",
+                        )
+                        messages.success(
+                            request,
+                            _(
+                                "Payment cancelled. Your wallet reservation has been released. $%(amount)s is now available."
+                            )
+                            % {"amount": wallet_deduction},
+                        )
+                        logger.info(
+                            f"Successfully released ${wallet_deduction} reserved funds from wallet {wallet.pk}"
+                        )
+                    except Exception as e:
+                        logger.error(
+                            f"Error refunding wallet on cancel: {e}", exc_info=True
+                        )
+                        messages.warning(
+                            request,
+                            _(
+                                "Payment cancelled. Please contact support to refund your wallet."
+                            ),
+                        )
+                else:
+                    logger.info(f"No wallet deduction found for checkout {checkout.pk}")
+                    messages.info(request, _("Payment cancelled."))
+            except (ValueError, TypeError, InvalidOperation) as e:
+                logger.error(
+                    f"Error parsing wallet_deduction '{wallet_deduction_str}': {e}"
+                )
+                messages.info(request, _("Payment cancelled."))
+
+            # Marcar el checkout como cancelado
+            checkout.status = "cancelled"
+            checkout.save(update_fields=["status", "updated_at"])
+
+            # Marcar la orden asociada como "abandoned" si existe
+            # Esto aplica tanto para pagos únicos como para planes de pago
+            try:
+                from .models import Order
+
+                order = Order.objects.filter(stripe_checkout=checkout).first()
+                if order and order.status in ["pending", "pending_registration"]:
+                    order.status = "abandoned"
+                    order.save(update_fields=["status", "updated_at"])
+                    logger.info(
+                        f"Order {order.order_number} (payment_mode: {order.payment_mode}) marked as abandoned due to checkout cancellation"
+                    )
+            except Exception as e:
+                logger.error(f"Error marking order as abandoned: {e}", exc_info=True)
+            logger.info(f"Checkout {checkout.pk} marked as cancelled")
+        else:
+            logger.warning(
+                f"No checkout found for user {request.user.pk} and event {event.pk} to cancel"
+            )
+            messages.info(request, _("Payment cancelled."))
+    except Exception as e:
+        logger.error(f"Error processing checkout cancel: {e}", exc_info=True)
+        messages.info(request, _("Payment cancelled."))
+
     return redirect("accounts:panel_event_detail", pk=pk)
 
 
@@ -3339,6 +4008,34 @@ def stripe_webhook(request):
                         "updated_at",
                     ]
                 )
+
+                # Confirmar y descontar fondos reservados del wallet
+                breakdown = checkout.breakdown or {}
+                wallet_deduction_str = breakdown.get("wallet_deduction", "0")
+                try:
+                    wallet_deduction = Decimal(str(wallet_deduction_str))
+                    if wallet_deduction > 0:
+                        try:
+                            from .models import UserWallet
+
+                            wallet, _created = UserWallet.objects.get_or_create(
+                                user=checkout.user
+                            )
+                            wallet.confirm_reserved_funds(
+                                amount=wallet_deduction,
+                                description=f"Pago confirmado (webhook): {checkout.event.title}",
+                                reference_id=f"checkout_confirmed_webhook:{checkout.pk}",
+                            )
+                        except Exception as e:
+                            import logging
+
+                            logger = logging.getLogger(__name__)
+                            logger.error(
+                                f"Error confirming wallet funds in webhook: {e}"
+                            )
+                except (ValueError, TypeError, InvalidOperation):
+                    pass
+
                 _finalize_stripe_event_checkout(checkout)
             except StripeEventCheckout.DoesNotExist:
                 pass
@@ -3346,9 +4043,175 @@ def stripe_webhook(request):
     if event_type == "checkout.session.expired":
         session_id = obj.get("id")
         if session_id:
-            StripeEventCheckout.objects.filter(
-                stripe_session_id=session_id, status="created"
-            ).update(status="expired")
+            try:
+                checkout = StripeEventCheckout.objects.get(
+                    stripe_session_id=session_id, status="created"
+                )
+
+                # Verificar si se usó wallet y liberar fondos reservados
+                breakdown = checkout.breakdown or {}
+                wallet_deduction_str = breakdown.get("wallet_deduction", "0")
+
+                try:
+                    wallet_deduction = Decimal(str(wallet_deduction_str))
+
+                    if wallet_deduction > 0:
+                        try:
+                            from .models import UserWallet
+
+                            wallet, _created = UserWallet.objects.get_or_create(
+                                user=checkout.user
+                            )
+                            wallet.release_reserved_funds(
+                                amount=wallet_deduction,
+                                description=f"Reserva liberada por expiración: {checkout.event.title}",
+                                reference_id=f"checkout_expired:{checkout.pk}",
+                            )
+                            import logging
+
+                            logger = logging.getLogger(__name__)
+                            logger.info(
+                                f"Wallet reservation released for expired checkout {checkout.pk}: ${wallet_deduction}"
+                            )
+                        except Exception as e:
+                            import logging
+
+                            logger = logging.getLogger(__name__)
+                            logger.error(
+                                f"Error releasing wallet reservation on expired checkout: {e}"
+                            )
+                except (ValueError, TypeError, InvalidOperation):
+                    pass
+
+                # Marcar como expirado
+                checkout.status = "expired"
+                checkout.save(update_fields=["status", "updated_at"])
+
+                # Marcar la orden asociada como "abandoned" si existe
+                # Esto aplica tanto para pagos únicos como para planes de pago
+                try:
+                    from .models import Order
+
+                    order = Order.objects.filter(stripe_checkout=checkout).first()
+                    if order and order.status in ["pending", "pending_registration"]:
+                        order.status = "abandoned"
+                        order.save(update_fields=["status", "updated_at"])
+                        import logging
+
+                        logger = logging.getLogger(__name__)
+                        logger.info(
+                            f"Order {order.order_number} (payment_mode: {order.payment_mode}) marked as abandoned due to checkout expiration"
+                        )
+                except Exception as e:
+                    import logging
+
+                    logger = logging.getLogger(__name__)
+                    logger.error(
+                        f"Error marking order as abandoned: {e}", exc_info=True
+                    )
+            except StripeEventCheckout.DoesNotExist:
+                pass
+
+    # Manejar cancelación de suscripciones (planes de pago)
+    if event_type == "customer.subscription.deleted":
+        subscription_id = obj.get("id")
+        if subscription_id:
+            try:
+                checkout = StripeEventCheckout.objects.filter(
+                    stripe_subscription_id=str(subscription_id),
+                    payment_mode="plan",
+                    status__in=["created", "registered"],
+                ).first()
+                if checkout:
+                    # Marcar checkout como cancelado
+                    checkout.status = "cancelled"
+                    checkout.save(update_fields=["status", "updated_at"])
+
+                    # Marcar la orden asociada como "abandoned" si existe
+                    try:
+                        from .models import Order
+
+                        order = Order.objects.filter(stripe_checkout=checkout).first()
+                        if order and order.status in [
+                            "pending",
+                            "pending_registration",
+                        ]:
+                            order.status = "abandoned"
+                            order.save(update_fields=["status", "updated_at"])
+                            import logging
+
+                            logger = logging.getLogger(__name__)
+                            logger.info(
+                                f"Order {order.order_number} (payment_mode: plan) marked as abandoned due to subscription cancellation"
+                            )
+                    except Exception as e:
+                        import logging
+
+                        logger = logging.getLogger(__name__)
+                        logger.error(
+                            f"Error marking order as abandoned on subscription cancel: {e}",
+                            exc_info=True,
+                        )
+            except Exception as e:
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.error(
+                    f"Error processing subscription.deleted webhook: {e}", exc_info=True
+                )
+
+    # Manejar fallos de pago en suscripciones (planes de pago)
+    if event_type == "invoice.payment_failed":
+        subscription_id = obj.get("subscription")
+        if subscription_id:
+            try:
+                checkout = StripeEventCheckout.objects.filter(
+                    stripe_subscription_id=str(subscription_id),
+                    payment_mode="plan",
+                    status__in=["created", "registered"],
+                ).first()
+                if checkout:
+                    # Si el checkout aún no está pagado y falla el primer pago, marcar como abandonado
+                    # Si ya está pagado, no hacer nada (puede ser un pago recurrente que falló)
+                    if checkout.status != "paid":
+                        checkout.status = "failed"
+                        checkout.save(update_fields=["status", "updated_at"])
+
+                        # Marcar la orden asociada como "abandoned" si existe
+                        try:
+                            from .models import Order
+
+                            order = Order.objects.filter(
+                                stripe_checkout=checkout
+                            ).first()
+                            if order and order.status in [
+                                "pending",
+                                "pending_registration",
+                            ]:
+                                order.status = "abandoned"
+                                order.save(update_fields=["status", "updated_at"])
+                                import logging
+
+                                logger = logging.getLogger(__name__)
+                                logger.info(
+                                    f"Order {order.order_number} (payment_mode: plan) marked as abandoned due to payment failure"
+                                )
+                        except Exception as e:
+                            import logging
+
+                            logger = logging.getLogger(__name__)
+                            logger.error(
+                                f"Error marking order as abandoned on payment failure: {e}",
+                                exc_info=True,
+                            )
+            except Exception as e:
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.error(
+                    f"Error processing invoice.payment_failed webhook: {e}",
+                    exc_info=True,
+                )
 
     return HttpResponse(status=200)
 
@@ -3421,6 +4284,143 @@ def wallet_add_funds(request):
     """Wallet top-ups are disabled."""
     messages.error(request, _("Add Funds is currently disabled."))
     return redirect("panel")
+
+
+@login_required
+def wallet_transactions(request):
+    """Vista para mostrar el historial completo de transacciones del wallet"""
+    from django.core.paginator import Paginator
+
+    from .models import UserWallet, WalletTransaction
+
+    # Obtener o crear wallet del usuario
+    try:
+        wallet, _created = UserWallet.objects.get_or_create(user=request.user)
+    except Exception:
+        wallet = None
+
+    # Obtener transacciones
+    transactions = []
+    transaction_type = request.GET.get("type", "")
+    if wallet:
+        transactions = (
+            WalletTransaction.objects.filter(wallet=wallet)
+            .select_related("wallet")
+            .order_by("-created_at")
+        )
+
+        # Filtros opcionales
+        if transaction_type:
+            transactions = transactions.filter(transaction_type=transaction_type)
+
+        # Paginación
+        paginator = Paginator(transactions, 20)  # 20 transacciones por página
+        page_number = request.GET.get("page", 1)
+        page_obj = paginator.get_page(page_number)
+    else:
+        page_obj = None
+
+    # Estadísticas
+    stats = {}
+    if wallet:
+        stats["total_deposits"] = WalletTransaction.objects.filter(
+            wallet=wallet, transaction_type="deposit"
+        ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+        stats["total_payments"] = WalletTransaction.objects.filter(
+            wallet=wallet, transaction_type="payment"
+        ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+        stats["total_refunds"] = WalletTransaction.objects.filter(
+            wallet=wallet, transaction_type="refund"
+        ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+        stats["total_withdrawals"] = WalletTransaction.objects.filter(
+            wallet=wallet, transaction_type="withdrawal"
+        ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+    context = {
+        "wallet": wallet,
+        "transactions": page_obj,
+        "stats": stats,
+        "current_filter": transaction_type,
+        "transaction_types": WalletTransaction.TRANSACTION_TYPE_CHOICES,
+    }
+
+    return render(request, "accounts/wallet_transactions.html", context)
+
+
+@method_decorator(xframe_options_exempt, name="dispatch")
+class WalletTransactionsEmbedView(LoginRequiredMixin, TemplateView):
+    """Vista embed para mostrar el historial de transacciones del wallet en un tab del panel"""
+
+    template_name = "accounts/panel_tabs/embed_base.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["inner_template"] = "accounts/panel_tabs/wallet_transactions.html"
+
+        # Obtener datos del wallet
+        from django.core.paginator import Paginator
+
+        from .models import UserWallet, WalletTransaction
+
+        try:
+            wallet, _created = UserWallet.objects.get_or_create(user=self.request.user)
+        except Exception:
+            wallet = None
+
+        # Obtener transacciones
+        transactions = []
+        transaction_type = self.request.GET.get("type", "")
+        if wallet:
+            transactions = (
+                WalletTransaction.objects.filter(wallet=wallet)
+                .select_related("wallet")
+                .order_by("-created_at")
+            )
+
+            # Filtros opcionales
+            if transaction_type:
+                transactions = transactions.filter(transaction_type=transaction_type)
+
+            # Paginación
+            paginator = Paginator(transactions, 20)
+            page_number = self.request.GET.get("page", 1)
+            page_obj = paginator.get_page(page_number)
+        else:
+            page_obj = None
+
+        # Estadísticas
+        stats = {}
+        if wallet:
+            stats["total_deposits"] = WalletTransaction.objects.filter(
+                wallet=wallet, transaction_type="deposit"
+            ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+            stats["total_payments"] = WalletTransaction.objects.filter(
+                wallet=wallet, transaction_type="payment"
+            ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+            stats["total_refunds"] = WalletTransaction.objects.filter(
+                wallet=wallet, transaction_type="refund"
+            ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+            stats["total_withdrawals"] = WalletTransaction.objects.filter(
+                wallet=wallet, transaction_type="withdrawal"
+            ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+        context.update(
+            {
+                "wallet": wallet,
+                "transactions": page_obj,
+                "stats": stats,
+                "current_filter": transaction_type,
+                "transaction_types": WalletTransaction.TRANSACTION_TYPE_CHOICES,
+            }
+        )
+
+        return context
 
 
 @method_decorator(xframe_options_exempt, name="dispatch")
@@ -3584,3 +4584,735 @@ def serve_age_verification_document(request, player_id):
 def forbidden_media(request, *args, **kwargs):
     """Bloquea acceso directo a carpetas sensibles de media."""
     raise PermissionDenied(_("Direct access to this folder is forbidden."))
+
+
+def _build_registration_cards_for_user(user):
+    """
+    Shared helper for `registration_list` and `registration_list_panel`.
+    Returns (registration_data, events_list).
+    """
+    # Get checkouts for the current user
+    checkouts = list(
+        StripeEventCheckout.objects.filter(user=user)
+        .select_related("event")
+        .order_by("-created_at")
+    )
+
+    # Map orders by checkout id
+    orders_by_checkout_id = {}
+    checkout_ids = [c.pk for c in checkouts]
+    if checkout_ids:
+        for order in (
+            Order.objects.filter(user=user, stripe_checkout_id__in=checkout_ids)
+            .select_related("event", "stripe_checkout")
+            .order_by("-created_at")
+        ):
+            # Keep latest by created_at
+            orders_by_checkout_id[order.stripe_checkout_id] = order
+
+    # Fetch all involved players in one query
+    all_player_ids = set()
+    for c in checkouts:
+        for pid in c.player_ids or []:
+            try:
+                all_player_ids.add(int(pid))
+            except Exception:
+                continue
+
+    players_by_id = {}
+    if all_player_ids:
+        players_qs = (
+            Player.objects.filter(pk__in=all_player_ids)
+            .select_related("user", "user__profile", "team", "division")
+            .all()
+        )
+        players_by_id = {p.pk: p for p in players_qs}
+
+    # Build card data
+    registration_data = []
+    for checkout in checkouts:
+        order = orders_by_checkout_id.get(checkout.pk)
+
+        registered_players = []
+        for pid in checkout.player_ids or []:
+            try:
+                pid_int = int(pid)
+            except Exception:
+                continue
+            player = players_by_id.get(pid_int)
+            if player:
+                registered_players.append(player)
+
+        registration_data.append(
+            {
+                "checkout": checkout,
+                "order": order,
+                "event": checkout.event,
+                "status": checkout.status,
+                "payment_mode": checkout.payment_mode,
+                "created_at": checkout.created_at,
+                "paid_at": checkout.paid_at,
+                "amount_total": checkout.amount_total,
+                "breakdown": checkout.breakdown,
+                "has_hotel": bool(checkout.hotel_cart_snapshot),
+                "hotel_cart_snapshot": checkout.hotel_cart_snapshot,
+                "players": registered_players,
+                "player_count": len(registered_players),
+                "is_completed": (order.status == "paid") if order else False,
+                "is_pending": (
+                    (order.status == "pending_registration") if order else False
+                ),
+            }
+        )
+
+    # Distinct events preserving order
+    events_list = []
+    seen = set()
+    for c in checkouts:
+        if c.event_id and c.event_id not in seen:
+            events_list.append(c.event)
+            seen.add(c.event_id)
+
+    return registration_data, events_list
+
+
+@login_required
+def registration_list(request):
+    """List current user's registrations (standalone page)."""
+    from django.shortcuts import render
+
+    registrations, _events = _build_registration_cards_for_user(request.user)
+    return render(
+        request,
+        "accounts/registration_list.html",
+        {"registrations": registrations},
+    )
+
+
+@login_required
+@xframe_options_exempt
+def registration_list_panel(request):
+    """List current user's registrations (panel tab iframe)."""
+    from django.shortcuts import render
+
+    registrations, events = _build_registration_cards_for_user(request.user)
+    return render(
+        request,
+        "accounts/panel_tabs/embed_base.html",
+        {
+            "inner_template": "accounts/panel_tabs/registrations.html",
+            "registrations": registrations,
+            "events": events,
+            "request": request,
+        },
+    )
+
+
+@login_required
+def resume_checkout_data(request, checkout_id):
+    """Return saved pending registration selections so the event checkout UI can be pre-filled."""
+    checkout = get_object_or_404(StripeEventCheckout, pk=checkout_id, user=request.user)
+    if checkout.status == "paid":
+        return JsonResponse(
+            {"success": False, "error": _("This registration is already paid.")},
+            status=400,
+        )
+
+    return JsonResponse(
+        {
+            "success": True,
+            "checkout_id": checkout.pk,
+            "event_id": checkout.event_id,
+            "payment_mode": checkout.payment_mode,
+            "player_ids": checkout.player_ids or [],
+            "hotel_cart_snapshot": checkout.hotel_cart_snapshot or {},
+        }
+    )
+
+
+@login_required
+def registration_confirmation(request, pk):
+    """Show registration confirmation page"""
+    from django.shortcuts import render
+
+    checkout = get_object_or_404(StripeEventCheckout, pk=pk, user=request.user)
+    order = Order.objects.filter(stripe_checkout=checkout).first()
+
+    # Build rich display context (players, hotel summary, formatted JSON)
+    from decimal import Decimal
+
+    try:
+        from .models import Player
+    except Exception:
+        Player = None  # type: ignore
+
+    # Players
+    registered_players = []
+    if Player and (checkout.player_ids or []):
+        player_ids = []
+        for pid in checkout.player_ids or []:
+            try:
+                player_ids.append(int(pid))
+            except Exception:
+                continue
+
+        players_qs = (
+            Player.objects.filter(pk__in=player_ids)
+            .select_related("user", "team", "division")
+            .order_by("user__first_name", "user__last_name", "user__username")
+        )
+        for p in players_qs:
+            registered_players.append(
+                {
+                    "id": p.pk,
+                    "name": p.user.get_full_name() or p.user.username,
+                    "email": getattr(p.user, "email", "") or "",
+                    "team": getattr(getattr(p, "team", None), "team_name", "") or "",
+                    "division": getattr(getattr(p, "division", None), "name", "") or "",
+                    "jersey_number": getattr(p, "jersey_number", None),
+                    "position": getattr(p, "position", "") or "",
+                    "secondary_position": getattr(p, "secondary_position", "") or "",
+                    "batting_hand": getattr(p, "batting_hand", "") or "",
+                    "throwing_hand": getattr(p, "throwing_hand", "") or "",
+                    "height": getattr(p, "height", "") or "",
+                    "weight": getattr(p, "weight", None),
+                    "grade": getattr(p, "grade", "") or "",
+                    "emergency_contact_name": getattr(p, "emergency_contact_name", "")
+                    or "",
+                    "emergency_contact_phone": getattr(p, "emergency_contact_phone", "")
+                    or "",
+                }
+            )
+
+    # Hotel snapshot summary
+    hotel_snapshot = checkout.hotel_cart_snapshot or {}
+    hotel_rooms = []
+    if isinstance(hotel_snapshot, dict):
+        for _, item in (hotel_snapshot or {}).items():
+            if not isinstance(item, dict):
+                continue
+            if item.get("type") != "room":
+                continue
+            hotel_rooms.append(
+                {
+                    "room_id": item.get("room_id") or item.get("roomId") or "",
+                    "room_name": item.get("room_name") or item.get("roomLabel") or "",
+                    "check_in": item.get("check_in") or item.get("check_in_date") or "",
+                    "check_out": item.get("check_out")
+                    or item.get("check_out_date")
+                    or "",
+                    "capacity": item.get("capacity") or "",
+                    "guests": item.get("guests") or "",
+                    "guests_included": item.get("guests_included") or "",
+                    "extra_guests": item.get("extra_guests") or "",
+                    "additional_guest_price": item.get("additional_guest_price") or "",
+                    "total_price": item.get("total_price") or item.get("price") or "",
+                    "services": item.get("services") or [],
+                    "guest_assignments": item.get("guest_assignments") or {},
+                    "additional_guest_details": item.get("additional_guest_details")
+                    or [],
+                    "taxes": item.get("taxes") or [],
+                    "rules": item.get("rules") or [],
+                }
+            )
+
+    breakdown = checkout.breakdown or {}
+    has_hotel = bool(hotel_rooms) or (
+        isinstance(breakdown, dict)
+        and Decimal(str(breakdown.get("hotel_total", "0") or "0")) > Decimal("0.00")
+    )
+
+    context = {
+        "checkout": checkout,
+        "order": order,
+        "event": checkout.event,
+        "registered_players": registered_players,
+        "has_hotel": has_hotel,
+        "hotel_rooms": hotel_rooms,
+    }
+
+    return render(request, "accounts/registration_confirmation_panel.html", context)
+
+
+@login_required
+def pending_payments(request):
+    """Show pending payments for the user"""
+    from django.shortcuts import render
+
+    pending_orders = (
+        Order.objects.filter(user=request.user, status="pending_registration")
+        .select_related("stripe_checkout", "event")
+        .order_by("-created_at")
+    )
+
+    context = {
+        "pending_orders": pending_orders,
+    }
+
+    return render(request, "accounts/pending_payments.html", context)
+
+
+@login_required
+@require_POST
+def complete_hotel_payment(request, order_id):
+    """
+    Complete payment for a pending registration (event + hotel) - returns JSON.
+
+    Note: kept name for backwards-compat with existing URL/template JS.
+    """
+    import logging
+
+    import stripe
+
+    logger = logging.getLogger(__name__)
+
+    # Check Stripe configuration
+    if not hasattr(settings, "STRIPE_SECRET_KEY") or not settings.STRIPE_SECRET_KEY:
+        return JsonResponse(
+            {"success": False, "error": _("Payment system is not configured.")}
+        )
+
+    try:
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+    except Exception:
+        return JsonResponse(
+            {"success": False, "error": _("Payment system is not available.")}
+        )
+
+    try:
+        order = get_object_or_404(
+            Order, pk=order_id, user=request.user, status="pending_registration"
+        )
+        checkout = order.stripe_checkout
+        if not checkout:
+            return JsonResponse(
+                {"success": False, "error": _("Order is missing checkout information.")}
+            )
+
+        # Rebuild the EVENT checkout (with the stored selections) and redirect to Stripe.
+        event = checkout.event
+        payment_mode = "plan" if checkout.payment_mode == "plan" else "now"
+
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        stripe_account = (
+            event.stripe_payment_profile
+            if getattr(event, "stripe_payment_profile", None)
+            else None
+        )
+
+        currency = (getattr(settings, "STRIPE_CURRENCY", "usd") or "usd").lower()
+
+        # Totals come from checkout.breakdown (already includes discounts/fees as captured at creation time).
+        breakdown = checkout.breakdown or {}
+        players_count = int(len(checkout.player_ids or []))
+
+        players_total = _decimal(breakdown.get("players_total"), default="0.00")
+        hotel_total = _decimal(breakdown.get("hotel_total"), default="0.00")
+        hotel_buy_out_fee = _decimal(breakdown.get("hotel_buy_out_fee"), default="0.00")
+        service_fee_percent = int(breakdown.get("service_fee_percent") or 0)
+        service_fee_amount = _decimal(
+            breakdown.get("service_fee_amount"), default="0.00"
+        )
+        total_before_discount = _decimal(
+            breakdown.get("total_before_discount"), default="0.00"
+        )
+        discount_percent = int(
+            breakdown.get("discount_percent") or checkout.discount_percent or 0
+        )
+
+        line_items = []
+        if payment_mode == "plan":
+            plan_months = int(checkout.plan_months or 1)
+            plan_monthly_amount = _decimal(checkout.plan_monthly_amount, default="0.00")
+            if plan_monthly_amount <= 0:
+                # fallback to compute from subtotal-ish
+                plan_monthly_amount = (
+                    total_before_discount / Decimal(str(max(1, plan_months)))
+                ).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+            if plan_monthly_amount <= 0:
+                return JsonResponse(
+                    {"success": False, "error": _("There is nothing to charge.")}
+                )
+
+            plan_description = f"First charge today, then {max(0, plan_months - 1)} monthly charge(s). Ends automatically."
+            if service_fee_amount > 0:
+                plan_description += f" Includes service fee ({service_fee_percent}%)."
+
+            line_items = [
+                {
+                    "price_data": {
+                        "currency": currency,
+                        "product_data": {
+                            "name": f"Payment plan ({plan_months} month{'s' if plan_months != 1 else ''}) - {event.title}",
+                            "description": plan_description,
+                        },
+                        "unit_amount": _money_to_cents(plan_monthly_amount),
+                        "recurring": {"interval": "month"},
+                    },
+                    "quantity": 1,
+                }
+            ]
+        else:
+            # Event registration per player (use stored players_total to preserve totals)
+            if players_total > 0 and players_count > 0:
+                unit = (players_total / Decimal(str(players_count))).quantize(
+                    Decimal("0.01"), rounding=ROUND_HALF_UP
+                )
+                line_items.append(
+                    {
+                        "price_data": {
+                            "currency": currency,
+                            "product_data": {
+                                "name": f"Event registration - {event.title}"
+                            },
+                            "unit_amount": _money_to_cents(unit),
+                        },
+                        "quantity": players_count,
+                    }
+                )
+
+            if hotel_total > 0:
+                hotel_name = ""
+                try:
+                    hotel_name = event.hotel.hotel_name if event.hotel else ""
+                except Exception:
+                    hotel_name = ""
+                line_items.append(
+                    {
+                        "price_data": {
+                            "currency": currency,
+                            "product_data": {
+                                "name": f"Hotel stay{(' - ' + hotel_name) if hotel_name else ''}"
+                            },
+                            "unit_amount": _money_to_cents(hotel_total),
+                        },
+                        "quantity": 1,
+                    }
+                )
+
+            if hotel_buy_out_fee > 0:
+                line_items.append(
+                    {
+                        "price_data": {
+                            "currency": currency,
+                            "product_data": {"name": "Hotel buy out fee"},
+                            "unit_amount": _money_to_cents(hotel_buy_out_fee),
+                        },
+                        "quantity": 1,
+                    }
+                )
+
+            if service_fee_amount > 0:
+                line_items.append(
+                    {
+                        "price_data": {
+                            "currency": currency,
+                            "product_data": {
+                                "name": f"Service fee ({service_fee_percent}%)"
+                            },
+                            "unit_amount": _money_to_cents(service_fee_amount),
+                        },
+                        "quantity": 1,
+                    }
+                )
+
+            if not line_items:
+                return JsonResponse(
+                    {"success": False, "error": _("There is nothing to charge.")}
+                )
+
+        success_url = (
+            request.build_absolute_uri(
+                reverse(
+                    "accounts:stripe_event_checkout_success", kwargs={"pk": event.pk}
+                )
+            )
+            + "?session_id={CHECKOUT_SESSION_ID}"
+        )
+        cancel_url = request.build_absolute_uri(
+            reverse("accounts:stripe_event_checkout_cancel", kwargs={"pk": event.pk})
+        )
+
+        session_params = {
+            "mode": "subscription" if payment_mode == "plan" else "payment",
+            "line_items": line_items,
+            "success_url": success_url,
+            "cancel_url": cancel_url,
+            "customer_email": request.user.email or None,
+            "metadata": {
+                "event_id": str(event.pk),
+                "user_id": str(request.user.pk),
+                "payment_mode": payment_mode,
+                "discount_percent": str(discount_percent),
+                "service_fee_percent": str(service_fee_percent),
+                "service_fee_amount": str(service_fee_amount),
+                "player_ids": ",".join([str(x) for x in (checkout.player_ids or [])]),
+                "existing_checkout_id": str(checkout.pk),
+                "order_id": str(order.pk),
+            },
+            "stripe_account": stripe_account,
+        }
+        if payment_mode == "plan":
+            session_params["payment_method_types"] = ["card"]
+
+        session = stripe.checkout.Session.create(**session_params)
+
+        # IMPORTANT: success/webhook look up StripeEventCheckout by stripe_session_id,
+        # so we must update this checkout to the new session id.
+        checkout.stripe_session_id = session.id
+        checkout.payment_mode = payment_mode
+        checkout.discount_percent = discount_percent
+        checkout.save(
+            update_fields=[
+                "stripe_session_id",
+                "payment_mode",
+                "discount_percent",
+                "updated_at",
+            ]
+        )
+
+        return JsonResponse({"success": True, "checkout_url": session.url})
+
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error creating payment session: {str(e)}")
+        return JsonResponse(
+            {
+                "success": False,
+                "error": _("Error creating payment session. Please try again."),
+            }
+        )
+    except Exception as e:
+        logger.error(f"Error completing hotel payment: {str(e)}")
+        return JsonResponse(
+            {
+                "success": False,
+                "error": _("Error processing payment. Please try again."),
+            }
+        )
+
+
+@login_required
+def hotel_payment_success(request, order_id):
+    """Handle successful hotel payment and show confirmation page."""
+    from django.shortcuts import render
+
+    order = get_object_or_404(Order, pk=order_id, user=request.user)
+    checkout = order.stripe_checkout
+    if not checkout:
+        messages.error(request, _("Order is missing checkout information."))
+        return redirect("accounts:pending_payments")
+
+    # Mark order + checkout as paid (best-effort; Stripe webhook is still the source of truth)
+    try:
+        order.mark_as_paid()
+    except Exception:
+        # Fallback if mark_as_paid is not safe for some edge-case
+        order.status = "paid"
+        order.save(update_fields=["status", "updated_at"])
+
+    try:
+        checkout.status = "paid"
+        checkout.paid_at = timezone.now()
+        checkout.save(update_fields=["status", "paid_at", "updated_at"])
+    except Exception:
+        pass
+
+    messages.success(
+        request,
+        _("Hotel payment completed successfully! Your reservation is confirmed."),
+    )
+    return render(
+        request,
+        "accounts/hotel_payment_success.html",
+        {"order": order, "checkout": checkout, "event": checkout.event},
+    )
+
+
+@login_required
+def start_pending_payment(request, checkout_id):
+    """Redirect user to the EVENT Stripe checkout rebuilt from the saved pending registration."""
+    # Use the same logic as `complete_hotel_payment` but as a redirect (not JSON).
+    order = (
+        Order.objects.filter(user=request.user, stripe_checkout_id=checkout_id)
+        .order_by("-created_at")
+        .first()
+    )
+    if not order or order.status != "pending_registration":
+        messages.error(request, _("This order is not pending payment."))
+        return redirect("accounts:pending_payments")
+
+    # Call the JSON builder and redirect to the returned Stripe URL
+    resp = complete_hotel_payment(request, order.pk)
+    try:
+        data = json.loads(resp.content.decode("utf-8"))
+    except Exception:
+        messages.error(request, _("Error creating payment session. Please try again."))
+        return redirect("accounts:pending_payments")
+
+    if not data.get("success") or not data.get("checkout_url"):
+        messages.error(
+            request, data.get("error") or _("Error creating payment session.")
+        )
+        return redirect("accounts:pending_payments")
+
+    return redirect(data["checkout_url"])
+
+
+# ===== NOTIFICATION API VIEWS =====
+@login_required
+def get_notifications_api(request):
+    """API para obtener notificaciones del usuario"""
+    try:
+        # Obtener parámetros opcionales
+        limit = int(request.GET.get("limit", 50))
+        unread_only = request.GET.get("unread_only", "false").lower() == "true"
+
+        # Construir query
+        notifications_query = Notification.objects.filter(user=request.user)
+
+        if unread_only:
+            notifications_query = notifications_query.filter(read=False)
+
+        # Obtener notificaciones
+        notifications = notifications_query.select_related("order", "event").order_by(
+            "-created_at"
+        )[:limit]
+
+        # Formatear respuesta
+        notifications_data = []
+        for notification in notifications:
+            # Calcular tiempo relativo
+            time_ago = _get_time_ago(notification.created_at)
+
+            notifications_data.append(
+                {
+                    "id": notification.id,
+                    "type": notification.type,
+                    "title": notification.title,
+                    "message": notification.message,
+                    "read": notification.read,
+                    "time": time_ago,
+                    "action_url": notification.action_url or "",
+                    "order_id": notification.order_id,
+                    "event_id": notification.event_id,
+                }
+            )
+
+        # Contar no leídas
+        unread_count = Notification.objects.filter(
+            user=request.user, read=False
+        ).count()
+
+        return JsonResponse(
+            {
+                "success": True,
+                "notifications": notifications_data,
+                "unread_count": unread_count,
+            }
+        )
+    except Exception as e:
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error getting notifications: {str(e)}")
+        return JsonResponse(
+            {"success": False, "error": "Error al obtener notificaciones"}, status=500
+        )
+
+
+@login_required
+def get_notification_count_api(request):
+    """API para obtener solo el conteo de notificaciones no leídas"""
+    try:
+        unread_count = Notification.objects.filter(
+            user=request.user, read=False
+        ).count()
+        return JsonResponse({"success": True, "count": unread_count})
+    except Exception as e:
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error getting notification count: {str(e)}")
+        return JsonResponse({"success": False, "count": 0})
+
+
+@login_required
+@require_POST
+def mark_notification_read_api(request, notification_id):
+    """API para marcar una notificación como leída"""
+    try:
+        notification = get_object_or_404(
+            Notification, id=notification_id, user=request.user
+        )
+        notification.mark_as_read()
+
+        # Obtener nuevo conteo
+        unread_count = Notification.objects.filter(
+            user=request.user, read=False
+        ).count()
+
+        return JsonResponse({"success": True, "unread_count": unread_count})
+    except Exception as e:
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error marking notification as read: {str(e)}")
+        return JsonResponse(
+            {"success": False, "error": "Error al marcar notificación como leída"},
+            status=500,
+        )
+
+
+@login_required
+@require_POST
+def mark_all_notifications_read_api(request):
+    """API para marcar todas las notificaciones como leídas"""
+    try:
+        from django.utils import timezone
+
+        updated = Notification.objects.filter(user=request.user, read=False).update(
+            read=True, read_at=timezone.now()
+        )
+
+        return JsonResponse(
+            {"success": True, "updated_count": updated, "unread_count": 0}
+        )
+    except Exception as e:
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error marking all notifications as read: {str(e)}")
+        return JsonResponse(
+            {"success": False, "error": "Error al marcar todas como leídas"},
+            status=500,
+        )
+
+
+def _get_time_ago(created_at):
+    """Helper para calcular tiempo relativo"""
+    now = timezone.now()
+    diff = now - created_at
+
+    if diff.days > 0:
+        if diff.days == 1:
+            return "Hace 1 día"
+        elif diff.days < 7:
+            return f"Hace {diff.days} días"
+        elif diff.days < 30:
+            weeks = diff.days // 7
+            return f"Hace {weeks} semana{'s' if weeks > 1 else ''}"
+        elif diff.days < 365:
+            months = diff.days // 30
+            return f"Hace {months} mes{'es' if months > 1 else ''}"
+        else:
+            years = diff.days // 365
+            return f"Hace {years} año{'s' if years > 1 else ''}"
+    elif diff.seconds >= 3600:
+        hours = diff.seconds // 3600
+        return f"Hace {hours} hora{'s' if hours > 1 else ''}"
+    elif diff.seconds >= 60:
+        minutes = diff.seconds // 60
+        return f"Hace {minutes} minuto{'s' if minutes > 1 else ''}"
+    else:
+        return "Hace unos segundos"

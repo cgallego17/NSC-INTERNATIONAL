@@ -101,6 +101,44 @@ body {
     font-weight: var(--font-weight-normal);
     line-height: var(--line-height-normal);
     color: var(--text-primary);
+    /* Prevenir que Bootstrap afecte el layout cuando aparece un toast */
+    overflow-x: hidden !important;
+}
+
+/* Prevenir que Bootstrap agregue padding-right al body cuando aparece un toast */
+body.modal-open,
+body:has(.modern-toast-container .modern-toast.show) {
+    padding-right: 0 !important;
+    overflow: visible !important;
+}
+
+/* Asegurar que el main-content no se vea afectado por cambios en el body o cuando aparece un toast */
+.main-content {
+    /* Mantener el padding-right constante - NUNCA cambiar */
+    padding-right: 0 !important;
+    /* Mantener el overflow constante - NUNCA cambiar cuando aparece un toast */
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    /* Asegurar que no cree un nuevo contexto de apilamiento que interfiera con toasts */
+    /* El z-index bajo asegura que esté por debajo del toast */
+}
+
+/* Prevenir que main-content sea modificado cuando hay toasts visibles */
+body:has(.modern-toast-container .modern-toast.show) .main-content {
+    padding-right: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    /* Asegurar que el layout no cambie */
+    margin-left: inherit !important;
+    width: inherit !important;
+}
+
+/* Prevenir que main-content sea modificado cuando hay toasts visibles */
+body:has(.modern-toast-container .modern-toast.show) .main-content {
+    padding-right: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    /* Asegurar que el layout no cambie */
 }
 
 /* Headings */
@@ -313,6 +351,15 @@ body {
     color: var(--text-primary);
     line-height: 1.6;
     transition: all 0.3s ease;
+    /* Prevenir que Bootstrap afecte el layout cuando aparece un toast */
+    overflow-x: hidden !important;
+}
+
+/* Prevenir que Bootstrap agregue padding-right al body cuando aparece un toast */
+body.modal-open,
+body:has(.modern-toast-container .modern-toast.show) {
+    padding-right: 0 !important;
+    overflow: visible !important;
 }
 
 
@@ -323,12 +370,26 @@ body {
 
 .main-content {
     margin-left: 300px;
-    padding-top: 80px;
+    padding-top: 70px;
+    padding-right: 0 !important; /* Prevenir que Bootstrap lo modifique */
     background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
     min-height: 100vh;
     position: relative;
     width: calc(100% - 300px);
     transition: margin-left 0.25s ease, width 0.25s ease;
+    /* Mantener z-index bajo para no interferir con toasts */
+    z-index: 0;
+    /* Mantener el overflow controlado - NO cambiar cuando aparece un toast */
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    /* Ajustar el contenido a la ventana */
+    box-sizing: border-box;
+    /* Asegurar que el contenido esté bien posicionado */
+    display: flex;
+    flex-direction: column;
+    /* NO usar isolation, transform, o contain que puedan crear nuevos contextos de apilamiento */
+    /* Prevenir que Bootstrap o toasts modifiquen el layout */
+    will-change: margin-left, width; /* Solo animar estas propiedades */
 }
 
 .main-content.sidebar-mini {
@@ -1281,7 +1342,7 @@ body {
     top: 0;
     left: 300px;
     right: 0;
-    z-index: 999;
+    z-index: 1000; /* Por encima del main-content pero debajo de toasts */
     transition: left 0.25s ease, width 0.25s ease;
     box-shadow: var(--shadow);
     width: calc(100% - 300px);
@@ -1649,12 +1710,35 @@ body {
     background: var(--card-bg);
     border-left: 1px solid var(--border-color);
     box-shadow: var(--shadow-lg);
-    z-index: 1001;
+    z-index: 10000;
     transition: right 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .notification-panel.show {
-    right: 0;
+    right: 0 !important;
+}
+
+/* Overlay para cerrar el panel al hacer clic fuera */
+.notification-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 9999;
+}
+
+.notification-overlay.show,
+body.notification-panel-open .notification-overlay {
+    opacity: 1;
+    pointer-events: all;
 }
 
 .notification-header {
@@ -1735,6 +1819,67 @@ body {
 .notification-time {
     color: var(--text-secondary);
     font-size: 0.8rem;
+}
+
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1.2rem;
+}
+
+.notification-icon.success {
+    background: rgba(40, 167, 69, 0.1);
+    color: #28a745;
+}
+
+.notification-icon.info {
+    background: rgba(13, 44, 84, 0.1);
+    color: var(--mlb-blue);
+}
+
+.notification-icon.warning {
+    background: rgba(255, 193, 7, 0.1);
+    color: #ffc107;
+}
+
+.notification-icon.error {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+}
+
+.notification-item.unread {
+    background-color: rgba(13, 44, 84, 0.03);
+    border-left: 3px solid var(--mlb-blue);
+}
+
+.notification-item.read {
+    opacity: 0.7;
+}
+
+.notification-mark-read {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 4px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+
+.notification-item:hover .notification-mark-read {
+    opacity: 1;
+}
+
+.notification-mark-read:hover {
+    background-color: var(--sidebar-hover);
+    color: var(--primary-color);
 }
 
 /* Floating Sidebar Toggle */
@@ -2554,9 +2699,15 @@ span.badge {
 
 
 .page-content {
-    padding: 24px 24px 24px 40px;
-    min-height: calc(100vh - 100px);
+    padding: 20px 24px 24px 40px;
+    min-height: calc(100vh - 150px);
     background: transparent;
+    position: relative;
+    z-index: 0; /* Bajo para no interferir con toasts */
+    /* Ajustar el contenido correctamente */
+    box-sizing: border-box;
+    /* Asegurar que el contenido esté bien ajustado */
+    flex: 1;
 }
 
 /* Asegurar separación del sidebar */
@@ -2566,6 +2717,13 @@ span.badge {
 
 .main-content.sidebar-mini .page-content {
     padding-left: 40px !important;
+}
+
+/* Asegurar que admin-container dentro de page-content no cause problemas */
+.main-content .page-content .admin-container {
+    position: relative;
+    z-index: 0; /* Bajo para no interferir con toasts */
+    /* NO usar transform que pueda crear nuevo contexto de apilamiento */
 }
 
 @media (max-width: 768px) {
@@ -3320,21 +3478,45 @@ span.badge {
 .action-btn .badge,
 #notificationBadge.badge {
     position: absolute;
-    top: 4px;
-    right: 4px;
-    background: linear-gradient(135deg, #4a5568, #2d3748);
+    top: -2px;
+    right: -2px;
+    background: linear-gradient(135deg, #ef4444, #dc2626);
     color: white;
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 0.7rem;
-    display: flex;
+    width: 18px;
+    height: 18px;
+    font-size: 0.65rem;
+    display: none; /* Hidden by default, shown via JS when count > 0 */
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    min-width: 20px;
-    box-shadow: 0 2px 4px rgba(255, 71, 87, 0.3);
-    animation: pulse 2s infinite;
+    min-width: 18px;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4), 0 0 0 2px rgba(255, 255, 255, 0.1);
+    z-index: 10;
+    line-height: 1;
+    padding: 0;
+    border: 2px solid var(--topbar-bg, #ffffff);
+}
+
+/* Show badge when it has content */
+#notificationBadge.badge:not(:empty) {
+    display: flex;
+}
+
+/* Pulse animation for unread notifications */
+#notificationBadge.badge.has-notifications {
+    animation: notificationPulse 2s infinite;
+}
+
+@keyframes notificationPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4), 0 0 0 2px rgba(255, 255, 255, 0.1);
+    }
+    50% {
+        transform: scale(1.1);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.6), 0 0 0 3px rgba(255, 255, 255, 0.2);
+    }
 }
 
 @keyframes pulse {
@@ -3542,12 +3724,35 @@ span.badge {
     background: var(--card-bg);
     border-left: 1px solid var(--border-color);
     box-shadow: var(--shadow-lg);
-    z-index: 1001;
+    z-index: 10000;
     transition: right 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .notification-panel.show {
-    right: 0;
+    right: 0 !important;
+}
+
+/* Overlay para cerrar el panel al hacer clic fuera */
+.notification-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 9999;
+}
+
+.notification-overlay.show,
+body.notification-panel-open .notification-overlay {
+    opacity: 1;
+    pointer-events: all;
 }
 
 .notification-header {
@@ -3981,12 +4186,13 @@ span.badge {
     /* Badge de notificaciones más visible */
     .action-btn .badge,
     #notificationBadge.badge {
-        width: 18px;
-        height: 18px;
-        font-size: 0.65rem;
-        top: 2px;
-        right: 2px;
+        width: 16px;
+        height: 16px;
+        font-size: 0.6rem;
+        top: -1px;
+        right: -1px;
         font-weight: 700;
+        border-width: 1.5px;
     }
 
     /* Mejorar contraste y visibilidad del texto */
@@ -4203,15 +4409,21 @@ span.badge {
    ============================================ */
 
 .modern-toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-    display: flex;
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    z-index: 999999 !important; /* Más alto que cualquier otro elemento */
+    display: flex !important;
     flex-direction: column;
     gap: 12px;
     max-width: 400px;
     pointer-events: none;
+    /* Asegurar que esté completamente fuera del flujo del documento */
+    margin: 0 !important;
+    padding: 0 !important;
+    /* NO usar contain, isolation, transform, o backface-visibility que puedan crear problemas de contexto */
+    /* No afectar el scroll del body */
+    overscroll-behavior: none;
 }
 
 .modern-toast {
@@ -4222,21 +4434,35 @@ span.badge {
         0 2px 8px rgba(0, 0, 0, 0.08);
     overflow: hidden;
     opacity: 0;
-    transform: translateX(400px) scale(0.95);
-    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    /* Usar transform3d para aceleración por hardware y evitar reflows */
+    transform: translate3d(400px, 0, 0) scale(0.95);
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+                opacity 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     pointer-events: all;
     min-width: 320px;
     max-width: 400px;
+    /* NO usar contain, backface-visibility que puedan ocultar el contenido */
+    will-change: transform, opacity;
+    /* Asegurar que no cause scroll */
+    overscroll-behavior: none;
+    /* No afectar el layout de otros elementos */
+    margin: 0 !important;
+    /* Asegurar visibilidad */
+    visibility: visible !important;
+    /* Asegurar que esté por encima de todo */
+    z-index: 999999 !important;
 }
 
 .modern-toast.show {
     opacity: 1;
-    transform: translateX(0) scale(1);
+    /* Usar transform3d para evitar reflows */
+    transform: translate3d(0, 0, 0) scale(1);
 }
 
 .modern-toast.hide {
     opacity: 0;
-    transform: translateX(400px) scale(0.95);
+    /* Usar transform3d para evitar reflows */
+    transform: translate3d(400px, 0, 0) scale(0.95);
 }
 
 .toast-content {

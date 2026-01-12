@@ -176,3 +176,6 @@ LOGGING = {
         },
     },
 }
+
+# Allow iframes from same origin for panel functionality
+X_FRAME_OPTIONS = "SAMEORIGIN"

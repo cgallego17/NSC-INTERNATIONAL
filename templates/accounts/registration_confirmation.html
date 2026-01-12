@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Registration Confirmation" %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-lg">
+                <div class="card-header bg-success text-white text-center py-4">
+                    <h2 class="mb-0">
+                        <i class="fas fa-check-circle me-2"></i>
+                        {% trans "Registration Confirmed!" %}
+                    </h2>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <i class="fas fa-user-check text-success" style="font-size: 4rem;"></i>
+                        </div>
+                        <h4 class="text-success mb-3">{% trans "You are now registered for the event" %}</h4>
+                        <p class="lead">{{ event.event_name }}</p>
+                    </div>
+
+                    {% if registered_players %}
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-users me-2"></i>
+                            {% trans "Registered Players" %}
+                        </h5>
+                        <div class="row">
+                            {% for player in registered_players %}
+                            <div class="col-md-6 mb-2">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-user-circle text-primary me-2"></i>
+                                    <div>
+                                        <strong>{{ player.name }}</strong>
+                                        {% if player.team %}<br><small class="text-muted">{{ player.team }}</small>{% endif %}
+                                        {% if player.division %}<br><small class="text-muted">{{ player.division }}</small>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if has_hotel %}
+                    <div class="alert alert-warning">
+                        <h5 class="alert-heading">
+                            <i class="fas fa-hotel me-2"></i>
+                            {% trans "Hotel Payment Pending" %}
+                        </h5>
+                        <p class="mb-2">{% trans "Your hotel reservation is ready but payment is still pending." %}</p>
+                        <p class="mb-0">{% trans "You can complete the hotel payment anytime before the event." %}</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-3 d-md-flex justify-content-md-center">
+                        <a href="{% url 'accounts:pending_payments' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-credit-card me-2"></i>
+                            {% trans "Complete Hotel Payment" %}
+                        </a>
+                        <a href="{% url 'accounts:panel_event_detail' event.pk %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            {% trans "Back to Event" %}
+                        </a>
+                    </div>
+
+                    <div class="mt-4 text-center">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle me-1"></i>
+                            {% trans "Order ID:" %} {{ order.order_number }} |
+                            {% trans "Checkout ID:" %} {{ checkout.pk }}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

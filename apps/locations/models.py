@@ -1379,8 +1379,25 @@ class HotelReservation(models.Model):
         Prioriza el campo JSON si está disponible, si no, parsea desde additional_guest_names.
         """
         # Priorizar datos del campo JSON si está disponible
-        if self.additional_guest_details_json and isinstance(self.additional_guest_details_json, list):
-            return self.additional_guest_details_json
+        if self.additional_guest_details_json and isinstance(
+            self.additional_guest_details_json, list
+        ):
+            normalized = []
+            for g in self.additional_guest_details_json:
+                if not isinstance(g, dict):
+                    continue
+                name = str(g.get("name") or "").strip()
+                if not name:
+                    continue
+                normalized.append(
+                    {
+                        "name": name,
+                        "type": str(g.get("type") or "adult").strip() or "adult",
+                        "birth_date": str(g.get("birth_date") or "").strip(),
+                        "email": str(g.get("email") or "").strip(),
+                    }
+                )
+            return normalized
 
         # Fallback: parsear desde additional_guest_names (código legacy)
         import re
@@ -1391,9 +1408,32 @@ class HotelReservation(models.Model):
             if match:
                 name = match.group(1).strip()
                 meta = match.group(2).strip()
-                details.append({"name": name, "meta": meta})
+                birth_date = ""
+                email = ""
+                if meta:
+                    parts = [p.strip() for p in str(meta).split(",") if p.strip()]
+                    for p in parts:
+                        if re.match(r"^\d{4}-\d{2}-\d{2}$", p):
+                            birth_date = p
+                        elif "@" in p and "." in p:
+                            email = p
+                details.append(
+                    {
+                        "name": name,
+                        "type": "adult",
+                        "birth_date": birth_date,
+                        "email": email,
+                    }
+                )
             else:
-                details.append({"name": raw_name, "meta": None})
+                details.append(
+                    {
+                        "name": raw_name,
+                        "type": "adult",
+                        "birth_date": "",
+                        "email": "",
+                    }
+                )
         return details
 
     @property

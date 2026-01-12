@@ -3,26 +3,34 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 
 from .models import (
-    UserProfile,
-    Team,
+    DashboardBanner,
+    DashboardContent,
+    HomeBanner,
+    MarqueeMessage,
+    Order,
     Player,
     PlayerParent,
-    DashboardContent,
-    MarqueeMessage,
-    HomeBanner,
     SiteSettings,
     Sponsor,
-    DashboardBanner,
+    StripeEventCheckout,
+    Team,
+    UserProfile,
     UserWallet,
     WalletTransaction,
-    StripeEventCheckout,
-    Order,
 )
 
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ["user", "user_type", "last_name2", "phone", "city", "is_active", "created_at"]
+    list_display = [
+        "user",
+        "user_type",
+        "last_name2",
+        "phone",
+        "city",
+        "is_active",
+        "created_at",
+    ]
     list_filter = ["user_type", "is_active", "created_at"]
     search_fields = [
         "user__username",
@@ -34,24 +42,35 @@ class UserProfileAdmin(admin.ModelAdmin):
     ]
     readonly_fields = ["created_at", "updated_at"]
     fieldsets = (
-        ("Usuario", {
-            "fields": ("user", "user_type", "is_active")
-        }),
-        ("Información Personal", {
-            "fields": ("last_name2", "phone", "phone_secondary", "birth_date", "profile_picture")
-        }),
-        ("Ubicación", {
-            "fields": ("address", "address_line_2", "country", "state", "city", "postal_code")
-        }),
-        ("Redes Sociales", {
-            "fields": ("bio", "website", "social_media")
-        }),
-        ("Configuración", {
-            "fields": ("preferred_language",)
-        }),
-        ("Fechas", {
-            "fields": ("created_at", "updated_at")
-        }),
+        ("Usuario", {"fields": ("user", "user_type", "is_active")}),
+        (
+            "Información Personal",
+            {
+                "fields": (
+                    "last_name2",
+                    "phone",
+                    "phone_secondary",
+                    "birth_date",
+                    "profile_picture",
+                )
+            },
+        ),
+        (
+            "Ubicación",
+            {
+                "fields": (
+                    "address",
+                    "address_line_2",
+                    "country",
+                    "state",
+                    "city",
+                    "postal_code",
+                )
+            },
+        ),
+        ("Redes Sociales", {"fields": ("bio", "website", "social_media")}),
+        ("Configuración", {"fields": ("preferred_language",)}),
+        ("Fechas", {"fields": ("created_at", "updated_at")}),
     )
 
 
@@ -137,8 +156,8 @@ class DashboardContentAdmin(admin.ModelAdmin):
             "Contenido de Bienvenida",
             {
                 "fields": ("title", "user_type", "content", "is_active", "order"),
-                "description": "Configure el contenido HTML que se mostrará en la zona de bienvenida del dashboard según el tipo de usuario. Puede usar HTML completo para personalizar el diseño. Seleccione 'Todos los Usuarios' para que se muestre a todos, o un tipo específico (Manager, Padre/Acudiente, Jugador)."
-            }
+                "description": "Configure el contenido HTML que se mostrará en la zona de bienvenida del dashboard según el tipo de usuario. Puede usar HTML completo para personalizar el diseño. Seleccione 'Todos los Usuarios' para que se muestre a todos, o un tipo específico (Manager, Padre/Acudiente, Jugador).",
+            },
         ),
         (
             "Auditoría",
@@ -147,10 +166,8 @@ class DashboardContentAdmin(admin.ModelAdmin):
     )
 
     class Media:
-        css = {
-            'all': ('admin/css/widgets.css',)
-        }
-        js = ('admin/js/core.js',)
+        css = {"all": ("admin/css/widgets.css",)}
+        js = ("admin/js/core.js",)
 
 
 @admin.register(MarqueeMessage)
@@ -164,8 +181,8 @@ class MarqueeMessageAdmin(admin.ModelAdmin):
             "Mensaje del Marquee",
             {
                 "fields": ("message", "is_active", "order"),
-                "description": "Configure los mensajes que se mostrarán en el marquee de la barra de quick actions. Solo los mensajes activos se mostrarán. Puede crear múltiples mensajes y se rotarán automáticamente."
-            }
+                "description": "Configure los mensajes que se mostrarán en el marquee de la barra de quick actions. Solo los mensajes activos se mostrarán. Puede crear múltiples mensajes y se rotarán automáticamente.",
+            },
         ),
         (
             "Auditoría",
@@ -187,7 +204,10 @@ class HomeBannerAdmin(admin.ModelAdmin):
         ),
         (
             "Imagen",
-            {"fields": ("image", "mobile_image"), "description": 'Usar si el tipo es "Imagen". La imagen móvil es opcional y se usará en dispositivos móviles.'},
+            {
+                "fields": ("image", "mobile_image"),
+                "description": 'Usar si el tipo es "Imagen". La imagen móvil es opcional y se usará en dispositivos móviles.',
+            },
         ),
         (
             "Gradiente",
@@ -297,7 +317,7 @@ class UserWalletAdmin(admin.ModelAdmin):
         "user__last_name",
         "user__email",
     ]
-    readonly_fields = ["created_at", "updated_at"]
+    readonly_fields = ["balance", "created_at", "updated_at"]
     fieldsets = (
         (
             "Información",
@@ -308,6 +328,13 @@ class UserWalletAdmin(admin.ModelAdmin):
             {"fields": ("created_at", "updated_at"), "classes": ("collapse",)},
         ),
     )
+
+    def has_add_permission(self, request):
+        # Wallets are created automatically when needed (e.g. staff top-ups)
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(WalletTransaction)
@@ -327,8 +354,22 @@ class WalletTransactionAdmin(admin.ModelAdmin):
         "description",
         "reference_id",
     ]
-    readonly_fields = ["created_at"]
+    readonly_fields = [
+        "wallet",
+        "transaction_type",
+        "amount",
+        "description",
+        "balance_after",
+        "reference_id",
+        "created_at",
+    ]
     date_hierarchy = "created_at"
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(StripeEventCheckout)
@@ -341,11 +382,10 @@ class StripeEventCheckoutAdmin(admin.ModelAdmin):
         "status",
         "payment_mode",
         "amount_total",
-        "currency",
         "created_at",
         "paid_at",
     ]
-    list_filter = ["status", "payment_mode", "currency", "created_at", "paid_at"]
+    list_filter = ["status", "payment_mode", "created_at", "paid_at"]
     search_fields = [
         "stripe_session_id",
         "stripe_subscription_id",
@@ -372,7 +412,6 @@ class StripeEventCheckoutAdmin(admin.ModelAdmin):
                     "event",
                     "status",
                     "payment_mode",
-                    "currency",
                 )
             },
         ),
@@ -430,11 +469,10 @@ class OrderAdmin(admin.ModelAdmin):
         "status",
         "payment_mode",
         "total_amount",
-        "currency",
         "created_at",
         "paid_at",
     ]
-    list_filter = ["status", "payment_mode", "payment_method", "currency", "created_at"]
+    list_filter = ["status", "payment_mode", "payment_method", "created_at"]
     search_fields = [
         "order_number",
         "user__username",
@@ -495,7 +533,6 @@ class OrderAdmin(admin.ModelAdmin):
                     "discount_amount",
                     "tax_amount",
                     "total_amount",
-                    "currency",
                 )
             },
         ),
@@ -548,7 +585,7 @@ class OrderAdmin(admin.ModelAdmin):
             room_info = f"Habitación {res.get('room_number', 'N/A')}"
             dates = f"{res.get('check_in', 'N/A')} - {res.get('check_out', 'N/A')}"
             guests = f"{res.get('number_of_guests', 0)} huéspedes"
-            additional = res.get('additional_guest_names', [])
+            additional = res.get("additional_guest_names", [])
             if additional:
                 guests += f" ({len(additional)} adicionales)"
             html += f"<li><strong>{room_info}</strong><br>{dates}<br>{guests}</li>"
@@ -572,6 +609,4 @@ class OrderAdmin(admin.ModelAdmin):
     registered_players_list.short_description = "Jugadores Registrados"
 
     class Media:
-        css = {
-            'all': ('admin/css/widgets.css',)
-        }
+        css = {"all": ("admin/css/widgets.css",)}

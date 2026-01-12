@@ -477,6 +477,12 @@ class Event(models.Model):
         help_text="URL del banner del evento desde el sistema multimedia",
         verbose_name="Banner del Evento",
     )
+    banner_mobile = models.URLField(
+        blank=True,
+        null=True,
+        help_text="URL del banner móvil del evento desde el sistema multimedia",
+        verbose_name="Banner Móvil del Evento",
+    )
     logo = models.URLField(
         blank=True,
         null=True,

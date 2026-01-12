@@ -11,7 +11,13 @@ from django.test import Client, RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from apps.accounts.models import Player, PlayerParent, StripeEventCheckout, UserProfile
+from apps.accounts.models import (
+    Order,
+    Player,
+    PlayerParent,
+    StripeEventCheckout,
+    UserProfile,
+)
 from apps.events.models import Event, EventAttendance, EventCategory
 from apps.locations.models import (
     City,
@@ -147,6 +153,10 @@ class StripeCheckoutTestCase(TestCase):
                 self.assertEqual(checkout.payment_mode, "plan")
                 self.assertEqual(checkout.status, "created")
                 self.assertIn(self.player.pk, checkout.player_ids)
+
+                order = Order.objects.get(stripe_checkout=checkout)
+                self.assertEqual(order.status, "pending")
+                self.assertIsNone(order.paid_at)
         finally:
             # Limpiar el mock
             if "stripe" in sys.modules:
@@ -207,6 +217,10 @@ class StripeCheckoutTestCase(TestCase):
                 self.assertEqual(
                     checkout.discount_percent, 5
                 )  # Descuento del 5% con hotel
+
+                order = Order.objects.get(stripe_checkout=checkout)
+                self.assertEqual(order.status, "pending")
+                self.assertIsNone(order.paid_at)
         finally:
             # Limpiar el mock
             if "stripe" in sys.modules:
@@ -275,6 +289,10 @@ class StripeCheckoutTestCase(TestCase):
                 checkout.refresh_from_db()
                 self.assertEqual(checkout.status, "paid")
                 self.assertIsNotNone(checkout.paid_at)
+
+                order = Order.objects.get(stripe_checkout=checkout)
+                self.assertEqual(order.status, "paid")
+                self.assertIsNotNone(order.paid_at)
         finally:
             # Limpiar el mock
             if "stripe" in sys.modules:

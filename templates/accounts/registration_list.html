@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "My Registrations" %} - NCS International{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-list-alt me-2"></i>
+                    {% trans "My Registrations" %}
+                </h2>
+            </div>
+
+            {% if registrations %}
+                <div class="row">
+                    {% for reg in registrations %}
+                    <div class="col-lg-6 col-xl-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0">{{ reg.event.title }}</h6>
+                                {% if reg.is_completed %}
+                                    <span class="badge bg-success">{% trans "Completed" %}</span>
+                                {% elif reg.is_pending %}
+                                    <span class="badge bg-warning">{% trans "Pending Payment" %}</span>
+                                {% else %}
+                                    <span class="badge bg-info">{{ reg.status|title }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <small class="text-muted">{% trans "Payment Mode" %}:</small><br>
+                                    <strong>
+                                        {% if reg.payment_mode == "register_only" %}
+                                            {% trans "Register Now, Pay Later" %}
+                                        {% elif reg.payment_mode == "plan" %}
+                                            {% trans "Payment Plan" %}
+                                        {% elif reg.payment_mode == "now" %}
+                                            {% trans "Pay in Full" %}
+                                        {% else %}
+                                            {{ reg.payment_mode|title }}
+                                        {% endif %}
+                                    </strong>
+                                </div>
+
+                                {% if reg.has_hotel %}
+                                <div class="mb-3">
+                                    <small class="text-muted">{% trans "Hotel" %}:</small><br>
+                                    <strong>
+                                        {% if reg.is_pending %}
+                                            <i class="fas fa-exclamation-triangle text-warning"></i>
+                                            {% trans "Payment Pending" %}
+                                        {% else %}
+                                            <i class="fas fa-check-circle text-success"></i>
+                                            {% trans "Confirmed" %}
+                                        {% endif %}
+                                    </strong>
+                                </div>
+                                {% endif %}
+
+                                <div class="mb-3">
+                                    <small class="text-muted">{% trans "Registered" %}:</small><br>
+                                    <strong>{{ reg.created_at|date:"M d, Y" }}</strong>
+                                </div>
+
+                                {% if reg.order %}
+                                <div class="mb-3">
+                                    <small class="text-muted">{% trans "Order ID" %}:</small><br>
+                                    <strong>{{ reg.order.order_number }}</strong>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'accounts:panel_event_detail' reg.event.pk %}" class="btn btn-sm btn-outline-primary flex-fill">
+                                        <i class="fas fa-eye me-1"></i>
+                                        {% trans "View Event" %}
+                                    </a>
+                                    {% if reg.is_pending %}
+                                    <a href="{% url 'accounts:pending_payments' %}" class="btn btn-sm btn-warning flex-fill">
+                                        <i class="fas fa-credit-card me-1"></i>
+                                        {% trans "Complete Payment" %}
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-clipboard-list text-muted" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3 text-muted">{% trans "No registrations found" %}</h4>
+                    <p class="text-muted">{% trans "You haven't registered for any events yet." %}</p>
+                    <a href="{% url 'accounts:panel_event_detail' %}" class="btn btn-primary">
+                        <i class="fas fa-calendar-alt me-2"></i>
+                        {% trans "Browse Events" %}
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

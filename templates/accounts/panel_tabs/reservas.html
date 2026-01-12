@@ -274,7 +274,7 @@
                 <div class="reservation-card h-100">
 
                     <!-- Card Header with Status -->
-                    <div class="reservation-card-header" style="background: {% if reservation.status == 'confirmed' %}linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%){% elif reservation.status == 'pending' %}linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%){% elif reservation.status == 'cancelled' %}linear-gradient(135deg, #6c757d 0%, #5a6268 100%){% elif reservation.status == 'checked_in' %}linear-gradient(135deg, var(--mlb-light-blue) 0%, var(--mlb-blue) 100%){% elif reservation.status == 'checked_out' %}linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%){% else %}linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%){% endif %};">
+                    <div class="reservation-card-header" style="background: {% if reservation.status == 'cancelled' %}linear-gradient(135deg, #6c757d 0%, #5a6268 100%){% elif reservation.status == 'confirmed' %}linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%){% elif reservation.status == 'pending' %}linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%){% elif reservation.status == 'checked_in' %}linear-gradient(135deg, var(--mlb-light-blue) 0%, var(--mlb-blue) 100%){% elif reservation.status == 'checked_out' %}linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%){% else %}linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%){% endif %};">
                         <p class="title">
                             <span>{% trans "Reservation" %} #{{ reservation.id }}</span>
                             <span class="reservation-pill">{{ reservation.get_status_display }}</span>

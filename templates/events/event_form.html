@@ -2332,6 +2332,41 @@
                                 </div>
 
                                 <div class="col-md-6">
+                                    <label for="{{ form.banner_mobile.id_for_label }}" class="form-label fw-semibold">
+                                        <i class="fas fa-mobile-alt me-1 text-muted"></i>
+                                        {{ form.banner_mobile.label }}
+                                        {% if form.banner_mobile.field.required %}<span class="text-danger">*</span>{% endif %}
+                                    </label>
+                                    <div class="input-group">
+                                        {{ form.banner_mobile }}
+                                        <button type="button" class="btn btn-outline-primary" data-media-type="image" data-target-field="id_banner_mobile" data-modal-title="Seleccionar Banner Móvil" data-modal-subtitle="Elige un banner móvil de tu biblioteca multimedia">
+                                            <i class="fas fa-folder-open me-1"></i>Elegir de Media
+                                        </button>
+                                    </div>
+                                    {% if form.banner_mobile.errors %}
+                                        <div class="text-danger small mt-1">{{ form.banner_mobile.errors }}</div>
+                                    {% endif %}
+                                    <small class="text-muted d-block mt-1">
+                                        <i class="fas fa-info-circle me-1"></i>Seleccione el banner móvil del evento desde la zona de multimedia
+                                    </small>
+                                    <!-- Vista previa del banner móvil -->
+                                    <div id="banner_mobile_preview" class="mt-2" style="display: none;">
+                                        <small class="text-muted d-block mb-2 fw-semibold">
+                                            <i class="fas fa-mobile-alt me-1"></i>Vista previa:
+                                        </small>
+                                        <img id="banner_mobile_preview_img" src="" alt="Vista previa del banner móvil" class="img-thumbnail" style="max-width: 200px; max-height: 100px; object-fit: cover; border: 2px solid #dee2e6; border-radius: 0.5rem;">
+                                    </div>
+                                    {% if form.instance.banner_mobile %}
+                                        <div id="banner_mobile_existing_preview" class="mt-2">
+                                            <small class="text-muted d-block mb-2 fw-semibold">
+                                                <i class="fas fa-mobile-alt me-1"></i>Banner móvil actual:
+                                            </small>
+                                            <img src="{{ form.instance.banner_mobile }}" alt="Banner móvil del evento" class="img-thumbnail" style="max-width: 200px; max-height: 100px; object-fit: cover; border: 2px solid #dee2e6; border-radius: 0.5rem;">
+                                        </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="col-md-6">
                                     <label for="{{ form.logo.id_for_label }}" class="form-label fw-semibold">
                                         <i class="fas fa-image me-1 text-muted"></i>
                                         {{ form.logo.label }}
@@ -6575,6 +6610,29 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
+        const bannerMobileField = document.getElementById('id_banner_mobile');
+        if (bannerMobileField) {
+            bannerMobileField.addEventListener('input', function() {
+                const url = this.value.trim();
+                const bannerMobilePreview = document.getElementById('banner_mobile_preview');
+                const bannerMobilePreviewImg = document.getElementById('banner_mobile_preview_img');
+                const bannerMobileExistingPreview = document.getElementById('banner_mobile_existing_preview');
+                if (url && bannerMobilePreview && bannerMobilePreviewImg) {
+                    bannerMobilePreviewImg.src = url;
+                    bannerMobilePreviewImg.alt = 'Vista previa del banner móvil';
+                    bannerMobilePreview.style.display = 'block';
+                    if (bannerMobileExistingPreview) {
+                        bannerMobileExistingPreview.style.display = 'none';
+                    }
+                } else if (!url && bannerMobilePreview) {
+                    bannerMobilePreview.style.display = 'none';
+                    if (bannerMobileExistingPreview) {
+                        bannerMobileExistingPreview.style.display = 'block';
+                    }
+                }
+            });
+        }
+
         if (logoField) {
             logoField.addEventListener('input', function() {
                 const url = this.value.trim();
@@ -6643,6 +6701,23 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Ocultar vista previa existente si hay una nueva
                         if (bannerExistingPreview) {
                             bannerExistingPreview.style.display = 'none';
+                        }
+                    }
+                }
+            } else if (fieldId === 'id_banner_mobile') {
+                // Vista previa de banner móvil (usar URL de la imagen)
+                const bannerMobilePreview = document.getElementById('banner_mobile_preview');
+                const bannerMobilePreviewImg = document.getElementById('banner_mobile_preview_img');
+                const bannerMobileExistingPreview = document.getElementById('banner_mobile_existing_preview');
+                if (bannerMobilePreview && bannerMobilePreviewImg) {
+                    const previewUrl = media.url || '';
+                    if (previewUrl) {
+                        bannerMobilePreviewImg.src = previewUrl;
+                        bannerMobilePreviewImg.alt = media.title || 'Vista previa del banner móvil';
+                        bannerMobilePreview.style.display = 'block';
+                        // Ocultar vista previa existente si hay una nueva
+                        if (bannerMobileExistingPreview) {
+                            bannerMobileExistingPreview.style.display = 'none';
                         }
                     }
                 }

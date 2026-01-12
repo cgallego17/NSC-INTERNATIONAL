@@ -2,13 +2,11 @@
 URLs de accounts - Combinación de públicas y privadas
 """
 
-from django.contrib.auth import views as auth_views
 from django.urls import path
 
 from apps.core.views import custom_logout_view
 
 from . import (
-    views,
     views_admin,
     views_banners,
     views_dashboard_banners,
@@ -39,7 +37,11 @@ urlpatterns = [
         name="logout",
     ),
     # Panel y perfil (movido a /panel/ en nsc_admin/urls.py)
-    path("user-dashboard/", views_private.UserDashboardView.as_view(), name="user_dashboard"),
+    path(
+        "user-dashboard/",
+        views_private.UserDashboardView.as_view(),
+        name="user_dashboard",
+    ),
     path("profile/", views_private.profile_view, name="profile"),
     path(
         "profile/edit/", views_private.ProfileUpdateView.as_view(), name="profile_edit"
@@ -138,11 +140,62 @@ urlpatterns = [
         views_private.PaymentConfirmationView.as_view(),
         name="payment_confirmation",
     ),
+    # Register Now, Pay Later
+    path(
+        "registration/confirmation/<int:pk>/",
+        views_private.registration_confirmation,
+        name="registration_confirmation",
+    ),
+    path(
+        "pending-payments/",
+        views_private.pending_payments,
+        name="pending_payments",
+    ),
+    path(
+        "start-payment/<int:checkout_id>/",
+        views_private.start_pending_payment,
+        name="start_pending_payment",
+    ),
+    path(
+        "resume-checkout/<int:checkout_id>/",
+        views_private.resume_checkout_data,
+        name="resume_checkout_data",
+    ),
+    path(
+        "complete-hotel-payment/<int:order_id>/",
+        views_private.complete_hotel_payment,
+        name="complete_hotel_payment",
+    ),
+    path(
+        "hotel-payment-success/<int:order_id>/",
+        views_private.hotel_payment_success,
+        name="hotel_payment_success",
+    ),
+    path(
+        "registrations/",
+        views_private.registration_list,
+        name="registration_list",
+    ),
+    path(
+        "registrations-panel/",
+        views_private.registration_list_panel,
+        name="registration_list_panel",
+    ),
     # Wallet
     path(
         "wallet/add-funds/",
         views_private.wallet_add_funds,
         name="wallet_add_funds",
+    ),
+    path(
+        "wallet/transactions/",
+        views_private.wallet_transactions,
+        name="wallet_transactions",
+    ),
+    path(
+        "panel-tabs/wallet-transactions/",
+        views_private.WalletTransactionsEmbedView.as_view(),
+        name="wallet_transactions_embed",
     ),
     # Registro de jugadores por padres
     path(
@@ -268,6 +321,16 @@ urlpatterns = [
         name="admin_order_detail",
     ),
     path(
+        "admin/wallet-topups/",
+        views_admin.AdminWalletTopUpListView.as_view(),
+        name="admin_wallet_topups",
+    ),
+    path(
+        "admin/wallet-topups/search-users/",
+        views_admin.search_users_ajax,
+        name="admin_wallet_topups_search_users",
+    ),
+    path(
         "dashboard-banners/<int:pk>/delete/",
         views_dashboard_banners.DashboardBannerDeleteView.as_view(),
         name="dashboard_banner_delete",
@@ -372,5 +435,26 @@ urlpatterns = [
         "hotels/<int:hotel_pk>/services/<int:pk>/delete/",
         views_hotels.HotelServiceDeleteView.as_view(),
         name="hotel_service_delete",
+    ),
+    # ===== NOTIFICATIONS API =====
+    path(
+        "api/notifications/",
+        views_private.get_notifications_api,
+        name="notifications_api",
+    ),
+    path(
+        "api/notifications/count/",
+        views_private.get_notification_count_api,
+        name="notifications_count_api",
+    ),
+    path(
+        "api/notifications/<int:notification_id>/mark-read/",
+        views_private.mark_notification_read_api,
+        name="mark_notification_read_api",
+    ),
+    path(
+        "api/notifications/mark-all-read/",
+        views_private.mark_all_notifications_read_api,
+        name="mark_all_notifications_read_api",
     ),
 ]

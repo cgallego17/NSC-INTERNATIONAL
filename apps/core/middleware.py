@@ -2,11 +2,13 @@
 Middleware para establecer inglés como idioma predeterminado
 y manejar errores de sesión
 """
-from django.utils import translation
+
+import logging
+
 from django.conf import settings
 from django.contrib.sessions.exceptions import SessionInterrupted
 from django.http import JsonResponse
-import logging
+from django.utils import translation
 
 logger = logging.getLogger(__name__)
 
@@ -27,11 +29,11 @@ class DefaultLanguageMiddleware:
         # En Django 4.2.x no existe translation.LANGUAGE_SESSION_KEY.
         # Django usa típicamente '_language' en sesión para LocaleMiddleware/set_language.
         language_key = getattr(translation, "LANGUAGE_SESSION_KEY", "_language")
-        user_selected_key = 'user_selected_language'  # Flag para saber si el usuario seleccionó explícitamente
+        user_selected_key = "user_selected_language"  # Flag para saber si el usuario seleccionó explícitamente
 
         # NO interferir con la vista set_language - dejar que Django la maneje completamente
         # Solo establecer idioma si no hay idioma en la sesión Y no estamos en set_language
-        if '/i18n/setlang/' not in request.path:
+        if "/i18n/setlang/" not in request.path:
             # Verificar si el usuario seleccionó explícitamente un idioma
             user_selected = request.session.get(user_selected_key, False)
             session_language = request.session.get(language_key)
@@ -40,13 +42,16 @@ class DefaultLanguageMiddleware:
             if not user_selected:
                 # Verificar si el usuario tiene un idioma preferido en su perfil
                 preferred_language = None
-                if hasattr(request, 'user') and request.user.is_authenticated:
+                if hasattr(request, "user") and request.user.is_authenticated:
                     try:
-                        if hasattr(request.user, 'profile') and request.user.profile.preferred_language:
+                        if (
+                            hasattr(request.user, "profile")
+                            and request.user.profile.preferred_language
+                        ):
                             preferred_language = request.user.profile.preferred_language
                             # Establecer el idioma en la sesión basado en la preferencia del usuario
                             request.session[language_key] = preferred_language
-                            if hasattr(request.session, 'modified'):
+                            if hasattr(request.session, "modified"):
                                 request.session.modified = True
                     except Exception:
                         pass  # Si hay algún error, usar el predeterminado
@@ -54,11 +59,13 @@ class DefaultLanguageMiddleware:
                 # Si no hay idioma en sesión ni preferencia del usuario, usar inglés
                 if not session_language and not preferred_language:
                     request.session[language_key] = settings.LANGUAGE_CODE
-                    if hasattr(request.session, 'modified'):
+                    if hasattr(request.session, "modified"):
                         request.session.modified = True
 
                 # Activar el idioma (preferencia del usuario, sesión, o inglés por defecto)
-                language_to_activate = preferred_language or session_language or settings.LANGUAGE_CODE
+                language_to_activate = (
+                    preferred_language or session_language or settings.LANGUAGE_CODE
+                )
                 translation.activate(language_to_activate)
             else:
                 # El usuario seleccionó un idioma explícitamente, usar ese
@@ -73,7 +80,7 @@ class DefaultLanguageMiddleware:
         response = self.get_response(request)
 
         # Asegurar que el idioma activo se mantenga en la respuesta
-        response.setdefault('Content-Language', translation.get_language())
+        response.setdefault("Content-Language", translation.get_language())
 
         return response
 
@@ -105,18 +112,47 @@ class SessionInterruptedMiddleware:
                 return JsonResponse(
                     {
                         "error": "Session expired. Please refresh the page and try again.",
-                        "session_expired": True
+                        "session_expired": True,
                     },
-                    status=401
+                    status=401,
                 )
 
             # Si no es AJAX, intentar crear una respuesta básica
             # No podemos usar redirect porque la sesión está interrumpida
             from django.http import HttpResponse
+
             response = HttpResponse(
                 "<html><body><h1>Session Error</h1><p>Your session has expired. "
                 "Please <a href='/accounts/login/'>log in again</a>.</p></body></html>",
-                status=401
+                status=401,
             )
-            return response
+        return response
 
+
+class XFrameOptionsMiddleware:
+    """
+    Middleware to handle X-Frame-Options header for specific URLs
+    Allows iframes for panel functionality
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+
+        # Allow iframes for registration list and other panel pages
+        allowed_paths = [
+            "/accounts/registrations/",
+            "/accounts/pending-payments/",
+            "/accounts/panel-tabs/",
+        ]
+
+        if any(request.path.startswith(path) for path in allowed_paths):
+            response["X-Frame-Options"] = "SAMEORIGIN"
+        else:
+            # Remove X-Frame-Options header for other pages to let Django's middleware handle it
+            if "X-Frame-Options" in response:
+                del response["X-Frame-Options"]
+
+        return response

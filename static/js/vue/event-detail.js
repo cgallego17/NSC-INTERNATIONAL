@@ -88,6 +88,7 @@ const translations = {
     notEligible: gettext('Not Eligible'),
     notEligibleForDivision: gettext('Not eligible for this division'),
     addHotelStay: gettext('Add Hotel Stay'),
+    editHotelStay: gettext('Edit Hotel Stay'),
     hotelBuyOutFeeMessage: gettext("If you don't add a hotel stay, a Hotel buy out fee will apply."),
     orderSummary: gettext('Order Summary'),
     players: gettext('Player(s)'),
@@ -168,6 +169,7 @@ const translations = {
     appliesWhenNoHotel: gettext("Applies when you don't add a hotel stay to this checkout."),
     paymentPlan: gettext('Payment plan'),
     payNow: gettext('Pay now'),
+    registerNow: gettext('Register now'),
     monthlyPlanAmount: gettext('Monthly plan amount'),
     monthlyPaymentsApproxUntil: gettext('monthly payments (approx.) until'),
     goodIfPreferSpreadTotal: gettext('Good if you prefer to spread the total over time.'),
@@ -177,7 +179,12 @@ const translations = {
     selectPlayersBeforeCheckout: gettext('Please select at least one player to register.'),
     redirectingToStripe: gettext('Redirecting to Stripe...'),
     checkoutError: gettext('Error starting payment. Please try again.'),
-    hotelStay: gettext('Hotel Stay')
+    hotelStay: gettext('Hotel Stay'),
+    registerPlayersNowPayHotelLater: gettext('Register players now, pay hotel later.'),
+    registerPlayersNowNoHotelNeeded: gettext('Register players now, no hotel needed.'),
+    reserveHotelLaterPayWhenReady: gettext('Reserve hotel later, pay when ready.'),
+    secureYourSpotInTheEvent: gettext('Secure your spot in the event.'),
+    secureYourSpotPayHotelLater: gettext('Secure your spot, pay hotel later.')
 };
 
 // Simple translation function for Vue templates
@@ -2825,6 +2832,61 @@ const EventDetailApp = {
         const editingGuest = ref(null);
         const rooms = ref([]);
         const loading = ref(false);
+        const useWallet = ref(false);
+        const isResumedCheckout = ref(false);
+
+        // Wallet state
+        const walletBalance = computed(() => {
+            // Usar balance disponible (balance - pending) para evitar usar fondos reservados
+            return parseFloat(eventData.value?.wallet_balance || 0);
+        });
+        const walletBalanceTotal = computed(() => {
+            return parseFloat(eventData.value?.wallet_balance_total || 0);
+        });
+        const walletBalancePending = computed(() => {
+            return parseFloat(eventData.value?.wallet_balance_pending || 0);
+        });
+        const hasWalletBalance = computed(() => walletBalance.value > 0);
+
+        // Reactive window width for responsive banner
+        const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1920);
+
+        // Update window width on resize
+        function updateWindowWidth() {
+            if (typeof window !== 'undefined') {
+                windowWidth.value = window.innerWidth;
+            }
+        }
+
+        // Set up resize listener
+        onMounted(() => {
+            if (typeof window !== 'undefined') {
+                window.addEventListener('resize', updateWindowWidth);
+                updateWindowWidth(); // Initial update
+            }
+        });
+
+        onUnmounted(() => {
+            if (typeof window !== 'undefined') {
+                window.removeEventListener('resize', updateWindowWidth);
+            }
+        });
+
+        // Computed property to determine which banner to show based on screen size
+        const displayBanner = computed(() => {
+            if (!eventData.value) return null;
+
+            // Check if we're on mobile (window width <= 768px)
+            const isMobile = windowWidth.value <= 768;
+
+            // If mobile and banner_mobile exists, use it; otherwise fall back to banner
+            if (isMobile && eventData.value.banner_mobile) {
+                return eventData.value.banner_mobile;
+            }
+
+            // Use regular banner if available
+            return eventData.value.banner || null;
+        });
 
         // Load rooms from server
         async function loadRooms() {
@@ -3248,10 +3310,12 @@ const EventDetailApp = {
             if (child && child.registered) {
                 return; // Don't allow selection of registered children
             }
-            if (child && !child.is_eligible) {
-                return; // Don't allow selection of ineligible children
-            }
             const index = selectedChildren.value.indexOf(childId);
+            // Allow DESELECT of an already-selected child even if they're now ineligible.
+            // Block selecting NEW ineligible children.
+            if (child && !child.is_eligible && index === -1) {
+                return;
+            }
             if (index === -1) {
                 selectedChildren.value.push(childId);
             } else {
@@ -3468,7 +3532,17 @@ const EventDetailApp = {
             const hasHotelForDiscount = (hotelPrice > 0) && (reservation.state.rooms.length > 0);
             const payNowTotal = hasHotelForDiscount ? (totalBeforeDiscount * 0.95) : totalBeforeDiscount;
 
-            // Plan monthly amount (approx)
+            // Wallet deduction
+            const walletBal = walletBalance.value || 0;
+            const walletDeduction = useWallet.value && walletBal > 0
+                ? Math.min(walletBal, payNowTotal)
+                : 0;
+            const finalPayNowTotal = Math.max(0, payNowTotal - walletDeduction);
+
+            // Plan monthly amount (approx) - should use payNowTotal (with 5% discount if hotel)
+            // The plan uses the same total as "Pay Now" but spread over months
+            // IMPORTANT: Wallet is deducted from the TOTAL before dividing by months
+            // This matches the backend calculation: plan_monthly_amount = (total_after_wallet / plan_months)
             let planMonths = 1;
             if (eventData.value?.payment_deadline) {
                 const now = new Date();
@@ -3476,7 +3550,20 @@ const EventDetailApp = {
                 planMonths = (deadline.getFullYear() - now.getFullYear()) * 12 + (deadline.getMonth() - now.getMonth()) + 1;
                 if (!isFinite(planMonths) || planMonths < 1) planMonths = 1;
             }
-            const monthlyPlanAmount = totalBeforeDiscount / planMonths;
+            // Plan total should be totalBeforeDiscount (NO 5% discount for plans, only for "Pay Now")
+            // Backend: discount_percent = 5 if (payment_mode == "now" and hotel_total > 0) else 0
+            // So for plans, total = total_before_discount (no discount)
+            const planTotal = totalBeforeDiscount;
+            // Apply wallet deduction to the total (same as backend: total_after_wallet = total - wallet_deduction)
+            // Use walletDeduction (already calculated) but recalculate for plan since it's based on totalBeforeDiscount
+            const planWalletDeduction = useWallet.value && walletBal > 0
+                ? Math.min(walletBal, planTotal)
+                : 0;
+            const planTotalAfterWallet = Math.max(0, planTotal - planWalletDeduction);
+            // Monthly amount is calculated from total_after_wallet (matches backend)
+            const monthlyPlanAmount = planTotalAfterWallet / planMonths;
+            // First payment is the same as monthly amount (wallet already applied to total)
+            const firstPaymentWithWallet = monthlyPlanAmount;
 
             return {
                 subtotal,
@@ -3485,9 +3572,13 @@ const EventDetailApp = {
                 serviceFeeAmount,
                 totalBeforeDiscount,
                 payNowTotal,
+                walletBalance: walletBal,
+                walletDeduction,
+                finalPayNowTotal,
                 hasHotelForDiscount,
                 planMonths,
                 monthlyPlanAmount,
+                finalMonthlyPlanAmount: firstPaymentWithWallet,
                 savings: totalBeforeDiscount - payNowTotal
             };
         });
@@ -3500,6 +3591,11 @@ const EventDetailApp = {
         // Handle pay now button
         async function handlePayNow() {
             await startStripeCheckout('now');
+        }
+
+        // Handle register only button
+        async function handleRegisterOnly() {
+            await startStripeCheckout('register_only');
         }
 
         // Helper to get CSRF token
@@ -3568,6 +3664,17 @@ const EventDetailApp = {
                 formData.set('payment_mode', mode);
                 formData.set('hotel_buy_out_fee', checkoutTotals.value.hotelBuyOutFee);
 
+                // If this page was opened from Registrations -> Pay, reuse/update the existing pending checkout
+                try {
+                    const qs = new URLSearchParams(window.location.search || '');
+                    const resumeCheckoutId = qs.get('resume_checkout');
+                    if (resumeCheckoutId) {
+                        formData.set('resume_checkout', resumeCheckoutId);
+                    }
+                } catch (e) {
+                    // ignore
+                }
+
                 const csrfToken = getCsrfToken();
                 if (csrfToken) {
                     formData.set('csrfmiddlewaretoken', csrfToken);
@@ -3576,6 +3683,14 @@ const EventDetailApp = {
                 // Set discount percent
                 const discountPercent = (mode === 'now' && checkoutTotals.value.hasHotelForDiscount) ? '5' : '0';
                 formData.set('discount_percent', discountPercent);
+
+                // Set wallet usage
+                if (useWallet.value && hasWalletBalance.value) {
+                    formData.set('use_wallet', '1');
+                    formData.set('wallet_amount', String(checkoutTotals.value.walletDeduction || 0));
+                } else {
+                    formData.set('use_wallet', '0');
+                }
 
                 // Debug/validation: send frontend totals so backend can compare and log mismatches
                 try {
@@ -3771,12 +3886,39 @@ const EventDetailApp = {
                     throw new Error('Server returned invalid data format (not JSON)');
                 }
 
-                if (resp.ok && data.success && data.checkout_url) {
-                    // Redirect to Stripe
-                    if (window.top && window.top !== window) {
-                        window.top.location.href = data.checkout_url;
+                // DEBUG: Mostrar respuesta completa del servidor
+                console.log('🔍 DEBUG - Respuesta del servidor:');
+                console.log('  - resp.ok:', resp.ok);
+                console.log('  - resp.status:', resp.status);
+                console.log('  - data.success:', data.success);
+                console.log('  - data.checkout_url:', data.checkout_url);
+                console.log('  - data.redirect_url:', data.redirect_url);
+                console.log('  - data completa:', data);
+                console.log('');
+
+                if (resp.ok && data.success) {
+                    // Handle different response types
+                    if (data.checkout_url) {
+                        console.log('🔍 DEBUG - Redirigiendo a Stripe con checkout_url:', data.checkout_url);
+                        // Redirect to Stripe (for 'now' and 'plan' modes)
+                        if (window.top && window.top !== window) {
+                            window.top.location.href = data.checkout_url;
+                        } else {
+                            window.location.href = data.checkout_url;
+                        }
+                    } else if (data.redirect_url) {
+                        console.log('🔍 DEBUG - Redirigiendo a confirmación con redirect_url:', data.redirect_url);
+                        // Redirect to confirmation page (for 'register_only' mode)
+                        if (window.top && window.top !== window) {
+                            window.top.location.href = data.redirect_url;
+                        } else {
+                            window.location.href = data.redirect_url;
+                        }
                     } else {
-                        window.location.href = data.checkout_url;
+                        console.log('🔍 DEBUG - No hay checkout_url ni redirect_url, mostrando error');
+                        const errorMsg = data.error || data.message || $t('checkoutError') || 'Could not start payment.';
+                        toast.show(errorMsg, 'error');
+                        loading.value = false;
                     }
                 } else {
                     const errorMsg = data.error || data.message || $t('checkoutError') || 'Could not start payment.';
@@ -3814,7 +3956,144 @@ const EventDetailApp = {
                     autoAssignGuests();
                 }
             });
+            // Detect resume mode (coming from Registrations -> Pay)
+            try {
+                const qs = new URLSearchParams(window.location.search || '');
+                isResumedCheckout.value = !!qs.get('resume_checkout');
+            } catch (e) {
+                isResumedCheckout.value = false;
+            }
+
             loadRooms();
+
+            // Resume a saved pending registration (from /panel registrations tab)
+            // by preselecting players and hotel rooms, so user can proceed with the event checkout UI.
+            (async function resumePendingRegistrationIfAny() {
+                try {
+                    const qs = new URLSearchParams(window.location.search || '');
+                    const resumeCheckoutId = qs.get('resume_checkout');
+                    if (!resumeCheckoutId) return;
+
+                    // Wait a bit for initial data + rooms to be available
+                    await new Promise(r => setTimeout(r, 300));
+                    await loadRooms();
+                    await nextTick();
+
+                    const resp = await fetch(`/accounts/resume-checkout/${resumeCheckoutId}/`, {
+                        method: 'GET',
+                        credentials: 'same-origin',
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    const data = await resp.json();
+                    if (!data || !data.success) {
+                        toast.show((data && data.error) ? data.error : 'Could not resume registration.', 'error');
+                        return;
+                    }
+
+                    // Ensure this resume belongs to this event
+                    const currentEventId = (eventData.value && (eventData.value.id || eventData.value.pk)) ? String(eventData.value.id || eventData.value.pk) : '';
+                    if (currentEventId && String(data.event_id) !== currentEventId) {
+                        toast.show('This saved registration belongs to a different event.', 'warning');
+                        return;
+                    }
+
+                    // Players
+                    const playerIds = Array.isArray(data.player_ids) ? data.player_ids : [];
+                    selectedChildren.value = playerIds.map(x => {
+                        const n = parseInt(x, 10);
+                        return Number.isFinite(n) ? n : x;
+                    });
+
+                    // Hotel rooms + extra guests (best-effort)
+                    const cart = data.hotel_cart_snapshot || {};
+                    const roomItems = Object.values(cart).filter(v => v && v.type === 'room' && (v.room_id || v.roomId));
+
+                    // Apply stay dates from first room item (if any)
+                    if (roomItems.length > 0) {
+                        const first = roomItems[0];
+                        if (first.check_in) reservation.state.check_in_date = first.check_in;
+                        if (first.check_out) reservation.state.check_out_date = first.check_out;
+                    }
+
+                    // Select rooms (uses same UI flow)
+                    roomItems.forEach(item => {
+                        const rid = item.room_id || item.roomId;
+                        if (!rid) return;
+                        const roomObj = (rooms.value || []).find(r => String(r.id) === String(rid));
+                        if (roomObj) {
+                            handleSelectRoom(roomObj);
+                        }
+                    });
+
+                    // Add extra guests captured in snapshot (optional)
+                    const extraGuests = [];
+                    // Avoid duplicating registrant/players: additional_guest_details can include them
+                    // because the backend builds it from assigned guest indices (all_guests = registrant + players + manual guests).
+                    const knownEmails = new Set();
+                    const knownNames = new Set();
+                    const norm = (s) => String(s || '').trim().toLowerCase();
+
+                    if (registrant.value) {
+                        if (registrant.value.email) knownEmails.add(norm(registrant.value.email));
+                        const rn = registrant.value.name || `${registrant.value.first_name || ''} ${registrant.value.last_name || ''}`.trim();
+                        if (rn) knownNames.add(norm(rn));
+                    }
+                    (selectedChildren.value || []).forEach(pid => {
+                        const child = children.value.find(c => c.id === pid || c.pk === pid);
+                        if (!child) return;
+                        if (child.email) knownEmails.add(norm(child.email));
+                        if (child.name) knownNames.add(norm(child.name));
+                        const fn = `${child.first_name || ''} ${child.last_name || ''}`.trim();
+                        if (fn) knownNames.add(norm(fn));
+                    });
+
+                    roomItems.forEach(item => {
+                        const list = item.additional_guest_details || [];
+                        if (Array.isArray(list)) {
+                            list.forEach(g => {
+                                if (!g) return;
+                                const email = norm(g.email || g.email_address);
+                                const name = norm(g.name || g.displayName || `${g.first_name || ''} ${g.last_name || ''}`.trim());
+
+                                // Skip if this guest matches registrant or a selected player
+                                if (email && knownEmails.has(email)) return;
+                                if (name && knownNames.has(name)) return;
+
+                                extraGuests.push(g);
+                            });
+                        }
+                    });
+                    // De-dupe extras across rooms (same guest can be referenced more than once)
+                    const seenExtraKeys = new Set();
+                    extraGuests.forEach(g => {
+                        const name = (g && g.name) ? String(g.name) : '';
+                        const parts = name.trim().split(/\s+/);
+                        const first_name = parts[0] || 'Guest';
+                        const last_name = parts.slice(1).join(' ');
+                        const key = (g && (g.email || g.email_address))
+                            ? `email:${norm(g.email || g.email_address)}`
+                            : `name:${norm(name || `${first_name} ${last_name}`)}`;
+                        if (seenExtraKeys.has(key)) return;
+                        seenExtraKeys.add(key);
+                        handleAddGuest({
+                            first_name,
+                            last_name,
+                            email: (g && g.email) ? String(g.email) : '',
+                            birth_date: (g && (g.birth_date || g.birthDate)) ? String(g.birth_date || g.birthDate) : '',
+                            type: (g && g.type) ? String(g.type) : 'adult'
+                        });
+                    });
+
+                    // Recompute assignments/totals
+                    reservation.state.assignmentMode = 'auto';
+                    autoAssignGuests();
+                    updateCheckoutSummary();
+
+                    toast.show('Saved registration loaded. You can proceed to checkout.', 'success');
+                } catch (e) {
+                    console.error('Error resuming registration:', e);
+                }
+            })();
         });
 
         // Expose methods for external access
@@ -3822,6 +4101,7 @@ const EventDetailApp = {
             hotelPk,
             eventPk: eventPkRef,
             eventData,
+            displayBanner,
             children,
             registrant,
             selectedChildren,
@@ -3855,6 +4135,7 @@ const EventDetailApp = {
             handleBackFromVerify,
             handlePaymentPlan,
             handlePayNow,
+            handleRegisterOnly,
             loadRooms,
             loadEventData,
             loadChildrenData,
@@ -3866,6 +4147,12 @@ const EventDetailApp = {
             formatLocation,
             getInitials,
             getGuestAdditionalCharge,
+            isResumedCheckout,
+            walletBalance,
+            walletBalanceTotal,
+            walletBalancePending,
+            hasWalletBalance,
+            useWallet,
             t: $t
         };
     },
@@ -3874,20 +4161,20 @@ const EventDetailApp = {
             <ToastComponent :toasts="toast.toasts" />
 
             <!-- Header -->
-            <div class="tab-content-header mb-4" id="event-details-section" style="display: block !important; visibility: visible !important; opacity: 1 !important; width: 100% !important; position: relative !important; z-index: 1 !important;">
+            <div class="tab-content-header mb-4" id="event-details-section" style="display: block !important; visibility: visible !important; opacity: 1 !important; width: 100% !important; position: relative !important; z-index: 1 !important; padding: 8px 14px 0 14px !important;">
                 <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
                     <i class="fas fa-calendar-check me-2" style="color: var(--mlb-red);"></i>{{ t('eventDetails') }}
                 </h4>
                 <p class="text-muted">{{ t('eventInformationAndRegistration') }}</p>
             </div>
 
-            <div class="row g-4" style="width: 100% !important; display: flex !important; flex-wrap: wrap !important; min-height: 400px !important; position: relative !important; z-index: 1 !important;">
+            <div class="row g-4" style="width: 100% !important; display: flex !important; flex-wrap: wrap !important; position: relative !important; z-index: 1 !important;">
                 <!-- Left Side - Event Information -->
-                <div class="col-lg-7">
-                    <div class="event-info-card" style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+                <div class="col-lg-8">
+                    <div class="event-info-card" style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
                         <!-- Banner/Logo -->
-                        <div v-if="eventData.banner || eventData.logo" style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 25px; background: #f8f9fa;">
-                            <img v-if="eventData.banner" :src="eventData.banner" :alt="eventData.title" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                        <div v-if="displayBanner || eventData.logo" style="width: 100%; height: 300px; border-radius: 12px; overflow: hidden; margin-bottom: 25px; background: #f8f9fa;">
+                            <img v-if="displayBanner" :src="displayBanner" :alt="eventData.title" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
                             <img v-else-if="eventData.logo" :src="eventData.logo" :alt="eventData.title" style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
                         </div>
 
@@ -4062,6 +4349,98 @@ const EventDetailApp = {
                         <!-- Separator Line -->
                         <div v-if="eventData.video_url || eventData.description" style="width: 100%; height: 2px; background: linear-gradient(90deg, var(--mlb-red) 0%, #b30029 100%); margin-bottom: 25px; margin-top: 25px; border-radius: 2px;"></div>
 
+                        <!-- Enhanced Payment Buttons Styles -->
+                        <style>
+                            .payment-button {
+                                position: relative;
+                                overflow: hidden;
+                            }
+
+                            .payment-button::before {
+                                content: '';
+                                position: absolute;
+                                top: 0;
+                                left: -100%;
+                                width: 100%;
+                                height: 100%;
+                                background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+                                transition: left 0.6s ease;
+                            }
+
+                            .payment-button:hover::before {
+                                left: 100%;
+                            }
+
+                            .payment-button:not(:disabled):hover {
+                                transform: translateY(-2px) scale(1.02);
+                            }
+
+                            .payment-button:not(:disabled):active {
+                                transform: translateY(0) scale(0.98);
+                                transition: transform 0.1s ease;
+                            }
+
+                            .payment-button-plan:not(:disabled):hover {
+                                box-shadow: 0 8px 25px rgba(13, 44, 84, 0.25) !important;
+                                border-color: var(--mlb-blue) !important;
+                            }
+
+                            .payment-button-pay:not(:disabled):hover {
+                                box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4) !important;
+                            }
+
+                            .payment-button-register:not(:disabled):hover {
+                                box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4) !important;
+                            }
+
+                            .payment-button:disabled {
+                                filter: grayscale(0.3) !important;
+                            }
+
+                            .payment-button .price-tag {
+                                background: rgba(255,255,255,0.15);
+                                padding: 2px 6px;
+                                border-radius: 6px;
+                                font-size: 0.8rem;
+                                font-weight: 900;
+                                backdrop-filter: blur(10px);
+                            }
+
+                            .payment-button-plan .price-tag {
+                                background: rgba(13, 44, 84, 0.1);
+                                color: var(--mlb-blue);
+                            }
+
+                            .payment-button .icon-wrapper {
+                                display: inline-flex;
+                                align-items: center;
+                                justify-content: center;
+                                width: 24px;
+                                height: 24px;
+                                border-radius: 50%;
+                                background: rgba(255,255,255,0.1);
+                                margin-right: 8px;
+                            }
+
+                            .payment-button-plan .icon-wrapper {
+                                background: rgba(13, 44, 84, 0.1);
+                            }
+
+                            @keyframes pulse {
+                                0% { transform: scale(1); }
+                                50% { transform: scale(1.05); }
+                                100% { transform: scale(1); }
+                            }
+
+                            .payment-button:not(:disabled) {
+                                animation: pulse 2s infinite;
+                            }
+
+                            .payment-button:not(:disabled):hover {
+                                animation: none;
+                            }
+                        </style>
+
                         <!-- Description -->
                         <div v-if="eventData.description" class="mb-4">
                             <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 15px;">
@@ -4080,18 +4459,31 @@ const EventDetailApp = {
                 </div>
 
                 <!-- Right Side - Checkout -->
-                <div class="col-lg-5">
-                    <div class="checkout-card" style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); position: sticky; top: 20px;">
-                        <h4 style="color: var(--mlb-blue); font-weight: 800; margin-bottom: 18px; border-bottom: 3px solid var(--mlb-red); padding-bottom: 12px; font-size: 1.2rem;">
+                <div class="col-lg-4">
+                    <div class="checkout-card" style="background: white; border-radius: 16px; padding: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); position: sticky; top: 20px;">
+                        <h4 style="color: var(--mlb-blue); font-weight: 800; margin-bottom: 8px; border-bottom: 3px solid var(--mlb-red); padding-bottom: 12px; font-size: 1.2rem;">
                             <i class="fas fa-shopping-cart me-2" style="color: var(--mlb-red);"></i>{{ t('checkout') }}
                         </h4>
 
+                        <!-- Texto informativo -->
+                        <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-left: 4px solid var(--mlb-red); padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+                            <p style="margin: 0; font-size: 0.85rem; color: #495057; line-height: 1.5; font-weight: 600;">
+                                <i class="fas fa-info-circle me-2" style="color: var(--mlb-red);"></i>Complete the following steps to register for the event
+                            </p>
+                        </div>
+
                         <!-- Step 1: Select Players -->
                         <div v-if="children && children.length > 0" class="checkout-step mb-4" id="step-players">
-                            <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 12px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
-                                <span style="background: var(--mlb-red); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">1</span>
-                                <i class="fas fa-users me-1" style="color: var(--mlb-red);"></i>{{ t('selectPlayers') }}
-                            </h5>
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                <div style="background: var(--mlb-red); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; box-shadow: 0 2px 8px rgba(213, 0, 50, 0.3);">
+                                    1
+                                </div>
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0; color: #0d2c54; font-weight: 800; font-size: 1.1rem;">
+                                        <i class="fas fa-users me-2" style="color: var(--mlb-red);"></i>{{ t('selectPlayers') }}
+                                    </h5>
+                                </div>
+                            </div>
                             <div class="children-list">
                                 <div v-for="child in children" :key="child.id" class="child-item mb-2"
                                      :style="{
@@ -4099,28 +4491,34 @@ const EventDetailApp = {
                                          borderRadius: '8px',
                                          padding: '10px',
                                          transition: 'all 0.3s',
-                                         cursor: (child.registered || !child.is_eligible) ? 'not-allowed' : 'pointer',
+                                         cursor: (child.registered || (!child.is_eligible && !selectedChildren.includes(child.id))) ? 'not-allowed' : 'pointer',
                                          background: child.registered ? '#f8fff9' : (!child.is_eligible ? '#fffbf0' : 'transparent'),
-                                         opacity: (!child.is_eligible && !child.registered) ? 0.7 : 1
+                                         opacity: (!child.is_eligible && !child.registered && !selectedChildren.includes(child.id)) ? 0.7 : 1
                                      }">
                                     <div class="form-check" style="display: flex; align-items: center; gap: 10px;">
-                                        <input v-if="child.is_eligible && !child.registered"
+                                        <input
                                                class="form-check-input child-checkbox"
                                                type="checkbox"
                                                :value="child.id"
                                                :id="'child_' + child.id"
                                                :checked="selectedChildren.includes(child.id)"
+                                               :disabled="child.registered || (!child.is_eligible && !selectedChildren.includes(child.id))"
                                                @change="toggleChild(child.id)"
-                                               style="width: 18px; height: 18px; cursor: pointer; margin: 0; flex-shrink: 0;">
-                                        <input v-else
-                                               class="form-check-input child-checkbox"
-                                               type="checkbox"
-                                               :value="child.id"
-                                               :id="'child_' + child.id"
-                                               disabled
-                                               style="width: 18px; height: 18px; cursor: not-allowed; margin: 0; flex-shrink: 0; opacity: 0.5;">
+                                               :style="{
+                                                   width: '18px',
+                                                   height: '18px',
+                                                   cursor: (child.registered || (!child.is_eligible && !selectedChildren.includes(child.id))) ? 'not-allowed' : 'pointer',
+                                                   margin: 0,
+                                                   flexShrink: 0,
+                                                   opacity: (child.registered || (!child.is_eligible && !selectedChildren.includes(child.id))) ? 0.5 : 1
+                                               }">
                                         <label :for="'child_' + child.id"
-                                               :style="{ cursor: (child.registered || !child.is_eligible) ? 'not-allowed' : 'pointer', width: '100%', margin: 0, opacity: (child.registered || !child.is_eligible) ? 0.7 : 1 }">
+                                               :style="{
+                                                   cursor: (child.registered || (!child.is_eligible && !selectedChildren.includes(child.id))) ? 'not-allowed' : 'pointer',
+                                                   width: '100%',
+                                                   margin: 0,
+                                                   opacity: (child.registered || (!child.is_eligible && !selectedChildren.includes(child.id))) ? 0.7 : 1
+                                               }">
                                             <div style="display: flex; align-items: center; gap: 10px;">
                                                 <!-- Photo or Initials -->
                                                 <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%);">
@@ -4164,10 +4562,16 @@ const EventDetailApp = {
 
                         <!-- Step 2: Add Hotel Stay -->
                         <div v-if="eventData.hotel" class="checkout-step mb-4" id="step-hotel">
-                            <h5 style="color: var(--mlb-blue); font-weight: 700; margin-bottom: 12px; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
-                                <span style="background: var(--mlb-red); color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">2</span>
-                                <i class="fas fa-hotel me-1" style="color: var(--mlb-red);"></i>{{ t('addHotelStay') }}
-                            </h5>
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                <div style="background: var(--mlb-red); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; box-shadow: 0 2px 8px rgba(213, 0, 50, 0.3);">
+                                    2
+                                </div>
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0; color: #0d2c54; font-weight: 800; font-size: 1.1rem;">
+                                        <i class="fas fa-hotel me-2" style="color: var(--mlb-red);"></i>{{ t('addHotelStay') }}
+                                    </h5>
+                                </div>
+                            </div>
                             <div style="background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); border: 2px solid #e9ecef; border-radius: 12px; padding: 12px;">
                                 <div style="font-size: 0.8rem; color: #6c757d; font-weight: 600; line-height: 1.25; margin-bottom: 10px;">
                                     {{ t('hotelBuyOutFeeMessage') }}
@@ -4180,16 +4584,24 @@ const EventDetailApp = {
                                     style="background: linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%); color: white; padding: 10px; border-radius: 10px; font-weight: 800; font-size: 0.9rem; border: none; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;"
                                     @mouseover="$event.target.style.transform='translateY(-1px)'; $event.target.style.boxShadow='0 10px 24px rgba(213, 0, 50, 0.25)';"
                                     @mouseout="$event.target.style.transform='translateY(0)'; $event.target.style.boxShadow='none';">
-                                <i class="fas fa-hotel"></i>
-                                <span>{{ t('addHotelStay') }}</span>
+                                <i v-if="hasHotelOrRooms" class="fas fa-pen"></i>
+                                <i v-else class="fas fa-hotel"></i>
+                                <span>{{ hasHotelOrRooms ? t('editHotelStay') : t('addHotelStay') }}</span>
                             </button>
                         </div>
 
-                        <!-- Order Summary (Invoice Style) -->
+                        <!-- Step 3: Order Summary -->
                         <div class="checkout-summary" style="border-top: 2px solid var(--mlb-blue); padding-top: 20px; margin-top: 20px;">
-                            <h5 style="color: var(--mlb-blue); font-weight: 800; margin-bottom: 20px; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center;">
-                                <span><i class="fas fa-file-invoice me-2"></i>{{ t('orderSummary') }}</span>
-                            </h5>
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+                                <div style="background: var(--mlb-red); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; box-shadow: 0 2px 8px rgba(213, 0, 50, 0.3);">
+                                    3
+                                </div>
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0; color: #0d2c54; font-weight: 800; font-size: 1.1rem;">
+                                        <i class="fas fa-file-invoice me-2" style="color: var(--mlb-red);"></i>{{ t('orderSummary') }}
+                                    </h5>
+                                </div>
+                            </div>
 
                             <!-- Players Section -->
                             <div v-if="selectedChildrenCount > 0" id="checkout-players-summary" style="margin-bottom: 20px;">
@@ -4330,36 +4742,109 @@ const EventDetailApp = {
                                 </div>
                             </div>
 
+                            <!-- Wallet Section -->
+                            <div v-if="hasWalletBalance" id="checkout-wallet-summary" style="margin-bottom: 20px;">
+                                <div style="background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%); border: 2px solid #86efac; border-radius: 12px; padding: 12px; border-left: 4px solid #22c55e;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                        <div style="flex: 1; min-width: 0;">
+                                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                                <i class="fas fa-wallet" style="color: #22c55e; font-size: 1rem;"></i>
+                                                <span style="font-weight: 800; color: var(--mlb-blue); font-size: 0.95rem;">
+                                                    Wallet Balance
+                                                </span>
+                                            </div>
+                                            <div style="font-size: 0.78rem; color: #6c757d; font-weight: 600; line-height: 1.25;">
+                                                Available balance in your wallet
+                                            </div>
+                                        </div>
+                                        <div style="text-align: right; flex-shrink: 0;">
+                                            <div style="font-weight: 900; color: #22c55e; font-size: 1.1rem;">{{ formatPrice(checkoutTotals.walletBalance) }}</div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid #d1fae5;">
+                                        <input type="checkbox"
+                                               id="useWalletCheckbox"
+                                               v-model="useWallet"
+                                               style="width: 18px; height: 18px; cursor: pointer; accent-color: #22c55e;">
+                                        <label for="useWalletCheckbox" style="font-weight: 700; color: var(--mlb-blue); font-size: 0.9rem; cursor: pointer; flex: 1; margin: 0;">
+                                            Use wallet balance ({{ formatPrice(Math.min(checkoutTotals.walletBalance, checkoutTotals.payNowTotal)) }})
+                                        </label>
+                                    </div>
+                                    <div v-if="useWallet && checkoutTotals.walletDeduction > 0"
+                                         style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #d1fae5;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                            <div style="display: flex; align-items: center; gap: 6px;">
+                                                <i class="fas fa-check-circle" style="color: #059669; font-size: 0.9rem;"></i>
+                                                <span style="font-weight: 700; color: #059669; font-size: 0.85rem;">Wallet Discount Applied</span>
+                                            </div>
+                                            <span style="font-weight: 900; color: #059669; font-size: 1rem;">- {{ formatPrice(checkoutTotals.walletDeduction) }}</span>
+                                        </div>
+                                        <div style="font-size: 0.75rem; color: #059669; font-weight: 600; line-height: 1.3; padding-left: 20px;">
+                                            Your wallet balance of {{ formatPrice(checkoutTotals.walletDeduction) }} has been applied to reduce your total payment.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Final Total -->
                             <div style="background: var(--mlb-blue); border-radius: 8px; padding: 15px; margin-top: 25px; box-shadow: 0 4px 12px rgba(13, 44, 84, 0.2);">
                                 <div style="display: flex; justify-content: space-between; align-items: center;">
                                     <span style="font-weight: 800; color: white; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;">{{ t('total') }}</span>
-                                    <span style="font-weight: 900; color: white; font-size: 1.5rem; letter-spacing: -0.5px;">{{ formatPrice(checkoutTotals.totalBeforeDiscount) }}</span>
+                                    <span style="font-weight: 900; color: white; font-size: 1.5rem; letter-spacing: -0.5px;">
+                                        {{ formatPrice(useWallet ? checkoutTotals.finalPayNowTotal : checkoutTotals.payNowTotal) }}
+                                    </span>
+                                </div>
+                                <div v-if="useWallet && checkoutTotals.walletDeduction > 0"
+                                     style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 0.75rem; color: rgba(255,255,255,0.9);">
+                                    <div style="display: flex; justify-content: space-between;">
+                                        <span>Total before wallet:</span>
+                                        <span>{{ formatPrice(checkoutTotals.payNowTotal) }}</span>
+                                    </div>
                                 </div>
                             </div>
 
                             <!-- Payment Buttons -->
-                            <div class="d-flex flex-column flex-sm-row gap-2" style="margin-top: 20px;">
+                            <!-- Step 4: Payment Options -->
+                            <div style="display: flex; align-items: center; gap: 12px; margin-top: 30px; margin-bottom: 16px;">
+                                <div style="background: var(--mlb-red); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.1rem; box-shadow: 0 2px 8px rgba(213, 0, 50, 0.3);">
+                                    4
+                                </div>
+                                <div style="flex: 1;">
+                                    <h5 style="margin: 0; color: #0d2c54; font-weight: 800; font-size: 1.1rem;">
+                                        <i class="fas fa-credit-card me-2" style="color: var(--mlb-red);"></i>Payment Options
+                                    </h5>
+                                </div>
+                            </div>
+
+                            <div class="d-flex flex-column gap-2">
                                 <button type="button"
-                                        class="btn"
+                                        class="btn payment-button payment-button-plan"
                                         @click="handlePaymentPlan"
                                         :disabled="!canProceedToCheckout || loading"
                                         :style="{
-                                            flex: 1,
-                                            background: '#f8f9fa',
+                                            width: '100%',
+                                            background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
                                             color: 'var(--mlb-blue)',
-                                            border: '2px solid #e9ecef',
-                                            borderRadius: '10px',
-                                            padding: '12px',
+                                            border: '2px solid #dee2e6',
+                                            borderRadius: '12px',
+                                            padding: '14px 16px',
                                             fontWeight: '800',
-                                            transition: 'all 0.2s',
-                                            opacity: (!canProceedToCheckout || loading) ? 0.5 : 1,
+                                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                            opacity: (!canProceedToCheckout || loading) ? 0.6 : 1,
                                             cursor: (selectedChildrenCount === 0 || loading) ? 'not-allowed' : 'pointer',
-                                            textAlign: 'left'
+                                            textAlign: 'left',
+                                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                                            position: 'relative',
+                                            overflow: 'hidden'
                                         }">
                                     <div style="display:flex; align-items:center; justify-content: space-between; gap: 10px;">
-                                        <span><i class="fas fa-calendar-alt me-2"></i>{{ t('paymentPlan') }}</span>
-                                        <span style="font-weight: 900; color: var(--mlb-blue);">{{ formatPrice(checkoutTotals.monthlyPlanAmount) }}/mo</span>
+                                        <span>
+                                            <span class="icon-wrapper">
+                                                <i class="fas fa-calendar-alt"></i>
+                                            </span>
+                                            {{ t('paymentPlan') }}
+                                        </span>
+                                        <span class="price-tag">{{ formatPrice(checkoutTotals.monthlyPlanAmount) }}/mo</span>
                                     </div>
                                     <div style="margin-top: 4px; font-size: 0.75rem; font-weight: 700; color: #6c757d; line-height: 1.25;">
                                         {{ checkoutTotals.planMonths }} {{ t('monthlyPaymentsApproxUntil') }} {{ formatDate(eventData.payment_deadline) }}
@@ -4370,28 +4855,34 @@ const EventDetailApp = {
                                 </button>
 
                                 <button type="button"
-                                        class="btn"
+                                        class="btn payment-button payment-button-pay"
                                         @click="handlePayNow"
                                         :disabled="!canProceedToCheckout || loading"
                                         :style="{
-                                            flex: 1,
-                                            background: 'linear-gradient(135deg, var(--mlb-red) 0%, #b30029 100%)',
+                                            width: '100%',
+                                            background: 'linear-gradient(135deg, var(--mlb-red) 0%, #dc3545 50%, #b30029 100%)',
                                             color: 'white',
                                             border: 'none',
-                                            borderRadius: '10px',
-                                            padding: '12px',
+                                            borderRadius: '12px',
+                                            padding: '14px 16px',
                                             fontWeight: '800',
-                                            transition: 'all 0.2s',
-                                            opacity: (!canProceedToCheckout || loading) ? 0.5 : 1,
+                                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                            opacity: (!canProceedToCheckout || loading) ? 0.6 : 1,
                                             cursor: (selectedChildrenCount === 0 || loading) ? 'not-allowed' : 'pointer',
-                                            textAlign: 'left'
+                                            textAlign: 'left',
+                                            boxShadow: '0 4px 15px rgba(220, 53, 69, 0.3)',
+                                            position: 'relative',
+                                            overflow: 'hidden'
                                         }">
                                     <div style="display:flex; align-items:center; justify-content: space-between; gap: 10px;">
                                         <span>
-                                            <i class="fas fa-bolt me-2"></i>{{ t('payNow') }}
+                                            <span class="icon-wrapper" style="background: rgba(255,255,255,0.2);">
+                                                <i class="fas fa-bolt"></i>
+                                            </span>
+                                            {{ t('payNow') }}
                                             <span v-if="checkoutTotals.hasHotelForDiscount" style="opacity:0.9; margin-left: 4px; font-size: 0.7rem; background: rgba(255,255,255,0.2); padding: 1px 4px; border-radius: 4px;">- 5% OFF</span>
                                         </span>
-                                        <span style="font-weight: 900; color: white;">{{ formatPrice(checkoutTotals.payNowTotal) }}</span>
+                                        <span class="price-tag" style="background: rgba(255,255,255,0.2);">{{ formatPrice(useWallet ? checkoutTotals.finalPayNowTotal : checkoutTotals.payNowTotal) }}</span>
                                     </div>
                                     <div style="margin-top: 4px; font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.9); line-height: 1.25;">
                                         <span v-if="checkoutTotals.hasHotelForDiscount">{{ t('youPayTodayAndSave') }} {{ formatPrice(checkoutTotals.savings) }}</span>
@@ -4399,6 +4890,46 @@ const EventDetailApp = {
                                     </div>
                                     <div style="margin-top: 2px; font-size: 0.7rem; font-weight: 600; color: rgba(255,255,255,0.85); line-height: 1.25;">
                                         {{ t('bestValueIfPayToday') }}
+                                    </div>
+                                </button>
+
+                                <button v-if="!isResumedCheckout" type="button"
+                                        class="btn payment-button payment-button-register"
+                                        @click="handleRegisterOnly"
+                                        :disabled="!canProceedToCheckout || loading"
+                                        :style="{
+                                            width: '100%',
+                                            background: 'linear-gradient(135deg, #28a745 0%, #20c997 50%, #17a2b8 100%)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '12px',
+                                            padding: '14px 16px',
+                                            fontWeight: '800',
+                                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                            opacity: (!canProceedToCheckout || loading) ? 0.6 : 1,
+                                            cursor: (selectedChildrenCount === 0 || loading) ? 'not-allowed' : 'pointer',
+                                            textAlign: 'left',
+                                            boxShadow: '0 4px 15px rgba(40, 167, 69, 0.3)',
+                                            position: 'relative',
+                                            overflow: 'hidden'
+                                        }">
+                                    <div style="display:flex; align-items:center; justify-content: space-between; gap: 10px;">
+                                        <span>
+                                            <span class="icon-wrapper" style="background: rgba(255,255,255,0.2);">
+                                                <i class="fas fa-user-plus"></i>
+                                            </span>
+                                            Register now, pay later
+                                        </span>
+                                        <span class="price-tag" style="background: rgba(255,255,255,0.2);">$0.00</span>
+                                    </div>
+                                    <div style="margin-top: 4px; font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.9); line-height: 1.25;">
+                                        <span v-if="selectedChildrenCount > 0 && hasHotelOrRooms">{{ t('registerPlayersNowPayHotelLater') }}</span>
+                                        <span v-else-if="selectedChildrenCount > 0">{{ t('registerPlayersNowNoHotelNeeded') }}</span>
+                                        <span v-else-if="hasHotelOrRooms">{{ t('reserveHotelLaterPayWhenReady') }}</span>
+                                        <span v-else>{{ t('secureYourSpotInTheEvent') }}</span>
+                                    </div>
+                                    <div style="margin-top: 2px; font-size: 0.7rem; font-weight: 600; color: rgba(255,255,255,0.85); line-height: 1.25;">
+                                        Secure your spot pay later
                                     </div>
                                 </button>
                             </div>

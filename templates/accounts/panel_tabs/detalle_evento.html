@@ -666,25 +666,29 @@
 
         /* Optimizar botones de pago - Más compactos */
         #pay-plan-btn,
-        #pay-now-btn {
+        #pay-now-btn,
+        #register-only-btn {
             padding: 10px 12px !important;
             margin-bottom: 8px !important;
         }
 
         #pay-plan-btn > div:first-child,
-        #pay-now-btn > div:first-child {
+        #pay-now-btn > div:first-child,
+        #register-only-btn > div:first-child {
             margin-bottom: 4px !important;
         }
 
         #pay-now-subtext,
-        #plan-subtext {
+        #plan-subtext,
+        #register-only-subtext {
             margin-top: 2px !important;
             font-size: 0.75rem !important;
             line-height: 1.2 !important;
         }
 
         #pay-now-btn > div:last-child,
-        #pay-plan-btn > div:last-child {
+        #pay-plan-btn > div:last-child,
+        #register-only-btn > div:last-child {
             margin-top: 2px !important;
             font-size: 0.7rem !important;
         }
@@ -1399,6 +1403,18 @@
                                     {% trans "Best value if you can pay today." %}
                                 </div>
                         </button>
+
+                            <button type="button" class="btn" id="register-only-btn" disabled
+                                    style="flex: 1; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border: none; border-radius: 10px; padding: 12px; font-weight: 800; transition: all 0.2s; opacity: 0.5; cursor: not-allowed; text-align: left;">
+                                <div style="display:flex; align-items:center; justify-content: space-between; gap: 10px;">
+                                    <span><i class="fas fa-user-plus me-2"></i>{% trans "Register now" %}</span>
+                                    <span style="font-weight: 900; color: white;">$0.00</span>
+                                </div>
+                                <div id="register-only-subtext" style="margin-top: 4px; font-size: 0.8rem; font-weight: 700; color: rgba(255,255,255,0.9); line-height: 1.25;"></div>
+                                <div style="margin-top: 2px; font-size: 0.74rem; font-weight: 600; color: rgba(255,255,255,0.85); line-height: 1.25;">
+                                    {% trans "Secure your spot, pay hotel later." %}
+                                </div>
+                        </button>
                         </div>
                     </form>
 
@@ -1512,6 +1528,12 @@
     filter: brightness(1.02);
 }
 
+#register-only-btn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 24px rgba(40, 167, 69, 0.25);
+    filter: brightness(1.02);
+}
+
 #add-hotel-stay-btn:disabled {
     opacity: 0.55;
     cursor: not-allowed;
@@ -1519,7 +1541,8 @@
 }
 
 #pay-plan-btn:focus-visible,
-#pay-now-btn:focus-visible {
+#pay-now-btn:focus-visible,
+#register-only-btn:focus-visible {
     outline: 3px solid rgba(13, 44, 84, 0.25);
     outline-offset: 2px;
 }
@@ -2209,6 +2232,23 @@ document.addEventListener('DOMContentLoaded', function() {
             if (planSubtextEl) planSubtextEl.textContent = '';
         }
 
+        // Register only info
+        const registerOnlySubtextEl = document.getElementById('register-only-subtext');
+        if (registerOnlySubtextEl) {
+            const playersCount = window.selectedPlayersCount || 0;
+            const hasHotel = window.checkoutItems && window.checkoutItems.hotel;
+
+            if (playersCount > 0 && hasHotel) {
+                registerOnlySubtextEl.textContent = '{% trans "Register players now, pay hotel later." %}';
+            } else if (playersCount > 0) {
+                registerOnlySubtextEl.textContent = '{% trans "Register players now, no hotel needed." %}';
+            } else if (hasHotel) {
+                registerOnlySubtextEl.textContent = '{% trans "Reserve hotel later, pay when ready." %}';
+            } else {
+                registerOnlySubtextEl.textContent = '{% trans "Secure your spot in the event." %}';
+            }
+        }
+
         // Mostrar/ocultar impuestos del hotel (independiente del breakdown)
         const taxesBreakdown = document.getElementById('checkout-taxes-breakdown');
         const taxesDetails = document.getElementById('checkout-taxes-details');
@@ -2330,16 +2370,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const hasHotelOrAddons = window.checkoutItems && (window.checkoutItems.hotel || (window.checkoutItems.addons && window.checkoutItems.addons.length > 0));
         const payPlanBtn = document.getElementById('pay-plan-btn');
         const payNowBtn = document.getElementById('pay-now-btn');
-        if (payPlanBtn && payNowBtn) {
+        const registerOnlyBtn = document.getElementById('register-only-btn');
+        if (payPlanBtn && payNowBtn && registerOnlyBtn) {
             const canProceed = isSpectator ? (hasHotelOrAddons || playersCount > 0) : (playersCount > 0);
             if (canProceed) {
-                [payPlanBtn, payNowBtn].forEach((btn) => {
+                [payPlanBtn, payNowBtn, registerOnlyBtn].forEach((btn) => {
                     btn.disabled = false;
                     btn.style.opacity = '1';
                     btn.style.cursor = 'pointer';
                 });
             } else {
-                [payPlanBtn, payNowBtn].forEach((btn) => {
+                [payPlanBtn, payNowBtn, registerOnlyBtn].forEach((btn) => {
                     btn.disabled = true;
                     btn.style.opacity = '0.5';
                     btn.style.cursor = 'not-allowed';
@@ -2381,6 +2422,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Botones de pago (directos en el checkout)
     const payPlanBtn = document.getElementById('pay-plan-btn');
     const payNowBtn = document.getElementById('pay-now-btn');
+    const registerOnlyBtn = document.getElementById('register-only-btn');
     const paymentModeInput = document.getElementById('payment-mode');
     const discountPercentInput = document.getElementById('discount-percent');
     const stripeCheckoutLoader = document.getElementById('stripe-checkout-loader');
@@ -2452,7 +2494,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const csrfToken = csrf ? csrf.value : '';
 
         // UI lock
-        [payPlanBtn, payNowBtn].forEach((btn) => {
+        [payPlanBtn, payNowBtn, registerOnlyBtn].forEach((btn) => {
             if (!btn) return;
             btn.disabled = true;
             btn.style.opacity = '0.7';
@@ -2595,8 +2637,35 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.open(data.checkout_url, '_blank');
                     }
                 }
+            } else if (data.redirect_url) {
+                // Handle register_only mode - redirect to confirmation page
+                console.log('Redirigiendo a confirmación de registro:', data.redirect_url);
+                didRedirect = true;
+
+                try {
+                    // Intentar redirigir la ventana principal (top level)
+                    if (window.top && window.top !== window) {
+                        window.top.location.href = data.redirect_url;
+                    } else {
+                        // Si no estamos en un iframe, redirigir normalmente
+                        window.location.href = data.redirect_url;
+                    }
+                } catch (e) {
+                    // Si hay error de seguridad (cross-origin), intentar con parent
+                    try {
+                        if (window.parent && window.parent !== window) {
+                            window.parent.location.href = data.redirect_url;
+                        } else {
+                            window.location.href = data.redirect_url;
+                        }
+                    } catch (e2) {
+                        // Último recurso: abrir en nueva ventana
+                        console.warn('No se pudo redirigir la ventana principal, abriendo en nueva ventana');
+                        window.open(data.redirect_url, '_blank');
+                    }
+                }
             } else {
-                console.error('No se recibió checkout_url en la respuesta:', data);
+                console.error('No se recibió checkout_url ni redirect_url en la respuesta:', data);
                 alert('{% trans "Stripe did not return a checkout link." %}');
             }
         } catch (e) {
@@ -2625,6 +2694,14 @@ document.addEventListener('DOMContentLoaded', function() {
             e.stopPropagation();
             console.log('Pay now button clicked');
             startStripeCheckout('now');
+        });
+    }
+    if (registerOnlyBtn) {
+        registerOnlyBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Register only button clicked');
+            startStripeCheckout('register_only');
         });
     }
 

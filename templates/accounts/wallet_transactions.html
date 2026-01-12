@@ -1,0 +1,374 @@
+{% load static %}
+{% load i18n %}
+{% load translation_tags %}
+{% get_current_language as CURRENT_LANGUAGE %}
+<!DOCTYPE html>
+<html lang="{% if CURRENT_LANGUAGE %}{{ CURRENT_LANGUAGE|slice:":2" }}{% else %}en{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Wallet Transactions" %} - NCS International</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Panel Usuario CSS -->
+    <link id="panel-usuario-css" href="{% static 'css/panel_usuario.css' %}" rel="stylesheet">
+    <script>
+        (function() {
+            const link = document.getElementById('panel-usuario-css');
+            if (link) {
+                const now = new Date();
+                const version = now.getFullYear().toString() +
+                               String(now.getMonth() + 1).padStart(2, '0') +
+                               String(now.getDate()).padStart(2, '0') +
+                               String(now.getHours()).padStart(2, '0') +
+                               String(now.getMinutes()).padStart(2, '0');
+                link.href = link.href.split('?')[0] + '?v=' + version;
+            }
+        })();
+    </script>
+
+    <style>
+        :root {
+            --mlb-blue: #0d2c54;
+            --mlb-red: #d50032;
+            --mlb-light-blue: #132448;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            padding: 20px;
+        }
+
+        .tab-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .tab-content-header {
+            padding: 0 0 12px 0;
+            margin-bottom: 30px;
+        }
+
+        .tab-content-header h4 {
+            color: var(--mlb-blue);
+            font-weight: 800;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .tab-content-header p {
+            color: #6c757d;
+            margin-bottom: 0;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary {
+            background-color: var(--mlb-blue);
+            border-color: var(--mlb-blue);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--mlb-light-blue);
+            border-color: var(--mlb-light-blue);
+        }
+
+        .btn-outline-primary {
+            color: var(--mlb-blue);
+            border-color: var(--mlb-blue);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--mlb-blue);
+            border-color: var(--mlb-blue);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="tab-container">
+        <div class="tab-content-header mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 style="color: var(--mlb-blue); font-weight: 800; font-size: 1.5rem; margin-bottom: 10px;">
+                        <i class="fas fa-wallet me-2" style="color: var(--mlb-red);"></i>{% trans "Wallet Transactions" %}
+                    </h4>
+                    <p class="text-muted mb-0">{% trans "View your complete wallet transaction history" %}</p>
+                </div>
+                <a href="{% url 'panel' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Panel" %}
+                </a>
+            </div>
+        </div>
+
+        {% if wallet %}
+            <!-- Wallet Balance Card -->
+            <div class="card mb-4" style="background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);">
+                <div class="card-body p-4 text-white">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="mb-2" style="color: white; font-weight: 600;">
+                                <i class="fas fa-wallet me-2"></i>{% trans "My Wallet" %}
+                            </h5>
+                            <p class="mb-0" style="color: rgba(255,255,255,0.9); font-size: 0.9rem;">
+                                {% trans "Available balance for payments" %}
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="mb-2">
+                                <small style="color: rgba(255,255,255,0.8); font-size: 0.85rem;">{% trans "Balance" %}</small>
+                                <h3 class="mb-0" style="color: white; font-weight: 800; font-size: 2.5rem;">
+                                    ${{ wallet.balance|floatformat:2 }}
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="card" style="border-left: 4px solid #28a745;">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <small class="text-muted d-block">{% trans "Total Deposits" %}</small>
+                                    <h5 class="mb-0" style="color: #28a745; font-weight: 700;">${{ stats.total_deposits|floatformat:2 }}</h5>
+                                </div>
+                                <i class="fas fa-arrow-down fa-2x" style="color: #28a745; opacity: 0.3;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="card" style="border-left: 4px solid var(--mlb-red);">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <small class="text-muted d-block">{% trans "Total Payments" %}</small>
+                                    <h5 class="mb-0" style="color: var(--mlb-red); font-weight: 700;">${{ stats.total_payments|floatformat:2 }}</h5>
+                                </div>
+                                <i class="fas fa-arrow-up fa-2x" style="color: var(--mlb-red); opacity: 0.3;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="card" style="border-left: 4px solid #17a2b8;">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <small class="text-muted d-block">{% trans "Total Refunds" %}</small>
+                                    <h5 class="mb-0" style="color: #17a2b8; font-weight: 700;">${{ stats.total_refunds|floatformat:2 }}</h5>
+                                </div>
+                                <i class="fas fa-undo fa-2x" style="color: #17a2b8; opacity: 0.3;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 mb-3">
+                    <div class="card" style="border-left: 4px solid #6c757d;">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="flex-grow-1">
+                                    <small class="text-muted d-block">{% trans "Total Withdrawals" %}</small>
+                                    <h5 class="mb-0" style="color: #6c757d; font-weight: 700;">${{ stats.total_withdrawals|floatformat:2 }}</h5>
+                                </div>
+                                <i class="fas fa-minus-circle fa-2x" style="color: #6c757d; opacity: 0.3;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="get" class="d-flex align-items-center gap-3">
+                        <label for="type" class="mb-0" style="font-weight: 600; color: var(--mlb-blue);">
+                            {% trans "Filter by type:" %}
+                        </label>
+                        <select name="type" id="type" class="form-select" style="max-width: 200px;" onchange="this.form.submit()">
+                            <option value="">{% trans "All Types" %}</option>
+                            {% for type_code, type_name in transaction_types %}
+                                <option value="{{ type_code }}" {% if current_filter == type_code %}selected{% endif %}>
+                                    {{ type_name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if current_filter %}
+                            <a href="{% url 'accounts:wallet_transactions' %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>{% trans "Clear Filter" %}
+                            </a>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+
+            <!-- Transactions Table -->
+            <div class="card">
+                <div class="card-body">
+                    {% if transactions %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead style="background: #f8f9fa;">
+                                    <tr>
+                                        <th style="font-weight: 700; color: var(--mlb-blue);">{% trans "Date" %}</th>
+                                        <th style="font-weight: 700; color: var(--mlb-blue);">{% trans "Type" %}</th>
+                                        <th style="font-weight: 700; color: var(--mlb-blue);">{% trans "Description" %}</th>
+                                        <th style="font-weight: 700; color: var(--mlb-blue); text-align: right;">{% trans "Amount" %}</th>
+                                        <th style="font-weight: 700; color: var(--mlb-blue); text-align: right;">{% trans "Balance After" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for transaction in transactions %}
+                                        <tr>
+                                            <td>
+                                                <div style="font-weight: 600; color: #495057;">
+                                                    {{ transaction.created_at|date:"M d, Y" }}
+                                                </div>
+                                                <small class="text-muted">{{ transaction.created_at|date:"h:i A" }}</small>
+                                            </td>
+                                            <td>
+                                                {% if transaction.transaction_type == "deposit" %}
+                                                    <span class="badge" style="background: #28a745; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600;">
+                                                        <i class="fas fa-arrow-down me-1"></i>{{ transaction.get_transaction_type_display }}
+                                                    </span>
+                                                {% elif transaction.transaction_type == "payment" %}
+                                                    <span class="badge" style="background: var(--mlb-red); color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600;">
+                                                        <i class="fas fa-arrow-up me-1"></i>{{ transaction.get_transaction_type_display }}
+                                                    </span>
+                                                {% elif transaction.transaction_type == "refund" %}
+                                                    <span class="badge" style="background: #17a2b8; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600;">
+                                                        <i class="fas fa-undo me-1"></i>{{ transaction.get_transaction_type_display }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge" style="background: #6c757d; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600;">
+                                                        <i class="fas fa-minus-circle me-1"></i>{{ transaction.get_transaction_type_display }}
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <div style="font-weight: 600; color: #495057;">
+                                                    {{ transaction.description|default:"—" }}
+                                                </div>
+                                                {% if transaction.reference_id %}
+                                                    <small class="text-muted">
+                                                        <i class="fas fa-hashtag me-1"></i>{{ transaction.reference_id }}
+                                                    </small>
+                                                {% endif %}
+                                            </td>
+                                            <td style="text-align: right;">
+                                                {% if transaction.transaction_type == "deposit" or transaction.transaction_type == "refund" %}
+                                                    <span style="color: #28a745; font-weight: 700; font-size: 1.1rem;">
+                                                        +${{ transaction.amount|floatformat:2 }}
+                                                    </span>
+                                                {% else %}
+                                                    <span style="color: var(--mlb-red); font-weight: 700; font-size: 1.1rem;">
+                                                        -${{ transaction.amount|floatformat:2 }}
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td style="text-align: right;">
+                                                <span style="color: var(--mlb-blue); font-weight: 700;">
+                                                    ${{ transaction.balance_after|floatformat:2 }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        {% if transactions.has_other_pages %}
+                            <nav aria-label="Transaction pagination" class="mt-4">
+                                <ul class="pagination justify-content-center">
+                                    {% if transactions.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1{% if current_filter %}&type={{ current_filter }}{% endif %}">
+                                                <i class="fas fa-angle-double-left"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ transactions.previous_page_number }}{% if current_filter %}&type={{ current_filter }}{% endif %}">
+                                                <i class="fas fa-angle-left"></i>
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+                                        </li>
+                                        <li class="page-item disabled">
+                                            <span class="page-link"><i class="fas fa-angle-left"></i></span>
+                                        </li>
+                                    {% endif %}
+
+                                    <li class="page-item active">
+                                        <span class="page-link">
+                                            {% trans "Page" %} {{ transactions.number }} {% trans "of" %} {{ transactions.paginator.num_pages }}
+                                        </span>
+                                    </li>
+
+                                    {% if transactions.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ transactions.next_page_number }}{% if current_filter %}&type={{ current_filter }}{% endif %}">
+                                                <i class="fas fa-angle-right"></i>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ transactions.paginator.num_pages }}{% if current_filter %}&type={{ current_filter }}{% endif %}">
+                                                <i class="fas fa-angle-double-right"></i>
+                                            </a>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item disabled">
+                                            <span class="page-link"><i class="fas fa-angle-right"></i></span>
+                                        </li>
+                                        <li class="page-item disabled">
+                                            <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </nav>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-wallet" style="font-size: 3rem; color: #dee2e6; margin-bottom: 15px;"></i>
+                            <p class="text-muted mb-0">{% trans "No transactions found" %}</p>
+                            <small class="text-muted">
+                                {% if current_filter %}
+                                    {% trans "Try removing the filter to see all transactions" %}
+                                {% else %}
+                                    {% trans "Your wallet transactions will appear here" %}
+                                {% endif %}
+                            </small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                {% trans "Wallet not found. Please contact support." %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

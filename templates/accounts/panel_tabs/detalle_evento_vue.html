@@ -598,79 +598,6 @@
         }
     }
 
-    /* Fullscreen Modal in Iframe */
-    .room-selection-modal-fullscreen {
-        position: fixed !important;
-        top: 0 !important;
-        left: 0 !important;
-        right: 0 !important;
-        bottom: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        z-index: 9999 !important;
-        background: rgba(0, 0, 0, 0.6) !important;
-        backdrop-filter: blur(4px);
-        overflow-y: auto !important;
-        overflow-x: hidden !important;
-    }
-
-    .room-selection-modal-fullscreen .modal-dialog {
-        margin: 0 !important;
-        max-width: 100% !important;
-        width: 100% !important;
-        min-height: 100% !important;
-        display: flex !important;
-        align-items: flex-start !important;
-        justify-content: center !important;
-        padding: 0 !important;
-        padding-top: 0 !important;
-    }
-
-    .room-selection-modal-fullscreen .modal-content {
-        max-height: 100vh !important;
-        height: auto !important;
-        display: flex !important;
-        flex-direction: column !important;
-        margin: 0 !important;
-        width: 100% !important;
-        max-width: 100% !important;
-        border-radius: 0 !important;
-    }
-
-    @media (min-width: 992px) {
-        .room-selection-modal-fullscreen .modal-dialog {
-            padding: 20px !important;
-            padding-top: 20px !important;
-        }
-
-        .room-selection-modal-fullscreen .modal-content {
-            max-width: 1400px !important;
-            max-height: 95vh !important;
-            border-radius: 16px !important;
-            margin: 0 auto !important;
-        }
-    }
-
-    .room-selection-modal-fullscreen .modal-body {
-        overflow-y: auto !important;
-        flex: 1 !important;
-        -webkit-overflow-scrolling: touch !important;
-    }
-
-    @media (max-width: 768px) {
-        .room-selection-modal-fullscreen .modal-dialog {
-            padding: 0 !important;
-        }
-
-        .room-selection-modal-fullscreen .modal-content {
-            max-height: 100vh !important;
-            border-radius: 0 !important;
-            max-width: 100% !important;
-        }
-    }
-
     /* Responsive Grid for Modal (Global) */
     .modal-grid-layout {
         display: grid !important;
@@ -683,6 +610,62 @@
         grid-template-columns: 1fr 1fr !important;
         gap: 6px !important;
     }
+
+    /* ============================================== */
+    /* BORDE GRADIENTE (SIN ANIMACIONES) - BOTONES DE PAGO */
+    /* ============================================== */
+
+    .payment-button:not(:disabled):not([disabled]) {
+        position: relative !important;
+        overflow: visible !important;
+        transition: transform 0.18s ease, filter 0.18s ease !important;
+    }
+
+    /* Asegura que el contenido quede por encima del borde */
+    .payment-button:not(:disabled):not([disabled]) > * {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Gradientes por botón */
+    .payment-button-plan:not(:disabled):not([disabled]) {
+        --ring-grad: linear-gradient(135deg, rgba(13, 44, 84, 0.85), rgba(80, 151, 255, 0.85));
+    }
+    .payment-button-pay:not(:disabled):not([disabled]) {
+        --ring-grad: linear-gradient(135deg, rgba(220, 53, 69, 0.9), rgba(255, 193, 7, 0.85));
+    }
+    .payment-button-register:not(:disabled):not([disabled]) {
+        --ring-grad: linear-gradient(135deg, rgba(40, 167, 69, 0.9), rgba(32, 201, 151, 0.85));
+    }
+
+    /* Borde gradiente delgado alrededor (ring) */
+    .payment-button:not(:disabled):not([disabled])::before {
+        content: '';
+        position: absolute;
+        inset: -2px;                 /* qué tan “afuera” está el borde */
+        border-radius: inherit;
+        padding: 2px;                /* grosor de la línea */
+        background: var(--ring-grad);
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+        z-index: 1;
+        opacity: 0.85;
+    }
+
+    /* Hover: solo un toque, sin animación */
+    .payment-button:not(:disabled):not([disabled]):hover {
+        transform: translateY(-1px) !important;
+        filter: brightness(1.03);
+    }
+    .payment-button:not(:disabled):not([disabled]):hover::before {
+        opacity: 1;
+    }
+
+    /* ============================================== */
+    /* FIN BORDE GRADIENTE */
+    /* ============================================== */
 
     /* Estilos específicos para móvil - Detalle de Evento */
     @media (max-width: 768px) {
@@ -721,7 +704,7 @@
             width: 100% !important;
             max-width: 100% !important;
         }
-        .col-lg-7, .col-lg-5 {
+        .col-lg-8, .col-lg-4 {
             width: 100% !important;
             padding: 0 !important;
             max-width: 100% !important;
@@ -744,6 +727,358 @@
             padding: 12px 18px !important;
             font-size: 0.9rem !important;
             margin-bottom: 8px !important;
+        }
+
+        /* Estilos para botones de pago - Hacer MUY evidente que son clickeables */
+        .payment-button:not(:disabled):not([disabled]) {
+            cursor: pointer !important;
+            position: relative !important;
+            border-width: 2px !important;
+            animation: pulseButton 2s ease-in-out infinite !important;
+        }
+
+        @keyframes pulseButton {
+            0%, 100% {
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            }
+            50% {
+                box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
+            }
+        }
+
+        .payment-button-plan:not(:disabled):not([disabled]) {
+            border: 2px solid var(--mlb-blue) !important;
+            box-shadow: 0 4px 15px rgba(13, 44, 84, 0.15) !important;
+        }
+
+        .payment-button-plan:not(:disabled):not([disabled]) {
+            animation: pulseButtonBlue 2s ease-in-out infinite !important;
+        }
+
+        @keyframes pulseButtonBlue {
+            0%, 100% {
+                box-shadow: 0 4px 15px rgba(13, 44, 84, 0.15);
+                border-color: var(--mlb-blue);
+            }
+            50% {
+                box-shadow: 0 6px 25px rgba(13, 44, 84, 0.3);
+                border-color: var(--mlb-light-blue);
+            }
+        }
+
+        .payment-button-pay:not(:disabled):not([disabled]) {
+            animation: pulseButtonRed 2s ease-in-out infinite !important;
+        }
+
+        @keyframes pulseButtonRed {
+            0%, 100% {
+                box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+            }
+            50% {
+                box-shadow: 0 8px 30px rgba(220, 53, 69, 0.5);
+            }
+        }
+
+        .payment-button-register:not(:disabled):not([disabled]) {
+            animation: pulseButtonGreen 2s ease-in-out infinite !important;
+        }
+
+        @keyframes pulseButtonGreen {
+            0%, 100% {
+                box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+            }
+            50% {
+                box-shadow: 0 8px 30px rgba(40, 167, 69, 0.5);
+            }
+        }
+
+        .payment-button:not(:disabled):not([disabled]):hover {
+            transform: translateY(-3px) scale(1.03) !important;
+            animation: none !important;
+            z-index: 10 !important;
+        }
+
+        .payment-button-plan:not(:disabled):not([disabled]):hover {
+            box-shadow: 0 8px 30px rgba(13, 44, 84, 0.4) !important;
+            border-color: var(--mlb-light-blue) !important;
+            border-width: 3px !important;
+        }
+
+        .payment-button-pay:not(:disabled):not([disabled]):hover {
+            box-shadow: 0 10px 40px rgba(220, 53, 69, 0.6) !important;
+            background: linear-gradient(135deg, #ff1a4d 0%, var(--mlb-red) 50%, #b30029 100%) !important;
+        }
+
+        .payment-button-register:not(:disabled):not([disabled]):hover {
+            box-shadow: 0 10px 40px rgba(40, 167, 69, 0.6) !important;
+            background: linear-gradient(135deg, #34ce57 0%, #28c997 50%, #1fb8d4 100%) !important;
+        }
+
+        .payment-button:not(:disabled):not([disabled]):active {
+            transform: translateY(-1px) scale(0.97) !important;
+            animation: none !important;
+        }
+
+        /* Efecto de brillo que pasa sobre el botón */
+        .payment-button:not(:disabled):not([disabled])::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.6s;
+            pointer-events: none;
+            z-index: 1;
+            border-radius: inherit;
+        }
+
+        .payment-button:not(:disabled):not([disabled]):hover::before {
+            left: 100%;
+        }
+
+        /* Efecto de borde animado MUY VISIBLE alrededor del botón */
+        .payment-button:not(:disabled):not([disabled]) {
+            overflow: visible !important;
+            position: relative !important;
+        }
+
+        /* Pelota de baseball animada alrededor de los botones */
+        .payment-button:not(:disabled):not([disabled])::after {
+            content: '⚾';
+            position: absolute;
+            font-size: 1.8rem;
+            z-index: 1000;
+            pointer-events: none;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+            text-shadow: 0 0 10px rgba(255,255,255,0.8);
+        }
+
+        .payment-button-plan:not(:disabled):not([disabled])::after {
+            animation: baseballOrbitBlue 3s linear infinite;
+        }
+
+        .payment-button-pay:not(:disabled):not([disabled])::after {
+            animation: baseballOrbitRed 3s linear infinite;
+        }
+
+        .payment-button-register:not(:disabled):not([disabled])::after {
+            animation: baseballOrbitGreen 3s linear infinite;
+        }
+
+        /* Animación de órbita para la pelota de baseball - Azul */
+        @keyframes baseballOrbitBlue {
+            0% {
+                top: -10px;
+                left: 50%;
+                transform: translateX(-50%) rotate(0deg);
+            }
+            25% {
+                top: 50%;
+                left: calc(100% + 10px);
+                transform: translateX(-50%) rotate(90deg);
+            }
+            50% {
+                top: calc(100% + 10px);
+                left: 50%;
+                transform: translateX(-50%) rotate(180deg);
+            }
+            75% {
+                top: 50%;
+                left: -20px;
+                transform: translateX(-50%) rotate(270deg);
+            }
+            100% {
+                top: -10px;
+                left: 50%;
+                transform: translateX(-50%) rotate(360deg);
+            }
+        }
+
+        /* Animación de órbita para la pelota de baseball - Rojo (más rápida) */
+        @keyframes baseballOrbitRed {
+            0% {
+                top: -10px;
+                left: 50%;
+                transform: translateX(-50%) rotate(0deg) scale(1);
+            }
+            25% {
+                top: 50%;
+                left: calc(100% + 10px);
+                transform: translateX(-50%) rotate(90deg) scale(1.1);
+            }
+            50% {
+                top: calc(100% + 10px);
+                left: 50%;
+                transform: translateX(-50%) rotate(180deg) scale(1);
+            }
+            75% {
+                top: 50%;
+                left: -20px;
+                transform: translateX(-50%) rotate(270deg) scale(1.1);
+            }
+            100% {
+                top: -10px;
+                left: 50%;
+                transform: translateX(-50%) rotate(360deg) scale(1);
+            }
+        }
+
+        /* Animación de órbita para la pelota de baseball - Verde */
+        @keyframes baseballOrbitGreen {
+            0% {
+                top: -10px;
+                left: 50%;
+                transform: translateX(-50%) rotate(0deg);
+            }
+            25% {
+                top: 50%;
+                left: calc(100% + 10px);
+                transform: translateX(-50%) rotate(90deg);
+            }
+            50% {
+                top: calc(100% + 10px);
+                left: 50%;
+                transform: translateX(-50%) rotate(180deg);
+            }
+            75% {
+                top: 50%;
+                left: -20px;
+                transform: translateX(-50%) rotate(270deg);
+            }
+            100% {
+                top: -10px;
+                left: 50%;
+                transform: translateX(-50%) rotate(360deg);
+            }
+        }
+
+        /* En hover, la pelota gira más rápido */
+        .payment-button:not(:disabled):not([disabled]):hover::after {
+            animation-duration: 1.5s !important;
+        }
+
+        /* Borde animado MUY VISIBLE siempre */
+        .payment-button-plan:not(:disabled):not([disabled]) {
+            box-shadow: 0 4px 15px rgba(13, 44, 84, 0.15),
+                        0 0 0 3px rgba(13, 44, 84, 0.6),
+                        0 0 0 6px rgba(80, 151, 255, 0.5) !important;
+            animation: pulseBorderBlue 2s ease-in-out infinite !important;
+        }
+
+        .payment-button-pay:not(:disabled):not([disabled]) {
+            box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3),
+                        0 0 0 3px rgba(220, 53, 69, 0.7),
+                        0 0 0 6px rgba(255, 26, 77, 0.6) !important;
+            animation: pulseBorderRed 2s ease-in-out infinite !important;
+        }
+
+        .payment-button-register:not(:disabled):not([disabled]) {
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3),
+                        0 0 0 3px rgba(40, 167, 69, 0.7),
+                        0 0 0 6px rgba(32, 201, 151, 0.6) !important;
+            animation: pulseBorderGreen 2s ease-in-out infinite !important;
+        }
+
+        /* Hover hace que el efecto sea aún más pronunciado */
+        .payment-button-plan:not(:disabled):not([disabled]):hover {
+            box-shadow: 0 8px 30px rgba(13, 44, 84, 0.4),
+                        0 0 0 4px rgba(13, 44, 84, 0.8),
+                        0 0 0 8px rgba(80, 151, 255, 0.7) !important;
+            animation: pulseBorderBlueIntense 1s ease-in-out infinite !important;
+        }
+
+        .payment-button-pay:not(:disabled):not([disabled]):hover {
+            box-shadow: 0 10px 40px rgba(220, 53, 69, 0.6),
+                        0 0 0 4px rgba(220, 53, 69, 0.9),
+                        0 0 0 8px rgba(255, 26, 77, 0.8) !important;
+            animation: pulseBorderRedIntense 1s ease-in-out infinite !important;
+        }
+
+        .payment-button-register:not(:disabled):not([disabled]):hover {
+            box-shadow: 0 10px 40px rgba(40, 167, 69, 0.6),
+                        0 0 0 4px rgba(40, 167, 69, 0.9),
+                        0 0 0 8px rgba(32, 201, 151, 0.8) !important;
+            animation: pulseBorderGreenIntense 1s ease-in-out infinite !important;
+        }
+
+        @keyframes pulseBorderBlue {
+            0%, 100% {
+                box-shadow: 0 4px 15px rgba(13, 44, 84, 0.15),
+                            0 0 0 3px rgba(13, 44, 84, 0.6),
+                            0 0 0 6px rgba(80, 151, 255, 0.5);
+            }
+            50% {
+                box-shadow: 0 4px 15px rgba(13, 44, 84, 0.15),
+                            0 0 0 4px rgba(80, 151, 255, 0.8),
+                            0 0 0 8px rgba(80, 151, 255, 0.6);
+            }
+        }
+
+        @keyframes pulseBorderBlueIntense {
+            0%, 100% {
+                box-shadow: 0 8px 30px rgba(13, 44, 84, 0.4),
+                            0 0 0 4px rgba(13, 44, 84, 0.8),
+                            0 0 0 8px rgba(80, 151, 255, 0.7);
+            }
+            50% {
+                box-shadow: 0 8px 30px rgba(13, 44, 84, 0.4),
+                            0 0 0 5px rgba(80, 151, 255, 1),
+                            0 0 0 10px rgba(80, 151, 255, 0.8);
+            }
+        }
+
+        @keyframes pulseBorderRed {
+            0%, 100% {
+                box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3),
+                            0 0 0 3px rgba(220, 53, 69, 0.7),
+                            0 0 0 6px rgba(255, 26, 77, 0.6);
+            }
+            50% {
+                box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3),
+                            0 0 0 4px rgba(255, 26, 77, 0.9),
+                            0 0 0 8px rgba(255, 26, 77, 0.7);
+            }
+        }
+
+        @keyframes pulseBorderRedIntense {
+            0%, 100% {
+                box-shadow: 0 10px 40px rgba(220, 53, 69, 0.6),
+                            0 0 0 4px rgba(220, 53, 69, 0.9),
+                            0 0 0 8px rgba(255, 26, 77, 0.8);
+            }
+            50% {
+                box-shadow: 0 10px 40px rgba(220, 53, 69, 0.6),
+                            0 0 0 5px rgba(255, 26, 77, 1),
+                            0 0 0 10px rgba(255, 26, 77, 0.9);
+            }
+        }
+
+        @keyframes pulseBorderGreen {
+            0%, 100% {
+                box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3),
+                            0 0 0 3px rgba(40, 167, 69, 0.7),
+                            0 0 0 6px rgba(32, 201, 151, 0.6);
+            }
+            50% {
+                box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3),
+                            0 0 0 4px rgba(32, 201, 151, 0.9),
+                            0 0 0 8px rgba(32, 201, 151, 0.7);
+            }
+        }
+
+        @keyframes pulseBorderGreenIntense {
+            0%, 100% {
+                box-shadow: 0 10px 40px rgba(40, 167, 69, 0.6),
+                            0 0 0 4px rgba(40, 167, 69, 0.9),
+                            0 0 0 8px rgba(32, 201, 151, 0.8);
+            }
+            50% {
+                box-shadow: 0 10px 40px rgba(40, 167, 69, 0.6),
+                            0 0 0 5px rgba(32, 201, 151, 1),
+                            0 0 0 10px rgba(32, 201, 151, 0.9);
+            }
         }
 
         /* Modal specific adjustments */
@@ -847,6 +1182,7 @@
     "start_date": "{{ event.start_date|date:'Y-m-d' }}",
     "end_date": "{{ event.end_date|date:'Y-m-d'|default:'' }}",
     "banner": "{% if event.banner %}{{ event.banner|clean_localhost_url }}{% endif %}",
+    "banner_mobile": "{% if event.banner_mobile %}{{ event.banner_mobile|clean_localhost_url }}{% endif %}",
     "logo": "{% if event.logo %}{{ event.logo|clean_localhost_url }}{% endif %}",
     "video_url": "{{ event.video_url|default:''|escapejs }}",
     "external_link": "{{ event.external_link|default:''|escapejs }}",
@@ -862,6 +1198,9 @@
     "payment_deadline_spectator": "{{ event.payment_deadline_spectator|date:'Y-m-d'|default:'' }}",
     "stripe_checkout_url": "{% url 'accounts:create_stripe_event_checkout_session' event.pk %}",
     "payment_deadline": "{{ event.payment_deadline|date:'Y-m-d'|default:'' }}",
+    "wallet_balance": {% if wallet_balance %}{{ wallet_balance|floatformat:2 }}{% else %}0{% endif %},
+    "wallet_balance_total": {% if wallet_balance_total %}{{ wallet_balance_total|floatformat:2 }}{% else %}0{% endif %},
+    "wallet_balance_pending": {% if wallet_balance_pending %}{{ wallet_balance_pending|floatformat:2 }}{% else %}0{% endif %},
     "category": {% if event.category %}{"id": {{ event.category.id }}, "name": "{{ event.category.name|escapejs }}"}{% else %}null{% endif %},
     "event_type": {% if event.event_type %}{"id": {{ event.event_type.id }}, "name": "{{ event.event_type.name|escapejs }}"}{% else %}null{% endif %},
     "status": "{{ event.get_status_display|escapejs }}",
@@ -1009,17 +1348,21 @@
 <!-- Initialize Vue App -->
 <script>
 (function() {
-    // Check if Vue is loaded
-    if (typeof Vue === 'undefined') {
-        console.error('Vue.js is not loaded');
-        return;
-    }
+    // Function to initialize the app
+    function initializeApp() {
+        // Check if Vue is loaded
+        if (typeof Vue === 'undefined') {
+            console.error('Vue.js is not loaded');
+            return;
+        }
 
-    // Check if EventDetailApp is defined
-    if (typeof EventDetailApp === 'undefined') {
-        console.error('EventDetailApp is not defined. Make sure event-detail.js is loaded.');
-        return;
-    }
+        // Check if EventDetailApp is defined
+        if (typeof window.EventDetailApp === 'undefined') {
+            console.warn('EventDetailApp is not defined yet. Retrying...');
+            // Retry after a short delay
+            setTimeout(initializeApp, 100);
+            return;
+        }
 
     const { createApp } = Vue;
     const appElement = document.getElementById('event-detail-app');
@@ -1080,7 +1423,7 @@
 
     try {
         // Create Vue app instance
-        const app = createApp(EventDetailApp);
+        const app = createApp(window.EventDetailApp);
 
         // Mount the app
         const instance = app.mount('#event-detail-app');
@@ -1130,8 +1473,31 @@
                 return originalHandlePaymentPlan.call(this);
             };
         }
+
+        if (instance && instance.handleRegisterOnly) {
+            const originalHandleRegisterOnly = instance.handleRegisterOnly;
+            instance.handleRegisterOnly = async function() {
+                console.log('');
+                console.log('═══════════════════════════════════════════════════════════════');
+                console.log('🟢🟢🟢 handleRegisterOnly CLICKEADO 🟢🟢🟢');
+                console.log('═══════════════════════════════════════════════════════════════');
+                return originalHandleRegisterOnly.call(this);
+            };
+        }
     } catch (e) {
         console.error('Error initializing Vue app:', e);
+    }
+    }
+
+    // Wait for DOM and scripts to be ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            // Give scripts a moment to load
+            setTimeout(initializeApp, 50);
+        });
+    } else {
+        // DOM is already ready, but scripts might still be loading
+        setTimeout(initializeApp, 50);
     }
 })();
 </script>

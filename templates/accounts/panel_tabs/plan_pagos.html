@@ -28,16 +28,26 @@
                             ${{ wallet.balance|floatformat:2 }}
                         </h3>
                     </div>
-                    <button
-                        type="button"
-                        class="btn btn-light btn-sm"
-                        style="border-radius: 8px; opacity: 0.65; cursor: not-allowed;"
-                        disabled
-                        aria-disabled="true"
-                        title="{% trans 'Add Funds is currently disabled' %}"
-                    >
-                        <i class="fas fa-plus me-1"></i>{% trans "Add Funds" %}
-                    </button>
+                    <div class="d-flex gap-2">
+                        <a
+                            href="{% url 'accounts:wallet_transactions' %}"
+                            class="btn btn-light btn-sm"
+                            style="border-radius: 8px;"
+                            title="{% trans 'View wallet transaction history' %}"
+                        >
+                            <i class="fas fa-history me-1"></i>{% trans "View History" %}
+                        </a>
+                        <button
+                            type="button"
+                            class="btn btn-light btn-sm"
+                            style="border-radius: 8px; opacity: 0.65; cursor: not-allowed;"
+                            disabled
+                            aria-disabled="true"
+                            title="{% trans 'Add Funds is currently disabled' %}"
+                        >
+                            <i class="fas fa-plus me-1"></i>{% trans "Add Funds" %}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

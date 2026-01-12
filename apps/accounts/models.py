@@ -1,8 +1,10 @@
 from datetime import date
 from decimal import Decimal
+from uuid import uuid4
 
 from django.contrib.auth.models import User
-from django.db import models
+from django.core.exceptions import ValidationError
+from django.db import models, transaction
 from django.urls import reverse
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
@@ -122,6 +124,18 @@ class UserProfile(models.Model):
     @property
     def is_spectator(self):
         return self.user_type == "spectator"
+
+    @property
+    def age(self):
+        """Calcula la edad actual del usuario basada en birth_date"""
+        if not self.birth_date:
+            return None
+        today = date.today()
+        age = today.year - self.birth_date.year
+        # Ajustar si aún no ha cumplido años este año
+        if (today.month, today.day) < (self.birth_date.month, self.birth_date.day):
+            age -= 1
+        return age
 
     def get_absolute_url(self):
         return reverse("accounts:profile")
@@ -251,7 +265,10 @@ class Player(models.Model):
         help_text="URL amigable basada en el nombre del jugador",
     )
     position = models.CharField(
-        max_length=20, choices=POSITION_CHOICES, blank=True, verbose_name=_("Primary Position")
+        max_length=20,
+        choices=POSITION_CHOICES,
+        blank=True,
+        verbose_name=_("Primary Position"),
     )
     secondary_position = models.CharField(
         max_length=20,
@@ -616,13 +633,17 @@ class Player(models.Model):
             target_division: Puede ser un objeto Division o un string con el nombre
         """
         # Convertir a string si es un objeto Division
-        if hasattr(target_division, 'name'):
+        if hasattr(target_division, "name"):
             target_division_name = target_division.name
         else:
             target_division_name = str(target_division)
 
         # Extraer solo la parte de edad si tiene formato compuesto (ej: "10U D1" -> "10U")
-        target_division_name = target_division_name.split()[0] if ' ' in target_division_name else target_division_name
+        target_division_name = (
+            target_division_name.split()[0]
+            if " " in target_division_name
+            else target_division_name
+        )
 
         # Verificar que tenga verificación de edad aprobada
         if self.age_verification_status != "approved":
@@ -679,7 +700,9 @@ class Player(models.Model):
         if not self.division:
             return False, "No tiene división asignada"
 
-        can_play, message = self.can_play_in_division(self.division.name if self.division else None)
+        can_play, message = self.can_play_in_division(
+            self.division.name if self.division else None
+        )
         return can_play, message
 
 
@@ -836,7 +859,7 @@ class HomeBanner(models.Model):
         blank=True,
         null=True,
         verbose_name="Imagen Móvil",
-        help_text='Imagen del banner para dispositivos móviles (opcional, si no se proporciona se usará la imagen principal)',
+        help_text="Imagen del banner para dispositivos móviles (opcional, si no se proporciona se usará la imagen principal)",
     )
     gradient_color_1 = models.CharField(
         max_length=7,
@@ -1330,6 +1353,13 @@ class UserWallet(models.Model):
         verbose_name="Balance",
         help_text="Balance actual de la billetera",
     )
+    pending_balance = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0.00"),
+        verbose_name="Balance Pendiente",
+        help_text="Balance reservado para checkouts pendientes de pago",
+    )
     created_at = models.DateTimeField(
         auto_now_add=True, verbose_name="Fecha de Creación"
     )
@@ -1345,55 +1375,246 @@ class UserWallet(models.Model):
     def __str__(self):
         return f"Wallet de {self.user.get_full_name()} - ${self.balance}"
 
-    def add_funds(self, amount, description="Depósito"):
-        """Agregar fondos a la billetera"""
+    @property
+    def available_balance(self):
+        """Balance disponible para usar (balance - pending_balance)"""
+        return self.balance - self.pending_balance
+
+    def add_funds(self, amount, description="Depósito", reference_id=None):
+        """
+        Agregar fondos a la billetera de forma segura (con transacción atómica y lock).
+        Este método usa select_for_update para prevenir race conditions.
+        """
         if amount <= 0:
             raise ValueError("El monto debe ser mayor a cero")
-        self.balance += Decimal(str(amount))
-        self.save()
-        # Crear transacción
-        WalletTransaction.objects.create(
-            wallet=self,
-            transaction_type="deposit",
-            amount=amount,
-            description=description,
-            balance_after=self.balance,
-        )
+
+        amount_decimal = Decimal(str(amount))
+
+        with transaction.atomic():
+            # Lock the wallet row to prevent concurrent modifications
+            wallet = UserWallet.objects.select_for_update().get(pk=self.pk)
+            wallet.balance += amount_decimal
+            wallet.save(update_fields=["balance", "updated_at"])
+
+            # Crear transacción de auditoría
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                transaction_type="deposit",
+                amount=amount_decimal,
+                description=description,
+                balance_after=wallet.balance,
+                reference_id=reference_id or "",
+            )
+
+            # Update self for consistency
+            self.balance = wallet.balance
+
         return self.balance
 
-    def deduct_funds(self, amount, description="Pago"):
-        """Deducir fondos de la billetera"""
+    def deduct_funds(self, amount, description="Pago", reference_id=None):
+        """
+        Deducir fondos de la billetera de forma segura (con transacción atómica y lock).
+        Este método usa select_for_update para prevenir race conditions.
+        """
         if amount <= 0:
             raise ValueError("El monto debe ser mayor a cero")
-        if self.balance < Decimal(str(amount)):
-            raise ValueError("Balance insuficiente")
-        self.balance -= Decimal(str(amount))
-        self.save()
-        # Crear transacción
-        WalletTransaction.objects.create(
-            wallet=self,
-            transaction_type="payment",
-            amount=amount,
-            description=description,
-            balance_after=self.balance,
-        )
+
+        amount_decimal = Decimal(str(amount))
+
+        with transaction.atomic():
+            # Lock the wallet row to prevent concurrent modifications
+            wallet = UserWallet.objects.select_for_update().get(pk=self.pk)
+
+            if wallet.balance < amount_decimal:
+                raise ValueError("Balance insuficiente")
+
+            wallet.balance -= amount_decimal
+            wallet.save(update_fields=["balance", "updated_at"])
+
+            # Crear transacción de auditoría
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                transaction_type="payment",
+                amount=amount_decimal,
+                description=description,
+                balance_after=wallet.balance,
+                reference_id=reference_id or "",
+            )
+
+            # Update self for consistency
+            self.balance = wallet.balance
+
         return self.balance
 
-    def refund(self, amount, description="Reembolso"):
-        """Reembolsar fondos a la billetera"""
+    def refund(self, amount, description="Reembolso", reference_id=None):
+        """
+        Reembolsar fondos a la billetera de forma segura (con transacción atómica y lock).
+        Este método usa select_for_update para prevenir race conditions.
+        """
         if amount <= 0:
             raise ValueError("El monto debe ser mayor a cero")
-        self.balance += Decimal(str(amount))
-        self.save()
-        # Crear transacción
-        WalletTransaction.objects.create(
-            wallet=self,
-            transaction_type="refund",
-            amount=amount,
-            description=description,
-            balance_after=self.balance,
-        )
+
+        amount_decimal = Decimal(str(amount))
+
+        with transaction.atomic():
+            # Lock the wallet row to prevent concurrent modifications
+            wallet = UserWallet.objects.select_for_update().get(pk=self.pk)
+            wallet.balance += amount_decimal
+            wallet.save(update_fields=["balance", "updated_at"])
+
+            # Crear transacción de auditoría
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                transaction_type="refund",
+                amount=amount_decimal,
+                description=description,
+                balance_after=wallet.balance,
+                reference_id=reference_id or "",
+            )
+
+            # Update self for consistency
+            self.balance = wallet.balance
+
         return self.balance
+
+    def reserve_funds(
+        self, amount, description="Reserva para checkout", reference_id=None
+    ):
+        """
+        Reservar fondos del wallet para un checkout pendiente.
+        Los fondos se reservan pero no se descuentan hasta que el pago se complete.
+        """
+        if amount <= 0:
+            raise ValueError("El monto debe ser mayor a cero")
+
+        amount_decimal = Decimal(str(amount))
+
+        with transaction.atomic():
+            # Lock the wallet row to prevent concurrent modifications
+            wallet = UserWallet.objects.select_for_update().get(pk=self.pk)
+
+            available = wallet.balance - wallet.pending_balance
+            if available < amount_decimal:
+                raise ValueError(
+                    f"Balance disponible insuficiente. Disponible: ${available}, Requerido: ${amount_decimal}"
+                )
+
+            wallet.pending_balance += amount_decimal
+            wallet.save(update_fields=["pending_balance", "updated_at"])
+
+            # Crear transacción de auditoría (tipo "payment" pero con estado "pending")
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                transaction_type="payment",
+                amount=amount_decimal,
+                description=description,
+                balance_after=wallet.balance,
+                reference_id=reference_id or "",
+            )
+
+            # Update self for consistency
+            self.pending_balance = wallet.pending_balance
+
+        return self.pending_balance
+
+    def release_reserved_funds(
+        self, amount, description="Liberación de reserva", reference_id=None
+    ):
+        """
+        Liberar fondos reservados sin descontarlos del balance.
+        Se usa cuando un checkout se cancela o expira.
+        """
+        if amount <= 0:
+            raise ValueError("El monto debe ser mayor a cero")
+
+        amount_decimal = Decimal(str(amount))
+
+        with transaction.atomic():
+            # Lock the wallet row to prevent concurrent modifications
+            wallet = UserWallet.objects.select_for_update().get(pk=self.pk)
+
+            if wallet.pending_balance < amount_decimal:
+                # Si hay menos pending de lo que se intenta liberar, liberar todo lo disponible
+                amount_decimal = wallet.pending_balance
+
+            wallet.pending_balance -= amount_decimal
+            wallet.save(update_fields=["pending_balance", "updated_at"])
+
+            # Crear transacción de auditoría (tipo "refund" para indicar que se liberó la reserva)
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                transaction_type="refund",
+                amount=amount_decimal,
+                description=description,
+                balance_after=wallet.balance,
+                reference_id=reference_id or "",
+            )
+
+            # Update self for consistency
+            self.pending_balance = wallet.pending_balance
+
+        return self.pending_balance
+
+    def confirm_reserved_funds(
+        self, amount, description="Confirmación de pago", reference_id=None
+    ):
+        """
+        Confirmar y descontar fondos que estaban reservados.
+        Se usa cuando un checkout se completa exitosamente.
+        """
+        if amount <= 0:
+            raise ValueError("El monto debe ser mayor a cero")
+
+        amount_decimal = Decimal(str(amount))
+
+        with transaction.atomic():
+            # Lock the wallet row to prevent concurrent modifications
+            wallet = UserWallet.objects.select_for_update().get(pk=self.pk)
+
+            if wallet.pending_balance < amount_decimal:
+                # Si hay menos pending de lo que se intenta confirmar, ajustar
+                amount_decimal = wallet.pending_balance
+
+            # Descontar del balance y liberar de pending
+            wallet.balance -= amount_decimal
+            wallet.pending_balance -= amount_decimal
+            wallet.save(update_fields=["balance", "pending_balance", "updated_at"])
+
+            # Crear transacción de auditoría (tipo "payment" confirmado)
+            WalletTransaction.objects.create(
+                wallet=wallet,
+                transaction_type="payment",
+                amount=amount_decimal,
+                description=description,
+                balance_after=wallet.balance,
+                reference_id=reference_id or "",
+            )
+
+            # Update self for consistency
+            self.balance = wallet.balance
+            self.pending_balance = wallet.pending_balance
+
+        return self.balance
+
+    def verify_integrity(self):
+        """
+        Verifica la integridad del wallet calculando el balance a partir de las transacciones.
+        Retorna (is_valid, calculated_balance, actual_balance, discrepancy)
+        """
+        transactions = self.transactions.all().order_by("created_at", "id")
+        calculated_balance = Decimal("0.00")
+
+        for tx in transactions:
+            if tx.transaction_type in ("deposit", "refund"):
+                calculated_balance += tx.amount
+            elif tx.transaction_type in ("payment", "withdrawal"):
+                calculated_balance -= tx.amount
+
+        actual_balance = self.balance
+        discrepancy = abs(calculated_balance - actual_balance)
+        is_valid = discrepancy < Decimal("0.01")  # Allow for rounding errors
+
+        return (is_valid, calculated_balance, actual_balance, discrepancy)
 
 
 class WalletTransaction(models.Model):
@@ -1453,11 +1674,109 @@ class WalletTransaction(models.Model):
         return f"{self.get_transaction_type_display()} - ${self.amount} - {self.wallet.user.get_full_name()}"
 
 
+class StaffWalletTopUp(models.Model):
+    """
+    Staff-only wallet credit operation.
+
+    This is the ONLY supported way for staff to add funds to a user's wallet.
+    Creating this record will atomically:
+    - create the user's wallet if missing
+    - add funds
+    - create a WalletTransaction (deposit) with an audit reference
+    """
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="staff_wallet_topups",
+        verbose_name="Usuario",
+    )
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name="Monto a agregar",
+        help_text="Debe ser mayor a 0.00",
+    )
+    description = models.CharField(
+        max_length=500,
+        blank=True,
+        verbose_name="Descripción",
+        help_text="Motivo del ajuste (opcional)",
+    )
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="created_wallet_topups",
+        verbose_name="Creado por",
+        limit_choices_to={"is_staff": True},
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Fecha")
+
+    class Meta:
+        verbose_name = "Recarga de billetera (Staff)"
+        verbose_name_plural = "Recargas de billetera (Staff)"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        # Safely access created_by to avoid RelatedObjectDoesNotExist
+        # Check created_by_id first to avoid triggering a database query
+        created_by_id = getattr(self, "created_by_id", None)
+        if created_by_id:
+            try:
+                created_by_str = self.created_by.username
+            except Exception:
+                created_by_str = "Unknown"
+        else:
+            created_by_str = "Unknown"
+        return f"Top-up ${self.amount} -> {self.user.get_full_name() or self.user.username} (by {created_by_str})"
+
+    def clean(self):
+        super().clean()
+        if self.amount is None or self.amount <= 0:
+            raise ValidationError({"amount": "El monto debe ser mayor a cero."})
+        # Safely check created_by to avoid RelatedObjectDoesNotExist
+        created_by_id = getattr(self, "created_by_id", None)
+        if created_by_id:
+            try:
+                if self.created_by and not self.created_by.is_staff:
+                    raise ValidationError(
+                        {"created_by": "Solo usuarios staff pueden crear recargas."}
+                    )
+            except Exception:
+                # If created_by doesn't exist, skip validation (will be set before save)
+                pass
+
+    def _apply_credit(self):
+        """
+        Aplicar crédito de forma segura usando el método add_funds del wallet.
+        Esto asegura que todas las validaciones y locks estén en su lugar.
+        """
+        wallet, _created = UserWallet.objects.get_or_create(
+            user=self.user, defaults={"balance": Decimal("0.00")}
+        )
+        wallet.add_funds(
+            amount=self.amount,
+            description=(self.description or "Staff top-up").strip(),
+            reference_id=f"staff_topup:{self.pk}",
+        )
+
+    def save(self, *args, **kwargs):
+        is_new = self.pk is None
+        if is_new:
+            with transaction.atomic():
+                self.full_clean()
+                super().save(*args, **kwargs)
+                self._apply_credit()
+            return
+        super().save(*args, **kwargs)
+
+
 class StripeEventCheckout(models.Model):
     """Checkout de Stripe para pagar registro de evento + hotel/no-show desde el panel."""
 
     STATUS_CHOICES = [
         ("created", "Created"),
+        ("registered", "Registered - Payment Pending"),
         ("paid", "Paid"),
         ("cancelled", "Cancelled"),
         ("expired", "Expired"),
@@ -1466,6 +1785,7 @@ class StripeEventCheckout(models.Model):
     PAYMENT_MODE_CHOICES = [
         ("plan", "Plan"),
         ("now", "Pay now"),
+        ("register_only", "Register now, pay later"),
     ]
 
     user = models.ForeignKey(
@@ -1484,10 +1804,10 @@ class StripeEventCheckout(models.Model):
     stripe_subscription_schedule_id = models.CharField(
         max_length=255, blank=True, default=""
     )
-    currency = models.CharField(max_length=10, default="usd")
-
+    curstripe_session_id = models.CharField(max_length=255, blank=True, null=True)
+    hotel_stripe_session_id = models.CharField(max_length=255, blank=True, null=True)
     payment_mode = models.CharField(
-        max_length=10, choices=PAYMENT_MODE_CHOICES, default="plan"
+        max_length=20, choices=PAYMENT_MODE_CHOICES, default="plan"
     )
     discount_percent = models.PositiveSmallIntegerField(default=0)
 
@@ -1525,10 +1845,12 @@ class Order(models.Model):
 
     ORDER_STATUS_CHOICES = [
         ("pending", "Pendiente"),
+        ("pending_registration", "Registrado - Pago Pendiente"),
         ("paid", "Pagado"),
         ("cancelled", "Cancelado"),
         ("refunded", "Reembolsado"),
         ("failed", "Fallido"),
+        ("abandoned", "Abandonado (Checkout no completado)"),
     ]
 
     PAYMENT_METHOD_CHOICES = [
@@ -1597,14 +1919,15 @@ class Order(models.Model):
 
     # Información de modo de pago (plan o pago único)
     payment_mode = models.CharField(
-        max_length=10,
+        max_length=20,
         choices=[
             ("plan", "Plan de Pagos"),
             ("now", "Pago Único"),
+            ("register_only", "Registrar ahora, pagar después"),
         ],
         default="now",
         verbose_name="Modo de Pago",
-        help_text="Si es plan de pagos o pago único",
+        help_text="Si es plan de pagos, pago único o registro sin pago inmediato",
     )
 
     # Información de Stripe
@@ -1764,8 +2087,9 @@ class Order(models.Model):
         if not self.order_number:
             from datetime import datetime
 
-            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-            self.order_number = f"ORD-{timestamp}-{self.user_id}"
+            timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
+            unique_suffix = uuid4().hex[:8]
+            self.order_number = f"ORD-{timestamp}-{self.user_id}-{unique_suffix}"
         super().save(*args, **kwargs)
 
     @property
@@ -1814,18 +2138,20 @@ class Order(models.Model):
 
         reservations_info = []
         for reservation in reservations:
-            reservations_info.append({
-                "reservation_id": reservation.id,
-                "room_id": reservation.room.id,
-                "room_number": reservation.room.room_number,
-                "check_in": str(reservation.check_in),
-                "check_out": str(reservation.check_out),
-                "number_of_guests": reservation.number_of_guests,
-                "guest_name": reservation.guest_name,
-                "guest_email": reservation.guest_email,
-                "guest_phone": reservation.guest_phone,
-                "additional_guest_names": reservation.additional_guest_names_list,
-            })
+            reservations_info.append(
+                {
+                    "reservation_id": reservation.id,
+                    "room_id": reservation.room.id,
+                    "room_number": reservation.room.room_number,
+                    "check_in": str(reservation.check_in),
+                    "check_out": str(reservation.check_out),
+                    "number_of_guests": reservation.number_of_guests,
+                    "guest_name": reservation.guest_name,
+                    "guest_email": reservation.guest_email,
+                    "guest_phone": reservation.guest_phone,
+                    "additional_guest_names": reservation.additional_guest_names_list,
+                }
+            )
 
         return reservations_info
 
@@ -1889,3 +2215,104 @@ class Order(models.Model):
         """Marca la orden como reembolsada"""
         self.status = "refunded"
         self.save(update_fields=["status", "updated_at"])
+
+
+class Notification(models.Model):
+    """Modelo de notificaciones para usuarios"""
+
+    NOTIFICATION_TYPE_CHOICES = [
+        ("order", "Orden"),
+        ("event", "Evento"),
+        ("payment", "Pago"),
+        ("registration", "Registro"),
+        ("reminder", "Recordatorio"),
+        ("system", "Sistema"),
+        ("message", "Mensaje"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+        verbose_name="Usuario",
+    )
+    type = models.CharField(
+        max_length=20,
+        choices=NOTIFICATION_TYPE_CHOICES,
+        default="system",
+        verbose_name="Tipo",
+    )
+    title = models.CharField(max_length=255, verbose_name="Título")
+    message = models.TextField(verbose_name="Mensaje")
+    read = models.BooleanField(default=False, verbose_name="Leída")
+    read_at = models.DateTimeField(null=True, blank=True, verbose_name="Leída en")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Creada en")
+
+    # Relaciones opcionales
+    order = models.ForeignKey(
+        "accounts.Order",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="notifications",
+        verbose_name="Orden",
+    )
+    event = models.ForeignKey(
+        "events.Event",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="notifications",
+        verbose_name="Evento",
+    )
+
+    # URL opcional para redirigir al hacer clic
+    action_url = models.URLField(
+        blank=True,
+        null=True,
+        verbose_name="URL de Acción",
+        help_text="URL a la que redirigir cuando se hace clic en la notificación",
+    )
+
+    class Meta:
+        verbose_name = "Notificación"
+        verbose_name_plural = "Notificaciones"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "read", "-created_at"]),
+            models.Index(fields=["user", "-created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.title} - {self.user.get_full_name()}"
+
+    def mark_as_read(self):
+        """Marca la notificación como leída"""
+        from django.utils import timezone
+
+        if not self.read:
+            self.read = True
+            self.read_at = timezone.now()
+            self.save(update_fields=["read", "read_at"])
+
+    @classmethod
+    def create_notification(
+        cls,
+        user,
+        title,
+        message,
+        notification_type="system",
+        order=None,
+        event=None,
+        action_url=None,
+    ):
+        """Método helper para crear notificaciones"""
+        return cls.objects.create(
+            user=user,
+            type=notification_type,
+            title=title,
+            message=message,
+            order=order,
+            event=event,
+            action_url=action_url,
+        )

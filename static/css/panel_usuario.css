@@ -614,8 +614,11 @@ button.quick-action-btn.active span,
 }
 
 .quick-action-btn.active .badge {
-    background-color: white !important;
-    color: var(--mlb-blue) !important;
+    /* Keep counter readable on active (blue) tab */
+    background-color: var(--mlb-red) !important;
+    color: white !important;
+    border: 2px solid rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22) !important;
 }
 
 /* Tab Content Container */
@@ -639,6 +642,8 @@ button.quick-action-btn.active span,
     background: #ffffff !important;
     position: relative !important;
     z-index: 10 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
 }
 
 /* Asegurar que los elementos dentro del tab detalle-eventos sean visibles */

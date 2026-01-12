@@ -56,6 +56,7 @@ class EventForm(forms.ModelForm):
             "additional_hotels",  # HOTELES ADICIONALES SELECT MULTIPLE
             "event_contact",  # CONTACTO EVENTO SELECT
             "banner",  # BANNER DEL EVENTO
+            "banner_mobile",  # BANNER MÓVIL DEL EVENTO
             "logo",  # LOGO DEL EVENTO (desde medios)
             "video_url",  # VIDEO EVENTO
             "email_welcome_body",  # BODY DEL CORREO HTML
@@ -320,6 +321,13 @@ class EventForm(forms.ModelForm):
                 attrs={
                     "class": "form-control",
                     "placeholder": "URL del banner desde medios",
+                    "required": False,
+                }
+            ),
+            "banner_mobile": forms.URLInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "URL del banner móvil desde medios",
                     "required": False,
                 }
             ),

@@ -1,0 +1,149 @@
+{% extends "accounts/base_accounts_panel.html" %}
+{% load static i18n %}
+
+{% block title %}{% trans "Hotel Payment Successful" %}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-lg" style="border-radius: 15px; overflow: hidden;">
+                <!-- Header Success -->
+                <div class="card-header text-white text-center py-4" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%);">
+                    <div class="mb-3">
+                        <i class="fas fa-check-circle fa-4x"></i>
+                    </div>
+                    <h2 class="mb-2">{% trans "Hotel Payment Completed!" %}</h2>
+                    <p class="mb-0">{% trans "Your hotel reservation is confirmed and ready." %}</p>
+                </div>
+
+                <div class="card-body p-4">
+                    <!-- Success Message -->
+                    <div class="alert alert-success alert-dismissible fade show" role="alert" style="border-radius: 10px; border: none;">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>{% trans "Success!" %}</strong> {% trans "Your hotel payment has been processed successfully. Your reservation is now confirmed." %}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+
+                    <!-- Event Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-8 mx-auto">
+                            <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-3" style="color: var(--mlb-blue);">
+                                        <i class="fas fa-calendar-alt me-2"></i>{% trans "Event Details" %}
+                                    </h5>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <p class="mb-2">
+                                                <strong>{% trans "Event:" %}</strong><br>
+                                                {{ event.title }}
+                                            </p>
+                                            <p class="mb-2">
+                                                <strong>{% trans "Order ID:" %}</strong><br>
+                                                #{{ order.pk }}
+                                            </p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <p class="mb-2">
+                                                <strong>{% trans "Payment Date:" %}</strong><br>
+                                                {% now "F j, Y, g:i a" %}
+                                            </p>
+                                            <p class="mb-2">
+                                                <strong>{% trans "Status:" %}</strong><br>
+                                                <span class="badge bg-success">{% trans "Confirmed" %}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Hotel Information -->
+                    {% if checkout.hotel_cart_snapshot %}
+                    <div class="row mb-4">
+                        <div class="col-md-8 mx-auto">
+                            <div class="card border-0 shadow-sm" style="border-radius: 12px;">
+                                <div class="card-body">
+                                    <h5 class="card-title mb-3" style="color: var(--mlb-blue);">
+                                        <i class="fas fa-hotel me-2"></i>{% trans "Hotel Reservation Details" %}
+                                    </h5>
+
+                                    {% for item_key, item_data in checkout.hotel_cart_snapshot.items %}
+                                    {% if item_data.type == 'room' %}
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">{{ item_data.room_name }}</h6>
+                                                <p class="mb-1 text-muted">
+                                                    <i class="fas fa-calendar me-1"></i>
+                                                    {% trans "Check-in" %}: {{ item_data.check_in }} |
+                                                    {% trans "Check-out" %}: {{ item_data.check_out }}
+                                                </p>
+                                                {% if item_data.guests %}
+                                                <p class="mb-0 text-muted">
+                                                    <i class="fas fa-users me-1"></i>
+                                                    {% for guest in item_data.guests %}
+                                                        {{ guest.name }}{% if not forloop.last %}, {% endif %}
+                                                    {% endfor %}
+                                                </p>
+                                                {% endif %}
+                                            </div>
+                                            <div class="text-end">
+                                                <h5 class="mb-0 text-success">${{ item_data.total_price }}</h5>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Action Buttons -->
+                    <div class="row">
+                        <div class="col-md-8 mx-auto">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                <a href="{% url 'accounts:panel_event_detail' event.pk %}"
+                                   class="btn btn-primary btn-lg"
+                                   style="border-radius: 10px; padding: 12px 30px;">
+                                    <i class="fas fa-arrow-left me-2"></i>{% trans "Back to Event" %}
+                                </a>
+
+                                <a href="{% url 'accounts:pending_payments' %}"
+                                   class="btn btn-outline-secondary btn-lg"
+                                   style="border-radius: 10px; padding: 12px 30px;">
+                                    <i class="fas fa-list me-2"></i>{% trans "My Orders" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Information -->
+                    <div class="row mt-4">
+                        <div class="col-md-8 mx-auto">
+                            <div class="card border-0 bg-light" style="border-radius: 12px;">
+                                <div class="card-body text-center">
+                                    <h6 class="mb-3" style="color: var(--mlb-blue);">
+                                        <i class="fas fa-info-circle me-2"></i>{% trans "What's Next?" %}
+                                    </h6>
+                                    <p class="mb-2">
+                                        {% trans "Your hotel reservation is confirmed and included in your event registration." %}
+                                    </p>
+                                    <p class="mb-0">
+                                        {% trans "You'll receive a confirmation email shortly with all the details." %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

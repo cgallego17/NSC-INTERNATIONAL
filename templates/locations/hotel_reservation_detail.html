@@ -96,6 +96,71 @@
                             <small class="text-muted">{{ reservation.user.email }}</small>
                         </div>
                     </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <strong>Todos los huéspedes (según cantidad):</strong><br>
+                            {% for name in reservation.all_guest_names %}
+                                <span class="badge bg-light text-dark border me-1 mb-1">{{ name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-users me-2"></i>Huéspedes Adicionales</h5>
+                </div>
+                <div class="card-body">
+                    {% if reservation.additional_guest_details %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Tipo</th>
+                                        <th>Fecha de Nacimiento</th>
+                                        <th>Email</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for g in reservation.additional_guest_details %}
+                                        <tr>
+                                            <td>{{ g.name|default:g.name }}</td>
+                                            <td>
+                                                {% if g.type %}
+                                                    <span class="badge bg-{% if g.type == 'child' %}secondary{% else %}info{% endif %}">
+                                                        {{ g.type }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if g.birth_date %}
+                                                    {{ g.birth_date }}
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if g.email %}
+                                                    <a href="mailto:{{ g.email }}">{{ g.email }}</a>
+                                                {% else %}
+                                                    <span class="text-muted">-</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% elif reservation.additional_guest_names %}
+                        <p class="mb-0">{{ reservation.additional_guest_names|linebreaks }}</p>
+                    {% else %}
+                        <p class="text-muted mb-0">No hay huéspedes adicionales registrados.</p>
+                    {% endif %}
                 </div>
             </div>
 
@@ -172,13 +237,13 @@
                             ${{ room_total|floatformat:2 }}
                         </strong>
                     </div>
-                    
+
                     {% if services %}
                     <div class="mb-3 border-top pt-3">
                         <strong>Servicios Adicionales:</strong><br>
                         {% for service_reservation in services %}
                             <small>
-                                {{ service_reservation.service.service_name }}: 
+                                {{ service_reservation.service.service_name }}:
                                 ${{ service_reservation.service.price|floatformat:2 }}
                                 {% if service_reservation.service.is_per_person %}
                                     × {{ reservation.number_of_guests }} personas
@@ -191,10 +256,10 @@
                         {% endfor %}
                     </div>
                     {% endif %}
-                    
+
                     <div class="border-top pt-3">
                         <h4 class="mb-0">
-                            <strong>Total:</strong> 
+                            <strong>Total:</strong>
                             <span class="text-primary">${{ reservation.total_amount|floatformat:2 }}</span>
                         </h4>
                     </div>

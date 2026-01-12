@@ -137,13 +137,30 @@
         }
     </style>
 
+    <style>
+        /* Prevenir auto-dismiss de alerts */
+        .alert {
+            transition: opacity 0.3s ease !important;
+        }
+
+        /* Asegurar que los alerts no se desvanezcan automáticamente */
+        .alert:not(.django-message) {
+            opacity: 1 !important;
+        }
+
+        /* Prevenir que Bootstrap cierre automáticamente los alerts */
+        .alert[data-bs-autohide] {
+            --bs-alert-dismissible-padding-right: 0 !important;
+        }
+    </style>
+
     {% block extra_css %}{% endblock %}
 </head>
 <body data-theme="light">
 
     {% block navbar %}
         {% if user.is_staff or user.is_superuser %}
-            {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'home_content_admin' or request.resolver_match.url_name == 'age_verification_list' or request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'player_list' or request.resolver_match.url_name == 'player_detail' or request.resolver_match.url_name == 'player_register' or request.resolver_match.url_name == 'player_edit' or request.resolver_match.url_name == 'admin_order_list' or request.resolver_match.url_name == 'admin_order_detail' or request.resolver_match.namespace == 'events' or request.resolver_match.namespace == 'locations' or request.resolver_match.namespace == 'media' or '/accounts/home-content' in request.path or '/accounts/banner' in request.path or '/accounts/sponsor' in request.path or '/accounts/dashboard-banner' in request.path or '/accounts/age-verifications' in request.path or '/accounts/users' in request.path or '/accounts/players' in request.path or '/accounts/admin/orders' in request.path or request.path|slice:":8" == '/admin/' %}
+            {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'home_content_admin' or request.resolver_match.url_name == 'age_verification_list' or request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'player_list' or request.resolver_match.url_name == 'player_detail' or request.resolver_match.url_name == 'player_register' or request.resolver_match.url_name == 'player_edit' or request.resolver_match.url_name == 'admin_order_list' or request.resolver_match.url_name == 'admin_order_detail' or request.resolver_match.url_name == 'admin_wallet_topups' or request.resolver_match.namespace == 'events' or request.resolver_match.namespace == 'locations' or request.resolver_match.namespace == 'media' or '/accounts/home-content' in request.path or '/accounts/banner' in request.path or '/accounts/sponsor' in request.path or '/accounts/dashboard-banner' in request.path or '/accounts/age-verifications' in request.path or '/accounts/users' in request.path or '/accounts/players' in request.path or '/accounts/admin/orders' in request.path or '/accounts/admin/wallet-topups' in request.path or request.path|slice:":8" == '/admin/' %}
             <!-- Topbar (solo para dashboard/admin) -->
             <header class="topbar">
         <div class="topbar-container">
@@ -202,7 +219,7 @@
 
                     <button class="action-btn" id="notificationsBtn" title="Notificaciones">
                         <i class="fas fa-bell"></i>
-                        <span class="badge" id="notificationBadge">0</span>
+                        <span class="badge" id="notificationBadge" style="display: none;">0</span>
                     </button>
 
                     <button class="action-btn" id="themeToggle" title="Cambiar tema">
@@ -269,6 +286,7 @@
         </div>
 
         <!-- Notification Panel -->
+        <div class="notification-overlay" id="notificationOverlay"></div>
         <div class="notification-panel" id="notificationPanel">
             <div class="notification-header">
                 <h4>Notificaciones</h4>
@@ -295,7 +313,7 @@
     {% endblock %}
 
     {% if user.is_staff or user.is_superuser %}
-        {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'home_content_admin' or request.resolver_match.url_name == 'age_verification_list' or request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'player_list' or request.resolver_match.url_name == 'player_detail' or request.resolver_match.url_name == 'player_register' or request.resolver_match.url_name == 'player_edit' or request.resolver_match.url_name == 'admin_order_list' or request.resolver_match.url_name == 'admin_order_detail' or request.resolver_match.namespace == 'events' or request.resolver_match.namespace == 'locations' or request.resolver_match.namespace == 'media' or '/accounts/home-content' in request.path or '/accounts/banner' in request.path or '/accounts/sponsor' in request.path or '/accounts/dashboard-banner' in request.path or '/accounts/age-verifications' in request.path or '/accounts/users' in request.path or '/accounts/players' in request.path or '/accounts/admin/orders' in request.path or request.path|slice:":8" == '/admin/' %}
+        {% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'home_content_admin' or request.resolver_match.url_name == 'age_verification_list' or request.resolver_match.url_name == 'user_list' or request.resolver_match.url_name == 'player_list' or request.resolver_match.url_name == 'player_detail' or request.resolver_match.url_name == 'player_register' or request.resolver_match.url_name == 'player_edit' or request.resolver_match.url_name == 'admin_order_list' or request.resolver_match.url_name == 'admin_order_detail' or request.resolver_match.url_name == 'admin_wallet_topups' or request.resolver_match.namespace == 'events' or request.resolver_match.namespace == 'locations' or request.resolver_match.namespace == 'media' or '/accounts/home-content' in request.path or '/accounts/banner' in request.path or '/accounts/sponsor' in request.path or '/accounts/dashboard-banner' in request.path or '/accounts/age-verifications' in request.path or '/accounts/users' in request.path or '/accounts/players' in request.path or '/accounts/admin/orders' in request.path or '/accounts/admin/wallet-topups' in request.path or request.path|slice:":8" == '/admin/' %}
     <!-- Sidebar (solo para dashboard/admin) -->
     <aside id="sidebar" class="sidebar">
         <!-- Header aplicación -->
@@ -312,7 +330,7 @@
 
         <!-- Navegación -->
         <nav class="sb-nav">
-            <div class="sb-label hide-mini">Sistema</div>
+            <div class="sb-label hide-mini">Principal</div>
 
             <!-- Dashboard -->
             <a href="{% url 'dashboard' %}" class="sb-item{% if active_section == 'dashboard' %} active{% endif %}" data-bs-title="Dashboard">
@@ -332,147 +350,154 @@
                 <a class="link{% if active_subsection == 'calendar' %} active{% endif %}" href="{% url 'events:calendar' %}">Calendario</a>
             </div>
 
-        <!-- Ubicaciones -->
-        <button class="sb-item w-100{% if active_section == 'locations' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbLocations" aria-expanded="{% if active_section == 'locations' %}true{% else %}false{% endif %}" data-bs-title="Ubicaciones">
-            <i class="sb-ico bi bi-geo-alt"></i>
-            <span class="hide-mini">Ubicaciones</span>
-            <i class="sb-right bi {% if active_section == 'locations' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
-        </button>
-        <div id="sbLocations" class="collapse sb-sub{% if active_section == 'locations' %} show{% endif %}">
-            <a class="link{% if active_subsection == 'countries' %} active{% endif %}" href="{% url 'locations:country_list' %}">Países</a>
-            <a class="link{% if active_subsection == 'states' %} active{% endif %}" href="{% url 'locations:state_list' %}">Estados</a>
-            <a class="link{% if active_subsection == 'cities' %} active{% endif %}" href="{% url 'locations:city_list' %}">Ciudades</a>
-            <a class="link{% if active_subsection == 'sites' %} active{% endif %}" href="{% url 'locations:site_list' %}">Sitios</a>
-        </div>
-
-        <!-- Hoteles -->
-        <button class="sb-item w-100{% if active_section == 'hotels' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbHotels" aria-expanded="{% if active_section == 'hotels' %}true{% else %}false{% endif %}" data-bs-title="Hoteles">
-            <i class="sb-ico bi bi-building"></i>
-            <span class="hide-mini">Hoteles</span>
-            <i class="sb-right bi {% if active_section == 'hotels' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
-        </button>
-        <div id="sbHotels" class="collapse sb-sub{% if active_section == 'hotels' %} show{% endif %}">
-            <a class="link{% if active_subsection == 'hotel_list' %} active{% endif %}" href="{% url 'locations:admin_hotel_list' %}">
-                <i class="bi bi-list-ul me-2"></i>Lista de Hoteles
-            </a>
-            <a class="link{% if active_subsection == 'hotel_create' %} active{% endif %}" href="{% url 'locations:admin_hotel_create' %}">
-                <i class="bi bi-plus-circle me-2"></i>Crear Hotel
-            </a>
-            <div class="sb-sub-divider"></div>
-            <a class="link{% if active_subsection == 'hotel_room_list' %} active{% endif %}" href="{% url 'locations:admin_hotel_room_list' %}">
-                <i class="bi bi-door-open me-2"></i>Habitaciones
-            </a>
-            <a class="link{% if active_subsection == 'hotel_service_list' %} active{% endif %}" href="{% url 'locations:admin_hotel_service_list' %}">
-                <i class="bi bi-star me-2"></i>Servicios Adicionales
-            </a>
-            <a class="link{% if active_subsection == 'hotel_reservation_list' %} active{% endif %}" href="{% url 'locations:admin_hotel_reservation_list' %}">
-                <i class="bi bi-calendar-check me-2"></i>Reservas
-            </a>
-        </div>
-
-        <!-- Multimedia -->
-        <a href="{% url 'media:list' %}" class="sb-item{% if active_section == 'media' %} active{% endif %}" data-bs-title="Multimedia">
-            <i class="sb-ico bi bi-images"></i>
-            <span class="hide-mini">Multimedia</span>
-        </a>
-
-        <!-- Contactos -->
-        <button class="sb-item w-100{% if active_section == 'contacts' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbContacts" aria-expanded="{% if active_section == 'contacts' %}true{% else %}false{% endif %}" data-bs-title="Contactos">
-            <i class="sb-ico bi bi-people"></i>
-            <span class="hide-mini">Contactos</span>
-            <i class="sb-right bi {% if active_section == 'contacts' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
-        </button>
-        <div id="sbContacts" class="collapse sb-sub{% if active_section == 'contacts' %} show{% endif %}">
-            <a class="link{% if active_subsection == 'contact_list' %} active{% endif %}" href="{% url 'events:eventcontact_list' %}">Lista de Contactos</a>
-            <a class="link{% if active_subsection == 'contact_create' %} active{% endif %}" href="{% url 'events:eventcontact_create' %}">Crear Contacto</a>
-        </div>
-
-        <!-- Gestión de Datos -->
-        <button class="sb-item w-100{% if active_section == 'data_management' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbDataManagement" aria-expanded="{% if active_section == 'data_management' %}true{% else %}false{% endif %}" data-bs-title="Gestión de Datos">
-            <i class="sb-ico bi bi-database"></i>
-            <span class="hide-mini">Gestión de Datos</span>
-            <i class="sb-right bi {% if active_section == 'data_management' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
-        </button>
-        <div id="sbDataManagement" class="collapse sb-sub{% if active_section == 'data_management' %} show{% endif %}">
-            <a class="link{% if active_subsection == 'event_types' %} active{% endif %}" href="{% url 'events:eventtype_list' %}">Tipos de Evento</a>
-            <a class="link{% if active_subsection == 'gate_fee_types' %} active{% endif %}" href="{% url 'events:gatefeetype_list' %}">Tipos de Gate Fee</a>
-        </div>
-
-        <!-- Configuración -->
-        <button class="sb-item w-100{% if active_section == 'configuration' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbConfiguration" aria-expanded="{% if active_section == 'configuration' %}true{% else %}false{% endif %}" data-bs-title="Configuración">
-            <i class="sb-ico bi bi-gear"></i>
-            <span class="hide-mini">Configuración</span>
-            <i class="sb-right bi {% if active_section == 'configuration' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
-        </button>
-        <div id="sbConfiguration" class="collapse sb-sub{% if active_section == 'configuration' %} show{% endif %}">
-            <a class="link{% if active_subsection == 'seasons' %} active{% endif %}" href="{% url 'locations:season_list' %}">Temporadas</a>
-            <a class="link{% if active_subsection == 'rules' %} active{% endif %}" href="{% url 'locations:rule_list' %}">Reglas</a>
-            <a class="link{% if active_subsection == 'division_list' %} active{% endif %}" href="{% url 'events:division_list' %}">Divisiones</a>
-        </div>
-
-        <!-- Contenido del Home (solo staff) -->
-        {% if user.is_staff or user.is_superuser %}
-        <button class="sb-item w-100{% if active_section == 'home_content' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbHomeContent" aria-expanded="{% if active_section == 'home_content' %}true{% else %}false{% endif %}" data-bs-title="Contenido del Home">
-            <i class="sb-ico bi bi-house-door"></i>
-            <span class="hide-mini">Contenido del Home</span>
-            <i class="sb-right bi {% if active_section == 'home_content' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
-        </button>
-        <div id="sbHomeContent" class="collapse sb-sub{% if active_section == 'home_content' %} show{% endif %}">
-            <a class="link{% if active_subsection == 'home_content_admin' %} active{% endif %}" href="{% url 'accounts:home_content_admin' %}">Administración</a>
-            <a class="link{% if active_subsection == 'edit_schedule' %} active{% endif %}" href="{% url 'accounts:edit_schedule_settings' %}">Editar Schedule</a>
-            <a class="link{% if active_subsection == 'edit_showcase' %} active{% endif %}" href="{% url 'accounts:edit_showcase_settings' %}">Editar Showcase</a>
-            <a class="link{% if active_subsection == 'edit_contact' %} active{% endif %}" href="{% url 'accounts:edit_contact_settings' %}">Información de Contacto</a>
-        </div>
-        {% endif %}
-
-        <!-- Usuarios (solo staff) -->
-        {% if user.is_staff or user.is_superuser %}
-        <button class="sb-item w-100{% if active_section == 'users' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbUsers" aria-expanded="{% if active_section == 'users' %}true{% else %}false{% endif %}" data-bs-title="Usuarios">
-            <i class="sb-ico bi bi-people"></i>
-            <span class="hide-mini">Usuarios</span>
-            <i class="sb-right bi {% if active_section == 'users' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
-        </button>
-        <div id="sbUsers" class="collapse sb-sub{% if active_section == 'users' %} show{% endif %}">
-            <a class="link{% if active_subsection == 'user_list' %} active{% endif %}" href="{% url 'accounts:user_list' %}">Lista de Usuarios</a>
-        </div>
-        {% endif %}
-
-        <!-- Órdenes (solo staff) -->
-        {% if user.is_staff or user.is_superuser %}
-        <button class="sb-item w-100{% if active_section == 'orders' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbOrders" aria-expanded="{% if active_section == 'orders' %}true{% else %}false{% endif %}" data-bs-title="Órdenes">
-            <i class="sb-ico bi bi-receipt"></i>
-            <span class="hide-mini">Órdenes</span>
-            <i class="sb-right bi {% if active_section == 'orders' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
-        </button>
-        <div id="sbOrders" class="collapse sb-sub{% if active_section == 'orders' %} show{% endif %}">
-            <a class="link{% if active_subsection == 'admin_order_list' %} active{% endif %}" href="{% url 'accounts:admin_order_list' %}">
-                <i class="bi bi-list-ul me-2"></i>Lista de Órdenes
-            </a>
-        </div>
-        {% endif %}
-
-        <!-- Verificaciones de Edad (solo para managers y staff) -->
-        {% if pending_verifications_count %}
-            {% if user.is_staff or user.is_superuser or user.profile.is_team_manager %}
-            <a href="{% url 'accounts:age_verification_list' %}" class="sb-item{% if active_section == 'age_verifications' %} active{% endif %}" data-bs-title="Verificaciones de Edad">
-                <i class="sb-ico bi bi-file-check"></i>
-                <span class="hide-mini">Verificaciones de Edad</span>
-                <span class="badge bg-danger ms-auto" style="font-size: 0.7rem; padding: 2px 6px;">{{ pending_verifications_count }}</span>
-            </a>
+            <!-- Órdenes (solo staff) -->
+            {% if user.is_staff or user.is_superuser %}
+            <button class="sb-item w-100{% if active_section == 'orders' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbOrders" aria-expanded="{% if active_section == 'orders' %}true{% else %}false{% endif %}" data-bs-title="Órdenes">
+                <i class="sb-ico bi bi-receipt"></i>
+                <span class="hide-mini">Órdenes</span>
+                <i class="sb-right bi {% if active_section == 'orders' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
+            </button>
+            <div id="sbOrders" class="collapse sb-sub{% if active_section == 'orders' %} show{% endif %}">
+                <a class="link{% if active_subsection == 'admin_order_list' %} active{% endif %}" href="{% url 'accounts:admin_order_list' %}">
+                    <i class="bi bi-list-ul me-2"></i>Lista de Órdenes
+                </a>
+                <a class="link{% if active_subsection == 'wallet_topups' %} active{% endif %}" href="{% url 'accounts:admin_wallet_topups' %}">
+                    <i class="bi bi-wallet2 me-2"></i>Wallet Top-ups
+                </a>
+            </div>
             {% endif %}
-        {% endif %}
 
-        <!-- Jugadores -->
-        <button class="sb-item w-100{% if active_section == 'players' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbPlayers" aria-expanded="{% if active_section == 'players' %}true{% else %}false{% endif %}" data-bs-title="Jugadores">
-            <i class="sb-ico bi bi-person-badge"></i>
-            <span class="hide-mini">Jugadores</span>
-            <i class="sb-right bi {% if active_section == 'players' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
-        </button>
-        <div id="sbPlayers" class="collapse sb-sub{% if active_section == 'players' %} show{% endif %}">
-            <a class="link{% if active_subsection == 'player_list' %} active{% endif %}" href="{% url 'accounts:player_list' %}">Lista de Jugadores</a>
-        </div>
+            <!-- Usuarios (solo staff) -->
+            {% if user.is_staff or user.is_superuser %}
+            <button class="sb-item w-100{% if active_section == 'users' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbUsers" aria-expanded="{% if active_section == 'users' %}true{% else %}false{% endif %}" data-bs-title="Usuarios">
+                <i class="sb-ico bi bi-people"></i>
+                <span class="hide-mini">Usuarios</span>
+                <i class="sb-right bi {% if active_section == 'users' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
+            </button>
+            <div id="sbUsers" class="collapse sb-sub{% if active_section == 'users' %} show{% endif %}">
+                <a class="link{% if active_subsection == 'user_list' %} active{% endif %}" href="{% url 'accounts:user_list' %}">Lista de Usuarios</a>
+            </div>
+            {% endif %}
 
-            <div class="sb-label hide-mini">Administración</div>
+            <!-- Jugadores -->
+            <button class="sb-item w-100{% if active_section == 'players' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbPlayers" aria-expanded="{% if active_section == 'players' %}true{% else %}false{% endif %}" data-bs-title="Jugadores">
+                <i class="sb-ico bi bi-person-badge"></i>
+                <span class="hide-mini">Jugadores</span>
+                <i class="sb-right bi {% if active_section == 'players' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
+            </button>
+            <div id="sbPlayers" class="collapse sb-sub{% if active_section == 'players' %} show{% endif %}">
+                <a class="link{% if active_subsection == 'player_list' %} active{% endif %}" href="{% url 'accounts:player_list' %}">Lista de Jugadores</a>
+            </div>
+
+            <!-- Verificaciones de Edad (solo para managers y staff) -->
+            {% if pending_verifications_count %}
+                {% if user.is_staff or user.is_superuser or user.profile.is_team_manager %}
+                <a href="{% url 'accounts:age_verification_list' %}" class="sb-item{% if active_section == 'age_verifications' %} active{% endif %}" data-bs-title="Verificaciones de Edad">
+                    <i class="sb-ico bi bi-file-check"></i>
+                    <span class="hide-mini">Verificaciones de Edad</span>
+                    <span class="badge bg-danger ms-auto" style="font-size: 0.7rem; padding: 2px 6px;">{{ pending_verifications_count }}</span>
+                </a>
+                {% endif %}
+            {% endif %}
+
+            <div class="sb-label hide-mini">Gestión</div>
+
+            <!-- Hoteles -->
+            <button class="sb-item w-100{% if active_section == 'hotels' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbHotels" aria-expanded="{% if active_section == 'hotels' %}true{% else %}false{% endif %}" data-bs-title="Hoteles">
+                <i class="sb-ico bi bi-building"></i>
+                <span class="hide-mini">Hoteles</span>
+                <i class="sb-right bi {% if active_section == 'hotels' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
+            </button>
+            <div id="sbHotels" class="collapse sb-sub{% if active_section == 'hotels' %} show{% endif %}">
+                <a class="link{% if active_subsection == 'hotel_list' %} active{% endif %}" href="{% url 'locations:admin_hotel_list' %}">
+                    <i class="bi bi-list-ul me-2"></i>Lista de Hoteles
+                </a>
+                <a class="link{% if active_subsection == 'hotel_create' %} active{% endif %}" href="{% url 'locations:admin_hotel_create' %}">
+                    <i class="bi bi-plus-circle me-2"></i>Crear Hotel
+                </a>
+                <div class="sb-sub-divider"></div>
+                <a class="link{% if active_subsection == 'hotel_room_list' %} active{% endif %}" href="{% url 'locations:admin_hotel_room_list' %}">
+                    <i class="bi bi-door-open me-2"></i>Habitaciones
+                </a>
+                <a class="link{% if active_subsection == 'hotel_service_list' %} active{% endif %}" href="{% url 'locations:admin_hotel_service_list' %}">
+                    <i class="bi bi-star me-2"></i>Servicios Adicionales
+                </a>
+                <a class="link{% if active_subsection == 'hotel_reservation_list' %} active{% endif %}" href="{% url 'locations:admin_hotel_reservation_list' %}">
+                    <i class="bi bi-calendar-check me-2"></i>Reservas
+                </a>
+            </div>
+
+            <!-- Multimedia -->
+            <a href="{% url 'media:list' %}" class="sb-item{% if active_section == 'media' %} active{% endif %}" data-bs-title="Multimedia">
+                <i class="sb-ico bi bi-images"></i>
+                <span class="hide-mini">Multimedia</span>
+            </a>
+
+            <!-- Ubicaciones -->
+            <button class="sb-item w-100{% if active_section == 'locations' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbLocations" aria-expanded="{% if active_section == 'locations' %}true{% else %}false{% endif %}" data-bs-title="Ubicaciones">
+                <i class="sb-ico bi bi-geo-alt"></i>
+                <span class="hide-mini">Ubicaciones</span>
+                <i class="sb-right bi {% if active_section == 'locations' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
+            </button>
+            <div id="sbLocations" class="collapse sb-sub{% if active_section == 'locations' %} show{% endif %}">
+                <a class="link{% if active_subsection == 'countries' %} active{% endif %}" href="{% url 'locations:country_list' %}">Países</a>
+                <a class="link{% if active_subsection == 'states' %} active{% endif %}" href="{% url 'locations:state_list' %}">Estados</a>
+                <a class="link{% if active_subsection == 'cities' %} active{% endif %}" href="{% url 'locations:city_list' %}">Ciudades</a>
+                <a class="link{% if active_subsection == 'sites' %} active{% endif %}" href="{% url 'locations:site_list' %}">Sitios</a>
+            </div>
+
+            <!-- Contactos -->
+            <button class="sb-item w-100{% if active_section == 'contacts' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbContacts" aria-expanded="{% if active_section == 'contacts' %}true{% else %}false{% endif %}" data-bs-title="Contactos">
+                <i class="sb-ico bi bi-people"></i>
+                <span class="hide-mini">Contactos</span>
+                <i class="sb-right bi {% if active_section == 'contacts' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
+            </button>
+            <div id="sbContacts" class="collapse sb-sub{% if active_section == 'contacts' %} show{% endif %}">
+                <a class="link{% if active_subsection == 'contact_list' %} active{% endif %}" href="{% url 'events:eventcontact_list' %}">Lista de Contactos</a>
+                <a class="link{% if active_subsection == 'contact_create' %} active{% endif %}" href="{% url 'events:eventcontact_create' %}">Crear Contacto</a>
+            </div>
+
+            <div class="sb-label hide-mini">Configuración</div>
+
+            <!-- Gestión de Datos -->
+            <button class="sb-item w-100{% if active_section == 'data_management' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbDataManagement" aria-expanded="{% if active_section == 'data_management' %}true{% else %}false{% endif %}" data-bs-title="Gestión de Datos">
+                <i class="sb-ico bi bi-database"></i>
+                <span class="hide-mini">Gestión de Datos</span>
+                <i class="sb-right bi {% if active_section == 'data_management' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
+            </button>
+            <div id="sbDataManagement" class="collapse sb-sub{% if active_section == 'data_management' %} show{% endif %}">
+                <a class="link{% if active_subsection == 'event_types' %} active{% endif %}" href="{% url 'events:eventtype_list' %}">Tipos de Evento</a>
+                <a class="link{% if active_subsection == 'gate_fee_types' %} active{% endif %}" href="{% url 'events:gatefeetype_list' %}">Tipos de Gate Fee</a>
+            </div>
+
+            <!-- Configuración -->
+            <button class="sb-item w-100{% if active_section == 'configuration' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbConfiguration" aria-expanded="{% if active_section == 'configuration' %}true{% else %}false{% endif %}" data-bs-title="Configuración">
+                <i class="sb-ico bi bi-gear"></i>
+                <span class="hide-mini">Configuración</span>
+                <i class="sb-right bi {% if active_section == 'configuration' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
+            </button>
+            <div id="sbConfiguration" class="collapse sb-sub{% if active_section == 'configuration' %} show{% endif %}">
+                <a class="link{% if active_subsection == 'seasons' %} active{% endif %}" href="{% url 'locations:season_list' %}">Temporadas</a>
+                <a class="link{% if active_subsection == 'rules' %} active{% endif %}" href="{% url 'locations:rule_list' %}">Reglas</a>
+                <a class="link{% if active_subsection == 'division_list' %} active{% endif %}" href="{% url 'events:division_list' %}">Divisiones</a>
+            </div>
+
+            <!-- Contenido del Home (solo staff) -->
+            {% if user.is_staff or user.is_superuser %}
+            <button class="sb-item w-100{% if active_section == 'home_content' %} active{% endif %}" data-bs-toggle="collapse" data-bs-target="#sbHomeContent" aria-expanded="{% if active_section == 'home_content' %}true{% else %}false{% endif %}" data-bs-title="Contenido del Home">
+                <i class="sb-ico bi bi-house-door"></i>
+                <span class="hide-mini">Contenido del Home</span>
+                <i class="sb-right bi {% if active_section == 'home_content' %}bi-dash{% else %}bi-plus{% endif %} hide-mini"></i>
+            </button>
+            <div id="sbHomeContent" class="collapse sb-sub{% if active_section == 'home_content' %} show{% endif %}">
+                <a class="link{% if active_subsection == 'home_content_admin' %} active{% endif %}" href="{% url 'accounts:home_content_admin' %}">Administración</a>
+                <a class="link{% if active_subsection == 'edit_schedule' %} active{% endif %}" href="{% url 'accounts:edit_schedule_settings' %}">Editar Schedule</a>
+                <a class="link{% if active_subsection == 'edit_showcase' %} active{% endif %}" href="{% url 'accounts:edit_showcase_settings' %}">Editar Showcase</a>
+                <a class="link{% if active_subsection == 'edit_contact' %} active{% endif %}" href="{% url 'accounts:edit_contact_settings' %}">Información de Contacto</a>
+            </div>
+            {% endif %}
+
+            <div class="sb-label hide-mini">Reportes</div>
 
             <!-- Reportes -->
             <a href="#" class="sb-item" data-bs-title="Reportes">
@@ -485,16 +510,16 @@
     {% endif %}
 
     <!-- Main Content -->
-    <div class="main-content{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'home_content_admin' and request.resolver_match.url_name != 'age_verification_list' and request.resolver_match.url_name != 'user_list' and request.resolver_match.url_name != 'player_list' and request.resolver_match.url_name != 'player_detail' and request.resolver_match.url_name != 'player_register' and request.resolver_match.url_name != 'player_edit' and request.resolver_match.url_name != 'admin_order_list' and request.resolver_match.url_name != 'admin_order_detail' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'media' and '/accounts/home-content' not in request.path and '/accounts/banner' not in request.path and '/accounts/sponsor' not in request.path and '/accounts/dashboard-banner' not in request.path and '/accounts/age-verifications' not in request.path and '/accounts/users' not in request.path and '/accounts/players' not in request.path and '/accounts/admin/orders' not in request.path and request.path|slice:":8" != '/admin/' %} container{% endif %}" id="mainContent"{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'home_content_admin' and request.resolver_match.url_name != 'age_verification_list' and request.resolver_match.url_name != 'user_list' and request.resolver_match.url_name != 'player_list' and request.resolver_match.url_name != 'player_detail' and request.resolver_match.url_name != 'player_register' and request.resolver_match.url_name != 'player_edit' and request.resolver_match.url_name != 'admin_order_list' and request.resolver_match.url_name != 'admin_order_detail' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'media' and '/accounts/home-content' not in request.path and '/accounts/banner' not in request.path and '/accounts/sponsor' not in request.path and '/accounts/dashboard-banner' not in request.path and '/accounts/age-verifications' not in request.path and '/accounts/users' not in request.path and '/accounts/players' not in request.path and '/accounts/admin/orders' not in request.path and request.path|slice:":8" != '/admin/' %} style="padding: 40px 0; min-height: calc(100vh - 200px);"{% endif %}>
+    <div class="main-content{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'home_content_admin' and request.resolver_match.url_name != 'age_verification_list' and request.resolver_match.url_name != 'user_list' and request.resolver_match.url_name != 'player_list' and request.resolver_match.url_name != 'player_detail' and request.resolver_match.url_name != 'player_register' and request.resolver_match.url_name != 'player_edit' and request.resolver_match.url_name != 'admin_order_list' and request.resolver_match.url_name != 'admin_order_detail' and request.resolver_match.url_name != 'admin_wallet_topups' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'media' and '/accounts/home-content' not in request.path and '/accounts/banner' not in request.path and '/accounts/sponsor' not in request.path and '/accounts/dashboard-banner' not in request.path and '/accounts/age-verifications' not in request.path and '/accounts/users' not in request.path and '/accounts/players' not in request.path and '/accounts/admin/orders' not in request.path and '/accounts/admin/wallet-topups' not in request.path and request.path|slice:":8" != '/admin/' %} container{% endif %}" id="mainContent"{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'home_content_admin' and request.resolver_match.url_name != 'age_verification_list' and request.resolver_match.url_name != 'user_list' and request.resolver_match.url_name != 'player_list' and request.resolver_match.url_name != 'player_detail' and request.resolver_match.url_name != 'player_register' and request.resolver_match.url_name != 'player_edit' and request.resolver_match.url_name != 'admin_order_list' and request.resolver_match.url_name != 'admin_order_detail' and request.resolver_match.url_name != 'admin_wallet_topups' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'media' and '/accounts/home-content' not in request.path and '/accounts/banner' not in request.path and '/accounts/sponsor' not in request.path and '/accounts/dashboard-banner' not in request.path and '/accounts/age-verifications' not in request.path and '/accounts/users' not in request.path and '/accounts/players' not in request.path and '/accounts/admin/orders' not in request.path and '/accounts/admin/wallet-topups' not in request.path and request.path|slice:":8" != '/admin/' %} style="padding: 40px 0; min-height: calc(100vh - 200px);"{% endif %}>
         <!-- Page Content -->
-        <main class="page-content{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'home_content_admin' and request.resolver_match.url_name != 'age_verification_list' and request.resolver_match.url_name != 'user_list' and request.resolver_match.url_name != 'player_list' and request.resolver_match.url_name != 'player_detail' and request.resolver_match.url_name != 'player_register' and request.resolver_match.url_name != 'player_edit' and request.resolver_match.url_name != 'admin_order_list' and request.resolver_match.url_name != 'admin_order_detail' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'media' and '/accounts/home-content' not in request.path and '/accounts/banner' not in request.path and '/accounts/sponsor' not in request.path and '/accounts/dashboard-banner' not in request.path and '/accounts/age-verifications' not in request.path and '/accounts/users' not in request.path and '/accounts/players' not in request.path and '/accounts/admin/orders' not in request.path and request.path|slice:":8" != '/admin/' %}" style="padding: 0;"{% endif %}>
+        <main class="page-content{% if request.resolver_match.url_name != 'dashboard' and request.resolver_match.url_name != 'home_content_admin' and request.resolver_match.url_name != 'age_verification_list' and request.resolver_match.url_name != 'user_list' and request.resolver_match.url_name != 'player_list' and request.resolver_match.url_name != 'player_detail' and request.resolver_match.url_name != 'player_register' and request.resolver_match.url_name != 'player_edit' and request.resolver_match.url_name != 'admin_order_list' and request.resolver_match.url_name != 'admin_order_detail' and request.resolver_match.url_name != 'admin_wallet_topups' and request.resolver_match.namespace != 'events' and request.resolver_match.namespace != 'locations' and request.resolver_match.namespace != 'media' and '/accounts/home-content' not in request.path and '/accounts/banner' not in request.path and '/accounts/sponsor' not in request.path and '/accounts/dashboard-banner' not in request.path and '/accounts/age-verifications' not in request.path and '/accounts/users' not in request.path and '/accounts/players' not in request.path and '/accounts/admin/orders' not in request.path and '/accounts/admin/wallet-topups' not in request.path and request.path|slice:":8" != '/admin/' %}" style="padding: 0;"{% endif %}>
             {% if messages %}
-                <div class="messages-container">
+                <div class="messages-container" style="display: none;">
                     {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
+                        <div class="django-message"
+                             data-tag="{{ message.tags }}"
+                             data-message="{{ message|escapejs }}"
+                             style="display: none;"></div>
                     {% endfor %}
                 </div>
             {% endif %}
@@ -522,6 +547,91 @@
             }
         })();
     </script>
+    <script>
+        // Prevenir auto-dismiss de alerts - Los alerts NO se desvanecerán automáticamente
+        (function() {
+            // Interceptar Bootstrap Alert antes de que se inicialice
+            document.addEventListener('DOMContentLoaded', function() {
+                // Desactivar auto-dismiss de todos los alerts
+                const alerts = document.querySelectorAll('.alert');
+
+                alerts.forEach(function(alert) {
+                    // Remover cualquier timer de auto-dismiss
+                    if (alert._autoHideTimer) {
+                        clearTimeout(alert._autoHideTimer);
+                        alert._autoHideTimer = null;
+                    }
+
+                    // Prevenir que Bootstrap inicialice auto-dismiss
+                    alert.setAttribute('data-bs-autohide', 'false');
+
+                    // Si tiene botón de cerrar, mantenerlo funcional pero sin auto-close
+                    const closeBtn = alert.querySelector('[data-bs-dismiss="alert"]');
+                    if (closeBtn) {
+                        // Mantener el botón funcional pero prevenir auto-close
+                        closeBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            alert.style.transition = 'opacity 0.3s ease';
+                            alert.style.opacity = '0';
+                            setTimeout(function() {
+                                if (alert.parentNode) {
+                                    alert.remove();
+                                }
+                            }, 300);
+                        });
+                    }
+                });
+
+                // Interceptar la inicialización de Bootstrap Alert
+                if (window.bootstrap) {
+                    const Alert = window.bootstrap.Alert;
+                    if (Alert) {
+                        // Sobrescribir el método para prevenir auto-dismiss
+                        const originalInit = Alert.prototype._init;
+                        Alert.prototype._init = function() {
+                            // Llamar al método original
+                            if (originalInit) {
+                                originalInit.call(this);
+                            }
+
+                            // Desactivar auto-hide
+                            if (this._element) {
+                                this._element.setAttribute('data-bs-autohide', 'false');
+                                if (this._element._autoHideTimer) {
+                                    clearTimeout(this._element._autoHideTimer);
+                                    this._element._autoHideTimer = null;
+                                }
+                            }
+                        };
+                    }
+                }
+
+                // Observar nuevos alerts que se agreguen dinámicamente
+                const observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        mutation.addedNodes.forEach(function(node) {
+                            if (node.nodeType === 1 && node.classList && node.classList.contains('alert')) {
+                                node.setAttribute('data-bs-autohide', 'false');
+                                if (node._autoHideTimer) {
+                                    clearTimeout(node._autoHideTimer);
+                                    node._autoHideTimer = null;
+                                }
+                            }
+                        });
+                    });
+                });
+
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+            });
+        })();
+    </script>
+
+    <!-- Toast Container - Fuera de main-content para evitar problemas de z-index -->
+    <div id="toastContainer" class="modern-toast-container" style="position: fixed !important; top: 20px !important; right: 20px !important; z-index: 999999 !important;"></div>
 
     {% block extra_js %}{% endblock %}
 </body>

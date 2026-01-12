@@ -1,0 +1,550 @@
+{% load static %}
+{% load i18n %}
+{% load translation_tags %}
+{% get_current_language as CURRENT_LANGUAGE %}
+<!DOCTYPE html>
+<html lang="{% if CURRENT_LANGUAGE %}{{ CURRENT_LANGUAGE|slice:":2" }}{% else %}en{% endif %}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Pending Payments" %} - NCS International</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Panel Usuario CSS -->
+    <link id="panel-usuario-css" href="{% static 'css/panel_usuario.css' %}" rel="stylesheet">
+    <script>
+        (function() {
+            const link = document.getElementById('panel-usuario-css');
+            if (link) {
+                const now = new Date();
+                const version = now.getFullYear().toString() +
+                               String(now.getMonth() + 1).padStart(2, '0') +
+                               String(now.getDate()).padStart(2, '0') +
+                               String(now.getHours()).padStart(2, '0') +
+                               String(now.getMinutes()).padStart(2, '0');
+                link.href = link.href.split('?')[0] + '?v=' + version;
+            }
+        })();
+    </script>
+
+    <style>
+        :root {
+            --mlb-blue: #0d2c54;
+            --mlb-red: #d50032;
+            --mlb-light-blue: #132448;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            padding: 20px;
+        }
+
+        .tab-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .tab-content-header {
+            padding: 0 0 12px 0;
+            margin-bottom: 30px;
+        }
+
+        .tab-content-header h4 {
+            color: var(--mlb-blue);
+            font-weight: 800;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .tab-content-header p {
+            color: #6c757d;
+            margin-bottom: 0;
+        }
+
+        .payment-card {
+            border: none;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            background: #fff;
+            height: 100%;
+        }
+
+        .payment-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 45px rgba(0, 0, 0, 0.14);
+        }
+
+        .payment-card-header {
+            padding: 18px 20px;
+            border: 0;
+            color: #fff;
+            background: linear-gradient(135deg, var(--mlb-red) 0%, #ffc107 100%);
+            box-shadow: 0 2px 8px rgba(213, 0, 50, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .payment-card-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .payment-card-header .title {
+            font-weight: 800;
+            font-size: 1.05rem;
+            letter-spacing: 0.3px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .payment-card-header .subtitle {
+            margin: 8px 0 0;
+            opacity: 0.95;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+        }
+
+        .payment-pill {
+            background: rgba(255, 255, 255, 0.98);
+            color: var(--mlb-red);
+            border-radius: 999px;
+            padding: 6px 14px;
+            font-size: 0.73rem;
+            font-weight: 800;
+            white-space: nowrap;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .payment-body {
+            padding: 18px 20px;
+        }
+
+        .payment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        @media (max-width: 575px) {
+            .payment-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .payment-kv {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 12px 14px;
+            background: linear-gradient(135deg, rgba(13, 44, 84, 0.03) 0%, rgba(213, 0, 50, 0.02) 100%);
+            border: 1px solid rgba(13, 44, 84, 0.1);
+            border-radius: 10px;
+        }
+
+        .payment-kv .icon {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 34px;
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(13, 44, 84, 0.2);
+        }
+
+        .payment-kv .label {
+            font-size: 0.72rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .payment-kv .value {
+            margin: 2px 0 0;
+            font-weight: 800;
+            color: var(--mlb-blue);
+            font-size: 0.9rem;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .amount-highlight {
+            background: linear-gradient(135deg, rgba(13, 44, 84, 0.08) 0%, rgba(213, 0, 50, 0.05) 100%);
+            border: 1px solid rgba(13, 44, 84, 0.15);
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+            margin-top: 14px;
+        }
+
+        .amount-highlight .label {
+            font-size: 0.72rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .amount-highlight .value {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--mlb-blue);
+            line-height: 1;
+        }
+
+        .payment-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+
+        .btn-payment {
+            flex: 1;
+            min-width: 140px;
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-payment-primary {
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+        }
+
+        .btn-payment-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(13, 44, 84, 0.3);
+            color: white;
+            background: linear-gradient(135deg, var(--mlb-light-blue) 0%, var(--mlb-blue) 100%);
+        }
+
+        .btn-payment-outline {
+            background: white;
+            color: var(--mlb-blue);
+            border: 2px solid var(--mlb-blue);
+        }
+
+        .btn-payment-outline:hover {
+            background: var(--mlb-blue);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(13, 44, 84, 0.2);
+        }
+
+        .hotel-badge {
+            background: linear-gradient(135deg, rgba(13, 44, 84, 0.08) 0%, rgba(213, 0, 50, 0.05) 100%);
+            border: 1px solid rgba(13, 44, 84, 0.15);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hotel-badge i {
+            color: var(--mlb-red);
+            font-size: 1.1rem;
+        }
+
+        .hotel-badge span {
+            font-size: 0.85rem;
+            color: var(--mlb-blue);
+            font-weight: 600;
+        }
+
+        .empty-state {
+            background: white;
+            border-radius: 16px;
+            padding: 60px 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            box-shadow: 0 8px 24px rgba(13, 44, 84, 0.2);
+        }
+
+        .empty-state-icon i {
+            font-size: 3.5rem;
+            color: white;
+        }
+
+        .empty-state h3 {
+            color: var(--mlb-blue);
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        .empty-state p {
+            color: #6c757d;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        .btn-empty {
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            border: none;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-empty:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(13, 44, 84, 0.3);
+            color: white;
+            background: linear-gradient(135deg, var(--mlb-light-blue) 0%, var(--mlb-blue) 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="tab-container">
+        <!-- Header -->
+        <div class="tab-content-header">
+            <h4>
+                <i class="fas fa-credit-card me-2" style="color: var(--mlb-red);"></i>
+                {% trans "Pending Payments" %}
+            </h4>
+            <p>{% trans "Complete your pending hotel and event payments" %}</p>
+        </div>
+
+        {% if pending_orders %}
+            <div class="row g-4">
+                {% for order in pending_orders %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="payment-card h-100">
+                        <!-- Card Header -->
+                        <div class="payment-card-header">
+                            <p class="title">
+                                <span><i class="fas fa-exclamation-triangle me-2"></i>{% trans "Payment Pending" %}</span>
+                                <span class="payment-pill">{% trans "Pending" %}</span>
+                            </p>
+                            <p class="subtitle">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span style="font-weight: 800;">{{ order.event.title }}</span>
+                            </p>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="payment-body">
+                            <!-- Hotel Badge -->
+                            {% if order.stripe_checkout.hotel_cart_snapshot %}
+                            <div class="hotel-badge">
+                                <i class="fas fa-hotel"></i>
+                                <span>{% trans "Hotel reservation pending payment" %}</span>
+                            </div>
+                            {% endif %}
+
+                            <!-- Details Grid -->
+                            <div class="payment-grid">
+                                <div class="payment-kv">
+                                    <div class="icon"><i class="fas fa-receipt"></i></div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <p class="label">{% trans "Order ID" %}</p>
+                                        <p class="value">{{ order.order_number }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="payment-kv">
+                                    <div class="icon"><i class="fas fa-calendar"></i></div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <p class="label">{% trans "Created" %}</p>
+                                        <p class="value">{{ order.created_at|date:"M d, Y" }}</p>
+                                    </div>
+                                </div>
+
+                                {% if order.event.start_date %}
+                                <div class="payment-kv">
+                                    <div class="icon"><i class="fas fa-calendar-check"></i></div>
+                                    <div style="flex: 1; min-width: 0;">
+                                        <p class="label">{% trans "Event Date" %}</p>
+                                        <p class="value">
+                                            {{ order.event.start_date|date:"M d, Y" }}
+                                            {% if order.event.end_date and order.event.end_date != order.event.start_date %}
+                                                - {{ order.event.end_date|date:"M d, Y" }}
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Amount -->
+                            <div class="amount-highlight">
+                                <div class="label">{% trans "Total Amount" %}</div>
+                                <div class="value">${{ order.total_amount|floatformat:2 }}</div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="payment-actions">
+                                <button type="button"
+                                        class="btn-payment btn-payment-primary complete-hotel-payment-btn"
+                                        data-order-id="{{ order.pk }}">
+                                    <i class="fas fa-credit-card"></i>
+                                    {% trans "Complete Payment" %}
+                                </button>
+                                <a href="{% url 'accounts:panel_event_detail' order.event.pk %}"
+                                   class="btn-payment btn-payment-outline">
+                                    <i class="fas fa-eye"></i>
+                                    {% trans "View Event" %}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h3>{% trans "All Caught Up!" %}</h3>
+                <p>{% trans "You don't have any pending payments at the moment." %}</p>
+                <a href="{% url 'panel' %}" class="btn-empty">
+                    <i class="fas fa-home"></i>
+                    {% trans "Go to Panel" %}
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript for Hotel Payment -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle complete hotel payment buttons
+        const completePaymentButtons = document.querySelectorAll('.complete-hotel-payment-btn');
+
+        completePaymentButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const orderId = this.getAttribute('data-order-id');
+                const originalText = this.innerHTML;
+
+                // Show loading state
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> {% trans "Processing..." %}';
+
+                // Make AJAX request
+                fetch(`/accounts/complete-hotel-payment/${orderId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.checkout_url) {
+                        // Redirect to Stripe
+                        window.location.href = data.checkout_url;
+                    } else {
+                        // Show error
+                        alert(data.error || '{% trans "Error processing payment. Please try again." %}');
+                        // Reset button
+                        this.disabled = false;
+                        this.innerHTML = originalText;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('{% trans "Error processing payment. Please try again." %}');
+                    // Reset button
+                    this.disabled = false;
+                    this.innerHTML = originalText;
+                });
+            });
+        });
+
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+    </script>
+</body>
+</html>
