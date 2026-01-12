@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-12 15:19:28
+
+- **[658387e]** Integreacion de wallets
+  - *Fecha:* 2026-01-12 15:19:28
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 650 archivo(s)
+    - `CHANGELOG_FIX_SUMMARY.md`
+    - `PASOS_SIGUIENTES_SEGURIDAD.md`
+    - `SECURITY_AUDIT_REGISTRO_PUBLICO.md`
+    - `SECURITY_IMPROVEMENTS_INSTALLED.md`
+    - `apps/accounts/admin.py`
+    - `apps/accounts/apps.py`
+    - `apps/accounts/management/commands/verify_wallet_integrity.py`
+    - `apps/accounts/migrations/0043_alter_order_payment_mode_alter_order_status_and_more.py`
+    - `apps/accounts/migrations/0044_remove_stripeeventcheckout_currency_and_more.py`
+    - `apps/accounts/migrations/0045_staffwallettopup.py`
+    - ... y 640 archivo(s) más
+
+
+
 ### Actualizado: 2026-01-10 21:39:01
 
 - **[cd04294]** settings
