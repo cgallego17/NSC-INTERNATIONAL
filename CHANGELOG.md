@@ -7,6 +7,31 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-12 17:51:08
+
+- **[a5d63a9]** refactor: Apply code formatting and improve date comparison logic
+  - *Fecha:* 2026-01-12 17:51:08
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 9 archivo(s)
+    - `apps/events/views.py`
+    - `apps/events/views_data_management.py`
+    - `templates/base.html`
+    - `templates/events/dashboard.html`
+    - `templates/events/division_form.html`
+    - `templates/events/event_form.html`
+    - `templates/events/eventcontact_form.html`
+    - `templates/events/eventtype_form.html`
+    - `templates/events/gatefeetype_form.html`
+  - *Detalles:*
+    - - Reformat imports to follow alphabetical ordering
+    - - Apply consistent string quote style (single to double quotes)
+    - - Improve code formatting with proper line breaks and indentation
+    - - Update date comparison logic in DashboardView to use date objects instead of datetime for more accurate filtering
+    - - Remove unused EventService import
+    - - Add proper spacing and formatting throughout event views
+
+
+
 ### Actualizado: 2026-01-12 15:19:28
 
 - **[658387e]** Integreacion de wallets
