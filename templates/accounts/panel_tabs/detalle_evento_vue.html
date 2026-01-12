@@ -1347,156 +1347,66 @@
 
 <!-- Initialize Vue App -->
 <script>
-(function() {
-    // Function to initialize the app
+(function () {
+    function safeParseJsonScript(id, fallback) {
+        const el = document.getElementById(id);
+        if (!el) return fallback;
+        try {
+            const raw = (el.textContent || '').trim();
+            if (!raw) return fallback;
+            return JSON.parse(raw);
+        } catch (e) {
+            console.error(`Error parsing ${id}:`, e);
+            return fallback;
+        }
+    }
+
     function initializeApp() {
-        // Check if Vue is loaded
         if (typeof Vue === 'undefined') {
             console.error('Vue.js is not loaded');
             return;
         }
-
-        // Check if EventDetailApp is defined
         if (typeof window.EventDetailApp === 'undefined') {
-            console.warn('EventDetailApp is not defined yet. Retrying...');
-            // Retry after a short delay
+            // Retry until event-detail.js is evaluated
             setTimeout(initializeApp, 100);
             return;
         }
 
-    const { createApp } = Vue;
-    const appElement = document.getElementById('event-detail-app');
+        const appElement = document.getElementById('event-detail-app');
+        if (!appElement) {
+            console.warn('Event detail app container not found');
+            return;
+        }
 
-    if (!appElement) {
-        console.warn('Event detail app container not found');
-        return;
-    }
+        const eventData = safeParseJsonScript('event-data', null);
+        const childrenData = safeParseJsonScript('children-data', []);
+        const registrantData = safeParseJsonScript('registrant-data', null);
 
-    // Load event data
-    const eventDataEl = document.getElementById('event-data');
-    let eventData = null;
-    if (eventDataEl) {
+        const hotelPk = appElement.dataset.hotelPk || '';
+        const roomsData = hotelPk ? safeParseJsonScript('rooms-data-' + hotelPk, []) : [];
+
         try {
-            eventData = JSON.parse(eventDataEl.textContent);
+            const { createApp } = Vue;
+            const app = createApp(window.EventDetailApp);
+            const instance = app.mount('#event-detail-app');
+
+            if (eventData && instance && instance.eventData) instance.eventData.value = eventData;
+            if (registrantData && instance && instance.registrant) instance.registrant.value = registrantData;
+            if (Array.isArray(childrenData) && instance && instance.children) instance.children.value = childrenData;
+            if (Array.isArray(roomsData) && instance && instance.rooms) instance.rooms.value = roomsData;
+
+            window.VueEventDetail = window.VueEventDetail || {};
+            window.VueEventDetail[appElement.dataset.eventPk] = instance;
         } catch (e) {
-            console.error('Error parsing event data:', e);
+            console.error('Error initializing Vue app:', e);
         }
     }
 
-    // Load children data
-    const childrenDataEl = document.getElementById('children-data');
-    let childrenData = [];
-    if (childrenDataEl) {
-        try {
-            childrenData = JSON.parse(childrenDataEl.textContent);
-        } catch (e) {
-            console.error('Error parsing children data:', e);
-        }
-    }
-
-    // Load registrant data
-    const registrantDataEl = document.getElementById('registrant-data');
-    let registrantData = null;
-    if (registrantDataEl) {
-        try {
-            registrantData = JSON.parse(registrantDataEl.textContent);
-        } catch (e) {
-            console.error('Error parsing registrant data:', e);
-        }
-    }
-
-    // Load rooms data
-    const hotelPk = appElement.dataset.hotelPk;
-    const roomsDataEl = document.getElementById('rooms-data-' + hotelPk);
-    let roomsData = [];
-    if (roomsDataEl) {
-        try {
-            const jsonText = roomsDataEl.textContent.trim();
-            if (jsonText) {
-                roomsData = JSON.parse(jsonText);
-                roomsData = roomsData.filter(room => room && room.id);
-            }
-        } catch (e) {
-            console.error('Error parsing rooms data:', e);
-        }
-    }
-
-    try {
-        // Create Vue app instance
-        const app = createApp(window.EventDetailApp);
-
-        // Mount the app
-        const instance = app.mount('#event-detail-app');
-
-        // Set initial data if available
-        if (eventData && instance && instance.eventData) {
-            instance.eventData.value = eventData;
-        }
-        if (registrantData && instance && instance.registrant) {
-            instance.registrant.value = registrantData;
-        }
-        if (childrenData && childrenData.length > 0 && instance && instance.children) {
-            instance.children.value = childrenData;
-        }
-        if (roomsData && roomsData.length > 0 && instance && instance.rooms) {
-            instance.rooms.value = roomsData;
-        }
-
-        // Make Vue app instance accessible globally
-        window.VueEventDetail = window.VueEventDetail || {};
-        window.VueEventDetail[appElement.dataset.eventPk] = instance;
-
-        console.log('Vue Event Detail app initialized successfully');
-        console.log('Event:', eventData);
-        console.log('Children:', childrenData.length);
-        console.log('Rooms:', roomsData.length);
-
-        // Interceptar las funciones de checkout para agregar logs
-        if (instance && instance.handlePayNow) {
-            const originalHandlePayNow = instance.handlePayNow;
-            instance.handlePayNow = async function() {
-                console.log('');
-                console.log('═══════════════════════════════════════════════════════════════');
-                console.log('🔥🔥🔥 handlePayNow CLICKEADO 🔥🔥🔥');
-                console.log('═══════════════════════════════════════════════════════════════');
-                return originalHandlePayNow.call(this);
-            };
-        }
-
-        if (instance && instance.handlePaymentPlan) {
-            const originalHandlePaymentPlan = instance.handlePaymentPlan;
-            instance.handlePaymentPlan = async function() {
-                console.log('');
-                console.log('═══════════════════════════════════════════════════════════════');
-                console.log('🔥🔥🔥 handlePaymentPlan CLICKEADO 🔥🔥🔥');
-                console.log('═══════════════════════════════════════════════════════════════');
-                return originalHandlePaymentPlan.call(this);
-            };
-        }
-
-        if (instance && instance.handleRegisterOnly) {
-            const originalHandleRegisterOnly = instance.handleRegisterOnly;
-            instance.handleRegisterOnly = async function() {
-                console.log('');
-                console.log('═══════════════════════════════════════════════════════════════');
-                console.log('🟢🟢🟢 handleRegisterOnly CLICKEADO 🟢🟢🟢');
-                console.log('═══════════════════════════════════════════════════════════════');
-                return originalHandleRegisterOnly.call(this);
-            };
-        }
-    } catch (e) {
-        console.error('Error initializing Vue app:', e);
-    }
-    }
-
-    // Wait for DOM and scripts to be ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            // Give scripts a moment to load
+        document.addEventListener('DOMContentLoaded', function () {
             setTimeout(initializeApp, 50);
         });
     } else {
-        // DOM is already ready, but scripts might still be loading
         setTimeout(initializeApp, 50);
     }
 })();

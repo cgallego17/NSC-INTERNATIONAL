@@ -648,7 +648,7 @@
 {% block extra_js %}
 <script>
 // Gráfico de eventos por categoría
-const categoryData = {{ events_by_category|safe }};
+const categoryData = {{ events_by_category_json|safe }};
 const categoryLabels = categoryData.map(item => item.category__name || 'Sin categoría');
 const categoryCounts = categoryData.map(item => item.count);
 
@@ -686,7 +686,7 @@ new Chart(ctx, {
 });
 
 // Gráfico de eventos por división
-const divisionData = {{ events_by_division|safe }};
+const divisionData = {{ events_by_division_json|safe }};
 const divisionLabels = divisionData.map(item => item.division__name || 'Sin división');
 const divisionCounts = divisionData.map(item => item.count);
 

@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 from decimal import Decimal
 
@@ -1238,6 +1239,8 @@ class DashboardView(StaffRequiredMixin, TemplateView):
             .order_by("-count")[:5]
         )
 
+        events_by_category_json = json.dumps(list(events_by_category))
+
         # Eventos por división (solo publicados)
         try:
             events_by_division = (
@@ -1249,6 +1252,8 @@ class DashboardView(StaffRequiredMixin, TemplateView):
         except Exception:
             # Si la tabla no existe aún, retornar lista vacía
             events_by_division = []
+
+        events_by_division_json = json.dumps(list(events_by_division))
 
         # Eventos más populares (por número de asistentes, solo publicados)
         popular_events = (
@@ -1293,7 +1298,9 @@ class DashboardView(StaffRequiredMixin, TemplateView):
                     "upcoming_week": upcoming_week,
                     "upcoming_week_count": upcoming_week_count,
                     "events_by_category": events_by_category,
+                    "events_by_category_json": events_by_category_json,
                     "events_by_division": events_by_division,
+                    "events_by_division_json": events_by_division_json,
                     "popular_events": popular_events,
                     "total_attendances": total_attendances,
                     "confirmed_attendances": confirmed_attendances,
@@ -1316,7 +1323,9 @@ class DashboardView(StaffRequiredMixin, TemplateView):
                     "upcoming_week": upcoming_week,
                     "upcoming_week_count": upcoming_week_count,
                     "events_by_category": events_by_category,
+                    "events_by_category_json": events_by_category_json,
                     "events_by_division": events_by_division,
+                    "events_by_division_json": events_by_division_json,
                     "popular_events": popular_events,
                     "total_attendances": total_attendances,
                     "confirmed_attendances": confirmed_attendances,
