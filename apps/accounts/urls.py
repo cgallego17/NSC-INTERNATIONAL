@@ -216,6 +216,11 @@ urlpatterns = [
     ),
     # Usuarios (solo staff)
     path("users/", views_private.UserListView.as_view(), name="user_list"),
+    path(
+        "users/<int:pk>/detail/",
+        views_private.AdminUserDetailView.as_view(),
+        name="admin_user_detail",
+    ),
     # Instagram API
     path(
         "api/instagram/posts/",

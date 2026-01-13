@@ -11,7 +11,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
-from django.db import models, transaction
+from django.db import transaction
 from django.db.models import Q, Sum
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -1470,6 +1470,135 @@ class UserListView(SuperuserRequiredMixin, ListView):
         context["active_section"] = "users"
         context["active_subsection"] = "user_list"
 
+        return context
+
+
+class AdminUserDetailView(SuperuserRequiredMixin, DetailView):
+    model = User
+    template_name = "accounts/admin/user_admin_detail.html"
+    context_object_name = "user_obj"
+
+    def get_queryset(self):
+        return User.objects.select_related("profile")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user_obj = context["user_obj"]
+
+        # Wallet + last transactions
+        wallet = None
+        wallet_transactions = []
+        try:
+            from .models import UserWallet
+
+            wallet = getattr(user_obj, "wallet", None)
+            if wallet is None:
+                wallet = UserWallet.objects.filter(user=user_obj).first()
+            if wallet is not None:
+                wallet_transactions = list(
+                    wallet.transactions.all().order_by("-created_at", "-id")[:50]
+                )
+        except Exception:
+            wallet = None
+            wallet_transactions = []
+
+        # Orders
+        orders = (
+            Order.objects.filter(user=user_obj)
+            .select_related("event", "stripe_checkout")
+            .order_by("-created_at")[:50]
+        )
+
+        # Stripe checkouts
+        stripe_checkouts = (
+            StripeEventCheckout.objects.filter(user=user_obj)
+            .select_related("event")
+            .order_by("-created_at")[:50]
+        )
+
+        # Notifications
+        notifications = (
+            Notification.objects.filter(user=user_obj)
+            .select_related("order", "event")
+            .order_by("-created_at")[:50]
+        )
+
+        # Push subscriptions
+        push_subscriptions = PushSubscription.objects.filter(user=user_obj).order_by(
+            "-created_at"
+        )
+
+        # Teams managed + players on those teams
+        managed_teams = user_obj.managed_teams.all().prefetch_related("players")
+
+        # Player profile
+        player_profile = getattr(user_obj, "player_profile", None)
+
+        # Parent/children relationships
+        children_relations = (
+            PlayerParent.objects.filter(parent=user_obj)
+            .select_related(
+                "player",
+                "player__team",
+                "player__user",
+                "player__user__profile",
+            )
+            .order_by("-created_at")
+        )
+
+        parent_relations = PlayerParent.objects.none()
+        if player_profile is not None:
+            parent_relations = (
+                PlayerParent.objects.filter(player=player_profile)
+                .select_related("parent", "parent__profile")
+                .order_by("-created_at")
+            )
+
+        # Events (if events app is installed)
+        organized_events = []
+        attended_events = []
+        try:
+            from apps.events.models import Event, EventAttendance
+
+            organized_events = list(
+                Event.objects.filter(organizer=user_obj).order_by("-start_date")[:50]
+            )
+            attended_events = list(
+                EventAttendance.objects.filter(user=user_obj)
+                .select_related("event")
+                .order_by("-registered_at")[:50]
+            )
+        except Exception:
+            organized_events = []
+            attended_events = []
+
+        # Staff wallet top-ups (if applicable)
+        staff_wallet_topups = []
+        try:
+            staff_wallet_topups = list(
+                user_obj.staff_wallet_topups.all()
+                .select_related("created_by")
+                .order_by("-created_at")[:50]
+            )
+        except Exception:
+            staff_wallet_topups = []
+
+        context["wallet"] = wallet
+        context["wallet_transactions"] = wallet_transactions
+        context["orders"] = orders
+        context["stripe_checkouts"] = stripe_checkouts
+        context["notifications"] = notifications
+        context["push_subscriptions"] = push_subscriptions
+        context["managed_teams"] = managed_teams
+        context["player_profile"] = player_profile
+        context["children_relations"] = children_relations
+        context["parent_relations"] = parent_relations
+        context["organized_events"] = organized_events
+        context["attended_events"] = attended_events
+        context["staff_wallet_topups"] = staff_wallet_topups
+
+        context["active_section"] = "users"
+        context["active_subsection"] = "user_admin_detail"
         return context
 
 

@@ -1,0 +1,545 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Detalle Admin Usuario - {{ user_obj.username }} - NCS International{% endblock %}
+
+{% block breadcrumb %}
+    <a href="{% url 'accounts:user_list' %}">Usuarios</a>
+    <span>Detalle Admin</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .user-admin-detail-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        padding: 2rem 2rem 2rem 3rem;
+        min-height: 100vh;
+    }
+
+    @media (max-width: 992px) {
+        .user-admin-detail-container {
+            padding: 2rem 1.5rem;
+        }
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .info-card-header {
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 12px;
+        margin-bottom: 18px;
+        font-weight: 700;
+        color: var(--mlb-blue);
+        font-size: 1.05rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .kv {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    @media (max-width: 768px) {
+        .kv {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .kv .k {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+    .kv .v {
+        color: #212529;
+        overflow-wrap: anywhere;
+    }
+
+    .table td, .table th {
+        vertical-align: middle;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="user-admin-detail-container">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h1 class="h3 mb-1">Detalle Admin: {{ user_obj.get_full_name|default:user_obj.username }}</h1>
+                <div class="text-muted">ID {{ user_obj.id }} · {{ user_obj.username }} · {{ user_obj.email|default:'-' }}</div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'accounts:user_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </a>
+                <a href="/admin/auth/user/{{ user_obj.pk }}/change/" class="btn btn-primary" target="_blank">
+                    <i class="fas fa-edit me-2"></i>Editar en Admin
+                </a>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-header">
+                <span><i class="fas fa-user me-2"></i>Usuario</span>
+                <div>
+                    {% if user_obj.is_active %}
+                        <span class="badge bg-success">Activo</span>
+                    {% else %}
+                        <span class="badge bg-danger">Inactivo</span>
+                    {% endif %}
+                    {% if user_obj.is_staff %}
+                        <span class="badge bg-primary ms-1">Staff</span>
+                    {% endif %}
+                    {% if user_obj.is_superuser %}
+                        <span class="badge bg-dark ms-1">Superuser</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="kv"><div class="k">Nombre</div><div class="v">{{ user_obj.get_full_name|default:'-' }}</div></div>
+            <div class="kv"><div class="k">Username</div><div class="v">{{ user_obj.username }}</div></div>
+            <div class="kv"><div class="k">Email</div><div class="v">{{ user_obj.email|default:'-' }}</div></div>
+            <div class="kv"><div class="k">Último login</div><div class="v">{{ user_obj.last_login|date:'Y-m-d H:i'|default:'-' }}</div></div>
+            <div class="kv"><div class="k">Registrado</div><div class="v">{{ user_obj.date_joined|date:'Y-m-d H:i' }}</div></div>
+
+            <div class="mt-3">
+                <div class="kv"><div class="k">Perfil</div><div class="v">{% if user_obj.profile %}{{ user_obj.profile.get_user_type_display }}{% else %}<span class="text-muted">Sin perfil</span>{% endif %}</div></div>
+                {% if user_obj.profile %}
+                    <div class="kv"><div class="k">Teléfono</div><div class="v">{{ user_obj.profile.phone|default:'-' }}</div></div>
+                    <div class="kv"><div class="k">Ubicación</div><div class="v">{{ user_obj.profile.city|default:'' }}{% if user_obj.profile.state %}, {{ user_obj.profile.state }}{% endif %}{% if user_obj.profile.country %}, {{ user_obj.profile.country }}{% endif %}</div></div>
+                    <div class="kv"><div class="k">Stripe Customer</div><div class="v">{{ user_obj.profile.stripe_customer_id|default:'-' }}</div></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-header">
+                <span><i class="fas fa-wallet me-2"></i>Wallet</span>
+            </div>
+
+            {% if wallet %}
+                <div class="kv"><div class="k">Balance</div><div class="v">${{ wallet.balance }}</div></div>
+                <div class="kv"><div class="k">Pendiente</div><div class="v">${{ wallet.pending_balance }}</div></div>
+                <div class="kv"><div class="k">Disponible</div><div class="v">${{ wallet.available_balance }}</div></div>
+
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <strong>Últimas transacciones</strong>
+                        <a href="{% url 'accounts:admin_wallet_topups' %}" class="btn btn-sm btn-outline-primary">
+                            Ir a recargas
+                        </a>
+                    </div>
+                    {% if wallet_transactions %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Tipo</th>
+                                        <th>Monto</th>
+                                        <th>Balance después</th>
+                                        <th>Referencia</th>
+                                        <th>Descripción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for tx in wallet_transactions %}
+                                        <tr>
+                                            <td>{{ tx.created_at|date:'Y-m-d H:i' }}</td>
+                                            <td>{{ tx.get_transaction_type_display }}</td>
+                                            <td>${{ tx.amount }}</td>
+                                            <td>${{ tx.balance_after }}</td>
+                                            <td>{{ tx.reference_id|default:'-' }}</td>
+                                            <td>{{ tx.description|default:'-' }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-muted">Sin transacciones.</div>
+                    {% endif %}
+                </div>
+
+                <div class="mt-3">
+                    <strong>Últimas recargas staff</strong>
+                    {% if staff_wallet_topups %}
+                        <div class="table-responsive mt-2">
+                            <table class="table table-sm table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Monto</th>
+                                        <th>Creado por</th>
+                                        <th>Descripción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for topup in staff_wallet_topups %}
+                                        <tr>
+                                            <td>{{ topup.created_at|date:'Y-m-d H:i' }}</td>
+                                            <td>${{ topup.amount }}</td>
+                                            <td>{{ topup.created_by.username|default:'-' }}</td>
+                                            <td>{{ topup.description|default:'-' }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-muted">Sin recargas staff.</div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="text-muted">El usuario no tiene wallet.</div>
+            {% endif %}
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-header">
+                <span><i class="fas fa-receipt me-2"></i>Órdenes (últimas 50)</span>
+                <a href="{% url 'accounts:admin_order_list' %}" class="btn btn-sm btn-outline-primary">Ir a órdenes</a>
+            </div>
+
+            {% if orders %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Estado</th>
+                                <th>Evento</th>
+                                <th>Total</th>
+                                <th>Pago</th>
+                                <th>Modo</th>
+                                <th>Creada</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for o in orders %}
+                                <tr>
+                                    <td>{{ o.order_number }}</td>
+                                    <td>{{ o.get_status_display }}</td>
+                                    <td>{% if o.event %}{{ o.event.title }}{% else %}-{% endif %}</td>
+                                    <td>${{ o.total_amount }} {{ o.currency|upper }}</td>
+                                    <td>{{ o.get_payment_method_display }}</td>
+                                    <td>{{ o.get_payment_mode_display }}</td>
+                                    <td>{{ o.created_at|date:'Y-m-d H:i' }}</td>
+                                    <td>
+                                        <a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:admin_order_detail' o.pk %}">Ver</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-muted">Sin órdenes.</div>
+            {% endif %}
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-header">
+                <span><i class="fas fa-credit-card me-2"></i>Stripe Checkouts (últimos 50)</span>
+            </div>
+
+            {% if stripe_checkouts %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Evento</th>
+                                <th>Estado</th>
+                                <th>Modo</th>
+                                <th>Total</th>
+                                <th>Creado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for co in stripe_checkouts %}
+                                <tr>
+                                    <td>#{{ co.pk }}</td>
+                                    <td>{{ co.event.title|default:'-' }}</td>
+                                    <td>{{ co.status }}</td>
+                                    <td>{{ co.get_payment_mode_display }}</td>
+                                    <td>${{ co.amount_total }}</td>
+                                    <td>{{ co.created_at|date:'Y-m-d H:i' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-muted">Sin checkouts.</div>
+            {% endif %}
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-header">
+                <span><i class="fas fa-bell me-2"></i>Notificaciones (últimas 50)</span>
+            </div>
+
+            {% if notifications %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Título</th>
+                                <th>Leída</th>
+                                <th>Orden</th>
+                                <th>Evento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for n in notifications %}
+                                <tr>
+                                    <td>{{ n.created_at|date:'Y-m-d H:i' }}</td>
+                                    <td>{{ n.get_type_display }}</td>
+                                    <td>{{ n.title }}</td>
+                                    <td>{% if n.read %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-warning text-dark">No</span>{% endif %}</td>
+                                    <td>{% if n.order %}{{ n.order.order_number }}{% else %}-{% endif %}</td>
+                                    <td>{% if n.event %}{{ n.event.title }}{% else %}-{% endif %}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-muted">Sin notificaciones.</div>
+            {% endif %}
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-header">
+                <span><i class="fas fa-broadcast-tower me-2"></i>Push subscriptions</span>
+            </div>
+
+            {% if push_subscriptions %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Activo</th>
+                                <th>User agent</th>
+                                <th>Creado</th>
+                                <th>Endpoint</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ps in push_subscriptions %}
+                                <tr>
+                                    <td>#{{ ps.pk }}</td>
+                                    <td>{% if ps.is_active %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+                                    <td>{{ ps.user_agent|default:'-' }}</td>
+                                    <td>{{ ps.created_at|date:'Y-m-d H:i' }}</td>
+                                    <td style="max-width: 420px;">{{ ps.endpoint }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-muted">Sin subscriptions.</div>
+            {% endif %}
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-header">
+                <span><i class="fas fa-users me-2"></i>Equipos / Jugadores</span>
+            </div>
+
+            <div class="mb-3">
+                <strong>Equipos que administra</strong>
+                {% if managed_teams %}
+                    <div class="table-responsive mt-2">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Equipo</th>
+                                    <th>Activo</th>
+                                    <th>Players</th>
+                                    <th>Creado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in managed_teams %}
+                                    <tr>
+                                        <td>{{ t.name }}</td>
+                                        <td>{% if t.is_active %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+                                        <td>{{ t.players.count }}</td>
+                                        <td>{{ t.created_at|date:'Y-m-d' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-muted">No administra equipos.</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <strong>Jugador asociado (si aplica)</strong>
+                {% if player_profile %}
+                    <div class="kv"><div class="k">Player ID</div><div class="v">{{ player_profile.pk }}</div></div>
+                    <div class="kv"><div class="k">Equipo</div><div class="v">{{ player_profile.team.name|default:'-' }}</div></div>
+                    <div class="kv"><div class="k">División</div><div class="v">{{ player_profile.division.name|default:'-' }}</div></div>
+                    <div class="kv"><div class="k">Age verification</div><div class="v">{{ player_profile.age_verification_status|default:'-' }}</div></div>
+                {% else %}
+                    <div class="text-muted">No tiene player_profile.</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <strong>Hijos (si es parent)</strong>
+                {% if children_relations %}
+                    <div class="table-responsive mt-2">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Jugador</th>
+                                    <th>Relación</th>
+                                    <th>Principal</th>
+                                    <th>Puede recoger</th>
+                                    <th>Equipo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rel in children_relations %}
+                                    <tr>
+                                        <td>{{ rel.player.user.get_full_name|default:rel.player.user.username }}</td>
+                                        <td>{{ rel.get_relationship_display }}</td>
+                                        <td>{% if rel.is_primary %}Sí{% else %}No{% endif %}</td>
+                                        <td>{% if rel.can_pickup %}Sí{% else %}No{% endif %}</td>
+                                        <td>{{ rel.player.team.name|default:'-' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-muted">Sin hijos asociados.</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-2">
+                <strong>Padres del jugador (si el usuario es jugador)</strong>
+                {% if parent_relations %}
+                    <div class="table-responsive mt-2">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Padre</th>
+                                    <th>Tipo</th>
+                                    <th>Relación</th>
+                                    <th>Principal</th>
+                                    <th>Puede recoger</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for rel in parent_relations %}
+                                    <tr>
+                                        <td>{{ rel.parent.get_full_name|default:rel.parent.username }}</td>
+                                        <td>{% if rel.parent.profile %}{{ rel.parent.profile.get_user_type_display }}{% else %}-{% endif %}</td>
+                                        <td>{{ rel.get_relationship_display }}</td>
+                                        <td>{% if rel.is_primary %}Sí{% else %}No{% endif %}</td>
+                                        <td>{% if rel.can_pickup %}Sí{% else %}No{% endif %}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-muted">Sin padres asociados.</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-header">
+                <span><i class="fas fa-calendar me-2"></i>Eventos</span>
+            </div>
+
+            <div class="mb-3">
+                <strong>Organiza (últimos 50)</strong>
+                {% if organized_events %}
+                    <div class="table-responsive mt-2">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Evento</th>
+                                    <th>Status</th>
+                                    <th>Inicio</th>
+                                    <th>Fin</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for e in organized_events %}
+                                    <tr>
+                                        <td>{{ e.title }}</td>
+                                        <td>{{ e.get_status_display|default:e.status }}</td>
+                                        <td>{{ e.start_date|date:'Y-m-d' }}</td>
+                                        <td>{{ e.end_date|date:'Y-m-d' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-muted">No organiza eventos.</div>
+                {% endif %}
+            </div>
+
+            <div>
+                <strong>Asiste (últimos 50)</strong>
+                {% if attended_events %}
+                    <div class="table-responsive mt-2">
+                        <table class="table table-sm table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Evento</th>
+                                    <th>Status</th>
+                                    <th>Registrado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for a in attended_events %}
+                                    <tr>
+                                        <td>{{ a.event.title }}</td>
+                                        <td>{{ a.status }}</td>
+                                        <td>{{ a.registered_at|date:'Y-m-d H:i' }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-muted">No registra asistencias.</div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
