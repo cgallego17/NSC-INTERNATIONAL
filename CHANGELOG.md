@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 11:11:16
+
+- **[fdb4a83]** ```
+  - *Fecha:* 2026-01-13 11:11:15
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/events/public_detail.html`
+  - *Detalles:*
+    - refactor: Simplify video display logic to use native HTML5 video player for direct video files
+    - - Replace iframe-based video embedding with native HTML5 video element for .mp4, .webm, and .ogg files
+    - - Remove JavaScript video URL conversion logic for YouTube, Vimeo, and other providers
+    - - Change fallback behavior to show direct link for all non-video file URLs
+    - - Update fallback alert from warning to info style with simplified messaging
+    - - Remove mixed content prevention and embed URL transformation
+
+
+
 ### Actualizado: 2026-01-13 11:08:43
 
 - **[18e3f61]** ```
