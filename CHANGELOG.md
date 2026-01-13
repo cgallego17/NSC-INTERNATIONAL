@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 17:04:01
+
+- **[ef585b1]** ```
+  - *Fecha:* 2026-01-13 17:04:00
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/admin/user_admin_detail.html`
+  - *Detalles:*
+    - style: Improve tab navigation styling in admin user detail view
+    - - Add color #212529 for default nav-link state
+    - - Add hover color #0b5ed7 for better visual feedback
+    - - Style active tab with white background and bottom border removal
+    - - Add font-weight 600 to active tab for emphasis
+    - - Set consistent border-bottom-color #dee2e6 for nav-tabs
+    - ```
+
+
+
 ### Actualizado: 2026-01-13 16:53:28
 
 - **[f15a6d1]** ```
