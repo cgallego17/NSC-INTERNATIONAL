@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-12 23:08:16
+
+- **[cdedeb4]** ```
+  - *Fecha:* 2026-01-12 23:08:15
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `apps/accounts/views_public.py`
+  - *Detalles:*
+    - refactor: Simplify registration success flow and add rate limiting to form validation
+    - - Change success_url from accounts:profile to panel for all user types
+    - - Remove user type-based redirect logic after registration
+    - - Remove unused imports (HttpResponseForbidden, RATE_LIMIT_WINDOW)
+    - - Simplify form_valid to always redirect to panel instead of conditional redirects
+    - - Add form_invalid method with rate limiting and login attempt tracking
+    - - Implement session-based error handling for failed registration
+
+
+
 ### Actualizado: 2026-01-12 23:01:19
 
 - **[9ef5beb]** refactor: Improve itinerary fallback logic and add itinerary display to public event detail
