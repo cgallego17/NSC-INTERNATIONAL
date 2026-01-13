@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 17:34:33
+
+- **[e291e30]** ```
+  - *Fecha:* 2026-01-13 17:34:33
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `.github/workflows/ci.yml`
+    - `apps/accounts/views_private.py`
+  - *Detalles:*
+    - fix: Convert querysets to lists in admin player detail view for database compatibility
+    - - Wrap Order querysets with list() for related_orders, related_payment_plan_orders, and related_active_payment_plan_orders
+    - - Wrap StripeEventCheckout querysets with list() for related_checkouts, related_plan_checkouts, and related_active_plan_checkouts
+    - - Ensure querysets evaluated before fallback logic to prevent lazy evaluation issues
+    - - Remove Python 3.8 and 3.9 from CI test matrix, keeping 3.10, 3.11, and 3
+
+
+
 ### Actualizado: 2026-01-13 17:30:50
 
 - **[51b2404]** ```
