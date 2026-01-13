@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-12 22:30:59
+
+- **[80e4764]** refactor: Add fallback UI for non-embeddable video URLs in public event detail
+  - *Fecha:* 2026-01-12 22:30:59
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/events/public_detail.html`
+  - *Detalles:*
+    - - Add fallback alert div with external link button for videos that can't be embedded
+    - - Update video URL handling script to detect non-embeddable URLs
+    - - Show fallback message when URL doesn't contain '/embed/' pattern
+    - - Provide "Open Video" button to view content in new tab
+    - - Remove iframe src attribute when fallback is displayed
+    - - Add translations for fallback message and button text
+
+
+
 ### Actualizado: 2026-01-12 22:29:01
 
 - **[9dcebb3]** refactor: Enhance video URL handling with support for YouTube Shorts, Vimeo, and HTTPS enforcement
