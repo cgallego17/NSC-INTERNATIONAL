@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 12:26:52
+
+- **[8b489a1]** ```
+  - *Fecha:* 2026-01-13 12:26:52
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 3 archivo(s)
+    - `apps/accounts/signals.py`
+    - `apps/accounts/views_private.py`
+    - `templates/emails/order_staff_notification.html`
+  - *Detalles:*
+    - refactor: Add staff email notifications for order creation and payment with detailed player information
+    - - Import EmailMultiAlternatives, render_to_string, get_user_model, and settings for email functionality
+    - - Add Player model import for player data enrichment in signals
+    - - Extract staff emails from active staff users for order notifications
+    - - Build comprehensive email context including event details, player information, and hotel reservations
+    - - Support multiple player data sources: registere
+
+
+
 ### Actualizado: 2026-01-13 11:35:30
 
 - **[dcc216d]** ```
