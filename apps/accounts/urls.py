@@ -81,6 +81,11 @@ urlpatterns = [
         name="player_edit",
     ),
     path(
+        "players/<int:pk>/delete/",
+        views_private.PlayerDeleteView.as_view(),
+        name="player_delete",
+    ),
+    path(
         "players/<int:pk>/approve-verification/",
         views_private.approve_age_verification,
         name="approve_age_verification",

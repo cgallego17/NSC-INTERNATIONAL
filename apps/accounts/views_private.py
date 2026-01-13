@@ -26,6 +26,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.views.generic import (
     CreateView,
+    DeleteView,
     DetailView,
     ListView,
     TemplateView,
@@ -1274,6 +1275,19 @@ class PlayerRegistrationView(ManagerRequiredMixin, CreateView):
             _("Player %(name)s registered successfully.") % {"name": player_name},
         )
         return redirect("accounts:player_list")
+
+
+class PlayerDeleteView(UserPassesTestMixin, DeleteView):
+    model = Player
+    template_name = "accounts/player_confirm_delete.html"
+    context_object_name = "player"
+    success_url = reverse_lazy("accounts:player_list")
+
+    def test_func(self):
+        user = self.request.user
+        return bool(
+            user and user.is_authenticated and (user.is_staff or user.is_superuser)
+        )
 
 
 class ParentPlayerRegistrationView(LoginRequiredMixin, CreateView):
