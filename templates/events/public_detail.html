@@ -1658,14 +1658,6 @@
                                     </span>
                                 </li>
                                 {% endif %}
-
-                                {% if event.service_fee %}
-                                <li class="plan-detail-item">
-                                    <i class="fas fa-percentage"></i>
-                                    <span class="plan-detail-label">{% trans "Service Fee" %}:</span>
-                                    <span class="plan-detail-value">{{ event.service_fee }}%</span>
-                                </li>
-                                {% endif %}
                             </ul>
 
                             {% if includes_player %}
@@ -1770,14 +1762,6 @@
                                             ${{ event.gate_fee_amount|floatformat:2 }}
                                         {% endif %}
                                     </span>
-                                </li>
-                                {% endif %}
-
-                                {% if event.service_fee_team_manager or event.service_fee %}
-                                <li class="plan-detail-item">
-                                    <i class="fas fa-percentage"></i>
-                                    <span class="plan-detail-label">{% trans "Service Fee" %}:</span>
-                                    <span class="plan-detail-value">{{ event.service_fee_team_manager|default:event.service_fee }}%</span>
                                 </li>
                                 {% endif %}
                             </ul>
@@ -1887,14 +1871,6 @@
                                             ${{ event.gate_fee_amount|floatformat:2 }}
                                         {% endif %}
                                     </span>
-                                </li>
-                                {% endif %}
-
-                                {% if event.service_fee_spectator or event.service_fee %}
-                                <li class="plan-detail-item">
-                                    <i class="fas fa-percentage"></i>
-                                    <span class="plan-detail-label">{% trans "Service Fee" %}:</span>
-                                    <span class="plan-detail-value">{{ event.service_fee_spectator|default:event.service_fee }}%</span>
                                 </li>
                                 {% endif %}
                             </ul>
