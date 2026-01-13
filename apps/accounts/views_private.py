@@ -1509,9 +1509,34 @@ class AdminUserDetailView(SuperuserRequiredMixin, DetailView):
             .order_by("-created_at")[:50]
         )
 
+        # Payment plans (Orders + Stripe checkouts)
+        payment_plan_orders = (
+            Order.objects.filter(user=user_obj, payment_mode="plan")
+            .select_related("event", "stripe_checkout")
+            .order_by("-created_at")[:50]
+        )
+        active_payment_plan_orders = (
+            Order.objects.filter(user=user_obj, payment_mode="plan")
+            .filter(Q(plan_payments_remaining__gt=0) | ~Q(stripe_subscription_id=""))
+            .select_related("event", "stripe_checkout")
+            .order_by("-created_at")[:50]
+        )
+
         # Stripe checkouts
         stripe_checkouts = (
             StripeEventCheckout.objects.filter(user=user_obj)
+            .select_related("event")
+            .order_by("-created_at")[:50]
+        )
+
+        payment_plan_checkouts = (
+            StripeEventCheckout.objects.filter(user=user_obj, payment_mode="plan")
+            .select_related("event")
+            .order_by("-created_at")[:50]
+        )
+        active_payment_plan_checkouts = (
+            StripeEventCheckout.objects.filter(user=user_obj, payment_mode="plan")
+            .filter(~Q(stripe_subscription_id=""))
             .select_related("event")
             .order_by("-created_at")[:50]
         )
@@ -1530,6 +1555,12 @@ class AdminUserDetailView(SuperuserRequiredMixin, DetailView):
 
         # Teams managed + players on those teams
         managed_teams = user_obj.managed_teams.all().prefetch_related("players")
+
+        managed_team_players = (
+            Player.objects.filter(team__manager=user_obj)
+            .select_related("user", "user__profile", "team", "division")
+            .order_by("-created_at")
+        )
 
         # Player profile
         player_profile = getattr(user_obj, "player_profile", None)
@@ -1586,10 +1617,15 @@ class AdminUserDetailView(SuperuserRequiredMixin, DetailView):
         context["wallet"] = wallet
         context["wallet_transactions"] = wallet_transactions
         context["orders"] = orders
+        context["payment_plan_orders"] = payment_plan_orders
+        context["active_payment_plan_orders"] = active_payment_plan_orders
         context["stripe_checkouts"] = stripe_checkouts
+        context["payment_plan_checkouts"] = payment_plan_checkouts
+        context["active_payment_plan_checkouts"] = active_payment_plan_checkouts
         context["notifications"] = notifications
         context["push_subscriptions"] = push_subscriptions
         context["managed_teams"] = managed_teams
+        context["managed_team_players"] = managed_team_players
         context["player_profile"] = player_profile
         context["children_relations"] = children_relations
         context["parent_relations"] = parent_relations
