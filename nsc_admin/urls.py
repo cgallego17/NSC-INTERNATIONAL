@@ -64,6 +64,7 @@ urlpatterns = [
     path("locations/", include("apps.locations.urls")),
     path("accounts/", include("apps.accounts.urls")),  # Login público aquí
     path("users/", include("django.contrib.auth.urls")),  # Mantener para compatibilidad
+    path("hijack/", include("hijack.urls")),
     path("files/", include("apps.media.urls")),  # Multimedia
     path("sw.js", service_worker),
     path("i18n/setlang/", set_language, name="set_language"),  # Language switching

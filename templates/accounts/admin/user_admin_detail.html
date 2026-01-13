@@ -110,6 +110,14 @@
                 <a href="/admin/auth/user/{{ user_obj.pk }}/change/" class="btn btn-primary" target="_blank">
                     <i class="fas fa-edit me-2"></i>Editar en Admin
                 </a>
+                {% if user.is_superuser %}
+                    <form method="post" action="{% url 'hijack:acquire' user_obj.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-dark">
+                            <i class="fas fa-user-secret me-2"></i>Login as
+                        </button>
+                    </form>
+                {% endif %}
             </div>
         </div>
 

@@ -2,7 +2,6 @@
 Django settings for nsc_admin project - Versión simplificada sin variables de entorno
 """
 
-import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -33,6 +32,8 @@ THIRD_PARTY_APPS = [
     "django_filters",
     "django_tables2",
     "bootstrap5",
+    "hijack",
+    "hijack_admin",
 ]
 
 LOCAL_APPS = [
@@ -53,6 +54,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "hijack.middleware.HijackUserMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -137,6 +139,10 @@ SESSION_SAVE_EVERY_REQUEST = True
 
 # WhiteNoise settings
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# Hijack (impersonation) - keep it superuser-only and POST-only
+HIJACK_AUTHORIZE_HANDLER = "hijack.helpers.superusers_only"
+HIJACK_ALLOW_GET_REQUESTS = False
 
 # Email settings
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
