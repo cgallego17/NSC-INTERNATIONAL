@@ -7,6 +7,28 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 17:25:28
+
+- **[a5dbbce]** ```
+  - *Fecha:* 2026-01-13 17:25:27
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 5 archivo(s)
+    - `apps/accounts/urls.py`
+    - `apps/accounts/views_private.py`
+    - `requirements/requirements.txt`
+    - `templates/accounts/admin/player_admin_detail.html`
+    - `templates/accounts/player_list.html`
+  - *Detalles:*
+    - feat: Add admin player detail view with comprehensive related data aggregation
+    - - Add AdminPlayerDetailView with player_obj context for detailed player information
+    - - Create admin_player_detail URL pattern at players/<int:pk>/admin-detail/
+    - - Aggregate parent relations with user profile data ordered by creation date
+    - - Include related orders with event, stripe checkout, and user relationships limited to last 50
+    - - Display payment plan orders filtered by payment_mode="plan"
+    - - Show active payment plan orders with
+
+
+
 ### Actualizado: 2026-01-13 17:13:52
 
 - **[7285d72]** ```
