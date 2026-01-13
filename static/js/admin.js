@@ -6147,6 +6147,7 @@ AdminDashboard.prototype.updateNotificationBadgeFromAPI = function () {
 
 AdminDashboard.prototype.updateBadgeUI = function (count) {
     const notificationBadge = document.getElementById('notificationBadge');
+    const notificationBtn = document.getElementById('notificationsBtn');
     if (!notificationBadge) return;
 
     if (count > 0) {
@@ -6154,11 +6155,19 @@ AdminDashboard.prototype.updateBadgeUI = function (count) {
         notificationBadge.textContent = count > 99 ? '99+' : count.toString();
         notificationBadge.style.display = 'flex';
         notificationBadge.classList.add('has-notifications');
+        if (notificationBtn) {
+            notificationBtn.classList.add('has-notifications');
+            notificationBtn.setAttribute('aria-label', `Notificaciones (${count})`);
+        }
     } else {
         // Hide badge
         notificationBadge.textContent = '0';
         notificationBadge.style.display = 'none';
         notificationBadge.classList.remove('has-notifications');
+        if (notificationBtn) {
+            notificationBtn.classList.remove('has-notifications');
+            notificationBtn.setAttribute('aria-label', 'Notificaciones');
+        }
     }
 }
 
