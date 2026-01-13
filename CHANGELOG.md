@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 09:09:38
+
+- **[9ef2010]** ```
+  - *Fecha:* 2026-01-13 09:09:37
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `apps/accounts/views_admin.py`
+  - *Detalles:*
+    - refactor: Add detailed order information to admin order detail view
+    - - Add registered_players context data with fallback logic for legacy orders
+    - - Implement EventAttendance-based player reconstruction using stripe_session_id for orders without registered_player_ids
+    - - Add hotel_reservations context data from order
+    - - Include payment_plan_summary for payment plan orders
+    - - Add breakdown JSON data to context
+    - - Add event_attendances context for player registration status
+    - - Import EventAttendance an
+
+
+
 ### Actualizado: 2026-01-12 23:23:34
 
 - **[ba72880]** refactor: Set Home tab as default for all users and simplify Events tab logic
