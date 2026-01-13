@@ -7,6 +7,28 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 14:37:17
+
+- **[b5e02e1]** ```
+  - *Fecha:* 2026-01-13 14:37:16
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 4 archivo(s)
+    - `apps/accounts/urls.py`
+    - `apps/accounts/views_private.py`
+    - `templates/accounts/admin/user_admin_detail.html`
+    - `templates/accounts/user_list.html`
+  - *Detalles:*
+    - feat: Add comprehensive user detail view for staff with related data aggregation
+    - - Add AdminUserDetailView with user_obj context for detailed user information
+    - - Create admin_user_detail URL pattern at users/<int:pk>/detail/
+    - - Aggregate wallet data with last 50 transactions ordered by creation date
+    - - Include user orders with event and stripe checkout relationships
+    - - Display stripe checkouts, notifications, and push subscriptions
+    - - Show managed teams with prefetched players
+    - - Include player profile
+
+
+
 ### Actualizado: 2026-01-13 14:11:05
 
 - **[93ed922]** ```
