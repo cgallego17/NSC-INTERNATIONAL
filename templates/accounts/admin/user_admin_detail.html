@@ -113,7 +113,7 @@
                 {% if user.is_superuser %}
                     <form method="post" action="{% url 'hijack:acquire' %}">
                         {% csrf_token %}
-                        <input type="hidden" name="user_id" value="{{ user_obj.pk }}">
+                        <input type="hidden" name="user_pk" value="{{ user_obj.pk }}">
                         <button type="submit" class="btn btn-outline-dark">
                             <i class="fas fa-user-secret me-2"></i>Login as
                         </button>
