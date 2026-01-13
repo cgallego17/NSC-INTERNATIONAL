@@ -508,10 +508,21 @@ class EventCreateView(StaffRequiredMixin, CreateView):
         # Procesar itinerarios para cada tipo de usuario
         user_types = ["player", "team_manager", "spectator"]
 
+        # Compatibilidad: algunos templates envían un solo itinerario con inputs name="itinerary_days"
+        generic_itinerary_days_data = self.request.POST.getlist("itinerary_days")
+
         for user_type in user_types:
             # Obtener todos los días del itinerario para este tipo de usuario
             field_name = f"itinerary_days_{user_type}"
             itinerary_days_data = self.request.POST.getlist(field_name)
+
+            # Fallback: si no hay datos por user_type, usar el itinerario genérico como 'player'
+            if (
+                not itinerary_days_data
+                and generic_itinerary_days_data
+                and user_type == "player"
+            ):
+                itinerary_days_data = generic_itinerary_days_data
 
             logger.info(
                 f"Guardando itinerario para {user_type}: {len(itinerary_days_data)} días encontrados"
@@ -712,10 +723,21 @@ class EventUpdateView(StaffRequiredMixin, UpdateView):
         # Procesar itinerarios para cada tipo de usuario
         user_types = ["player", "team_manager", "spectator"]
 
+        # Compatibilidad: algunos templates envían un solo itinerario con inputs name="itinerary_days"
+        generic_itinerary_days_data = self.request.POST.getlist("itinerary_days")
+
         for user_type in user_types:
             # Obtener todos los días del itinerario para este tipo de usuario
             field_name = f"itinerary_days_{user_type}"
             itinerary_days_data = self.request.POST.getlist(field_name)
+
+            # Fallback: si no hay datos por user_type, usar el itinerario genérico como 'player'
+            if (
+                not itinerary_days_data
+                and generic_itinerary_days_data
+                and user_type == "player"
+            ):
+                itinerary_days_data = generic_itinerary_days_data
 
             logger.info(
                 f"Guardando itinerario para {user_type}: {len(itinerary_days_data)} días encontrados"
