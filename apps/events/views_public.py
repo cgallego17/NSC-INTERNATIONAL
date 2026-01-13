@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import DetailView, ListView
 
-from .models import Event, EventCategory, EventType
+from .models import Event, EventCategory, EventType, EventView
 
 
 class PublicEventListView(ListView):
@@ -87,12 +87,14 @@ class PublicEventListView(ListView):
         # Obtener países que tienen eventos publicados
         try:
             from apps.locations.models import Country
+
             # Obtener países únicos que tienen eventos publicados y no cancelados
-            countries_with_events = Country.objects.filter(
-                events__status="published"
-            ).exclude(
-                events__status="cancelled"
-            ).distinct().order_by("name")
+            countries_with_events = (
+                Country.objects.filter(events__status="published")
+                .exclude(events__status="cancelled")
+                .distinct()
+                .order_by("name")
+            )
             context["countries"] = countries_with_events
         except ImportError:
             context["countries"] = []
@@ -105,6 +107,41 @@ class PublicEventDetailView(DetailView):
     model = Event
     template_name = "events/public_detail.html"
     context_object_name = "event"
+
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+        self.record_view(request)
+        return response
+
+    def record_view(self, request):
+        try:
+            event = self.object
+            ip = self.get_client_ip(request)
+
+            # Verificar si ya existe una visita para este evento e IP
+            if not EventView.objects.filter(event=event, ip_address=ip).exists():
+                # Crear registro de visita
+                EventView.objects.create(
+                    event=event,
+                    ip_address=ip,
+                    user=request.user if request.user.is_authenticated else None,
+                    session_key=request.session.session_key,
+                )
+
+                # Incrementar contador en el evento
+                event.views += 1
+                event.save(update_fields=["views"])
+        except Exception:
+            # Ignorar errores al registrar visita para no afectar la experiencia del usuario
+            pass
+
+    def get_client_ip(self, request):
+        x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(",")[0]
+        else:
+            ip = request.META.get("REMOTE_ADDR")
+        return ip
 
     def get_queryset(self):
         # Solo mostrar eventos publicados y no cancelados
@@ -139,24 +176,19 @@ class PublicEventDetailView(DetailView):
         # Obtener includes filtrados por user_type y activos
         try:
             from .models import EventIncludes
-            context["includes_player"] = (
-                EventIncludes.objects.filter(event=event, user_type="player", is_active=True)
-                .order_by("order", "title")
-            )
-            context["includes_team_manager"] = (
-                EventIncludes.objects.filter(event=event, user_type="team_manager", is_active=True)
-                .order_by("order", "title")
-            )
-            context["includes_spectator"] = (
-                EventIncludes.objects.filter(event=event, user_type="spectator", is_active=True)
-                .order_by("order", "title")
-            )
+
+            context["includes_player"] = EventIncludes.objects.filter(
+                event=event, user_type="player", is_active=True
+            ).order_by("order", "title")
+            context["includes_team_manager"] = EventIncludes.objects.filter(
+                event=event, user_type="team_manager", is_active=True
+            ).order_by("order", "title")
+            context["includes_spectator"] = EventIncludes.objects.filter(
+                event=event, user_type="spectator", is_active=True
+            ).order_by("order", "title")
         except ImportError:
             context["includes_player"] = []
             context["includes_team_manager"] = []
             context["includes_spectator"] = []
 
         return context
-
-
-

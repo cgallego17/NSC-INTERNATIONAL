@@ -1,6 +1,122 @@
 from django import forms
 
-from .models import City, Country, Hotel, HotelRoom, HotelRoomTax, Season, State
+from .models import City, Country, Hotel, HotelRoom, HotelRoomTax, Season, Site, State
+
+
+class SiteForm(forms.ModelForm):
+    """Formulario para crear/editar sitios"""
+
+    class Meta:
+        model = Site
+        fields = [
+            "site_name",
+            "abbreviation",
+            "address_1",
+            "address_2",
+            "city",
+            "state",
+            "postal_code",
+            "country",
+            "website",
+            "image",
+            "additional_info",
+            "is_active",
+        ]
+        widgets = {
+            "site_name": forms.TextInput(attrs={"class": "form-control"}),
+            "abbreviation": forms.TextInput(attrs={"class": "form-control"}),
+            "address_1": forms.TextInput(attrs={"class": "form-control"}),
+            "address_2": forms.TextInput(attrs={"class": "form-control"}),
+            "city": forms.TextInput(
+                attrs={
+                    "class": "form-control autocomplete-input",
+                    "placeholder": "Buscar ciudad...",
+                    "autocomplete": "off",
+                    "data-field": "city",
+                    "disabled": True,
+                }
+            ),
+            "state": forms.TextInput(
+                attrs={
+                    "class": "form-control autocomplete-input",
+                    "placeholder": "Buscar estado...",
+                    "autocomplete": "off",
+                    "data-field": "state",
+                    "disabled": True,
+                }
+            ),
+            "postal_code": forms.TextInput(attrs={"class": "form-control"}),
+            "country": forms.TextInput(
+                attrs={
+                    "class": "form-control autocomplete-input",
+                    "placeholder": "Buscar país...",
+                    "autocomplete": "off",
+                    "data-field": "country",
+                }
+            ),
+            "website": forms.URLInput(attrs={"class": "form-control"}),
+            "image": forms.URLInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "URL de la imagen desde medios",
+                }
+            ),
+            "additional_info": forms.Textarea(
+                attrs={"class": "form-control", "rows": 3}
+            ),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Country, State, City: Ahora son campos de texto con autocomplete
+        # Los valores reales se guardan en campos hidden que se crean en el template
+        # No necesitamos configurar querysets para estos campos
+
+    def clean_country(self):
+        """Obtener el país del campo hidden"""
+        country_id = self.data.get("country")
+        if not country_id:
+            return None
+
+        try:
+            country_id = int(country_id)
+            country_obj = Country.objects.filter(pk=country_id, is_active=True).first()
+            if not country_obj:
+                raise forms.ValidationError("El país seleccionado no es válido.")
+            return country_obj
+        except (ValueError, TypeError):
+            raise forms.ValidationError("El país seleccionado no es válido.")
+
+    def clean_state(self):
+        """Obtener el estado del campo hidden"""
+        state_id = self.data.get("state")
+        if not state_id:
+            return None
+
+        try:
+            state_id = int(state_id)
+            state_obj = State.objects.filter(pk=state_id, is_active=True).first()
+            if not state_obj:
+                raise forms.ValidationError("El estado seleccionado no es válido.")
+            return state_obj
+        except (ValueError, TypeError):
+            raise forms.ValidationError("El estado seleccionado no es válido.")
+
+    def clean_city(self):
+        """Obtener la ciudad del campo hidden"""
+        city_id = self.data.get("city")
+        if not city_id:
+            return None
+
+        try:
+            city_id = int(city_id)
+            city_obj = City.objects.filter(pk=city_id, is_active=True).first()
+            if not city_obj:
+                raise forms.ValidationError("La ciudad seleccionada no es válido.")
+            return city_obj
+        except (ValueError, TypeError):
+            raise forms.ValidationError("La ciudad seleccionada no es válido.")
 
 
 class CountryForm(forms.ModelForm):

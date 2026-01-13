@@ -10,7 +10,7 @@
         padding: 2rem 2rem 2rem 3rem;
         min-height: 100vh;
     }
-    
+
     @media (max-width: 992px) {
         .events-list-container {
             padding: 2rem 1.5rem;
@@ -41,7 +41,7 @@
             <form method="get" class="row g-3">
                 <div class="col-md-4">
                     <label for="search" class="form-label">Search</label>
-                    <input type="text" class="form-control" id="search" name="search" 
+                    <input type="text" class="form-control" id="search" name="search"
                            value="{{ request.GET.search }}" placeholder="Search sites...">
                 </div>
                 <div class="col-md-3">
@@ -49,7 +49,7 @@
                     <select class="form-select" id="country" name="country">
                         <option value="">All Countries</option>
                         {% for country in countries %}
-                            <option value="{{ country.id }}" 
+                            <option value="{{ country.id }}"
                                     {% if request.GET.country == country.id|stringformat:"s" %}selected{% endif %}>
                                 {{ country.name }}
                             </option>
@@ -61,7 +61,7 @@
                     <select class="form-select" id="state" name="state">
                         <option value="">All States</option>
                         {% for state in states %}
-                            <option value="{{ state.id }}" 
+                            <option value="{{ state.id }}"
                                     {% if request.GET.state == state.id|stringformat:"s" %}selected{% endif %}>
                                 {{ state.name }}
                             </option>
@@ -112,10 +112,10 @@
                                     <td>
                                         <div class="d-flex align-items-center">
                                             {% if site.image %}
-                                                <img src="{{ site.image.url }}" alt="{{ site.site_name }}" 
+                                                <img src="{{ site.image }}" alt="{{ site.site_name }}"
                                                      class="rounded me-3" style="width: 40px; height: 40px; object-fit: cover;">
                                             {% else %}
-                                                <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center" 
+                                                <div class="bg-light rounded me-3 d-flex align-items-center justify-content-center"
                                                      style="width: 40px; height: 40px;">
                                                     <i class="fas fa-building text-muted"></i>
                                                 </div>
@@ -155,15 +155,15 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="{% url 'locations:site_detail' site.pk %}" 
+                                            <a href="{% url 'locations:site_detail' site.pk %}"
                                                class="btn btn-sm btn-outline-info" title="View">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{% url 'locations:site_update' site.pk %}" 
+                                            <a href="{% url 'locations:site_update' site.pk %}"
                                                class="btn btn-sm btn-outline-warning" title="Edit">
                                                 <i class="fas fa-edit"></i>
                                             </a>
-                                            <a href="{% url 'locations:site_delete' site.pk %}" 
+                                            <a href="{% url 'locations:site_delete' site.pk %}"
                                                class="btn btn-sm btn-outline-danger" title="Delete">
                                                 <i class="fas fa-trash"></i>
                                             </a>

@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class EventCategory(models.Model):
@@ -537,9 +538,10 @@ class Event(models.Model):
     video_url = models.URLField(
         blank=True,
         null=True,
-        help_text="URL del video del evento (YouTube, Vimeo, etc.)",
-        verbose_name="Video del Evento",
+        help_text=_("URL of the event video (YouTube, Vimeo, etc.)"),
+        verbose_name=_("Event Video"),
     )
+    views = models.PositiveIntegerField(default=0, verbose_name="Visitas")
 
     # Fechas del sistema
     created_at = models.DateTimeField(auto_now_add=True)
@@ -642,6 +644,36 @@ class Event(models.Model):
             raise ValidationError("La ciudad debe pertenecer al país seleccionado.")
 
 
+class EventView(models.Model):
+    """Registro de visitas a eventos"""
+
+    event = models.ForeignKey(
+        Event, on_delete=models.CASCADE, related_name="event_views"
+    )
+    ip_address = models.GenericIPAddressField(verbose_name="Dirección IP")
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="event_views",
+    )
+    session_key = models.CharField(max_length=40, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Visita de Evento"
+        verbose_name_plural = "Visitas de Eventos"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["event", "ip_address"]),
+            models.Index(fields=["event", "session_key"]),
+        ]
+
+    def __str__(self):
+        return f"{self.event.title} - {self.ip_address}"
+
+
 class EventAttendance(models.Model):
     """Asistencia a eventos"""
 
@@ -702,38 +734,35 @@ class EventItinerary(models.Model):
         Event,
         on_delete=models.CASCADE,
         related_name="itinerary_items",
-        verbose_name="Evento"
+        verbose_name="Evento",
     )
     user_type = models.CharField(
         max_length=20,
         choices=USER_TYPE_CHOICES,
         default="player",
         verbose_name="Tipo de Usuario",
-        help_text="Tipo de usuario para el que es este itinerario"
+        help_text="Tipo de usuario para el que es este itinerario",
     )
-    day = models.DateField(
-        verbose_name="Día",
-        help_text="Fecha del día del itinerario"
-    )
+    day = models.DateField(verbose_name="Día", help_text="Fecha del día del itinerario")
     day_number = models.PositiveIntegerField(
         verbose_name="Número de Día",
-        help_text="Número del día en el evento (Día 1, Día 2, etc.)"
+        help_text="Número del día en el evento (Día 1, Día 2, etc.)",
     )
     title = models.CharField(
         max_length=200,
         verbose_name="Título del Día",
-        help_text="Título o nombre del día (ej: 'Día de Apertura', 'Día de Competencia', etc.)"
+        help_text="Título o nombre del día (ej: 'Día de Apertura', 'Día de Competencia', etc.)",
     )
     description = models.TextField(
         blank=True,
         verbose_name="Descripción",
-        help_text="Descripción detallada de las actividades del día"
+        help_text="Descripción detallada de las actividades del día",
     )
     schedule_items = models.JSONField(
         default=list,
         blank=True,
         verbose_name="Actividades del Día",
-        help_text="Lista de actividades con hora y descripción (formato JSON)"
+        help_text="Lista de actividades con hora y descripción (formato JSON)",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -765,34 +794,34 @@ class EventIncludes(models.Model):
         Event,
         on_delete=models.CASCADE,
         related_name="includes_items",
-        verbose_name="Evento"
+        verbose_name="Evento",
     )
     user_type = models.CharField(
         max_length=20,
         choices=USER_TYPE_CHOICES,
         default="player",
         verbose_name="Tipo de Usuario",
-        help_text="Tipo de usuario para el que es este item incluido"
+        help_text="Tipo de usuario para el que es este item incluido",
     )
     title = models.CharField(
         max_length=200,
         verbose_name="Título",
-        help_text="Título del item incluido (ej: 'Comida incluida', 'Transporte incluido', etc.)"
+        help_text="Título del item incluido (ej: 'Comida incluida', 'Transporte incluido', etc.)",
     )
     description = models.TextField(
         blank=True,
         verbose_name="Descripción",
-        help_text="Descripción detallada del item incluido (opcional)"
+        help_text="Descripción detallada del item incluido (opcional)",
     )
     order = models.PositiveIntegerField(
         default=0,
         verbose_name="Orden",
-        help_text="Orden de visualización (menor número aparece primero)"
+        help_text="Orden de visualización (menor número aparece primero)",
     )
     is_active = models.BooleanField(
         default=True,
         verbose_name="Activo",
-        help_text="Indica si este item está activo y se mostrará"
+        help_text="Indica si este item está activo y se mostrará",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -1030,7 +1059,9 @@ class EventService(models.Model):
         ordering = ["event", "order", "service_name"]
 
     def __str__(self):
-        return f"{self.event.title if self.event else 'Sin Evento'} - {self.service_name}"
+        return (
+            f"{self.event.title if self.event else 'Sin Evento'} - {self.service_name}"
+        )
 
     def get_service_type_display_with_icon(self):
         """Retorna el tipo de servicio con un ícono"""

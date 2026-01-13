@@ -1,8 +1,8 @@
+import json
+
 from django.contrib import messages
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import (
     CreateView,
@@ -14,7 +14,8 @@ from django.views.generic import (
 
 from apps.core.mixins import StaffRequiredMixin, SuperuserRequiredMixin
 
-from .models import City, Country, Hotel, Rule, Season, Site, State
+from .forms import SiteForm
+from .models import City, Country, Hotel, Rule, Season, Site, SiteImage, State
 
 
 # ===== COUNTRY VIEWS =====
@@ -809,50 +810,82 @@ class SiteDetailView(StaffRequiredMixin, DetailView):
 
 class SiteCreateView(StaffRequiredMixin, CreateView):
     model = Site
+    form_class = SiteForm
     template_name = "locations/site_form.html"
-    fields = [
-        "site_name",
-        "abbreviation",
-        "address_1",
-        "address_2",
-        "city",
-        "state",
-        "postal_code",
-        "country",
-        "website",
-        "image",
-        "additional_info",
-        "is_active",
-    ]
     success_url = reverse_lazy("locations:site_list")
+
+    def _parse_gallery_urls(self):
+        raw = self.request.POST.get("image_gallery", "")
+        if not raw:
+            return []
+        try:
+            data = json.loads(raw)
+        except Exception:
+            return []
+        if not isinstance(data, list):
+            return []
+        urls = []
+        for item in data:
+            if isinstance(item, str):
+                url = item.strip()
+                if url:
+                    urls.append(url)
+        return urls
+
+    def _save_gallery(self, site):
+        urls = self._parse_gallery_urls()
+        SiteImage.objects.filter(site=site).delete()
+        objs = [
+            SiteImage(site=site, url=url, sort_order=i) for i, url in enumerate(urls)
+        ]
+        if objs:
+            SiteImage.objects.bulk_create(objs)
 
     def form_valid(self, form):
         messages.success(self.request, "Sitio creado exitosamente.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        self._save_gallery(self.object)
+        return response
 
 
 class SiteUpdateView(StaffRequiredMixin, UpdateView):
     model = Site
+    form_class = SiteForm
     template_name = "locations/site_form.html"
-    fields = [
-        "site_name",
-        "abbreviation",
-        "address_1",
-        "address_2",
-        "city",
-        "state",
-        "postal_code",
-        "country",
-        "website",
-        "image",
-        "additional_info",
-        "is_active",
-    ]
     success_url = reverse_lazy("locations:site_list")
+
+    def _parse_gallery_urls(self):
+        raw = self.request.POST.get("image_gallery", "")
+        if not raw:
+            return []
+        try:
+            data = json.loads(raw)
+        except Exception:
+            return []
+        if not isinstance(data, list):
+            return []
+        urls = []
+        for item in data:
+            if isinstance(item, str):
+                url = item.strip()
+                if url:
+                    urls.append(url)
+        return urls
+
+    def _save_gallery(self, site):
+        urls = self._parse_gallery_urls()
+        SiteImage.objects.filter(site=site).delete()
+        objs = [
+            SiteImage(site=site, url=url, sort_order=i) for i, url in enumerate(urls)
+        ]
+        if objs:
+            SiteImage.objects.bulk_create(objs)
 
     def form_valid(self, form):
         messages.success(self.request, "Sitio actualizado exitosamente.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        self._save_gallery(self.object)
+        return response
 
 
 class SiteDeleteView(SuperuserRequiredMixin, DeleteView):

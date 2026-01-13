@@ -30,34 +30,34 @@
                         </a>
                     </div>
                 </div>
-                
+
                 <div class="card-body">
                     <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
                         {% csrf_token %}
-                        
+
                         {% if form.non_field_errors %}
                             <div class="alert alert-danger">
                                 <i class="fas fa-exclamation-triangle me-2"></i>
                                 {{ form.non_field_errors }}
                             </div>
                         {% endif %}
-                        
+
                         <!-- INFORMACIÓN BÁSICA -->
                         <div class="form-section">
                             <h5 class="section-title">
                                 <i class="fas fa-info-circle me-2"></i>Información Básica
                             </h5>
-                            
+
                             <div class="row">
                                 <div class="col-md-9">
                                     <div class="form-group mb-3">
                                         <label for="site_name" class="form-label">
                                             <i class="fas fa-building me-1"></i>Nombre del Sitio <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" 
-                                               id="site_name" 
-                                               name="site_name" 
-                                               class="form-control" 
+                                        <input type="text"
+                                               id="site_name"
+                                               name="site_name"
+                                               class="form-control"
                                                value="{{ form.site_name.value|default:'' }}"
                                                placeholder="Ej: Dodger Stadium, Yankee Stadium"
                                                required>
@@ -71,10 +71,10 @@
                                         <label for="abbreviation" class="form-label">
                                             <i class="fas fa-tag me-1"></i>Abreviatura
                                         </label>
-                                        <input type="text" 
-                                               id="abbreviation" 
-                                               name="abbreviation" 
-                                               class="form-control" 
+                                        <input type="text"
+                                               id="abbreviation"
+                                               name="abbreviation"
+                                               class="form-control"
                                                value="{{ form.abbreviation.value|default:'' }}"
                                                placeholder="Ej: DODG, YS">
                                         {% if form.abbreviation.errors %}
@@ -90,10 +90,10 @@
                                         <label for="website" class="form-label">
                                             <i class="fas fa-globe me-1"></i>Sitio Web
                                         </label>
-                                        <input type="url" 
-                                               id="website" 
-                                               name="website" 
-                                               class="form-control" 
+                                        <input type="url"
+                                               id="website"
+                                               name="website"
+                                               class="form-control"
                                                value="{{ form.website.value|default:'' }}"
                                                placeholder="https://ejemplo.com">
                                         {% if form.website.errors %}
@@ -107,10 +107,10 @@
                                             <i class="fas fa-toggle-on me-1"></i>Estado
                                         </label>
                                         <div class="form-check form-switch">
-                                            <input type="checkbox" 
-                                                   id="is_active" 
-                                                   name="is_active" 
-                                                   class="form-check-input" 
+                                            <input type="checkbox"
+                                                   id="is_active"
+                                                   name="is_active"
+                                                   class="form-check-input"
                                                    {% if form.is_active.value %}checked{% endif %}>
                                             <label class="form-check-label" for="is_active">
                                                 Activo
@@ -129,17 +129,17 @@
                             <h5 class="section-title">
                                 <i class="fas fa-map-marker-alt me-2"></i>Ubicación
                             </h5>
-                            
+
                             <div class="row">
                                 <div class="col-md-8">
                                     <div class="form-group mb-3">
                                         <label for="address_1" class="form-label">
                                             <i class="fas fa-road me-1"></i>Dirección 1 <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" 
-                                               id="address_1" 
-                                               name="address_1" 
-                                               class="form-control" 
+                                        <input type="text"
+                                               id="address_1"
+                                               name="address_1"
+                                               class="form-control"
                                                value="{{ form.address_1.value|default:'' }}"
                                                placeholder="Dirección principal"
                                                required>
@@ -153,10 +153,10 @@
                                         <label for="address_2" class="form-label">
                                             <i class="fas fa-road me-1"></i>Dirección 2
                                         </label>
-                                        <input type="text" 
-                                               id="address_2" 
-                                               name="address_2" 
-                                               class="form-control" 
+                                        <input type="text"
+                                               id="address_2"
+                                               name="address_2"
+                                               class="form-control"
                                                value="{{ form.address_2.value|default:'' }}"
                                                placeholder="Dirección secundaria">
                                         {% if form.address_2.errors %}
@@ -175,7 +175,7 @@
                                         <select id="country" name="country" class="form-select" required>
                                             <option value="">Selecciona País</option>
                                             {% for choice in form.country.field.queryset %}
-                                                <option value="{{ choice.id }}" 
+                                                <option value="{{ choice.id }}"
                                                         {% if form.country.value == choice.id %}selected{% endif %}>
                                                     {{ choice.name }}
                                                 </option>
@@ -194,7 +194,7 @@
                                         <select id="state" name="state" class="form-select" required>
                                             <option value="">Selecciona Estado</option>
                                             {% for choice in form.state.field.queryset %}
-                                                <option value="{{ choice.id }}" 
+                                                <option value="{{ choice.id }}"
                                                         {% if form.state.value == choice.id %}selected{% endif %}>
                                                     {{ choice.name }}
                                                 </option>
@@ -213,7 +213,7 @@
                                         <select id="city" name="city" class="form-select" required>
                                             <option value="">Selecciona Ciudad</option>
                                             {% for choice in form.city.field.queryset %}
-                                                <option value="{{ choice.id }}" 
+                                                <option value="{{ choice.id }}"
                                                         {% if form.city.value == choice.id %}selected{% endif %}>
                                                     {{ choice.name }}
                                                 </option>
@@ -229,10 +229,10 @@
                                         <label for="postal_code" class="form-label">
                                             <i class="fas fa-mail-bulk me-1"></i>Código Postal <span class="text-danger">*</span>
                                         </label>
-                                        <input type="text" 
-                                               id="postal_code" 
-                                               name="postal_code" 
-                                               class="form-control" 
+                                        <input type="text"
+                                               id="postal_code"
+                                               name="postal_code"
+                                               class="form-control"
                                                value="{{ form.postal_code.value|default:'' }}"
                                                placeholder="Ej: 90012, 77002"
                                                required>
@@ -249,24 +249,55 @@
                             <h5 class="section-title">
                                 <i class="fas fa-plus-circle me-2"></i>Información Adicional
                             </h5>
-                            
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group mb-3">
-                                        <label for="image" class="form-label">
+                                        <label for="{{ form.image.id_for_label }}" class="form-label">
                                             <i class="fas fa-image me-1"></i>Imagen del Sitio
                                         </label>
-                                        <input type="file" 
-                                               id="image" 
-                                               name="image" 
-                                               class="form-control" 
-                                               accept="image/*">
+                                        <div class="input-group">
+                                            {{ form.image }}
+                                            <button type="button" class="btn btn-outline-primary" data-media-type="image" data-target-field="id_image" data-modal-title="Seleccionar Imagen" data-modal-subtitle="Elige una imagen de tu biblioteca multimedia">
+                                                <i class="fas fa-folder-open me-1"></i>Elegir de Media
+                                            </button>
+                                        </div>
                                         {% if form.image.errors %}
                                             <div class="text-danger">{{ form.image.errors.0 }}</div>
                                         {% endif %}
                                         <div class="form-text">
-                                            <i class="fas fa-info-circle me-1"></i>Sube una imagen para este sitio (opcional)
+                                            <i class="fas fa-info-circle me-1"></i>Seleccione la imagen del sitio desde la biblioteca multimedia (opcional)
                                         </div>
+
+                                        <input type="hidden" id="image_gallery" name="image_gallery" value="">
+
+                                        <div class="mt-3">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <small class="text-muted fw-semibold">
+                                                    <i class="fas fa-images me-1"></i>Galería de Imágenes
+                                                </small>
+                                                <button type="button" class="btn btn-outline-primary btn-sm" data-media-type="image" data-target-field="image_gallery" data-modal-title="Agregar Imagen" data-modal-subtitle="Agrega una imagen a la galería">
+                                                    <i class="fas fa-plus me-1"></i>Agregar
+                                                </button>
+                                            </div>
+                                            <div id="site_gallery" class="d-grid" style="grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); gap: 0.75rem;"></div>
+                                        </div>
+
+                                        <!-- Vista previa de la imagen -->
+                                        <div id="image_preview" class="mt-2" style="display: none;">
+                                            <small class="text-muted d-block mb-2 fw-semibold">
+                                                <i class="fas fa-image me-1"></i>Vista previa:
+                                            </small>
+                                            <img id="image_preview_img" src="" alt="Vista previa" class="img-thumbnail" style="max-width: 150px; max-height: 150px; object-fit: contain; border: 2px solid #dee2e6; border-radius: 0.5rem;">
+                                        </div>
+                                        {% if form.instance.image %}
+                                            <div id="image_existing_preview" class="mt-2">
+                                                <small class="text-muted d-block mb-2 fw-semibold">
+                                                    <i class="fas fa-image me-1"></i>Imagen actual:
+                                                </small>
+                                                <img src="{{ form.instance.image }}" alt="Imagen del sitio" class="img-thumbnail" style="max-width: 150px; max-height: 150px; object-fit: contain; border: 2px solid #dee2e6; border-radius: 0.5rem;">
+                                            </div>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -274,9 +305,9 @@
                                         <label for="additional_info" class="form-label">
                                             <i class="fas fa-info me-1"></i>Información Adicional
                                         </label>
-                                        <textarea id="additional_info" 
-                                                  name="additional_info" 
-                                                  class="form-control" 
+                                        <textarea id="additional_info"
+                                                  name="additional_info"
+                                                  class="form-control"
                                                   rows="4"
                                                   placeholder="Ingresa cualquier información adicional sobre este sitio">{{ form.additional_info.value|default:'' }}</textarea>
                                         {% if form.additional_info.errors %}
@@ -364,7 +395,7 @@
     font-size: 0.875rem;
 }
 
-[data-theme="dark"] .form-control, 
+[data-theme="dark"] .form-control,
 [data-theme="dark"] .form-select {
     background-color: #374151;
     border-color: #4b5563;
@@ -376,7 +407,7 @@
     box-shadow: 0 0 0 0.2rem rgba(74, 85, 104, 0.25);
 }
 
-[data-theme="dark"] .form-control:focus, 
+[data-theme="dark"] .form-control:focus,
 [data-theme="dark"] .form-select:focus {
     border-color: #6b7280;
     box-shadow: 0 0 0 0.2rem rgba(107, 114, 128, 0.25);
@@ -451,7 +482,933 @@
 [data-theme="dark"] .form-select option:disabled {
     color: #9ca3af;
 }
+
+    /* Estilos mejorados para el selector de videos y medios - Alta especificidad */
+    #mediaSelectorModal .modal-dialog {
+        max-width: 1200px !important;
+    }
+
+    #mediaSelectorModal .modal-content.video-selector-modal-content {
+        border: none !important;
+        border-radius: 16px !important;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+        overflow: hidden !important;
+    }
+
+    #mediaSelectorModal .modal-header.video-selector-header {
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%) !important;
+        color: white !important;
+        border: none !important;
+        border-bottom: none !important;
+        padding: 1.5rem 2rem !important;
+        position: relative !important;
+    }
+
+    #mediaSelectorModal .modal-header.video-selector-header .modal-icon-wrapper {
+        width: 48px !important;
+        height: 48px !important;
+        background: rgba(255, 255, 255, 0.2) !important;
+        border-radius: 12px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        backdrop-filter: blur(10px) !important;
+    }
+
+    #mediaSelectorModal .modal-header.video-selector-header .modal-icon-wrapper i {
+        font-size: 1.5rem !important;
+        color: white !important;
+    }
+
+    #mediaSelectorModal .modal-header.video-selector-header .modal-title {
+        color: white !important;
+        font-weight: 700 !important;
+        font-size: 1.5rem !important;
+    }
+
+    #mediaSelectorModal .modal-header.video-selector-header .modal-subtitle {
+        color: rgba(255, 255, 255, 0.9) !important;
+        font-size: 0.875rem !important;
+        margin-top: 0.25rem !important;
+    }
+
+    #mediaSelectorModal .modal-header.video-selector-header .btn-close {
+        filter: brightness(0) invert(1) !important;
+        opacity: 0.9 !important;
+    }
+
+    #mediaSelectorModal .modal-header.video-selector-header .btn-close:hover {
+        opacity: 1 !important;
+    }
+
+    #mediaSelectorModal .modal-body.video-selector-body {
+        padding: 2rem !important;
+        background: #f8f9fa !important;
+    }
+
+    #mediaSelectorModal .video-search-wrapper {
+        position: relative !important;
+    }
+
+    #mediaSelectorModal .video-search-wrapper .input-group {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+    }
+
+    #mediaSelectorModal .video-search-wrapper .input-group-text {
+        background: white !important;
+        border: none !important;
+        padding: 0.875rem 1.25rem !important;
+        color: #6c757d !important;
+    }
+
+    #mediaSelectorModal .video-search-wrapper .form-control {
+        border: none !important;
+        padding: 0.875rem 1rem !important;
+        font-size: 0.95rem !important;
+    }
+
+    #mediaSelectorModal .video-search-wrapper .form-control:focus {
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    #mediaSelectorModal .video-search-wrapper .btn-outline-secondary {
+        border: none !important;
+        padding: 0.875rem 1rem !important;
+    }
+
+    #mediaSelectorModal .video-selector-grid {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+        gap: 1.5rem !important;
+        max-height: 550px !important;
+        overflow-y: auto !important;
+        padding: 0.5rem !important;
+        margin-top: 1rem !important;
+    }
+
+    /* Scrollbar personalizado */
+    #mediaSelectorModal .video-selector-grid::-webkit-scrollbar {
+        width: 8px !important;
+    }
+
+    #mediaSelectorModal .video-selector-grid::-webkit-scrollbar-track {
+        background: #f1f1f1 !important;
+        border-radius: 10px !important;
+    }
+
+    #mediaSelectorModal .video-selector-grid::-webkit-scrollbar-thumb {
+        background: #c1c1c1 !important;
+        border-radius: 10px !important;
+    }
+
+    #mediaSelectorModal .video-selector-grid::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8 !important;
+    }
+
+    #mediaSelectorModal .video-selector-item {
+        border: 2px solid #e9ecef !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+        cursor: pointer !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        background: white !important;
+        position: relative !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+    }
+
+    #mediaSelectorModal .video-selector-item::before {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        border-radius: 12px !important;
+        padding: 2px !important;
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%) !important;
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) !important;
+        -webkit-mask-composite: xor !important;
+        mask-composite: exclude !important;
+        opacity: 0 !important;
+        transition: opacity 0.3s !important;
+        z-index: 1 !important;
+    }
+
+    #mediaSelectorModal .video-selector-item:hover {
+        transform: translateY(-4px) !important;
+        box-shadow: 0 8px 24px rgba(74, 85, 104, 0.2) !important;
+        border-color: #4a5568 !important;
+    }
+
+    #mediaSelectorModal .video-selector-item:hover::before {
+        opacity: 1 !important;
+    }
+
+    #mediaSelectorModal .video-selector-item.selected {
+        border-color: #4a5568 !important;
+        background: linear-gradient(135deg, rgba(74, 85, 104, 0.05) 0%, rgba(45, 55, 72, 0.05) 100%) !important;
+        box-shadow: 0 8px 24px rgba(74, 85, 104, 0.25) !important;
+        transform: translateY(-2px) !important;
+    }
+
+    #mediaSelectorModal .video-selector-item.selected::before {
+        opacity: 1 !important;
+    }
+
+    #mediaSelectorModal .video-selector-item.selected::after {
+        content: '✓' !important;
+        position: absolute !important;
+        top: 12px !important;
+        right: 12px !important;
+        width: 28px !important;
+        height: 28px !important;
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%) !important;
+        color: white !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-size: 0.875rem !important;
+        font-weight: bold !important;
+        z-index: 2 !important;
+        box-shadow: 0 2px 8px rgba(74, 85, 104, 0.4) !important;
+    }
+
+    #mediaSelectorModal .video-selector-item .video-thumbnail {
+        width: 100% !important;
+        height: 160px !important;
+        object-fit: cover !important;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        position: relative !important;
+        overflow: hidden !important;
+    }
+
+    #mediaSelectorModal .video-selector-item .video-thumbnail::after {
+        content: '' !important;
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.1) 100%) !important;
+    }
+
+    #mediaSelectorModal .video-selector-item .video-thumbnail img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        transition: transform 0.3s !important;
+    }
+
+    #mediaSelectorModal .video-selector-item:hover .video-thumbnail img {
+        transform: scale(1.05) !important;
+    }
+
+    #mediaSelectorModal .video-selector-item .video-thumbnail .placeholder {
+        font-size: 3.5rem !important;
+        color: #adb5bd !important;
+        z-index: 1 !important;
+    }
+
+    #mediaSelectorModal .video-selector-item .video-info {
+        padding: 1rem !important;
+        position: relative !important;
+        z-index: 1 !important;
+    }
+
+    #mediaSelectorModal .video-selector-item .video-title {
+        font-size: 0.9375rem !important;
+        font-weight: 600 !important;
+        margin-bottom: 0.5rem !important;
+        color: #212529 !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        line-height: 1.4 !important;
+    }
+
+    #mediaSelectorModal .video-selector-item .video-meta {
+        font-size: 0.8125rem !important;
+        color: #6c757d !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+        flex-wrap: wrap !important;
+    }
+
+    #mediaSelectorModal .video-selector-item .video-meta span {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.375rem !important;
+    }
+
+    #mediaSelectorModal .video-selector-item .video-meta i {
+        font-size: 0.75rem !important;
+        opacity: 0.7 !important;
+    }
+
+    #mediaSelectorModal .video-selector-loading {
+        padding: 4rem 2rem !important;
+        text-align: center !important;
+    }
+
+    #mediaSelectorModal .video-selector-loading .loading-spinner {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    #mediaSelectorModal .video-selector-loading .spinner-border {
+        width: 3rem !important;
+        height: 3rem !important;
+        border-width: 0.3rem !important;
+    }
+
+    #mediaSelectorModal .video-selector-empty {
+        padding: 4rem 2rem !important;
+        text-align: center !important;
+    }
+
+    #mediaSelectorModal .video-selector-empty .empty-state {
+        max-width: 400px !important;
+        margin: 0 auto !important;
+    }
+
+    #mediaSelectorModal .video-selector-empty .empty-icon {
+        width: 80px !important;
+        height: 80px !important;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%) !important;
+        border-radius: 50% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        margin: 0 auto 1.5rem !important;
+    }
+
+    #mediaSelectorModal .video-selector-empty .empty-icon i {
+        font-size: 2.5rem !important;
+        color: #adb5bd !important;
+    }
+
+    #mediaSelectorModal .video-selector-empty .empty-title {
+        font-size: 1.125rem !important;
+        font-weight: 600 !important;
+        color: #495057 !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    #mediaSelectorModal .video-selector-empty .empty-text {
+        font-size: 0.9375rem !important;
+        color: #6c757d !important;
+        margin: 0 !important;
+    }
+
+    #mediaSelectorModal .modal-footer.video-selector-footer {
+        background: white !important;
+        border-top: 1px solid #e9ecef !important;
+        padding: 1.25rem 2rem !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+
+    #mediaSelectorModal .modal-footer.video-selector-footer .btn {
+        border-radius: 8px !important;
+        padding: 0.625rem 1.5rem !important;
+        font-weight: 500 !important;
+        transition: all 0.3s !important;
+    }
+
+    #mediaSelectorModal .modal-footer.video-selector-footer .btn-light {
+        border: 1px solid #dee2e6 !important;
+    }
+
+    #mediaSelectorModal .modal-footer.video-selector-footer .btn-light:hover {
+        background: #f8f9fa !important;
+        border-color: #adb5bd !important;
+    }
+
+    #mediaSelectorModal .modal-footer.video-selector-footer .btn-primary {
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%) !important;
+        border: none !important;
+        box-shadow: 0 4px 12px rgba(74, 85, 104, 0.3) !important;
+        color: white !important;
+    }
+
+    #mediaSelectorModal .modal-footer.video-selector-footer .btn-primary:hover:not(:disabled) {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(74, 85, 104, 0.4) !important;
+    }
+
+    #mediaSelectorModal .modal-footer.video-selector-footer .btn-primary:disabled {
+        opacity: 0.5 !important;
+        cursor: not-allowed !important;
+    }
 </style>
+
+<!-- Modal unificada para seleccionar y subir medios -->
+<div class="modal fade" id="mediaSelectorModal" tabindex="-1" aria-labelledby="mediaSelectorModalLabel" aria-hidden="true" data-bs-backdrop="true" data-bs-keyboard="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content video-selector-modal-content">
+            <div class="modal-header video-selector-header">
+                <div class="d-flex align-items-center">
+                    <div class="modal-icon-wrapper">
+                        <i class="fas fa-folder-open" id="mediaModalIcon"></i>
+                    </div>
+                    <div class="ms-3">
+                        <h5 class="modal-title mb-0" id="mediaSelectorModalLabel">
+                            Seleccionar Medio
+                        </h5>
+                        <p class="modal-subtitle mb-0" id="mediaModalSubtitle">Elige un archivo de tu biblioteca multimedia</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body video-selector-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="video-search-wrapper flex-grow-1 me-3">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control" id="mediaSearchInput" placeholder="Buscar por nombre, descripción o tags...">
+                            <button class="btn btn-outline-secondary" type="button" id="clearMediaSearchBtn" style="display: none;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <select class="form-select" id="mediaTypeFilter" style="width: auto;">
+                            <option value="">Todos los tipos</option>
+                            <option value="image">Imágenes</option>
+                            <option value="video">Videos</option>
+                            <option value="document">Documentos</option>
+                            <option value="audio">Audio</option>
+                        </select>
+                        <div>
+                            <input type="file" id="mediaUploadInput" multiple style="display: none;">
+                            <button type="button" class="btn btn-primary" id="uploadMediaBtn">
+                                <i class="fas fa-upload me-2"></i>Subir Archivo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barra de progreso de subida -->
+                <div id="mediaUploadProgress" style="display: none; margin-bottom: 1rem;"></div>
+
+                <div id="mediaSelectorLoading" class="video-selector-loading" style="display: none;">
+                    <div class="loading-spinner">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                        <p class="mt-3 text-muted">Cargando archivos...</p>
+                    </div>
+                </div>
+
+                <div id="mediaSelectorGrid" class="video-selector-grid">
+                    <!-- Los archivos se cargarán aquí -->
+                </div>
+
+                <!-- Paginación -->
+                <nav id="mediaSelectorPagination" aria-label="Page navigation" style="display: none; margin-top: 2rem;">
+                    <ul class="pagination justify-content-center mb-0">
+                        <!-- Los controles de paginación se cargarán aquí -->
+                    </ul>
+                </nav>
+
+                <div id="mediaSelectorEmpty" class="video-selector-empty" style="display: none;">
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-folder-open"></i>
+                        </div>
+                        <h6 class="empty-title">No se encontraron archivos</h6>
+                        <p class="empty-text">Intenta con otros términos de búsqueda o sube nuevos archivos a la biblioteca.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer video-selector-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-primary btn-lg" id="confirmMediaSelection" disabled>
+                    <i class="fas fa-check me-2"></i>Seleccionar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Variables globales para el selector de medios
+    let currentMediaType = 'image';
+    let selectedMedia = null;
+    let currentTargetField = null;
+    let isLoadingMedia = false;
+    let currentPage = 1;
+    let paginationInfo = null;
+    let galleryUrls = [
+        {% if form.instance.pk %}
+            {% for img in form.instance.images.all %}
+                "{{ img.url|escapejs }}"{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        {% endif %}
+    ];
+
+    function syncGalleryField() {
+        const field = document.getElementById('image_gallery');
+        if (!field) return;
+        field.value = JSON.stringify(galleryUrls);
+    }
+
+    function renderGallery() {
+        const container = document.getElementById('site_gallery');
+        if (!container) return;
+        container.innerHTML = '';
+
+        galleryUrls.forEach((url, idx) => {
+            const item = document.createElement('div');
+            item.className = 'position-relative';
+            item.innerHTML = `
+                <img src="${url}" class="img-thumbnail w-100" style="height: 90px; object-fit: cover;" alt="Imagen">
+                <button type="button" class="btn btn-danger btn-sm position-absolute" style="top: 6px; right: 6px; padding: 0.15rem 0.35rem;" data-idx="${idx}">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            item.querySelector('button').addEventListener('click', (e) => {
+                const i = parseInt(e.currentTarget.getAttribute('data-idx'), 10);
+                if (!Number.isNaN(i)) {
+                    galleryUrls.splice(i, 1);
+                    syncGalleryField();
+                    renderGallery();
+                }
+            });
+            container.appendChild(item);
+        });
+    }
+
+    syncGalleryField();
+    renderGallery();
+
+    // Función para cargar medios con paginación
+    function loadMedia(search = '', type = '', page = 1) {
+        const mediaSelectorGrid = document.getElementById('mediaSelectorGrid');
+        const mediaSelectorLoading = document.getElementById('mediaSelectorLoading');
+        const mediaSelectorEmpty = document.getElementById('mediaSelectorEmpty');
+
+        if (!mediaSelectorGrid || !mediaSelectorLoading || !mediaSelectorEmpty) return;
+        if (isLoadingMedia) return;
+
+        isLoadingMedia = true;
+        mediaSelectorGrid.style.display = 'none';
+        mediaSelectorLoading.style.display = 'block';
+        mediaSelectorEmpty.style.display = 'none';
+
+        // Construir URL con parámetros
+        // Nota: en este proyecto la app de multimedia está montada bajo /files/
+        let url = `/files/list-ajax/?page=${page}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (type) url += `&type=${encodeURIComponent(type)}`;
+
+        fetch(url)
+            .then(async (response) => {
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${text}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data || data.success !== true) {
+                    throw new Error(data && data.error ? data.error : 'Respuesta inválida del servidor');
+                }
+
+                // Guardar información de paginación (según respuesta real del endpoint)
+                paginationInfo = {
+                    current: data.pagination?.current_page || 1,
+                    total: data.pagination?.total_pages || 1,
+                    has_next: Boolean(data.pagination?.has_next),
+                    has_previous: Boolean(data.pagination?.has_previous)
+                };
+
+                // Actualizar controles de paginación
+                updatePagination();
+
+                mediaSelectorLoading.style.display = 'none';
+
+                if (data.results && data.results.length > 0) {
+                    renderMediaGrid(data.results);
+                    mediaSelectorGrid.style.display = 'grid';
+                } else {
+                    mediaSelectorEmpty.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error cargando medios:', error);
+                mediaSelectorLoading.style.display = 'none';
+                mediaSelectorEmpty.style.display = 'block';
+
+                // Tip: este endpoint requiere usuario staff (403 si no)
+                alert('Error al cargar la biblioteca de medios');
+            })
+            .finally(() => {
+                isLoadingMedia = false;
+            });
+    }
+
+    // Función para renderizar el grid de medios
+    function renderMediaGrid(files) {
+        const grid = document.getElementById('mediaSelectorGrid');
+        const confirmBtn = document.getElementById('confirmMediaSelection');
+        grid.innerHTML = '';
+
+        files.forEach(file => {
+            const item = document.createElement('div');
+            item.className = `video-selector-item ${selectedMedia && selectedMedia.id === file.id ? 'selected' : ''}`;
+            item.dataset.id = file.id;
+
+            // Determinar thumbnail según tipo
+            let thumbnailHtml = '';
+            if (file.file_type === 'image') {
+                thumbnailHtml = `<img src="${file.thumbnail || file.url}" alt="${file.title}" loading="lazy">`;
+            } else if (file.file_type === 'video') {
+                thumbnailHtml = `
+                    <div class="placeholder">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div class="video-play-overlay">
+                        <i class="fas fa-play"></i>
+                    </div>
+                `;
+            } else {
+                let icon = 'fa-file';
+                if (file.file_type === 'audio') icon = 'fa-music';
+                thumbnailHtml = `
+                    <div class="placeholder">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                `;
+            }
+
+            item.innerHTML = `
+                <div class="video-thumbnail">
+                    ${thumbnailHtml}
+                </div>
+                <div class="video-info">
+                    <div class="video-title" title="${file.title}">${file.title}</div>
+                    <div class="video-meta">
+                        <span><i class="far fa-calendar"></i> ${file.created_at || ''}</span>
+                        <span><i class="far fa-hdd"></i> ${file.file_size_formatted || ''}</span>
+                    </div>
+                </div>
+            `;
+
+            item.addEventListener('click', function() {
+                // Deseleccionar otros
+                grid.querySelectorAll('.video-selector-item').forEach(el => el.classList.remove('selected'));
+
+                if (selectedMedia && selectedMedia.id === file.id) {
+                    // Deseleccionar actual
+                    selectedMedia = null;
+                    confirmBtn.disabled = true;
+                } else {
+                    // Seleccionar nuevo
+                    this.classList.add('selected');
+                    selectedMedia = file;
+                    confirmBtn.disabled = false;
+                }
+            });
+
+            grid.appendChild(item);
+        });
+    }
+
+    // Función para actualizar la paginación
+    function updatePagination() {
+        const paginationContainer = document.getElementById('mediaSelectorPagination');
+        const paginationList = paginationContainer.querySelector('ul');
+
+        if (!paginationInfo || paginationInfo.total <= 1) {
+            paginationContainer.style.display = 'none';
+            return;
+        }
+
+        paginationContainer.style.display = 'block';
+        paginationList.innerHTML = '';
+
+        // Botón Anterior
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${!paginationInfo.has_previous ? 'disabled' : ''}`;
+        prevLi.innerHTML = `<a class="page-link" href="#" aria-label="Previous"><span aria-hidden="true">&laquo;</span></a>`;
+        if (paginationInfo.has_previous) {
+            prevLi.querySelector('a').addEventListener('click', (e) => {
+                e.preventDefault();
+                const search = document.getElementById('mediaSearchInput').value;
+                const type = document.getElementById('mediaTypeFilter').value || currentMediaType;
+                loadMedia(search, type, paginationInfo.current - 1);
+            });
+        }
+        paginationList.appendChild(prevLi);
+
+        // Números de página (mostrar rango limitado)
+        let startPage = Math.max(1, paginationInfo.current - 2);
+        let endPage = Math.min(paginationInfo.total, paginationInfo.current + 2);
+
+        if (startPage > 1) {
+            const li = document.createElement('li');
+            li.className = 'page-item';
+            li.innerHTML = `<a class="page-link" href="#">1</a>`;
+            li.addEventListener('click', (e) => {
+                e.preventDefault();
+                const search = document.getElementById('mediaSearchInput').value;
+                const type = document.getElementById('mediaTypeFilter').value || currentMediaType;
+                loadMedia(search, type, 1);
+            });
+            paginationList.appendChild(li);
+
+            if (startPage > 2) {
+                const dots = document.createElement('li');
+                dots.className = 'page-item disabled';
+                dots.innerHTML = `<span class="page-link">...</span>`;
+                paginationList.appendChild(dots);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            const li = document.createElement('li');
+            li.className = `page-item ${i === paginationInfo.current ? 'active' : ''}`;
+            li.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+            if (i !== paginationInfo.current) {
+                li.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const search = document.getElementById('mediaSearchInput').value;
+                    const type = document.getElementById('mediaTypeFilter').value || currentMediaType;
+                    loadMedia(search, type, i);
+                });
+            }
+            paginationList.appendChild(li);
+        }
+
+        if (endPage < paginationInfo.total) {
+            if (endPage < paginationInfo.total - 1) {
+                const dots = document.createElement('li');
+                dots.className = 'page-item disabled';
+                dots.innerHTML = `<span class="page-link">...</span>`;
+                paginationList.appendChild(dots);
+            }
+
+            const li = document.createElement('li');
+            li.className = 'page-item';
+            li.innerHTML = `<a class="page-link" href="#">${paginationInfo.total}</a>`;
+            li.addEventListener('click', (e) => {
+                e.preventDefault();
+                const search = document.getElementById('mediaSearchInput').value;
+                const type = document.getElementById('mediaTypeFilter').value || currentMediaType;
+                loadMedia(search, type, paginationInfo.total);
+            });
+            paginationList.appendChild(li);
+        }
+
+        // Botón Siguiente
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${!paginationInfo.has_next ? 'disabled' : ''}`;
+        nextLi.innerHTML = `<a class="page-link" href="#" aria-label="Next"><span aria-hidden="true">&raquo;</span></a>`;
+        if (paginationInfo.has_next) {
+            nextLi.querySelector('a').addEventListener('click', (e) => {
+                e.preventDefault();
+                const search = document.getElementById('mediaSearchInput').value;
+                const type = document.getElementById('mediaTypeFilter').value || currentMediaType;
+                loadMedia(search, type, paginationInfo.current + 1);
+            });
+        }
+        paginationList.appendChild(nextLi);
+    }
+
+    // Configurar botones para abrir el selector
+    function setupMediaButtons() {
+        const buttons = document.querySelectorAll('button[data-media-type]');
+        const mediaSelectorModal = document.getElementById('mediaSelectorModal');
+        const confirmMediaSelection = document.getElementById('confirmMediaSelection');
+        const mediaSearchInput = document.getElementById('mediaSearchInput');
+        const clearMediaSearchBtn = document.getElementById('clearMediaSearchBtn');
+        const mediaTypeFilter = document.getElementById('mediaTypeFilter');
+        const mediaUploadInput = document.getElementById('mediaUploadInput');
+
+        buttons.forEach(btn => {
+            // Evitar duplicar listeners
+            if (btn.dataset.initialized) return;
+            btn.dataset.initialized = 'true';
+
+            btn.addEventListener('click', function() {
+                const targetId = this.dataset.targetField;
+                const mediaType = this.dataset.mediaType || 'image';
+                const title = this.dataset.modalTitle || 'Seleccionar Archivo';
+                const subtitle = this.dataset.modalSubtitle || 'Elige un archivo de la biblioteca';
+
+                currentTargetField = document.getElementById(targetId);
+                currentMediaType = mediaType;
+
+                // Actualizar UI del modal
+                document.getElementById('mediaSelectorModalLabel').textContent = title;
+                document.getElementById('mediaModalSubtitle').textContent = subtitle;
+
+                // Configurar icono según tipo
+                const icon = document.getElementById('mediaModalIcon');
+                icon.className = mediaType === 'video' ? 'fas fa-film' :
+                               (mediaType === 'image' ? 'fas fa-image' : 'fas fa-folder-open');
+
+                // Resetear y configurar filtro
+                if (mediaTypeFilter) {
+                    mediaTypeFilter.value = mediaType;
+                    // Actualizar accept del input file
+                    if (mediaUploadInput) {
+                        if (mediaType === 'video') {
+                            mediaUploadInput.setAttribute('accept', 'video/*');
+                        } else if (mediaType === 'image') {
+                            mediaUploadInput.setAttribute('accept', 'image/*');
+                        } else {
+                            mediaUploadInput.removeAttribute('accept');
+                        }
+                    }
+                }
+
+                // Resetear selección
+                selectedMedia = null;
+                if (confirmMediaSelection) {
+                    confirmMediaSelection.disabled = true;
+                }
+                if (mediaSearchInput) {
+                    mediaSearchInput.value = '';
+                }
+                if (clearMediaSearchBtn) {
+                    clearMediaSearchBtn.style.display = 'none';
+                }
+
+                // Abrir modal
+                const modalInstance = new bootstrap.Modal(mediaSelectorModal);
+                modalInstance.show();
+            });
+        });
+    }
+
+    // Configurar botones iniciales
+    setupMediaButtons();
+
+    // Cargar medios cuando se abre el modal
+    const mediaSelectorModal = document.getElementById('mediaSelectorModal');
+    if (mediaSelectorModal) {
+        mediaSelectorModal.addEventListener('show.bs.modal', function() {
+            currentPage = 1;
+            loadMedia('', currentMediaType, 1);
+        });
+    }
+
+    // Listener para actualizar vista previa del campo image
+    const imageField = document.getElementById('id_image');
+    if (imageField) {
+        imageField.addEventListener('input', function() {
+            const url = this.value.trim();
+            const preview = document.getElementById('image_preview');
+            const previewImg = document.getElementById('image_preview_img');
+            const existingPreview = document.getElementById('image_existing_preview');
+
+            if (url && preview && previewImg) {
+                previewImg.src = url;
+                preview.style.display = 'block';
+                if (existingPreview) existingPreview.style.display = 'none';
+            } else if (!url && preview) {
+                preview.style.display = 'none';
+                if (existingPreview) existingPreview.style.display = 'block';
+            }
+        });
+    }
+
+    // Confirmar selección
+    const confirmBtn = document.getElementById('confirmMediaSelection');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', function() {
+            if (selectedMedia && currentTargetField) {
+                if (currentTargetField.id === 'image_gallery') {
+                    if (!galleryUrls.includes(selectedMedia.url)) {
+                        galleryUrls.push(selectedMedia.url);
+                        syncGalleryField();
+                        renderGallery();
+                    }
+                } else {
+                    currentTargetField.value = selectedMedia.url;
+
+                    const event = new Event('input', { bubbles: true });
+                    currentTargetField.dispatchEvent(event);
+                }
+
+                const modalInstance = bootstrap.Modal.getInstance(mediaSelectorModal);
+                if (modalInstance) modalInstance.hide();
+            }
+        });
+    }
+
+    // Búsqueda
+    const mediaSearchInput = document.getElementById('mediaSearchInput');
+    if (mediaSearchInput) {
+        let searchTimeout;
+        mediaSearchInput.addEventListener('input', function() {
+            const clearBtn = document.getElementById('clearMediaSearchBtn');
+            if (clearBtn) clearBtn.style.display = this.value ? 'block' : 'none';
+
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                const type = document.getElementById('mediaTypeFilter').value || currentMediaType;
+                currentPage = 1;
+                loadMedia(this.value, type, 1);
+            }, 500);
+        });
+    }
+
+    // Limpiar búsqueda
+    const clearBtn = document.getElementById('clearMediaSearchBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            const input = document.getElementById('mediaSearchInput');
+            if (input) {
+                input.value = '';
+                this.style.display = 'none';
+                const type = document.getElementById('mediaTypeFilter').value || currentMediaType;
+                currentPage = 1;
+                loadMedia('', type, 1);
+            }
+        });
+    }
+
+    // Filtro de tipo
+    const typeFilter = document.getElementById('mediaTypeFilter');
+    if (typeFilter) {
+        typeFilter.addEventListener('change', function() {
+            const search = document.getElementById('mediaSearchInput').value;
+            currentPage = 1;
+            loadMedia(search, this.value, 1);
+        });
+    }
+
+    // Funcionalidad de subida (simplificada para este ejemplo, asumiendo API existente)
+    const uploadBtn = document.getElementById('uploadMediaBtn');
+    const uploadInput = document.getElementById('mediaUploadInput');
+    if (uploadBtn && uploadInput) {
+        uploadBtn.addEventListener('click', () => uploadInput.click());
+        uploadInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                // Aquí iría la lógica de subida, por ahora solo alertamos
+                alert('La funcionalidad de subida requiere implementación del backend de medios.');
+            }
+        });
+    }
+</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -462,13 +1419,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Cargar estados cuando se selecciona un país
     countrySelect.addEventListener('change', function() {
         const countryId = this.value;
-        
+
         // Limpiar estados y ciudades
         stateSelect.innerHTML = '<option value="">Selecciona Estado</option>';
         citySelect.innerHTML = '<option value="">Selecciona Ciudad</option>';
         stateSelect.disabled = true;
         citySelect.disabled = true;
-        
+
         if (countryId) {
             loadStates(countryId);
         }
@@ -477,11 +1434,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Cargar ciudades cuando se selecciona un estado
     stateSelect.addEventListener('change', function() {
         const stateId = this.value;
-        
+
         // Limpiar ciudades
         citySelect.innerHTML = '<option value="">Selecciona Ciudad</option>';
         citySelect.disabled = true;
-        
+
         if (stateId) {
             loadCities(stateId);
         }
@@ -491,20 +1448,20 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadStates(countryId) {
         try {
             console.log('Cargando estados para país:', countryId);
-            
+
             // Mostrar indicador de carga
             stateSelect.innerHTML = '<option value="">Cargando estados...</option>';
             stateSelect.disabled = true;
-            
+
             const response = await fetch(`/locations/ajax/states/${countryId}/`);
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const states = await response.json();
             console.log('Estados recibidos:', states);
-            
+
             stateSelect.innerHTML = '<option value="">Selecciona Estado</option>';
             states.forEach(state => {
                 const option = document.createElement('option');
@@ -512,12 +1469,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 option.textContent = state.name;
                 stateSelect.appendChild(option);
             });
-            
+
             stateSelect.disabled = false;
             console.log('Estados cargados en el select');
-            
+
             return states; // Devolver los estados para el .then()
-            
+
         } catch (error) {
             console.error('Error cargando estados:', error);
             stateSelect.innerHTML = '<option value="">Error cargando estados</option>';
@@ -529,20 +1486,20 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadCities(stateId) {
         try {
             console.log('Cargando ciudades para estado:', stateId);
-            
+
             // Mostrar indicador de carga
             citySelect.innerHTML = '<option value="">Cargando ciudades...</option>';
             citySelect.disabled = true;
-            
+
             const response = await fetch(`/locations/ajax/cities/${stateId}/`);
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const cities = await response.json();
             console.log('Ciudades recibidas:', cities);
-            
+
             citySelect.innerHTML = '<option value="">Selecciona Ciudad</option>';
             cities.forEach(city => {
                 const option = document.createElement('option');
@@ -550,12 +1507,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 option.textContent = city.name;
                 citySelect.appendChild(option);
             });
-            
+
             citySelect.disabled = false;
             console.log('Ciudades cargadas en el select');
-            
+
             return cities; // Devolver las ciudades para el .then()
-            
+
         } catch (error) {
             console.error('Error cargando ciudades:', error);
             citySelect.innerHTML = '<option value="">Error cargando ciudades</option>';
@@ -568,13 +1525,13 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Cargando datos iniciales para país:', countrySelect.value);
         const selectedStateId = stateSelect.value; // Guardar el estado seleccionado
         const selectedCityId = citySelect.value; // Guardar la ciudad seleccionada
-        
+
         loadStates(countrySelect.value).then(() => {
             // Restaurar el estado seleccionado
             if (selectedStateId) {
                 stateSelect.value = selectedStateId;
                 console.log('Estado restaurado:', selectedStateId);
-                
+
                 // Cargar ciudades para el estado seleccionado
                 loadCities(selectedStateId).then(() => {
                     // Restaurar la ciudad seleccionada
@@ -588,7 +1545,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error('Error cargando datos iniciales:', error);
         });
     }
-    
+
     // La notificación se maneja en el servidor (views.py)
 });
 </script>

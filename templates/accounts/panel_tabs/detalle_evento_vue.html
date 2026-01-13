@@ -1220,7 +1220,7 @@
         "name": "{{ event.primary_site.site_name|escapejs }}",
         "address_1": "{{ event.primary_site.address_1|default:''|escapejs }}",
         "address_2": "{{ event.primary_site.address_2|default:''|escapejs }}",
-        "image": "{% if event.primary_site.image %}{{ event.primary_site.image.url }}{% endif %}"
+        "image": "{% if event.primary_site.image %}{{ event.primary_site.image }}{% endif %}"
     }{% else %}null{% endif %},
     "divisions": [
         {% for division in event.divisions.all %}

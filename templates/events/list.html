@@ -465,6 +465,7 @@
                                         <th style="min-width: 200px;">Ubicación</th>
                                         <th style="min-width: 130px;">Estado</th>
                                         <th style="min-width: 100px;">Asistentes</th>
+                                        <th style="min-width: 80px;">Visitas</th>
                                         <th style="min-width: 100px;">Acciones</th>
                                     </tr>
                                 </thead>
@@ -557,6 +558,12 @@
                                             <div class="text-center">
                                                 <div class="fw-bold" style="color: #495057 !important; font-size: 1rem; line-height: 1.2;">{{ event.attendees_count|default:0 }}</div>
                                                 <small style="color: #6c757d !important; font-size: 0.75rem; display: block; margin-top: 0.125rem;">asistentes</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="text-center">
+                                                <div class="fw-bold" style="color: #495057 !important; font-size: 1rem; line-height: 1.2;">{{ event.views|default:0 }}</div>
+                                                <small style="color: #6c757d !important; font-size: 0.75rem; display: block; margin-top: 0.125rem;">visitas</small>
                                             </div>
                                         </td>
                                         <td>

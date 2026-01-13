@@ -342,12 +342,11 @@ class Site(models.Model):
     )
 
     # Imágenes
-    image = models.ImageField(
-        upload_to="sites/",
+    image = models.URLField(
         blank=True,
         null=True,
         verbose_name="Site Image",
-        help_text="Imagen principal del sitio",
+        help_text="URL de la imagen principal del sitio (desde biblioteca multimedia)",
     )
 
     # Configuración
@@ -382,6 +381,28 @@ class Site(models.Model):
     def events_count(self):
         """Cuenta el número de eventos en este sitio"""
         return self.events.count() if hasattr(self, "events") else 0
+
+
+class SiteImage(models.Model):
+    """Imágenes adicionales (galería) para un Site"""
+
+    site = models.ForeignKey(
+        "Site",
+        on_delete=models.CASCADE,
+        related_name="images",
+        verbose_name="Site",
+    )
+    url = models.URLField(verbose_name="Image URL")
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="Sort Order")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
+
+    class Meta:
+        verbose_name = "Site Image"
+        verbose_name_plural = "Site Images"
+        ordering = ["sort_order", "id"]
+
+    def __str__(self):
+        return f"{self.site} - {self.url}"
 
 
 class Hotel(models.Model):
