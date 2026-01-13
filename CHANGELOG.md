@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-12 22:22:29
+
+- **[56da03d]** refactor: Add backward compatibility for generic itinerary data in event forms
+  - *Fecha:* 2026-01-12 22:22:29
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `apps/events/views.py`
+  - *Detalles:*
+    - - Add fallback logic to handle templates sending generic "itinerary_days" field name
+    - - Check for generic_itinerary_days_data when user-type-specific data is missing
+    - - Apply generic itinerary to "player" user type when no type-specific data exists
+    - - Implement same compatibility layer in both EventCreateView and EventUpdateView
+    - - Maintain support for both legacy and new itinerary input formats
+
+
+
 ### Actualizado: 2026-01-12 22:08:41
 
 - **[198e41b]** refactor: Add event view tracking system and improve site image handling
