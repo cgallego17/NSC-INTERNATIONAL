@@ -7,6 +7,33 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-12 22:08:41
+
+- **[198e41b]** refactor: Add event view tracking system and improve site image handling
+  - *Fecha:* 2026-01-12 22:08:41
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 17 archivo(s)
+    - `apps/events/migrations/0039_event_views_eventview.py`
+    - `apps/events/migrations/0040_alter_event_video_url.py`
+    - `apps/events/models.py`
+    - `apps/events/views_public.py`
+    - `apps/locations/forms.py`
+    - `apps/locations/migrations/0028_alter_site_image.py`
+    - `apps/locations/migrations/0029_siteimage.py`
+    - `apps/locations/models.py`
+    - `apps/locations/views.py`
+    - `templates/accounts/panel_tabs/detalle_evento.html`
+    - ... y 7 archivo(s) más
+  - *Detalles:*
+    - - Add gettext_lazy import for internationalization in Event model
+    - - Add views field to Event model for tracking visit counts
+    - - Create EventView model to record event page visits with IP, user, and session tracking
+    - - Implement view recording in PublicEventDetailView with IP detection and duplicate prevention
+    - - Convert Site.image from ImageField to URLField for media library integration
+    - - Create SiteImage model for site gallery
+
+
+
 ### Actualizado: 2026-01-12 19:57:19
 
 - **[8f3cbbf]** refactor: Enhance user profile management with billing, notifications, and Stripe integration
