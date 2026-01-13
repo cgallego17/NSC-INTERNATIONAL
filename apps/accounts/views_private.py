@@ -1083,6 +1083,28 @@ class AdminPlayerDetailView(StaffRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         player_obj = context["player_obj"]
 
+        profile = getattr(player_obj.user, "profile", None)
+
+        age_as_of_april_30 = None
+        age_division = None
+        grade_division = None
+        eligible_divisions = []
+        is_eligible = None
+        eligible_message = ""
+        try:
+            age_as_of_april_30 = player_obj.calculate_age_as_of_april_30()
+            age_division = player_obj.get_age_based_division()
+            grade_division = player_obj.get_grade_based_division()
+            eligible_divisions = player_obj.get_eligible_divisions()
+            is_eligible, eligible_message = player_obj.is_eligible_to_play()
+        except Exception:
+            age_as_of_april_30 = None
+            age_division = None
+            grade_division = None
+            eligible_divisions = []
+            is_eligible = None
+            eligible_message = ""
+
         parent_relations = (
             PlayerParent.objects.filter(player=player_obj)
             .select_related("parent", "parent__profile")
@@ -1184,7 +1206,34 @@ class AdminPlayerDetailView(StaffRequiredMixin, DetailView):
             .order_by("-registered_at")[:50]
         )
 
+        notifications = (
+            Notification.objects.filter(user=player_obj.user)
+            .select_related("order", "event")
+            .order_by("-created_at")[:50]
+        )
+
+        push_subscriptions = PushSubscription.objects.filter(
+            user=player_obj.user
+        ).order_by("-created_at")
+
+        wallet = None
+        try:
+            from .models import UserWallet
+
+            wallet = getattr(player_obj.user, "wallet", None)
+            if wallet is None:
+                wallet = UserWallet.objects.filter(user=player_obj.user).first()
+        except Exception:
+            wallet = None
+
         context["parent_relations"] = parent_relations
+        context["profile"] = profile
+        context["age_as_of_april_30"] = age_as_of_april_30
+        context["age_division"] = age_division
+        context["grade_division"] = grade_division
+        context["eligible_divisions"] = eligible_divisions
+        context["is_eligible"] = is_eligible
+        context["eligible_message"] = eligible_message
         context["related_orders"] = related_orders
         context["related_payment_plan_orders"] = related_payment_plan_orders
         context["related_active_payment_plan_orders"] = (
@@ -1194,6 +1243,9 @@ class AdminPlayerDetailView(StaffRequiredMixin, DetailView):
         context["related_plan_checkouts"] = related_plan_checkouts
         context["related_active_plan_checkouts"] = related_active_plan_checkouts
         context["attended_events"] = attended_events
+        context["notifications"] = notifications
+        context["push_subscriptions"] = push_subscriptions
+        context["wallet"] = wallet
 
         context["active_section"] = "players"
         context["active_subsection"] = "player_admin_detail"

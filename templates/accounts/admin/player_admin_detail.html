@@ -121,6 +121,9 @@
                 <button class="nav-link active" id="tab-general" data-bs-toggle="tab" data-bs-target="#pane-general" type="button" role="tab">General</button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-account" data-bs-toggle="tab" data-bs-target="#pane-account" type="button" role="tab">Cuenta</button>
+            </li>
+            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="tab-family" data-bs-toggle="tab" data-bs-target="#pane-family" type="button" role="tab">Padres/Relaciones</button>
             </li>
             <li class="nav-item" role="presentation">
@@ -157,16 +160,153 @@
                     <div class="kv"><div class="k">Nombre</div><div class="v">{{ player_obj.user.get_full_name|default:'-' }}</div></div>
                     <div class="kv"><div class="k">Username</div><div class="v">{{ player_obj.user.username }}</div></div>
                     <div class="kv"><div class="k">Email</div><div class="v">{{ player_obj.user.email|default:'-' }}</div></div>
+                    <div class="kv"><div class="k">Slug</div><div class="v">{{ player_obj.slug|default:'-' }}</div></div>
+                    <div class="kv"><div class="k">Team</div><div class="v">{{ player_obj.team.name|default:'-' }}</div></div>
                     <div class="kv"><div class="k">Team Manager</div><div class="v">{% if player_obj.team and player_obj.team.manager %}{{ player_obj.team.manager.get_full_name|default:player_obj.team.manager.username }}{% else %}-{% endif %}</div></div>
-                    <div class="kv"><div class="k">División</div><div class="v">{{ player_obj.division.name|default:'-' }}</div></div>
-                    <div class="kv"><div class="k">Posición</div><div class="v">{{ player_obj.get_position_display|default:'-' }}</div></div>
+                    <div class="kv"><div class="k">División asignada</div><div class="v">{{ player_obj.division.name|default:'-' }}</div></div>
+                    <div class="kv"><div class="k">Posición primaria</div><div class="v">{{ player_obj.get_position_display|default:'-' }}</div></div>
+                    <div class="kv"><div class="k">Posición secundaria</div><div class="v">{{ player_obj.get_secondary_position_display|default:'-' }}</div></div>
+                    <div class="kv"><div class="k">Pitcher</div><div class="v">{% if player_obj.is_pitcher %}Sí{% else %}No{% endif %}</div></div>
                     <div class="kv"><div class="k">Jersey</div><div class="v">{% if player_obj.jersey_number %}#{{ player_obj.jersey_number }}{% else %}-{% endif %}</div></div>
+                    <div class="kv"><div class="k">Estatura</div><div class="v">{{ player_obj.height|default:'-' }}</div></div>
+                    <div class="kv"><div class="k">Peso</div><div class="v">{% if player_obj.weight %}{{ player_obj.weight }} lbs{% else %}-{% endif %}</div></div>
+                    <div class="kv"><div class="k">Bateo</div><div class="v">{{ player_obj.get_batting_hand_display|default:'-' }}</div></div>
+                    <div class="kv"><div class="k">Lanzamiento</div><div class="v">{{ player_obj.get_throwing_hand_display|default:'-' }}</div></div>
+
+                    <div class="mt-3">
+                        <div class="info-card-header" style="border-bottom: 1px solid #e9ecef; margin-bottom: 12px; padding-bottom: 8px;">
+                            <span><i class="fas fa-id-card me-2"></i>Perfil / Elegibilidad</span>
+                        </div>
+                        <div class="kv"><div class="k">Tipo</div><div class="v">{% if profile %}{{ profile.get_user_type_display }}{% else %}<span class="text-muted">Sin perfil</span>{% endif %}</div></div>
+                        <div class="kv"><div class="k">Fecha nacimiento</div><div class="v">{% if profile and profile.birth_date %}{{ profile.birth_date|date:'Y-m-d' }}{% else %}-{% endif %}</div></div>
+                        <div class="kv"><div class="k">Edad actual</div><div class="v">{% if profile and profile.age %}{{ profile.age }}{% else %}-{% endif %}</div></div>
+                        <div class="kv"><div class="k">Edad (al 30 abril)</div><div class="v">{% if age_as_of_april_30 %}{{ age_as_of_april_30 }}{% else %}-{% endif %}</div></div>
+                        <div class="kv"><div class="k">Grado</div><div class="v">{{ player_obj.get_grade_display|default:'-' }}</div></div>
+                        <div class="kv"><div class="k">División por edad</div><div class="v">{{ age_division|default:'-' }}</div></div>
+                        <div class="kv"><div class="k">División por grado</div><div class="v">{{ grade_division|default:'-' }}</div></div>
+                        <div class="kv"><div class="k">Divisiones elegibles</div><div class="v">{% if eligible_divisions %}{{ eligible_divisions|join:', ' }}{% else %}-{% endif %}</div></div>
+                        <div class="kv"><div class="k">Eligible to play</div><div class="v">{% if is_eligible is True %}<span class="badge bg-success">Sí</span>{% elif is_eligible is False %}<span class="badge bg-danger">No</span>{% else %}<span class="badge bg-secondary">-</span>{% endif %} {% if eligible_message %}<span class="text-muted">{{ eligible_message }}</span>{% endif %}</div></div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="info-card-header" style="border-bottom: 1px solid #e9ecef; margin-bottom: 12px; padding-bottom: 8px;">
+                            <span><i class="fas fa-shield-alt me-2"></i>Verificación de edad</span>
+                        </div>
+                        <div class="kv"><div class="k">Estado</div><div class="v">{{ player_obj.get_age_verification_status_display|default:player_obj.age_verification_status }}</div></div>
+                        <div class="kv"><div class="k">Aprobado</div><div class="v">{% if player_obj.age_verification_approved_date %}{{ player_obj.age_verification_approved_date|date:'Y-m-d' }}{% else %}-{% endif %}</div></div>
+                        <div class="kv"><div class="k">Notas</div><div class="v">{{ player_obj.age_verification_notes|default:'-' }}</div></div>
+                        <div class="kv"><div class="k">Documento</div><div class="v">{% if player_obj.age_verification_document %}<a href="{{ player_obj.age_verification_document.url }}" target="_blank">Ver documento</a>{% else %}-{% endif %}</div></div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="info-card-header" style="border-bottom: 1px solid #e9ecef; margin-bottom: 12px; padding-bottom: 8px;">
+                            <span><i class="fas fa-phone me-2"></i>Emergencia / Médico</span>
+                        </div>
+                        <div class="kv"><div class="k">Contacto</div><div class="v">{{ player_obj.emergency_contact_name|default:'-' }}</div></div>
+                        <div class="kv"><div class="k">Teléfono</div><div class="v">{{ player_obj.emergency_contact_phone|default:'-' }}</div></div>
+                        <div class="kv"><div class="k">Relación</div><div class="v">{{ player_obj.emergency_contact_relation|default:'-' }}</div></div>
+                        <div class="kv"><div class="k">Condiciones médicas</div><div class="v">{{ player_obj.medical_conditions|default:'-' }}</div></div>
+                    </div>
+
+                    <div class="mt-3">
+                        <div class="info-card-header" style="border-bottom: 1px solid #e9ecef; margin-bottom: 12px; padding-bottom: 8px;">
+                            <span><i class="fas fa-tshirt me-2"></i>Tallas (uniforme)</span>
+                        </div>
+                        <div class="kv"><div class="k">Jersey size</div><div class="v">{{ player_obj.get_jersey_size_display|default:player_obj.jersey_size|default:'-' }}</div></div>
+                        <div class="kv"><div class="k">Hat size</div><div class="v">{{ player_obj.get_hat_size_display|default:player_obj.hat_size|default:'-' }}</div></div>
+                        <div class="kv"><div class="k">Batting glove</div><div class="v">{{ player_obj.get_batting_glove_size_display|default:player_obj.batting_glove_size|default:'-' }}</div></div>
+                        <div class="kv"><div class="k">Batting helmet</div><div class="v">{{ player_obj.get_batting_helmet_size_display|default:player_obj.batting_helmet_size|default:'-' }}</div></div>
+                        <div class="kv"><div class="k">Shorts</div><div class="v">{{ player_obj.get_shorts_size_display|default:player_obj.shorts_size|default:'-' }}</div></div>
+                    </div>
 
                     <div class="mt-3">
                         <div class="kv"><div class="k">Perfil / Tipo</div><div class="v">{% if player_obj.user.profile %}{{ player_obj.user.profile.get_user_type_display }}{% else %}<span class="text-muted">Sin perfil</span>{% endif %}</div></div>
                         {% if player_obj.user.profile %}
                             <div class="kv"><div class="k">Teléfono</div><div class="v">{{ player_obj.user.profile.phone|default:'-' }}</div></div>
                             <div class="kv"><div class="k">Ubicación</div><div class="v">{{ player_obj.user.profile.city|default:'' }}{% if player_obj.user.profile.state %}, {{ player_obj.user.profile.state }}{% endif %}{% if player_obj.user.profile.country %}, {{ player_obj.user.profile.country }}{% endif %}</div></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pane-account" role="tabpanel">
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <span><i class="fas fa-user-cog me-2"></i>Cuenta (User)</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Wallet</strong>
+                        {% if wallet %}
+                            <div class="kv"><div class="k">Balance</div><div class="v">${{ wallet.balance }}</div></div>
+                            <div class="kv"><div class="k">Pendiente</div><div class="v">${{ wallet.pending_balance }}</div></div>
+                            <div class="kv"><div class="k">Disponible</div><div class="v">${{ wallet.available_balance }}</div></div>
+                        {% else %}
+                            <div class="text-muted">Sin wallet.</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Push subscriptions</strong>
+                        {% if push_subscriptions %}
+                            <div class="table-responsive mt-2">
+                                <table class="table table-sm table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Activo</th>
+                                            <th>User agent</th>
+                                            <th>Creado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for ps in push_subscriptions %}
+                                            <tr>
+                                                <td>#{{ ps.pk }}</td>
+                                                <td>{% if ps.is_active %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+                                                <td>{{ ps.user_agent|default:'-' }}</td>
+                                                <td>{{ ps.created_at|date:'Y-m-d H:i' }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-muted">Sin push subscriptions.</div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <strong>Notificaciones (últimas 50)</strong>
+                        {% if notifications %}
+                            <div class="table-responsive mt-2">
+                                <table class="table table-sm table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Tipo</th>
+                                            <th>Título</th>
+                                            <th>Leída</th>
+                                            <th>Orden</th>
+                                            <th>Evento</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for n in notifications %}
+                                            <tr>
+                                                <td>{{ n.created_at|date:'Y-m-d H:i' }}</td>
+                                                <td>{{ n.get_type_display }}</td>
+                                                <td>{{ n.title }}</td>
+                                                <td>{% if n.read %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-warning text-dark">No</span>{% endif %}</td>
+                                                <td>{% if n.order %}{{ n.order.order_number }}{% else %}-{% endif %}</td>
+                                                <td>{% if n.event %}{{ n.event.title }}{% else %}-{% endif %}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-muted">Sin notificaciones.</div>
                         {% endif %}
                     </div>
                 </div>
