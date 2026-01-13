@@ -423,12 +423,23 @@
             </h5>
             <div class="quick-actions">
                 {% if profile.is_spectator and not is_parent_user %}
-                    {# Para espectadores: solo mostrar Events, Reservations y Plans & Payments #}
+                    {# Para espectadores: mostrar solo Home, Events, Registrations, Reservations, Plans & Payments y Profile #}
+                    <button type="button" class="quick-action-btn tab-btn {% if active_tab == 'inicio' %}active{% endif %}" data-tab="inicio">
+                        <i class="fas fa-home"></i>
+                        <span>{% trans "Home" %}</span>
+                    </button>
                     <button type="button" class="quick-action-btn tab-btn {% if active_tab == 'eventos' or not active_tab %}active{% endif %}" data-tab="eventos">
                         <i class="fas fa-calendar-alt"></i>
                         <span>{% trans "Events" %}</span>
                         {% if upcoming_events %}
                             <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ upcoming_events|length }}</span>
+                        {% endif %}
+                    </button>
+                    <button type="button" class="quick-action-btn tab-btn {% if active_tab == 'registros' %}active{% endif %}" data-tab="registros" data-url="{% url 'accounts:registration_list_panel' %}">
+                        <i class="fas fa-list-alt"></i>
+                        <span>{% trans "Registrations" %}</span>
+                        {% if pending_registrations_count|default:0|add:0 > 0 %}
+                            <span class="badge" style="background: var(--mlb-red); color: white; font-size: 0.65rem; padding: 3px 6px; border-radius: 10px; position: absolute; top: 8px; right: 8px;">{{ pending_registrations_count }}</span>
                         {% endif %}
                     </button>
                     <button type="button" class="quick-action-btn tab-btn {% if active_tab == 'reservas' %}active{% endif %}" data-tab="reservas" data-url="{% url 'locations:front_hotel_reservation_list' %}">
@@ -441,6 +452,10 @@
                     <button type="button" class="quick-action-btn tab-btn {% if active_tab == 'plan-pagos' %}active{% endif %}" data-tab="plan-pagos">
                         <i class="fas fa-credit-card"></i>
                         <span>{% trans "Plans & Payments" %}</span>
+                    </button>
+                    <button type="button" class="quick-action-btn tab-btn {% if active_tab == 'perfil' %}active{% endif %}" data-tab="perfil">
+                        <i class="fas fa-user"></i>
+                        <span>{% trans "Profile" %}</span>
                     </button>
                 {% else %}
                     {# Para otros tipos de usuario: mostrar todas las tabs normales #}
@@ -525,12 +540,10 @@
 
         <!-- Contenedor de Contenido de Secciones -->
         <div class="tab-content-container">
-            <!-- Tab: Inicio (oculto para spectators) -->
-            {% if not profile.is_spectator %}
-            <div id="tab-content-inicio" class="tab-content {% if active_tab == 'inicio' or not active_tab %}active{% endif %}" style="{% if active_tab == 'inicio' or not active_tab %}display: block;{% else %}display: none !important;{% endif %}">
+            <!-- Tab: Inicio (para todos; por defecto solo activo para no-spectator) -->
+            <div id="tab-content-inicio" class="tab-content {% if active_tab == 'inicio' or (not active_tab and not profile.is_spectator) %}active{% endif %}" style="{% if active_tab == 'inicio' or (not active_tab and not profile.is_spectator) %}display: block;{% else %}display: none !important;{% endif %}">
                 {% include 'accounts/panel_tabs/inicio.html' %}
             </div>
-            {% endif %}
 
             <!-- Tabs para Team Managers -->
             {% if profile.is_team_manager %}
