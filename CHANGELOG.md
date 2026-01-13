@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 11:02:48
+
+- **[c4bc3b7]** ```
+  - *Fecha:* 2026-01-13 11:02:48
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `apps/accounts/views_admin.py`
+  - *Detalles:*
+    - refactor: Add backward compatibility for missing breakdown fields in admin order detail view
+    - - Add default values for no_show_fee and hotel_buy_out_fee in breakdown dictionary
+    - - Implement setdefault logic to handle legacy orders missing new breakdown fields
+    - - Add type check to ensure breakdown is a dictionary before setting defaults
+    - - Add comment explaining template compatibility issue with missing keys
+    - ```
+
+
+
 ### Actualizado: 2026-01-13 09:09:38
 
 - **[9ef2010]** ```
