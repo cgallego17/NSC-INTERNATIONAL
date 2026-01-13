@@ -424,11 +424,11 @@
             <div class="quick-actions">
                 {% if profile.is_spectator and not is_parent_user %}
                     {# Para espectadores: mostrar solo Home, Events, Registrations, Reservations, Plans & Payments y Profile #}
-                    <button type="button" class="quick-action-btn tab-btn {% if active_tab == 'inicio' %}active{% endif %}" data-tab="inicio">
+                    <button type="button" class="quick-action-btn tab-btn {% if active_tab == 'inicio' or not active_tab %}active{% endif %}" data-tab="inicio">
                         <i class="fas fa-home"></i>
                         <span>{% trans "Home" %}</span>
                     </button>
-                    <button type="button" class="quick-action-btn tab-btn {% if active_tab == 'eventos' or not active_tab %}active{% endif %}" data-tab="eventos">
+                    <button type="button" class="quick-action-btn tab-btn {% if active_tab == 'eventos' %}active{% endif %}" data-tab="eventos">
                         <i class="fas fa-calendar-alt"></i>
                         <span>{% trans "Events" %}</span>
                         {% if upcoming_events %}
@@ -540,8 +540,8 @@
 
         <!-- Contenedor de Contenido de Secciones -->
         <div class="tab-content-container">
-            <!-- Tab: Inicio (para todos; por defecto solo activo para no-spectator) -->
-            <div id="tab-content-inicio" class="tab-content {% if active_tab == 'inicio' or (not active_tab and not profile.is_spectator) %}active{% endif %}" style="{% if active_tab == 'inicio' or (not active_tab and not profile.is_spectator) %}display: block;{% else %}display: none !important;{% endif %}">
+            <!-- Tab: Inicio (para todos; por defecto activo si no hay active_tab) -->
+            <div id="tab-content-inicio" class="tab-content {% if active_tab == 'inicio' or not active_tab %}active{% endif %}" style="{% if active_tab == 'inicio' or not active_tab %}display: block;{% else %}display: none !important;{% endif %}">
                 {% include 'accounts/panel_tabs/inicio.html' %}
             </div>
 
@@ -593,8 +593,8 @@
                 {% endif %}
             {% endif %}
 
-            <!-- Tab: Eventos (activo por defecto para spectators) -->
-            <div id="tab-content-eventos" class="tab-content {% if profile.is_spectator %}{% if active_tab == 'eventos' or not active_tab %}active{% endif %}{% else %}{% if active_tab == 'eventos' %}active{% endif %}{% endif %}" style="{% if profile.is_spectator %}{% if active_tab == 'eventos' or not active_tab %}display: block;{% else %}display: none;{% endif %}{% else %}{% if active_tab == 'eventos' %}display: block;{% else %}display: none;{% endif %}{% endif %}">
+            <!-- Tab: Eventos -->
+            <div id="tab-content-eventos" class="tab-content {% if active_tab == 'eventos' %}active{% endif %}" style="{% if active_tab == 'eventos' %}display: block;{% else %}display: none;{% endif %}">
                 <iframe
                     id="iframe-eventos"
                     name="eventos"
