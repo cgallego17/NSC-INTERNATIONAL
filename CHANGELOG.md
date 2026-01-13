@@ -7,6 +7,30 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 14:11:05
+
+- **[93ed922]** ```
+  - *Fecha:* 2026-01-13 14:11:04
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 5 archivo(s)
+    - `scripts/utilities/generate_pwa_icons.sh`
+    - `static/images/ncs-app-icon.svg`
+    - `static/images/pwa-baseball.svg`
+    - `static/manifest.json`
+    - `templates/base.html`
+  - *Detalles:*
+    - feat: Add Progressive Web App (PWA) manifest and mobile app configuration
+    - - Add manifest.json link for PWA installation support
+    - - Configure theme color #0d2c54 for browser UI customization
+    - - Enable iOS web app capabilities with apple-mobile-web-app-capable meta tag
+    - - Set default status bar style for iOS devices
+    - - Add apple-touch-icon references for iOS home screen icons
+    - - Include mask-icon for Safari pinned tab with theme color
+    - - Set app title "NCS International" for iOS home screen
+    - ```
+
+
+
 ### Actualizado: 2026-01-13 13:47:48
 
 - **[2a997f8]** ```
