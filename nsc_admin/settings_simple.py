@@ -33,7 +33,7 @@ THIRD_PARTY_APPS = [
     "django_tables2",
     "bootstrap5",
     "hijack",
-    "hijack_admin",
+    "hijack.contrib.admin",
 ]
 
 LOCAL_APPS = [

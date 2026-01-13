@@ -111,8 +111,9 @@
                     <i class="fas fa-edit me-2"></i>Editar en Admin
                 </a>
                 {% if user.is_superuser %}
-                    <form method="post" action="{% url 'hijack:acquire' user_obj.pk %}">
+                    <form method="post" action="{% url 'hijack:acquire' %}">
                         {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ user_obj.pk }}">
                         <button type="submit" class="btn btn-outline-dark">
                             <i class="fas fa-user-secret me-2"></i>Login as
                         </button>
