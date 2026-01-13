@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-12 23:23:34
+
+- **[ba72880]** refactor: Set Home tab as default for all users and simplify Events tab logic
+  - *Fecha:* 2026-01-12 23:23:33
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/panel_usuario.html`
+  - *Detalles:*
+    - - Change Home tab to be active by default when no active_tab is set for spectators
+    - - Remove spectator-specific default active state from Events tab
+    - - Update Home tab content visibility to show by default for all users when no active_tab is set
+    - - Simplify Events tab content visibility logic to remove spectator-specific conditions
+    - - Update comment to reflect Home tab as default for all users instead of Events for spectators
+
+
+
 ### Actualizado: 2026-01-12 23:19:36
 
 - **[fb1730c]** refactor: Add Home, Registrations, and Profile tabs to spectator panel navigation
