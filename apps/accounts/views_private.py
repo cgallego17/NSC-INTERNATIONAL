@@ -3098,6 +3098,15 @@ def create_stripe_event_checkout_session(request, pk):
         checkout.player_ids = [int(p.pk) for p in valid_players]
         checkout.hotel_cart_snapshot = enriched_cart
         checkout.breakdown = {
+            "players": [
+                {
+                    "id": int(p.pk),
+                    "name": (p.user.get_full_name() or p.user.username),
+                    "email": (p.user.email or ""),
+                }
+                for p in (valid_players or [])
+                if getattr(p, "user", None)
+            ],
             "players_total": str(players_total),
             "hotel_room_base": str(hotel_breakdown["room_base"]),
             "hotel_services_total": str(
@@ -3187,6 +3196,15 @@ def create_stripe_event_checkout_session(request, pk):
             player_ids=[int(p.pk) for p in valid_players],
             hotel_cart_snapshot=enriched_cart,  # Usar el carrito enriquecido con info de extra guests
             breakdown={
+                "players": [
+                    {
+                        "id": int(p.pk),
+                        "name": (p.user.get_full_name() or p.user.username),
+                        "email": (p.user.email or ""),
+                    }
+                    for p in (valid_players or [])
+                    if getattr(p, "user", None)
+                ],
                 "players_total": str(players_total),
                 "hotel_room_base": str(hotel_breakdown["room_base"]),
                 "hotel_services_total": str(
@@ -3248,6 +3266,30 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
 
     # Calcular desglose desde breakdown o desde el checkout
     breakdown = checkout.breakdown or {}
+    # Ensure breakdown includes player snapshot for email/admin visibility
+    if not (breakdown or {}).get("players"):
+        try:
+            player_ids = [int(pid) for pid in (checkout.player_ids or [])]
+        except Exception:
+            player_ids = []
+        if player_ids:
+            try:
+                from apps.accounts.models import Player
+
+                players_qs = Player.objects.filter(
+                    id__in=player_ids, is_active=True
+                ).select_related("user")
+                breakdown["players"] = [
+                    {
+                        "id": int(p.pk),
+                        "name": (p.user.get_full_name() or p.user.username),
+                        "email": (p.user.email or ""),
+                    }
+                    for p in players_qs
+                    if getattr(p, "user", None)
+                ]
+            except Exception:
+                pass
     subtotal = breakdown.get("subtotal", Decimal("0.00"))
     # Asegurar que subtotal es Decimal
     if isinstance(subtotal, str):
