@@ -7,6 +7,31 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-12 19:57:19
+
+- **[8f3cbbf]** refactor: Enhance user profile management with billing, notifications, and Stripe integration
+  - *Fecha:* 2026-01-12 19:57:18
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 30 archivo(s)
+    - `apps/accounts/forms.py`
+    - `apps/accounts/migrations/0049_userprofile_email_notifications_and_more.py`
+    - `apps/accounts/migrations/0050_userprofile_stripe_customer_id.py`
+    - `apps/accounts/models.py`
+    - `apps/accounts/urls.py`
+    - `apps/accounts/views_private.py`
+    - `templates/403.html`
+    - `templates/404.html`
+    - `templates/accounts/base_public.html`
+    - `templates/accounts/front_player_profile.html`
+    - ... y 20 archivo(s) más
+  - *Detalles:*
+    - - Add PasswordChangeForm import and create CustomPasswordChangeForm with Bootstrap styling
+    - - Add NotificationPreferencesForm for managing email, event, reservation, and marketing notifications
+    - - Extend UserProfileForm with additional fields: last_name2, phone_secondary, address_line_2, preferred_language, website, and social_media
+    - - Create BillingAddressForm for separate billing address management with
+
+
+
 ### Actualizado: 2026-01-12 18:28:39
 
 - **[936c003]** refactor: Improve JSON serialization and Vue app initialization
