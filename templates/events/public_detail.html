@@ -1509,10 +1509,11 @@
                             } else if (url.includes('/embed/')) {
                                 iframe.src = url;
                             } else {
-                                // URL no embebible (ej. X-Frame-Options: DENY). Mostrar fallback.
+                                // URL no reconocida: intentar embebido directo y mostrar fallback.
+                                // Si el proveedor bloquea iframes, el usuario aún podrá abrirlo en otra pestaña.
+                                iframe.src = url;
                                 if (fallbackLink) fallbackLink.href = url;
                                 if (fallback) fallback.style.display = 'block';
-                                iframe.removeAttribute('src');
                             }
                         }
                     })();
