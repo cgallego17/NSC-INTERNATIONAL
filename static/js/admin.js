@@ -11,16 +11,16 @@ class AdminDashboard {
         if (!isStaff) return;
 
         const btn = document.getElementById('enablePushBtn');
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+        this._ensureServiceWorkerRegistered();
+        this._promptWebPushEnableIfNeeded();
+
         if (!btn) return;
 
         btn.addEventListener('click', async (e) => {
             e.preventDefault();
             e.stopPropagation();
-
-            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-                this.showToast('Este navegador no soporta Push Notifications.', 'warning', 'Push');
-                return;
-            }
 
             try {
                 const perm = await Notification.requestPermission();
@@ -29,7 +29,7 @@ class AdminDashboard {
                     return;
                 }
 
-                const reg = await navigator.serviceWorker.register('/sw.js');
+                const reg = await this._ensureServiceWorkerRegistered();
                 const publicKeyResp = await fetch('/accounts/api/push/public-key/', {
                     method: 'GET',
                     headers: { 'X-Requested-With': 'XMLHttpRequest' },
@@ -69,6 +69,46 @@ class AdminDashboard {
                 this.showToast('Error activando push notifications.', 'error', 'Push');
             }
         });
+    }
+
+    async _ensureServiceWorkerRegistered() {
+        try {
+            const existing = await navigator.serviceWorker.getRegistration('/');
+            if (existing) return existing;
+        } catch (e) {
+            // ignore
+        }
+        try {
+            return await navigator.serviceWorker.register('/sw.js');
+        } catch (e) {
+            console.error('Service worker register failed:', e);
+            return null;
+        }
+    }
+
+    async _promptWebPushEnableIfNeeded() {
+        try {
+            if (typeof Notification === 'undefined') return;
+            if (Notification.permission === 'denied') return;
+
+            const reg = await navigator.serviceWorker.ready;
+            const sub = await reg.pushManager.getSubscription();
+            if (sub) return;
+
+            if (Notification.permission === 'default') {
+                this.showToast('Activa Push Notifications para recibir notificaciones en tiempo real. Abre Notificaciones y pulsa "Enable Push".', 'info', 'Push');
+                const btn = document.getElementById('enablePushBtn');
+                const notificationBtn = document.getElementById('notificationsBtn');
+                if (notificationBtn) {
+                    try { notificationBtn.classList.add('active'); } catch (e) {}
+                }
+                if (btn && typeof btn.focus === 'function') {
+                    try { btn.focus(); } catch (e) {}
+                }
+            }
+        } catch (e) {
+            // ignore prompt errors
+        }
     }
 
     _urlBase64ToUint8Array(base64String) {
