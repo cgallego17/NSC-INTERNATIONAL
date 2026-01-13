@@ -194,7 +194,14 @@ class AdminOrderDetailView(StaffRequiredMixin, DetailView):
         context["payment_plan_summary"] = order.payment_plan_summary
 
         # Desglose JSON almacenado en la orden (jugadores, hotel, etc.)
-        context["breakdown"] = order.breakdown or {}
+        breakdown = order.breakdown or {}
+        # Compatibilidad con órdenes antiguas: algunas claves nuevas pueden no existir.
+        # El template usa acceso con punto (breakdown.no_show_fee), lo que puede fallar
+        # si la clave no está presente.
+        if isinstance(breakdown, dict):
+            breakdown.setdefault("no_show_fee", "0.00")
+            breakdown.setdefault("hotel_buy_out_fee", "0.00")
+        context["breakdown"] = breakdown
 
         # Asistencias al evento para los jugadores de esta orden (estado de registro)
         context["event_attendances"] = event_attendances
