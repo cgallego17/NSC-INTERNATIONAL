@@ -7,6 +7,21 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 18:06:44
+
+- **[4488a48]** ```
+  - *Fecha:* 2026-01-13 18:06:44
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/admin/user_admin_detail.html`
+  - *Detalles:*
+    - fix: Update hijack form parameter from user_id to user_pk for correct user acquisition
+    - - Change hidden input field name from user_id to user_pk in hijack form
+    - - Align with django-hijack's expected parameter name for user acquisition
+    - ```
+
+
+
 ### Actualizado: 2026-01-13 18:02:32
 
 - **[46ea7d8]** ```
