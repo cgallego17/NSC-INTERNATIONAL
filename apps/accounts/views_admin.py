@@ -17,8 +17,9 @@ from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView, ListView
 
 from apps.core.mixins import StaffRequiredMixin
+from apps.events.models import EventAttendance
 
-from .models import Order, StaffWalletTopUp, UserWallet, WalletTransaction
+from .models import Order, Player, StaffWalletTopUp, UserWallet, WalletTransaction
 
 
 class AdminOrderListView(StaffRequiredMixin, ListView):
@@ -129,7 +130,75 @@ class AdminOrderDetailView(StaffRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        order = self.object
         context["is_admin"] = True
+
+        # Jugadores registrados en esta orden (si aplica)
+        try:
+            registered_players = order.registered_players
+        except Exception:
+            registered_players = []
+
+        # Fallback para órdenes antiguas sin registered_player_ids:
+        # reconstruir jugadores a partir de EventAttendance y stripe_session_id
+        event_attendances = None
+        if not registered_players and order.event:
+            session_id = None
+            if order.stripe_checkout and order.stripe_checkout.stripe_session_id:
+                session_id = order.stripe_checkout.stripe_session_id
+            elif order.stripe_session_id:
+                session_id = order.stripe_session_id
+
+            if session_id:
+                try:
+                    attendances_qs = EventAttendance.objects.filter(
+                        event=order.event,
+                        notes__contains=session_id,
+                    ).select_related("user")
+                    if attendances_qs.exists():
+                        player_users = [a.user for a in attendances_qs]
+                        fallback_players = Player.objects.filter(
+                            user__in=player_users,
+                            is_active=True,
+                        ).select_related("user")
+                        if fallback_players:
+                            registered_players = list(fallback_players)
+                            event_attendances = attendances_qs
+                except Exception:
+                    # Si falla el fallback, simplemente dejamos la lista vacía
+                    pass
+
+        # Si tenemos jugadores registrados pero aún no hemos cargado asistencias,
+        # obtener EventAttendance por user_id
+        if order.event and registered_players and event_attendances is None:
+            try:
+                player_user_ids = [p.user_id for p in registered_players]
+                event_attendances = EventAttendance.objects.filter(
+                    event=order.event,
+                    user_id__in=player_user_ids,
+                )
+            except Exception:
+                event_attendances = None
+
+        context["registered_players"] = registered_players
+
+        # Reservas de hotel vinculadas a esta orden (si aplica)
+        try:
+            hotel_reservations = order.hotel_reservations
+        except Exception:
+            hotel_reservations = []
+        context["hotel_reservations"] = hotel_reservations
+
+        # Resumen de plan de pagos (solo si la orden es un plan)
+        context["payment_plan_summary"] = order.payment_plan_summary
+
+        # Desglose JSON almacenado en la orden (jugadores, hotel, etc.)
+        context["breakdown"] = order.breakdown or {}
+
+        # Asistencias al evento para los jugadores de esta orden (estado de registro)
+        context["event_attendances"] = event_attendances
+
         return context
 
 
