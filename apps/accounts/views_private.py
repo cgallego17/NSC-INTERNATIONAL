@@ -2029,7 +2029,7 @@ def _plan_months_until_deadline(payment_deadline):
 @require_POST
 @csrf_exempt
 def create_stripe_event_checkout_session(request, pk):
-    from apps.events.models import Event
+    from apps.events.models import Event, EventAttendance
 
     event = get_object_or_404(Event, pk=pk)
     user = request.user
@@ -2073,6 +2073,109 @@ def create_stripe_event_checkout_session(request, pk):
                 },
                 status=400,
             )
+
+        # Bloquear duplicados si el jugador ya tiene asistencia registrada (cualquier estado activo).
+        # Esto cubre órdenes legacy sin registered_player_ids.
+        player_users = [p.user for p in valid_players if getattr(p, "user", None)]
+        if player_users:
+            existing_attendance_users = set(
+                EventAttendance.objects.filter(
+                    event=event,
+                    user__in=player_users,
+                    status__in=["pending", "confirmed", "waiting"],
+                ).values_list("user_id", flat=True)
+            )
+            if existing_attendance_users:
+                already_names = []
+                for p in valid_players:
+                    if getattr(p, "user_id", None) in existing_attendance_users:
+                        already_names.append(p.user.get_full_name() or p.user.username)
+                if already_names:
+                    return JsonResponse(
+                        {
+                            "success": False,
+                            "error": _(
+                                "The following players are already registered for this event: %(players)s"
+                            )
+                            % {"players": ", ".join(already_names)},
+                        },
+                        status=400,
+                    )
+
+        # Si existe un checkout pendiente (created/registered) para este mismo usuario/evento que ya incluye
+        # alguno de los jugadores seleccionados, forzar reanudar en vez de crear otro checkout.
+        resume_checkout_id = request.POST.get("resume_checkout_id")
+        try:
+            requested_player_ids = {int(p.pk) for p in valid_players}
+        except Exception:
+            requested_player_ids = set()
+
+        if requested_player_ids and not resume_checkout_id:
+            pending_checkout = (
+                StripeEventCheckout.objects.filter(
+                    user=user,
+                    event=event,
+                    status__in=["created", "registered"],
+                )
+                .only("id", "player_ids", "status")
+                .order_by("-created_at")
+                .first()
+            )
+            if pending_checkout:
+                try:
+                    pending_ids = {
+                        int(pid) for pid in (pending_checkout.player_ids or [])
+                    }
+                except Exception:
+                    pending_ids = set()
+                if pending_ids and (pending_ids & requested_player_ids):
+                    return JsonResponse(
+                        {
+                            "success": False,
+                            "error": _(
+                                "There is already a pending registration for one or more selected players. Please resume the existing checkout."
+                            ),
+                            "resume_checkout_id": pending_checkout.pk,
+                        },
+                        status=400,
+                    )
+
+        # Bloquear duplicados si ya existe una orden (incluye pending/pending_registration además de paid)
+        # que ya contiene alguno de los jugadores.
+        if requested_player_ids:
+            try:
+                order_player_ids = set()
+                for o in (
+                    Order.objects.filter(
+                        event=event,
+                        status__in=["paid", "pending", "pending_registration"],
+                    )
+                    .only("registered_player_ids")
+                    .iterator()
+                ):
+                    for pid in o.registered_player_ids or []:
+                        try:
+                            order_player_ids.add(int(pid))
+                        except Exception:
+                            continue
+                if order_player_ids & requested_player_ids:
+                    dup_names = []
+                    for p in valid_players:
+                        if p.pk in order_player_ids:
+                            dup_names.append(p.user.get_full_name() or p.user.username)
+                    if dup_names:
+                        return JsonResponse(
+                            {
+                                "success": False,
+                                "error": _(
+                                    "The following players already have an order/registration for this event: %(players)s"
+                                )
+                                % {"players": ", ".join(dup_names)},
+                            },
+                            status=400,
+                        )
+            except Exception:
+                pass
 
         # Verificar que ningún jugador ya esté PAGADO para este evento.
         # Si existe un checkout/orden pendiente, debe poder editarse y pagarse (resume flow).
