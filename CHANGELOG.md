@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 11:21:47
+
+- **[aa4567a]** ```
+  - *Fecha:* 2026-01-13 11:21:47
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `templates/accounts/panel_tabs/detalle_evento.html`
+    - `templates/events/public_detail.html`
+  - *Detalles:*
+    - refactor: Use spectator-specific entry fee for child registration and add autoplay to video player
+    - - Update child-item data-child-price to use default_entry_fee_spectator for spectators with fallback to default_entry_fee
+    - - Update pricePerPlayer JavaScript variable to use spectator-specific fee based on is_spectator flag
+    - - Add autoplay, muted, and preload="metadata" attributes to HTML5 video element for better user experience
+    - ```
+
+
+
 ### Actualizado: 2026-01-13 11:11:16
 
 - **[fdb4a83]** ```
