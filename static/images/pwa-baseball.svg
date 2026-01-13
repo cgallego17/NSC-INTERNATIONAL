@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="ball" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="65%" stop-color="#f4f4f4"/>
+      <stop offset="100%" stop-color="#e7e7e7"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <circle cx="256" cy="256" r="220" fill="url(#ball)" filter="url(#shadow)"/>
+  <circle cx="256" cy="256" r="220" fill="none" stroke="#d9d9d9" stroke-width="6"/>
+
+  <!-- Left seams -->
+  <path d="M160 110 C115 165 100 220 100 256 C100 292 115 347 160 402" fill="none" stroke="#c62828" stroke-width="10" stroke-linecap="round"/>
+  <path d="M182 125 C145 175 132 224 132 256 C132 288 145 337 182 387" fill="none" stroke="#c62828" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+
+  <!-- Right seams -->
+  <path d="M352 110 C397 165 412 220 412 256 C412 292 397 347 352 402" fill="none" stroke="#c62828" stroke-width="10" stroke-linecap="round"/>
+  <path d="M330 125 C367 175 380 224 380 256 C380 288 367 337 330 387" fill="none" stroke="#c62828" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+
+  <!-- Stitches (left) -->
+  <g stroke="#c62828" stroke-width="6" stroke-linecap="round">
+    <path d="M146 150 l-18 -10"/>
+    <path d="M134 185 l-20 -6"/>
+    <path d="M126 220 l-21 -2"/>
+    <path d="M126 256 l-21 2"/>
+    <path d="M134 292 l-20 6"/>
+    <path d="M146 328 l-18 10"/>
+    <path d="M162 362 l-16 14"/>
+  </g>
+
+  <!-- Stitches (right) -->
+  <g stroke="#c62828" stroke-width="6" stroke-linecap="round">
+    <path d="M366 150 l18 -10"/>
+    <path d="M378 185 l20 -6"/>
+    <path d="M386 220 l21 -2"/>
+    <path d="M386 256 l21 2"/>
+    <path d="M378 292 l20 6"/>
+    <path d="M366 328 l18 10"/>
+    <path d="M350 362 l16 14"/>
+  </g>
+</svg>
