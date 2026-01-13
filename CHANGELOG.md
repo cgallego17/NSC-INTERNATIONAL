@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 16:53:28
+
+- **[f15a6d1]** ```
+  - *Fecha:* 2026-01-13 16:53:28
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `apps/accounts/views_private.py`
+    - `templates/accounts/admin/user_admin_detail.html`
+  - *Detalles:*
+    - feat: Add tabbed interface to admin user detail view with payment plan tracking and team player management
+    - - Add Bootstrap tabs for organizing user information into sections: General, Familia, Equipos/Jugadores, Órdenes, Payment Plans, Wallet, Stripe, Notificaciones, Push, and Eventos
+    - - Add payment_plan_orders query filtering orders with payment_mode="plan" limited to last 50
+    - - Add active_payment_plan_orders query filtering by plan_payments_remaining > 0 or non-empty stripe_subscription_id
+    - - Add payment
+
+
+
 ### Actualizado: 2026-01-13 14:37:17
 
 - **[b5e02e1]** ```
