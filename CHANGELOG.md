@@ -7,6 +7,28 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 17:58:56
+
+- **[6c237c7]** ```
+  - *Fecha:* 2026-01-13 17:58:55
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 4 archivo(s)
+    - `nsc_admin/settings_simple.py`
+    - `nsc_admin/urls.py`
+    - `requirements/requirements.txt`
+    - `templates/accounts/admin/user_admin_detail.html`
+  - *Detalles:*
+    - feat: Add django-hijack for user impersonation with superuser-only access control
+    - - Add django-hijack and hijack_admin to THIRD_PARTY_APPS in settings_simple.py
+    - - Include HijackUserMiddleware in MIDDLEWARE configuration
+    - - Configure HIJACK_AUTHORIZE_HANDLER to superusers_only for security
+    - - Set HIJACK_ALLOW_GET_REQUESTS to False to require POST requests
+    - - Add hijack URLs at /hijack/ path
+    - - Include django-hijack>=3.6.0 in requirements.txt
+    - - Add "Login as" button to user_admin_detail.html template with
+
+
+
 ### Actualizado: 2026-01-13 17:46:25
 
 - **[1632913]** ```
