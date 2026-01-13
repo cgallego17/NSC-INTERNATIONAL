@@ -468,4 +468,20 @@ urlpatterns = [
         views_private.mark_all_notifications_read_api,
         name="mark_all_notifications_read_api",
     ),
+    # ===== WEB PUSH (STAFF) =====
+    path(
+        "api/push/public-key/",
+        views_private.push_public_key_api,
+        name="push_public_key_api",
+    ),
+    path(
+        "api/push/subscribe/",
+        views_private.push_subscribe_api,
+        name="push_subscribe_api",
+    ),
+    path(
+        "api/push/unsubscribe/",
+        views_private.push_unsubscribe_api,
+        name="push_unsubscribe_api",
+    ),
 ]

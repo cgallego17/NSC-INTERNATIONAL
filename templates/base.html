@@ -190,7 +190,7 @@
 
     {% block extra_css %}{% endblock %}
 </head>
-<body data-theme="light">
+<body data-theme="light" data-is-staff="{% if user.is_staff %}1{% else %}0{% endif %}">
 
     {% block navbar %}
         {% if user.is_staff or user.is_superuser %}
@@ -325,6 +325,9 @@
             <div class="notification-header">
                 <h4>Notificaciones</h4>
                 <div class="notification-actions">
+                    {% if user.is_staff or user.is_superuser %}
+                    <button class="btn-mark-all" id="enablePushBtn">Enable Push</button>
+                    {% endif %}
                     <button class="btn-mark-all" id="markAllRead">Marcar todas como leídas</button>
                     <button class="close-notifications" id="closeNotifications">
                         <i class="fas fa-times"></i>

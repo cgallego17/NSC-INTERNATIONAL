@@ -55,6 +55,16 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "no-reply@localhost"
+)
+SITE_URL = os.environ.get("SITE_URL", "").rstrip("/")
+
+# Web Push (VAPID)
+VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
+VAPID_ADMIN_EMAIL = os.environ.get("VAPID_ADMIN_EMAIL", DEFAULT_FROM_EMAIL)
+
 # Logging configuration
 LOGGING = {
     "version": 1,

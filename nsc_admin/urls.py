@@ -19,7 +19,6 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
-from django.views.i18n import JavaScriptCatalog
 
 from apps.accounts.views_private import UserDashboardView, forbidden_media
 from apps.accounts.views_public import (
@@ -28,7 +27,7 @@ from apps.accounts.views_public import (
     PublicPlayerProfileView,
     PublicTeamListView,
 )
-from apps.core.views import CachedJavaScriptCatalog, set_language
+from apps.core.views import CachedJavaScriptCatalog, service_worker, set_language
 from apps.events.views import DashboardView
 
 urlpatterns = [
@@ -66,6 +65,7 @@ urlpatterns = [
     path("accounts/", include("apps.accounts.urls")),  # Login público aquí
     path("users/", include("django.contrib.auth.urls")),  # Mantener para compatibilidad
     path("files/", include("apps.media.urls")),  # Multimedia
+    path("sw.js", service_worker),
     path("i18n/setlang/", set_language, name="set_language"),  # Language switching
     # JavaScript i18n catalog (uses djangojs.po) - Optimizado con caché
     path("jsi18n/", CachedJavaScriptCatalog.as_view(), name="javascript-catalog"),

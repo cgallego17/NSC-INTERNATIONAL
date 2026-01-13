@@ -6,6 +6,82 @@ class AdminDashboard {
         this.setupEventListeners();
     }
 
+    setupWebPush() {
+        const isStaff = (document.body && document.body.dataset && document.body.dataset.isStaff === '1');
+        if (!isStaff) return;
+
+        const btn = document.getElementById('enablePushBtn');
+        if (!btn) return;
+
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                this.showToast('Este navegador no soporta Push Notifications.', 'warning', 'Push');
+                return;
+            }
+
+            try {
+                const perm = await Notification.requestPermission();
+                if (perm !== 'granted') {
+                    this.showToast('Permiso de notificaciones denegado.', 'warning', 'Push');
+                    return;
+                }
+
+                const reg = await navigator.serviceWorker.register('/sw.js');
+                const publicKeyResp = await fetch('/accounts/api/push/public-key/', {
+                    method: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin'
+                });
+                const publicKeyData = await publicKeyResp.json();
+                const publicKey = (publicKeyData && publicKeyData.public_key) ? publicKeyData.public_key : '';
+                if (!publicKey) {
+                    this.showToast('VAPID public key no configurada en el servidor.', 'error', 'Push');
+                    return;
+                }
+
+                const sub = await reg.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: this._urlBase64ToUint8Array(publicKey)
+                });
+
+                const subJson = sub.toJSON();
+                const resp = await fetch('/accounts/api/push/subscribe/', {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': this.getCsrfToken(),
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify(subJson)
+                });
+                const data = await resp.json();
+                if (data && data.success) {
+                    this.showToast('Push notifications activadas.', 'success', 'Push');
+                } else {
+                    this.showToast('No se pudo guardar la suscripción push.', 'error', 'Push');
+                }
+            } catch (err) {
+                console.error('Error enabling push:', err);
+                this.showToast('Error activando push notifications.', 'error', 'Push');
+            }
+        });
+    }
+
+    _urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+
     init() {
         // Initialize theme
         const savedTheme = localStorage.getItem('theme') || 'light';
@@ -32,11 +108,137 @@ class AdminDashboard {
         // Load notifications count
         this.loadNotificationCount();
 
+        // Start polling for new notifications (toast)
+        this.startNotificationToastPolling();
+
         // Initialize theme toggle (only if it exists)
         this.initializeThemeToggle();
 
         // Convert Django messages to modern toasts
         this.convertDjangoMessagesToToasts();
+    }
+
+    startNotificationToastPolling() {
+        // Lightweight polling:
+        // 1) poll unread count (cheap)
+        // 2) only if count increases, fetch unread notifications list and toast new ones
+        const COUNT_POLL_MS = 25000;
+        const STORAGE_KEY = 'nsc_seen_notification_ids_v1';
+        const LAST_COUNT_KEY = 'nsc_last_notification_count_v1';
+        const MAX_SEEN = 300;
+
+        const readJson = (key, fallback) => {
+            try {
+                const raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : fallback;
+            } catch (e) {
+                return fallback;
+            }
+        };
+
+        const writeJson = (key, value) => {
+            try {
+                localStorage.setItem(key, JSON.stringify(value));
+            } catch (e) {
+                // ignore
+            }
+        };
+
+        const getSeen = () => {
+            const arr = readJson(STORAGE_KEY, []);
+            return Array.isArray(arr) ? arr : [];
+        };
+
+        const addSeen = (id) => {
+            const seen = getSeen();
+            if (!seen.includes(id)) {
+                seen.push(id);
+                writeJson(STORAGE_KEY, seen.slice(-MAX_SEEN));
+            }
+        };
+
+        const getLastCount = () => {
+            const v = readJson(LAST_COUNT_KEY, 0);
+            return (typeof v === 'number' && Number.isFinite(v)) ? v : 0;
+        };
+
+        const setLastCount = (n) => {
+            writeJson(LAST_COUNT_KEY, n);
+        };
+
+        const fetchCount = () => {
+            return fetch('/accounts/api/notifications/count/', {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin'
+            }).then(r => r.json());
+        };
+
+        const fetchUnreadList = () => {
+            return fetch('/accounts/api/notifications/?limit=10&unread_only=true', {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin'
+            }).then(r => r.json());
+        };
+
+        const warmup = () => {
+            // Do not toast existing unread; mark them as seen and set lastCount
+            fetchUnreadList()
+                .then(data => {
+                    if (!data || !data.success) return;
+                    const unreadCount = (data.unread_count !== undefined) ? (data.unread_count || 0) : 0;
+                    setLastCount(unreadCount);
+                    (data.notifications || []).forEach(n => {
+                        if (n && n.id) addSeen(n.id);
+                    });
+                    AdminDashboard.prototype.updateBadgeUI.call(this, unreadCount);
+                })
+                .catch(() => {});
+        };
+
+        const handleNew = (data) => {
+            if (!data || !data.success) return;
+            const list = Array.isArray(data.notifications) ? data.notifications : [];
+            const unreadCount = (data.unread_count !== undefined) ? (data.unread_count || 0) : 0;
+            AdminDashboard.prototype.updateBadgeUI.call(this, unreadCount);
+
+            const seen = getSeen();
+            const newOnes = list.filter(n => n && n.id && !seen.includes(n.id)).reverse();
+            newOnes.forEach(n => {
+                const title = n.title || 'Notificación';
+                const message = n.message || '';
+                this.showToast(message, 'primary', title, 8000);
+                addSeen(n.id);
+            });
+        };
+
+        const tick = () => {
+            if (document.hidden) return;
+            fetchCount()
+                .then(data => {
+                    if (!data || !data.success) return;
+                    const current = data.count || 0;
+                    const last = getLastCount();
+
+                    // Always keep badge updated
+                    AdminDashboard.prototype.updateBadgeUI.call(this, current);
+
+                    // Only fetch list/toast when count increases
+                    if (current > last) {
+                        setLastCount(current);
+                        fetchUnreadList().then(handleNew).catch(() => {});
+                    } else {
+                        setLastCount(current);
+                    }
+                })
+                .catch(() => {});
+        };
+
+        warmup();
+
+        // store interval handle for potential future cleanup
+        this._notificationToastInterval = window.setInterval(tick, COUNT_POLL_MS);
     }
 
     initializeThemeToggle() {
@@ -74,6 +276,9 @@ class AdminDashboard {
 
         // ===== NOTIFICATION SYSTEM =====
         this.setupNotificationSystem();
+
+        // ===== WEB PUSH (STAFF) =====
+        this.setupWebPush();
 
         // ===== USER MENU SYSTEM =====
         this.setupUserMenuSystem();

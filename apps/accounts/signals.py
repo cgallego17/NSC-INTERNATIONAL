@@ -2,6 +2,7 @@
 Señales para generar notificaciones automáticas
 """
 
+import json
 import logging
 
 from django.conf import settings
@@ -12,7 +13,7 @@ from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.urls import reverse
 
-from .models import Notification, Order, Player
+from .models import Notification, Order, Player, PushSubscription
 
 logger = logging.getLogger(__name__)
 
@@ -306,3 +307,117 @@ def create_order_notification(sender, instance, created, **kwargs):
                             )
     except Exception as e:
         logger.error(f"Error creating order notification: {str(e)}")
+
+
+@receiver(post_save, sender=Player)
+def create_player_created_staff_notification(sender, instance, created, **kwargs):
+    try:
+        if not created:
+            return
+        User = get_user_model()
+        staff_users = User.objects.filter(is_active=True, is_staff=True)
+        player_user = getattr(instance, "user", None)
+        player_name = ""
+        if player_user:
+            player_name = (
+                player_user.get_full_name() or player_user.username or ""
+            ).strip()
+        title = "Jugador nuevo registrado"
+        message = f"Se registró un nuevo jugador: {player_name or 'Jugador'}"
+        try:
+            action_url = reverse("accounts:player_detail", args=[instance.pk])
+        except Exception:
+            action_url = ""
+        for staff in staff_users.iterator():
+            Notification.create_notification(
+                user=staff,
+                title=title,
+                message=message,
+                notification_type="registration",
+                action_url=action_url or None,
+            )
+    except Exception:
+        logger.exception("Error creating staff notification for new player")
+
+
+@receiver(post_save, sender=get_user_model())
+def create_user_registered_staff_notification(sender, instance, created, **kwargs):
+    try:
+        if not created:
+            return
+        User = get_user_model()
+        staff_users = User.objects.filter(is_active=True, is_staff=True)
+        full_name = (instance.get_full_name() or instance.username or "").strip()
+        email = (getattr(instance, "email", "") or "").strip()
+        title = "Usuario nuevo registrado"
+        message = (
+            f"Se registró un nuevo usuario: {full_name}{f' ({email})' if email else ''}"
+        )
+        try:
+            action_url = reverse("accounts:user_list")
+        except Exception:
+            action_url = ""
+        for staff in staff_users.iterator():
+            Notification.create_notification(
+                user=staff,
+                title=title,
+                message=message,
+                notification_type="registration",
+                action_url=action_url or None,
+            )
+    except Exception:
+        logger.exception("Error creating staff notification for new user")
+
+
+@receiver(post_save, sender=Notification)
+def send_web_push_for_staff_notifications(sender, instance, created, **kwargs):
+    try:
+        if not created:
+            return
+        user = getattr(instance, "user", None)
+        if not user or not getattr(user, "is_staff", False):
+            return
+
+        vapid_private = getattr(settings, "VAPID_PRIVATE_KEY", "") or ""
+        vapid_sub = getattr(settings, "VAPID_ADMIN_EMAIL", "") or ""
+        if not vapid_private or not vapid_sub:
+            return
+
+        try:
+            from pywebpush import webpush
+        except Exception:
+            return
+
+        url = instance.action_url or "/panel/"
+        payload = {
+            "title": instance.title or "Notificación",
+            "body": instance.message or "",
+            "url": url,
+        }
+
+        for sub in PushSubscription.objects.filter(
+            user=user, is_active=True
+        ).iterator():
+            subscription_info = {
+                "endpoint": sub.endpoint,
+                "keys": {
+                    "p256dh": sub.p256dh,
+                    "auth": sub.auth,
+                },
+            }
+            try:
+                webpush(
+                    subscription_info=subscription_info,
+                    data=json.dumps(payload),
+                    vapid_private_key=vapid_private,
+                    vapid_claims={"sub": vapid_sub},
+                )
+            except Exception:
+                # Do not break flow; mark subscription inactive if it fails.
+                try:
+                    sub.is_active = False
+                    sub.save(update_fields=["is_active", "updated_at"])
+                except Exception:
+                    pass
+    except Exception:
+        logger.exception("Error sending web push notification")

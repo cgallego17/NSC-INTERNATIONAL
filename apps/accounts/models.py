@@ -2334,3 +2334,30 @@ class Notification(models.Model):
             event=event,
             action_url=action_url,
         )
+
+
+class PushSubscription(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="push_subscriptions",
+        verbose_name="Usuario",
+    )
+    endpoint = models.URLField(unique=True)
+    p256dh = models.CharField(max_length=255)
+    auth = models.CharField(max_length=255)
+    user_agent = models.CharField(max_length=255, blank=True, default="")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Push Subscription"
+        verbose_name_plural = "Push Subscriptions"
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["user", "is_active", "-created_at"]),
+        ]
+
+    def __str__(self):
+        return f"PushSubscription #{self.pk} - {self.user_id}"

@@ -54,6 +54,7 @@ from .models import (
     Order,
     Player,
     PlayerParent,
+    PushSubscription,
     StripeEventCheckout,
     Team,
     UserProfile,
@@ -5486,6 +5487,66 @@ def mark_all_notifications_read_api(request):
             {"success": False, "error": "Error al marcar todas como leídas"},
             status=500,
         )
+
+
+# ===== WEB PUSH (STAFF) API VIEWS =====
+@login_required
+def push_public_key_api(request):
+    if not request.user.is_staff:
+        return JsonResponse({"success": False, "error": "Forbidden"}, status=403)
+    public_key = getattr(settings, "VAPID_PUBLIC_KEY", "") or ""
+    return JsonResponse({"success": True, "public_key": public_key})
+
+
+@login_required
+@require_POST
+def push_subscribe_api(request):
+    if not request.user.is_staff:
+        return JsonResponse({"success": False, "error": "Forbidden"}, status=403)
+    try:
+        payload = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except Exception:
+        payload = {}
+
+    endpoint = (payload.get("endpoint") or "").strip()
+    keys = payload.get("keys") or {}
+    p256dh = (keys.get("p256dh") or "").strip()
+    auth = (keys.get("auth") or "").strip()
+    if not endpoint or not p256dh or not auth:
+        return JsonResponse(
+            {"success": False, "error": "Invalid subscription"}, status=400
+        )
+
+    user_agent = (request.META.get("HTTP_USER_AGENT") or "").strip()[:255]
+    sub, _created = PushSubscription.objects.update_or_create(
+        endpoint=endpoint,
+        defaults={
+            "user": request.user,
+            "p256dh": p256dh,
+            "auth": auth,
+            "user_agent": user_agent,
+            "is_active": True,
+        },
+    )
+    return JsonResponse({"success": True, "subscription_id": sub.pk})
+
+
+@login_required
+@require_POST
+def push_unsubscribe_api(request):
+    if not request.user.is_staff:
+        return JsonResponse({"success": False, "error": "Forbidden"}, status=403)
+    try:
+        payload = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except Exception:
+        payload = {}
+    endpoint = (payload.get("endpoint") or "").strip()
+    if not endpoint:
+        return JsonResponse({"success": False, "error": "Invalid endpoint"}, status=400)
+    PushSubscription.objects.filter(user=request.user, endpoint=endpoint).update(
+        is_active=False
+    )
+    return JsonResponse({"success": True})
 
 
 def _get_time_ago(created_at):
