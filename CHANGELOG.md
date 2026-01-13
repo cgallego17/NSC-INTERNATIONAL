@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 11:28:25
+
+- **[0183e99]** ```
+  - *Fecha:* 2026-01-13 11:28:25
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/events/public_detail.html`
+  - *Detalles:*
+    - refactor: Remove service fee display from event registration plan details
+    - - Remove service fee display from player registration plan details
+    - - Remove service fee display from team manager registration plan details
+    - - Remove service fee display from spectator registration plan details
+    - - Service fees are now handled internally without being shown to users during registration
+    - ```
+
+
+
 ### Actualizado: 2026-01-13 11:21:47
 
 - **[aa4567a]** ```
