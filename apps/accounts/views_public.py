@@ -668,19 +668,17 @@ class PublicRegistrationView(CreateView):
 
     form_class = PublicRegistrationForm
     template_name = "accounts/public_register.html"
-    success_url = reverse_lazy("accounts:profile")
+    success_url = reverse_lazy("panel")
 
     def dispatch(self, request, *args, **kwargs):
         """Verificar rate limiting antes de procesar el request"""
         from django.core.cache import cache
-        from django.http import HttpResponseForbidden
 
         # Obtener IP del cliente
         ip_address = _get_client_ip(request)
 
         # Configuración de rate limiting
         MAX_REGISTRATIONS_PER_HOUR = 3
-        RATE_LIMIT_WINDOW = 3600  # 1 hora en segundos
 
         # Clave de caché única por IP
         cache_key = f"registration_attempts_{ip_address}"
@@ -710,7 +708,7 @@ class PublicRegistrationView(CreateView):
         attempts = cache.get(cache_key, 0)
         cache.set(cache_key, attempts + 1, 3600)  # Incrementar y guardar por 1 hora
 
-        response = super().form_valid(form)
+        super().form_valid(form)
         # Autenticar al usuario después del registro
         login(self.request, self.object)
 
@@ -722,29 +720,47 @@ class PublicRegistrationView(CreateView):
             % {"username": username},
         )
 
-        # Redirigir según el tipo real guardado en el perfil (puede venir mapeado desde el form)
-        profile_user_type = None
-        if hasattr(self.object, "profile"):
-            profile_user_type = self.object.profile.user_type
-        else:
-            profile_user_type = form.cleaned_data.get("user_type")
+        return redirect("panel")
 
-        # Si es manager, redirigir a crear equipo
-        if profile_user_type == "team_manager":
-            messages.info(
-                self.request, _("Now you can create your first team to get started.")
-            )
-            return redirect("accounts:team_create")
-        elif profile_user_type == "parent":
-            messages.info(
+    def form_invalid(self, form):
+        """Si el formulario es inválido, registrar intento fallido y redirigir"""
+        # Registrar intento fallido
+        _increment_login_attempts(self.request, is_successful=False)
+
+        # Verificar si ahora está bloqueado después de este intento
+        is_allowed, remaining, is_blocked, seconds_remaining = _check_login_rate_limit(
+            self.request
+        )
+
+        # Guardar los datos del formulario y errores en la sesión
+        self.request.session["login_error"] = True
+        self.request.session["login_form_data"] = {
+            "username": self.request.POST.get("username", ""),
+        }
+
+        if is_blocked:
+            self.request.session["login_blocked"] = True
+            self.request.session["block_seconds_remaining"] = seconds_remaining
+            messages.error(
                 self.request,
                 _(
-                    "Now you can register your child(ren) or ward(s) from the dashboard."
-                ),
+                    "Too many failed login attempts. Your IP has been temporarily blocked. Please try again in %(minutes)d minutes."
+                )
+                % {"minutes": (seconds_remaining // 60) + 1},
             )
-            return redirect("panel")
+            return redirect(f"/?login_error=1&blocked=1")
+        elif not is_allowed:
+            messages.error(
+                self.request,
+                _(
+                    "Too many login attempts. Please try again later. (Remaining attempts: %(remaining)d)"
+                )
+                % {"remaining": remaining},
+            )
+            return redirect(f"/?login_error=1&rate_limit=1")
 
-        return response
+        # Redirigir a la página principal con parámetro de error
+        return redirect(f"/?login_error=1")
 
 
 class PublicPlayerProfileView(DetailView):
