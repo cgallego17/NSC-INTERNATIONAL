@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 12:35:33
+
+- **[6170de4]** ```
+  - *Fecha:* 2026-01-13 12:35:33
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `static/js/admin.js`
+  - *Detalles:*
+    - refactor: Add notification button state management and accessibility improvements
+    - - Add notificationBtn element reference for notification button state updates
+    - - Apply has-notifications class to notification button when count > 0
+    - - Update aria-label attribute with notification count for screen reader accessibility
+    - - Remove has-notifications class and reset aria-label when no notifications present
+    - ```
+
+
+
 ### Actualizado: 2026-01-13 12:26:52
 
 - **[8b489a1]** ```
