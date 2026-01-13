@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 17:46:25
+
+- **[1632913]** ```
+  - *Fecha:* 2026-01-13 17:46:25
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `apps/accounts/urls.py`
+    - `apps/accounts/views_private.py`
+  - *Detalles:*
+    - feat: Add player deletion functionality with staff-only access control
+    - - Add PlayerDeleteView with UserPassesTestMixin for staff/superuser authorization
+    - - Create player_delete URL pattern at players/<int:pk>/delete/
+    - - Include DeleteView import from django.views.generic
+    - - Set success_url to redirect to player_list after deletion
+    - - Add player_confirm_delete.html template reference for deletion confirmation
+    - ```
+
+
+
 ### Actualizado: 2026-01-13 17:40:20
 
 - **[78a3b3e]** ```
