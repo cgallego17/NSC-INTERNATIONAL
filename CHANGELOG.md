@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 11:08:43
+
+- **[18e3f61]** ```
+  - *Fecha:* 2026-01-13 11:08:42
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/events/public_detail.html`
+  - *Detalles:*
+    - refactor: Attempt direct iframe embed for unrecognized video URLs before showing fallback
+    - - Change fallback behavior to try direct iframe embedding for unrecognized URLs
+    - - Set iframe.src to url instead of removing src attribute
+    - - Update comment to explain fallback link remains available if provider blocks iframes
+    - - Keep fallback visible to provide alternative access method
+    - ```
+
+
+
 ### Actualizado: 2026-01-13 11:02:48
 
 - **[c4bc3b7]** ```
