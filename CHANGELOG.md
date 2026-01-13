@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-12 23:19:36
+
+- **[fb1730c]** refactor: Add Home, Registrations, and Profile tabs to spectator panel navigation
+  - *Fecha:* 2026-01-12 23:19:36
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/panel_usuario.html`
+  - *Detalles:*
+    - - Add Home tab button to spectator quick actions
+    - - Add Registrations tab button with pending registrations badge for spectators
+    - - Add Profile tab button to spectator quick actions
+    - - Update comment to reflect new tabs available for spectators (Home, Events, Registrations, Reservations, Plans & Payments, Profile)
+    - - Modify Home tab content visibility logic to show for spectators when explicitly selected
+    - - Change default
+
+
+
 ### Actualizado: 2026-01-12 23:08:16
 
 - **[cdedeb4]** ```
