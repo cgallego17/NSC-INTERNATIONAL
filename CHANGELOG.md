@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 13:47:48
+
+- **[2a997f8]** ```
+  - *Fecha:* 2026-01-13 13:47:48
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `static/js/admin.js`
+  - *Detalles:*
+    - refactor: Add automatic service worker registration and push notification prompts for staff users
+    - - Extract service worker registration into _ensureServiceWorkerRegistered helper method
+    - - Add _promptWebPushEnableIfNeeded method to automatically prompt staff users to enable push notifications
+    - - Check for existing service worker registration before creating new one
+    - - Show toast notification when push is not enabled and permission is default
+    - - Add active class to notification button and focus enable
+
+
+
 ### Actualizado: 2026-01-13 13:36:15
 
 - **[f872e80]** ```
