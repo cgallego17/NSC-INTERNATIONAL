@@ -1528,6 +1528,123 @@
                 </div>
             </div>
 
+            <!-- Itinerary -->
+            {% if itinerary_player or itinerary_team_manager or itinerary_spectator %}
+            <div class="section">
+                <h2 class="section-title">{% trans "Itinerary" %}</h2>
+
+                <ul class="nav nav-tabs" role="tablist" style="margin-bottom: 1.5rem;">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="itinerary-player-tab" data-bs-toggle="tab" data-bs-target="#itinerary-player" type="button" role="tab" aria-controls="itinerary-player" aria-selected="true">
+                            {% trans "Player" %}
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="itinerary-team-manager-tab" data-bs-toggle="tab" data-bs-target="#itinerary-team-manager" type="button" role="tab" aria-controls="itinerary-team-manager" aria-selected="false">
+                            {% trans "Team Manager" %}
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="itinerary-spectator-tab" data-bs-toggle="tab" data-bs-target="#itinerary-spectator" type="button" role="tab" aria-controls="itinerary-spectator" aria-selected="false">
+                            {% trans "Spectator" %}
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="itinerary-player" role="tabpanel" aria-labelledby="itinerary-player-tab">
+                        {% if itinerary_player %}
+                            {% for day in itinerary_player %}
+                                <div class="card mb-3" style="border-radius: 12px;">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between flex-wrap gap-2">
+                                            <h5 class="mb-0">{{ day.title }}</h5>
+                                            <div class="text-muted small">{{ day.day|date:"M d, Y" }}</div>
+                                        </div>
+                                        {% if day.description %}
+                                            <div class="mt-2">{{ day.description|linebreaksbr }}</div>
+                                        {% endif %}
+                                        {% if day.schedule_items %}
+                                            <ul class="mt-3 mb-0">
+                                                {% for item in day.schedule_items %}
+                                                    <li>
+                                                        {% if item.time %}<strong>{{ item.time }}</strong>{% endif %}
+                                                        {% if item.activity %} {{ item.activity }}{% endif %}
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-muted">{% trans "No itinerary available." %}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="tab-pane fade" id="itinerary-team-manager" role="tabpanel" aria-labelledby="itinerary-team-manager-tab">
+                        {% if itinerary_team_manager %}
+                            {% for day in itinerary_team_manager %}
+                                <div class="card mb-3" style="border-radius: 12px;">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between flex-wrap gap-2">
+                                            <h5 class="mb-0">{{ day.title }}</h5>
+                                            <div class="text-muted small">{{ day.day|date:"M d, Y" }}</div>
+                                        </div>
+                                        {% if day.description %}
+                                            <div class="mt-2">{{ day.description|linebreaksbr }}</div>
+                                        {% endif %}
+                                        {% if day.schedule_items %}
+                                            <ul class="mt-3 mb-0">
+                                                {% for item in day.schedule_items %}
+                                                    <li>
+                                                        {% if item.time %}<strong>{{ item.time }}</strong>{% endif %}
+                                                        {% if item.activity %} {{ item.activity }}{% endif %}
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-muted">{% trans "No itinerary available." %}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="tab-pane fade" id="itinerary-spectator" role="tabpanel" aria-labelledby="itinerary-spectator-tab">
+                        {% if itinerary_spectator %}
+                            {% for day in itinerary_spectator %}
+                                <div class="card mb-3" style="border-radius: 12px;">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between flex-wrap gap-2">
+                                            <h5 class="mb-0">{{ day.title }}</h5>
+                                            <div class="text-muted small">{{ day.day|date:"M d, Y" }}</div>
+                                        </div>
+                                        {% if day.description %}
+                                            <div class="mt-2">{{ day.description|linebreaksbr }}</div>
+                                        {% endif %}
+                                        {% if day.schedule_items %}
+                                            <ul class="mt-3 mb-0">
+                                                {% for item in day.schedule_items %}
+                                                    <li>
+                                                        {% if item.time %}<strong>{{ item.time }}</strong>{% endif %}
+                                                        {% if item.activity %} {{ item.activity }}{% endif %}
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-muted">{% trans "No itinerary available." %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Pricing -->
             <div class="section">
                 <h2 class="section-title">{% trans "Pricing & Payment" %}</h2>
@@ -1601,6 +1718,26 @@
                                             {% if include.description %}
                                             <div class="plan-includes-item-description">{{ include.description }}</div>
                                             {% endif %}
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+
+                            {% if itinerary_player %}
+                            <div class="plan-includes-section">
+                                <div class="plan-includes-title">
+                                    <i class="fas fa-route"></i>
+                                    {% trans "Itinerary" %}
+                                </div>
+                                <ul class="plan-includes-list">
+                                    {% for day in itinerary_player %}
+                                    <li class="plan-includes-item">
+                                        <i class="fas fa-calendar-day"></i>
+                                        <div class="plan-includes-item-content">
+                                            <div class="plan-includes-item-title">{{ day.title }}</div>
+                                            <div class="plan-includes-item-description">{{ day.day|date:"M d, Y" }}</div>
                                         </div>
                                     </li>
                                     {% endfor %}
@@ -1702,6 +1839,26 @@
                             </div>
                             {% endif %}
 
+                            {% if itinerary_team_manager %}
+                            <div class="plan-includes-section">
+                                <div class="plan-includes-title">
+                                    <i class="fas fa-route"></i>
+                                    {% trans "Itinerary" %}
+                                </div>
+                                <ul class="plan-includes-list">
+                                    {% for day in itinerary_team_manager %}
+                                    <li class="plan-includes-item">
+                                        <i class="fas fa-calendar-day"></i>
+                                        <div class="plan-includes-item-content">
+                                            <div class="plan-includes-item-title">{{ day.title }}</div>
+                                            <div class="plan-includes-item-description">{{ day.day|date:"M d, Y" }}</div>
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+
                             <a href="{% url 'accounts:register' %}?user_type=team_manager&event_id={{ event.id }}" class="plan-register-btn">
                                 <i class="fas fa-users-cog"></i>
                                 {% trans "Register as Team Manager" %}
@@ -1792,6 +1949,26 @@
                                             {% if include.description %}
                                             <div class="plan-includes-item-description">{{ include.description }}</div>
                                             {% endif %}
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+
+                            {% if itinerary_spectator %}
+                            <div class="plan-includes-section">
+                                <div class="plan-includes-title">
+                                    <i class="fas fa-route"></i>
+                                    {% trans "Itinerary" %}
+                                </div>
+                                <ul class="plan-includes-list">
+                                    {% for day in itinerary_spectator %}
+                                    <li class="plan-includes-item">
+                                        <i class="fas fa-calendar-day"></i>
+                                        <div class="plan-includes-item-content">
+                                            <div class="plan-includes-item-title">{{ day.title }}</div>
+                                            <div class="plan-includes-item-description">{{ day.day|date:"M d, Y" }}</div>
                                         </div>
                                     </li>
                                     {% endfor %}

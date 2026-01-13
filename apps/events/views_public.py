@@ -2,8 +2,6 @@
 Vistas públicas de eventos - No requieren autenticación
 """
 
-from datetime import timedelta
-
 from django.db.models import Case, IntegerField, Q, Value, When
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -190,5 +188,29 @@ class PublicEventDetailView(DetailView):
             context["includes_player"] = []
             context["includes_team_manager"] = []
             context["includes_spectator"] = []
+
+        # Obtener itinerario filtrado por user_type
+        try:
+            from .models import EventItinerary
+
+            context["itinerary_player"] = EventItinerary.objects.filter(
+                event=event, user_type="player"
+            ).order_by("day", "day_number")
+            context["itinerary_team_manager"] = EventItinerary.objects.filter(
+                event=event, user_type="team_manager"
+            ).order_by("day", "day_number")
+            context["itinerary_spectator"] = EventItinerary.objects.filter(
+                event=event, user_type="spectator"
+            ).order_by("day", "day_number")
+
+            # Fallback: si no hay itinerario específico, usar el de player
+            if not context["itinerary_team_manager"] and context["itinerary_player"]:
+                context["itinerary_team_manager"] = context["itinerary_player"]
+            if not context["itinerary_spectator"] and context["itinerary_player"]:
+                context["itinerary_spectator"] = context["itinerary_player"]
+        except ImportError:
+            context["itinerary_player"] = []
+            context["itinerary_team_manager"] = []
+            context["itinerary_spectator"] = []
 
         return context

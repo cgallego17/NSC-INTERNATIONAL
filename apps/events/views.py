@@ -516,12 +516,8 @@ class EventCreateView(StaffRequiredMixin, CreateView):
             field_name = f"itinerary_days_{user_type}"
             itinerary_days_data = self.request.POST.getlist(field_name)
 
-            # Fallback: si no hay datos por user_type, usar el itinerario genérico como 'player'
-            if (
-                not itinerary_days_data
-                and generic_itinerary_days_data
-                and user_type == "player"
-            ):
+            # Fallback: si no hay datos por user_type, usar el itinerario genérico
+            if not itinerary_days_data:
                 itinerary_days_data = generic_itinerary_days_data
 
             logger.info(
@@ -731,12 +727,8 @@ class EventUpdateView(StaffRequiredMixin, UpdateView):
             field_name = f"itinerary_days_{user_type}"
             itinerary_days_data = self.request.POST.getlist(field_name)
 
-            # Fallback: si no hay datos por user_type, usar el itinerario genérico como 'player'
-            if (
-                not itinerary_days_data
-                and generic_itinerary_days_data
-                and user_type == "player"
-            ):
+            # Fallback: si no hay datos por user_type, usar el itinerario genérico
+            if not itinerary_days_data and generic_itinerary_days_data:
                 itinerary_days_data = generic_itinerary_days_data
 
             logger.info(
