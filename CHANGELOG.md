@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 11:35:30
+
+- **[dcc216d]** ```
+  - *Fecha:* 2026-01-13 11:35:30
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `apps/accounts/views_private.py`
+  - *Detalles:*
+    - refactor: Add comprehensive duplicate registration prevention for event checkout
+    - - Import EventAttendance model for attendance status validation
+    - - Block duplicate registrations if players have existing EventAttendance records with active status (pending/confirmed/waiting)
+    - - Prevent creating new checkout if pending checkout exists with overlapping player selections
+    - - Add resume_checkout_id detection to force resuming existing pending checkouts
+    - - Block duplicate registrations if players are already in
+
+
+
 ### Actualizado: 2026-01-13 11:28:25
 
 - **[0183e99]** ```
