@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 17:40:20
+
+- **[78a3b3e]** ```
+  - *Fecha:* 2026-01-13 17:40:19
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `apps/accounts/views_private.py`
+    - `templates/accounts/admin/player_admin_detail.html`
+  - *Detalles:*
+    - feat: Enhance admin player detail view with comprehensive player information and account data
+    - - Add profile context with age_as_of_april_30, age_division, grade_division, eligible_divisions, is_eligible, and eligible_message
+    - - Include try-except wrapper for player eligibility calculations with fallback to None values
+    - - Add notifications context with last 50 notifications including order and event relationships
+    - - Add push_subscriptions context ordered by creation date
+    - - Add wallet context with User
+
+
+
 ### Actualizado: 2026-01-13 17:34:33
 
 - **[e291e30]** ```
