@@ -1145,7 +1145,7 @@
                             {% for child in children %}
                                 <div class="child-item mb-2" style="border: 2px solid {% if child.pk in registered_players %}#28a745{% else %}#e9ecef{% endif %}; border-radius: 8px; padding: 10px; transition: all 0.3s; cursor: {% if child.pk in registered_players %}not-allowed{% else %}pointer{% endif %}; background: {% if child.pk in registered_players %}#f8fff9{% else %}transparent{% endif %};"
                                      data-child-id="{{ child.pk }}"
-                                     data-child-price="{{ event.default_entry_fee|default:'0.00' }}"
+                                     data-child-price="{% if is_spectator %}{{ event.default_entry_fee_spectator|default:event.default_entry_fee|default:'0.00' }}{% else %}{{ event.default_entry_fee|default:'0.00' }}{% endif %}"
                                      data-birth-date="{% if child.user.profile.birth_date %}{{ child.user.profile.birth_date|date:'Y-m-d' }}{% endif %}"
                                      data-child-email="{% if child.user.email %}{{ child.user.email|escapejs }}{% endif %}"
                                      data-child-name="{% if child.user.get_full_name %}{{ child.user.get_full_name|escapejs }}{% else %}{{ child.user.username|escapejs }}{% endif %}"
@@ -1747,7 +1747,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     const checkboxes = document.querySelectorAll('.child-checkbox');
-    const pricePerPlayer = parseFloat('{{ event.default_entry_fee|default:"0" }}') || 0;
+    const pricePerPlayer = parseFloat('{% if is_spectator %}{{ event.default_entry_fee_spectator|default:event.default_entry_fee|default:"0" }}{% else %}{{ event.default_entry_fee|default:"0" }}{% endif %}') || 0;
     const registrationForm = document.getElementById('eventRegistrationForm');
     const eventId = '{{ event.pk }}';
     const checkoutPlayersStorageKey = 'checkout_selected_players_' + eventId;

@@ -1464,7 +1464,7 @@
                 {% with video_url=event.video_url|lower %}
                     {% if '.mp4' in video_url or '.webm' in video_url or '.ogg' in video_url %}
                         <div class="ratio ratio-16x9" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background: #000;">
-                            <video controls playsinline style="width: 100%; height: 100%;">
+                            <video controls autoplay muted playsinline preload="metadata" style="width: 100%; height: 100%;">
                                 <source src="{{ event.video_url }}">
                             </video>
                         </div>
