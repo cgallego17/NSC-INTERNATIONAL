@@ -42,7 +42,7 @@ urlpatterns = [
         views_private.UserDashboardView.as_view(),
         name="user_dashboard",
     ),
-    path("profile/", views_private.profile_view, name="profile"),
+    path("profile/", views_private.ProfileView.as_view(), name="profile"),
     path(
         "profile/edit/", views_private.ProfileUpdateView.as_view(), name="profile_edit"
     ),
@@ -196,6 +196,17 @@ urlpatterns = [
         "panel-tabs/wallet-transactions/",
         views_private.WalletTransactionsEmbedView.as_view(),
         name="wallet_transactions_embed",
+    ),
+    # Stripe Billing Portal
+    path(
+        "stripe/billing-portal/",
+        views_private.StripeBillingPortalView.as_view(),
+        name="stripe_billing_portal",
+    ),
+    path(
+        "stripe/billing-setup/success/",
+        views_private.stripe_billing_setup_success,
+        name="stripe_billing_setup_success",
     ),
     # Registro de jugadores por padres
     path(

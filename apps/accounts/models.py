@@ -98,6 +98,24 @@ class UserProfile(models.Model):
         verbose_name="Idioma Preferido",
         help_text="Idioma predeterminado para la plataforma",
     )
+    email_notifications = models.BooleanField(
+        default=True, verbose_name="Notificaciones por Email"
+    )
+    event_notifications = models.BooleanField(
+        default=True, verbose_name="Notificaciones de Eventos"
+    )
+    reservation_notifications = models.BooleanField(
+        default=True, verbose_name="Notificaciones de Reservas"
+    )
+    marketing_notifications = models.BooleanField(
+        default=False, verbose_name="Notificaciones de Marketing"
+    )
+    stripe_customer_id = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="ID de Cliente de Stripe",
+        help_text="ID del cliente en Stripe para facturación",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

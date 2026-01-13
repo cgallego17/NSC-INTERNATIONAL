@@ -12,30 +12,34 @@
                     </h5>
                 </div>
                 <nav class="profile-sidebar-nav">
-                    <a href="{% url 'accounts:profile' %}?section=profile"
-                       class="profile-sidebar-item {% if active_section == 'profile' %}active{% endif %}"
-                       style="display: flex; align-items: center; padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; text-decoration: none; color: #495057; transition: all 0.3s; {% if active_section == 'profile' %}background: #f8f9fa; color: var(--mlb-blue); font-weight: 600;{% endif %}">
+                    <button type="button"
+                       class="profile-sidebar-item js-profile-section-btn active"
+                       data-profile-section="profile"
+                       style="display: flex; align-items: center; padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; text-decoration: none; color: #495057; transition: all 0.3s; background: #f8f9fa; color: var(--mlb-blue); font-weight: 600; width: 100%; border: none; text-align: left;">
                         <i class="fas fa-user me-3" style="width: 20px; text-align: center;"></i>
                         <span>{% trans "Profile Information" %}</span>
-                    </a>
-                    <a href="{% url 'accounts:profile' %}?section=billing"
-                       class="profile-sidebar-item {% if active_section == 'billing' %}active{% endif %}"
-                       style="display: flex; align-items: center; padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; text-decoration: none; color: #495057; transition: all 0.3s; {% if active_section == 'billing' %}background: #f8f9fa; color: var(--mlb-blue); font-weight: 600;{% endif %}">
+                    </button>
+                    <button type="button"
+                       class="profile-sidebar-item js-profile-section-btn"
+                       data-profile-section="billing"
+                       style="display: flex; align-items: center; padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; text-decoration: none; color: #495057; transition: all 0.3s; width: 100%; border: none; text-align: left; background: transparent;">
                         <i class="fas fa-credit-card me-3" style="width: 20px; text-align: center;"></i>
                         <span>{% trans "Billing" %}</span>
-                    </a>
-                    <a href="{% url 'accounts:profile' %}?section=security"
-                       class="profile-sidebar-item {% if active_section == 'security' %}active{% endif %}"
-                       style="display: flex; align-items: center; padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; text-decoration: none; color: #495057; transition: all 0.3s; {% if active_section == 'security' %}background: #f8f9fa; color: var(--mlb-blue); font-weight: 600;{% endif %}">
+                    </button>
+                    <button type="button"
+                       class="profile-sidebar-item js-profile-section-btn"
+                       data-profile-section="security"
+                       style="display: flex; align-items: center; padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; text-decoration: none; color: #495057; transition: all 0.3s; width: 100%; border: none; text-align: left; background: transparent;">
                         <i class="fas fa-shield-alt me-3" style="width: 20px; text-align: center;"></i>
                         <span>{% trans "Security" %}</span>
-                    </a>
-                    <a href="{% url 'accounts:profile' %}?section=notifications"
-                       class="profile-sidebar-item {% if active_section == 'notifications' %}active{% endif %}"
-                       style="display: flex; align-items: center; padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; text-decoration: none; color: #495057; transition: all 0.3s; {% if active_section == 'notifications' %}background: #f8f9fa; color: var(--mlb-blue); font-weight: 600;{% endif %}">
+                    </button>
+                    <button type="button"
+                       class="profile-sidebar-item js-profile-section-btn"
+                       data-profile-section="notifications"
+                       style="display: flex; align-items: center; padding: 12px 16px; margin-bottom: 8px; border-radius: 8px; text-decoration: none; color: #495057; transition: all 0.3s; width: 100%; border: none; text-align: left; background: transparent;">
                         <i class="fas fa-bell me-3" style="width: 20px; text-align: center;"></i>
                         <span>{% trans "Notifications" %}</span>
-                    </a>
+                    </button>
                 </nav>
             </div>
         </div>
@@ -53,17 +57,18 @@
                     {% endfor %}
                 {% endif %}
 
-                {% if active_section == 'profile' %}
+                <div class="js-profile-section" data-profile-section="profile" style="display: block;">
                     {% include 'accounts/profile_sections/profile_info.html' %}
-                {% elif active_section == 'billing' %}
+                </div>
+                <div class="js-profile-section" data-profile-section="billing" style="display: none;">
                     {% include 'accounts/profile_sections/billing.html' %}
-                {% elif active_section == 'security' %}
+                </div>
+                <div class="js-profile-section" data-profile-section="security" style="display: none;">
                     {% include 'accounts/profile_sections/security.html' %}
-                {% elif active_section == 'notifications' %}
+                </div>
+                <div class="js-profile-section" data-profile-section="notifications" style="display: none;">
                     {% include 'accounts/profile_sections/notifications.html' %}
-                {% else %}
-                    {% include 'accounts/profile_sections/profile_info.html' %}
-                {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -80,4 +85,144 @@
         border-left: 3px solid var(--mlb-red);
     }
 </style>
+
+<script>
+    (function initProfileTabSidebar() {
+        function activateProfileSection(sectionId) {
+            const buttons = document.querySelectorAll('.js-profile-section-btn');
+            const sections = document.querySelectorAll('.js-profile-section');
+
+            buttons.forEach(btn => {
+                const isActive = btn.getAttribute('data-profile-section') === sectionId;
+                btn.classList.toggle('active', isActive);
+                if (isActive) {
+                    btn.style.background = '#f8f9fa';
+                    btn.style.color = 'var(--mlb-blue)';
+                    btn.style.fontWeight = '600';
+                } else {
+                    btn.style.background = 'transparent';
+                    btn.style.color = '#495057';
+                    btn.style.fontWeight = '400';
+                }
+            });
+
+            sections.forEach(sec => {
+                sec.style.display = (sec.getAttribute('data-profile-section') === sectionId) ? 'block' : 'none';
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.js-profile-section-btn');
+            if (!btn) return;
+            e.preventDefault();
+            const sectionId = btn.getAttribute('data-profile-section') || 'profile';
+            activateProfileSection(sectionId);
+        });
+
+        // Initialize from URL param or default
+        const urlParams = new URLSearchParams(window.location.search);
+        const sectionParam = urlParams.get('profile_section');
+        if (sectionParam) {
+            activateProfileSection(sectionParam);
+        } else {
+            activateProfileSection('profile');
+        }
+
+        // Location Selectors Logic (Reusable for Profile & Billing)
+        function initLocationSelectors(prefix = '') {
+            const countryId = `id_${prefix}country`;
+            const stateId = `id_${prefix}state`;
+            const cityId = `id_${prefix}city`;
+
+            const countrySelect = document.getElementById(countryId);
+            const stateSelect = document.getElementById(stateId);
+            const citySelect = document.getElementById(cityId);
+
+            if (!countrySelect || !stateSelect || !citySelect) return;
+
+            function updateStates() {
+                const cId = countrySelect.value;
+                stateSelect.innerHTML = '<option value="">Select a state</option>';
+                citySelect.innerHTML = '<option value="">Select a city</option>';
+
+                if (!cId) return;
+
+                stateSelect.disabled = true;
+                citySelect.disabled = true;
+
+                fetch(`/locations/ajax/states/${cId}/`)
+                    .then(r => r.json())
+                    .then(data => {
+                        data.forEach(state => {
+                            const option = document.createElement('option');
+                            option.value = state.id;
+                            option.textContent = state.name;
+                            stateSelect.appendChild(option);
+                        });
+                        // Restore previous selection if present (for edit forms)
+                        if (stateSelect.dataset.value) {
+                            stateSelect.value = stateSelect.dataset.value;
+                            updateCities();
+                        }
+                    })
+                    .catch(() => {})
+                    .finally(() => {
+                        stateSelect.disabled = false;
+                        citySelect.disabled = false;
+                    });
+            }
+
+            function updateCities() {
+                const sId = stateSelect.value;
+                citySelect.innerHTML = '<option value="">Select a city</option>';
+                if (!sId) return;
+
+                citySelect.disabled = true;
+                fetch(`/locations/ajax/cities/${sId}/`)
+                    .then(r => r.json())
+                    .then(data => {
+                        data.forEach(city => {
+                            const option = document.createElement('option');
+                            option.value = city.id;
+                            option.textContent = city.name;
+                            citySelect.appendChild(option);
+                        });
+                         if (citySelect.dataset.value) {
+                            citySelect.value = citySelect.dataset.value;
+                        }
+                    })
+                    .catch(() => {})
+                    .finally(() => {
+                        citySelect.disabled = false;
+                    });
+            }
+
+            countrySelect.addEventListener('change', updateStates);
+            stateSelect.addEventListener('change', updateCities);
+        }
+
+        // Initialize for both forms when DOM is ready
+        initLocationSelectors('');          // Profile Info (id_country)
+        initLocationSelectors('billing_');  // Billing (id_billing_country)
+
+        // Profile Picture Preview
+        const profilePicInput = document.getElementById('id_profile_picture');
+        if (profilePicInput) {
+            profilePicInput.addEventListener('change', function(e) {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const container = document.querySelector('.current-profile-pic');
+                        if (container) {
+                            container.innerHTML = `<img src="${event.target.result}" alt="Profile Picture" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid #e9ecef;">`;
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+    })();
+</script>
 

@@ -55,7 +55,7 @@
                             <!-- Descripción -->
                             {% if event.description %}
                                 <div style="color: #6c757d; font-size: 0.85rem; line-height: 1.5; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;">
-                                    {{ event.description|safe|truncatewords:180 }}
+                                    {{ event.description|striptags|truncatewords:180 }}
                                 </div>
                             {% endif %}
                         </div>

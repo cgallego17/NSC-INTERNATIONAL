@@ -3,7 +3,11 @@ import re
 from PIL import Image
 
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+    PasswordChangeForm,
+    UserCreationForm,
+)
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
@@ -80,6 +84,20 @@ class EmailAuthenticationForm(AuthenticationForm):
             # Usar el primero
             user = User.objects.filter(email__iexact=email).first()
             return user.username
+
+
+class CustomPasswordChangeForm(PasswordChangeForm):
+    def __init__(self, user, *args, **kwargs):
+        super().__init__(user, *args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({"class": "form-control"})
+
+
+class NotificationPreferencesForm(forms.Form):
+    email_notifications = forms.BooleanField(required=False)
+    event_notifications = forms.BooleanField(required=False)
+    reservation_notifications = forms.BooleanField(required=False)
+    marketing_notifications = forms.BooleanField(required=False)
 
 
 class PublicRegistrationForm(UserCreationForm):
@@ -738,24 +756,33 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = [
+            "last_name2",
             "phone",
+            "phone_secondary",
             "address",
+            "address_line_2",
             "country",
             "state",
             "city",
             "postal_code",
             "birth_date",
             "profile_picture",
+            "preferred_language",
             "bio",
+            "website",
+            "social_media",
         ]
         widgets = {
+            "last_name2": forms.TextInput(attrs={"class": "form-control"}),
             "phone": forms.TextInput(attrs={"class": "form-control"}),
+            "phone_secondary": forms.TextInput(attrs={"class": "form-control"}),
             "address": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "rows": 3,
                 }
             ),
+            "address_line_2": forms.TextInput(attrs={"class": "form-control"}),
             "postal_code": forms.TextInput(attrs={"class": "form-control"}),
             "birth_date": forms.DateInput(
                 attrs={"class": "form-control", "type": "date"}
@@ -767,12 +794,15 @@ class UserProfileForm(forms.ModelForm):
                     "style": "display: none;",
                 }
             ),
+            "preferred_language": forms.Select(attrs={"class": "form-select"}),
             "bio": forms.Textarea(
                 attrs={
                     "class": "form-control",
                     "rows": 4,
                 }
             ),
+            "website": forms.URLInput(attrs={"class": "form-control"}),
+            "social_media": forms.TextInput(attrs={"class": "form-control"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -817,6 +847,87 @@ class UserProfileForm(forms.ModelForm):
                 self.fields["state"].queryset = State.objects.none()
 
         # Determinar el estado seleccionado
+        if "state" in self.data:
+            state_id = self.data.get("state")
+        elif self.instance.pk:
+            state_id = self.instance.state_id
+        else:
+            state_id = None
+
+        if state_id:
+            try:
+                self.fields["city"].queryset = City.objects.filter(
+                    state_id=state_id
+                ).order_by("name")
+            except (ValueError, TypeError):
+                self.fields["city"].queryset = City.objects.none()
+
+
+class BillingAddressForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = [
+            "address",
+            "address_line_2",
+            "country",
+            "state",
+            "city",
+            "postal_code",
+        ]
+        widgets = {
+            "address": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                }
+            ),
+            "address_line_2": forms.TextInput(attrs={"class": "form-control"}),
+            "postal_code": forms.TextInput(attrs={"class": "form-control"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["country"] = forms.ModelChoiceField(
+            queryset=Country.objects.all().order_by("name"),
+            required=False,
+            empty_label=_("Select a country"),
+            widget=forms.Select(
+                attrs={"class": "form-select", "id": "id_billing_country"}
+            ),
+        )
+        self.fields["state"] = forms.ModelChoiceField(
+            queryset=State.objects.none(),
+            required=False,
+            empty_label=_("Select a state"),
+            widget=forms.Select(
+                attrs={"class": "form-select", "id": "id_billing_state"}
+            ),
+        )
+        self.fields["city"] = forms.ModelChoiceField(
+            queryset=City.objects.none(),
+            required=False,
+            empty_label=_("Select a city"),
+            widget=forms.Select(
+                attrs={"class": "form-select", "id": "id_billing_city"}
+            ),
+        )
+
+        if "country" in self.data:
+            country_id = self.data.get("country")
+        elif self.instance.pk:
+            country_id = self.instance.country_id
+        else:
+            country_id = None
+
+        if country_id:
+            try:
+                self.fields["state"].queryset = State.objects.filter(
+                    country_id=country_id
+                ).order_by("name")
+            except (ValueError, TypeError):
+                self.fields["state"].queryset = State.objects.none()
+
         if "state" in self.data:
             state_id = self.data.get("state")
         elif self.instance.pk:
@@ -919,6 +1030,19 @@ class UserCreateForm(UserCreationForm):
                 user=user, user_type=self.cleaned_data["user_type"]
             )
         return user
+
+
+class UserProfileUpdateForm(forms.ModelForm):
+    """Formulario para que los usuarios actualicen su propia información básica"""
+
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "email"]
+        widgets = {
+            "first_name": forms.TextInput(attrs={"class": "form-control"}),
+            "last_name": forms.TextInput(attrs={"class": "form-control"}),
+            "email": forms.EmailInput(attrs={"class": "form-control"}),
+        }
 
 
 class UserUpdateForm(forms.ModelForm):

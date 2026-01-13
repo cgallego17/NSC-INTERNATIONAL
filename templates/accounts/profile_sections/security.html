@@ -18,7 +18,7 @@
             </div>
             <div class="card-body p-4">
                 {% if password_form %}
-                    <form method="post" action="{% url 'accounts:profile' %}?section=security">
+                    <form method="post" action="{% url 'accounts:profile' %}?section=security&next=panel">
                         {% csrf_token %}
 
                         {% if password_form.non_field_errors %}
@@ -69,27 +69,6 @@
                         <i class="fas fa-info-circle me-2"></i>{% trans "Password form is not available." %}
                     </div>
                 {% endif %}
-            </div>
-        </div>
-
-        <!-- Two-Factor Authentication -->
-        <div class="card" style="border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <div class="card-header" style="background: #f8f9fa; border-bottom: 2px solid #e9ecef; padding: 15px 20px;">
-                <h5 class="mb-0" style="color: var(--mlb-blue); font-weight: 600;">
-                    <i class="fas fa-mobile-alt me-2"></i>{% trans "Two-Factor Authentication" %}
-                </h5>
-            </div>
-            <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h6 class="mb-1">{% trans "Two-Factor Authentication" %}</h6>
-                        <p class="text-muted mb-0 small">{% trans "Add an extra layer of security to your account" %}</p>
-                    </div>
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" id="twoFactorSwitch">
-                        <label class="form-check-label" for="twoFactorSwitch"></label>
-                    </div>
-                </div>
             </div>
         </div>
     </div>

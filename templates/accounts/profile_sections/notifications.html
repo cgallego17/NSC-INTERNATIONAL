@@ -12,7 +12,7 @@
         <div class="card" style="border: none; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <div class="card-body p-4">
                 {% if notification_form %}
-                    <form method="post" action="{% url 'accounts:profile' %}?section=notifications">
+                    <form method="post" action="{% url 'accounts:profile' %}?section=notifications&next=panel">
                         {% csrf_token %}
 
                         {% if notification_form.non_field_errors %}

@@ -29,6 +29,7 @@ from django.views.generic import (
     ListView,
     TemplateView,
     UpdateView,
+    View,
 )
 
 from apps.core.mixins import (
@@ -305,10 +306,33 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             )
 
         # Formulario de perfil
-        from .forms import UserProfileForm, UserUpdateForm
+        from .forms import (
+            BillingAddressForm,
+            CustomPasswordChangeForm,
+            NotificationPreferencesForm,
+            UserProfileForm,
+            UserProfileUpdateForm,
+        )
 
         context["profile_form"] = UserProfileForm(instance=profile)
-        context["user_form"] = UserUpdateForm(instance=user)
+        context["user_form"] = UserProfileUpdateForm(instance=user)
+        context["billing_form"] = BillingAddressForm(instance=profile)
+        context["password_form"] = CustomPasswordChangeForm(user=user)
+
+        # Cargar preferencias de notificación
+        initial_notifications = {
+            "email_notifications": getattr(profile, "email_notifications", True),
+            "event_notifications": getattr(profile, "event_notifications", True),
+            "reservation_notifications": getattr(
+                profile, "reservation_notifications", True
+            ),
+            "marketing_notifications": getattr(
+                profile, "marketing_notifications", False
+            ),
+        }
+        context["notification_form"] = NotificationPreferencesForm(
+            initial=initial_notifications
+        )
 
         # Obtener información del carrito de hoteles
         cart = self.request.session.get("hotel_cart", {})
@@ -720,7 +744,11 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                     translation.activate(preferred_language)
 
                 messages.success(request, _("Profile updated successfully."))
-                return redirect("accounts:profile?section=profile")
+                if request.GET.get("next") == "panel":
+                    return redirect(
+                        reverse("panel") + "?tab=perfil&profile_section=profile"
+                    )
+                return redirect(reverse("accounts:profile") + "?section=profile")
         elif section == "billing":
             billing_form = BillingAddressForm(
                 request.POST, instance=request.user.profile
@@ -728,24 +756,50 @@ class ProfileView(LoginRequiredMixin, TemplateView):
             if billing_form.is_valid():
                 billing_form.save()
                 messages.success(request, _("Billing address updated successfully."))
-                return redirect("accounts:profile?section=billing")
+                if request.GET.get("next") == "panel":
+                    return redirect(
+                        reverse("panel") + "?tab=perfil&profile_section=billing"
+                    )
+                return redirect(reverse("accounts:profile") + "?section=billing")
         elif section == "security":
             password_form = CustomPasswordChangeForm(
                 user=request.user, data=request.POST
             )
             if password_form.is_valid():
-                password_form.save()
+                user = password_form.save()
+                update_session_auth_hash(request, user)  # Important!
                 messages.success(request, _("Password changed successfully."))
-                return redirect("accounts:profile?section=security")
+                if request.GET.get("next") == "panel":
+                    return redirect(
+                        reverse("panel") + "?tab=perfil&profile_section=security"
+                    )
+                return redirect(reverse("accounts:profile") + "?section=security")
         elif section == "notifications":
             notification_form = NotificationPreferencesForm(request.POST)
             if notification_form.is_valid():
-                # Guardar preferencias en el perfil (necesitarías agregar estos campos al modelo)
-                # Por ahora solo mostramos mensaje de éxito
+                profile = request.user.profile
+                profile.email_notifications = notification_form.cleaned_data.get(
+                    "email_notifications", True
+                )
+                profile.event_notifications = notification_form.cleaned_data.get(
+                    "event_notifications", True
+                )
+                profile.reservation_notifications = notification_form.cleaned_data.get(
+                    "reservation_notifications", True
+                )
+                profile.marketing_notifications = notification_form.cleaned_data.get(
+                    "marketing_notifications", False
+                )
+                profile.save()
+
                 messages.success(
                     request, _("Notification preferences saved successfully.")
                 )
-                return redirect("accounts:profile?section=notifications")
+                if request.GET.get("next") == "panel":
+                    return redirect(
+                        reverse("panel") + "?tab=perfil&profile_section=notifications"
+                    )
+                return redirect(reverse("accounts:profile") + "?section=notifications")
 
         # Si hay errores, volver a mostrar el formulario con errores
         context = self.get_context_data(**kwargs)
@@ -5316,3 +5370,82 @@ def _get_time_ago(created_at):
         return f"Hace {minutes} minuto{'s' if minutes > 1 else ''}"
     else:
         return "Hace unos segundos"
+
+
+def _get_stripe_api_key():
+    """Helper to get Stripe API key and validate configuration"""
+    if not settings.STRIPE_SECRET_KEY:
+        raise ValueError(_("Stripe is not configured (STRIPE_SECRET_KEY)."))
+    return settings.STRIPE_SECRET_KEY
+
+
+class StripeBillingPortalView(LoginRequiredMixin, View):
+    """Vista para redirigir al portal de facturación de Stripe o crear setup session"""
+
+    def get(self, request, *args, **kwargs):
+        try:
+            import stripe
+
+            stripe.api_key = _get_stripe_api_key()
+
+            user = request.user
+            profile = user.profile
+            customer_id = profile.stripe_customer_id
+
+            return_url = (
+                request.build_absolute_uri(reverse("panel"))
+                + "?tab=perfil&profile_section=billing"
+            )
+
+            if customer_id:
+                # Crear sesión de portal para gestionar métodos de pago
+                try:
+                    session = stripe.billing_portal.Session.create(
+                        customer=customer_id,
+                        return_url=return_url,
+                    )
+                    return redirect(session.url)
+                except stripe.error.InvalidRequestError:
+                    # Si el customer no existe en Stripe (borrado?), limpiar y fallar al setup
+                    profile.stripe_customer_id = ""
+                    profile.save()
+                    customer_id = None
+
+            if not customer_id:
+                # Crear sesión de checkout modo setup para guardar tarjeta
+                session = stripe.checkout.Session.create(
+                    payment_method_types=["card"],
+                    mode="setup",
+                    customer_email=user.email,
+                    success_url=return_url
+                    + "&setup_success=true&session_id={CHECKOUT_SESSION_ID}",
+                    cancel_url=return_url,
+                )
+                return redirect(session.url)
+
+        except Exception as e:
+            messages.error(request, f"Error connecting to billing portal: {str(e)}")
+            return redirect(reverse("panel") + "?tab=perfil&profile_section=billing")
+
+
+@login_required
+def stripe_billing_setup_success(request):
+    """Callback para guardar el customer ID después de un setup exitoso"""
+    session_id = request.GET.get("session_id")
+    if session_id:
+        try:
+            import stripe
+
+            stripe.api_key = _get_stripe_api_key()
+            session = stripe.checkout.Session.retrieve(session_id)
+            customer_id = session.customer
+
+            if customer_id:
+                profile = request.user.profile
+                profile.stripe_customer_id = customer_id
+                profile.save()
+                messages.success(request, _("Payment method added successfully."))
+        except Exception:
+            messages.error(request, _("Could not verify payment setup."))
+
+    return redirect(reverse("panel") + "?tab=perfil&profile_section=billing")
