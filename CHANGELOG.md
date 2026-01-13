@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 18:02:32
+
+- **[46ea7d8]** ```
+  - *Fecha:* 2026-01-13 18:02:31
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `nsc_admin/settings_simple.py`
+    - `templates/accounts/admin/user_admin_detail.html`
+  - *Detalles:*
+    - fix: Update django-hijack integration to use correct app name and acquire URL pattern
+    - - Change hijack_admin to hijack.contrib.admin in THIRD_PARTY_APPS
+    - - Update hijack acquire URL from hijack:acquire with pk parameter to hijack:acquire with user_id POST parameter
+    - - Add hidden input field for user_id in hijack form submission
+    - ```
+
+
+
 ### Actualizado: 2026-01-13 17:58:56
 
 - **[6c237c7]** ```
