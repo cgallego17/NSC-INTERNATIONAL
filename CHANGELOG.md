@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 17:30:50
+
+- **[51b2404]** ```
+  - *Fecha:* 2026-01-13 17:30:50
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `apps/accounts/views_private.py`
+  - *Detalles:*
+    - fix: Add database compatibility fallback for JSONField contains queries in admin player detail view
+    - - Wrap Order queries with try-except to catch NotSupportedError for registered_player_ids__contains lookups
+    - - Add fallback logic fetching last 1000 orders and filtering in Python when JSONField queries unsupported
+    - - Wrap StripeEventCheckout queries with try-except for player_ids__contains lookups
+    - - Add fallback logic fetching last 1000 checkouts and filtering in Python
+    - - Import NotSupportedError from django.
+
+
+
 ### Actualizado: 2026-01-13 17:25:28
 
 - **[a5dbbce]** ```
