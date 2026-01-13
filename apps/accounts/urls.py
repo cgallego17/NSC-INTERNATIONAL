@@ -61,6 +61,11 @@ urlpatterns = [
     # Jugadores (gestión privada - requiere login)
     path("players/manage/", views_private.PlayerListView.as_view(), name="player_list"),
     path(
+        "players/<int:pk>/admin-detail/",
+        views_private.AdminPlayerDetailView.as_view(),
+        name="admin_player_detail",
+    ),
+    path(
         "players/<int:pk>/",
         views_private.PlayerDetailView.as_view(),
         name="player_detail",

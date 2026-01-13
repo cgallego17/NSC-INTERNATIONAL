@@ -1,0 +1,461 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}Detalle Admin Jugador - {{ player_obj.user.username }} - NCS International{% endblock %}
+
+{% block breadcrumb %}
+    <a href="{% url 'accounts:player_list' %}">Jugadores</a>
+    <span>Detalle Admin</span>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .player-admin-detail-container {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        padding: 2rem 2rem 2rem 3rem;
+        min-height: 100vh;
+    }
+
+    @media (max-width: 992px) {
+        .player-admin-detail-container {
+            padding: 2rem 1.5rem;
+        }
+    }
+
+    .info-card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .info-card-header {
+        border-bottom: 2px solid #e9ecef;
+        padding-bottom: 12px;
+        margin-bottom: 18px;
+        font-weight: 700;
+        color: var(--mlb-blue);
+        font-size: 1.05rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .kv {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    @media (max-width: 768px) {
+        .kv {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .kv .k {
+        font-size: 0.8rem;
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+    }
+
+    .kv .v {
+        color: #212529;
+        overflow-wrap: anywhere;
+    }
+
+    .table td, .table th {
+        vertical-align: middle;
+    }
+
+    .nav-tabs .nav-link {
+        color: #212529;
+    }
+
+    .nav-tabs .nav-link:hover {
+        color: #0b5ed7;
+    }
+
+    .nav-tabs .nav-link.active {
+        color: #212529;
+        background-color: #ffffff;
+        border-color: #dee2e6 #dee2e6 #ffffff;
+        font-weight: 600;
+    }
+
+    .nav-tabs {
+        border-bottom-color: #dee2e6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="player-admin-detail-container">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h1 class="h3 mb-1">Detalle Admin Jugador: {{ player_obj.user.get_full_name|default:player_obj.user.username }}</h1>
+                <div class="text-muted">Player ID {{ player_obj.id }} · User ID {{ player_obj.user.id }} · {{ player_obj.user.username }} · {{ player_obj.user.email|default:'-' }}</div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'accounts:player_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver
+                </a>
+                <a href="/admin/accounts/player/{{ player_obj.pk }}/change/" class="btn btn-primary" target="_blank">
+                    <i class="fas fa-edit me-2"></i>Editar Player (Admin)
+                </a>
+                <a href="/admin/auth/user/{{ player_obj.user.pk }}/change/" class="btn btn-outline-primary" target="_blank">
+                    <i class="fas fa-user me-2"></i>Editar User (Admin)
+                </a>
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs mb-3" id="playerAdminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-general" data-bs-toggle="tab" data-bs-target="#pane-general" type="button" role="tab">General</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-family" data-bs-toggle="tab" data-bs-target="#pane-family" type="button" role="tab">Padres/Relaciones</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-orders" data-bs-toggle="tab" data-bs-target="#pane-orders" type="button" role="tab">Órdenes</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-plans" data-bs-toggle="tab" data-bs-target="#pane-plans" type="button" role="tab">Payment Plans</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-stripe" data-bs-toggle="tab" data-bs-target="#pane-stripe" type="button" role="tab">Stripe</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-events" data-bs-toggle="tab" data-bs-target="#pane-events" type="button" role="tab">Eventos</button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="playerAdminTabsContent">
+            <div class="tab-pane fade show active" id="pane-general" role="tabpanel">
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <span><i class="fas fa-user me-2"></i>Jugador</span>
+                        <div>
+                            {% if player_obj.is_active %}
+                                <span class="badge bg-success">Activo</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactivo</span>
+                            {% endif %}
+                            {% if player_obj.team %}
+                                <span class="badge bg-primary ms-1">{{ player_obj.team.name }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="kv"><div class="k">Nombre</div><div class="v">{{ player_obj.user.get_full_name|default:'-' }}</div></div>
+                    <div class="kv"><div class="k">Username</div><div class="v">{{ player_obj.user.username }}</div></div>
+                    <div class="kv"><div class="k">Email</div><div class="v">{{ player_obj.user.email|default:'-' }}</div></div>
+                    <div class="kv"><div class="k">Team Manager</div><div class="v">{% if player_obj.team and player_obj.team.manager %}{{ player_obj.team.manager.get_full_name|default:player_obj.team.manager.username }}{% else %}-{% endif %}</div></div>
+                    <div class="kv"><div class="k">División</div><div class="v">{{ player_obj.division.name|default:'-' }}</div></div>
+                    <div class="kv"><div class="k">Posición</div><div class="v">{{ player_obj.get_position_display|default:'-' }}</div></div>
+                    <div class="kv"><div class="k">Jersey</div><div class="v">{% if player_obj.jersey_number %}#{{ player_obj.jersey_number }}{% else %}-{% endif %}</div></div>
+
+                    <div class="mt-3">
+                        <div class="kv"><div class="k">Perfil / Tipo</div><div class="v">{% if player_obj.user.profile %}{{ player_obj.user.profile.get_user_type_display }}{% else %}<span class="text-muted">Sin perfil</span>{% endif %}</div></div>
+                        {% if player_obj.user.profile %}
+                            <div class="kv"><div class="k">Teléfono</div><div class="v">{{ player_obj.user.profile.phone|default:'-' }}</div></div>
+                            <div class="kv"><div class="k">Ubicación</div><div class="v">{{ player_obj.user.profile.city|default:'' }}{% if player_obj.user.profile.state %}, {{ player_obj.user.profile.state }}{% endif %}{% if player_obj.user.profile.country %}, {{ player_obj.user.profile.country }}{% endif %}</div></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pane-family" role="tabpanel">
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <span><i class="fas fa-user-friends me-2"></i>Padres / Relaciones</span>
+                    </div>
+
+                    {% if parent_relations %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Padre</th>
+                                        <th>Tipo</th>
+                                        <th>Relación</th>
+                                        <th>Principal</th>
+                                        <th>Puede recoger</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for rel in parent_relations %}
+                                        <tr>
+                                            <td>{{ rel.parent.get_full_name|default:rel.parent.username }}</td>
+                                            <td>{% if rel.parent.profile %}{{ rel.parent.profile.get_user_type_display }}{% else %}-{% endif %}</td>
+                                            <td>{{ rel.get_relationship_display }}</td>
+                                            <td>{% if rel.is_primary %}Sí{% else %}No{% endif %}</td>
+                                            <td>{% if rel.can_pickup %}Sí{% else %}No{% endif %}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-muted">Sin padres asociados.</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pane-orders" role="tabpanel">
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <span><i class="fas fa-receipt me-2"></i>Órdenes relacionadas (por registro del jugador)</span>
+                        <a href="{% url 'accounts:admin_order_list' %}" class="btn btn-sm btn-outline-primary">Ir a órdenes</a>
+                    </div>
+
+                    {% if related_orders %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Comprador</th>
+                                        <th>Estado</th>
+                                        <th>Evento</th>
+                                        <th>Total</th>
+                                        <th>Modo</th>
+                                        <th>Creada</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for o in related_orders %}
+                                        <tr>
+                                            <td>{{ o.order_number }}</td>
+                                            <td>{{ o.user.get_full_name|default:o.user.username }}</td>
+                                            <td>{{ o.get_status_display }}</td>
+                                            <td>{{ o.event.title|default:'-' }}</td>
+                                            <td>${{ o.total_amount }} {{ o.currency|upper }}</td>
+                                            <td>{{ o.get_payment_mode_display }}</td>
+                                            <td>{{ o.created_at|date:'Y-m-d H:i' }}</td>
+                                            <td><a class="btn btn-sm btn-outline-secondary" href="{% url 'accounts:admin_order_detail' o.pk %}">Ver</a></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-muted">Sin órdenes relacionadas a este jugador.</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pane-plans" role="tabpanel">
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <span><i class="fas fa-layer-group me-2"></i>Payment Plans (órdenes relacionadas)</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Activos</strong>
+                        {% if related_active_payment_plan_orders %}
+                            <div class="table-responsive mt-2">
+                                <table class="table table-sm table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Comprador</th>
+                                            <th>Evento</th>
+                                            <th>Meses</th>
+                                            <th>Mensual</th>
+                                            <th>Total plan</th>
+                                            <th>Completados</th>
+                                            <th>Pendientes</th>
+                                            <th>Subscription</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for o in related_active_payment_plan_orders %}
+                                            <tr>
+                                                <td>{{ o.order_number }}</td>
+                                                <td>{{ o.user.get_full_name|default:o.user.username }}</td>
+                                                <td>{{ o.event.title|default:'-' }}</td>
+                                                <td>{{ o.plan_months }}</td>
+                                                <td>${{ o.plan_monthly_amount }}</td>
+                                                <td>${{ o.plan_total_amount }}</td>
+                                                <td>{{ o.plan_payments_completed }}</td>
+                                                <td>{{ o.plan_payments_remaining }}</td>
+                                                <td>{% if o.stripe_subscription_id %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-muted mt-2">No hay planes activos para este jugador.</div>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <strong>Histórico (órdenes con plan)</strong>
+                        {% if related_payment_plan_orders %}
+                            <div class="table-responsive mt-2">
+                                <table class="table table-sm table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Comprador</th>
+                                            <th>Evento</th>
+                                            <th>Estado</th>
+                                            <th>Meses</th>
+                                            <th>Mensual</th>
+                                            <th>Total plan</th>
+                                            <th>Completados</th>
+                                            <th>Pendientes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for o in related_payment_plan_orders %}
+                                            <tr>
+                                                <td>{{ o.order_number }}</td>
+                                                <td>{{ o.user.get_full_name|default:o.user.username }}</td>
+                                                <td>{{ o.event.title|default:'-' }}</td>
+                                                <td>{{ o.get_status_display }}</td>
+                                                <td>{{ o.plan_months }}</td>
+                                                <td>${{ o.plan_monthly_amount }}</td>
+                                                <td>${{ o.plan_total_amount }}</td>
+                                                <td>{{ o.plan_payments_completed }}</td>
+                                                <td>{{ o.plan_payments_remaining }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-muted mt-2">Sin órdenes con plan para este jugador.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pane-stripe" role="tabpanel">
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <span><i class="fas fa-credit-card me-2"></i>Stripe Checkouts (relacionados al jugador)</span>
+                    </div>
+
+                    {% if related_checkouts %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Comprador</th>
+                                        <th>Evento</th>
+                                        <th>Estado</th>
+                                        <th>Modo</th>
+                                        <th>Total</th>
+                                        <th>Creado</th>
+                                        <th>Subscription</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for co in related_checkouts %}
+                                        <tr>
+                                            <td>#{{ co.pk }}</td>
+                                            <td>{{ co.user.get_full_name|default:co.user.username }}</td>
+                                            <td>{{ co.event.title|default:'-' }}</td>
+                                            <td>{{ co.status }}</td>
+                                            <td>{{ co.get_payment_mode_display }}</td>
+                                            <td>${{ co.amount_total }}</td>
+                                            <td>{{ co.created_at|date:'Y-m-d H:i' }}</td>
+                                            <td>{% if co.stripe_subscription_id %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-muted">Sin checkouts relacionados a este jugador.</div>
+                    {% endif %}
+
+                    <div class="mt-3">
+                        <strong>Checkouts plan (activos)</strong>
+                        {% if related_active_plan_checkouts %}
+                            <div class="table-responsive mt-2">
+                                <table class="table table-sm table-hover">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Comprador</th>
+                                            <th>Evento</th>
+                                            <th>Estado</th>
+                                            <th>Meses</th>
+                                            <th>Mensual</th>
+                                            <th>Total</th>
+                                            <th>Subscription</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for co in related_active_plan_checkouts %}
+                                            <tr>
+                                                <td>#{{ co.pk }}</td>
+                                                <td>{{ co.user.get_full_name|default:co.user.username }}</td>
+                                                <td>{{ co.event.title|default:'-' }}</td>
+                                                <td>{{ co.status }}</td>
+                                                <td>{{ co.plan_months }}</td>
+                                                <td>${{ co.plan_monthly_amount }}</td>
+                                                <td>${{ co.amount_total }}</td>
+                                                <td>{% if co.stripe_subscription_id %}<span class="badge bg-success">Sí</span>{% else %}<span class="badge bg-secondary">No</span>{% endif %}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-muted mt-2">No hay checkouts plan activos.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="pane-events" role="tabpanel">
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <span><i class="fas fa-calendar me-2"></i>Asistencias / Eventos (por User del jugador)</span>
+                    </div>
+
+                    {% if attended_events %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Evento</th>
+                                        <th>Status</th>
+                                        <th>Registrado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for a in attended_events %}
+                                        <tr>
+                                            <td>{{ a.event.title }}</td>
+                                            <td>{{ a.status }}</td>
+                                            <td>{{ a.registered_at|date:'Y-m-d H:i' }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-muted">No hay asistencias registradas para este jugador.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

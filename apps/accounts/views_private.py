@@ -1065,6 +1065,99 @@ class PlayerDetailView(LoginRequiredMixin, DetailView):
         return super().dispatch(request, *args, **kwargs)
 
 
+class AdminPlayerDetailView(StaffRequiredMixin, DetailView):
+    model = Player
+    template_name = "accounts/admin/player_admin_detail.html"
+    context_object_name = "player_obj"
+
+    def get_queryset(self):
+        return Player.objects.select_related(
+            "user",
+            "user__profile",
+            "team",
+            "division",
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        player_obj = context["player_obj"]
+
+        parent_relations = (
+            PlayerParent.objects.filter(player=player_obj)
+            .select_related("parent", "parent__profile")
+            .order_by("-created_at")
+        )
+
+        related_orders = (
+            Order.objects.filter(registered_player_ids__contains=[player_obj.pk])
+            .select_related("event", "stripe_checkout", "user")
+            .order_by("-created_at")[:50]
+        )
+
+        related_payment_plan_orders = (
+            Order.objects.filter(
+                registered_player_ids__contains=[player_obj.pk], payment_mode="plan"
+            )
+            .select_related("event", "stripe_checkout", "user")
+            .order_by("-created_at")[:50]
+        )
+
+        related_active_payment_plan_orders = (
+            Order.objects.filter(
+                registered_player_ids__contains=[player_obj.pk], payment_mode="plan"
+            )
+            .filter(Q(plan_payments_remaining__gt=0) | ~Q(stripe_subscription_id=""))
+            .select_related("event", "stripe_checkout", "user")
+            .order_by("-created_at")[:50]
+        )
+
+        related_checkouts = (
+            StripeEventCheckout.objects.filter(player_ids__contains=[player_obj.pk])
+            .select_related("event", "user")
+            .order_by("-created_at")[:50]
+        )
+
+        related_plan_checkouts = (
+            StripeEventCheckout.objects.filter(
+                player_ids__contains=[player_obj.pk], payment_mode="plan"
+            )
+            .select_related("event", "user")
+            .order_by("-created_at")[:50]
+        )
+
+        related_active_plan_checkouts = (
+            StripeEventCheckout.objects.filter(
+                player_ids__contains=[player_obj.pk], payment_mode="plan"
+            )
+            .filter(~Q(stripe_subscription_id=""))
+            .select_related("event", "user")
+            .order_by("-created_at")[:50]
+        )
+
+        from apps.events.models import EventAttendance
+
+        attended_events = (
+            EventAttendance.objects.filter(user=player_obj.user)
+            .select_related("event")
+            .order_by("-registered_at")[:50]
+        )
+
+        context["parent_relations"] = parent_relations
+        context["related_orders"] = related_orders
+        context["related_payment_plan_orders"] = related_payment_plan_orders
+        context["related_active_payment_plan_orders"] = (
+            related_active_payment_plan_orders
+        )
+        context["related_checkouts"] = related_checkouts
+        context["related_plan_checkouts"] = related_plan_checkouts
+        context["related_active_plan_checkouts"] = related_active_plan_checkouts
+        context["attended_events"] = attended_events
+
+        context["active_section"] = "players"
+        context["active_subsection"] = "player_admin_detail"
+        return context
+
+
 class PlayerRegistrationView(ManagerRequiredMixin, CreateView):
     """Vista para que managers registren jugadores"""
 
