@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-12 22:29:01
+
+- **[9dcebb3]** refactor: Enhance video URL handling with support for YouTube Shorts, Vimeo, and HTTPS enforcement
+  - *Fecha:* 2026-01-12 22:29:00
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/events/public_detail.html`
+  - *Detalles:*
+    - - Move video URL from src to data-video-url attribute to prevent premature loading
+    - - Add automatic HTTPS upgrade for HTTP URLs to prevent mixed content warnings
+    - - Implement YouTube Shorts URL conversion to embed format
+    - - Add Vimeo URL detection and conversion to player.vimeo.com embed format
+    - - Add fallback for pre-formatted embed URLs and other compatible platforms
+    - - Include additional iframe permissions
+
+
+
 ### Actualizado: 2026-01-12 22:22:29
 
 - **[56da03d]** refactor: Add backward compatibility for generic itinerary data in event forms
