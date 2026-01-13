@@ -7,6 +7,21 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 17:13:52
+
+- **[7285d72]** ```
+  - *Fecha:* 2026-01-13 17:13:52
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `requirements/requirements.txt`
+  - *Detalles:*
+    - fix: Downgrade Django version requirement from 6.x to 5.2.x for compatibility
+    - - Change Django version constraint from >=6.0,<7.0 to >=5.2,<6.0
+    - - Maintain compatibility with stable Django 5.2 LTS release
+    - ```
+
+
+
 ### Actualizado: 2026-01-13 17:04:01
 
 - **[ef585b1]** ```
