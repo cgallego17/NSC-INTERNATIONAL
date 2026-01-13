@@ -1461,63 +1461,27 @@
             {% if event.video_url %}
             <div class="section">
                 <h2 class="section-title">{% trans "Event Video" %}</h2>
-                <div class="ratio ratio-16x9" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                    <iframe title="Event Video" allowfullscreen style="border: none;" id="eventVideoIframe" data-video-url="{{ event.video_url }}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"></iframe>
-                </div>
-                <div id="eventVideoFallback" class="mt-3" style="display:none;">
-                    <div class="alert alert-warning mb-0">
-                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                            <div>
-                                <strong>{% trans "This video link can't be embedded here." %}</strong>
-                                <div class="small">{% trans "Open it in a new tab:" %}</div>
-                            </div>
-                            <a id="eventVideoFallbackLink" href="#" target="_blank" rel="noopener" class="btn btn-sm btn-primary">
-                                <i class="fas fa-external-link-alt me-1"></i>{% trans "Open Video" %}
-                            </a>
+                {% with video_url=event.video_url|lower %}
+                    {% if '.mp4' in video_url or '.webm' in video_url or '.ogg' in video_url %}
+                        <div class="ratio ratio-16x9" style="border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background: #000;">
+                            <video controls playsinline style="width: 100%; height: 100%;">
+                                <source src="{{ event.video_url }}">
+                            </video>
                         </div>
-                    </div>
-                </div>
-                <script>
-                    (function() {
-                        const iframe = document.getElementById('eventVideoIframe');
-                        const fallback = document.getElementById('eventVideoFallback');
-                        const fallbackLink = document.getElementById('eventVideoFallbackLink');
-                        if (iframe) {
-                            let url = (iframe.getAttribute('data-video-url') || '').trim();
-                            if (!url) return;
-
-                            // Evitar mixed content
-                            if (url.startsWith('http://')) {
-                                url = 'https://' + url.substring('http://'.length);
-                            }
-
-                            // Convertir a URL embebible
-                            if (url.includes('youtube.com/watch?v=')) {
-                                const videoId = url.split('v=')[1].split('&')[0];
-                                iframe.src = 'https://www.youtube.com/embed/' + videoId;
-                            } else if (url.includes('youtu.be/')) {
-                                const videoId = url.split('youtu.be/')[1].split('?')[0];
-                                iframe.src = 'https://www.youtube.com/embed/' + videoId;
-                            } else if (url.includes('youtube.com/shorts/')) {
-                                const videoId = url.split('youtube.com/shorts/')[1].split('?')[0].split('&')[0];
-                                iframe.src = 'https://www.youtube.com/embed/' + videoId;
-                            } else if (url.includes('vimeo.com/')) {
-                                const parts = url.split('vimeo.com/');
-                                const videoId = (parts[1] || '').split('?')[0].split('&')[0];
-                                if (videoId) iframe.src = 'https://player.vimeo.com/video/' + videoId;
-                                else iframe.src = url;
-                            } else if (url.includes('/embed/')) {
-                                iframe.src = url;
-                            } else {
-                                // URL no reconocida: intentar embebido directo y mostrar fallback.
-                                // Si el proveedor bloquea iframes, el usuario aún podrá abrirlo en otra pestaña.
-                                iframe.src = url;
-                                if (fallbackLink) fallbackLink.href = url;
-                                if (fallback) fallback.style.display = 'block';
-                            }
-                        }
-                    })();
-                </script>
+                    {% else %}
+                        <div class="alert alert-info mb-0">
+                            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                <div>
+                                    <strong>{% trans "Video" %}</strong>
+                                    <div class="small">{% trans "Open the video link in a new tab:" %}</div>
+                                </div>
+                                <a href="{{ event.video_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-external-link-alt me-1"></i>{% trans "Open Video" %}
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endwith %}
             </div>
             {% endif %}
 
