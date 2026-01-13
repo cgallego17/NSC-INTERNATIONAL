@@ -1090,13 +1090,13 @@ class AdminPlayerDetailView(StaffRequiredMixin, DetailView):
         )
 
         try:
-            related_orders = (
+            related_orders = list(
                 Order.objects.filter(registered_player_ids__contains=[player_obj.pk])
                 .select_related("event", "stripe_checkout", "user")
                 .order_by("-created_at")[:50]
             )
 
-            related_payment_plan_orders = (
+            related_payment_plan_orders = list(
                 Order.objects.filter(
                     registered_player_ids__contains=[player_obj.pk], payment_mode="plan"
                 )
@@ -1104,7 +1104,7 @@ class AdminPlayerDetailView(StaffRequiredMixin, DetailView):
                 .order_by("-created_at")[:50]
             )
 
-            related_active_payment_plan_orders = (
+            related_active_payment_plan_orders = list(
                 Order.objects.filter(
                     registered_player_ids__contains=[player_obj.pk], payment_mode="plan"
                 )
@@ -1134,13 +1134,13 @@ class AdminPlayerDetailView(StaffRequiredMixin, DetailView):
             ]
 
         try:
-            related_checkouts = (
+            related_checkouts = list(
                 StripeEventCheckout.objects.filter(player_ids__contains=[player_obj.pk])
                 .select_related("event", "user")
                 .order_by("-created_at")[:50]
             )
 
-            related_plan_checkouts = (
+            related_plan_checkouts = list(
                 StripeEventCheckout.objects.filter(
                     player_ids__contains=[player_obj.pk], payment_mode="plan"
                 )
@@ -1148,7 +1148,7 @@ class AdminPlayerDetailView(StaffRequiredMixin, DetailView):
                 .order_by("-created_at")[:50]
             )
 
-            related_active_plan_checkouts = (
+            related_active_plan_checkouts = list(
                 StripeEventCheckout.objects.filter(
                     player_ids__contains=[player_obj.pk], payment_mode="plan"
                 )
