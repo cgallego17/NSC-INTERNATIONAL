@@ -7,6 +7,33 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 13:36:15
+
+- **[f872e80]** ```
+  - *Fecha:* 2026-01-13 13:36:14
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 13 archivo(s)
+    - `apps/accounts/migrations/0051_pushsubscription.py`
+    - `apps/accounts/migrations/0052_rename_accounts_pu_user_id_2db9b6_idx_accounts_pu_user_id_125f9c_idx.py`
+    - `apps/accounts/models.py`
+    - `apps/accounts/signals.py`
+    - `apps/accounts/urls.py`
+    - `apps/accounts/views_private.py`
+    - `apps/core/views.py`
+    - `docker-compose.prod.yml`
+    - `nsc_admin/settings_prod.py`
+    - `nsc_admin/urls.py`
+    - ... y 3 archivo(s) más
+  - *Detalles:*
+    - feat: Add web push notification system for staff users with player and user registration alerts
+    - - Add PushSubscription model with endpoint, p256dh, auth, user_agent, and is_active fields
+    - - Create database indexes on user, is_active, and created_at for optimized queries
+    - - Add post_save signals for Player and User models to notify staff of new registrations
+    - - Implement send_web_push_for_staff_notifications signal to deliver push notifications via pywebpush
+    - - Add push subscription API endpoints:
+
+
+
 ### Actualizado: 2026-01-13 12:35:33
 
 - **[6170de4]** ```
