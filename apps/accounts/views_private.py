@@ -13,6 +13,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
 from django.db.models import Q, Sum
+from django.db.utils import NotSupportedError
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
@@ -1088,51 +1089,92 @@ class AdminPlayerDetailView(StaffRequiredMixin, DetailView):
             .order_by("-created_at")
         )
 
-        related_orders = (
-            Order.objects.filter(registered_player_ids__contains=[player_obj.pk])
-            .select_related("event", "stripe_checkout", "user")
-            .order_by("-created_at")[:50]
-        )
-
-        related_payment_plan_orders = (
-            Order.objects.filter(
-                registered_player_ids__contains=[player_obj.pk], payment_mode="plan"
+        try:
+            related_orders = (
+                Order.objects.filter(registered_player_ids__contains=[player_obj.pk])
+                .select_related("event", "stripe_checkout", "user")
+                .order_by("-created_at")[:50]
             )
-            .select_related("event", "stripe_checkout", "user")
-            .order_by("-created_at")[:50]
-        )
 
-        related_active_payment_plan_orders = (
-            Order.objects.filter(
-                registered_player_ids__contains=[player_obj.pk], payment_mode="plan"
+            related_payment_plan_orders = (
+                Order.objects.filter(
+                    registered_player_ids__contains=[player_obj.pk], payment_mode="plan"
+                )
+                .select_related("event", "stripe_checkout", "user")
+                .order_by("-created_at")[:50]
             )
-            .filter(Q(plan_payments_remaining__gt=0) | ~Q(stripe_subscription_id=""))
-            .select_related("event", "stripe_checkout", "user")
-            .order_by("-created_at")[:50]
-        )
 
-        related_checkouts = (
-            StripeEventCheckout.objects.filter(player_ids__contains=[player_obj.pk])
-            .select_related("event", "user")
-            .order_by("-created_at")[:50]
-        )
-
-        related_plan_checkouts = (
-            StripeEventCheckout.objects.filter(
-                player_ids__contains=[player_obj.pk], payment_mode="plan"
+            related_active_payment_plan_orders = (
+                Order.objects.filter(
+                    registered_player_ids__contains=[player_obj.pk], payment_mode="plan"
+                )
+                .filter(
+                    Q(plan_payments_remaining__gt=0) | ~Q(stripe_subscription_id="")
+                )
+                .select_related("event", "stripe_checkout", "user")
+                .order_by("-created_at")[:50]
             )
-            .select_related("event", "user")
-            .order_by("-created_at")[:50]
-        )
+        except NotSupportedError:
+            recent_orders = Order.objects.select_related(
+                "event", "stripe_checkout", "user"
+            ).order_by("-created_at")[:1000]
+            related_orders = [
+                o
+                for o in recent_orders
+                if player_obj.pk in (getattr(o, "registered_player_ids", None) or [])
+            ][:50]
+            related_payment_plan_orders = [
+                o for o in related_orders if getattr(o, "payment_mode", "") == "plan"
+            ]
+            related_active_payment_plan_orders = [
+                o
+                for o in related_payment_plan_orders
+                if (getattr(o, "plan_payments_remaining", 0) or 0) > 0
+                or bool(getattr(o, "stripe_subscription_id", ""))
+            ]
 
-        related_active_plan_checkouts = (
-            StripeEventCheckout.objects.filter(
-                player_ids__contains=[player_obj.pk], payment_mode="plan"
+        try:
+            related_checkouts = (
+                StripeEventCheckout.objects.filter(player_ids__contains=[player_obj.pk])
+                .select_related("event", "user")
+                .order_by("-created_at")[:50]
             )
-            .filter(~Q(stripe_subscription_id=""))
-            .select_related("event", "user")
-            .order_by("-created_at")[:50]
-        )
+
+            related_plan_checkouts = (
+                StripeEventCheckout.objects.filter(
+                    player_ids__contains=[player_obj.pk], payment_mode="plan"
+                )
+                .select_related("event", "user")
+                .order_by("-created_at")[:50]
+            )
+
+            related_active_plan_checkouts = (
+                StripeEventCheckout.objects.filter(
+                    player_ids__contains=[player_obj.pk], payment_mode="plan"
+                )
+                .filter(~Q(stripe_subscription_id=""))
+                .select_related("event", "user")
+                .order_by("-created_at")[:50]
+            )
+        except NotSupportedError:
+            recent_checkouts = StripeEventCheckout.objects.select_related(
+                "event", "user"
+            ).order_by("-created_at")[:1000]
+            related_checkouts = [
+                co
+                for co in recent_checkouts
+                if player_obj.pk in (getattr(co, "player_ids", None) or [])
+            ][:50]
+            related_plan_checkouts = [
+                co
+                for co in related_checkouts
+                if getattr(co, "payment_mode", "") == "plan"
+            ]
+            related_active_plan_checkouts = [
+                co
+                for co in related_plan_checkouts
+                if bool(getattr(co, "stripe_subscription_id", ""))
+            ]
 
         from apps.events.models import EventAttendance
 
