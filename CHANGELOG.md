@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-12 23:01:19
+
+- **[9ef5beb]** refactor: Improve itinerary fallback logic and add itinerary display to public event detail
+  - *Fecha:* 2026-01-12 23:01:18
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 4 archivo(s)
+    - `apps/events/views.py`
+    - `apps/events/views_public.py`
+    - `templates/events/event_form.html`
+    - `templates/events/public_detail.html`
+  - *Detalles:*
+    - - Simplify itinerary fallback in EventCreateView and EventUpdateView to apply generic itinerary to all user types
+    - - Remove player-only restriction from fallback logic
+    - - Add itinerary context data to PublicEventDetailView with user type filtering
+    - - Implement fallback to player itinerary when team_manager or spectator itineraries are missing
+    - - Add tabbed itinerary section in public event detail template with
+
+
+
 ### Actualizado: 2026-01-12 22:30:59
 
 - **[80e4764]** refactor: Add fallback UI for non-embeddable video URLs in public event detail
