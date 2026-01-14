@@ -235,21 +235,21 @@ class PublicRegistrationForm(UserCreationForm):
         queryset=Country.objects.filter(is_active=True).order_by("name"),
         required=True,
         empty_label=_("Select a country"),
-        widget=forms.Select(attrs={"class": "form-select", "id": "id_country"}),
+        widget=forms.Select(attrs={"class": "form-select"}),
     )
     state = forms.ModelChoiceField(
         label=_("State"),
         queryset=State.objects.none(),
         required=True,
         empty_label=_("Select a state"),
-        widget=forms.Select(attrs={"class": "form-select", "id": "id_state"}),
+        widget=forms.Select(attrs={"class": "form-select"}),
     )
     city = forms.ModelChoiceField(
         label=_("City"),
         queryset=City.objects.none(),
         required=True,
         empty_label=_("Select a city"),
-        widget=forms.Select(attrs={"class": "form-select", "id": "id_city"}),
+        widget=forms.Select(attrs={"class": "form-select"}),
     )
 
     # Dirección
@@ -813,21 +813,21 @@ class UserProfileForm(forms.ModelForm):
             queryset=Country.objects.all().order_by("name"),
             required=True,
             empty_label=_("Select a country"),
-            widget=forms.Select(attrs={"class": "form-select", "id": "id_country"}),
+            widget=forms.Select(attrs={"class": "form-select"}),
         )
 
         self.fields["state"] = forms.ModelChoiceField(
             queryset=State.objects.none(),
             required=True,
             empty_label=_("Select a state"),
-            widget=forms.Select(attrs={"class": "form-select", "id": "id_state"}),
+            widget=forms.Select(attrs={"class": "form-select"}),
         )
 
         self.fields["city"] = forms.ModelChoiceField(
             queryset=City.objects.none(),
             required=True,
             empty_label=_("Select a city"),
-            widget=forms.Select(attrs={"class": "form-select", "id": "id_city"}),
+            widget=forms.Select(attrs={"class": "form-select"}),
         )
 
         # Determinar el país seleccionado
@@ -892,25 +892,19 @@ class BillingAddressForm(forms.ModelForm):
             queryset=Country.objects.all().order_by("name"),
             required=False,
             empty_label=_("Select a country"),
-            widget=forms.Select(
-                attrs={"class": "form-select", "id": "id_billing_country"}
-            ),
+            widget=forms.Select(attrs={"class": "form-select"}),
         )
         self.fields["state"] = forms.ModelChoiceField(
             queryset=State.objects.none(),
             required=False,
             empty_label=_("Select a state"),
-            widget=forms.Select(
-                attrs={"class": "form-select", "id": "id_billing_state"}
-            ),
+            widget=forms.Select(attrs={"class": "form-select"}),
         )
         self.fields["city"] = forms.ModelChoiceField(
             queryset=City.objects.none(),
             required=False,
             empty_label=_("Select a city"),
-            widget=forms.Select(
-                attrs={"class": "form-select", "id": "id_billing_city"}
-            ),
+            widget=forms.Select(attrs={"class": "form-select"}),
         )
 
         if "country" in self.data:
@@ -1131,23 +1125,21 @@ class TeamForm(forms.ModelForm):
             queryset=Country.objects.filter(is_active=True).order_by("name"),
             required=False,
             empty_label=_("Select a country"),
-            widget=forms.Select(
-                attrs={"class": "form-select", "id": "id_team_country"}
-            ),
+            widget=forms.Select(attrs={"class": "form-select"}),
         )
 
         self.fields["state"] = forms.ModelChoiceField(
             queryset=State.objects.none(),
             required=False,
             empty_label=_("Select a state"),
-            widget=forms.Select(attrs={"class": "form-select", "id": "id_team_state"}),
+            widget=forms.Select(attrs={"class": "form-select"}),
         )
 
         self.fields["city"] = forms.ModelChoiceField(
             queryset=City.objects.none(),
             required=False,
             empty_label=_("Select a city"),
-            widget=forms.Select(attrs={"class": "form-select", "id": "id_team_city"}),
+            widget=forms.Select(attrs={"class": "form-select"}),
         )
 
         # Si hay una instancia (edición), cargar estados y ciudades
@@ -1484,7 +1476,6 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
             attrs={
                 "class": "form-control",
                 "accept": "image/*",
-                "id": "id_profile_picture",
                 "style": "display: none;",
             }
         ),
@@ -1494,21 +1485,21 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         queryset=Country.objects.all().order_by("name"),
         required=True,
         empty_label=_("Select a country"),
-        widget=forms.Select(attrs={"class": "form-select", "id": "id_country"}),
+        widget=forms.Select(attrs={"class": "form-select"}),
         label=_("Country"),
     )
     state = forms.ModelChoiceField(
         queryset=State.objects.none(),
         required=True,
         empty_label=_("Select a state"),
-        widget=forms.Select(attrs={"class": "form-select", "id": "id_state"}),
+        widget=forms.Select(attrs={"class": "form-select"}),
         label=_("State"),
     )
     city = forms.ModelChoiceField(
         queryset=City.objects.none(),
         required=True,
         empty_label=_("Select a city"),
-        widget=forms.Select(attrs={"class": "form-select", "id": "id_city"}),
+        widget=forms.Select(attrs={"class": "form-select"}),
         label=_("City"),
     )
     relationship = forms.ChoiceField(
@@ -2001,7 +1992,7 @@ class PlayerUpdateForm(forms.ModelForm):
             attrs={
                 "class": "form-control",
                 "accept": "image/*",
-                "id": "id_profile_picture",
+                
                 "style": "display: none;",
             }
         ),
@@ -2041,21 +2032,21 @@ class PlayerUpdateForm(forms.ModelForm):
         queryset=Country.objects.all().order_by("name"),
         required=True,
         empty_label=_("Select a country"),
-        widget=forms.Select(attrs={"class": "form-select", "id": "id_country"}),
+        widget=forms.Select(attrs={"class": "form-select"}),
         label=_("Country"),
     )
     state = forms.ModelChoiceField(
         queryset=State.objects.none(),
-        required=True,
+        required=False,
         empty_label=_("Select a state"),
-        widget=forms.Select(attrs={"class": "form-select", "id": "id_state"}),
+        widget=forms.Select(attrs={"class": "form-select"}),
         label=_("State"),
     )
     city = forms.ModelChoiceField(
         queryset=City.objects.none(),
-        required=True,
+        required=False,
         empty_label=_("Select a city"),
-        widget=forms.Select(attrs={"class": "form-select", "id": "id_city"}),
+        widget=forms.Select(attrs={"class": "form-select"}),
         label=_("City"),
     )
 

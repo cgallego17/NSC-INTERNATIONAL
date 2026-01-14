@@ -653,7 +653,7 @@ class AdminDashboard {
                 this.toggleNotifications();
             });
         } else {
-            console.warn('Notification button or panel not found');
+            // console.warn('Notification button or panel not found');
         }
 
         if (closeNotifications) {

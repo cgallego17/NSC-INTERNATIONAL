@@ -202,11 +202,11 @@
         }
 
         // Initialize for both forms when DOM is ready
-        initLocationSelectors('');          // Profile Info (id_country)
-        initLocationSelectors('billing_');  // Billing (id_billing_country)
+        initLocationSelectors('profile-');          // Profile Info (id_profile-country)
+        initLocationSelectors('billing-');  // Billing (id_billing-country)
 
         // Profile Picture Preview
-        const profilePicInput = document.getElementById('id_profile_picture');
+        const profilePicInput = document.getElementById('id_profile-profile_picture');
         if (profilePicInput) {
             profilePicInput.addEventListener('change', function(e) {
                 const file = this.files[0];

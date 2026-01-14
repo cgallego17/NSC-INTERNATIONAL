@@ -661,9 +661,9 @@ window.initParentPlayerForm = function() {
     }
 
     // Cálculo automático de división y grado basado en fecha de nacimiento
-    const birthDateField = document.getElementById('id_birth_date');
-    const gradeField = document.getElementById('id_grade');
-    const divisionField = document.getElementById('id_division');
+    const birthDateField = document.getElementById('id_child-birth_date');
+    const gradeField = document.getElementById('id_child-grade');
+    const divisionField = document.getElementById('id_child-division');
 
     // Función para convertir formato de fecha a ISO
     function convertDateToISO(dateField) {
@@ -962,7 +962,7 @@ window.initParentPlayerForm = function() {
     }
 
     // ====== Manejo de Foto de Perfil ======
-    const profilePictureInput = document.getElementById('id_profile_picture');
+    const profilePictureInput = document.getElementById('id_child-profile_picture');
     const profilePictureUploadArea = document.getElementById('profilePictureUploadAreaPanel');
 
     if (profilePictureInput && profilePictureUploadArea) {

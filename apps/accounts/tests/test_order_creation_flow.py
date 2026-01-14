@@ -2,6 +2,7 @@
 Test completo del flujo de creación de órdenes
 Verifica que todo el proceso desde el registro del evento hasta la creación de la orden funcione correctamente
 """
+
 import json
 import sys
 import types
@@ -20,7 +21,7 @@ from apps.accounts.models import (
     StripeEventCheckout,
     UserProfile,
 )
-from apps.events.models import Event, EventAttendance, EventCategory
+from apps.events.models import Division, Event, EventAttendance, EventCategory
 from apps.locations.models import Hotel, HotelReservation, HotelRoom
 
 User = get_user_model()
@@ -53,6 +54,10 @@ class OrderCreationFlowTest(TestCase):
         fake_stripe.checkout = _Checkout
         sys.modules["stripe"] = fake_stripe
 
+        # Crear divisiones
+        self.div_12u = Division.objects.create(name="12U")
+        self.div_14u = Division.objects.create(name="14U")
+
         # Crear usuario padre
         self.parent_user = User.objects.create_user(
             username="test_parent",
@@ -83,7 +88,7 @@ class OrderCreationFlowTest(TestCase):
         )
         self.player1 = Player.objects.create(
             user=self.player1_user,
-            division="12U",
+            division=self.div_12u,
             position="catcher",
             jersey_number=10,
             is_active=True,
@@ -105,7 +110,7 @@ class OrderCreationFlowTest(TestCase):
         )
         self.player2 = Player.objects.create(
             user=self.player2_user,
-            division="14U",
+            division=self.div_14u,
             position="shortstop",
             jersey_number=20,
             is_active=True,
@@ -113,9 +118,7 @@ class OrderCreationFlowTest(TestCase):
         PlayerParent.objects.create(parent=self.parent_user, player=self.player2)
 
         # Crear categoría de evento
-        self.event_category = EventCategory.objects.create(
-            name="Test Category"
-        )
+        self.event_category = EventCategory.objects.create(name="Test Category")
 
         # Crear hotel y habitación
         self.hotel = Hotel.objects.create(
@@ -253,7 +256,12 @@ class OrderCreationFlowTest(TestCase):
                 },
             ],
             "guest_assignments": {
-                str(self.room.pk): [0, 1, 3, 4],  # Principal, jugador1, adulto adicional, niño adicional
+                str(self.room.pk): [
+                    0,
+                    1,
+                    3,
+                    4,
+                ],  # Principal, jugador1, adulto adicional, niño adicional
             },
         }
 
@@ -322,7 +330,9 @@ class OrderCreationFlowTest(TestCase):
 
         # Verificar que additional_guest_details tiene datos completos
         additional_guests = room_data.get("additional_guest_details", [])
-        self.assertEqual(len(additional_guests), 3)  # Jugador1 + 2 adicionales (excluye principal)
+        self.assertEqual(
+            len(additional_guests), 3
+        )  # Jugador1 + 2 adicionales (excluye principal)
 
         # Verificar datos del jugador1 (primer adicional)
         guest1 = additional_guests[0]
@@ -391,7 +401,11 @@ class OrderCreationFlowTest(TestCase):
         # 7.1. Verificar que el stock se descontó correctamente
         self.room.refresh_from_db()
         initial_stock = 5  # stock inicial configurado en setUp
-        self.assertEqual(self.room.stock, initial_stock - 1, "El stock debería haberse descontado en 1 al crear la reserva")
+        self.assertEqual(
+            self.room.stock,
+            initial_stock - 1,
+            "El stock debería haberse descontado en 1 al crear la reserva",
+        )
 
         # 8. Verificar que additional_guest_details_json tiene los datos completos
         guest_details = reservation.additional_guest_details_json
@@ -400,7 +414,11 @@ class OrderCreationFlowTest(TestCase):
 
         # Verificar que el jugador está en los detalles
         player1_guest = next(
-            (g for g in guest_details if g.get("name") == self.player1.user.get_full_name()),
+            (
+                g
+                for g in guest_details
+                if g.get("name") == self.player1.user.get_full_name()
+            ),
             None,
         )
         self.assertIsNotNone(player1_guest)
@@ -433,7 +451,9 @@ class OrderCreationFlowTest(TestCase):
         self.assertEqual(order.status, "paid")
         self.assertEqual(order.payment_method, "stripe")
         self.assertEqual(order.payment_mode, "now")
-        self.assertEqual(order.registered_player_ids, [self.player1.pk, self.player2.pk])
+        self.assertEqual(
+            order.registered_player_ids, [self.player1.pk, self.player2.pk]
+        )
         self.assertGreater(order.total_amount, Decimal("0"))
 
         # 10. Verificar que el breakdown de la Order incluye datos completos
@@ -464,7 +484,9 @@ class OrderCreationFlowTest(TestCase):
         # 11. Verificar la property additional_guest_details del modelo
         reservation_details = reservation.additional_guest_details
         self.assertEqual(len(reservation_details), 3)
-        self.assertEqual(reservation_details[0]["name"], self.player1.user.get_full_name())
+        self.assertEqual(
+            reservation_details[0]["name"], self.player1.user.get_full_name()
+        )
         self.assertEqual(reservation_details[0]["type"], "child")
 
         # 12. Verificar que los datos están correctamente vinculados
@@ -477,7 +499,7 @@ class OrderCreationFlowTest(TestCase):
         # Obtener los usuarios de los jugadores
         player_user_ids = Player.objects.filter(
             id__in=order.registered_player_ids
-        ).values_list('user_id', flat=True)
+        ).values_list("user_id", flat=True)
 
         registered_attendances = EventAttendance.objects.filter(
             event=self.event,
@@ -504,8 +526,10 @@ class OrderCreationFlowTest(TestCase):
         self.room.save()
 
         # Crear una reserva previa que consuma el stock
-        from apps.locations.models import HotelReservation
         from datetime import date, timedelta
+
+        from apps.locations.models import HotelReservation
+
         check_in_date = self.event.start_date
         check_out_date = self.event.end_date
 
@@ -529,7 +553,9 @@ class OrderCreationFlowTest(TestCase):
             status__in=["pending", "confirmed", "checked_in"],
         ).count()
         self.assertEqual(active_count, 1)
-        self.assertTrue(active_count >= self.room.stock, "El stock debería estar agotado")
+        self.assertTrue(
+            active_count >= self.room.stock, "El stock debería estar agotado"
+        )
 
         # Intentar crear checkout con habitación sin stock
         self.client.force_login(self.parent_user)
@@ -570,8 +596,9 @@ class OrderCreationFlowTest(TestCase):
             },
         }
 
-        from django.http import QueryDict
         from urllib.parse import urlencode
+
+        from django.http import QueryDict
 
         post_data = QueryDict(mutable=True)
         post_data.setlist("players", [str(self.player1.pk)])
@@ -591,4 +618,3 @@ class OrderCreationFlowTest(TestCase):
             user=self.parent_user, event=self.event
         ).count()
         self.assertEqual(checkout_count, 0, "No debería haberse creado ningún checkout")
-

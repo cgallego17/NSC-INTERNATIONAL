@@ -1865,14 +1865,13 @@
                         // Asegurarse de que el formulario sea visible
                         form.style.display = 'block';
 
-                        // Inicializar el campo de foto de perfil directamente
-                        setTimeout(function() {
-                            const profilePictureInput = document.getElementById('id_profile_picture');
-                            const profilePictureUploadArea = document.getElementById('profilePictureUploadArea');
+                        // Initialize for both forms when DOM is ready
+                        initLocationSelectors('profile-');          // Profile Info (id_profile-country)
+                        initLocationSelectors('billing-');  // Billing (id_billing-country)
 
-                            if (profilePictureInput && profilePictureUploadArea) {
-                                // Limpiar listeners previos si existen (clonar y reemplazar)
-                                const newUploadArea = profilePictureUploadArea.cloneNode(true);
+                        // Profile Picture Preview
+                        const profilePicInput = document.getElementById('id_profile-profile_picture');
+                        const profilePictureUploadArea = document.getElementById('profilePictureUploadArea');
                                 profilePictureUploadArea.parentNode.replaceChild(newUploadArea, profilePictureUploadArea);
                                 const uploadArea = document.getElementById('profilePictureUploadArea');
 

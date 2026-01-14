@@ -293,7 +293,9 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
         if profile.is_parent:
             from .forms import ParentPlayerRegistrationForm
 
-            context["parent_player_form"] = ParentPlayerRegistrationForm(parent=user)
+            context["parent_player_form"] = ParentPlayerRegistrationForm(
+                parent=user, prefix="child"
+            )
             # Limitar jugadores de padres para mejor rendimiento
             context["parent_players"] = (
                 Player.objects.filter(parents__parent=user)
@@ -317,10 +319,12 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             UserProfileUpdateForm,
         )
 
-        context["profile_form"] = UserProfileForm(instance=profile)
-        context["user_form"] = UserProfileUpdateForm(instance=user)
-        context["billing_form"] = BillingAddressForm(instance=profile)
-        context["password_form"] = CustomPasswordChangeForm(user=user)
+        context["profile_form"] = UserProfileForm(instance=profile, prefix="profile")
+        context["user_form"] = UserProfileUpdateForm(instance=user, prefix="profile")
+        context["billing_form"] = BillingAddressForm(instance=profile, prefix="billing")
+        context["password_form"] = CustomPasswordChangeForm(
+            user=user, prefix="security"
+        )
 
         # Cargar preferencias de notificación
         initial_notifications = {
@@ -725,9 +729,14 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
         if section == "profile":
             profile_form = UserProfileForm(
-                request.POST, request.FILES, instance=request.user.profile
+                request.POST,
+                request.FILES,
+                instance=request.user.profile,
+                prefix="profile",
             )
-            user_form = UserProfileUpdateForm(request.POST, instance=request.user)
+            user_form = UserProfileUpdateForm(
+                request.POST, instance=request.user, prefix="profile"
+            )
 
             if profile_form.is_valid() and user_form.is_valid():
                 profile = profile_form.save()
@@ -754,7 +763,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                 return redirect(reverse("accounts:profile") + "?section=profile")
         elif section == "billing":
             billing_form = BillingAddressForm(
-                request.POST, instance=request.user.profile
+                request.POST, instance=request.user.profile, prefix="billing"
             )
             if billing_form.is_valid():
                 billing_form.save()
@@ -766,7 +775,7 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                 return redirect(reverse("accounts:profile") + "?section=billing")
         elif section == "security":
             password_form = CustomPasswordChangeForm(
-                user=request.user, data=request.POST
+                user=request.user, data=request.POST, prefix="security"
             )
             if password_form.is_valid():
                 user = password_form.save()
@@ -1297,6 +1306,7 @@ class ParentPlayerRegistrationView(LoginRequiredMixin, CreateView):
     form_class = ParentPlayerRegistrationForm
     template_name = "accounts/parent_player_register.html"
     success_url = reverse_lazy("panel")
+    prefix = "child"
 
     def dispatch(self, request, *args, **kwargs):
         # Verificar que el usuario sea padre
@@ -2170,7 +2180,7 @@ def _compute_hotel_amount_from_cart(cart: dict) -> dict:
     room_base = Decimal("0.00")
     services_total = Decimal("0.00")
 
-    for _, item_data in (cart or {}).items():
+    for room_key, item_data in (cart or {}).items():
         if item_data.get("type") != "room":
             continue
 
@@ -3938,7 +3948,7 @@ def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
 
         for pp in player_parents:
             player_user = pp.player.user
-            attendance, _ = EventAttendance.objects.get_or_create(
+            attendance, _created = EventAttendance.objects.get_or_create(
                 event=event, user=player_user, defaults={"status": "confirmed"}
             )
             if attendance.status != "confirmed":
@@ -5354,7 +5364,7 @@ def registration_confirmation(request, pk):
     hotel_snapshot = checkout.hotel_cart_snapshot or {}
     hotel_rooms = []
     if isinstance(hotel_snapshot, dict):
-        for _, item in (hotel_snapshot or {}).items():
+        for key, item in (hotel_snapshot or {}).items():
             if not isinstance(item, dict):
                 continue
             if item.get("type") != "room":
