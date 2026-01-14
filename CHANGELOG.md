@@ -7,6 +7,31 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 12:05:53
+
+- **[af297a2]** ```
+  - *Fecha:* 2026-01-14 12:05:53
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 8 archivo(s)
+    - `apps/accounts/views_admin.py`
+    - `templates/accounts/admin/order_detail.html`
+    - `templates/accounts/panel_tabs/invoice.html`
+    - `templates/accounts/panel_tabs/payment_confirmation.html`
+    - `templates/accounts/public_home.html`
+    - `templates/accounts/public_player_profile.html`
+    - `templates/base.html`
+    - `templates/includes/footer_mlb.html`
+  - *Detalles:*
+    - refactor: Optimize hotel reservation queries and update branding assets
+    - - Remove unused F import from django.db.models in views_admin.py
+    - - Add select_related and prefetch_related optimization for hotel reservation queries
+    - - Remove unused user variable assignment in AdminWalletTopUpForm.clean_user_id
+    - - Replace NCS International PNG logo with SVG assets across all templates
+    - - Use ncs-white.svg for footer, sidebar, and dark backgrounds
+    - - Use ncs-app-icon.svg for invoice, payment confirmation, and mini
+
+
+
 ### Actualizado: 2026-01-14 02:05:46
 
 - **[45f4579]** ```
