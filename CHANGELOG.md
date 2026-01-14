@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 01:07:21
+
+- **[5656d8e]** ```
+  - *Fecha:* 2026-01-14 01:07:20
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `scripts/import/importar_netherlands.py`
+  - *Detalles:*
+    - feat: Add dynamic project root discovery for import scripts
+    - - Add _discover_project_root() function to walk up directory tree searching for manage.py
+    - - Replace hardcoded directory navigation with automatic Django project root detection
+    - - Search up to 8 parent directories for manage.py marker file
+    - - Fallback to two levels up from scripts/import if manage.py not found
+    - - Improve portability of import script across different project structures
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 01:03:09
 
 - **[d9066c5]** ```
