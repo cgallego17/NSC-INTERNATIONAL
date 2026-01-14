@@ -1039,9 +1039,9 @@ window.initParentPlayerForm = function() {
     // Usar la referencia del formulario que ya existe (form ya está declarada arriba)
     const locationForm = document.getElementById('parentPlayerForm');
     if (locationForm) {
-        const countrySelect = locationForm.querySelector('[name="country"]');
-        const stateSelect = locationForm.querySelector('[name="state"]');
-        const citySelect = locationForm.querySelector('[name="city"]');
+        const countrySelect = locationForm.querySelector('[name="child-country"], [name="country"]');
+        const stateSelect = locationForm.querySelector('[name="child-state"], [name="state"]');
+        const citySelect = locationForm.querySelector('[name="child-city"], [name="city"]');
         const stateLoader = locationForm.querySelector('#stateLoader');
         const cityLoader = locationForm.querySelector('#cityLoader');
 
@@ -1072,8 +1072,18 @@ window.initParentPlayerForm = function() {
                 }
 
                 fetch(`/locations/ajax/states/${countryId}/`)
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
+                        if (!Array.isArray(data) || data.length === 0) {
+                            stateSelect.innerHTML = '<option value="">{{ "No states available"|escapejs }}</option>';
+                            citySelect.innerHTML = '<option value="">{{ "Select a city"|escapejs }}</option>';
+                            return;
+                        }
                         data.forEach(state => {
                             const option = document.createElement('option');
                             option.value = state.id;
@@ -1117,8 +1127,17 @@ window.initParentPlayerForm = function() {
                 if (showLoader) citySelect.disabled = true;
 
                 fetch(`/locations/ajax/cities/${stateId}/`)
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
+                        if (!Array.isArray(data) || data.length === 0) {
+                            citySelect.innerHTML = '<option value="">{{ "No cities available"|escapejs }}</option>';
+                            return;
+                        }
                         data.forEach(city => {
                             const option = document.createElement('option');
                             option.value = city.id;

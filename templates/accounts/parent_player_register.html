@@ -1172,9 +1172,9 @@
         // ======================================================
         // 4. Filtros Dinámicos de Ubicación (País, Estado, Ciudad)
         // ======================================================
-        const countrySelect = document.getElementById('id_country');
-        const stateSelect = document.getElementById('id_state');
-        const citySelect = document.getElementById('id_city');
+        const countrySelect = document.getElementById('id_country') || document.getElementById('id_child-country');
+        const stateSelect = document.getElementById('id_state') || document.getElementById('id_child-state');
+        const citySelect = document.getElementById('id_city') || document.getElementById('id_child-city');
         const stateLoader = document.getElementById('stateLoader');
         const cityLoader = document.getElementById('cityLoader');
 
@@ -1197,8 +1197,18 @@
                     }
 
                     fetch(`/locations/ajax/states/${countryId}/`)
-                        .then(response => response.json())
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP ${response.status}`);
+                            }
+                            return response.json();
+                        })
                         .then(data => {
+                            if (!Array.isArray(data) || data.length === 0) {
+                                stateSelect.innerHTML = '<option value="">{% filter escapejs %}{% trans "No states available" %}{% endfilter %}</option>';
+                                citySelect.innerHTML = '<option value="">{% filter escapejs %}{% trans "Select a city" %}{% endfilter %}</option>';
+                                return;
+                            }
                             data.forEach(state => {
                                 const option = document.createElement('option');
                                 option.value = state.id;
@@ -1236,8 +1246,17 @@
                     if (showLoader) citySelect.disabled = true;
 
                     fetch(`/locations/ajax/cities/${stateId}/`)
-                        .then(response => response.json())
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP ${response.status}`);
+                            }
+                            return response.json();
+                        })
                         .then(data => {
+                            if (!Array.isArray(data) || data.length === 0) {
+                                citySelect.innerHTML = '<option value="">{% filter escapejs %}{% trans "No cities available" %}{% endfilter %}</option>';
+                                return;
+                            }
                             data.forEach(city => {
                                 const option = document.createElement('option');
                                 option.value = city.id;
