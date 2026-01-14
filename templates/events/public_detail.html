@@ -1524,7 +1524,7 @@
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between flex-wrap gap-2">
                                             <h5 class="mb-0">{{ day.title }}</h5>
-                                            <div class="text-muted small">{{ day.day|date:"M d, Y" }}</div>
+                                            <div class="text-muted small">{% language 'en' %}{{ day.day|date:"M d, Y" }}{% endlanguage %}</div>
                                         </div>
                                         {% if day.description %}
                                             <div class="mt-2">{{ day.description|linebreaksbr }}</div>
@@ -1694,7 +1694,7 @@
                                         <i class="fas fa-calendar-day"></i>
                                         <div class="plan-includes-item-content">
                                             <div class="plan-includes-item-title">{{ day.title }}</div>
-                                            <div class="plan-includes-item-description">{{ day.day|date:"M d, Y" }}</div>
+                                            <div class="plan-includes-item-description">{% language 'en' %}{{ day.day|date:"M d, Y" }}{% endlanguage %}</div>
                                         </div>
                                     </li>
                                     {% endfor %}
@@ -1800,7 +1800,7 @@
                                         <i class="fas fa-calendar-day"></i>
                                         <div class="plan-includes-item-content">
                                             <div class="plan-includes-item-title">{{ day.title }}</div>
-                                            <div class="plan-includes-item-description">{{ day.day|date:"M d, Y" }}</div>
+                                            <div class="plan-includes-item-description">{% language 'en' %}{{ day.day|date:"M d, Y" }}{% endlanguage %}</div>
                                         </div>
                                     </li>
                                     {% endfor %}
@@ -1909,7 +1909,7 @@
                                         <i class="fas fa-calendar-day"></i>
                                         <div class="plan-includes-item-content">
                                             <div class="plan-includes-item-title">{{ day.title }}</div>
-                                            <div class="plan-includes-item-description">{{ day.day|date:"M d, Y" }}</div>
+                                            <div class="plan-includes-item-description">{% language 'en' %}{{ day.day|date:"M d, Y" }}{% endlanguage %}</div>
                                         </div>
                                     </li>
                                     {% endfor %}
