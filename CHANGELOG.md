@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 01:41:38
+
+- **[f2a91fd]** ```
+  - *Fecha:* 2026-01-14 01:41:38
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/events/public_detail.html`
+  - *Detalles:*
+    - fix: Force English locale for date formatting in event day displays
+    - - Wrap all day.day date filters with {% language 'en' %} tags to ensure consistent "M d, Y" format
+    - - Apply to 4 instances across event detail cards and plan includes sections
+    - - Prevent date format from being affected by user's selected language preference
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 01:30:39
 
 - **[d47a3a6]** ```
