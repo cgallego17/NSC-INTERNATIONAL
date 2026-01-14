@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 01:29:27
+
+- **[1a557e7]** ```
+  - *Fecha:* 2026-01-14 01:29:27
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/includes/navbar_mlb.html`
+  - *Detalles:*
+    - fix: Wrap language names in trans tags for proper translation in MLB navbar
+    - - Add {% trans "English" %} tag around "English" language option text
+    - - Add {% trans "Spanish" %} tag around "Español" language option text
+    - - Enable proper i18n support for language selector labels in navbar_mlb.html template
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 01:23:28
 
 - **[36f1f29]** ```
