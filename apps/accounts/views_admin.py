@@ -9,7 +9,7 @@ from decimal import Decimal
 from django import forms
 from django.contrib import messages
 from django.contrib.auth.models import User
-from django.db.models import Avg, F, Q, Sum
+from django.db.models import Avg, Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.utils import timezone
@@ -186,6 +186,13 @@ class AdminOrderDetailView(StaffRequiredMixin, DetailView):
         # Reservas de hotel vinculadas a esta orden (si aplica)
         try:
             hotel_reservations = order.hotel_reservations
+            # Optimización de consulta si es un QuerySet
+            if hasattr(hotel_reservations, "select_related"):
+                hotel_reservations = hotel_reservations.select_related(
+                    "room", "hotel"
+                ).prefetch_related(
+                    "service_reservations", "service_reservations__service"
+                )
         except Exception:
             hotel_reservations = []
         context["hotel_reservations"] = hotel_reservations
@@ -232,7 +239,7 @@ class AdminWalletTopUpForm(forms.ModelForm):
     def clean_user_id(self):
         user_id = self.cleaned_data.get("user_id")
         try:
-            user = User.objects.get(id=user_id, is_active=True)
+            User.objects.get(id=user_id, is_active=True)
             return user_id
         except User.DoesNotExist:
             raise forms.ValidationError("Selected user does not exist or is inactive.")

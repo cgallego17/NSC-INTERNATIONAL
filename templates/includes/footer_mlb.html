@@ -168,7 +168,8 @@
         <div class="row" style="max-width: 1400px; margin: 0 auto;">
             <div class="col-md-4 footer-col">
                 <div class="footer-logo-section">
-                    <img src="{{ MEDIA_URL }}sponsors/ncs_international.png" alt="NCS International" style="height: 40px; width: auto; margin-bottom: 20px;">
+                    {% load static %}
+                    <img src="{% static 'images/ncs-white.svg' %}" alt="NCS International" style="height: 40px; width: auto; margin-bottom: 20px;">
                 </div>
                 <p>
                     {% trans "NCS International was designed to provide opportunities for players and teams through our national and international tournaments and showcases." %}

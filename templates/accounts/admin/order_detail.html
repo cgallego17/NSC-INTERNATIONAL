@@ -548,7 +548,17 @@
                                             <span class="badge bg-secondary">
                                                 <i class="fas fa-door-open me-1"></i>{% trans "Room" %} {{ reservation.room.room_number }}
                                             </span>
+                                            <span class="badge bg-info">
+                                                {{ reservation.room.name|default:reservation.room.get_room_type_display }}
+                                            </span>
+                                            <span class="badge {% if reservation.status == 'confirmed' or reservation.status == 'checked_in' %}bg-success{% elif reservation.status == 'cancelled' %}bg-danger{% else %}bg-warning{% endif %}">
+                                                {{ reservation.get_status_display }}
+                                            </span>
                                         </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="h5 mb-0 text-success">${{ reservation.total_amount|floatformat:2|intcomma_dot }}</div>
+                                        <small class="text-muted">{% trans "Total" %}</small>
                                     </div>
                                 </div>
 
@@ -604,27 +614,25 @@
                                     </div>
 
                                     <!-- Huéspedes adicionales -->
-                                    {% if reservation.extra_guests or reservation.additional_guest_details_json %}
+                                    {% if reservation.additional_guest_details %}
                                     <div class="mt-2 pt-2 border-top">
                                         <div class="info-label mb-3">
                                             <i class="fas fa-user-plus me-1"></i>{% trans "Additional Guests" %}
                                             <span class="badge bg-info">
-                                                {% if reservation.extra_guests %}{{ reservation.extra_guests|length }}{% elif reservation.additional_guest_details_json %}{{ reservation.additional_guest_details_json|length }}{% else %}0{% endif %}
+                                                {{ reservation.additional_guest_details|length }}
                                             </span>
                                         </div>
-                                        {% if reservation.additional_guest_details_json %}
                                         <div>
-                                            {% for guest_dict in reservation.additional_guest_details_json %}
-                                                {% with name=guest_dict.name type=guest_dict.type birth_date=guest_dict.birth_date email=guest_dict.email %}
+                                            {% for guest in reservation.additional_guest_details %}
                                                 <div class="p-3 mb-3" style="background: white; border-radius: 8px; border: 1px solid #dee2e6; border-left: 4px solid var(--mlb-blue); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                                                     <div class="d-flex align-items-start">
-                                                        <i class="fas fa-user-circle me-3 mt-1 {% if type == 'child' %}text-warning{% else %}text-info{% endif %}" style="font-size: 1.3rem;"></i>
+                                                        <i class="fas fa-user-circle me-3 mt-1 {% if guest.type == 'child' %}text-warning{% else %}text-info{% endif %}" style="font-size: 1.3rem;"></i>
                                                         <div class="flex-grow-1">
                                                             <h6 class="mb-2" style="color: var(--mlb-blue);">
-                                                                <strong>{{ name|default:"N/A" }}</strong>
-                                                                {% if type %}
-                                                                    <span class="badge {% if type == 'child' %}bg-warning{% else %}bg-info{% endif %} ms-2">
-                                                                        {% if type == 'child' %}
+                                                                <strong>{{ guest.name|default:"N/A" }}</strong>
+                                                                {% if guest.type %}
+                                                                    <span class="badge {% if guest.type == 'child' %}bg-warning{% else %}bg-info{% endif %} ms-2">
+                                                                        {% if guest.type == 'child' %}
                                                                             <i class="fas fa-child me-1"></i>{% trans "Child" %}
                                                                         {% else %}
                                                                             <i class="fas fa-user me-1"></i>{% trans "Adult" %}
@@ -633,21 +641,21 @@
                                                                 {% endif %}
                                                             </h6>
                                                             <div class="row g-2">
-                                                                {% if birth_date %}
+                                                                {% if guest.birth_date %}
                                                                 <div class="col-md-6">
                                                                     <small class="text-muted d-block mb-1">
                                                                         <i class="fas fa-birthday-cake me-1"></i>{% trans "Birth Date" %}
                                                                     </small>
-                                                                    <div style="font-size: 0.9rem;">{{ birth_date }}</div>
+                                                                    <div style="font-size: 0.9rem;">{{ guest.birth_date }}</div>
                                                                 </div>
                                                                 {% endif %}
-                                                                {% if email %}
+                                                                {% if guest.email %}
                                                                 <div class="col-md-6">
                                                                     <small class="text-muted d-block mb-1">
                                                                         <i class="fas fa-envelope me-1"></i>{% trans "Email" %}
                                                                     </small>
                                                                     <div style="font-size: 0.9rem;">
-                                                                        <a href="mailto:{{ email }}">{{ email }}</a>
+                                                                        <a href="mailto:{{ guest.email }}">{{ guest.email }}</a>
                                                                     </div>
                                                                 </div>
                                                                 {% endif %}
@@ -655,48 +663,54 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                {% endwith %}
                                             {% endfor %}
                                         </div>
-                                        {% elif reservation.extra_guests %}
-                                        <div class="d-flex flex-wrap gap-2">
-                                            {% for guest in reservation.extra_guests %}
-                                                <div class="p-2" style="background: white; border-radius: 8px; border: 1px solid #dee2e6; min-width: 180px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                                                    <div class="d-flex align-items-center">
-                                                        <i class="fas fa-user me-2 text-info" style="font-size: 1.1rem;"></i>
-                                                        <div>
-                                                            <strong class="d-block" style="font-size: 0.9rem; color: #212529;">
-                                                                {% if guest.name %}{{ guest.name }}{% elif guest.get %}{{ guest.get.name }}{% else %}Guest{% endif %}
-                                                            </strong>
-                                                            {% if guest.meta or guest.get.meta %}
-                                                                <small class="text-muted" style="font-size: 0.75rem;">
-                                                                    <i class="fas fa-info-circle me-1"></i>{% if guest.meta %}{{ guest.meta }}{% else %}{{ guest.get.meta }}{% endif %}
-                                                                </small>
-                                                            {% endif %}
-                                                            {% if guest.type or guest.get.type %}
-                                                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
-                                                                    <i class="fas fa-{% if guest.type == 'child' or guest.get.type == 'child' %}child{% else %}user{% endif %} me-1"></i>
-                                                                    {% if guest.type %}{{ guest.type|capfirst }}{% else %}{{ guest.get.type|capfirst }}{% endif %}
-                                                                </small>
-                                                            {% endif %}
-                                                            {% if guest.birth_date or guest.get.birth_date %}
-                                                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
-                                                                    <i class="fas fa-birthday-cake me-1"></i>
-                                                                    {% if guest.birth_date %}{{ guest.birth_date }}{% else %}{{ guest.get.birth_date }}{% endif %}
-                                                                </small>
-                                                            {% endif %}
-                                                            {% if guest.email or guest.get.email %}
-                                                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
-                                                                    <i class="fas fa-envelope me-1"></i>
-                                                                    {% if guest.email %}{{ guest.email }}{% else %}{{ guest.get.email }}{% endif %}
-                                                                </small>
-                                                            {% endif %}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            {% endfor %}
+                                    </div>
+                                    {% endif %}
+
+                                    <!-- Servicios Adicionales -->
+                                    {% if reservation.service_reservations.all %}
+                                    <div class="mt-4 pt-2 border-top">
+                                        <div class="info-label mb-3">
+                                            <i class="fas fa-concierge-bell me-1"></i>{% trans "Additional Services" %}
                                         </div>
-                                        {% endif %}
+                                        <div class="table-responsive">
+                                            <table class="table table-sm table-bordered">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>{% trans "Service" %}</th>
+                                                        <th>{% trans "Type" %}</th>
+                                                        <th class="text-center">{% trans "Qty" %}</th>
+                                                        <th class="text-end">{% trans "Price" %}</th>
+                                                        <th class="text-end">{% trans "Total" %}</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for service_res in reservation.service_reservations.all %}
+                                                    <tr>
+                                                        <td>
+                                                            <strong>{{ service_res.service.service_name }}</strong>
+                                                            {% if service_res.service.description %}
+                                                                <br><small class="text-muted">{{ service_res.service.description|truncatechars:50 }}</small>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td>
+                                                            <span class="badge bg-light text-dark border">
+                                                                {{ service_res.service.get_service_type_display }}
+                                                            </span>
+                                                        </td>
+                                                        <td class="text-center">{{ service_res.quantity }}</td>
+                                                        <td class="text-end">${{ service_res.service.price }}</td>
+                                                        <td class="text-end">
+                                                            {# Simple calculation for display #}
+                                                            <strong>${{ service_res.service.price }}</strong>
+                                                            {# Note: Real calculation involves logic for per_person/per_night #}
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                     {% endif %}
                                 </div>

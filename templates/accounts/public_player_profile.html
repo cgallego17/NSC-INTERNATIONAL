@@ -382,7 +382,7 @@
                 <h2>{% if player.user.profile.country or player.user.profile.state or player.user.profile.city %}{% if player.user.profile.country %}{{ player.user.profile.country.name }}{% endif %}{% if player.user.profile.state %}{% if player.user.profile.country %}, {% endif %}{{ player.user.profile.state.name }}{% endif %}{% if player.user.profile.city %}{% if player.user.profile.country or player.user.profile.state %}, {% endif %}{{ player.user.profile.city.name }}{% endif %}{% else %}N/A{% endif %}</h2>
             </div>
             <div class="team">
-                <img src="{{ MEDIA_URL }}sponsors/ncs_international.png" alt="NCS International" class="team-logo">
+                <img src="{% static 'images/ncs-app-icon.svg' %}" alt="NCS International" class="team-logo">
             </div>
     </header>
 
@@ -401,7 +401,7 @@
             {% endif %}
 
             <div class="schedule" style="display: flex; justify-content: center; align-items: center; padding: 20px;">
-                <img src="{{ MEDIA_URL }}sponsors/ncs_international.png" alt="NCS International" class="team-logo" style="max-width: 100%; height: auto; border: none; outline: none;">
+                <img src="{% static 'images/ncs-white.svg' %}" alt="NCS International" class="team-logo" style="max-width: 100%; height: auto; border: none; outline: none;">
             </div>
         </section>
 
