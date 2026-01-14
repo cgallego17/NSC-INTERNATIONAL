@@ -3068,7 +3068,7 @@
                                                 title="{% filter escapejs %}{% trans 'Enable sound' %}{% endfilter %}">
                                             <i class="fas fa-volume-mute"></i>
                                         </button>
-                                        <button class="video-promo-action-btn" title="{% trans 'Share' %}" onclick="navigator.share ? navigator.share({title: 'NCS International Video', url: window.location.href}) : navigator.clipboard.writeText(window.location.href).then(() => alert('{% filter escapejs %}{% trans \"Link copied to clipboard\" %}{% endfilter %}'))">
+                                        <button class="video-promo-action-btn" title="{% trans 'Share' %}" onclick="navigator.share ? navigator.share({title: 'NCS International Video', url: window.location.href}) : navigator.clipboard.writeText(window.location.href).then(() => alert('{% filter escapejs %}{% trans "Link copied to clipboard" %}{% endfilter %}'))">
                                             <i class="fas fa-share-alt"></i>
                                         </button>
                                     </div>
@@ -3121,9 +3121,9 @@
                     "description": "{{ event.description|striptags|escapejs|truncatewords:80 }}",
                     "video_url": {% if event.video_url %}"{{ event.video_url|escapejs }}"{% else %}null{% endif %},
                     "location": "{% if event.city %}{{ event.city.name }}{% if event.state %}, {{ event.state.name }}{% endif %}{% else %}{% if event.location %}{{ event.location }}{% else %}-{% endif %}{% endif %}",
-                    "event_type": "{% if event.event_type %}{{ event.event_type.name|escapejs }}{% else %}{% filter escapejs %}{% trans \"Tournament / Showcase\" %}{% endfilter %}{% endif %}",
+                    "event_type": "{% if event.event_type %}{{ event.event_type.name|escapejs }}{% else %}{% filter escapejs %}{% trans "Tournament / Showcase" %}{% endfilter %}{% endif %}",
                     "event_type_id": {% if event.event_type %}{{ event.event_type.id }}{% else %}null{% endif %},
-                    "divisions": "{% for division in event.divisions.all %}{{ division.name|escapejs }}{% if not forloop.last %}, {% endif %}{% empty %}{% filter escapejs %}{% trans \"All Categories\" %}{% endfilter %}{% endfor %}",
+                    "divisions": "{% for division in event.divisions.all %}{{ division.name|escapejs }}{% if not forloop.last %}, {% endif %}{% empty %}{% filter escapejs %}{% trans "All Categories" %}{% endfilter %}{% endfor %}",
                     "start_date": "{{ event.start_date|date:'Y-m-d' }}",
                     "detail_url": "{% url 'events:public_detail' event.pk %}"
                 }{% if not forloop.last %},{% endif %}
