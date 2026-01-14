@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 01:49:22
+
+- **[0e35f21]** ```
+  - *Fecha:* 2026-01-14 01:49:22
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/events/public_detail.html`
+  - *Detalles:*
+    - refactor: Remove duplicate itinerary section from team manager plan card
+    - - Remove redundant itinerary_team_manager section displaying event days
+    - - Delete 19 lines including plan-includes-section wrapper, title, and list items
+    - - Eliminate duplicate day.title and day.day date display with English locale enforcement
+    - - Keep only registration button for team manager plan
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 01:41:38
 
 - **[f2a91fd]** ```
