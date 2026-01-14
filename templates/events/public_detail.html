@@ -1788,25 +1788,6 @@
                             </div>
                             {% endif %}
 
-                            {% if itinerary_team_manager %}
-                            <div class="plan-includes-section">
-                                <div class="plan-includes-title">
-                                    <i class="fas fa-route"></i>
-                                    {% trans "Itinerary" %}
-                                </div>
-                                <ul class="plan-includes-list">
-                                    {% for day in itinerary_team_manager %}
-                                    <li class="plan-includes-item">
-                                        <i class="fas fa-calendar-day"></i>
-                                        <div class="plan-includes-item-content">
-                                            <div class="plan-includes-item-title">{{ day.title }}</div>
-                                            <div class="plan-includes-item-description">{% language 'en' %}{{ day.day|date:"M d, Y" }}{% endlanguage %}</div>
-                                        </div>
-                                    </li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                            {% endif %}
 
                             <a href="{% url 'accounts:register' %}?user_type=team_manager&event_id={{ event.id }}" class="plan-register-btn">
                                 <i class="fas fa-users-cog"></i>
