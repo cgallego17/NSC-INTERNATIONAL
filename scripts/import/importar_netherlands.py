@@ -4,10 +4,23 @@ import sys
 
 # Cambiar al directorio raíz del proyecto si es necesario
 script_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.dirname(script_dir)
-if os.path.basename(project_root) != "NSC-INTERNATIONAL":
-    # Si el script está en scripts/, subir un nivel
-    project_root = os.path.dirname(script_dir)
+
+
+def _discover_project_root(start_dir: str) -> str:
+    """Walk up from start_dir until a Django project root is found (manage.py)."""
+    current = os.path.abspath(start_dir)
+    for _ in range(8):
+        if os.path.exists(os.path.join(current, "manage.py")):
+            return current
+        parent = os.path.dirname(current)
+        if parent == current:
+            break
+        current = parent
+    # Fallback: two levels up from scripts/import
+    return os.path.abspath(os.path.join(start_dir, os.pardir, os.pardir))
+
+
+project_root = _discover_project_root(script_dir)
 
 # Agregar el directorio raíz al path de Python
 if project_root not in sys.path:
