@@ -454,7 +454,7 @@
                             <input type="hidden" name="language" value="en">
                                 <button type="submit" class="language-option {% if CURRENT_LANGUAGE != 'es' and CURRENT_LANGUAGE|slice:":2" != 'es' %}active{% endif %}">
                                 <span class="flag-icon flag-us"></span>
-                                <span class="language-name">English</span>
+                                <span class="language-name">{% trans "English" %}</span>
                             </button>
                         </form>
                         <form action="{% url 'set_language' %}" method="post" class="language-option-form" id="lang-form-es">
@@ -463,7 +463,7 @@
                             <input type="hidden" name="language" value="es">
                                 <button type="submit" class="language-option {% if CURRENT_LANGUAGE == 'es' or CURRENT_LANGUAGE|slice:":2" == 'es' %}active{% endif %}">
                                 <span class="flag-icon flag-es"></span>
-                                <span class="language-name">Español</span>
+                                <span class="language-name">{% trans "Spanish" %}</span>
                             </button>
                         </form>
                     </div>
