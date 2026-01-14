@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 01:50:10
+
+- **[2f35a48]** ```
+  - *Fecha:* 2026-01-14 01:50:09
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/events/public_detail.html`
+  - *Detalles:*
+    - refactor: Remove duplicate itinerary section from spectator plan card
+    - - Remove redundant itinerary_spectator section displaying event days
+    - - Delete 20 lines including plan-includes-section wrapper, title, and list items
+    - - Eliminate duplicate day.title and day.day date display with English locale enforcement
+    - - Keep only registration button for spectator plan
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 01:49:22
 
 - **[0e35f21]** ```
