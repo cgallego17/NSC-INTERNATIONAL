@@ -1,3 +1,4 @@
+import importlib.util
 import os
 import sys
 
@@ -15,9 +16,60 @@ if project_root not in sys.path:
 # Cambiar al directorio raíz del proyecto
 os.chdir(project_root)
 
+
+def _discover_settings_module() -> str:
+    """Try to find a valid <package>.settings module in the project root."""
+    # Allow override via CLI: python importar_netherlands.py nsc_admin.settings
+    if len(sys.argv) >= 2 and sys.argv[1] and not sys.argv[1].startswith("-"):
+        return sys.argv[1]
+
+    # Allow override via env var
+    env = os.environ.get("DJANGO_SETTINGS_MODULE")
+    if env:
+        return env
+
+    # Common defaults
+    candidates = [
+        "nsc_admin.settings",
+        "config.settings",
+        "core.settings",
+        "project.settings",
+        "settings",
+    ]
+
+    # Also scan top-level packages for a settings.py
+    try:
+        for entry in os.listdir(project_root):
+            full = os.path.join(project_root, entry)
+            if not os.path.isdir(full):
+                continue
+            if entry.startswith(".") or entry in {
+                "venv",
+                "env",
+                "__pycache__",
+                "node_modules",
+            }:
+                continue
+            if os.path.exists(os.path.join(full, "settings.py")):
+                candidates.insert(0, f"{entry}.settings")
+    except Exception:
+        pass
+
+    for mod in candidates:
+        if importlib.util.find_spec(mod) is not None:
+            return mod
+
+    raise RuntimeError(
+        "No se pudo detectar DJANGO_SETTINGS_MODULE. "
+        "Configúralo con DJANGO_SETTINGS_MODULE=<tu_modulo>.settings "
+        "o ejecuta: python importar_netherlands.py <tu_modulo>.settings"
+    )
+
+
 import django
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "nsc_admin.settings")
+settings_module = _discover_settings_module()
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", settings_module)
 django.setup()
 
 import json

@@ -640,20 +640,16 @@ class AdminDashboard {
         const closeNotifications = document.getElementById('closeNotifications');
         const markAllRead = document.getElementById('markAllRead');
 
-        console.log('Setting up notification system:', {
-            notificationBtn: !!notificationBtn,
-            notificationPanel: !!notificationPanel,
-            closeNotifications: !!closeNotifications,
-            markAllRead: !!markAllRead
-        });
+        // If the notification UI is not present on this page, do nothing.
+        if (!notificationBtn || !notificationPanel) {
+            return;
+        }
 
         if (notificationBtn && notificationPanel) {
             notificationBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.toggleNotifications();
             });
-        } else {
-            // console.warn('Notification button or panel not found');
         }
 
         if (closeNotifications) {
