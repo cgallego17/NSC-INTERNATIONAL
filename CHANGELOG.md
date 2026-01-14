@@ -7,6 +7,16 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 00:26:56
+
+- **[f33a483]** importar NL
+  - *Fecha:* 2026-01-14 00:26:54
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `scripts/import/importar_netherlands.py`
+
+
+
 ### Actualizado: 2026-01-13 19:47:28
 
 - **[a142a76]** Fix UnboundLocalError: rename _ variables shadowing gettext in views_private.py
