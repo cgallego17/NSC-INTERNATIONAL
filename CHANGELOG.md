@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 01:30:39
+
+- **[d47a3a6]** ```
+  - *Fecha:* 2026-01-14 01:30:38
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 4 archivo(s)
+    - `locale/en/LC_MESSAGES/django.mo`
+    - `locale/en/LC_MESSAGES/django.po`
+    - `locale/es/LC_MESSAGES/django.mo`
+    - `locale/es/LC_MESSAGES/django.po`
+  - *Detalles:*
+    - chore: Update English translation catalog with new message strings
+    - - Regenerate django.mo compiled translation file from updated source
+    - - Update POT-Creation-Date timestamp to 2026-01-14 01:30-0500
+    - - Add translation entries for new templates including order_detail.html, invoice.html, public_login.html, and public_team_list.html
+    - - Add msgid entries for new UI strings: "Individual Player", "Parent / Guardian", "Spectator"
+    - - Expand location references across 50+ template files with updated line
+
+
+
 ### Actualizado: 2026-01-14 01:29:27
 
 - **[1a557e7]** ```
