@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 02:05:46
+
+- **[45f4579]** ```
+  - *Fecha:* 2026-01-14 02:05:45
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/events/public_detail.html`
+  - *Detalles:*
+    - refactor: Remove duplicate itinerary section from player plan card
+    - - Remove redundant itinerary_player section displaying event days
+    - - Delete 19 lines including plan-includes-section wrapper, title, and list items
+    - - Eliminate duplicate day.title and day.day date display with English locale enforcement
+    - - Keep only registration button for player plan
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 01:50:10
 
 - **[2f35a48]** ```
