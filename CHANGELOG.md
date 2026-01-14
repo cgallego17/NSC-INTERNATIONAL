@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 00:56:02
+
+- **[c2f84fb]** ```
+  - *Fecha:* 2026-01-14 00:56:01
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/public_home.html`
+  - *Detalles:*
+    - fix: Normalize quote style in escapejs filtered trans tags from escaped double quotes to single quotes
+    - - Change \"...\" to "..." in three trans tag instances within escapejs filters
+    - - Affects "Link copied to clipboard", "Tournament / Showcase", and "All Categories" translations
+    - - Maintain consistent quote style across template while preserving escapejs filtering
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 00:26:56
 
 - **[f33a483]** importar NL
