@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 01:02:00
+
+- **[bca53b6]** ```
+  - *Fecha:* 2026-01-14 01:01:59
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `scripts/import/importar_netherlands.py`
+    - `static/js/admin.js`
+  - *Detalles:*
+    - feat: Add auto-discovery for Django settings module and simplify notification UI logging
+    - - Add _discover_settings_module() function to automatically detect Django settings module
+    - - Support settings override via CLI argument, DJANGO_SETTINGS_MODULE env var, or common defaults
+    - - Scan top-level packages for settings.py to build candidate list
+    - - Replace hardcoded "nsc_admin.settings" with dynamic settings_module detection
+    - - Remove verbose console.log statement from notification system setup
+    - - Ad
+
+
+
 ### Actualizado: 2026-01-14 00:56:02
 
 - **[c2f84fb]** ```
