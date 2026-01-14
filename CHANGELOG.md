@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 01:23:28
+
+- **[36f1f29]** ```
+  - *Fecha:* 2026-01-14 01:23:28
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `templates/accounts/panel_tabs/registrar_hijo.html`
+    - `templates/accounts/parent_player_register.html`
+  - *Detalles:*
+    - fix: Improve location cascade selectors with fallback field names and enhanced error handling
+    - - Add fallback selectors for child-prefixed field names (child-country, child-state, child-city) alongside standard names
+    - - Add HTTP response validation in fetch calls for states and cities endpoints
+    - - Add empty data array validation with user-friendly fallback messages
+    - - Display "No states/cities available" when API returns empty results
+    - - Throw descriptive errors for non-OK HTTP responses
+    - - Apply
+
+
+
 ### Actualizado: 2026-01-14 01:07:21
 
 - **[5656d8e]** ```
