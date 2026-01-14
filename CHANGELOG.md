@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 01:03:09
+
+- **[d9066c5]** ```
+  - *Fecha:* 2026-01-14 01:03:08
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `scripts/import/importar_netherlands.py`
+  - *Detalles:*
+    - fix: Add exception handling for module spec discovery in settings auto-detection
+    - - Wrap find_spec() call in try-except block to catch ModuleNotFoundError and ValueError
+    - - Continue iteration when module spec lookup fails instead of crashing
+    - - Improve robustness of settings module discovery process
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 01:02:00
 
 - **[bca53b6]** ```
