@@ -56,8 +56,11 @@ def _discover_settings_module() -> str:
         pass
 
     for mod in candidates:
-        if importlib.util.find_spec(mod) is not None:
-            return mod
+        try:
+            if importlib.util.find_spec(mod) is not None:
+                return mod
+        except (ModuleNotFoundError, ValueError):
+            continue
 
     raise RuntimeError(
         "No se pudo detectar DJANGO_SETTINGS_MODULE. "
