@@ -1186,8 +1186,8 @@
                 const currentStateValue = stateSelect.value;
 
                 // Limpiar estados y ciudades
-                stateSelect.innerHTML = '<option value="">{% trans "Select a state"|escapejs %}</option>';
-                citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
+                stateSelect.innerHTML = '<option value="">{% filter escapejs %}{% trans "Select a state" %}{% endfilter %}</option>';
+                citySelect.innerHTML = '<option value="">{% filter escapejs %}{% trans "Select a city" %}{% endfilter %}</option>';
 
                 if (countryId) {
                     if (showLoader && stateLoader) stateLoader.style.display = 'block';
@@ -1215,7 +1215,7 @@
                         })
                         .catch(error => {
                             console.error('Error loading states:', error);
-                            stateSelect.innerHTML = '<option value="">{% trans "Error loading states"|escapejs %}</option>';
+                            stateSelect.innerHTML = '<option value="">{% filter escapejs %}{% trans "Error loading states" %}{% endfilter %}</option>';
                         })
                         .finally(() => {
                             if (stateLoader) stateLoader.style.display = 'none';
@@ -1229,7 +1229,7 @@
                 const stateId = stateSelect.value;
                 const currentCityValue = citySelect.value;
 
-                citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
+                citySelect.innerHTML = '<option value="">{% filter escapejs %}{% trans "Select a city" %}{% endfilter %}</option>';
 
                 if (stateId) {
                     if (showLoader && cityLoader) cityLoader.style.display = 'block';
@@ -1250,7 +1250,7 @@
                         })
                         .catch(error => {
                             console.error('Error loading cities:', error);
-                            citySelect.innerHTML = '<option value="">{% trans "Error loading cities"|escapejs %}</option>';
+                            citySelect.innerHTML = '<option value="">{% filter escapejs %}{% trans "Error loading cities" %}{% endfilter %}</option>';
                         })
                         .finally(() => {
                             if (cityLoader) cityLoader.style.display = 'none';

@@ -189,11 +189,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const playerName = form.closest('.card').querySelector('.card-title').textContent.trim();
 
             if (action === 'approve') {
-                if (!confirm('{% trans "Are you sure you want to approve the age verification for" %} ' + playerName + '?')) {
+                if (!confirm('{% filter escapejs %}{% trans "Are you sure you want to approve the age verification for" %}{% endfilter %} ' + playerName + '?')) {
                     e.preventDefault();
                 }
             } else if (action === 'reject') {
-                if (!confirm('{% trans "Are you sure you want to reject the age verification for" %} ' + playerName + '?')) {
+                if (!confirm('{% filter escapejs %}{% trans "Are you sure you want to reject the age verification for" %}{% endfilter %} ' + playerName + '?')) {
                     e.preventDefault();
                 }
             }

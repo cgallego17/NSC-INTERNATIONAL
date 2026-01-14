@@ -3024,7 +3024,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 playerDiv.innerHTML = `
                     <h6 style="font-weight: 700; color: var(--mlb-blue); margin-bottom: 12px; font-size: 0.9rem;">
-                        ${index === 0 ? '{% trans "Player/Child" %}' : ''} ${index + 1}
+                        ${index === 0 ? '{% filter escapejs %}{% trans "Player/Child" %}{% endfilter %}' : ''} ${index + 1}
                     </h6>
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -3196,12 +3196,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const numberOfGuests = 1 + playersCount + additionalAdultsCount + additionalChildrenCount;
 
             if (!roomId) {
-                alert('{% trans "Please select a room" %}');
+                alert('{{ "Please select a room"|escapejs }}');
                 return false;
             }
 
             if (!checkIn || !checkOut) {
-                alert('{% trans "Event dates are not configured. Please contact support." %}');
+                alert('{{ "Event dates are not configured. Please contact support."|escapejs }}');
                 console.error('Missing event dates:', { checkIn, checkOut, eventStart: '{{ event.start_date }}', eventEnd: '{{ event.end_date }}' });
                 return false;
             }
@@ -3210,11 +3210,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const checkInDate = new Date(checkIn);
             const checkOutDate = new Date(checkOut);
             if (isNaN(checkInDate.getTime()) || isNaN(checkOutDate.getTime())) {
-                alert('{% trans "Invalid date format. Please contact support." %}');
+                alert('{{ "Invalid date format. Please contact support."|escapejs }}');
                 return false;
             }
             if (checkOutDate <= checkInDate) {
-                alert('{% trans "Check-out date must be after check-in date." %}');
+                alert('{{ "Check-out date must be after check-in date."|escapejs }}');
                 return false;
             }
 
@@ -3228,7 +3228,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const submitBtn = document.getElementById('add-to-checkout-btn' + hotelPk);
             const originalText = submitBtn.innerHTML;
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{% trans "Adding..." %}';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>{{ "Adding..."|escapejs }}';
 
             // Preparar datos para el carrito
             const cartData = {
@@ -3307,7 +3307,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (typeof window.updateCheckoutHotel === 'function') {
                                 window.updateCheckoutHotel({
                                     hotel_name: '{{ event.hotel.hotel_name|escapejs }}',
-                                    room_name: roomData.name || roomData.room_type || roomData.room_number || '{% trans "Hotel Room" %}',
+                                    room_name: roomData.name || roomData.room_type || roomData.room_number || '{% filter escapejs %}{% trans "Hotel Room" %}{% endfilter %}',
                                     room_number: roomData.room_number || '',
                                     room_type: roomData.room_type || '',
                                     check_in: checkIn,
@@ -3343,7 +3343,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (typeof window.updateCheckoutHotel === 'function') {
                                 window.updateCheckoutHotel({
                                     hotel_name: '{{ event.hotel.hotel_name|escapejs }}',
-                                    room_name: '{% trans "Hotel Room" %}',
+                                    room_name: '{% filter escapejs %}{% trans "Hotel Room" %}{% endfilter %}',
                                     room_number: '',
                                     room_type: '',
                                     check_in: checkIn,
@@ -3369,7 +3369,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => {
                 console.error('Error adding to cart:', error);
-                alert('{% trans "An error occurred. Please try again." %}');
+                alert('{{ "An error occurred. Please try again."|escapejs }}');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = originalText;
             });
@@ -3424,11 +3424,11 @@ document.addEventListener('DOMContentLoaded', function() {
             const guestsCount = getGuestsCountFromRoomsList(pk);
             const ok = guestsCount === null ? true : (guestsCount > 0);
             if (!ok) {
-                alert('{% trans "Please add/select guests before selecting a room." %}');
+                alert('{{ "Please add/select guests before selecting a room."|escapejs }}');
             }
             return ok;
         } catch (e) {
-            alert('{% trans "Please add/select guests before selecting a room." %}');
+            alert('{{ "Please add/select guests before selecting a room."|escapejs }}');
             return false;
         }
     };
@@ -3533,7 +3533,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const ok = window.nscValidateGuestsBeforeRoomSelect(hotelPk);
                 if (!ok) return;
             } else if (!hasGuestsSelected()) {
-                alert('{% trans "Please add/select guests before selecting a room." %}');
+                alert('{{ "Please add/select guests before selecting a room."|escapejs }}');
                 return;
             }
             const result = originalSelectRoom.call(this, btn);

@@ -672,14 +672,14 @@ window.initProfilePictureUpload = function() {
             if (file) {
                 const maxSize = 5 * 1024 * 1024; // 5MB
                 if (file.size > maxSize) {
-                    alert('{% trans "The file is too large. Maximum size is 5MB."|escapejs %}');
+                    alert('{% filter escapejs %}{% trans "The file is too large. Maximum size is 5MB." %}{% endfilter %}');
                     profilePictureInput.value = '';
                     return;
                 }
 
                 const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
                 if (!allowedTypes.includes(file.type)) {
-                    alert('{% trans "Invalid file type. Only JPG, PNG and GIF are allowed."|escapejs %}');
+                    alert('{% filter escapejs %}{% trans "Invalid file type. Only JPG, PNG and GIF are allowed." %}{% endfilter %}');
                     profilePictureInput.value = '';
                     return;
                 }
@@ -745,8 +745,8 @@ window.initProfilePictureUpload = function() {
                 const countryId = countrySelect.value;
                 const currentStateValue = preserveState || stateSelect.value;
 
-                stateSelect.innerHTML = '<option value="">{% trans "Select a state"|escapejs %}</option>';
-                citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
+                stateSelect.innerHTML = '<option value="">{% filter escapejs %}{% trans "Select a state" %}{% endfilter %}</option>';
+                citySelect.innerHTML = '<option value="">{% filter escapejs %}{% trans "Select a city" %}{% endfilter %}</option>';
 
                 if (countryId) {
                     if (showLoader && stateLoader) stateLoader.style.display = 'block';
@@ -773,7 +773,7 @@ window.initProfilePictureUpload = function() {
                         })
                         .catch(error => {
                             console.error('Error loading states:', error);
-                            stateSelect.innerHTML = '<option value="">{% trans "Error loading states"|escapejs %}</option>';
+                            stateSelect.innerHTML = '<option value="">{% filter escapejs %}{% trans "Error loading states" %}{% endfilter %}</option>';
                         })
                         .finally(() => {
                             if (stateLoader) stateLoader.style.display = 'none';
@@ -790,7 +790,7 @@ window.initProfilePictureUpload = function() {
                 const stateId = stateSelect.value;
                 const currentCityValue = preserveCity || citySelect.value;
 
-                citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
+                citySelect.innerHTML = '<option value="">{% filter escapejs %}{% trans "Select a city" %}{% endfilter %}</option>';
 
                 if (stateId) {
                     if (showLoader && cityLoader) cityLoader.style.display = 'block';
@@ -811,7 +811,7 @@ window.initProfilePictureUpload = function() {
                         })
                         .catch(error => {
                             console.error('Error loading cities:', error);
-                            citySelect.innerHTML = '<option value="">{% trans "Error loading cities"|escapejs %}</option>';
+                            citySelect.innerHTML = '<option value="">{% filter escapejs %}{% trans "Error loading cities" %}{% endfilter %}</option>';
                         })
                         .finally(() => {
                             if (cityLoader) cityLoader.style.display = 'none';
@@ -842,10 +842,10 @@ window.initProfilePictureUpload = function() {
         setTimeout(window.initProfilePictureUpload, 100);
 
         const fileUploadTranslations = {
-            documentUploaded: "{% trans 'Document Uploaded'|escapejs %}",
-            clickToChangeFile: "{% trans 'Click to change file'|escapejs %}",
-            fileTooLarge: "{% trans 'The file is too large. Maximum allowed size is 10MB.'|escapejs %}",
-            fileTypeNotAllowed: "{% trans 'File type not allowed. Only PDF, JPG or PNG are accepted.'|escapejs %}"
+            documentUploaded: "{{ 'Document Uploaded'|escapejs }}",
+            clickToChangeFile: "{{ 'Click to change file'|escapejs }}",
+            fileTooLarge: "{{ 'The file is too large. Maximum allowed size is 10MB.'|escapejs }}",
+            fileTypeNotAllowed: "{{ 'File type not allowed. Only PDF, JPG or PNG are accepted.'|escapejs }}"
         };
 
         const fileInput = document.querySelector('#playerEditForm input[type="file"][name*="age_verification"]');

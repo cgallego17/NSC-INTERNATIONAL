@@ -577,11 +577,11 @@ if (typeof translations === 'undefined') {
 
 // Agregar traducciones del formulario de registro
 Object.assign(translations, {
-    fileTooLarge: "{% trans 'The file is too large. Maximum size allowed is 10MB.' %}",
-    fileTypeNotAllowed: "{% trans 'File type not allowed. Only PDF, JPG or PNG are accepted.' %}",
-    documentUploaded: "{% trans 'Document Uploaded' %}",
-    clickToChangeFile: "{% trans 'Click to change file' %}",
-    pleaseCompleteFields: "{% trans 'Please complete all required fields' %}"
+    fileTooLarge: "{{ 'The file is too large. Maximum size allowed is 10MB.'|escapejs }}",
+    fileTypeNotAllowed: "{{ 'File type not allowed. Only PDF, JPG or PNG are accepted.'|escapejs }}",
+    documentUploaded: "{{ 'Document Uploaded'|escapejs }}",
+    clickToChangeFile: "{{ 'Click to change file'|escapejs }}",
+    pleaseCompleteFields: "{{ 'Please complete all required fields'|escapejs }}"
 });
 
 // Función global de inicialización del formulario de registro de hijo
@@ -1060,8 +1060,8 @@ window.initParentPlayerForm = function() {
                 const currentStateValue = preserveState || stateSelect.value;
 
             // Limpiar estados y ciudades
-            stateSelect.innerHTML = '<option value="">{% trans "Select a state"|escapejs %}</option>';
-            citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
+            stateSelect.innerHTML = '<option value="">{{ "Select a state"|escapejs }}</option>';
+            citySelect.innerHTML = '<option value="">{{ "Select a city"|escapejs }}</option>';
 
             if (countryId) {
                 // Mostrar loader y deshabilitar select solo si no es la carga inicial
@@ -1090,7 +1090,7 @@ window.initParentPlayerForm = function() {
                     })
                     .catch(error => {
                             console.error('Error loading states:', error);
-                        stateSelect.innerHTML = '<option value="">{% trans "Error loading states"|escapejs %}</option>';
+                        stateSelect.innerHTML = '<option value="">{{ "Error loading states"|escapejs }}</option>';
                     })
                     .finally(() => {
                         // Ocultar loader y habilitar select
@@ -1109,7 +1109,7 @@ window.initParentPlayerForm = function() {
             const stateId = stateSelect.value;
                 const currentCityValue = preserveCity || citySelect.value;
 
-            citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
+            citySelect.innerHTML = '<option value="">{{ "Select a city"|escapejs }}</option>';
 
             if (stateId) {
                 // Mostrar loader y deshabilitar select solo si no es la carga inicial
@@ -1131,7 +1131,7 @@ window.initParentPlayerForm = function() {
                     })
                     .catch(error => {
                             console.error('Error loading cities:', error);
-                        citySelect.innerHTML = '<option value="">{% trans "Error loading cities"|escapejs %}</option>';
+                        citySelect.innerHTML = '<option value="">{{ "Error loading cities"|escapejs }}</option>';
                     })
                     .finally(() => {
                         // Ocultar loader y habilitar select

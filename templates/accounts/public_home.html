@@ -3063,12 +3063,12 @@
                                             <i class="far fa-clock"></i>
                                         </button>
                                         <button class="video-promo-action-btn video-audio-toggle" type="button"
-                                                data-title-enable="{% trans 'Enable sound' %}"
-                                                data-title-mute="{% trans 'Mute' %}"
-                                                title="{% trans 'Enable sound' %}">
+                                                data-title-enable="{% filter escapejs %}{% trans 'Enable sound' %}{% endfilter %}"
+                                                data-title-mute="{% filter escapejs %}{% trans 'Mute' %}{% endfilter %}"
+                                                title="{% filter escapejs %}{% trans 'Enable sound' %}{% endfilter %}">
                                             <i class="fas fa-volume-mute"></i>
                                         </button>
-                                        <button class="video-promo-action-btn" title="{% trans 'Share' %}" onclick="navigator.share ? navigator.share({title: 'NCS International Video', url: window.location.href}) : navigator.clipboard.writeText(window.location.href).then(() => alert('{% trans "Link copied to clipboard" %}'))">
+                                        <button class="video-promo-action-btn" title="{% trans 'Share' %}" onclick="navigator.share ? navigator.share({title: 'NCS International Video', url: window.location.href}) : navigator.clipboard.writeText(window.location.href).then(() => alert('{% filter escapejs %}{% trans \"Link copied to clipboard\" %}{% endfilter %}'))">
                                             <i class="fas fa-share-alt"></i>
                                         </button>
                                     </div>
@@ -3121,9 +3121,9 @@
                     "description": "{{ event.description|striptags|escapejs|truncatewords:80 }}",
                     "video_url": {% if event.video_url %}"{{ event.video_url|escapejs }}"{% else %}null{% endif %},
                     "location": "{% if event.city %}{{ event.city.name }}{% if event.state %}, {{ event.state.name }}{% endif %}{% else %}{% if event.location %}{{ event.location }}{% else %}-{% endif %}{% endif %}",
-                    "event_type": "{% if event.event_type %}{{ event.event_type.name|escapejs }}{% else %}{% trans 'Tournament / Showcase' %}{% endif %}",
+                    "event_type": "{% if event.event_type %}{{ event.event_type.name|escapejs }}{% else %}{% filter escapejs %}{% trans \"Tournament / Showcase\" %}{% endfilter %}{% endif %}",
                     "event_type_id": {% if event.event_type %}{{ event.event_type.id }}{% else %}null{% endif %},
-                    "divisions": "{% for division in event.divisions.all %}{{ division.name|escapejs }}{% if not forloop.last %}, {% endif %}{% empty %}{% trans 'All Categories' %}{% endfor %}",
+                    "divisions": "{% for division in event.divisions.all %}{{ division.name|escapejs }}{% if not forloop.last %}, {% endif %}{% empty %}{% filter escapejs %}{% trans \"All Categories\" %}{% endfilter %}{% endfor %}",
                     "start_date": "{{ event.start_date|date:'Y-m-d' }}",
                     "detail_url": "{% url 'events:public_detail' event.pk %}"
                 }{% if not forloop.last %},{% endif %}
@@ -3169,12 +3169,7 @@
                             {% if schedule_subtitle %}
                                 {{ schedule_subtitle }}
                             {% elif site_settings %}
-                                {% get_current_language as CURRENT_LANG %}
-                                {% if CURRENT_LANG == 'es' %}
-                                    {{ site_settings.schedule_subtitle_es|default:site_settings.schedule_subtitle_en }}
-                                {% else %}
-                                    {{ site_settings.schedule_subtitle_en|default:"REGIONAL EXPANSION AND NEW NATIONAL AND REGIONAL CHAMPIONSHIPS FOR 2026" }}
-                                {% endif %}
+                                {% if site_settings.get_schedule_subtitle %}{{ site_settings.get_schedule_subtitle }}{% else %}REGIONAL EXPANSION AND NEW NATIONAL AND REGIONAL CHAMPIONSHIPS FOR 2026{% endif %}
                             {% else %}
                                 {% trans "REGIONAL EXPANSION AND NEW NATIONAL AND REGIONAL CHAMPIONSHIPS FOR 2026" %}
                             {% endif %}
@@ -3183,12 +3178,7 @@
                             {% if schedule_description %}
                                 {{ schedule_description }}
                             {% elif site_settings %}
-                                {% get_current_language as CURRENT_LANG %}
-                                {% if CURRENT_LANG == 'es' %}
-                                    {{ site_settings.schedule_description_es|default:site_settings.schedule_description_en }}
-                                {% else %}
-                                    {% if site_settings.schedule_description_en %}{{ site_settings.schedule_description_en }}{% endif %}
-                                {% endif %}
+                                {% if site_settings.get_schedule_description %}{{ site_settings.get_schedule_description }}{% endif %}
                             {% else %}
                                 {% blocktrans %}As we move forward into 2026, NCS International continues to elevate its tournament and showcase platform. With a regional presence expansion for ages 7U-18U, new and improved National and Regional Championship events, and an even broader showcase schedule across the country, NCS remains dedicated to providing the highest standard of competition and experience for players, coaches and families alike.{% endblocktrans %}
                             {% endif %}
@@ -4032,7 +4022,7 @@
                     }
 
                     video.appendChild(source);
-                    video.appendChild(document.createTextNode('{% trans "Your browser does not support video playback." %}'));
+                    video.appendChild(document.createTextNode('{% filter escapejs %}{% trans "Your browser does not support video playback." %}{% endfilter %}'));
 
                     // Agregar listeners para debugging
                     video.addEventListener('loadedmetadata', function() {
@@ -4156,16 +4146,16 @@
                 const linkEl = document.getElementById('promoEventLink');
 
                 if (titleEl) {
-                    titleEl.textContent = (event.title || '{% trans "Event" %}').toUpperCase();
+                    titleEl.textContent = (event.title || '{% filter escapejs %}{% trans "Event" %}{% endfilter %}').toUpperCase();
                 }
                 if (descEl) {
-                    descEl.innerHTML = event.description || '{% trans "Experience NCS International events" %}';
+                    descEl.innerHTML = event.description || '{% filter escapejs %}{% trans "Experience NCS International events" %}{% endfilter %}';
                 }
                 if (locationEl) {
                     locationEl.textContent = event.location || '-';
                 }
                 if (typeEl) {
-                    typeEl.textContent = event.event_type || '{% trans "Tournament / Showcase" %}';
+                    typeEl.textContent = event.event_type || '{% filter escapejs %}{% trans "Tournament / Showcase" %}{% endfilter %}';
                 }
                 if (typeLinkEl && event.event_type_id) {
                     typeLinkEl.href = '{% url "events:public_list" %}?event_type=' + event.event_type_id;
@@ -4201,8 +4191,8 @@
                 console.warn('No hay eventos con videos disponibles');
                 // Si no hay eventos, mostrar mensaje
                 updateEventInfo({
-                    title: '{% trans "No videos available" %}',
-                    description: '{% trans "Check back soon for upcoming events" %}',
+                    title: '{% filter escapejs %}{% trans "No videos available" %}{% endfilter %}',
+                    description: '{% filter escapejs %}{% trans "Check back soon for upcoming events" %}{% endfilter %}',
                     location: '-',
                     event_type: '-',
                     divisions: '-',

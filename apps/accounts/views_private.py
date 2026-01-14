@@ -1989,6 +1989,8 @@ class PanelEventDetailView(UserDashboardView):
             # IMPORTANT: treat a player as "registered" (locked) ONLY if the registration is PAID.
             # If a player has a pending/unpaid checkout, the user must be able to edit the checkout.
             try:
+                from apps.events.models import EventAttendance
+
                 paid_player_ids = set()
 
                 # 1) Paid Orders (source of truth for panel payment state)
@@ -2015,8 +2017,18 @@ class PanelEventDetailView(UserDashboardView):
                         except Exception:
                             continue
 
+                attendance_user_ids = set(
+                    EventAttendance.objects.filter(
+                        event=event,
+                        status__in=["pending", "confirmed", "waiting"],
+                    ).values_list("user_id", flat=True)
+                )
+
                 for child in children:
                     if child.pk in paid_player_ids:
+                        registered_players.append(child.pk)
+                        continue
+                    if getattr(child, "user_id", None) in attendance_user_ids:
                         registered_players.append(child.pk)
             except Exception:
                 registered_players = []

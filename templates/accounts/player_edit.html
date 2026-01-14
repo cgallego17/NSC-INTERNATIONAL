@@ -709,7 +709,7 @@
                 if (file) {
                     // Validaciones
                     if (file.size > 5 * 1024 * 1024) {
-                        alert('{% trans "The file is too large. Maximum size is 5MB." %}');
+                        alert('{% filter escapejs %}{% trans "The file is too large. Maximum size is 5MB." %}{% endfilter %}');
                         this.value = '';
                         return;
                     }
@@ -721,7 +721,7 @@
                                 <img src="${e.target.result}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 12px; object-fit: cover; margin-bottom: 15px;">
                                 <div>
                                     <i class="fas fa-check-circle fa-2x mb-2" style="color: #28a745;"></i>
-                                    <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue);">{% trans "Photo Selected" %}</p>
+                                    <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue);">{% filter escapejs %}{% trans "Photo Selected" %}{% endfilter %}</p>
                                     <small class="text-success">${file.name}</small>
                                 </div>
                             </div>
@@ -749,7 +749,7 @@
                 const file = e.target.files[0];
                 if (file) {
                     if (file.size > 10 * 1024 * 1024) {
-                        alert('{% trans "The file is too large. Maximum allowed size is 10MB." %}');
+                        alert('{% filter escapejs %}{% trans "The file is too large. Maximum allowed size is 10MB." %}{% endfilter %}');
                         this.value = '';
                         return;
                     }
@@ -758,7 +758,7 @@
                     if (contentDiv) {
                         contentDiv.innerHTML = `
                             <i class="fas fa-check-circle fa-3x mb-3" style="color: #28a745;"></i>
-                            <p class="mb-2" style="font-weight: 700; color: #28a745; font-size: 1.1rem;">{% trans "Document Uploaded" %}</p>
+                            <p class="mb-2" style="font-weight: 700; color: #28a745; font-size: 1.1rem;">{% filter escapejs %}{% trans "Document Uploaded" %}{% endfilter %}</p>
                             <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue); font-size: 0.95rem;">${file.name}</small>
                         `;
                     }
@@ -782,8 +782,8 @@
                 const countryId = countrySelect.value;
                 const currentStateValue = stateSelect.value;
 
-                stateSelect.innerHTML = '<option value="">{% trans "Select a state"|escapejs %}</option>';
-                citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
+                stateSelect.innerHTML = '<option value="">{% filter escapejs %}{% trans "Select a state" %}{% endfilter %}</option>';
+                citySelect.innerHTML = '<option value="">{% filter escapejs %}{% trans "Select a city" %}{% endfilter %}</option>';
 
                 if (countryId) {
                     if (showLoader && stateLoader) stateLoader.style.display = 'block';
@@ -816,7 +816,7 @@
                 const stateId = stateSelect.value;
                 const currentCityValue = citySelect.value;
 
-                citySelect.innerHTML = '<option value="">{% trans "Select a city"|escapejs %}</option>';
+                citySelect.innerHTML = '<option value="">{% filter escapejs %}{% trans "Select a city" %}{% endfilter %}</option>';
 
                 if (stateId) {
                     if (showLoader && cityLoader) cityLoader.style.display = 'block';

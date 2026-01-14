@@ -2647,9 +2647,9 @@
             let selectedType = null;
 
             const userTypeNames = {
-                'player': '{% trans "Individual Player" %}',
-                'team_manager': '{% trans "Team Manager" %}',
-                'spectator': '{% trans "Spectator" %}'
+                'player': '{% filter escapejs %}{% trans "Individual Player" %}{% endfilter %}',
+                'team_manager': '{% filter escapejs %}{% trans "Team Manager" %}{% endfilter %}',
+                'spectator': '{% filter escapejs %}{% trans "Spectator" %}{% endfilter %}'
             };
 
             // Force modal to show for testing (comment out in production)

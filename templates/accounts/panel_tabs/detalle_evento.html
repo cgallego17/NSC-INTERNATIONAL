@@ -1029,18 +1029,20 @@
                                             iframe.setAttribute('allowfullscreen', '');
                                         }
                                     } else {
+                                        if (videoUrl.match(/\.(mp4|webm|ogg)(\?.*)?$/i)) {
+                                        // Create video element
                                         const video = document.createElement('video');
-                                        // Autoplay: most browsers require muted + playsinline
+                                        video.className = iframeClass;
                                         video.controls = true;
-                                        video.autoplay = true;
-                                        video.muted = true;
-                                        video.playsInline = true;
-                                        video.style.cssText = 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; background: #000;';
+                                        video.style.width = '100%';
+                                        video.style.height = '100%';
+
+                                        // Create source element
                                         const source = document.createElement('source');
                                         source.src = videoUrl;
                                         source.type = 'video/mp4';
                                         video.appendChild(source);
-                                        video.appendChild(document.createTextNode('{% trans "Your browser does not support the video tag." %}'));
+                                        video.appendChild(document.createTextNode('{% filter escapejs %}{% trans "Your browser does not support the video tag." %}{% endfilter %}'));
                                         iframe = video;
                                     }
 
@@ -1879,7 +1881,7 @@ document.addEventListener('DOMContentLoaded', function() {
         {% if not is_spectator %}
         const selectedPlayersCount = document.querySelectorAll('.child-checkbox:checked:not(:disabled)').length;
         if (selectedPlayersCount <= 0) {
-            alert('{% trans "Please select at least 1 player before adding a hotel stay." %}');
+            alert('{{ "Please select at least 1 player before adding a hotel stay."|escapejs }}');
             return;
         }
         {% endif %}
@@ -1951,7 +1953,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (addHotelHint) {
             if (!isSpectator && playersCount <= 0) {
-                addHotelHint.textContent = '{% trans "Select player(s) first to continue." %}';
+                addHotelHint.textContent = '{% filter escapejs %}{% trans "Select player(s) first to continue." %}{% endfilter %}';
             } else {
                 addHotelHint.textContent = '';
             }
@@ -1997,7 +1999,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Nombre del hotel
             const hotelNameEl = document.getElementById('checkout-hotel-name');
             if (hotelNameEl) {
-                hotelNameEl.textContent = hotel.hotel_name || '{% trans "Hotel Stay" %}';
+                hotelNameEl.textContent = hotel.hotel_name || '{% filter escapejs %}{% trans "Hotel Stay" %}{% endfilter %}';
             }
 
             // Información de la habitación y detalles en formato horizontal completo
@@ -2056,8 +2058,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     hotelDetailsEl.innerHTML =
                         '<div style="margin-top: 6px; font-size: 0.78rem; color: #6c757d; font-weight: 600; line-height: 1.25;">' +
                         '<i class="fas fa-user-plus" style="color: var(--mlb-red); margin-right: 6px;"></i>' +
-                        '{% trans "Additional guest(s)" %}: <span style="font-weight: 800; color: var(--mlb-blue);">' + extraGuests + '</span>' +
-                        ' × <span style="font-weight: 800; color: var(--mlb-blue);">$' + formatPrice(additionalGuestPrice) + '</span>/{% trans "night" %}' +
+                        '{% filter escapejs %}{% trans "Additional guest(s)" %}{% endfilter %}: <span style="font-weight: 800; color: var(--mlb-blue);">' + extraGuests + '</span>' +
+                        ' × <span style="font-weight: 800; color: var(--mlb-blue);">$' + formatPrice(additionalGuestPrice) + '</span>/{% filter escapejs %}{% trans "night" %}{% endfilter %}' +
                         ' × <span style="font-weight: 800; color: var(--mlb-blue);">' + nightsCount + '</span> = ' +
                         '<span style="font-weight: 900; color: var(--mlb-red);">$' + formatPrice(extraGuestTotal) + '</span>' +
                         '</div>';
@@ -2065,7 +2067,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     hotelDetailsEl.innerHTML =
                         '<div style="margin-top: 6px; font-size: 0.78rem; color: #6c757d; font-weight: 600; line-height: 1.25;">' +
                         '<i class="fas fa-info-circle" style="color: #9ca3af; margin-right: 6px;"></i>' +
-                        '{% trans "Includes" %} <span style="font-weight: 800; color: var(--mlb-blue);">' + includesGuests + '</span> {% trans "guest(s)" %}' +
+                        '{% filter escapejs %}{% trans "Includes" %}{% endfilter %} <span style="font-weight: 800; color: var(--mlb-blue);">' + includesGuests + '</span> {% filter escapejs %}{% trans "guest(s)" %}{% endfilter %}' +
                         '</div>';
                 } else {
                     hotelDetailsEl.innerHTML = '';
@@ -2096,7 +2098,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
 
                     if (hotel.guests) {
-                        detailsHTML += '<span style="display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-users" style="color: var(--mlb-red); font-size: 0.7rem;"></i><span style="font-weight: 500;">' + hotel.guests + ' {% trans "guest(s)" %}</span></span>';
+                        detailsHTML += '<span style="display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-users" style="color: var(--mlb-red); font-size: 0.7rem;"></i><span style="font-weight: 500;">' + hotel.guests + ' {% filter escapejs %}{% trans "guest(s)" %}{% endfilter %}</span></span>';
                     }
 
                     detailsHTML += '</div>';
@@ -2112,7 +2114,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const nightsEl = document.getElementById('checkout-hotel-nights');
             if (nightsEl) {
                 if (hotel.nights) {
-                    nightsEl.textContent = hotel.nights + ' {% trans "night(s)" %}';
+                    nightsEl.textContent = hotel.nights + ' {% filter escapejs %}{% trans "night(s)" %}{% endfilter %}';
                 } else {
                     nightsEl.textContent = '';
                 }
@@ -2121,7 +2123,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const pricePerNightEl = document.getElementById('checkout-hotel-price-per-night');
             if (pricePerNightEl && hotel.nights && hotelBasePrice > 0) {
                 const pricePerNight = hotelBasePrice / hotel.nights;
-                pricePerNightEl.textContent = '$' + formatPrice(pricePerNight) + '/{% trans "night" %}';
+                pricePerNightEl.textContent = '$' + formatPrice(pricePerNight) + '/{% filter escapejs %}{% trans "night" %}{% endfilter %}';
             } else if (pricePerNightEl) {
                 pricePerNightEl.textContent = '';
             }
@@ -2202,9 +2204,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const savings = (window.__checkoutTotal || 0) - (window.__checkoutTotalPayNow || 0);
             if ((window.__checkoutTotal || 0) > 0) {
                 if (hasHotelForDiscount) {
-                    payNowSubtextEl.textContent = '{% trans "You pay today and save" %} $' + formatPrice(savings);
+                    payNowSubtextEl.textContent = '{% filter escapejs %}{% trans "You pay today and save" %}{% endfilter %} $' + formatPrice(savings);
                 } else {
-                    payNowSubtextEl.textContent = '{% trans "5% OFF applies when you add a hotel stay." %}';
+                    payNowSubtextEl.textContent = '{% filter escapejs %}{% trans "5% OFF applies when you add a hotel stay." %}{% endfilter %}';
                 }
             } else {
                 payNowSubtextEl.textContent = '';
@@ -2239,13 +2241,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const hasHotel = window.checkoutItems && window.checkoutItems.hotel;
 
             if (playersCount > 0 && hasHotel) {
-                registerOnlySubtextEl.textContent = '{% trans "Register players now, pay hotel later." %}';
+                registerOnlySubtextEl.textContent = '{% filter escapejs %}{% trans "Register players now, pay hotel later." %}{% endfilter %}';
             } else if (playersCount > 0) {
-                registerOnlySubtextEl.textContent = '{% trans "Register players now, no hotel needed." %}';
+                registerOnlySubtextEl.textContent = '{% filter escapejs %}{% trans "Register players now, no hotel needed." %}{% endfilter %}';
             } else if (hasHotel) {
-                registerOnlySubtextEl.textContent = '{% trans "Reserve hotel later, pay when ready." %}';
+                registerOnlySubtextEl.textContent = '{% filter escapejs %}{% trans "Reserve hotel later, pay when ready." %}{% endfilter %}';
             } else {
-                registerOnlySubtextEl.textContent = '{% trans "Secure your spot in the event." %}';
+                registerOnlySubtextEl.textContent = '{% filter escapejs %}{% trans "Secure your spot in the event." %}{% endfilter %}';
             }
         }
 
@@ -2326,8 +2328,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
 
                     const basePricePerNight = hotelBasePrice / nights;
-                    let breakdownHTML = nights + ' {% trans "night(s)" %} × $' + formatPrice(basePricePerNight) + ' = $' + formatPrice(hotelBasePrice);
-                    breakdownHTML += '<br><strong style="color: var(--mlb-red);">' + '{% trans "Total Hotel (with taxes)" %}: $' + formatPrice(hotelTotal) + '</strong>';
+                    let breakdownHTML = nights + ' {% filter escapejs %}{% trans "night(s)" %}{% endfilter %} × $' + formatPrice(basePricePerNight) + ' = $' + formatPrice(hotelBasePrice);
+                    breakdownHTML += '<br><strong style="color: var(--mlb-red);">' + '{% filter escapejs %}{% trans "Total Hotel (with taxes)" %}{% endfilter %}: $' + formatPrice(hotelTotal) + '</strong>';
                     breakdownHotelText.innerHTML = breakdownHTML;
 
                 } else if (breakdownHotel) {
@@ -2452,7 +2454,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (!stripeCreateSessionUrl) {
             console.warn('Stripe checkout URL not available (missing event in template context).');
-            alert('{% trans "Could not start payment: missing event information." %}');
+            alert('{{ "Could not start payment: missing event information."|escapejs }}');
             return;
         }
 
@@ -2462,13 +2464,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const hasHotelOrAddons = window.checkoutItems && (window.checkoutItems.hotel || (window.checkoutItems.addons && window.checkoutItems.addons.length > 0));
 
         if (!isSpectator && playersCount === 0) {
-            alert('{% trans "Please select at least one player to register." %}');
+            alert('{{ "Please select at least one player to register."|escapejs }}');
             return;
         }
 
         // Para espectadores: al menos debe haber hotel o adicionales
         if (isSpectator && playersCount === 0 && !hasHotelOrAddons) {
-            alert('{% trans "Please add hotel accommodation or additional services to continue." %}');
+            alert('{{ "Please add hotel accommodation or additional services to continue."|escapejs }}');
             return;
         }
 
@@ -2597,14 +2599,14 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 const text = await resp.text();
                 console.error('Respuesta no es JSON:', text);
-                alert('{% trans "Error: Invalid response from server." %}');
+                alert('{{ "Error: Invalid response from server."|escapejs }}');
                 return;
             }
 
             console.log('Respuesta del servidor:', data);
 
             if (!resp.ok || !data || !data.success) {
-                const msg = (data && (data.error || data.message)) ? (data.error || data.message) : '{% trans "Could not start payment." %}';
+                const msg = (data && (data.error || data.message)) ? (data.error || data.message) : '{{ "Could not start payment."|escapejs }}';
                 console.error('Error en la respuesta:', msg, data);
                 alert(msg);
                 return;
@@ -2621,14 +2623,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.top.location.href = data.checkout_url;
                     } else {
                         // Si no estamos en un iframe, redirigir normalmente
-                window.location.href = data.checkout_url;
+                        window.location.href = data.checkout_url;
                     }
                 } catch (e) {
                     // Si hay error de seguridad (cross-origin), intentar con parent
                     try {
                         if (window.parent && window.parent !== window) {
                             window.parent.location.href = data.checkout_url;
-            } else {
+                        } else {
                             window.location.href = data.checkout_url;
                         }
                     } catch (e2) {
@@ -2666,17 +2668,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             } else {
                 console.error('No se recibió checkout_url ni redirect_url en la respuesta:', data);
-                alert('{% trans "Stripe did not return a checkout link." %}');
+                alert('{{ "Stripe did not return a checkout link."|escapejs }}');
             }
         } catch (e) {
             console.error('Error al iniciar checkout:', e);
-            alert('{% trans "Error starting payment. Please try again." %}');
+            alert('{{ "Error starting payment. Please try again."|escapejs }}');
         } finally {
             if (!didRedirect) {
                 hideStripeCheckoutLoader();
-            // Re-enable based on current state
-            updateCheckoutSummary();
-        }
+                // Re-enable based on current state
+                updateCheckoutSummary();
+            }
         }
     }
 
@@ -2963,7 +2965,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {% if not is_spectator %}
             const selectedPlayersCount = document.querySelectorAll('.child-checkbox:checked:not(:disabled)').length;
             if (selectedPlayersCount <= 0) {
-                alert('{% trans "Please select at least 1 player before adding a hotel stay." %}');
+                alert('{{ "Please select at least 1 player before adding a hotel stay."|escapejs }}');
                 return;
             }
             {% endif %}
@@ -3029,7 +3031,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (window._createAdultForm{{ event.hotel.pk }}) {
                         window.addAdultForm{{ event.hotel.pk }}();
                     } else {
-                        alert('{% trans "Please wait a moment and try again." %}');
+                        alert('{{ "Please wait a moment and try again."|escapejs }}');
                     }
                 }, 100);
             }
@@ -3070,7 +3072,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (ageDisplay && dateInput.value) {
                     const age = calculateAge(dateInput.value);
                     if (age) {
-                        ageDisplay.textContent = age + ' {% trans "years old" %}';
+                        ageDisplay.textContent = age + ' {% filter escapejs %}{% trans "years old" %}{% endfilter %}';
                         ageDisplay.style.color = 'var(--mlb-blue)';
                     } else {
                         ageDisplay.textContent = '';
@@ -3116,7 +3118,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         window.currentUserName = '{{ user.username|escapejs }}';
                     {% endif %}
                         if (calculatedAge) {
-                            initialAgeDisplay = calculatedAge + ' {% trans "years old" %}';
+                            initialAgeDisplay = calculatedAge + ' {% filter escapejs %}{% trans "years old" %}{% endfilter %}';
                         }
                     {% endif %}
                 }
@@ -3124,11 +3126,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 formDiv.innerHTML = `
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
                         <div style="display: flex; align-items: center; gap: 10px;">
-                            <div style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--mlb-blue) 0%, var(--mlb-light-blue) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--mlb-blue) 0%, #1a4a8a 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 3px 8px rgba(13, 44, 84, 0.2);">
                                 <i class="fas fa-user" style="color: white;"></i>
                             </div>
                             <div style="font-weight: 700; color: var(--mlb-blue);">
-                                ${isFirst ? '{% trans "Primary Guest" %}' : '{% trans "Adult" %} ' + index}
+                                ${isFirst ? '{% filter escapejs %}{% trans "Primary Guest" %}{% endfilter %}' : '{% filter escapejs %}{% trans "Adult" %}{% endfilter %} ' + index}
                             </div>
                         </div>
                         ${canRemove ? '<button type="button" class="btn btn-sm btn-danger" onclick="removeAdultForm{{ event.hotel.pk }}(' + index + ')" style="padding: 4px 10px; border-radius: 6px; border: none;"><i class="fas fa-times"></i></button>' : ''}
@@ -3219,7 +3221,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         container = document.getElementById('adults-forms-container{{ event.hotel.pk }}');
                         if (!container) {
                             console.error('adultsFormsContainer not found');
-                            alert('{% trans "Error: could not find the forms container." %}');
+                            alert('{% filter escapejs %}{% trans "Error: could not find the forms container." %}{% endfilter %}');
                             return;
                         }
                     }
@@ -3234,11 +3236,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         updatePeopleCount();
                     } else {
                         console.error('Failed to create or append adult form');
-                        alert('{% trans "Error: could not add the adult form." %}');
+                        alert('{% filter escapejs %}{% trans "Error: could not add the adult form." %}{% endfilter %}');
                     }
                 } catch (error) {
                     console.error('Error in addAdultForm:', error);
-                    alert('{% trans "Error adding adult:" %} ' + error.message);
+                    alert('{% filter escapejs %}{% trans "Error adding adult:" %}{% endfilter %} ' + error.message);
                 }
             };
 
@@ -3268,7 +3270,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     const titleDiv = form.querySelector('div[style*="font-weight: 700"]');
                     if (titleDiv && newIndex !== 1) {
-                        titleDiv.textContent = '{% trans "Adult" %} ' + newIndex;
+                        titleDiv.textContent = '{% filter escapejs %}{% trans "Adult" %}{% endfilter %} ' + newIndex;
                     }
                 });
             }
@@ -3338,7 +3340,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (ageDisplay && dateInput.value) {
                     const age = calculateAge(dateInput.value);
                     if (age) {
-                        ageDisplay.textContent = age + ' {% trans "years old" %}';
+                        ageDisplay.textContent = age + ' {% filter escapejs %}{% trans "years old" %}{% endfilter %}';
                         ageDisplay.style.color = 'var(--mlb-blue)';
                     } else {
                         ageDisplay.textContent = '';
@@ -3379,7 +3381,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                     const titleDiv = form.querySelector('div[style*="font-weight: 700"]');
                     if (titleDiv) {
-                        titleDiv.textContent = '{% trans "Child" %} ' + newIndex;
+                        titleDiv.textContent = '{% filter escapejs %}{% trans "Child" %}{% endfilter %} ' + newIndex;
                     }
                 });
             }
@@ -3530,17 +3532,17 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }
 
                                 // Nombre del niño
-                                let nameHTML = '<div style="flex: 1;"><div style="font-weight: 800; color: var(--mlb-blue); font-size: 1rem; margin-bottom: 4px;">' + (childName || '{% trans "Player" %}') + '</div>';
+                                let nameHTML = '<div style="flex: 1;"><div style="font-weight: 800; color: var(--mlb-blue); font-size: 1rem; margin-bottom: 4px;">' + (childName || '{% filter escapejs %}{% trans "Player" %}{% endfilter %}') + '</div>';
                                 if (divisionText) {
                                     nameHTML += '<div style="font-size: 0.8rem; color: #6c757d; margin-bottom: 8px;"><i class="fas fa-tag me-1" style="color: var(--mlb-red); font-size: 0.7rem;"></i>' + divisionText + '</div>';
                                 }
                                 if (childBirthDateDisplay) {
                                     nameHTML += '<div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;"><span style="font-size: 0.8rem; color: var(--mlb-blue); font-weight: 600; display: flex; align-items: center; gap: 4px;"><i class="fas fa-birthday-cake" style="color: var(--mlb-red); font-size: 0.75rem;"></i>{% trans "Date of Birth" %}:</span><span style="font-size: 0.85rem; color: var(--mlb-blue); font-weight: 600; background: #f8f9fa; padding: 4px 10px; border-radius: 6px; border: 1px solid #e9ecef;">' + childBirthDateDisplay + '</span></div>';
                                     if (childAgeDisplay) {
-                                        nameHTML += '<div style="font-size: 0.75rem; color: #6c757d; margin-top: 4px;"><i class="fas fa-calendar-alt me-1" style="color: var(--mlb-red); font-size: 0.7rem;"></i><strong>' + childAgeDisplay + '</strong> {% trans "years old" %}</div>';
+                                        nameHTML += '<div style="font-size: 0.75rem; color: #6c757d; margin-top: 4px;"><i class="fas fa-calendar-alt me-1" style="color: var(--mlb-red); font-size: 0.7rem;"></i><strong>' + childAgeDisplay + '</strong> {% filter escapejs %}{% trans "years old" %}{% endfilter %}</div>';
                                     }
                                 } else {
-                                    nameHTML += '<div style="font-size: 0.75rem; color: #6c757d; margin-top: 8px; font-style: italic;"><i class="fas fa-info-circle me-1" style="color: var(--mlb-red);"></i>{% trans "Date of birth not available" %}</div>';
+                                    nameHTML += '<div style="font-size: 0.75rem; color: #6c757d; margin-top: 8px; font-style: italic;"><i class="fas fa-info-circle me-1" style="color: var(--mlb-red);"></i>{% filter escapejs %}{% trans "Date of birth not available" %}{% endfilter %}</div>';
                                 }
                                 nameHTML += '</div>';
 
@@ -3623,13 +3625,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Validar que haya al menos un adulto
                 if (adults < 1) {
-                    alert('{% trans "At least one adult is required" %}');
+                    alert('{% filter escapejs %}{% trans "At least one adult is required" %}{% endfilter %}');
                     return;
                 }
 
                 // Validar que haya al menos un jugador o hijo seleccionado
                 if (selectedPlayers === 0 && additionalChildren === 0) {
-                    alert('{% trans "You must select at least one player or add at least one child" %}');
+                    alert('{% filter escapejs %}{% trans "You must select at least one player or add at least one child" %}{% endfilter %}');
                     return;
                 }
 
@@ -3794,7 +3796,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const adults = adultsFormsContainer.querySelectorAll('.adult-form-item').length;
                     if (adults < 1) {
                         e.preventDefault();
-                        alert('{% trans "At least one adult is required" %}');
+                        alert('{% filter escapejs %}{% trans "At least one adult is required" %}{% endfilter %}');
                         return false;
                     }
 
@@ -3809,25 +3811,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
                         if (!nameInput || !nameInput.value.trim()) {
                             e.preventDefault();
-                            alert('{% trans "Please fill in the name of all adults" %}');
+                            alert('{% filter escapejs %}{% trans "Please fill in the name of all adults" %}{% endfilter %}');
                             nameInput.focus();
                             return false;
                         }
                         if (!emailInput || !emailInput.value.trim()) {
                             e.preventDefault();
-                            alert('{% trans "Please fill in the email of all adults" %}');
+                            alert('{% filter escapejs %}{% trans "Please fill in the email of all adults" %}{% endfilter %}');
                             emailInput.focus();
                             return false;
                         }
                         if (!phoneInput || !phoneInput.value.trim()) {
                             e.preventDefault();
-                            alert('{% trans "Please fill in the phone of all adults" %}');
+                            alert('{% filter escapejs %}{% trans "Please fill in the phone of all adults" %}{% endfilter %}');
                             phoneInput.focus();
                             return false;
                         }
                         if (!birthdateInput || !birthdateInput.value) {
                             e.preventDefault();
-                            alert('{% trans "Please fill in the date of birth of all adults" %}');
+                            alert('{% filter escapejs %}{% trans "Please fill in the date of birth of all adults" %}{% endfilter %}');
                             birthdateInput.focus();
                             return false;
                         }
@@ -3836,7 +3838,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         const age = calculateAge(birthdateInput.value);
                         if (!age || age < 18) {
                             e.preventDefault();
-                            alert('{% trans "All adults must be at least 18 years old" %}');
+                            alert('{% filter escapejs %}{% trans "All adults must be at least 18 years old" %}{% endfilter %}');
                             birthdateInput.focus();
                             return false;
                         }

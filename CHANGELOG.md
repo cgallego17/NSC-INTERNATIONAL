@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-13 19:47:28
+
+- **[a142a76]** Fix UnboundLocalError: rename _ variables shadowing gettext in views_private.py
+  - *Fecha:* 2026-01-13 19:47:28
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 14 archivo(s)
+    - `apps/accounts/forms.py`
+    - `apps/accounts/tests/test_order_creation_flow.py`
+    - `apps/accounts/views_private.py`
+    - `static/js/admin.js`
+    - `templates/accounts/panel_tabs/invoice.html`
+    - `templates/accounts/panel_tabs/payment_confirmation.html`
+    - `templates/accounts/panel_tabs/registrar_hijo.html`
+    - `templates/accounts/panel_usuario.html`
+    - `templates/accounts/profile.html`
+    - `templates/accounts/public_home.html`
+    - ... y 4 archivo(s) más
+
+
+
 ### Actualizado: 2026-01-13 18:06:44
 
 - **[4488a48]** ```

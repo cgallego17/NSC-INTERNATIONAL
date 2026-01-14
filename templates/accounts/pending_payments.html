@@ -513,7 +513,7 @@
                         window.location.href = data.checkout_url;
                     } else {
                         // Show error
-                        alert(data.error || '{% trans "Error processing payment. Please try again." %}');
+                        alert(data.error || '{% filter escapejs %}{% trans "Error processing payment. Please try again." %}{% endfilter %}');
                         // Reset button
                         this.disabled = false;
                         this.innerHTML = originalText;
@@ -521,7 +521,7 @@
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('{% trans "Error processing payment. Please try again." %}');
+                    alert('{% filter escapejs %}{% trans "Error processing payment. Please try again." %}{% endfilter %}');
                     // Reset button
                     this.disabled = false;
                     this.innerHTML = originalText;

@@ -686,21 +686,21 @@
 
         // Agregar traducciones del panel principal
         Object.assign(translations, {
-            loading: "{% trans 'Loading...'|escapejs %}",
-            loadingForm: "{% trans 'Loading edit form...'|escapejs %}",
-            backToChildren: "{% trans 'Back to My Children/Players'|escapejs %}",
-            backToPlayers: "{% trans 'Back to View Players'|escapejs %}",
-            saving: "{% trans 'Saving...'|escapejs %}",
-            errorLoadingForm: "{% trans 'Error loading form'|escapejs %}",
-            errorSaving: "{% trans 'Error saving. Please try again.'|escapejs %}",
-            errorExtractingForm: "{% trans 'Could not extract edit form. Please reload the page and try again.'|escapejs %}",
-            pleaseReload: "{% trans 'Please try again.'|escapejs %}",
-            playerUpdated: "{% trans 'Player updated successfully'|escapejs %}",
-            pleaseCompleteFields: "{% trans 'Please complete all required fields'|escapejs %}",
-            editChildPlayer: "{% trans 'Edit Child/Player'|escapejs %}",
-            editPlayer: "{% trans 'Edit Player'|escapejs %}",
-            modifyChildInfo: "{% trans 'Modify your child information'|escapejs %}",
-            modifyPlayerInfo: "{% trans 'Modify player information'|escapejs %}"
+            loading: "{{ 'Loading...'|escapejs }}",
+            loadingForm: "{{ 'Loading edit form...'|escapejs }}",
+            backToChildren: "{{ 'Back to My Children/Players'|escapejs }}",
+            backToPlayers: "{{ 'Back to View Players'|escapejs }}",
+            saving: "{{ 'Saving...'|escapejs }}",
+            errorLoadingForm: "{{ 'Error loading form'|escapejs }}",
+            errorSaving: "{{ 'Error saving. Please try again.'|escapejs }}",
+            errorExtractingForm: "{{ 'Could not extract edit form. Please reload the page and try again.'|escapejs }}",
+            pleaseReload: "{{ 'Please try again.'|escapejs }}",
+            playerUpdated: "{{ 'Player updated successfully'|escapejs }}",
+            pleaseCompleteFields: "{{ 'Please complete all required fields'|escapejs }}",
+            editChildPlayer: "{{ 'Edit Child/Player'|escapejs }}",
+            editPlayer: "{{ 'Edit Player'|escapejs }}",
+            modifyChildInfo: "{{ 'Modify your child information'|escapejs }}",
+            modifyPlayerInfo: "{{ 'Modify player information'|escapejs }}"
         });
 
 
@@ -1792,7 +1792,7 @@
                 }
 
                 // EXTRAER Y EJECUTAR SCRIPTS DEL HTML CARGADO
-                function executeScripts(container) {
+                function executeScripts(container, sourceLabel) {
                     try {
                         const scripts = container.querySelectorAll('script');
                         let scriptCount = 0;
@@ -1821,7 +1821,8 @@
                             } else {
                                 // Usar un try-catch interno para cada script inline
                                 try {
-                                    newScript.textContent = oldScript.innerHTML;
+                                    const label = (sourceLabel || 'inline').toString().replace(/\s+/g, '_');
+                                    newScript.textContent = oldScript.innerHTML + "\n//# sourceURL=panel-ajax:" + label + "#script-" + (scriptCount + 1) + ".js\n";
                                 } catch (e) {
                                     console.error('❌ Error asignando contenido al script:', e);
                                     return;
@@ -1846,7 +1847,7 @@
                     }
                 }
 
-                executeScripts(tempDiv);
+                executeScripts(tempDiv, url || 'unknown');
 
                 // Hacer scroll hacia el tab después de cargar el contenido
                 setTimeout(() => {
@@ -1872,89 +1873,93 @@
                         // Profile Picture Preview
                         const profilePicInput = document.getElementById('id_profile-profile_picture');
                         const profilePictureUploadArea = document.getElementById('profilePictureUploadArea');
-                                profilePictureUploadArea.parentNode.replaceChild(newUploadArea, profilePictureUploadArea);
-                                const uploadArea = document.getElementById('profilePictureUploadArea');
 
-                                // Hacer clic en el área activa el input de archivo
-                                uploadArea.addEventListener('click', function(e) {
-                                    e.preventDefault();
-                                    e.stopPropagation();
+                        if (profilePicInput && profilePictureUploadArea) {
+                            // Limpiar listeners previos si existen (clonar y reemplazar)
+                            const newUploadArea = profilePictureUploadArea.cloneNode(true);
+                            profilePictureUploadArea.parentNode.replaceChild(newUploadArea, profilePictureUploadArea);
+                            const uploadArea = document.getElementById('profilePictureUploadArea');
 
-                                    if (profilePictureInput.disabled) {
+                            // Hacer clic en el área activa el input de archivo
+                            uploadArea.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+
+                                if (profilePicInput.disabled) {
+                                    return;
+                                }
+
+                                profilePicInput.click();
+                            }, true);
+
+                            // Preview de la imagen seleccionada
+                            profilePicInput.addEventListener('change', function(e) {
+                                const file = e.target.files[0];
+                                if (file) {
+                                    // Validar tamaño (5MB máximo)
+                                    const maxSize = 5 * 1024 * 1024;
+                                    if (file.size > maxSize) {
+                                        alert('{% filter escapejs %}{% trans "The file is too large. Maximum size is 5MB." %}{% endfilter %}');
+                                        profilePicInput.value = '';
                                         return;
                                     }
 
-                                    profilePictureInput.click();
-                                }, true);
+                                    // Validar tipo de archivo
+                                    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                                    if (!allowedTypes.includes(file.type)) {
+                                        alert('{% filter escapejs %}{% trans "Invalid file type. Only JPG, PNG and GIF are allowed." %}{% endfilter %}');
+                                        profilePicInput.value = '';
+                                        return;
+                                    }
 
-                                // Preview de la imagen seleccionada
-                                profilePictureInput.addEventListener('change', function(e) {
-                                    const file = e.target.files[0];
-                                    if (file) {
-                                        // Validar tamaño (5MB máximo)
-                                        const maxSize = 5 * 1024 * 1024;
-                                        if (file.size > maxSize) {
-                                            alert('El archivo es demasiado grande. El tamaño máximo es 5MB.');
-                                            profilePictureInput.value = '';
-                                            return;
-                                        }
-
-                                        // Validar tipo de archivo
-                                        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-                                        if (!allowedTypes.includes(file.type)) {
-                                            alert('Tipo de archivo inválido. Solo se permiten JPG, PNG y GIF.');
-                                            profilePictureInput.value = '';
-                                            return;
-                                        }
-
-                                        // Mostrar preview
-                                        const reader = new FileReader();
-                                        reader.onload = function(e) {
-                                            uploadArea.innerHTML = `
-                                                <div style="position: relative;">
-                                                    <img src="${e.target.result}" alt="Profile Picture Preview" style="max-width: 200px; max-height: 200px; border-radius: 12px; object-fit: cover; margin-bottom: 15px;">
-                                                    <div>
-                                                        <i class="fas fa-check-circle fa-2x mb-2" style="color: #28a745;"></i>
-                                                        <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue);">
-                                                            Foto Seleccionada
-                                                        </p>
-                                                        <small class="text-success">${file.name} (${(file.size / 1024).toFixed(2)} KB)</small>
-                                                        <br>
-                                                        <small class="text-muted">Haz clic para cambiar la foto</small>
-                                                    </div>
+                                    // Mostrar preview
+                                    const reader = new FileReader();
+                                    reader.onload = function(e) {
+                                        uploadArea.innerHTML = `
+                                            <div style="position: relative;">
+                                                <img src="${e.target.result}" alt="Profile Picture Preview" style="max-width: 200px; max-height: 200px; border-radius: 12px; object-fit: cover; margin-bottom: 15px;">
+                                                <div>
+                                                    <i class="fas fa-check-circle fa-2x mb-2" style="color: #28a745;"></i>
+                                                    <p class="mb-1" style="font-weight: 600; color: var(--mlb-blue);">
+                                                        {% filter escapejs %}{% trans "Photo Selected" %}{% endfilter %}
+                                                    </p>
+                                                    <small class="text-success">${file.name} (${(file.size / 1024).toFixed(2)} KB)</small>
+                                                    <br>
+                                                    <small class="text-muted">{% filter escapejs %}{% trans "Click to change photo" %}{% endfilter %}</small>
                                                 </div>
-                                            `;
-                                            uploadArea.style.borderColor = '#28a745';
-                                            uploadArea.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
-                                        };
-                                        reader.readAsDataURL(file);
-                                    }
-                                });
+                                            </div>
+                                        `;
+                                        uploadArea.style.borderColor = '#28a745';
+                                        uploadArea.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
+                                    };
+                                    reader.readAsDataURL(file);
+                                }
+                            });
 
-                                // Hover effect
-                                uploadArea.addEventListener('mouseenter', function() {
-                                    this.style.borderColor = 'var(--mlb-red)';
-                                    this.style.transform = 'scale(1.02)';
-                                });
+                            // Hover effect
+                            uploadArea.addEventListener('mouseenter', function() {
+                                this.style.borderColor = 'var(--mlb-red)';
+                                this.style.transform = 'scale(1.02)';
+                            });
 
-                                uploadArea.addEventListener('mouseleave', function() {
-                                    if (!profilePictureInput.files.length) {
-                                        this.style.borderColor = '#0d2c54';
-                                    }
-                                    this.style.transform = 'scale(1)';
-                                });
-                            }
+                            uploadArea.addEventListener('mouseleave', function() {
+                                if (profilePicInput && !profilePicInput.files.length) {
+                                    this.style.borderColor = '#0d2c54';
+                                }
+                                this.style.transform = 'scale(1)';
+                            });
+                        }
 
-                            // Inicializar selectores de ubicación del formulario de edición de hijo
-                            if (typeof window.initPlayerEditLocationSelectors === 'function') {
-                                window.initPlayerEditLocationSelectors();
-                            } else if (typeof window.initPlayerEditHijoForm === 'function') {
-                                window.initPlayerEditHijoForm();
-                            }
-                        }, 300);
+                        // Inicializar selectores de ubicación del formulario de edición de hijo
+                        if (typeof window.initPlayerEditLocationSelectors === 'function') {
+                            window.initPlayerEditLocationSelectors();
+                        } else if (typeof window.initPlayerEditHijoForm === 'function') {
+                            window.initPlayerEditHijoForm();
+                        }
 
                         // Verificar si ya tiene un listener de submit (usando una marca)
                         if (form.dataset.submitListenerAdded === 'true') {
+                            // Ya tiene listener
                         } else {
                             // Marcar que el listener fue agregado
                             form.dataset.submitListenerAdded = 'true';
@@ -2040,7 +2045,7 @@
                                             window.adminDashboard.showToast(
                                                 successMessage,
                                                 'success',
-                                                '{% trans "Success"|escapejs %}',
+                                                `{% filter escapejs %}{% trans "Success" %}{% endfilter %}`,
                                                 3000
                                             );
                                         } else {
@@ -2064,7 +2069,7 @@
                                                 toastEl.innerHTML = `
                                                     <div class="toast-header bg-success text-white">
                                                         <i class="fas fa-check-circle me-2"></i>
-                                                        <strong class="me-auto">{% trans "Success"|escapejs %}</strong>
+                                                        <strong class="me-auto">{% filter escapejs %}{% trans "Success" %}{% endfilter %}</strong>
                                                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
                                                     </div>
                                                     <div class="toast-body">
@@ -2142,7 +2147,7 @@
                                             if (newForm) {
                                                 form.parentNode.replaceChild(newForm.cloneNode(true), form);
                                                 // Re-ejecutar scripts si el nuevo formulario los trae
-                                                executeScripts(tempDiv);
+                                                executeScripts(tempDiv, url || 'unknown');
                                             }
 
                                             restoreButton();

@@ -2343,7 +2343,7 @@
 
             // Validar email único
             if (additionalPersons.some(p => p.email === email)) {
-                alert("{% trans 'This email is already registered. Please use another email.' %}");
+                alert("{% filter escapejs %}{% trans 'This email is already registered. Please use another email.' %}{% endfilter %}");
                 return;
             }
 
@@ -2373,7 +2373,7 @@
 
         // Función para eliminar persona adicional
         function removeAdditionalPerson(personId) {
-            if (confirm("{% trans 'Are you sure you want to delete this person?' %}")) {
+            if (confirm("{% filter escapejs %}{% trans 'Are you sure you want to delete this person?' %}{% endfilter %}")) {
                 additionalPersons = additionalPersons.filter(p => p.id !== personId);
                 renderAdditionalPersonsTable();
                 calculateTotal();
@@ -2540,18 +2540,18 @@
                     const playerCount = selectedPlayers.size;
 
                     if (playerCount === 0) {
-                        alert("{% trans 'Please select at least one player' %}");
+                        alert("{% trans 'Please select at least one player'|escapejs %}");
                         return;
                     }
 
                     if (total === 0) {
-                        alert("{% trans 'The total must be greater than $0.00' %}");
+                        alert("{% trans 'The total must be greater than $0.00'|escapejs %}");
                         return;
                     }
 
                     // Aquí puedes redirigir a la página de pago o procesar el pago
                     console.log('Procesar pago total con descuento:', total);
-                    alert(`{% trans 'Processing total payment of $' %}${total.toFixed(2)} {% trans 'with 10% discount' %}`);
+                    alert('{% filter escapejs %}{% trans "Processing total payment of $" %}{% endfilter %}' + total.toFixed(2) + ' {% filter escapejs %}{% trans "with 10% discount" %}{% endfilter %}');
                     // window.location.href = `/payment/total/?amount=${total}&event_id=${eventId}`;
                 });
             }
@@ -2565,18 +2565,18 @@
                     const playerCount = selectedPlayers.size;
 
                     if (playerCount === 0) {
-                        alert("{% trans 'Please select at least one player' %}");
+                        alert("{% trans 'Please select at least one player'|escapejs %}");
                         return;
                     }
 
                     if (total === 0) {
-                        alert("{% trans 'The total must be greater than $0.00' %}");
+                        alert("{% trans 'The total must be greater than $0.00'|escapejs %}");
                         return;
                     }
 
                     // Aquí puedes redirigir a la página de pago en plan o procesar el pago
                     console.log('Procesar pago en plan:', planAmount, 'por 3 cuotas');
-                    alert(`{% trans 'Processing payment plan: $' %}${planAmount.toFixed(2)} {% trans 'per installment (3 installments of $' %}${planAmount.toFixed(2)} {% trans 'each)' %}`);
+                    alert('{% filter escapejs %}{% trans "Processing payment plan: $" %}{% endfilter %}' + planAmount.toFixed(2) + ' {% filter escapejs %}{% trans "per installment (3 installments of $" %}{% endfilter %}' + planAmount.toFixed(2) + ' {% filter escapejs %}{% trans "each)" %}{% endfilter %}');
                     // window.location.href = `/payment/plan/?amount=${planAmount}&total=${total}&event_id=${eventId}`;
                 });
             }
