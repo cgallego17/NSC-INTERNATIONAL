@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 22:31:32
+
+- **[27b14fb]** ```
+  - *Fecha:* 2026-01-14 22:31:31
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `static/css/admin.css`
+    - `staticfiles/css/admin.css`
+  - *Detalles:*
+    - feat: Hide sidebar overlay on mobile when modal is open
+    - - Add display none rule for #sidebarOverlay when body has modal-open class
+    - - Apply to both modal-open and modal-open.sidebar-open states
+    - - Prevent sidebar overlay from appearing above modal on mobile devices
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 22:29:33
 
 - **[b2db062]** ```
