@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 22:22:57
+
+- **[d46e2ab]** ```
+  - *Fecha:* 2026-01-14 22:22:57
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/locations/hotel_room_form.html`
+  - *Detalles:*
+    - feat: Restore visual preview grid for selected room media items
+    - - Show preview wrap when items are selected, hide when empty
+    - - Add card-based preview grid with thumbnails and titles
+    - - Include remove button on each preview card
+    - - Simplify hidden input creation without form validation checks
+    - - Display selected media visually before form submission
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 22:17:45
 
 - **[6ca4209]** ```
