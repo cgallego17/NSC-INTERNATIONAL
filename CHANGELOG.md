@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 23:00:26
+
+- **[6ee1f46]** ```
+  - *Fecha:* 2026-01-14 23:00:25
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `apps/accounts/urls.py`
+    - `apps/accounts/views_admin.py`
+  - *Detalles:*
+    - feat: Add admin endpoint to manually release wallet reservations for checkouts
+    - - Add URL pattern for admin_release_wallet_reservation_for_checkout endpoint
+    - - Import StripeEventCheckout model and InvalidOperation exception
+    - - Implement POST endpoint to release reserved wallet funds for a checkout
+    - - Check checkout status and prevent release for paid checkouts
+    - - Extract wallet_deduction from checkout breakdown with error handling
+    - - Verify no duplicate processing using reference_id checks
+    - - Release
+
+
+
 ### Actualizado: 2026-01-14 22:52:42
 
 - **[9201fd0]** ```
