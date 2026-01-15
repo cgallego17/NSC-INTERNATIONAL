@@ -4913,7 +4913,7 @@ const EventDetailApp = {
                                     </div>
                                 </button>
 
-                                <button v-if="!isResumedCheckout" type="button"
+                                <button v-if="!isResumedCheckout && !isSpectator" type="button"
                                         class="btn payment-button payment-button-register"
                                         @click="handleRegisterOnly"
                                         :disabled="!canProceedToCheckout || loading"
