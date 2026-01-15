@@ -302,12 +302,23 @@
 
                         <!-- Details Grid -->
                         <div class="registration-grid">
+                            {% if reg.checkout %}
+                            <div class="registration-kv">
+                                <div class="icon"><i class="fas fa-hashtag"></i></div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <p class="label">{% trans "Checkout ID" %}</p>
+                                    <p class="value">{{ reg.checkout.id }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+
                             {% if reg.order %}
                             <div class="registration-kv">
                                 <div class="icon"><i class="fas fa-receipt"></i></div>
                                 <div style="flex: 1; min-width: 0;">
                                     <p class="label">{% trans "Order ID" %}</p>
                                     <p class="value">{{ reg.order.order_number }}</p>
+                                    <p style="margin: 2px 0 0; font-size: 0.7rem; color: #6c757d;">DB: {{ reg.order.id }}</p>
                                     {% if reg.order.created_at %}
                                     <p style="margin: 2px 0 0; font-size: 0.7rem; color: #6c757d;">{{ reg.order.created_at|date:"M d, Y" }}</p>
                                     {% endif %}
