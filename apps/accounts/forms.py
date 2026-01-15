@@ -175,6 +175,7 @@ class PublicRegistrationForm(UserCreationForm):
             ("+34", "+34 (Spain)"),
             ("+44", "+44 (United Kingdom)"),
             ("+33", "+33 (France)"),
+            ("+31", "+31 (Netherlands)"),
             ("+49", "+49 (Germany)"),
             ("+39", "+39 (Italy)"),
             ("+81", "+81 (Japan)"),
@@ -1992,7 +1993,6 @@ class PlayerUpdateForm(forms.ModelForm):
             attrs={
                 "class": "form-control",
                 "accept": "image/*",
-                
                 "style": "display: none;",
             }
         ),
