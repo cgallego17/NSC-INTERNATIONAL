@@ -7,6 +7,32 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-15 13:52:18
+
+- **[94a242f]** ```
+  - *Fecha:* 2026-01-15 13:52:18
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 9 archivo(s)
+    - `apps/accounts/forms.py`
+    - `apps/accounts/tests/test_email_confirmation_flow.py`
+    - `apps/accounts/urls.py`
+    - `apps/accounts/views_public.py`
+    - `templates/registration/email_confirmation_complete.html`
+    - `templates/registration/email_confirmation_email.txt`
+    - `templates/registration/email_confirmation_email_html.html`
+    - `templates/registration/email_confirmation_sent.html`
+    - `templates/registration/email_confirmation_subject.txt`
+  - *Detalles:*
+    - feat: Add email confirmation requirement for new user registrations
+    - - Set is_active=False for newly registered users in PublicRegistrationForm
+    - - Add email confirmation URL patterns for sent confirmation and token verification endpoints
+    - - Implement _send_email_confirmation helper to send confirmation emails with token links
+    - - Add confirm_email view to validate tokens and activate user accounts
+    - - Create EmailConfirmationSentView template view for post-registration confirmation page
+    - - Update PublicLogin
+
+
+
 ### Actualizado: 2026-01-15 13:29:45
 
 - **[e283d7c]** ```
