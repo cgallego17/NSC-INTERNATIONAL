@@ -2,16 +2,17 @@
 Vistas públicas - No requieren autenticación
 """
 
+import logging
+
 import requests
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView as BaseLoginView
 from django.db.models import Q
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -19,6 +20,76 @@ from django.views.generic import CreateView, DetailView, ListView, TemplateView
 
 from .forms import EmailAuthenticationForm, PublicRegistrationForm
 from .models import Player, PlayerParent, Team
+
+logger = logging.getLogger(__name__)
+
+
+def _send_email_confirmation(request, user):
+    from django.contrib.auth.tokens import default_token_generator
+    from django.core.mail import EmailMultiAlternatives
+    from django.template.loader import render_to_string
+    from django.utils.encoding import force_bytes
+    from django.utils.http import urlsafe_base64_encode
+
+    protocol = "https" if request.is_secure() else "http"
+    domain = request.get_host()
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+
+    context = {
+        "protocol": protocol,
+        "domain": domain,
+        "uid": uid,
+        "token": token,
+        "user": user,
+    }
+
+    subject = render_to_string(
+        "registration/email_confirmation_subject.txt", context
+    ).strip()
+    body_text = render_to_string("registration/email_confirmation_email.txt", context)
+    body_html = render_to_string(
+        "registration/email_confirmation_email_html.html", context
+    )
+
+    from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
+    msg = EmailMultiAlternatives(subject, body_text, from_email, [user.email])
+    msg.attach_alternative(body_html, "text/html")
+
+    try:
+        sent_count = msg.send(fail_silently=False)
+        return sent_count > 0
+    except Exception as exc:
+        logger.exception(
+            "Email confirmation send failed for user_id=%s error=%s", user.pk, str(exc)
+        )
+        return False
+
+
+def confirm_email(request, uidb64, token):
+    from django.contrib.auth.models import User
+    from django.contrib.auth.tokens import default_token_generator
+    from django.utils.encoding import force_str
+    from django.utils.http import urlsafe_base64_decode
+
+    validlink = False
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = User.objects.filter(pk=uid).first()
+    except Exception:
+        user = None
+
+    if user and default_token_generator.check_token(user, token):
+        validlink = True
+        if not user.is_active:
+            user.is_active = True
+            user.save(update_fields=["is_active"])
+
+    return render(
+        request,
+        "registration/email_confirmation_complete.html",
+        {"validlink": validlink},
+    )
 
 
 class PublicHomeView(TemplateView):
@@ -558,25 +629,8 @@ class PublicLoginView(BaseLoginView):
         super().form_valid(form)
         user = form.get_user()
 
-        # Verificar que la cuenta esté activa
-        if not user.is_active:
-            from django.contrib.auth import logout
-
-            logout(self.request)
-            messages.error(
-                self.request,
-                _("This account is inactive. Please contact the administrator."),
-            )
-            return redirect("accounts:login")
-
-        # Crear perfil si no existe
-        from .models import UserProfile
-
-        if not hasattr(user, "profile"):
-            UserProfile.objects.create(user=user, user_type="player")
-
         # IMPORTANTE: Los jugadores NO pueden iniciar sesión
-        # Solo padres, managers y administradores
+        # (sus cuentas suelen estar inactivas por diseño).
         if hasattr(user, "profile") and user.profile.is_player:
             from django.contrib.auth import logout
 
@@ -588,6 +642,25 @@ class PublicLoginView(BaseLoginView):
                 ),
             )
             return redirect("accounts:login")
+
+        # Verificar que la cuenta esté activa (para usuarios normales)
+        if not user.is_active:
+            from django.contrib.auth import logout
+
+            logout(self.request)
+            messages.error(
+                self.request,
+                _(
+                    "This account is inactive. Please confirm your email before logging in."
+                ),
+            )
+            return redirect("accounts:login")
+
+        # Crear perfil si no existe
+        from .models import UserProfile
+
+        if not hasattr(user, "profile"):
+            UserProfile.objects.create(user=user, user_type="player")
 
         # Redirigir según el tipo de usuario
         if user.is_superuser or user.is_staff:
@@ -709,18 +782,21 @@ class PublicRegistrationView(CreateView):
         cache.set(cache_key, attempts + 1, 3600)  # Incrementar y guardar por 1 hora
 
         super().form_valid(form)
-        # Autenticar al usuario después del registro
-        login(self.request, self.object)
-
-        # Mostrar mensaje con el username generado
-        username = self.object.username
+        confirmation_sent = _send_email_confirmation(self.request, self.object)
+        if not confirmation_sent:
+            messages.error(
+                self.request,
+                _(
+                    "We could not send the confirmation email right now. Please contact support or try again later."
+                ),
+            )
         messages.success(
             self.request,
-            _("Registration successful! Welcome. Your username is: %(username)s")
-            % {"username": username},
+            _(
+                "Registration successful! Please check your email to confirm your account before logging in."
+            ),
         )
-
-        return redirect("panel")
+        return redirect("accounts:email_confirmation_sent")
 
     def form_invalid(self, form):
         """Si el formulario es inválido, registrar intento fallido y redirigir"""
@@ -761,6 +837,10 @@ class PublicRegistrationView(CreateView):
 
         # Redirigir a la página principal con parámetro de error
         return redirect(f"/?login_error=1")
+
+
+class EmailConfirmationSentView(TemplateView):
+    template_name = "registration/email_confirmation_sent.html"
 
 
 class PublicPlayerProfileView(DetailView):

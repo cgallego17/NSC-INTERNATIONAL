@@ -25,6 +25,16 @@ urlpatterns = [
     path("login/", views_public.PublicLoginView.as_view(), name="login"),
     path("register/", views_public.PublicRegistrationView.as_view(), name="register"),
     path(
+        "confirm-email/sent/",
+        views_public.EmailConfirmationSentView.as_view(),
+        name="email_confirmation_sent",
+    ),
+    path(
+        "confirm-email/<uidb64>/<token>/",
+        views_public.confirm_email,
+        name="confirm_email",
+    ),
+    path(
         "password-reset/",
         auth_views.PasswordResetView.as_view(
             template_name="registration/password_reset_form.html",

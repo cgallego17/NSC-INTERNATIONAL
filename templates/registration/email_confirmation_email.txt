@@ -1,0 +1,13 @@
+{% load i18n %}
+{% blocktrans %}Hello,{% endblocktrans %}
+
+{% blocktrans %}Thanks for creating your NCS International account.{% endblocktrans %}
+
+{% blocktrans %}Please confirm your email by opening this link:{% endblocktrans %}
+
+{{ protocol }}://{{ domain }}{% url 'accounts:confirm_email' uidb64=uid token=token %}
+
+{% blocktrans %}If you did not create this account, you can safely ignore this email.{% endblocktrans %}
+
+{% blocktrans %}Thanks,{% endblocktrans %}
+{% blocktrans %}NCS International{% endblocktrans %}

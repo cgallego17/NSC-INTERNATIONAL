@@ -709,6 +709,7 @@ class PublicRegistrationForm(UserCreationForm):
             password=self.cleaned_data["password1"],
             first_name=first_name,
             last_name=full_last_name,
+            is_active=False,
         )
 
         if commit:
