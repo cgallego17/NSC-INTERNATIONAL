@@ -23,7 +23,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -68,10 +68,114 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
 
     template_name = "accounts/panel_usuario.html"
 
+    def _cleanup_stale_wallet_reservations(self, user):
+        try:
+            from datetime import timedelta
+
+            from django.db.models import Q
+
+            from .models import (
+                Order,
+                StripeEventCheckout,
+                UserWallet,
+                WalletTransaction,
+            )
+
+            wallet, _created = UserWallet.objects.get_or_create(user=user)
+            if wallet.pending_balance <= 0:
+                return
+
+            cutoff = timezone.now() - timedelta(hours=24)
+
+            stale = (
+                StripeEventCheckout.objects.filter(user=user)
+                .filter(status__in=["created", "registered"])
+                .filter(created_at__lt=cutoff)
+                .select_related("event")
+                .only("id", "status", "created_at", "breakdown", "event_id")
+                .order_by("created_at")
+            )
+
+            for checkout in stale:
+                breakdown = checkout.breakdown or {}
+                wallet_deduction_str = breakdown.get("wallet_deduction", "0")
+                try:
+                    wallet_deduction = Decimal(str(wallet_deduction_str))
+                except (ValueError, TypeError, InvalidOperation):
+                    wallet_deduction = Decimal("0.00")
+
+                if wallet_deduction <= 0:
+                    checkout.status = "expired"
+                    checkout.save(update_fields=["status", "updated_at"])
+                    try:
+                        order = Order.objects.filter(stripe_checkout=checkout).first()
+                        if order and order.status in [
+                            "pending",
+                            "pending_registration",
+                        ]:
+                            order.status = "abandoned"
+                            order.save(update_fields=["status", "updated_at"])
+                    except Exception:
+                        pass
+                    continue
+
+                already_processed = (
+                    WalletTransaction.objects.filter(wallet=wallet)
+                    .filter(
+                        Q(reference_id=f"checkout_confirmed:{checkout.pk}")
+                        | Q(reference_id=f"checkout_confirmed_webhook:{checkout.pk}")
+                        | Q(reference_id=f"checkout_cancel:{checkout.pk}")
+                        | Q(reference_id=f"checkout_expired:{checkout.pk}")
+                    )
+                    .exists()
+                )
+
+                if already_processed:
+                    checkout.status = "expired"
+                    checkout.save(update_fields=["status", "updated_at"])
+                    try:
+                        order = Order.objects.filter(stripe_checkout=checkout).first()
+                        if order and order.status in [
+                            "pending",
+                            "pending_registration",
+                        ]:
+                            order.status = "abandoned"
+                            order.save(update_fields=["status", "updated_at"])
+                    except Exception:
+                        pass
+                    continue
+
+                try:
+                    wallet.release_reserved_funds(
+                        amount=wallet_deduction,
+                        description=f"Reserva liberada por expiración: {checkout.event.title}",
+                        reference_id=f"checkout_expired:{checkout.pk}",
+                    )
+                except Exception:
+                    pass
+
+                checkout.status = "expired"
+                checkout.save(update_fields=["status", "updated_at"])
+                try:
+                    order = Order.objects.filter(stripe_checkout=checkout).first()
+                    if order and order.status in ["pending", "pending_registration"]:
+                        order.status = "abandoned"
+                        order.save(update_fields=["status", "updated_at"])
+                except Exception:
+                    pass
+
+        except Exception:
+            return
+
     def dispatch(self, request, *args, **kwargs):
         """Respetar el idioma seleccionado por el usuario"""
         # El idioma se maneja automáticamente por Django i18n
         # No necesitamos forzar ningún idioma aquí
+
+        try:
+            self._cleanup_stale_wallet_reservations(request.user)
+        except Exception:
+            pass
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):

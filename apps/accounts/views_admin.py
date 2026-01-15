@@ -9,6 +9,7 @@ from django import forms
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.db.models import Avg, Q, Sum
+from django.db.models.functions import Lower
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.utils import timezone
@@ -358,12 +359,23 @@ def search_users_ajax(request):
     if len(query) < 2:
         return JsonResponse({"users": []})
 
-    users = User.objects.filter(is_active=True).filter(
-        Q(username__icontains=query)
-        | Q(first_name__icontains=query)
-        | Q(last_name__icontains=query)
-        | Q(email__icontains=query)
-    )[:20]
+    q = query.lower()
+
+    users = (
+        User.objects.filter(is_active=True)
+        .annotate(
+            username_l=Lower("username"),
+            first_name_l=Lower("first_name"),
+            last_name_l=Lower("last_name"),
+            email_l=Lower("email"),
+        )
+        .filter(
+            Q(username_l__contains=q)
+            | Q(first_name_l__contains=q)
+            | Q(last_name_l__contains=q)
+            | Q(email_l__contains=q)
+        )[:20]
+    )
 
     results = []
     for user in users:
