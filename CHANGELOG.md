@@ -7,6 +7,30 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-15 14:41:00
+
+- **[b169553]** ```
+  - *Fecha:* 2026-01-15 14:41:00
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 7 archivo(s)
+    - `templates/accounts/public_home.html`
+    - `templates/accounts/public_login.html`
+    - `templates/accounts/public_player_list.html`
+    - `templates/accounts/public_register.html`
+    - `templates/accounts/public_team_list.html`
+    - `templates/events/public_list.html`
+    - `templates/registration/login.html`
+  - *Detalles:*
+    - feat: Add password visibility toggle button to all login forms
+    - - Wrap password inputs in input-group/password-wrapper containers across all templates
+    - - Add toggle-password-btn/password-toggle-btn with eye icon next to password fields
+    - - Implement JavaScript to toggle password visibility on button click
+    - - Toggle between fa-eye and fa-eye-slash icons based on visibility state
+    - - Add aria-label for accessibility on toggle buttons
+    - - Apply changes to public_home.html, public_login.html, public_player
+
+
+
 ### Actualizado: 2026-01-15 13:52:18
 
 - **[94a242f]** ```
