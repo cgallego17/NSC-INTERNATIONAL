@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 22:17:45
+
+- **[6ca4209]** ```
+  - *Fecha:* 2026-01-14 22:17:44
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/locations/hotel_room_form.html`
+  - *Detalles:*
+    - feat: Center room media pagination controls and add fixed width to page info
+    - - Change pagination layout from space-between to center with gap-3
+    - - Add min-width 140px and text-align center to page info element
+    - - Improve visual balance of pagination controls in room media modal
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 22:15:34
 
 - **[2fe9856]** ```
