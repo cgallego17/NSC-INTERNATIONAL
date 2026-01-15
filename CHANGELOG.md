@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 22:52:42
+
+- **[9201fd0]** ```
+  - *Fecha:* 2026-01-14 22:52:41
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `apps/accounts/views_admin.py`
+    - `apps/accounts/views_private.py`
+  - *Detalles:*
+    - feat: Improve user search case-sensitivity and add stale wallet reservation cleanup
+    - - Import Lower function from django.db.models.functions in views_admin.py
+    - - Convert search query to lowercase and use annotated lowercase fields
+    - - Replace icontains with contains on lowercased fields for consistent case-insensitive search
+    - - Add _cleanup_stale_wallet_reservations method to UserDashboardView
+    - - Release reserved wallet funds for checkouts older than 24 hours
+    - - Mark stale checkouts and related orders as expired/
+
+
+
 ### Actualizado: 2026-01-14 22:34:29
 
 - **[ec01139]** ```
