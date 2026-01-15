@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 23:55:57
+
+- **[ae94ca3]** ```
+  - *Fecha:* 2026-01-14 23:55:56
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/events/public_detail.html`
+  - *Detalles:*
+    - feat: Add image gallery modal for location and accommodation photos in event detail page
+    - - Add CSS for location-accommodation-grid with 2-column layout and responsive breakpoint
+    - - Style location-icon and hotel-icon with fixed dimensions and border radius
+    - - Add gallery-trigger, gallery-container, and gallery-hint styles for interactive image preview
+    - - Implement hover effects with scale transform and brightness filter on gallery images
+    - - Restructure location and accommodation sections into side
+
+
+
 ### Actualizado: 2026-01-14 23:46:48
 
 - **[ac8ab56]** ```
