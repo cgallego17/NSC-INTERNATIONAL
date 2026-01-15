@@ -876,10 +876,21 @@ class AdminDashboard {
             return;
         }
 
-        if (window.innerWidth <= 768) {
-            sidebar.classList.remove('collapsed');
-            mainContent.classList.remove('sidebar-collapsed');
+        // Leaving mobile breakpoint: clear drawer state
+        if (window.innerWidth > 769) {
+            sidebar.classList.remove('show');
+            document.body.classList.remove('sidebar-open');
+            sidebar.classList.remove('mobile-open');
+            mainContent.classList.remove('mobile-sidebar-open');
+            document.body.style.overflow = '';
+            return;
         }
+
+        // Entering / inside mobile breakpoint: clear desktop-only collapsed state
+        sidebar.classList.remove('collapsed');
+        mainContent.classList.remove('sidebar-collapsed');
+        sidebar.classList.remove('mini');
+        mainContent.classList.remove('sidebar-mini');
     }
 
     autoHideAlerts() {
@@ -6020,19 +6031,8 @@ window.NSC_HotelReservation = window.NSC_HotelReservation || (() => {
 
 // Mobile Menu Toggle
 AdminDashboard.prototype.toggleMobileMenu = function () {
-    const sidebar = document.getElementById('sidebar');
-    const mainContent = document.getElementById('mainContent');
-
-    if (sidebar && mainContent) {
-        sidebar.classList.toggle('mobile-open');
-        mainContent.classList.toggle('mobile-sidebar-open');
-
-        // Prevent body scroll when mobile menu is open
-        if (sidebar.classList.contains('mobile-open')) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
+    if (window.adminDashboard && typeof window.adminDashboard.toggleMobileMenu === 'function') {
+        window.adminDashboard.toggleMobileMenu();
     }
 }
 
