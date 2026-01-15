@@ -477,6 +477,9 @@
                                     {% trans "Remember me" %}
                                 </label>
                             </div>
+                            <div class="mt-2" style="text-align: right;">
+                                <a href="{% url 'accounts:password_reset' %}" style="font-size: 0.9rem;">{% trans "Forgot your password?" %}</a>
+                            </div>
                         </div>
 
                         <button type="submit" class="btn btn-mlb w-100">
