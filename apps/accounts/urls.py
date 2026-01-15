@@ -357,6 +357,11 @@ urlpatterns = [
         name="admin_wallet_topups_search_users",
     ),
     path(
+        "admin/wallet/checkouts/<int:pk>/release-reservation/",
+        views_admin.admin_release_wallet_reservation_for_checkout,
+        name="admin_release_wallet_reservation_for_checkout",
+    ),
+    path(
         "dashboard-banners/<int:pk>/delete/",
         views_dashboard_banners.DashboardBannerDeleteView.as_view(),
         name="dashboard_banner_delete",

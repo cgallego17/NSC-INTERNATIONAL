@@ -3,7 +3,7 @@ Vistas administrativas de órdenes - Solo staff/superuser
 """
 
 from datetime import timedelta
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django import forms
 from django.contrib import messages
@@ -19,7 +19,14 @@ from django.views.generic import DetailView, ListView
 from apps.core.mixins import StaffRequiredMixin
 from apps.events.models import EventAttendance
 
-from .models import Order, Player, StaffWalletTopUp, UserWallet, WalletTransaction
+from .models import (
+    Order,
+    Player,
+    StaffWalletTopUp,
+    StripeEventCheckout,
+    UserWallet,
+    WalletTransaction,
+)
 
 
 class AdminOrderListView(StaffRequiredMixin, ListView):
@@ -389,6 +396,87 @@ def search_users_ajax(request):
         )
 
     return JsonResponse({"users": results})
+
+
+@require_http_methods(["POST"])
+def admin_release_wallet_reservation_for_checkout(request, pk):
+    if not request.user.is_staff:
+        return JsonResponse({"success": False, "error": "Unauthorized"}, status=403)
+
+    checkout = (
+        StripeEventCheckout.objects.filter(pk=pk)
+        .select_related("event", "user")
+        .first()
+    )
+    if not checkout:
+        return JsonResponse(
+            {"success": False, "error": "Checkout not found"}, status=404
+        )
+
+    if checkout.status == "paid":
+        return JsonResponse(
+            {
+                "success": False,
+                "error": "Checkout is paid; cannot release wallet reservation.",
+            },
+            status=400,
+        )
+
+    breakdown = checkout.breakdown or {}
+    wallet_deduction_str = breakdown.get("wallet_deduction", "0")
+    try:
+        wallet_deduction = Decimal(str(wallet_deduction_str))
+    except (ValueError, TypeError, InvalidOperation):
+        wallet_deduction = Decimal("0.00")
+
+    if wallet_deduction <= 0:
+        return JsonResponse(
+            {"success": False, "error": "No wallet_deduction found for this checkout."},
+            status=400,
+        )
+
+    wallet, _created = UserWallet.objects.get_or_create(user=checkout.user)
+
+    processed_refs = [
+        f"checkout_expired:{checkout.pk}",
+        f"checkout_cancel:{checkout.pk}",
+        f"checkout_confirmed:{checkout.pk}",
+        f"checkout_confirmed_webhook:{checkout.pk}",
+    ]
+    already_processed = WalletTransaction.objects.filter(
+        wallet=wallet, reference_id__in=processed_refs
+    ).exists()
+
+    if already_processed:
+        return JsonResponse(
+            {
+                "success": False,
+                "error": "Reservation already processed for this checkout.",
+            },
+            status=400,
+        )
+
+    try:
+        wallet.release_reserved_funds(
+            amount=wallet_deduction,
+            description=f"Reserva liberada por admin: {checkout.event.title}",
+            reference_id=f"checkout_expired:{checkout.pk}",
+        )
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=400)
+
+    checkout.status = "expired"
+    checkout.save(update_fields=["status", "updated_at"])
+
+    return JsonResponse(
+        {
+            "success": True,
+            "checkout_id": checkout.pk,
+            "user_id": checkout.user_id,
+            "released": str(wallet_deduction),
+            "wallet_pending_balance": str(wallet.pending_balance),
+        }
+    )
 
 
 class AdminWalletTopUpListView(StaffRequiredMixin, ListView):
