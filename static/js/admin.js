@@ -6,6 +6,17 @@ class AdminDashboard {
         this.setupEventListeners();
     }
 
+    handleResize() {
+        const sidebar = document.getElementById('sidebar');
+        if (!sidebar) return;
+
+        // If we are leaving mobile breakpoint, ensure drawer state is cleared
+        if (window.innerWidth > 769) {
+            sidebar.classList.remove('show');
+            document.body.classList.remove('sidebar-open');
+        }
+    }
+
     setupWebPush() {
         const isStaff = (document.body && document.body.dataset && document.body.dataset.isStaff === '1');
         if (!isStaff) return;
@@ -126,6 +137,9 @@ class AdminDashboard {
         // Initialize theme
         const savedTheme = localStorage.getItem('theme') || 'light';
         this.setTheme(savedTheme);
+
+        // Normalize responsive state on load
+        try { this.handleResize(); } catch (e) {}
 
         // Initialize sidebar state
         const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
@@ -695,6 +709,17 @@ class AdminDashboard {
         document.addEventListener('click', (e) => {
             this.handleOutsideClick(e);
         });
+
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', () => {
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar) {
+                    sidebar.classList.remove('show');
+                }
+                document.body.classList.remove('sidebar-open');
+            });
+        }
 
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
