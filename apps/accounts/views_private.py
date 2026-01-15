@@ -5251,7 +5251,9 @@ def _build_registration_cards_for_user(user):
                 "player_count": len(registered_players),
                 "is_completed": (order.status == "paid") if order else False,
                 "is_pending": (
-                    (order.status == "pending_registration") if order else False
+                    (order.status in ["pending_registration", "pending"])
+                    if order
+                    else (checkout.status in ["created", "registered"])
                 ),
             }
         )
