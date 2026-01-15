@@ -2,7 +2,6 @@
 Vistas administrativas de órdenes - Solo staff/superuser
 """
 
-import json
 from datetime import timedelta
 from decimal import Decimal
 
@@ -134,6 +133,18 @@ class AdminOrderDetailView(StaffRequiredMixin, DetailView):
         order = self.object
         context["is_admin"] = True
 
+        profile_user_type = (
+            getattr(getattr(order.user, "profile", None), "user_type", "") or ""
+        )
+        user_type_map = {
+            "spectator": "spectator",
+            "parent": "parent",
+            "team_manager": "coach",
+        }
+        context["customer_user_type"] = user_type_map.get(
+            profile_user_type, profile_user_type or "-"
+        )
+
         # Jugadores registrados en esta orden (si aplica)
         try:
             registered_players = order.registered_players
@@ -184,17 +195,12 @@ class AdminOrderDetailView(StaffRequiredMixin, DetailView):
         context["registered_players"] = registered_players
 
         # Reservas de hotel vinculadas a esta orden (si aplica)
-        try:
-            hotel_reservations = order.hotel_reservations
-            # Optimización de consulta si es un QuerySet
-            if hasattr(hotel_reservations, "select_related"):
-                hotel_reservations = hotel_reservations.select_related(
-                    "room", "hotel"
-                ).prefetch_related(
-                    "service_reservations", "service_reservations__service"
-                )
-        except Exception:
-            hotel_reservations = []
+        hotel_reservations = order.hotel_reservations
+        # Optimización de consulta si es un QuerySet
+        if hasattr(hotel_reservations, "select_related"):
+            hotel_reservations = hotel_reservations.select_related(
+                "room", "hotel"
+            ).prefetch_related("service_reservations", "service_reservations__service")
         context["hotel_reservations"] = hotel_reservations
 
         # Resumen de plan de pagos (solo si la orden es un plan)
