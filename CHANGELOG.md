@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 22:06:35
+
+- **[2ce7e62]** ```
+  - *Fecha:* 2026-01-14 22:06:34
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `static/css/admin.css`
+    - `static/js/admin.js`
+  - *Detalles:*
+    - feat: Fix sidebar visibility state when resizing from desktop to mobile
+    - - Change overlay selector from #sidebar.show to body.sidebar-open for consistency
+    - - Add check in handleResize to remove show class if sidebar-open not present
+    - - Prevent sidebar from remaining stuck visible when resizing to mobile without explicit open state
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 22:02:34
 
 - **[c9328ec]** ```
