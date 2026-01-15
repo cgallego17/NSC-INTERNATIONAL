@@ -398,7 +398,7 @@ def search_users_ajax(request):
     return JsonResponse({"users": results})
 
 
-@require_http_methods(["POST"])
+@require_http_methods(["GET", "POST"])
 def admin_release_wallet_reservation_for_checkout(request, pk):
     if not request.user.is_staff:
         return JsonResponse({"success": False, "error": "Unauthorized"}, status=403)
