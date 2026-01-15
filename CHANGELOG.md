@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 21:14:57
+
+- **[547535b]** ```
+  - *Fecha:* 2026-01-14 21:14:57
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `apps/accounts/views_private.py`
+    - `static/js/vue/event-detail.js`
+  - *Detalles:*
+    - feat: Add auto-resume for pending checkout sessions
+    - - Add resume_checkout as alternative parameter name alongside resume_checkout_id
+    - - Return both resume_checkout_id and resume_checkout in 400 error response
+    - - Implement retry logic in event-detail.js to auto-resume pending checkouts
+    - - Parse error response to extract resume_checkout_id or resume_checkout value
+    - - Retry fetch request with resume parameters when 400 status and resumeId detected
+    - - Limit retry attempts to 2 to prevent infinite loops
+    - -
+
+
+
 ### Actualizado: 2026-01-14 21:05:26
 
 - **[e9c1480]** ```
