@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 21:23:11
+
+- **[83affed]** ```
+  - *Fecha:* 2026-01-14 21:23:10
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `static/js/vue/event-detail.js`
+  - *Detalles:*
+    - feat: Hide register-only button for spectators in event detail
+    - - Add !isSpectator condition to register-only button visibility check
+    - - Prevent spectators from accessing registration-only checkout flow
+    - - Maintain existing isResumedCheckout condition for button display
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 21:20:57
 
 - **[5f4ece5]** ```
