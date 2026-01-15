@@ -1034,31 +1034,36 @@ document.addEventListener('DOMContentLoaded', () => {
         const items = Array.from(selected.values());
         console.log('[DEBUG] renderSelectedPreview: Items en selected Map:', items.map(i => ({ id: i.id, title: i.title })));
 
-        // Siempre mantener el preview oculto, solo crear los inputs ocultos
-        previewWrap.style.display = 'none';
-
         if (!items.length) {
+            previewWrap.style.display = 'none';
             return;
         }
+
+        previewWrap.style.display = '';
 
         items.forEach(item => {
             const input = document.createElement('input');
             input.type = 'hidden';
             input.name = 'room_media_ids';
             input.value = String(item.id);
-            // Verificar que idsWrap esté dentro del formulario antes de agregar
-            const form = document.querySelector('form.needs-validation');
-            if (form && form.contains(idsWrap)) {
-                idsWrap.appendChild(input);
-                console.log('[DEBUG] renderSelectedPreview: Input creado para media_id:', item.id, 'dentro del formulario');
-            } else {
-                console.error('[DEBUG] renderSelectedPreview: ERROR - idsWrap NO está dentro del formulario!');
-                // Intentar agregar directamente al formulario como último recurso
-                if (form) {
-                    form.appendChild(input);
-                    console.log('[DEBUG] renderSelectedPreview: Input agregado directamente al formulario:', item.id);
-                }
-            }
+            idsWrap.appendChild(input);
+
+            const col = document.createElement('div');
+            col.className = 'col-md-3 col-sm-4 col-6';
+            col.innerHTML = `
+                <div class="card h-100 shadow-sm position-relative" style="overflow:hidden;">
+                    <div style="height: 120px; overflow:hidden;">
+                        <img src="${item.thumbnail || item.url || ''}" alt="" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm position-absolute" style="top: 6px; right: 6px; padding: 0.15rem 0.35rem;" data-remove-id="${String(item.id)}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <div class="card-body p-2">
+                        <div style="font-weight:800; font-size:0.78rem; color:#0d2c54; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${item.title || ('ID ' + String(item.id))}</div>
+                    </div>
+                </div>
+            `;
+            previewGrid.appendChild(col);
         });
 
         previewGrid.querySelectorAll('[data-remove-id]').forEach(btn => {
