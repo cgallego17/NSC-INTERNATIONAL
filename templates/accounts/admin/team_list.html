@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Teams" %} - NCS International{% endblock %}
+
+{% block breadcrumb %}
+    <span>{% trans "Teams" %}</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h1 class="h4 mb-1">{% trans "Teams" %}</h1>
+            <div class="text-muted" style="font-size: 0.9rem;">{% trans "Manage teams" %}</div>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-primary" href="{% url 'accounts:admin_team_create' %}">
+                <i class="bi bi-plus-circle me-1"></i>{% trans "Create" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-12 col-md-6">
+                    <label class="form-label">{% trans "Search" %}</label>
+                    <input type="text" name="search" value="{{ search }}" class="form-control" placeholder="{% trans 'Search by team name or manager' %}">
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label">{% trans "Status" %}</label>
+                    <select name="is_active" class="form-select">
+                        <option value="">{% trans "All" %}</option>
+                        <option value="1" {% if is_active_filter == '1' %}selected{% endif %}>{% trans "Active" %}</option>
+                        <option value="0" {% if is_active_filter == '0' %}selected{% endif %}>{% trans "Inactive" %}</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-search me-1"></i>{% trans "Filter" %}
+                    </button>
+                    <a class="btn btn-outline-secondary" href="{% url 'accounts:admin_team_list' %}">
+                        <i class="bi bi-x-circle me-1"></i>{% trans "Clear" %}
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">{% trans "ID" %}</th>
+                        <th>{% trans "Team" %}</th>
+                        <th>{% trans "Manager" %}</th>
+                        <th style="width: 120px;">{% trans "Status" %}</th>
+                        <th style="width: 220px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for team in teams %}
+                        <tr>
+                            <td>{{ team.pk }}</td>
+                            <td>
+                                <div class="fw-semibold">{{ team.name }}</div>
+                                <div class="text-muted" style="font-size: 0.85rem;">{{ team.city.name|default:"" }}</div>
+                            </td>
+                            <td>{{ team.manager.get_full_name|default:team.manager.username }}</td>
+                            <td>
+                                {% if team.is_active %}
+                                    <span class="badge bg-success">{% trans "Active" %}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{% trans "Inactive" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:admin_team_edit' pk=team.pk %}">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a class="btn btn-sm btn-outline-danger" href="{% url 'accounts:admin_team_delete' pk=team.pk %}">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                {% trans "No teams found" %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+            <div class="card-footer">
+                <nav aria-label="Pagination">
+                    <ul class="pagination mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if is_active_filter %}&is_active={{ is_active_filter }}{% endif %}">{% trans "Previous" %}</a></li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">{% trans "Previous" %}</span></li>
+                        {% endif %}
+
+                        <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search %}&search={{ search|urlencode }}{% endif %}{% if is_active_filter %}&is_active={{ is_active_filter }}{% endif %}">{% trans "Next" %}</a></li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">{% trans "Next" %}</span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -12,18 +12,27 @@ from django.db.models import Avg, Q, Sum
 from django.db.models.functions import Lower
 from django.http import JsonResponse
 from django.shortcuts import redirect
+from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
-from django.views.generic import DetailView, ListView
+from django.views.generic import (
+    CreateView,
+    DeleteView,
+    DetailView,
+    ListView,
+    UpdateView,
+)
 
 from apps.core.mixins import StaffRequiredMixin
 from apps.events.models import EventAttendance
 
+from .forms import AdminTeamForm
 from .models import (
     Order,
     Player,
     StaffWalletTopUp,
     StripeEventCheckout,
+    Team,
     UserWallet,
     WalletTransaction,
 )
@@ -126,6 +135,77 @@ class AdminOrderListView(StaffRequiredMixin, ListView):
 
         context["is_admin"] = True
         return context
+
+
+class AdminTeamListView(StaffRequiredMixin, ListView):
+    model = Team
+    template_name = "accounts/admin/team_list.html"
+    context_object_name = "teams"
+    paginate_by = 25
+
+    def get_queryset(self):
+        qs = Team.objects.select_related("manager", "city", "state", "country").all()
+        search = (self.request.GET.get("search") or "").strip()
+        is_active = (self.request.GET.get("is_active") or "").strip()
+
+        if search:
+            qs = qs.filter(
+                Q(name__icontains=search)
+                | Q(manager__username__icontains=search)
+                | Q(manager__first_name__icontains=search)
+                | Q(manager__last_name__icontains=search)
+                | Q(manager__email__icontains=search)
+            )
+
+        if is_active in ("0", "1"):
+            qs = qs.filter(is_active=(is_active == "1"))
+
+        return qs.order_by("name")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["search"] = self.request.GET.get("search", "")
+        context["is_active_filter"] = self.request.GET.get("is_active", "")
+        context["is_admin"] = True
+        return context
+
+
+class AdminTeamCreateView(StaffRequiredMixin, CreateView):
+    model = Team
+    form_class = AdminTeamForm
+    template_name = "accounts/admin/team_form.html"
+
+    def form_valid(self, form):
+        messages.success(self.request, "Team created successfully.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("accounts:admin_team_list")
+
+
+class AdminTeamUpdateView(StaffRequiredMixin, UpdateView):
+    model = Team
+    form_class = AdminTeamForm
+    template_name = "accounts/admin/team_form.html"
+
+    def form_valid(self, form):
+        messages.success(self.request, "Team updated successfully.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("accounts:admin_team_list")
+
+
+class AdminTeamDeleteView(StaffRequiredMixin, DeleteView):
+    model = Team
+    template_name = "accounts/admin/team_confirm_delete.html"
+
+    def form_valid(self, form):
+        messages.success(self.request, "Team deleted successfully.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("accounts:admin_team_list")
 
 
 class AdminOrderDetailView(StaffRequiredMixin, DetailView):

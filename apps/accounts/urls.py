@@ -405,6 +405,27 @@ urlpatterns = [
         views_admin.admin_release_wallet_reservation_for_checkout,
         name="admin_release_wallet_reservation_for_checkout",
     ),
+    # Equipos (Admin)
+    path(
+        "admin/teams/",
+        views_admin.AdminTeamListView.as_view(),
+        name="admin_team_list",
+    ),
+    path(
+        "admin/teams/create/",
+        views_admin.AdminTeamCreateView.as_view(),
+        name="admin_team_create",
+    ),
+    path(
+        "admin/teams/<int:pk>/edit/",
+        views_admin.AdminTeamUpdateView.as_view(),
+        name="admin_team_edit",
+    ),
+    path(
+        "admin/teams/<int:pk>/delete/",
+        views_admin.AdminTeamDeleteView.as_view(),
+        name="admin_team_delete",
+    ),
     path(
         "dashboard-banners/<int:pk>/delete/",
         views_dashboard_banners.DashboardBannerDeleteView.as_view(),

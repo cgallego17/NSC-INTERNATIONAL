@@ -1175,6 +1175,88 @@ class TeamForm(forms.ModelForm):
                 pass
 
 
+class AdminTeamForm(forms.ModelForm):
+    class Meta:
+        model = Team
+        fields = [
+            "name",
+            "manager",
+            "description",
+            "logo",
+            "country",
+            "state",
+            "city",
+            "website",
+            "contact_email",
+            "contact_phone",
+            "is_active",
+        ]
+        widgets = {
+            "name": forms.TextInput(attrs={"class": "form-control"}),
+            "manager": forms.Select(attrs={"class": "form-select"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "logo": forms.FileInput(
+                attrs={"class": "form-control", "accept": "image/*"}
+            ),
+            "website": forms.URLInput(attrs={"class": "form-control"}),
+            "contact_email": forms.EmailInput(attrs={"class": "form-control"}),
+            "contact_phone": forms.TextInput(attrs={"class": "form-control"}),
+            "is_active": forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["country"] = forms.ModelChoiceField(
+            queryset=Country.objects.filter(is_active=True).order_by("name"),
+            required=False,
+            empty_label=_("Select a country"),
+            widget=forms.Select(attrs={"class": "form-select"}),
+        )
+
+        self.fields["state"] = forms.ModelChoiceField(
+            queryset=State.objects.none(),
+            required=False,
+            empty_label=_("Select a state"),
+            widget=forms.Select(attrs={"class": "form-select"}),
+        )
+
+        self.fields["city"] = forms.ModelChoiceField(
+            queryset=City.objects.none(),
+            required=False,
+            empty_label=_("Select a city"),
+            widget=forms.Select(attrs={"class": "form-select"}),
+        )
+
+        if self.instance and self.instance.pk:
+            if self.instance.country:
+                self.fields["state"].queryset = State.objects.filter(
+                    country=self.instance.country, is_active=True
+                ).order_by("name")
+            if self.instance.state:
+                self.fields["city"].queryset = City.objects.filter(
+                    state=self.instance.state, is_active=True
+                ).order_by("name")
+
+        if "country" in self.data:
+            try:
+                country_id = int(self.data.get("country"))
+                self.fields["state"].queryset = State.objects.filter(
+                    country_id=country_id, is_active=True
+                ).order_by("name")
+            except (ValueError, TypeError):
+                pass
+
+        if "state" in self.data:
+            try:
+                state_id = int(self.data.get("state"))
+                self.fields["city"].queryset = City.objects.filter(
+                    state_id=state_id, is_active=True
+                ).order_by("name")
+            except (ValueError, TypeError):
+                pass
+
+
 class PlayerRegistrationForm(forms.ModelForm):
     """Formulario para que managers registren jugadores"""
 

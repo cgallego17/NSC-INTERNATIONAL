@@ -155,9 +155,34 @@ def sidebar_context(request):
         "accounts:player_register": {"section": "players", "subsection": "player_list"},
         "accounts:player_edit": {"section": "players", "subsection": "player_list"},
         "accounts:user_list": {"section": "users", "subsection": "user_list"},
-        "accounts:admin_order_list": {"section": "orders", "subsection": "admin_order_list"},
-        "accounts:admin_order_detail": {"section": "orders", "subsection": "admin_order_list"},
-        "accounts:admin_wallet_topups": {"section": "orders", "subsection": "wallet_topups"},
+        "accounts:admin_order_list": {
+            "section": "orders",
+            "subsection": "admin_order_list",
+        },
+        "accounts:admin_order_detail": {
+            "section": "orders",
+            "subsection": "admin_order_list",
+        },
+        "accounts:admin_wallet_topups": {
+            "section": "orders",
+            "subsection": "wallet_topups",
+        },
+        "accounts:admin_team_list": {
+            "section": "teams",
+            "subsection": "admin_team_list",
+        },
+        "accounts:admin_team_create": {
+            "section": "teams",
+            "subsection": "admin_team_list",
+        },
+        "accounts:admin_team_edit": {
+            "section": "teams",
+            "subsection": "admin_team_list",
+        },
+        "accounts:admin_team_delete": {
+            "section": "teams",
+            "subsection": "admin_team_list",
+        },
         "accounts:age_verification_list": {
             "section": "age_verifications",
             "subsection": "pending_verifications",
@@ -281,10 +306,17 @@ def sidebar_context(request):
             elif "/admin/orders" in current_path:
                 active_section = "orders"
                 active_subsection = "admin_order_list"
+            elif "/admin/teams" in current_path:
+                active_section = "teams"
+                active_subsection = "admin_team_list"
             elif "/admin/wallet-topups" in current_path:
                 active_section = "orders"
                 active_subsection = "wallet_topups"
-            elif "/age-verifications" in current_path or "verificaciones-pendientes" in current_path or "tab=verificaciones-pendientes" in current_path:
+            elif (
+                "/age-verifications" in current_path
+                or "verificaciones-pendientes" in current_path
+                or "tab=verificaciones-pendientes" in current_path
+            ):
                 active_section = "age_verifications"
                 active_subsection = "pending_verifications"
             elif "/players" in current_path:
@@ -298,6 +330,7 @@ def sidebar_context(request):
     try:
         if hasattr(request, "user") and request.user.is_authenticated:
             from apps.accounts.models import Player
+
             user = request.user
 
             # Verificar si es staff/admin o manager
@@ -310,14 +343,14 @@ def sidebar_context(request):
                 # Staff/admin ve todos los documentos pendientes
                 pending_verifications_count = Player.objects.filter(
                     age_verification_status="pending",
-                    age_verification_document__isnull=False
+                    age_verification_document__isnull=False,
                 ).count()
             elif is_manager:
                 # Manager ve solo documentos de sus equipos
                 pending_verifications_count = Player.objects.filter(
                     team__manager=user,
                     age_verification_status="pending",
-                    age_verification_document__isnull=False
+                    age_verification_document__isnull=False,
                 ).count()
     except Exception:
         # Si hay error, mantener en 0
