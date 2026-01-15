@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 22:29:33
+
+- **[b2db062]** ```
+  - *Fecha:* 2026-01-14 22:29:33
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `static/css/admin.css`
+    - `staticfiles/css/admin.css`
+  - *Detalles:*
+    - feat: Fix modal z-index conflicts and hide sidebar overlay when modal is open
+    - - Increase modal z-index to 20030 and backdrop to 20020 with !important
+    - - Hide sidebar overlay when body has modal-open class
+    - - Prevent sidebar overlay from appearing above modal backdrop
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 22:22:57
 
 - **[d46e2ab]** ```
