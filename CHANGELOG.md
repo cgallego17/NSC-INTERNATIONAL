@@ -7,6 +7,20 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 23:05:31
+
+- **[ca36351]** ```
+  - *Fecha:* 2026-01-14 23:05:31
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `apps/accounts/views_admin.py`
+  - *Detalles:*
+    - feat: Allow GET method for admin wallet reservation release endpoint
+    - - Change admin_release_wallet_reservation_for_checkout from POST-only to accept both GET and POST methods
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 23:00:26
 
 - **[6ee1f46]** ```
