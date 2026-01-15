@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 21:05:26
+
+- **[e9c1480]** ```
+  - *Fecha:* 2026-01-14 21:05:25
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 3 archivo(s)
+    - `apps/accounts/views_admin.py`
+    - `debug_order_4.py`
+    - `templates/accounts/admin/order_detail.html`
+  - *Detalles:*
+    - feat: Add user type display to admin order detail view
+    - - Remove unused json import from views_admin.py
+    - - Add customer_user_type context variable with profile.user_type mapping
+    - - Map spectator, parent, and team_manager to display values (coach for team_manager)
+    - - Add User Type field to customer information section in order_detail.html template
+    - - Simplify hotel_reservations query by removing unnecessary try-except block
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 12:05:53
 
 - **[af297a2]** ```
