@@ -7,6 +7,32 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-15 13:29:45
+
+- **[e283d7c]** ```
+  - *Fecha:* 2026-01-15 13:29:45
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 14 archivo(s)
+    - `apps/accounts/urls.py`
+    - `templates/accounts/public_home.html`
+    - `templates/accounts/public_login.html`
+    - `templates/accounts/public_player_list.html`
+    - `templates/accounts/public_register.html`
+    - `templates/accounts/public_team_list.html`
+    - `templates/events/public_list.html`
+    - `templates/registration/password_reset_complete.html`
+    - `templates/registration/password_reset_confirm.html`
+    - `templates/registration/password_reset_done.html`
+    - ... y 4 archivo(s) más
+  - *Detalles:*
+    - feat: Add password reset functionality with forgot password links in login forms
+    - - Add password reset URL patterns using Django's built-in auth views in accounts/urls.py
+    - - Configure password_reset, password_reset_done, password_reset_confirm, and password_reset_complete endpoints
+    - - Import auth_views and reverse_lazy for password reset flow
+    - - Add "Forgot your password?" link to login forms in public_home.html, public_login.html, public_player_list.html, public_register.html, public_team_list.html, an
+
+
+
 ### Actualizado: 2026-01-15 10:16:24
 
 - **[e165825]** ```
