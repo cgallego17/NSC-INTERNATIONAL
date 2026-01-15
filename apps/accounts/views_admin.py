@@ -424,18 +424,48 @@ def admin_release_wallet_reservation_for_checkout(request, pk):
 
     breakdown = checkout.breakdown or {}
     wallet_deduction_str = breakdown.get("wallet_deduction", "0")
+    inferred_wallet_deduction = False
     try:
         wallet_deduction = Decimal(str(wallet_deduction_str))
     except (ValueError, TypeError, InvalidOperation):
         wallet_deduction = Decimal("0.00")
 
+    wallet, _created = UserWallet.objects.get_or_create(user=checkout.user)
+
     if wallet_deduction <= 0:
-        return JsonResponse(
-            {"success": False, "error": "No wallet_deduction found for this checkout."},
-            status=400,
+        # Fallback: older data may not persist wallet_deduction inside checkout.breakdown.
+        # Infer amount from the wallet reserve transaction created at checkout start.
+        reserve_ref = f"event_checkout_pending:{checkout.event_id}"
+        window_start = (checkout.created_at or timezone.now()) - timedelta(hours=2)
+        window_end = (checkout.created_at or timezone.now()) + timedelta(hours=2)
+        reserve_tx = (
+            WalletTransaction.objects.filter(
+                wallet=wallet,
+                reference_id=reserve_ref,
+                transaction_type="payment",
+                created_at__gte=window_start,
+                created_at__lte=window_end,
+            )
+            .order_by("-created_at")
+            .first()
         )
 
-    wallet, _created = UserWallet.objects.get_or_create(user=checkout.user)
+        if reserve_tx and reserve_tx.amount and reserve_tx.amount > 0:
+            wallet_deduction = reserve_tx.amount
+            inferred_wallet_deduction = True
+        elif wallet.pending_balance > 0 and wallet.pending_balance <= wallet.balance:
+            # As a last resort, if the wallet has exactly one reservation (typical stuck case),
+            # treat pending_balance as the amount to release.
+            wallet_deduction = wallet.pending_balance
+            inferred_wallet_deduction = True
+        else:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "No wallet_deduction found for this checkout.",
+                },
+                status=400,
+            )
 
     processed_refs = [
         f"checkout_expired:{checkout.pk}",
@@ -475,6 +505,7 @@ def admin_release_wallet_reservation_for_checkout(request, pk):
             "user_id": checkout.user_id,
             "released": str(wallet_deduction),
             "wallet_pending_balance": str(wallet.pending_balance),
+            "inferred_wallet_deduction": inferred_wallet_deduction,
         }
     )
 
