@@ -891,6 +891,12 @@ class AdminDashboard {
         mainContent.classList.remove('sidebar-collapsed');
         sidebar.classList.remove('mini');
         mainContent.classList.remove('sidebar-mini');
+
+        // If we are in mobile sizes but the drawer isn't explicitly open,
+        // ensure we don't leave the sidebar stuck visible.
+        if (!document.body.classList.contains('sidebar-open')) {
+            sidebar.classList.remove('show');
+        }
     }
 
     autoHideAlerts() {
