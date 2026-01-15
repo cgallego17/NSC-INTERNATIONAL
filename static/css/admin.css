@@ -2132,7 +2132,15 @@ table td .badge.bg-info {
     color: #000 !important;
 }
 
- @media (max-width: 768px) {
+ @media (max-width: 769px) {
+     .mobile-toggle {
+         display: flex;
+     }
+
+     .sidebar-toggle {
+         display: none;
+     }
+
      .sidebar {
          width: 280px;
          transform: translateX(-100%);
