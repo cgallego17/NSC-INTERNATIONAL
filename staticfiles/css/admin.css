@@ -4629,6 +4629,11 @@ span.badge {
     body.sidebar-open #sidebarOverlay {
         display: block !important;
     }
+
+    body.modal-open #sidebarOverlay,
+    body.modal-open.sidebar-open #sidebarOverlay {
+        display: none !important;
+    }
 }
 
 @media (max-width: 480px) {
