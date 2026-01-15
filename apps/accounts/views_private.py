@@ -2191,6 +2191,9 @@ def _compute_hotel_amount_from_cart(cart: dict) -> dict:
 
     room_base = Decimal("0.00")
     services_total = Decimal("0.00")
+    taxes_iva = Decimal("0.00")
+    taxes_ish = Decimal("0.00")
+    taxes_other = Decimal("0.00")
 
     for room_key, item_data in (cart or {}).items():
         if item_data.get("type") != "room":
@@ -2222,6 +2225,29 @@ def _compute_hotel_amount_from_cart(cart: dict) -> dict:
         item_room_base = per_night_total * nights
         room_base += item_room_base
 
+        # Taxes: fixed per-night amounts per room (HotelRoomTax.amount) multiplied by nights.
+        try:
+            taxes = list(room.taxes.values("name", "amount"))
+        except Exception:
+            taxes = []
+        for tx in taxes:
+            try:
+                name = str((tx or {}).get("name") or "").lower()
+                amt = Decimal(str((tx or {}).get("amount") or "0"))
+            except Exception:
+                continue
+            if amt <= 0:
+                continue
+            total_amt = (amt * Decimal(str(nights))).quantize(
+                Decimal("0.01"), rounding=ROUND_HALF_UP
+            )
+            if "iva" in name:
+                taxes_iva += total_amt
+            elif "ish" in name:
+                taxes_ish += total_amt
+            else:
+                taxes_other += total_amt
+
         for service_data in item_data.get("services", []) or []:
             try:
                 service = HotelService.objects.get(
@@ -2240,15 +2266,21 @@ def _compute_hotel_amount_from_cart(cart: dict) -> dict:
                 price = price * nights
             services_total += price
 
-    iva = room_base * Decimal("0.16")
-    ish = room_base * Decimal("0.05")
-    total = room_base + iva + ish + services_total
+    iva = taxes_iva
+    ish = taxes_ish
+    total_taxes = (taxes_iva + taxes_ish + taxes_other).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
+    total = (room_base + services_total + total_taxes).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP
+    )
 
     return {
         "room_base": room_base,
         "services_total": services_total,
         "iva": iva,
         "ish": ish,
+        "total_taxes": total_taxes,
         "total": total,
     }
 
@@ -2262,7 +2294,7 @@ def _compute_hotel_amount_from_vue_payload(payload: dict) -> dict:
     - Additional guests are per-night and multiplied by nights
     - Taxes are taken from room.taxes[] as fixed per-night amounts and multiplied by nights
     """
-    from datetime import datetime, timedelta
+    from datetime import datetime
 
     from apps.locations.models import HotelRoom
 
@@ -2300,6 +2332,9 @@ def _compute_hotel_amount_from_vue_payload(payload: dict) -> dict:
 
     room_base = Decimal("0.00")  # includes extra guests, before taxes
     total_taxes = Decimal("0.00")
+    taxes_iva = Decimal("0.00")
+    taxes_ish = Decimal("0.00")
+    taxes_other = Decimal("0.00")
 
     for r in rooms:
         room_id = str((r or {}).get("roomId") or (r or {}).get("room_id") or "")
@@ -2370,14 +2405,26 @@ def _compute_hotel_amount_from_vue_payload(payload: dict) -> dict:
             amt = _as_decimal((tx or {}).get("amount"))
             if amt <= 0:
                 continue
-            total_taxes += (amt * Decimal(str(nights_final))).quantize(
+            name = str((tx or {}).get("name") or "").lower()
+            line_tax = (amt * Decimal(str(nights_final))).quantize(
                 Decimal("0.01"), rounding=ROUND_HALF_UP
             )
+            total_taxes += line_tax
+            if "iva" in name:
+                taxes_iva += line_tax
+            elif "ish" in name:
+                taxes_ish += line_tax
+            else:
+                taxes_other += line_tax
 
     total = (room_base + total_taxes).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     return {
         "room_base": room_base,
-        "total_taxes": total_taxes,
+        "iva": taxes_iva,
+        "ish": taxes_ish,
+        "total_taxes": (taxes_iva + taxes_ish + taxes_other).quantize(
+            Decimal("0.01"), rounding=ROUND_HALF_UP
+        ),
         "total": total,
         "nights": int(nights_final),
         "check_in": check_in_date,

@@ -965,6 +965,12 @@
                                         <strong style="color: #dc3545;">-{{ breakdown.discount_percent }}%</strong>
                                     </div>
                                     {% endif %}
+                                    {% if breakdown.wallet_deduction %}
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span style="color: #6c757d;">{% trans "Wallet" %}:</span>
+                                        <strong style="color: #dc3545;">-${{ breakdown.wallet_deduction|intcomma_dot }}</strong>
+                                    </div>
+                                    {% endif %}
                                     {% if breakdown.total %}
                                     <div class="d-flex justify-content-between pt-2 border-top mt-2">
                                         <strong style="color: var(--mlb-blue); font-size: 1.2rem;">{% trans "Total" %}:</strong>

@@ -214,6 +214,88 @@ class AdminOrderDetailView(StaffRequiredMixin, DetailView):
         if isinstance(breakdown, dict):
             breakdown.setdefault("no_show_fee", "0.00")
             breakdown.setdefault("hotel_buy_out_fee", "0.00")
+            breakdown.setdefault("wallet_deduction", "0.00")
+
+            breakdown.setdefault("hotel_room_base", "0.00")
+            breakdown.setdefault("hotel_services_total", "0.00")
+            breakdown.setdefault("hotel_iva", "0.00")
+            breakdown.setdefault("hotel_ish", "0.00")
+            breakdown.setdefault("hotel_total_taxes", "0.00")
+            breakdown.setdefault("hotel_total", "0.00")
+
+            try:
+                hotel_total = Decimal(str(breakdown.get("hotel_total") or "0"))
+                hotel_room_base = Decimal(str(breakdown.get("hotel_room_base") or "0"))
+                hotel_services_total = Decimal(
+                    str(breakdown.get("hotel_services_total") or "0")
+                )
+                hotel_iva = Decimal(str(breakdown.get("hotel_iva") or "0"))
+                hotel_ish = Decimal(str(breakdown.get("hotel_ish") or "0"))
+                hotel_total_taxes = Decimal(
+                    str(breakdown.get("hotel_total_taxes") or "0")
+                )
+
+                if hotel_total > 0 and hotel_total_taxes == 0:
+                    derived_taxes = hotel_total - hotel_room_base - hotel_services_total
+                    if derived_taxes > 0:
+                        hotel_total_taxes = derived_taxes
+
+                # If the order has actual hotel reservations, prefer taxes defined on the room
+                # (HotelRoomTax) instead of assuming fixed rates.
+                if hotel_total > 0 and hotel_iva == 0 and hotel_ish == 0:
+                    try:
+                        taxes_iva = Decimal("0.00")
+                        taxes_ish = Decimal("0.00")
+                        taxes_other = Decimal("0.00")
+
+                        reservations_qs = getattr(order, "hotel_reservations", None)
+                        if reservations_qs is not None and hasattr(
+                            reservations_qs, "select_related"
+                        ):
+                            reservations_qs = reservations_qs.select_related(
+                                "room"
+                            ).prefetch_related("room__taxes")
+
+                        for res in reservations_qs or []:
+                            room = getattr(res, "room", None)
+                            if not room:
+                                continue
+                            try:
+                                nights = int(getattr(res, "number_of_nights", 0) or 0)
+                            except Exception:
+                                nights = 0
+                            if nights < 1:
+                                nights = 1
+
+                            for tax in getattr(room, "taxes", []).all():
+                                name = (getattr(tax, "name", "") or "").lower()
+                                amount = Decimal(
+                                    str(getattr(tax, "amount", "0") or "0")
+                                )
+                                amount = (amount * Decimal(str(nights))).quantize(
+                                    Decimal("0.01")
+                                )
+                                if "iva" in name:
+                                    taxes_iva += amount
+                                elif "ish" in name:
+                                    taxes_ish += amount
+                                else:
+                                    taxes_other += amount
+
+                        if taxes_iva > 0:
+                            hotel_iva = taxes_iva
+                        if taxes_ish > 0:
+                            hotel_ish = taxes_ish
+                        if taxes_iva > 0 or taxes_ish > 0 or taxes_other > 0:
+                            hotel_total_taxes = taxes_iva + taxes_ish + taxes_other
+                    except Exception:
+                        pass
+
+                breakdown["hotel_iva"] = f"{hotel_iva:.2f}"
+                breakdown["hotel_ish"] = f"{hotel_ish:.2f}"
+                breakdown["hotel_total_taxes"] = f"{hotel_total_taxes:.2f}"
+            except Exception:
+                pass
         context["breakdown"] = breakdown
 
         # Asistencias al evento para los jugadores de esta orden (estado de registro)
