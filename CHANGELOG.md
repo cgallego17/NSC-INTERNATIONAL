@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 22:02:34
+
+- **[c9328ec]** ```
+  - *Fecha:* 2026-01-14 22:02:33
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `static/js/admin.js`
+    - `templates/base.html`
+  - *Detalles:*
+    - feat: Refactor mobile sidebar state management and add mobile-web-app-capable meta tag
+    - - Refactor handleResize to clear drawer state when leaving mobile breakpoint (>769px)
+    - - Remove show, sidebar-open, mobile-open classes and reset body overflow above 769px
+    - - Clear desktop-only collapsed and mini states when entering mobile breakpoint
+    - - Refactor toggleMobileMenu to delegate to adminDashboard instance method
+    - - Remove duplicate mobile menu toggle implementation
+    - - Add mobile-web-app-capable meta tag to
+
+
+
 ### Actualizado: 2026-01-14 21:57:20
 
 - **[681f8f5]** ```
