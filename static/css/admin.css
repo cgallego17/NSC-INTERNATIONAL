@@ -105,6 +105,14 @@ body {
     overflow-x: hidden !important;
 }
 
+ .modal {
+     z-index: 20000;
+ }
+
+ .modal-backdrop {
+     z-index: 19990;
+ }
+
 /* Prevenir que Bootstrap agregue padding-right al body cuando aparece un toast */
 body.modal-open,
 body:has(.modern-toast-container .modern-toast.show) {
