@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-15 10:16:24
+
+- **[e165825]** ```
+  - *Fecha:* 2026-01-15 10:16:24
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `apps/accounts/forms.py`
+    - `templates/accounts/public_register.html`
+  - *Detalles:*
+    - feat: Add Netherlands phone prefix to registration form and remove trailing whitespace
+    - - Add +31 (Netherlands) option to phone_prefix choices in PublicRegistrationForm
+    - - Add +31 (Netherlands) option to phone prefix dropdown in public_register.html template
+    - - Remove trailing whitespace from PlayerUpdateForm profile_picture widget attrs
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 23:55:57
 
 - **[ae94ca3]** ```
