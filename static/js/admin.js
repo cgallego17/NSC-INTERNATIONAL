@@ -711,7 +711,21 @@ class AdminDashboard {
 
     toggleMobileMenu() {
         const sidebar = document.getElementById('sidebar');
-        sidebar.classList.toggle('show');
+        const mainContent = document.getElementById('mainContent');
+        if (!sidebar) return;
+
+        // On mobile, we want a drawer-style sidebar (not the mini/collapsed desktop state)
+        if (sidebar.classList.contains('show')) {
+            sidebar.classList.remove('show');
+            document.body.classList.remove('sidebar-open');
+        } else {
+            sidebar.classList.remove('mini');
+            if (mainContent) {
+                mainContent.classList.remove('sidebar-mini');
+            }
+            sidebar.classList.add('show');
+            document.body.classList.add('sidebar-open');
+        }
     }
 
     toggleSubmenu(item) {
@@ -6516,6 +6530,7 @@ document.addEventListener('keydown', (e) => {
         const sidebar = document.getElementById('sidebar');
         if (sidebar && sidebar.classList.contains('show')) {
             sidebar.classList.remove('show');
+            try { document.body.classList.remove('sidebar-open'); } catch (err) {}
         }
     }
 });
