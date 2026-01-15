@@ -789,6 +789,12 @@
                     <i class="fas fa-folder-open fa-2x mb-2"></i>
                     <div style="font-weight:800;">No se encontraron imágenes</div>
                 </div>
+
+                <div class="d-flex align-items-center justify-content-between mt-3" id="roomMediaPagination" style="display:none;">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="roomMediaPrevBtn">Anterior</button>
+                    <div class="text-muted" style="font-size: 0.85rem; font-weight: 700;" id="roomMediaPageInfo"></div>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="roomMediaNextBtn">Siguiente</button>
+                </div>
             </div>
             <div class="modal-footer" style="background:#fff;">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -997,6 +1003,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadBtn = document.getElementById('roomMediaUploadBtn');
     const uploadInput = document.getElementById('roomMediaUploadInput');
     const progressEl = document.getElementById('roomMediaUploadProgress');
+    const pagerEl = document.getElementById('roomMediaPagination');
+    const prevBtn = document.getElementById('roomMediaPrevBtn');
+    const nextBtn = document.getElementById('roomMediaNextBtn');
+    const pageInfoEl = document.getElementById('roomMediaPageInfo');
     const confirmBtn = document.getElementById('roomMediaConfirmBtn');
 
     const idsWrap = document.getElementById('room-media-ids');
@@ -1063,18 +1073,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // Alias local para uso interno
     const renderSelectedPreview = window.renderRoomMediaPreview;
 
-    async function loadMedia(search = '') {
-        if (!gridEl || !emptyEl) return;
+    let currentPageState = 1;
+    let totalPagesState = 1;
+    let hasPrevState = false;
+    let hasNextState = false;
+
+    async function loadMedia(search, page = 1) {
         gridEl.innerHTML = '';
         emptyEl.style.display = 'none';
+        if (pagerEl) pagerEl.style.display = 'none';
 
-        const qs = new URLSearchParams({ type: 'image', search: search || '', limit: '60' });
+        const qs = new URLSearchParams({ type: 'image', search: search || '', page: String(page), per_page: String(24) });
         const res = await fetch(`/files/list-ajax/?${qs.toString()}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
         const data = await res.json();
         const results = (data && data.results) ? data.results : [];
 
+        const p = (data && data.pagination) ? data.pagination : null;
+        currentPageState = p && p.current_page ? parseInt(p.current_page, 10) : page;
+        totalPagesState = p && p.total_pages ? parseInt(p.total_pages, 10) : 1;
+        hasPrevState = Boolean(p && p.has_previous);
+        hasNextState = Boolean(p && p.has_next);
+
         if (!results.length) {
-            emptyEl.style.display = '';
+            emptyEl.style.display = 'block';
             return;
         }
 
@@ -1098,10 +1119,21 @@ document.addEventListener('DOMContentLoaded', () => {
             col.querySelector('[data-media-id]').addEventListener('click', () => {
                 if (selected.has(id)) selected.delete(id);
                 else selected.set(id, { id, title: item.title, thumbnail: item.thumbnail, url: item.url });
-                loadMedia(searchEl ? searchEl.value : '');
+                loadMedia(search, currentPageState);
             });
             gridEl.appendChild(col);
         });
+
+        if (pagerEl && pageInfoEl && prevBtn && nextBtn) {
+            if (totalPagesState > 1) {
+                pagerEl.style.display = 'flex';
+                pageInfoEl.textContent = `Página ${currentPageState} de ${totalPagesState}`;
+                prevBtn.disabled = !hasPrevState;
+                nextBtn.disabled = !hasNextState;
+            } else {
+                pagerEl.style.display = 'none';
+            }
+        }
     }
 
     async function uploadFiles(files) {
@@ -1139,24 +1171,45 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         setTimeout(() => { progressEl.style.display = 'none'; }, 800);
-        await loadMedia(searchEl ? searchEl.value : '');
+        await loadMedia(searchEl ? searchEl.value : '', 1);
     }
 
-    modalEl.addEventListener('shown.bs.modal', () => loadMedia(searchEl ? searchEl.value : ''));
+    modalEl.addEventListener('shown.bs.modal', () => {
+        loadMedia(searchEl ? searchEl.value : '', 1);
+    });
 
     if (searchEl) {
-        let t = null;
+        let searchTimeout = null;
         searchEl.addEventListener('input', () => {
             clearBtn.style.display = searchEl.value ? '' : 'none';
-            clearTimeout(t);
-            t = setTimeout(() => loadMedia(searchEl.value), 250);
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => loadMedia(searchEl.value, 1), 250);
         });
     }
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
             if (searchEl) searchEl.value = '';
             clearBtn.style.display = 'none';
-            loadMedia('');
+            loadMedia('', 1);
+        });
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            if (hasPrevState) {
+                loadMedia(searchEl ? searchEl.value : '', Math.max(1, currentPageState - 1));
+            }
+        });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            if (hasNextState) {
+                loadMedia(
+                    searchEl ? searchEl.value : '',
+                    Math.min(totalPagesState, currentPageState + 1)
+                );
+            }
         });
     }
     if (uploadBtn && uploadInput) {

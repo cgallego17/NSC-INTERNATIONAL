@@ -428,6 +428,17 @@ class AdminDashboard {
             this.handleOutsideClick(e);
         });
 
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', () => {
+                const sidebar = document.getElementById('sidebar');
+                if (sidebar) {
+                    sidebar.classList.remove('show');
+                }
+                document.body.classList.remove('sidebar-open');
+            });
+        }
+
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => this.handleKeyboardShortcuts(e));
 
@@ -443,7 +454,20 @@ class AdminDashboard {
 
     toggleMobileMenu() {
         const sidebar = document.getElementById('sidebar');
-        sidebar.classList.toggle('show');
+        const mainContent = document.getElementById('mainContent');
+        if (!sidebar) return;
+
+        if (sidebar.classList.contains('show')) {
+            sidebar.classList.remove('show');
+            document.body.classList.remove('sidebar-open');
+        } else {
+            sidebar.classList.remove('mini');
+            if (mainContent) {
+                mainContent.classList.remove('sidebar-mini');
+            }
+            sidebar.classList.add('show');
+            document.body.classList.add('sidebar-open');
+        }
     }
 
     toggleSubmenu(item) {
@@ -579,9 +603,19 @@ class AdminDashboard {
             return;
         }
 
-        if (window.innerWidth <= 768) {
-            sidebar.classList.remove('collapsed');
-            mainContent.classList.remove('sidebar-collapsed');
+        if (window.innerWidth > 769) {
+            sidebar.classList.remove('show');
+            document.body.classList.remove('sidebar-open');
+            return;
+        }
+
+        sidebar.classList.remove('collapsed');
+        mainContent.classList.remove('sidebar-collapsed');
+        sidebar.classList.remove('mini');
+        mainContent.classList.remove('sidebar-mini');
+
+        if (!document.body.classList.contains('sidebar-open')) {
+            sidebar.classList.remove('show');
         }
     }
 

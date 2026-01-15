@@ -4556,3 +4556,69 @@ span.badge {
         background: rgba(255, 255, 255, 0.1);
     }
 }
+
+@media (max-width: 769px) {
+    .sidebar {
+        width: 280px !important;
+        transform: translateX(-100%) !important;
+        transition: transform 0.25s ease !important;
+        z-index: 20010 !important;
+    }
+
+    .sidebar.show {
+        transform: translateX(0) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35) !important;
+    }
+
+    .sidebar.mini {
+        width: 280px !important;
+    }
+
+    .topbar {
+        left: 0 !important;
+        width: 100% !important;
+    }
+
+    .sidebar.mini~.topbar {
+        left: 0 !important;
+        width: 100% !important;
+    }
+
+    .main-content,
+    .main-content.sidebar-mini {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding-top: 70px !important;
+    }
+
+    .mobile-toggle {
+        display: flex !important;
+    }
+
+    .sidebar-toggle {
+        display: none !important;
+    }
+
+    body.sidebar-open {
+        overflow: hidden !important;
+    }
+
+    #sidebarOverlay {
+        position: fixed !important;
+        inset: 0 !important;
+        background: rgba(0, 0, 0, 0.45) !important;
+        z-index: 20005 !important;
+        display: none;
+        cursor: pointer;
+    }
+
+    body.sidebar-open #sidebarOverlay {
+        display: block !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .sidebar {
+        width: 100% !important;
+    }
+}
