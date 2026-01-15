@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 21:20:57
+
+- **[5f4ece5]** ```
+  - *Fecha:* 2026-01-14 21:20:57
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `apps/accounts/views_private.py`
+  - *Detalles:*
+    - feat: Expand pending status detection for registration cards
+    - - Include "pending" order status alongside "pending_registration" for is_pending flag
+    - - Add fallback to checkout status when order is None
+    - - Check for "created" and "registered" checkout statuses as pending indicators
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 21:17:35
 
 - **[f62d9d9]** ```
