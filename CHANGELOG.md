@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 21:44:07
+
+- **[a368798]** ```
+  - *Fecha:* 2026-01-14 21:44:06
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `static/css/admin.css`
+  - *Detalles:*
+    - feat: Increase modal z-index to prevent overlay conflicts
+    - - Set modal z-index to 20000 to ensure proper layering
+    - - Set modal-backdrop z-index to 19990 to maintain correct stacking order
+    - - Prevent modals from appearing behind other UI elements
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 21:40:35
 
 - **[80988d5]** ```
