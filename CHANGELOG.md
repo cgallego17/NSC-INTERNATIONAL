@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 21:49:21
+
+- **[b924ff0]** ```
+  - *Fecha:* 2026-01-14 21:49:20
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `static/css/admin.css`
+    - `static/js/admin.js`
+  - *Detalles:*
+    - feat: Add responsive mobile sidebar with overlay and drawer behavior
+    - - Add mobile breakpoint styles at 768px and 480px for sidebar
+    - - Set sidebar width to 280px on tablets, 100% on phones
+    - - Implement slide-in drawer animation with translateX transform
+    - - Add dark overlay backdrop (rgba(0,0,0,0.45)) when sidebar is open
+    - - Set sidebar z-index to 20010 and backdrop to 20005 for proper layering
+    - - Prevent body scroll when sidebar is open with overflow hidden
+    - - Adjust topbar and main-content to full
+
+
+
 ### Actualizado: 2026-01-14 21:44:07
 
 - **[a368798]** ```
