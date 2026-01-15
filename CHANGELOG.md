@@ -7,6 +7,27 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 21:57:20
+
+- **[681f8f5]** ```
+  - *Fecha:* 2026-01-14 21:57:20
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 3 archivo(s)
+    - `static/css/admin.css`
+    - `static/js/admin.js`
+    - `templates/base.html`
+  - *Detalles:*
+    - feat: Refactor mobile sidebar overlay from pseudo-element to dedicated element
+    - - Replace body.sidebar-open::before pseudo-element with #sidebarOverlay div
+    - - Add dedicated overlay element in base.html template
+    - - Add click handler to close sidebar when overlay is clicked
+    - - Add handleResize method to clear drawer state when leaving mobile breakpoint
+    - - Normalize responsive state on page load to prevent stale mobile states
+    - - Add media query at 769px with explicit sidebar drawer styles
+    - - Force sidebar width
+
+
+
 ### Actualizado: 2026-01-14 21:51:32
 
 - **[03fb64d]** ```
