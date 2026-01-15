@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 21:51:32
+
+- **[03fb64d]** ```
+  - *Fecha:* 2026-01-14 21:51:32
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `static/css/admin.css`
+  - *Detalles:*
+    - feat: Add mobile toggle button display controls at 769px breakpoint
+    - - Change mobile breakpoint from 768px to 769px for consistency
+    - - Show mobile-toggle button with display flex below 769px
+    - - Hide sidebar-toggle button on mobile devices
+    - - Maintain existing sidebar width and transform behavior
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 21:49:21
 
 - **[b924ff0]** ```
