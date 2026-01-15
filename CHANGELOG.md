@@ -7,6 +7,27 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 22:15:34
+
+- **[2fe9856]** ```
+  - *Fecha:* 2026-01-14 22:15:34
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 3 archivo(s)
+    - `staticfiles/css/admin.css`
+    - `staticfiles/js/admin.js`
+    - `templates/locations/hotel_room_form.html`
+  - *Detalles:*
+    - feat: Add pagination to room media modal and refactor mobile sidebar state management
+    - - Add pagination controls to room media modal with prev/next buttons and page info
+    - - Update loadMedia to accept page parameter and handle pagination state
+    - - Store current page, total pages, and has_prev/has_next state
+    - - Show/hide pagination controls based on total pages (>1)
+    - - Update search and clear handlers to reset to page 1
+    - - Change media limit from 60 to 24 per page with pagination
+    - - Refactor handleRe
+
+
+
 ### Actualizado: 2026-01-14 22:06:35
 
 - **[2ce7e62]** ```
