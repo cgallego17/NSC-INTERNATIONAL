@@ -101,6 +101,20 @@ body {
     font-weight: var(--font-weight-normal);
     line-height: var(--line-height-normal);
     color: var(--text-primary);
+    /* Prevenir que Bootstrap afecte el layout cuando aparece un toast */
+    overflow-x: hidden !important;
+}
+
+.modal {
+    z-index: 20030 !important;
+}
+
+.modal-backdrop {
+    z-index: 20020 !important;
+}
+
+body.modal-open #sidebarOverlay {
+    display: none !important;
 }
 
 /* Headings */

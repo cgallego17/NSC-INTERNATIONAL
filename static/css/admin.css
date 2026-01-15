@@ -106,11 +106,15 @@ body {
 }
 
  .modal {
-     z-index: 20000;
+     z-index: 20030 !important;
  }
 
  .modal-backdrop {
-     z-index: 19990;
+     z-index: 20020 !important;
+ }
+
+ body.modal-open #sidebarOverlay {
+     display: none !important;
  }
 
 /* Prevenir que Bootstrap agregue padding-right al body cuando aparece un toast */
