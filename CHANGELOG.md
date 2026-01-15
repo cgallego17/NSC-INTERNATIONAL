@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 21:17:35
+
+- **[f62d9d9]** ```
+  - *Fecha:* 2026-01-14 21:17:35
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/panel_tabs/registrations.html`
+  - *Detalles:*
+    - feat: Add checkout ID and database order ID to registration details
+    - - Add checkout ID display with hashtag icon when checkout exists
+    - - Show database order ID below order number with smaller font and muted color
+    - - Maintain existing order number and creation date display
+    - - Use consistent styling with 0.7rem font size and #6c757d color for metadata
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 21:14:57
 
 - **[547535b]** ```
