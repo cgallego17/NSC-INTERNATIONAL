@@ -2493,7 +2493,9 @@ def create_stripe_event_checkout_session(request, pk):
 
         # Si existe un checkout pendiente (created/registered) para este mismo usuario/evento que ya incluye
         # alguno de los jugadores seleccionados, forzar reanudar en vez de crear otro checkout.
-        resume_checkout_id = request.POST.get("resume_checkout_id")
+        resume_checkout_id = request.POST.get("resume_checkout_id") or request.POST.get(
+            "resume_checkout"
+        )
         try:
             requested_player_ids = {int(p.pk) for p in valid_players}
         except Exception:
@@ -2525,6 +2527,7 @@ def create_stripe_event_checkout_session(request, pk):
                                 "There is already a pending registration for one or more selected players. Please resume the existing checkout."
                             ),
                             "resume_checkout_id": pending_checkout.pk,
+                            "resume_checkout": pending_checkout.pk,
                         },
                         status=400,
                     )

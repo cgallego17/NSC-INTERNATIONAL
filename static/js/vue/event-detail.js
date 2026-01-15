@@ -3855,35 +3855,55 @@ const EventDetailApp = {
                 console.log('═══════════════════════════════════════════════════════════════');
                 console.log('');
 
-                const resp = await fetch(stripeUrl, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrfToken,
-                    },
-                    credentials: 'same-origin',
-                    body: formData
-                });
-
-                if (!resp.ok) {
-                    const text = await resp.text();
-                    console.error('Checkout error response:', resp.status, text);
-                    let serverMsg = text;
-                    try {
-                        // Try to parse if server returned JSON error
-                        const errorJson = JSON.parse(text);
-                        serverMsg = errorJson.error || errorJson.message || text;
-                    } catch(e) {}
-                    throw new Error(`Server error (${resp.status}): ${serverMsg.substring(0, 150)}`);
-                }
-
+                let resp;
                 let data;
-                const contentType = resp.headers.get('content-type');
-                if (contentType && contentType.includes('application/json')) {
-                    data = await resp.json();
-                } else {
-                    const rawText = await resp.text();
-                    console.error('Expected JSON but got:', rawText);
-                    throw new Error('Server returned invalid data format (not JSON)');
+                for (let attempt = 0; attempt < 2; attempt++) {
+                    resp = await fetch(stripeUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                        },
+                        credentials: 'same-origin',
+                        body: formData
+                    });
+
+                    if (!resp.ok) {
+                        const text = await resp.text();
+                        console.error('Checkout error response:', resp.status, text);
+
+                        let errorJson = null;
+                        let serverMsg = text;
+                        try {
+                            errorJson = JSON.parse(text);
+                            serverMsg = (errorJson && (errorJson.error || errorJson.message)) ? (errorJson.error || errorJson.message) : text;
+                        } catch(e) {}
+
+                        // Auto-resume: if backend says there is a pending checkout, retry once
+                        // by sending resume_checkout_id / resume_checkout in the same request.
+                        const resumeId = (errorJson && (errorJson.resume_checkout_id || errorJson.resume_checkout)) ? (errorJson.resume_checkout_id || errorJson.resume_checkout) : null;
+                        const alreadyHasResume = (formData.get('resume_checkout_id') || formData.get('resume_checkout'));
+
+                        if (resp.status === 400 && attempt === 0 && resumeId && !alreadyHasResume) {
+                            formData.set('resume_checkout_id', String(resumeId));
+                            formData.set('resume_checkout', String(resumeId));
+                            console.warn('Auto-resuming pending checkout. Retrying with resume_checkout_id:', resumeId);
+                            continue;
+                        }
+
+                        throw new Error(`Server error (${resp.status}): ${String(serverMsg).substring(0, 150)}`);
+                    }
+
+                    const contentType = resp.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        data = await resp.json();
+                    } else {
+                        const rawText = await resp.text();
+                        console.error('Expected JSON but got:', rawText);
+                        throw new Error('Server returned invalid data format (not JSON)');
+                    }
+
+                    // Success path: break out of retry loop
+                    break;
                 }
 
                 // DEBUG: Mostrar respuesta completa del servidor
