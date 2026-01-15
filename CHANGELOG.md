@@ -7,6 +7,21 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 22:34:29
+
+- **[ec01139]** ```
+  - *Fecha:* 2026-01-14 22:34:29
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/base.html`
+  - *Detalles:*
+    - feat: Reset main content z-index to auto when modal is open
+    - - Change #mainContent z-index from 2000 to auto when body has modal-open class
+    - - Allow modal and backdrop to properly layer above main content without explicit z-index conflicts
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 22:31:32
 
 - **[27b14fb]** ```
