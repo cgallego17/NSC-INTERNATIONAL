@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 23:08:55
+
+- **[0f900d5]** ```
+  - *Fecha:* 2026-01-14 23:08:55
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `apps/accounts/views_admin.py`
+  - *Detalles:*
+    - feat: Add fallback logic to infer wallet deduction amount for checkout reservation release
+    - - Add inferred_wallet_deduction flag to track when amount is inferred vs. from breakdown
+    - - Implement fallback to find reserve transaction by reference_id within 2-hour window of checkout creation
+    - - Add last resort fallback using pending_balance when it matches expected reservation pattern
+    - - Include inferred_wallet_deduction flag in JSON response
+    - - Improve handling of older checkouts missing wallet_deduction in
+
+
+
 ### Actualizado: 2026-01-14 23:05:31
 
 - **[ca36351]** ```
