@@ -7,6 +7,29 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-15 15:34:36
+
+- **[0fea4c9]** feat: Add admin team management with CRUD operations and cascading location filters
+  - *Fecha:* 2026-01-15 15:34:36
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 8 archivo(s)
+    - `apps/accounts/forms.py`
+    - `apps/accounts/urls.py`
+    - `apps/accounts/views_admin.py`
+    - `apps/core/context_processors.py`
+    - `templates/accounts/admin/team_confirm_delete.html`
+    - `templates/accounts/admin/team_form.html`
+    - `templates/accounts/admin/team_list.html`
+    - `templates/base.html`
+  - *Detalles:*
+    - - Create AdminTeamForm with all team fields including manager, location, and is_active status
+    - - Add cascading country/state/city dropdowns with dynamic queryset filtering
+    - - Implement AdminTeamListView with search and is_active filters, paginated by 25
+    - - Add AdminTeamCreateView, AdminTeamUpdateView, and AdminTeamDeleteView with success messages
+    - - Register admin team URL patterns for list, create, edit, and delete endpoints
+
+
+
 ### Actualizado: 2026-01-15 14:41:00
 
 - **[b169553]** ```
