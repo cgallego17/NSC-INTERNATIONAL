@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 21:40:35
+
+- **[80988d5]** ```
+  - *Fecha:* 2026-01-14 21:40:35
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 3 archivo(s)
+    - `apps/accounts/views_admin.py`
+    - `apps/accounts/views_private.py`
+    - `templates/accounts/admin/order_detail.html`
+  - *Detalles:*
+    - feat: Add detailed hotel tax breakdown and wallet deduction display
+    - - Add wallet_deduction field to breakdown defaults in admin order detail view
+    - - Add hotel tax fields (hotel_room_base, hotel_services_total, hotel_iva, hotel_ish, hotel_total_taxes, hotel_total) to breakdown defaults
+    - - Calculate derived hotel taxes when hotel_total_taxes is zero by subtracting base and services from total
+    - - Fetch hotel room taxes from HotelRoomTax model when breakdown taxes are zero
+    - - Iterate through hotel reserv
+
+
+
 ### Actualizado: 2026-01-14 21:23:11
 
 - **[83affed]** ```
