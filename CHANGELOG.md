@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-14 23:46:48
+
+- **[ac8ab56]** ```
+  - *Fecha:* 2026-01-14 23:46:47
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/team_detail.html`
+  - *Detalles:*
+    - refactor: Extract footer HTML to reusable include template in team detail page
+    - - Replace inline footer markup with {% include 'includes/footer_mlb.html' %}
+    - - Remove 30 lines of duplicate footer HTML from team_detail.html
+    - - Improve maintainability by centralizing footer content
+    - ```
+
+
+
 ### Actualizado: 2026-01-14 23:08:55
 
 - **[0f900d5]** ```
