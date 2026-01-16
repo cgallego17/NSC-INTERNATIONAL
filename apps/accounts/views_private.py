@@ -930,6 +930,63 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                 return redirect(reverse("accounts:profile") + "?section=notifications")
 
         # Si hay errores, volver a mostrar el formulario con errores
+        if request.GET.get("next") == "panel":
+            errors = []
+
+            if section == "profile":
+                try:
+                    errors.extend(
+                        profile_form.errors.get_json_data(escape_html=True).values()
+                    )
+                except Exception:
+                    pass
+                try:
+                    errors.extend(
+                        user_form.errors.get_json_data(escape_html=True).values()
+                    )
+                except Exception:
+                    pass
+            elif section == "billing":
+                try:
+                    errors.extend(
+                        billing_form.errors.get_json_data(escape_html=True).values()
+                    )
+                except Exception:
+                    pass
+            elif section == "security":
+                try:
+                    errors.extend(
+                        password_form.errors.get_json_data(escape_html=True).values()
+                    )
+                except Exception:
+                    pass
+            elif section == "notifications":
+                try:
+                    errors.extend(
+                        notification_form.errors.get_json_data(
+                            escape_html=True
+                        ).values()
+                    )
+                except Exception:
+                    pass
+
+            flat_messages = []
+            for field_errors in errors:
+                for item in field_errors:
+                    msg = (item or {}).get("message")
+                    if msg:
+                        flat_messages.append(str(msg))
+
+            messages.error(
+                request,
+                (
+                    flat_messages[0]
+                    if flat_messages
+                    else _("Please correct the errors and try again.")
+                ),
+            )
+            return redirect(reverse("panel") + f"?tab=perfil&profile_section={section}")
+
         context = self.get_context_data(**kwargs)
         if section == "profile":
             context["profile_form"] = profile_form
