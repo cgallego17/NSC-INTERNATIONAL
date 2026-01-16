@@ -13,9 +13,11 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
+from apps.events.models import Division
 from apps.locations.models import City, Country, State
 
 from .models import (
+    AdminEmailBroadcast,
     AdminTodo,
     HomeBanner,
     Player,
@@ -1206,6 +1208,55 @@ class AdminTodoForm(forms.ModelForm):
         ).order_by("username")
 
 
+class AdminEmailBroadcastForm(forms.ModelForm):
+    send_to_parents = forms.BooleanField(required=False)
+    send_to_managers = forms.BooleanField(required=False)
+    send_to_spectators = forms.BooleanField(required=False)
+
+    country = forms.ModelChoiceField(
+        queryset=Country.objects.filter(is_active=True).order_by("name"),
+        required=False,
+        empty_label=_("Select a country"),
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    state = forms.ModelChoiceField(
+        queryset=State.objects.filter(is_active=True).order_by("name"),
+        required=False,
+        empty_label=_("Select a state"),
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    city = forms.ModelChoiceField(
+        queryset=City.objects.filter(is_active=True).order_by("name"),
+        required=False,
+        empty_label=_("Select a city"),
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+    division = forms.ModelChoiceField(
+        queryset=Division.objects.filter(is_active=True).order_by("name"),
+        required=False,
+        empty_label=_("Select a division"),
+        widget=forms.Select(attrs={"class": "form-select"}),
+    )
+
+    class Meta:
+        model = AdminEmailBroadcast
+        fields = [
+            "subject",
+            "html_body",
+            "send_to_parents",
+            "send_to_managers",
+            "send_to_spectators",
+            "country",
+            "state",
+            "city",
+            "division",
+        ]
+        widgets = {
+            "subject": forms.TextInput(attrs={"class": "form-control"}),
+            "html_body": forms.Textarea(attrs={"class": "form-control", "rows": 12}),
+        }
+
+
 class AdminTeamForm(forms.ModelForm):
     class Meta:
         model = Team
@@ -1375,8 +1426,6 @@ class PlayerRegistrationForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        from apps.events.models import Division
-
         self.manager = kwargs.pop("manager", None)
         super().__init__(*args, **kwargs)
         self.fields["age_verification_document"].required = False

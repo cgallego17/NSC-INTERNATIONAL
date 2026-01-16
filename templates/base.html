@@ -457,6 +457,10 @@
                 <i class="sb-ico bi bi-check2-square"></i>
                 <span class="hide-mini">To-Dos</span>
             </a>
+            <a href="{% url 'accounts:admin_email_broadcast_list' %}" class="sb-item{% if active_section == 'emails' %} active{% endif %}" data-bs-title="Emails">
+                <i class="sb-ico bi bi-envelope"></i>
+                <span class="hide-mini">Emails</span>
+            </a>
             {% endif %}
 
             <!-- Hoteles -->

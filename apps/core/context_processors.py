@@ -203,6 +203,18 @@ def sidebar_context(request):
             "section": "todos",
             "subsection": "admin_todo_list",
         },
+        "accounts:admin_email_broadcast_list": {
+            "section": "emails",
+            "subsection": "admin_email_broadcast_list",
+        },
+        "accounts:admin_email_send": {
+            "section": "emails",
+            "subsection": "admin_email_broadcast_list",
+        },
+        "accounts:admin_email_broadcast_detail": {
+            "section": "emails",
+            "subsection": "admin_email_broadcast_list",
+        },
         "accounts:age_verification_list": {
             "section": "age_verifications",
             "subsection": "pending_verifications",

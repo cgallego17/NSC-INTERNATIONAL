@@ -467,6 +467,22 @@ urlpatterns = [
         views_admin.admin_todo_mark_completed,
         name="admin_todo_mark_completed",
     ),
+    # Emails (Admin)
+    path(
+        "admin/emails/",
+        views_admin.AdminEmailBroadcastListView.as_view(),
+        name="admin_email_broadcast_list",
+    ),
+    path(
+        "admin/emails/send/",
+        views_admin.AdminEmailBroadcastSendView.as_view(),
+        name="admin_email_send",
+    ),
+    path(
+        "admin/emails/<int:pk>/",
+        views_admin.AdminEmailBroadcastDetailView.as_view(),
+        name="admin_email_broadcast_detail",
+    ),
     path(
         "dashboard-banners/<int:pk>/delete/",
         views_dashboard_banners.DashboardBannerDeleteView.as_view(),

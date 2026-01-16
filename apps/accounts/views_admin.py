@@ -16,6 +16,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.utils.html import strip_tags
 from django.views.decorators.http import require_http_methods
 from django.views.generic import (
     CreateView,
@@ -28,8 +29,9 @@ from django.views.generic import (
 from apps.core.mixins import StaffRequiredMixin
 from apps.events.models import EventAttendance
 
-from .forms import AdminTeamForm, AdminTodoForm
+from .forms import AdminEmailBroadcastForm, AdminTeamForm, AdminTodoForm
 from .models import (
+    AdminEmailBroadcast,
     AdminTodo,
     Order,
     Player,
@@ -39,6 +41,205 @@ from .models import (
     UserWallet,
     WalletTransaction,
 )
+
+ADMIN_EMAIL_RECIPIENT_WARNING_THRESHOLD = 250
+
+
+def _get_admin_broadcast_recipients(form):
+    """Return a list of recipient emails based on form filters.
+
+    Spectators: only by location.
+    Parents/Managers: by location and optionally division.
+    """
+
+    send_to_parents = bool(form.cleaned_data.get("send_to_parents"))
+    send_to_managers = bool(form.cleaned_data.get("send_to_managers"))
+    send_to_spectators = bool(form.cleaned_data.get("send_to_spectators"))
+
+    country = form.cleaned_data.get("country")
+    state = form.cleaned_data.get("state")
+    city = form.cleaned_data.get("city")
+    division = form.cleaned_data.get("division")
+
+    emails = set()
+
+    def apply_location_filters(qs):
+        if country:
+            qs = qs.filter(profile__country=country)
+        if state:
+            qs = qs.filter(profile__state=state)
+        if city:
+            qs = qs.filter(profile__city=city)
+        return qs
+
+    def eligible_profile_location_required(qs):
+        # If a location filter is applied, users missing that field are excluded automatically
+        # by the FK equality filters above. This extra guard keeps semantics clear.
+        if country:
+            qs = qs.exclude(profile__country__isnull=True)
+        if state:
+            qs = qs.exclude(profile__state__isnull=True)
+        if city:
+            qs = qs.exclude(profile__city__isnull=True)
+        return qs
+
+    if send_to_spectators:
+        qs = (
+            User.objects.filter(profile__user_type="spectator")
+            .select_related("profile")
+            .distinct()
+        )
+        qs = apply_location_filters(qs)
+        qs = eligible_profile_location_required(qs)
+        for u in qs:
+            if (u.email or "").strip():
+                emails.add(u.email.strip())
+
+    if send_to_parents:
+        qs = (
+            User.objects.filter(profile__user_type="parent")
+            .select_related("profile")
+            .distinct()
+        )
+        qs = apply_location_filters(qs)
+        qs = eligible_profile_location_required(qs)
+        if division:
+            qs = qs.filter(children__player__division=division)
+        for u in qs:
+            if (u.email or "").strip():
+                emails.add(u.email.strip())
+
+    if send_to_managers:
+        qs = (
+            User.objects.filter(profile__user_type="team_manager")
+            .select_related("profile")
+            .distinct()
+        )
+        qs = apply_location_filters(qs)
+        qs = eligible_profile_location_required(qs)
+        if division:
+            qs = qs.filter(managed_teams__players__division=division)
+        for u in qs:
+            if (u.email or "").strip():
+                emails.add(u.email.strip())
+
+    return sorted(emails)
+
+
+def _send_admin_broadcast_email(request, subject, html_body, recipients):
+    if not recipients:
+        return 0
+
+    from_email = (
+        getattr(settings, "DEFAULT_FROM_EMAIL", None)
+        or "NCS INTERNATIONAL <no-reply@localhost>"
+    )
+    safe_to = (request.user.email or "").strip() or "no-reply@localhost"
+
+    message_text = strip_tags(html_body or "")
+    if not message_text.strip():
+        message_text = subject
+
+    email = EmailMultiAlternatives(
+        subject=subject,
+        body=message_text,
+        from_email=from_email,
+        to=[safe_to],
+        bcc=recipients,
+    )
+    email.attach_alternative(html_body, "text/html")
+    email.send(fail_silently=False)
+    return len(recipients)
+
+
+class AdminEmailBroadcastListView(StaffRequiredMixin, ListView):
+    model = AdminEmailBroadcast
+    template_name = "accounts/admin/email_broadcast_list.html"
+    context_object_name = "broadcasts"
+    paginate_by = 25
+
+    def get_queryset(self):
+        return (
+            AdminEmailBroadcast.objects.select_related(
+                "created_by", "country", "state", "city", "division"
+            )
+            .all()
+            .order_by("-created_at")
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["is_admin"] = True
+        return context
+
+
+class AdminEmailBroadcastDetailView(StaffRequiredMixin, DetailView):
+    model = AdminEmailBroadcast
+    template_name = "accounts/admin/email_broadcast_detail.html"
+    context_object_name = "broadcast"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["is_admin"] = True
+        return context
+
+
+class AdminEmailBroadcastSendView(StaffRequiredMixin, CreateView):
+    model = AdminEmailBroadcast
+    form_class = AdminEmailBroadcastForm
+    template_name = "accounts/admin/email_send.html"
+
+    def form_valid(self, form):
+        subject = (form.cleaned_data.get("subject") or "").strip()
+        html_body = form.cleaned_data.get("html_body") or ""
+
+        if not (
+            form.cleaned_data.get("send_to_parents")
+            or form.cleaned_data.get("send_to_managers")
+            or form.cleaned_data.get("send_to_spectators")
+        ):
+            form.add_error(None, "Selecciona al menos un tipo de destinatario.")
+            return self.form_invalid(form)
+
+        recipients = _get_admin_broadcast_recipients(form)
+        if not recipients:
+            form.add_error(
+                None, "No se encontraron destinatarios con los filtros seleccionados."
+            )
+            return self.form_invalid(form)
+
+        if len(recipients) >= ADMIN_EMAIL_RECIPIENT_WARNING_THRESHOLD:
+            messages.warning(
+                self.request,
+                f"Vas a enviar este correo a {len(recipients)} destinatarios. Esta acción es sincrónica y puede tardar.",
+            )
+
+        form.instance.created_by = self.request.user
+        form.instance.total_recipients = len(recipients)
+        form.instance.recipient_emails = recipients
+
+        response = super().form_valid(form)
+
+        try:
+            sent_count = _send_admin_broadcast_email(
+                self.request,
+                subject=subject,
+                html_body=html_body,
+                recipients=recipients,
+            )
+            messages.success(
+                self.request, f"Correo enviado a {sent_count} destinatarios."
+            )
+        except Exception:
+            messages.error(
+                self.request,
+                "No se pudo enviar el correo. Verifica la configuración de email.",
+            )
+
+        return response
+
+    def get_success_url(self):
+        return reverse_lazy("accounts:admin_email_broadcast_list")
 
 
 def _send_todo_assigned_email(request, todo_obj):

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{{ broadcast.subject }} - {% trans "Emails" %}{% endblock %}
+
+{% block breadcrumb %}
+    <span>{% trans "Emails" %}</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h1 class="h4 mb-1">{{ broadcast.subject }}</h1>
+            <div class="text-muted" style="font-size: 0.9rem;">{% trans "Email broadcast details" %}</div>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-outline-secondary" href="{% url 'accounts:admin_email_broadcast_list' %}">
+                <i class="bi bi-arrow-left me-1"></i>{% trans "Back" %}
+            </a>
+            <a class="btn btn-outline-primary" href="{% url 'accounts:admin_email_send' %}">
+                <i class="bi bi-send me-1"></i>{% trans "Send New" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-lg-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="mb-2">
+                        <div class="text-muted" style="font-size: 0.85rem;">{% trans "Sent" %}</div>
+                        <div class="fw-semibold">{{ broadcast.created_at|date:"Y-m-d H:i" }}</div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="text-muted" style="font-size: 0.85rem;">{% trans "Created by" %}</div>
+                        <div class="fw-semibold">{{ broadcast.created_by.get_full_name|default:broadcast.created_by.username|default:"-" }}</div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="text-muted" style="font-size: 0.85rem;">{% trans "Recipients" %}</div>
+                        <div class="fw-semibold">{{ broadcast.total_recipients }}</div>
+                    </div>
+
+                    <div class="mb-2">
+                        <div class="text-muted" style="font-size: 0.85rem;">{% trans "Audience" %}</div>
+                        <div class="fw-semibold" style="font-size: 0.95rem;">
+                            {% if broadcast.send_to_parents %}<span class="badge bg-secondary">{% trans "Parents" %}</span>{% endif %}
+                            {% if broadcast.send_to_managers %}<span class="badge bg-secondary">{% trans "Managers" %}</span>{% endif %}
+                            {% if broadcast.send_to_spectators %}<span class="badge bg-secondary">{% trans "Spectators" %}</span>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-0">
+                        <div class="text-muted" style="font-size: 0.85rem;">{% trans "Filters" %}</div>
+                        <div style="font-size: 0.95rem;">
+                            <div><strong>{% trans "Country" %}:</strong> {{ broadcast.country.name|default:"-" }}</div>
+                            <div><strong>{% trans "State" %}:</strong> {{ broadcast.state.name|default:"-" }}</div>
+                            <div><strong>{% trans "City" %}:</strong> {{ broadcast.city.name|default:"-" }}</div>
+                            <div><strong>{% trans "Division" %}:</strong> {{ broadcast.division.name|default:"-" }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="fw-semibold mb-2">{% trans "HTML Preview" %}</div>
+                    <div class="border rounded p-3" style="background: #fff;">
+                        {{ broadcast.html_body|safe }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-body">
+                    <div class="fw-semibold mb-2">{% trans "Recipient Emails" %}</div>
+                    <div class="text-muted" style="font-size: 0.85rem;">{% trans "Stored for audit purposes" %}</div>
+                    <div class="mt-2" style="max-height: 240px; overflow: auto;">
+                        <pre class="mb-0" style="white-space: pre-wrap;">{{ broadcast.recipient_emails|join:"\n" }}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

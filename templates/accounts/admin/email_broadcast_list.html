@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block title %}{% trans "Emails" %} - NCS International{% endblock %}
+
+{% block breadcrumb %}
+    <span>{% trans "Emails" %}</span>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div>
+            <h1 class="h4 mb-1">{% trans "Emails" %}</h1>
+            <div class="text-muted" style="font-size: 0.9rem;">{% trans "Broadcast email history" %}</div>
+        </div>
+        <div class="d-flex gap-2">
+            <a class="btn btn-primary" href="{% url 'accounts:admin_email_send' %}">
+                <i class="bi bi-send me-1"></i>{% trans "Send Email" %}
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">{% trans "ID" %}</th>
+                        <th>{% trans "Subject" %}</th>
+                        <th style="width: 180px;">{% trans "Sent" %}</th>
+                        <th style="width: 160px;">{% trans "Recipients" %}</th>
+                        <th style="width: 220px;"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in broadcasts %}
+                        <tr>
+                            <td>{{ b.pk }}</td>
+                            <td>
+                                <div class="fw-semibold">
+                                    <a class="text-decoration-none" href="{% url 'accounts:admin_email_broadcast_detail' pk=b.pk %}">{{ b.subject }}</a>
+                                </div>
+                                <div class="text-muted" style="font-size: 0.85rem;">
+                                    {% if b.send_to_parents %}{% trans "Parents" %}{% endif %}
+                                    {% if b.send_to_managers %}{% if b.send_to_parents %} · {% endif %}{% trans "Managers" %}{% endif %}
+                                    {% if b.send_to_spectators %}{% if b.send_to_parents or b.send_to_managers %} · {% endif %}{% trans "Spectators" %}{% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div style="font-size: 0.875rem;">{{ b.created_at|date:"Y-m-d" }}</div>
+                                <div class="text-muted" style="font-size: 0.8rem;">{{ b.created_at|date:"H:i" }}</div>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">{{ b.total_recipients }}</span>
+                            </td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-info" href="{% url 'accounts:admin_email_broadcast_detail' pk=b.pk %}" title="{% trans 'View' %}">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">{% trans "No emails sent yet" %}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if is_paginated %}
+            <div class="card-footer">
+                <nav aria-label="Pagination">
+                    <ul class="pagination mb-0">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">{% trans "Previous" %}</a></li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">{% trans "Previous" %}</span></li>
+                        {% endif %}
+
+                        <li class="page-item disabled"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+
+                        {% if page_obj.has_next %}
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">{% trans "Next" %}</a></li>
+                        {% else %}
+                            <li class="page-item disabled"><span class="page-link">{% trans "Next" %}</span></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

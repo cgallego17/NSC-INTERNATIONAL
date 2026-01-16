@@ -295,6 +295,62 @@ class AdminTodo(models.Model):
         return self.title
 
 
+class AdminEmailBroadcast(models.Model):
+    subject = models.CharField(max_length=255, verbose_name="Subject")
+    html_body = models.TextField(verbose_name="HTML Body")
+
+    send_to_parents = models.BooleanField(default=False)
+    send_to_managers = models.BooleanField(default=False)
+    send_to_spectators = models.BooleanField(default=False)
+
+    country = models.ForeignKey(
+        "locations.Country",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="admin_email_broadcasts",
+    )
+    state = models.ForeignKey(
+        "locations.State",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="admin_email_broadcasts",
+    )
+    city = models.ForeignKey(
+        "locations.City",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="admin_email_broadcasts",
+    )
+    division = models.ForeignKey(
+        "events.Division",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="admin_email_broadcasts",
+    )
+
+    total_recipients = models.PositiveIntegerField(default=0)
+    recipient_emails = models.JSONField(default=list, blank=True)
+
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_admin_email_broadcasts",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return self.subject
+
+
 class Player(models.Model):
     """Modelo de Jugador"""
 
