@@ -14,6 +14,7 @@ from django.db.models import Avg, Q, Sum
 from django.db.models.functions import Lower
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.utils.html import strip_tags
@@ -131,13 +132,23 @@ def _send_admin_broadcast_email(request, subject, html_body, recipients):
     if not recipients:
         return 0
 
+    wrapped_html_body = render_to_string(
+        "emails/admin_broadcast_wrapper.html",
+        {
+            "subject": subject,
+            "content_html": html_body,
+            "brand_name": "NCS International",
+            "email_tag": "Email Broadcast",
+        },
+    )
+
     from_email = (
         getattr(settings, "DEFAULT_FROM_EMAIL", None)
         or "NCS INTERNATIONAL <no-reply@localhost>"
     )
     safe_to = (request.user.email or "").strip() or "no-reply@localhost"
 
-    message_text = strip_tags(html_body or "")
+    message_text = strip_tags(wrapped_html_body or "")
     if not message_text.strip():
         message_text = subject
 
@@ -148,7 +159,7 @@ def _send_admin_broadcast_email(request, subject, html_body, recipients):
         to=[safe_to],
         bcc=recipients,
     )
-    email.attach_alternative(html_body, "text/html")
+    email.attach_alternative(wrapped_html_body, "text/html")
     email.send(fail_silently=False)
     return len(recipients)
 
