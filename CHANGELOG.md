@@ -7,6 +7,28 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 12:34:28
+
+- **[a9010f5]** ```
+  - *Fecha:* 2026-01-16 12:34:28
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 5 archivo(s)
+    - `apps/accounts/urls.py`
+    - `apps/accounts/views_admin.py`
+    - `nsc_admin/settings_prod.py`
+    - `nsc_admin/settings_simple.py`
+    - `templates/accounts/admin/todo_list.html`
+  - *Detalles:*
+    - feat: Add quick complete action and HTML email notifications for admin todos
+    - - Add admin_todo_mark_completed URL endpoint for POST requests
+    - - Implement admin_todo_mark_completed view to mark todos as completed with single click
+    - - Add complete button with check icon to todo list for non-completed todos
+    - - Replace send_mail with EmailMultiAlternatives for HTML email support
+    - - Add HTML email templates for todo assignment notifications with styled layout
+    - - Add _send_todo_completed_email helper to
+
+
+
 ### Actualizado: 2026-01-16 12:22:53
 
 - **[b936a42]** ```
