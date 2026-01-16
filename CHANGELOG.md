@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 18:40:06
+
+- **[f871798]** ```
+  - *Fecha:* 2026-01-16 18:40:06
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 3 archivo(s)
+    - `apps/accounts/forms.py`
+    - `apps/accounts/views_admin.py`
+    - `templates/accounts/admin/email_send.html`
+  - *Detalles:*
+    - feat: Add send_to_all option and batch email sending with throttling to admin broadcast
+    - - Add send_to_all BooleanField to AdminEmailBroadcastForm for selecting all active users
+    - - Update _get_admin_broadcast_recipients to handle send_to_all flag and return all active user emails
+    - - Implement batch email sending with 50-recipient batches and 1-second throttle between batches
+    - - Standardize from_email formatting using formataddr and parseaddr across broadcast and todo emails
+    - - Add loading state to sen
+
+
+
 ### Actualizado: 2026-01-16 18:29:20
 
 - **[789c2a3]** ```
