@@ -7,6 +7,21 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 16:38:35
+
+- **[ae8ff70]** ```
+  - *Fecha:* 2026-01-16 16:38:35
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/base.html`
+  - *Detalles:*
+    - feat: Add email broadcast pages to admin sidebar visibility check
+    - - Add admin_email_broadcast_list, admin_email_send, and admin_email_broadcast_detail URL names to sidebar condition
+    - - Add '/accounts/admin/emails' path check to sidebar visibility logic
+    - ```
+
+
+
 ### Actualizado: 2026-01-16 14:19:33
 
 - **[f09cf6f]** ```
