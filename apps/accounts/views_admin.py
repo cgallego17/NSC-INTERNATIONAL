@@ -6,13 +6,15 @@ from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 
 from django import forms
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
 from django.db.models import Avg, Q, Sum
 from django.db.models.functions import Lower
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 from django.views.generic import (
@@ -37,6 +39,37 @@ from .models import (
     UserWallet,
     WalletTransaction,
 )
+
+
+def _send_todo_assigned_email(request, todo_obj):
+    assigned_to = getattr(todo_obj, "assigned_to", None)
+    if not assigned_to:
+        return
+    to_email = (assigned_to.email or "").strip()
+    if not to_email:
+        return
+
+    try:
+        url = request.build_absolute_uri(
+            reverse("accounts:admin_todo_detail", kwargs={"pk": todo_obj.pk})
+        )
+        subject = f"To-Do asignado: {todo_obj.title}"
+        message = (
+            f"Se te ha asignado un To-Do en el dashboard.\n\n"
+            f"Título: {todo_obj.title}\n"
+            f"Estado: {todo_obj.get_status_display()}\n"
+            f"Prioridad: {todo_obj.get_priority_display()}\n\n"
+            f"Ver detalle: {url}\n"
+        )
+        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
+        if not from_email:
+            from_email = "no-reply@localhost"
+        send_mail(subject, message, from_email, [to_email], fail_silently=False)
+    except Exception:
+        messages.warning(
+            request,
+            "No se pudo enviar el correo de asignación del To-Do. Verifica la configuración de email.",
+        )
 
 
 class AdminOrderListView(StaffRequiredMixin, ListView):
@@ -257,7 +290,9 @@ class AdminTodoCreateView(StaffRequiredMixin, CreateView):
     def form_valid(self, form):
         form.instance.created_by = self.request.user
         messages.success(self.request, "To-Do created successfully.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        _send_todo_assigned_email(self.request, self.object)
+        return response
 
     def get_success_url(self):
         return reverse_lazy("accounts:admin_todo_list")
@@ -269,8 +304,17 @@ class AdminTodoUpdateView(StaffRequiredMixin, UpdateView):
     template_name = "accounts/admin/todo_form.html"
 
     def form_valid(self, form):
+        old_assigned_to_id = None
+        try:
+            old_assigned_to_id = self.get_object().assigned_to_id
+        except Exception:
+            old_assigned_to_id = None
         messages.success(self.request, "To-Do updated successfully.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        new_assigned_to_id = getattr(self.object, "assigned_to_id", None)
+        if new_assigned_to_id and new_assigned_to_id != old_assigned_to_id:
+            _send_todo_assigned_email(self.request, self.object)
+        return response
 
     def get_success_url(self):
         return reverse_lazy("accounts:admin_todo_list")

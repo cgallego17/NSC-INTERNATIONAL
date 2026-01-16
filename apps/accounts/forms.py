@@ -10,6 +10,7 @@ from django.contrib.auth.forms import (
 )
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from apps.locations.models import City, Country, State
@@ -1197,6 +1198,12 @@ class AdminTodoForm(forms.ModelForm):
             ),
             "assigned_to": forms.Select(attrs={"class": "form-select"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["assigned_to"].queryset = User.objects.filter(
+            Q(is_staff=True) | Q(is_superuser=True)
+        ).order_by("username")
 
 
 class AdminTeamForm(forms.ModelForm):
