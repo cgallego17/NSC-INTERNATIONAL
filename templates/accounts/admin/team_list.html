@@ -84,6 +84,9 @@
                                 {% endif %}
                             </td>
                             <td class="text-end">
+                                <a class="btn btn-sm btn-outline-info" href="{% url 'accounts:admin_team_detail' pk=team.pk %}" title="{% trans 'View' %}">
+                                    <i class="bi bi-eye"></i>
+                                </a>
                                 <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:admin_team_edit' pk=team.pk %}" title="{% trans 'Edit' %}">
                                     <i class="bi bi-pencil"></i>
                                 </a>
