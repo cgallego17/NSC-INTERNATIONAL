@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 17:10:12
+
+- **[d631a76]** ```
+  - *Fecha:* 2026-01-16 17:10:12
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/admin/email_send.html`
+  - *Detalles:*
+    - feat: Add TinyMCE rich text editor integration for email HTML body field
+    - - Load TinyMCE 6 from CDN with no-api-key configuration
+    - - Initialize TinyMCE on #id_html_body textarea with 520px height
+    - - Configure toolbar with formatting, alignment, lists, links, tables, code view, and fullscreen
+    - - Include plugins: link, lists, table, code, and fullscreen
+    - - Disable menubar and branding for cleaner interface
+    - - Set content style with system font stack and 14px font size
+    - - Handle both DOMContentLoaded and already
+
+
+
 ### Actualizado: 2026-01-16 17:03:24
 
 - **[50318e3]** ```
