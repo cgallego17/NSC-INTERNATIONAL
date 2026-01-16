@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 18:54:25
+
+- **[80faff4]** ```
+  - *Fecha:* 2026-01-16 18:54:25
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 5 archivo(s)
+    - `templates/emails/admin_broadcast_wrapper.html`
+    - `templates/emails/email_base.html`
+    - `templates/emails/order_staff_notification.html`
+    - `templates/registration/email_confirmation_email_html.html`
+    - `templates/registration/password_reset_email_html.html`
+  - *Detalles:*
+    - refactor: Convert email templates to extend email_base.html for DRY structure
+    - - Replace full HTML boilerplate with {% extends "emails/email_base.html" %} in 4 email templates
+    - - Convert admin_broadcast_wrapper.html to use block overrides for email_title, preheader, headline, content, and footer_note
+    - - Convert order_staff_notification.html to use block overrides with custom subtitle block for email_subtitle and email_tag
+    - - Convert email_confirmation_email_html.html to use block overrides for email_title, preheader
+
+
+
 ### Actualizado: 2026-01-16 18:40:06
 
 - **[f871798]** ```
