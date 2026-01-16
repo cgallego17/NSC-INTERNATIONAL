@@ -7,6 +7,28 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 18:23:41
+
+- **[54eb087]** ```
+  - *Fecha:* 2026-01-16 18:23:40
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 6 archivo(s)
+    - `apps/accounts/forms.py`
+    - `apps/accounts/views_private.py`
+    - `templates/accounts/profile_sections/billing.html`
+    - `templates/accounts/profile_sections/notifications.html`
+    - `templates/accounts/profile_sections/profile_info.html`
+    - `templates/accounts/profile_sections/security.html`
+  - *Detalles:*
+    - feat: Add prefix support to profile forms and consolidate form handling in UserDashboardView
+    - - Add add_prefix() calls to country and state field lookups in UserProfileForm and BillingAddressForm
+    - - Use posted_country_key and posted_state_key variables for prefixed field name detection
+    - - Add POST handler to UserDashboardView for profile, billing, security, and notifications sections
+    - - Apply 'profile', 'billing', 'security', and 'notifications' prefixes to respective forms in both views
+    - - Update
+
+
+
 ### Actualizado: 2026-01-16 18:13:43
 
 - **[f9b3e14]** ```
