@@ -85,6 +85,9 @@
                                     {% else %}
                                         -
                                     {% endif %}
+                                    {% if t.due_date %}
+                                        <span class="ms-2">· <i class="bi bi-calendar-event"></i> {{ t.due_date|date:"Y-m-d" }}</span>
+                                    {% endif %}
                                 </div>
                             </td>
                             <td>
