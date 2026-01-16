@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 18:13:43
+
+- **[f9b3e14]** ```
+  - *Fecha:* 2026-01-16 18:13:43
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `apps/accounts/views_private.py`
+  - *Detalles:*
+    - feat: Add JSON error handling and redirect for panel profile form submissions
+    - - Add error collection logic when next=panel query parameter is present
+    - - Extract JSON error data from profile, user, billing, password, and notification forms
+    - - Flatten nested error structures to get user-facing error messages
+    - - Display first error message via messages.error or generic fallback message
+    - - Redirect to panel with tab=perfil and profile_section parameters on validation errors
+    - - Wrap error extraction in try-except
+
+
+
 ### Actualizado: 2026-01-16 18:11:10
 
 - **[a9a4c52]** ```
