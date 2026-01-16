@@ -7,6 +7,33 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 14:05:58
+
+- **[21124ef]** ```
+  - *Fecha:* 2026-01-16 14:05:57
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 10 archivo(s)
+    - `apps/accounts/forms.py`
+    - `apps/accounts/migrations/0054_adminemailbroadcast.py`
+    - `apps/accounts/models.py`
+    - `apps/accounts/urls.py`
+    - `apps/accounts/views_admin.py`
+    - `apps/core/context_processors.py`
+    - `templates/accounts/admin/email_broadcast_detail.html`
+    - `templates/accounts/admin/email_broadcast_list.html`
+    - `templates/accounts/admin/email_send.html`
+    - `templates/base.html`
+  - *Detalles:*
+    - feat: Add admin email broadcast system with location and user type filtering
+    - - Add AdminEmailBroadcast model with subject, html_body, and recipient tracking fields
+    - - Include send_to_parents, send_to_managers, send_to_spectators boolean filters
+    - - Add country, state, city, and division foreign keys for location-based filtering
+    - - Store total_recipients count and recipient_emails JSON field for audit trail
+    - - Create AdminEmailBroadcastForm with location and division select fields
+    - - Add Division import
+
+
+
 ### Actualizado: 2026-01-16 12:37:03
 
 - **[5f822af]** ```
