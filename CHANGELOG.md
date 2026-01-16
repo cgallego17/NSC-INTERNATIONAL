@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 12:22:53
+
+- **[b936a42]** ```
+  - *Fecha:* 2026-01-16 12:22:53
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 4 archivo(s)
+    - `apps/accounts/forms.py`
+    - `apps/accounts/views_private.py`
+    - `templates/accounts/panel_tabs/registrar_hijo.html`
+    - `templates/accounts/panel_tabs/registrar_jugador.html`
+  - *Detalles:*
+    - feat: Fix form validation errors in panel player registration with proper error display and field prefixing
+    - - Add form field prefix handling in ParentPlayerRegistrationForm for country and state fields
+    - - Check both prefixed and non-prefixed field names in form data for compatibility
+    - - Add form_invalid handlers in PlayerRegistrationView and ParentPlayerRegistrationView
+    - - Render panel_usuario.html with form errors and active tab context on validation failure
+    - - Add ?next=panel query parameter to form
+
+
+
 ### Actualizado: 2026-01-16 12:04:28
 
 - **[78a3dec]** ```
