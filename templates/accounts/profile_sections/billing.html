@@ -36,7 +36,7 @@
             </div>
             <div class="card-body p-4">
                 {% if billing_form %}
-                    <form method="post" action="{% url 'accounts:profile' %}?section=billing&next=panel">
+                    <form method="post" action="{% url 'panel' %}?tab=perfil&section=billing&profile_section=billing">
                         {% csrf_token %}
 
                         {% if billing_form.non_field_errors %}

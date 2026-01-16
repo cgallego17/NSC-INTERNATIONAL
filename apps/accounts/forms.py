@@ -836,9 +836,12 @@ class UserProfileForm(forms.ModelForm):
             widget=forms.Select(attrs={"class": "form-select"}),
         )
 
+        posted_country_key = self.add_prefix("country")
+        posted_state_key = self.add_prefix("state")
+
         # Determinar el país seleccionado
-        if "country" in self.data:
-            country_id = self.data.get("country")
+        if posted_country_key in self.data:
+            country_id = self.data.get(posted_country_key)
         elif self.instance.pk:
             country_id = self.instance.country_id
         else:
@@ -853,8 +856,8 @@ class UserProfileForm(forms.ModelForm):
                 self.fields["state"].queryset = State.objects.none()
 
         # Determinar el estado seleccionado
-        if "state" in self.data:
-            state_id = self.data.get("state")
+        if posted_state_key in self.data:
+            state_id = self.data.get(posted_state_key)
         elif self.instance.pk:
             state_id = self.instance.state_id
         else:
@@ -913,8 +916,11 @@ class BillingAddressForm(forms.ModelForm):
             widget=forms.Select(attrs={"class": "form-select"}),
         )
 
-        if "country" in self.data:
-            country_id = self.data.get("country")
+        posted_country_key = self.add_prefix("country")
+        posted_state_key = self.add_prefix("state")
+
+        if posted_country_key in self.data:
+            country_id = self.data.get(posted_country_key)
         elif self.instance.pk:
             country_id = self.instance.country_id
         else:
@@ -928,8 +934,8 @@ class BillingAddressForm(forms.ModelForm):
             except (ValueError, TypeError):
                 self.fields["state"].queryset = State.objects.none()
 
-        if "state" in self.data:
-            state_id = self.data.get("state")
+        if posted_state_key in self.data:
+            state_id = self.data.get(posted_state_key)
         elif self.instance.pk:
             state_id = self.instance.state_id
         else:

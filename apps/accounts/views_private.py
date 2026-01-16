@@ -68,6 +68,136 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
 
     template_name = "accounts/panel_usuario.html"
 
+    def post(self, request, *args, **kwargs):
+        from .forms import (
+            BillingAddressForm,
+            CustomPasswordChangeForm,
+            NotificationPreferencesForm,
+            UserProfileForm,
+            UserProfileUpdateForm,
+        )
+
+        section = (request.GET.get("section") or "profile").strip() or "profile"
+
+        try:
+            profile = request.user.profile
+        except UserProfile.DoesNotExist:
+            profile = UserProfile.objects.create(user=request.user, user_type="player")
+
+        context = self.get_context_data(**kwargs)
+        context["active_tab"] = "perfil"
+
+        if section == "profile":
+            profile_form = UserProfileForm(
+                request.POST,
+                request.FILES,
+                instance=profile,
+                prefix="profile",
+            )
+            user_form = UserProfileUpdateForm(
+                request.POST,
+                instance=request.user,
+                prefix="profile",
+            )
+
+            context["profile_form"] = profile_form
+            context["user_form"] = user_form
+
+            if profile_form.is_valid() and user_form.is_valid():
+                saved_profile = profile_form.save()
+                user_form.save()
+
+                if "preferred_language" in profile_form.cleaned_data:
+                    preferred_language = (
+                        profile_form.cleaned_data["preferred_language"] or "en"
+                    )
+                    language_key = getattr(
+                        translation, "LANGUAGE_SESSION_KEY", "_language"
+                    )
+                    request.session[language_key] = preferred_language
+                    request.session["user_selected_language"] = True
+                    request.session.modified = True
+                    translation.activate(preferred_language)
+
+                messages.success(request, _("Profile updated successfully."))
+                return redirect(
+                    reverse("panel") + "?tab=perfil&profile_section=profile"
+                )
+
+            messages.error(request, _("Please correct the errors and try again."))
+            return self.render_to_response(context)
+
+        if section == "billing":
+            billing_form = BillingAddressForm(
+                request.POST,
+                instance=profile,
+                prefix="billing",
+            )
+            context["billing_form"] = billing_form
+
+            if billing_form.is_valid():
+                billing_form.save()
+                messages.success(request, _("Billing address updated successfully."))
+                return redirect(
+                    reverse("panel") + "?tab=perfil&profile_section=billing"
+                )
+
+            messages.error(request, _("Please correct the errors and try again."))
+            return self.render_to_response(context)
+
+        if section == "security":
+            password_form = CustomPasswordChangeForm(
+                user=request.user,
+                data=request.POST,
+                prefix="security",
+            )
+            context["password_form"] = password_form
+
+            if password_form.is_valid():
+                updated_user = password_form.save()
+                update_session_auth_hash(request, updated_user)
+                messages.success(request, _("Password changed successfully."))
+                return redirect(
+                    reverse("panel") + "?tab=perfil&profile_section=security"
+                )
+
+            messages.error(request, _("Please correct the errors and try again."))
+            return self.render_to_response(context)
+
+        if section == "notifications":
+            notification_form = NotificationPreferencesForm(
+                request.POST,
+                prefix="notifications",
+            )
+            context["notification_form"] = notification_form
+
+            if notification_form.is_valid():
+                profile.email_notifications = notification_form.cleaned_data.get(
+                    "email_notifications", True
+                )
+                profile.event_notifications = notification_form.cleaned_data.get(
+                    "event_notifications", True
+                )
+                profile.reservation_notifications = notification_form.cleaned_data.get(
+                    "reservation_notifications", True
+                )
+                profile.marketing_notifications = notification_form.cleaned_data.get(
+                    "marketing_notifications", False
+                )
+                profile.save()
+                messages.success(
+                    request, _("Notification preferences saved successfully.")
+                )
+                return redirect(
+                    reverse("panel") + "?tab=perfil&profile_section=notifications"
+                )
+
+            messages.error(request, _("Please correct the errors and try again."))
+            return self.render_to_response(context)
+
+        messages.error(request, _("Invalid profile section."))
+        return redirect(reverse("panel") + "?tab=perfil")
+
     def _cleanup_stale_wallet_reservations(self, user):
         try:
             from datetime import timedelta
@@ -442,7 +572,8 @@ class UserDashboardView(LoginRequiredMixin, TemplateView):
             ),
         }
         context["notification_form"] = NotificationPreferencesForm(
-            initial=initial_notifications
+            initial=initial_notifications,
+            prefix="notifications",
         )
 
         # Obtener información del carrito de hoteles
@@ -791,15 +922,23 @@ class ProfileView(LoginRequiredMixin, TemplateView):
         # Pasar formularios según la sección activa
         if context["active_section"] == "profile":
             context["profile_form"] = UserProfileForm(
-                instance=self.request.user.profile
+                instance=self.request.user.profile,
+                prefix="profile",
             )
-            context["user_form"] = UserProfileUpdateForm(instance=self.request.user)
+            context["user_form"] = UserProfileUpdateForm(
+                instance=self.request.user,
+                prefix="profile",
+            )
         elif context["active_section"] == "billing":
             context["billing_form"] = BillingAddressForm(
-                instance=self.request.user.profile
+                instance=self.request.user.profile,
+                prefix="billing",
             )
         elif context["active_section"] == "security":
-            context["password_form"] = CustomPasswordChangeForm(user=self.request.user)
+            context["password_form"] = CustomPasswordChangeForm(
+                user=self.request.user,
+                prefix="security",
+            )
         elif context["active_section"] == "notifications":
             # Cargar preferencias desde el perfil o usar valores por defecto
             profile = self.request.user.profile
@@ -814,7 +953,8 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                 ),
             }
             context["notification_form"] = NotificationPreferencesForm(
-                initial=initial_data
+                initial=initial_data,
+                prefix="notifications",
             )
 
         return context
@@ -903,7 +1043,12 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                     )
                 return redirect(reverse("accounts:profile") + "?section=security")
         elif section == "notifications":
-            notification_form = NotificationPreferencesForm(request.POST)
+            notifications_prefix = (
+                "notifications" if _use_prefix("notifications") else None
+            )
+            notification_form = NotificationPreferencesForm(
+                request.POST, prefix=notifications_prefix
+            )
             if notification_form.is_valid():
                 profile = request.user.profile
                 profile.email_notifications = notification_form.cleaned_data.get(
@@ -931,57 +1076,53 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
         # Si hay errores, volver a mostrar el formulario con errores
         if request.GET.get("next") == "panel":
-            errors = []
+            error_messages = []
 
             if section == "profile":
-                try:
-                    errors.extend(
-                        profile_form.errors.get_json_data(escape_html=True).values()
-                    )
-                except Exception:
-                    pass
-                try:
-                    errors.extend(
-                        user_form.errors.get_json_data(escape_html=True).values()
-                    )
-                except Exception:
-                    pass
+                for form in (profile_form, user_form):
+                    if not form:
+                        continue
+                    for field, messages_list in form.errors.items():
+                        label = (
+                            form.fields.get(field).label
+                            if field in form.fields
+                            else field
+                        )
+                        for msg in messages_list:
+                            error_messages.append(f"{label}: {msg}")
             elif section == "billing":
-                try:
-                    errors.extend(
-                        billing_form.errors.get_json_data(escape_html=True).values()
+                for field, messages_list in billing_form.errors.items():
+                    label = (
+                        billing_form.fields.get(field).label
+                        if field in billing_form.fields
+                        else field
                     )
-                except Exception:
-                    pass
+                    for msg in messages_list:
+                        error_messages.append(f"{label}: {msg}")
             elif section == "security":
-                try:
-                    errors.extend(
-                        password_form.errors.get_json_data(escape_html=True).values()
+                for field, messages_list in password_form.errors.items():
+                    label = (
+                        password_form.fields.get(field).label
+                        if field in password_form.fields
+                        else field
                     )
-                except Exception:
-                    pass
+                    for msg in messages_list:
+                        error_messages.append(f"{label}: {msg}")
             elif section == "notifications":
-                try:
-                    errors.extend(
-                        notification_form.errors.get_json_data(
-                            escape_html=True
-                        ).values()
+                for field, messages_list in notification_form.errors.items():
+                    label = (
+                        notification_form.fields.get(field).label
+                        if field in notification_form.fields
+                        else field
                     )
-                except Exception:
-                    pass
-
-            flat_messages = []
-            for field_errors in errors:
-                for item in field_errors:
-                    msg = (item or {}).get("message")
-                    if msg:
-                        flat_messages.append(str(msg))
+                    for msg in messages_list:
+                        error_messages.append(f"{label}: {msg}")
 
             messages.error(
                 request,
                 (
-                    flat_messages[0]
-                    if flat_messages
+                    error_messages[0]
+                    if error_messages
                     else _("Please correct the errors and try again.")
                 ),
             )
