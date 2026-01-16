@@ -427,6 +427,11 @@ urlpatterns = [
         name="admin_team_delete",
     ),
     path(
+        "admin/teams/<int:pk>/toggle-active/",
+        views_admin.admin_team_toggle_active,
+        name="admin_team_toggle_active",
+    ),
+    path(
         "dashboard-banners/<int:pk>/delete/",
         views_dashboard_banners.DashboardBannerDeleteView.as_view(),
         name="dashboard_banner_delete",

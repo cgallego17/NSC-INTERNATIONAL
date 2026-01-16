@@ -77,6 +77,18 @@
                                 {% endif %}
                             </td>
                             <td class="text-end">
+                                <form method="post" action="{% url 'accounts:admin_team_toggle_active' pk=team.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    {% if team.is_active %}
+                                        <button type="submit" class="btn btn-sm btn-outline-secondary" title="{% trans 'Deactivate' %}">
+                                            <i class="bi bi-pause-circle"></i>
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="{% trans 'Activate' %}">
+                                            <i class="bi bi-play-circle"></i>
+                                        </button>
+                                    {% endif %}
+                                </form>
                                 <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:admin_team_edit' pk=team.pk %}">
                                     <i class="bi bi-pencil"></i>
                                 </a>

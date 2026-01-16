@@ -11,7 +11,7 @@ from django.contrib.auth.models import User
 from django.db.models import Avg, Q, Sum
 from django.db.models.functions import Lower
 from django.http import JsonResponse
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
@@ -181,6 +181,26 @@ class AdminTeamCreateView(StaffRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse_lazy("accounts:admin_team_list")
+
+
+@require_http_methods(["POST"])
+def admin_team_toggle_active(request, pk):
+    if not request.user.is_authenticated:
+        return redirect("accounts:login")
+
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+
+    team = get_object_or_404(Team, pk=pk)
+    team.is_active = not team.is_active
+    team.save(update_fields=["is_active"])
+
+    if team.is_active:
+        messages.success(request, "Team activated successfully.")
+    else:
+        messages.success(request, "Team deactivated successfully.")
+
+    return redirect("accounts:admin_team_list")
 
 
 class AdminTeamUpdateView(StaffRequiredMixin, UpdateView):
