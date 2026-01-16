@@ -1220,13 +1220,13 @@ class AdminEmailBroadcastForm(forms.ModelForm):
         widget=forms.Select(attrs={"class": "form-select"}),
     )
     state = forms.ModelChoiceField(
-        queryset=State.objects.filter(is_active=True).order_by("name"),
+        queryset=State.objects.none(),
         required=False,
         empty_label=_("Select a state"),
         widget=forms.Select(attrs={"class": "form-select"}),
     )
     city = forms.ModelChoiceField(
-        queryset=City.objects.filter(is_active=True).order_by("name"),
+        queryset=City.objects.none(),
         required=False,
         empty_label=_("Select a city"),
         widget=forms.Select(attrs={"class": "form-select"}),
@@ -1255,6 +1255,37 @@ class AdminEmailBroadcastForm(forms.ModelForm):
             "subject": forms.TextInput(attrs={"class": "form-control"}),
             "html_body": forms.Textarea(attrs={"class": "form-control", "rows": 12}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.instance and self.instance.pk:
+            if self.instance.country:
+                self.fields["state"].queryset = State.objects.filter(
+                    country=self.instance.country, is_active=True
+                ).order_by("name")
+            if self.instance.state:
+                self.fields["city"].queryset = City.objects.filter(
+                    state=self.instance.state, is_active=True
+                ).order_by("name")
+
+        if "country" in self.data:
+            try:
+                country_id = int(self.data.get("country"))
+                self.fields["state"].queryset = State.objects.filter(
+                    country_id=country_id, is_active=True
+                ).order_by("name")
+            except (ValueError, TypeError):
+                pass
+
+        if "state" in self.data:
+            try:
+                state_id = int(self.data.get("state"))
+                self.fields["city"].queryset = City.objects.filter(
+                    state_id=state_id, is_active=True
+                ).order_by("name")
+            except (ValueError, TypeError):
+                pass
 
 
 class AdminTeamForm(forms.ModelForm):
