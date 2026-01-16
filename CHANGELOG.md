@@ -7,6 +7,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 18:05:51
+
+- **[2d4cc1f]** ```
+  - *Fecha:* 2026-01-16 18:05:51
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/panel_tabs/perfil.html`
+  - *Detalles:*
+    - fix: Update profile form action URL to include section and next parameters
+    - - Change form action from 'accounts:profile_edit' to 'accounts:profile' with query parameters
+    - - Add section=profile and next=panel parameters to form submission URL
+    - - Maintain existing enctype and form ID attributes
+    - ```
+
+
+
 ### Actualizado: 2026-01-16 18:02:48
 
 - **[14cd6bb]** ```
