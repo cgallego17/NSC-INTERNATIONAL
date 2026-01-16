@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 12:37:03
+
+- **[5f822af]** ```
+  - *Fecha:* 2026-01-16 12:37:03
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/admin/todo_list.html`
+  - *Detalles:*
+    - feat: Add due date display with calendar icon in admin todo list
+    - - Add due date display next to assigned user in todo list table
+    - - Show calendar icon (bi-calendar-event) with formatted date (Y-m-d)
+    - - Use separator dot and left margin spacing for visual clarity
+    - - Only display when due_date is set on todo item
+    - ```
+
+
+
 ### Actualizado: 2026-01-16 12:34:28
 
 - **[a9010f5]** ```
