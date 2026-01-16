@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 12:04:28
+
+- **[78a3dec]** ```
+  - *Fecha:* 2026-01-16 12:04:28
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 3 archivo(s)
+    - `apps/accounts/forms.py`
+    - `apps/accounts/views_admin.py`
+    - `templates/base.html`
+  - *Detalles:*
+    - feat: Add email notifications for admin todo assignments and restrict assignee selection to staff
+    - - Filter assigned_to queryset to staff and superuser accounts only in AdminTodoForm
+    - - Order assignee options by username for easier selection
+    - - Add _send_todo_assigned_email helper function to send assignment notifications
+    - - Send email when creating new todo with assigned user
+    - - Send email when updating todo if assigned_to changes
+    - - Include todo title, status, priority, and detail URL in notification
+
+
+
 ### Actualizado: 2026-01-16 11:52:44
 
 - **[85b323e]** ```
