@@ -7,6 +7,28 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 11:33:37
+
+- **[378d23f]** ```
+  - *Fecha:* 2026-01-16 11:33:36
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 4 archivo(s)
+    - `apps/accounts/urls.py`
+    - `apps/accounts/views_admin.py`
+    - `templates/accounts/admin/team_detail.html`
+    - `templates/accounts/admin/team_list.html`
+  - *Detalles:*
+    - feat: Add team detail view for admin with player list and navigation link
+    - - Add admin_team_detail URL pattern for viewing individual team details
+    - - Implement AdminTeamDetailView with staff authentication and team context
+    - - Query and display team players ordered by last name and first name
+    - - Select related user and division data for efficiency
+    - - Add clickable team name link in team_list.html to navigate to detail view
+    - - Set is_admin context flag for template conditional rendering
+    - ```
+
+
+
 ### Actualizado: 2026-01-16 11:28:02
 
 - **[a6e76cb]** ```
