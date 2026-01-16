@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 17:03:24
+
+- **[50318e3]** ```
+  - *Fecha:* 2026-01-16 17:03:23
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/admin/email_send.html`
+  - *Detalles:*
+    - feat: Add Select2 integration for multi-select location fields in admin email broadcast form
+    - - Load static tag and include Select2 CSS and JavaScript vendor files
+    - - Add jQuery and Select2 full library scripts from Django admin static files
+    - - Initialize Select2 on country, state, city, and division select elements with 100% width and closeOnSelect: false
+    - - Update resetSelect function to conditionally add empty option only when emptyLabel is provided
+    - - Trigger change.select2 events after dynam
+
+
+
 ### Actualizado: 2026-01-16 16:55:22
 
 - **[484962e]** ```
