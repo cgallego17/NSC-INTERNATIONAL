@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 11:41:16
+
+- **[8e4c354]** ```
+  - *Fecha:* 2026-01-16 11:41:15
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/admin/team_detail.html`
+  - *Detalles:*
+    - feat: Add view button to player list in team detail for quick player access
+    - - Add action column header with 90px width to player table
+    - - Add view button with eye icon in right-aligned action cell
+    - - Use btn-outline-info styling consistent with team list view button
+    - - Link to admin_player_detail view with player primary key parameter
+    - - Include title attribute with "View" translation for accessibility
+    - - Update empty state colspan from 5 to 6 to match new column count
+    - ```
+
+
+
 ### Actualizado: 2026-01-16 11:35:35
 
 - **[35d9197]** ```
