@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 17:15:31
+
+- **[0980999]** ```
+  - *Fecha:* 2026-01-16 17:15:30
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/admin/email_send.html`
+  - *Detalles:*
+    - feat: Replace TinyMCE with Quill rich text editor for email HTML body field
+    - - Replace TinyMCE 6 CDN with Quill 1.3.6 CDN for rich text editing
+    - - Add custom CSS for editor wrapper, toolbar, and HTML mode textarea styling
+    - - Wrap html_body field in html-editor-wrapper div with Quill editor container
+    - - Add dedicated textarea for direct HTML editing with monospace font
+    - - Initialize Quill with snow theme and comprehensive toolbar (headers, formatting, colors, lists, alignment, links, images, blockquote
+
+
+
 ### Actualizado: 2026-01-16 17:10:12
 
 - **[d631a76]** ```
