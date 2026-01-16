@@ -831,15 +831,25 @@ class ProfileView(LoginRequiredMixin, TemplateView):
 
         section = request.GET.get("section", "profile")
 
+        def _use_prefix(prefix):
+            if not prefix:
+                return False
+            prefix_token = f"{prefix}-"
+            return any(
+                str(k).startswith(prefix_token)
+                for k in list(request.POST.keys()) + list(request.FILES.keys())
+            )
+
         if section == "profile":
+            profile_prefix = "profile" if _use_prefix("profile") else None
             profile_form = UserProfileForm(
                 request.POST,
                 request.FILES,
                 instance=request.user.profile,
-                prefix="profile",
+                prefix=profile_prefix,
             )
             user_form = UserProfileUpdateForm(
-                request.POST, instance=request.user, prefix="profile"
+                request.POST, instance=request.user, prefix=profile_prefix
             )
 
             if profile_form.is_valid() and user_form.is_valid():
@@ -866,8 +876,9 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                     )
                 return redirect(reverse("accounts:profile") + "?section=profile")
         elif section == "billing":
+            billing_prefix = "billing" if _use_prefix("billing") else None
             billing_form = BillingAddressForm(
-                request.POST, instance=request.user.profile, prefix="billing"
+                request.POST, instance=request.user.profile, prefix=billing_prefix
             )
             if billing_form.is_valid():
                 billing_form.save()
@@ -878,8 +889,9 @@ class ProfileView(LoginRequiredMixin, TemplateView):
                     )
                 return redirect(reverse("accounts:profile") + "?section=billing")
         elif section == "security":
+            security_prefix = "security" if _use_prefix("security") else None
             password_form = CustomPasswordChangeForm(
-                user=request.user, data=request.POST, prefix="security"
+                user=request.user, data=request.POST, prefix=security_prefix
             )
             if password_form.is_valid():
                 user = password_form.save()
