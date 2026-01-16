@@ -187,6 +187,45 @@
             return Array.from(selectEl.selectedOptions || []).map(o => o.value).filter(Boolean);
         };
 
+        const fetchJsonOrLog = async (url, meta) => {
+            try {
+                const res = await fetch(url, {
+                    credentials: 'same-origin',
+                    headers: { 'Accept': 'application/json' },
+                });
+
+                if (!res.ok) {
+                    const bodyText = await res.text();
+                    console.error('Failed to load dependent options', {
+                        ...meta,
+                        url,
+                        status: res.status,
+                        contentType: res.headers.get('content-type'),
+                        body: bodyText.slice(0, 300),
+                    });
+                    return [];
+                }
+
+                const contentType = (res.headers.get('content-type') || '').toLowerCase();
+                if (!contentType.includes('application/json')) {
+                    const bodyText = await res.text();
+                    console.error('Expected JSON but got non-JSON response', {
+                        ...meta,
+                        url,
+                        status: res.status,
+                        contentType,
+                        body: bodyText.slice(0, 300),
+                    });
+                    return [];
+                }
+
+                return await res.json();
+            } catch (err) {
+                console.error('Error fetching dependent options', { ...meta, url, err });
+                return [];
+            }
+        };
+
         const loadStates = async (countryIds, selectedStateIds) => {
             resetSelect(stateSelect, stateEmptyLabel);
             resetSelect(citySelect, cityEmptyLabel);
@@ -194,14 +233,10 @@
             if (!countryIds || !countryIds.length) return;
 
             const results = await Promise.all(countryIds.map(async (countryId) => {
-                const res = await fetch(`/locations/states/api/?country=${encodeURIComponent(countryId)}`, {
-                    headers: { 'Accept': 'application/json' },
-                });
-                if (!res.ok) {
-                    console.error('Failed to load states', { countryId, status: res.status });
-                    return [];
-                }
-                return await res.json();
+                return await fetchJsonOrLog(
+                    `/locations/ajax/states/${encodeURIComponent(countryId)}/`,
+                    { kind: 'states', countryId }
+                );
             }));
 
             const merged = new Map();
@@ -231,14 +266,10 @@
             if (!stateIds || !stateIds.length) return;
 
             const results = await Promise.all(stateIds.map(async (stateId) => {
-                const res = await fetch(`/locations/cities/api/?state=${encodeURIComponent(stateId)}`, {
-                    headers: { 'Accept': 'application/json' },
-                });
-                if (!res.ok) {
-                    console.error('Failed to load cities', { stateId, status: res.status });
-                    return [];
-                }
-                return await res.json();
+                return await fetchJsonOrLog(
+                    `/locations/ajax/cities/${encodeURIComponent(stateId)}/`,
+                    { kind: 'cities', stateId }
+                );
             }));
 
             const merged = new Map();
