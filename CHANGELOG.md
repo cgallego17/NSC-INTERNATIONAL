@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 11:28:02
+
+- **[a6e76cb]** ```
+  - *Fecha:* 2026-01-16 11:28:02
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/admin/team_list.html`
+  - *Detalles:*
+    - feat: Add registration date column and improve action button layout in team list
+    - - Add "Registered" column header with 160px width to team list table
+    - - Display team creation date (Y-m-d format) and time (H:i format) in separate rows
+    - - Reorder action buttons: edit, toggle active/inactive, delete
+    - - Add title attributes to edit and delete buttons for accessibility
+    - - Update empty state colspan from 5 to 6 to match new column count
+    - ```
+
+
+
 ### Actualizado: 2026-01-16 11:17:44
 
 - **[f8ecfc7]** ```
