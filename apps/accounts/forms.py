@@ -1294,6 +1294,29 @@ class AdminEmailBroadcastForm(forms.ModelForm):
                 state_id__in=state_ids, is_active=True
             ).order_by("name")
 
+    def clean(self):
+        cleaned_data = super().clean()
+
+        countries = cleaned_data.get("country")
+        states = cleaned_data.get("state")
+        cities = cleaned_data.get("city")
+        divisions = cleaned_data.get("division")
+
+        # Preserve multi-select querysets for filtering/persistence.
+        self._countries = countries
+        self._states = states
+        self._cities = cities
+        self._divisions = divisions
+
+        # Replace FK-mapped fields with a single instance so ModelForm can
+        # construct the model instance without attempting to assign a QuerySet.
+        cleaned_data["country"] = countries.first() if countries else None
+        cleaned_data["state"] = states.first() if states else None
+        cleaned_data["city"] = cities.first() if cities else None
+        cleaned_data["division"] = divisions.first() if divisions else None
+
+        return cleaned_data
+
 
 class AdminTeamForm(forms.ModelForm):
     class Meta:

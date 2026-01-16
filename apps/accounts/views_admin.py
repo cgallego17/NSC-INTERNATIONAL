@@ -58,10 +58,10 @@ def _get_admin_broadcast_recipients(form):
     send_to_managers = bool(form.cleaned_data.get("send_to_managers"))
     send_to_spectators = bool(form.cleaned_data.get("send_to_spectators"))
 
-    countries = form.cleaned_data.get("country")
-    states = form.cleaned_data.get("state")
-    cities = form.cleaned_data.get("city")
-    divisions = form.cleaned_data.get("division")
+    countries = getattr(form, "_countries", None) or form.cleaned_data.get("country")
+    states = getattr(form, "_states", None) or form.cleaned_data.get("state")
+    cities = getattr(form, "_cities", None) or form.cleaned_data.get("city")
+    divisions = getattr(form, "_divisions", None) or form.cleaned_data.get("division")
 
     emails = set()
 
@@ -255,28 +255,37 @@ class AdminEmailBroadcastSendView(StaffRequiredMixin, CreateView):
                 f"Vas a enviar este correo a {len(recipients)} destinatarios. Esta acción es sincrónica y puede tardar.",
             )
 
-        countries = form.cleaned_data.get("country")
-        states = form.cleaned_data.get("state")
-        cities = form.cleaned_data.get("city")
-        divisions = form.cleaned_data.get("division")
+        countries = getattr(form, "_countries", None) or form.cleaned_data.get(
+            "country"
+        )
+        states = getattr(form, "_states", None) or form.cleaned_data.get("state")
+        cities = getattr(form, "_cities", None) or form.cleaned_data.get("city")
+        divisions = getattr(form, "_divisions", None) or form.cleaned_data.get(
+            "division"
+        )
 
         form.instance.country_ids = (
-            list(countries.values_list("id", flat=True)) if countries else []
+            list(countries.values_list("id", flat=True))
+            if hasattr(countries, "values_list")
+            else ([] if not countries else [countries.id])
         )
         form.instance.state_ids = (
-            list(states.values_list("id", flat=True)) if states else []
+            list(states.values_list("id", flat=True))
+            if hasattr(states, "values_list")
+            else ([] if not states else [states.id])
         )
         form.instance.city_ids = (
-            list(cities.values_list("id", flat=True)) if cities else []
+            list(cities.values_list("id", flat=True))
+            if hasattr(cities, "values_list")
+            else ([] if not cities else [cities.id])
         )
         form.instance.division_ids = (
-            list(divisions.values_list("id", flat=True)) if divisions else []
+            list(divisions.values_list("id", flat=True))
+            if hasattr(divisions, "values_list")
+            else ([] if not divisions else [divisions.id])
         )
 
-        form.instance.country = countries.first() if countries else None
-        form.instance.state = states.first() if states else None
-        form.instance.city = cities.first() if cities else None
-        form.instance.division = divisions.first() if divisions else None
+        # FK legacy fields are now handled by AdminEmailBroadcastForm.clean() (single instance).
 
         form.instance.created_by = self.request.user
         form.instance.total_recipients = len(recipients)
