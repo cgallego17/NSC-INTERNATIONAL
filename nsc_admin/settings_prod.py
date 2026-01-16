@@ -55,9 +55,19 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 
-DEFAULT_FROM_EMAIL = os.environ.get(
+_raw_default_from_email = os.environ.get(
     "DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or "no-reply@localhost"
 )
+if (
+    _raw_default_from_email
+    and "<" in _raw_default_from_email
+    and ">" in _raw_default_from_email
+):
+    DEFAULT_FROM_EMAIL = _raw_default_from_email
+else:
+    DEFAULT_FROM_EMAIL = (
+        f"NCS INTERNATIONAL <{_raw_default_from_email or 'no-reply@localhost'}>"
+    )
 SITE_URL = os.environ.get("SITE_URL", "").rstrip("/")
 
 # Web Push (VAPID)

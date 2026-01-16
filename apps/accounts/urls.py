@@ -463,6 +463,11 @@ urlpatterns = [
         name="admin_todo_delete",
     ),
     path(
+        "admin/todos/<int:pk>/complete/",
+        views_admin.admin_todo_mark_completed,
+        name="admin_todo_mark_completed",
+    ),
+    path(
         "dashboard-banners/<int:pk>/delete/",
         views_dashboard_banners.DashboardBannerDeleteView.as_view(),
         name="dashboard_banner_delete",

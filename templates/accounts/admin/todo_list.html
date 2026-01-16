@@ -119,6 +119,14 @@
                                 <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:admin_todo_edit' pk=t.pk %}" title="{% trans 'Edit' %}">
                                     <i class="bi bi-pencil"></i>
                                 </a>
+                                {% if t.status != 'completed' %}
+                                    <form method="post" action="{% url 'accounts:admin_todo_mark_completed' pk=t.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-success" title="{% trans 'Complete' %}">
+                                            <i class="bi bi-check2-circle"></i>
+                                        </button>
+                                    </form>
+                                {% endif %}
                                 <a class="btn btn-sm btn-outline-danger" href="{% url 'accounts:admin_todo_delete' pk=t.pk %}" title="{% trans 'Delete' %}">
                                     <i class="bi bi-trash"></i>
                                 </a>

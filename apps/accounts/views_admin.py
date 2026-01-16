@@ -9,7 +9,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import User
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.db.models import Avg, Q, Sum
 from django.db.models.functions import Lower
 from django.http import JsonResponse
@@ -54,21 +54,103 @@ def _send_todo_assigned_email(request, todo_obj):
             reverse("accounts:admin_todo_detail", kwargs={"pk": todo_obj.pk})
         )
         subject = f"To-Do asignado: {todo_obj.title}"
-        message = (
+        message_text = (
             f"Se te ha asignado un To-Do en el dashboard.\n\n"
             f"Título: {todo_obj.title}\n"
             f"Estado: {todo_obj.get_status_display()}\n"
             f"Prioridad: {todo_obj.get_priority_display()}\n\n"
             f"Ver detalle: {url}\n"
         )
+
+        message_html = f"""
+        <div style=\"font-family: Arial, Helvetica, sans-serif; line-height: 1.5;\">
+          <h2 style=\"margin: 0 0 12px;\">To-Do asignado</h2>
+          <p style=\"margin: 0 0 12px;\">Se te ha asignado un To-Do en el dashboard.</p>
+          <table style=\"border-collapse: collapse; margin: 0 0 16px;\">
+            <tr><td style=\"padding: 4px 12px 4px 0; font-weight: 700;\">Título:</td><td style=\"padding: 4px 0;\">{todo_obj.title}</td></tr>
+            <tr><td style=\"padding: 4px 12px 4px 0; font-weight: 700;\">Estado:</td><td style=\"padding: 4px 0;\">{todo_obj.get_status_display()}</td></tr>
+            <tr><td style=\"padding: 4px 12px 4px 0; font-weight: 700;\">Prioridad:</td><td style=\"padding: 4px 0;\">{todo_obj.get_priority_display()}</td></tr>
+          </table>
+          <p style=\"margin: 0 0 12px;\">
+            <a href=\"{url}\" style=\"display: inline-block; padding: 10px 14px; background: #0d2c54; color: #ffffff; text-decoration: none; border-radius: 6px;\">Ver To-Do</a>
+          </p>
+          <p style=\"margin: 24px 0 0; color: #6c757d; font-size: 12px;\">NCS INTERNATIONAL</p>
+        </div>
+        """
+
         from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
         if not from_email:
-            from_email = "no-reply@localhost"
-        send_mail(subject, message, from_email, [to_email], fail_silently=False)
+            from_email = "NCS INTERNATIONAL <no-reply@localhost>"
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=message_text,
+            from_email=from_email,
+            to=[to_email],
+        )
+        email.attach_alternative(message_html, "text/html")
+        email.send(fail_silently=False)
     except Exception:
         messages.warning(
             request,
             "No se pudo enviar el correo de asignación del To-Do. Verifica la configuración de email.",
+        )
+
+
+def _send_todo_completed_email(request, todo_obj, completed_by_user):
+    created_by = getattr(todo_obj, "created_by", None)
+    if not created_by:
+        return
+    to_email = (created_by.email or "").strip()
+    if not to_email:
+        return
+
+    try:
+        url = request.build_absolute_uri(
+            reverse("accounts:admin_todo_detail", kwargs={"pk": todo_obj.pk})
+        )
+        completed_by_name = (
+            completed_by_user.get_full_name() or completed_by_user.username
+            if completed_by_user
+            else "-"
+        )
+        subject = f"To-Do completado: {todo_obj.title}"
+        message_text = (
+            f"Tu To-Do ha sido marcado como completado.\n\n"
+            f"Título: {todo_obj.title}\n"
+            f"Completado por: {completed_by_name}\n\n"
+            f"Ver detalle: {url}\n"
+        )
+
+        message_html = f"""
+        <div style=\"font-family: Arial, Helvetica, sans-serif; line-height: 1.5;\">
+          <h2 style=\"margin: 0 0 12px;\">To-Do completado</h2>
+          <p style=\"margin: 0 0 12px;\">Tu To-Do ha sido marcado como completado.</p>
+          <table style=\"border-collapse: collapse; margin: 0 0 16px;\">
+            <tr><td style=\"padding: 4px 12px 4px 0; font-weight: 700;\">Título:</td><td style=\"padding: 4px 0;\">{todo_obj.title}</td></tr>
+            <tr><td style=\"padding: 4px 12px 4px 0; font-weight: 700;\">Completado por:</td><td style=\"padding: 4px 0;\">{completed_by_name}</td></tr>
+          </table>
+          <p style=\"margin: 0 0 12px;\">
+            <a href=\"{url}\" style=\"display: inline-block; padding: 10px 14px; background: #0d2c54; color: #ffffff; text-decoration: none; border-radius: 6px;\">Ver To-Do</a>
+          </p>
+          <p style=\"margin: 24px 0 0; color: #6c757d; font-size: 12px;\">NCS INTERNATIONAL</p>
+        </div>
+        """
+
+        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
+        if not from_email:
+            from_email = "NCS INTERNATIONAL <no-reply@localhost>"
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=message_text,
+            from_email=from_email,
+            to=[to_email],
+        )
+        email.attach_alternative(message_html, "text/html")
+        email.send(fail_silently=False)
+    except Exception:
+        messages.warning(
+            request,
+            "No se pudo enviar el correo de finalización del To-Do. Verifica la configuración de email.",
         )
 
 
@@ -296,6 +378,26 @@ class AdminTodoCreateView(StaffRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse_lazy("accounts:admin_todo_list")
+
+
+@require_http_methods(["POST"])
+def admin_todo_mark_completed(request, pk):
+    if not request.user.is_authenticated:
+        return redirect("accounts:login")
+
+    if not (request.user.is_staff or request.user.is_superuser):
+        return JsonResponse({"error": "Unauthorized"}, status=403)
+
+    todo_obj = get_object_or_404(AdminTodo, pk=pk)
+    if todo_obj.status != "completed":
+        todo_obj.status = "completed"
+        todo_obj.save(update_fields=["status", "updated_at"])
+        messages.success(request, "To-Do marked as completed.")
+        _send_todo_completed_email(request, todo_obj, request.user)
+    else:
+        messages.info(request, "To-Do is already completed.")
+
+    return redirect("accounts:admin_todo_list")
 
 
 class AdminTodoUpdateView(StaffRequiredMixin, UpdateView):

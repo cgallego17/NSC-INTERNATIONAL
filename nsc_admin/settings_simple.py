@@ -146,6 +146,7 @@ HIJACK_ALLOW_GET_REQUESTS = False
 
 # Email settings
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "NCS INTERNATIONAL <no-reply@localhost>"
 
 # Logging
 LOGGING = {
