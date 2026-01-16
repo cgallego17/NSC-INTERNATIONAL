@@ -4,6 +4,7 @@ Señales para generar notificaciones automáticas
 
 import json
 import logging
+from email.utils import formataddr, parseaddr
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -13,7 +14,7 @@ from django.dispatch import receiver
 from django.template.loader import render_to_string
 from django.urls import reverse
 
-from .models import Notification, Order, Player, PushSubscription
+from .models import Notification, Order, Player, PlayerParent, PushSubscription
 
 logger = logging.getLogger(__name__)
 
@@ -338,6 +339,133 @@ def create_player_created_staff_notification(sender, instance, created, **kwargs
             )
     except Exception:
         logger.exception("Error creating staff notification for new player")
+
+
+@receiver(pre_save, sender=Player)
+def track_player_age_verification_status_before_save(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old_instance = Player.objects.get(pk=instance.pk)
+            instance._previous_age_verification_status = (
+                old_instance.age_verification_status
+            )
+        except Player.DoesNotExist:
+            instance._previous_age_verification_status = None
+    else:
+        instance._previous_age_verification_status = None
+
+
+@receiver(post_save, sender=Player)
+def notify_parent_when_age_verification_approved(sender, instance, created, **kwargs):
+    try:
+        if created:
+            return
+
+        previous_status = getattr(instance, "_previous_age_verification_status", None)
+        current_status = getattr(instance, "age_verification_status", None)
+        if current_status != "approved" or previous_status == "approved":
+            return
+
+        rel = (
+            PlayerParent.objects.filter(player=instance)
+            .select_related("parent", "parent__profile")
+            .order_by("-is_primary", "-created_at")
+            .first()
+        )
+        if not rel:
+            return
+
+        parent_user = getattr(rel, "parent", None)
+        if not parent_user:
+            return
+
+        parent_email = (getattr(parent_user, "email", "") or "").strip()
+        if not parent_email:
+            return
+
+        # Respect the parent's notification preference when available.
+        try:
+            if (
+                hasattr(parent_user, "profile")
+                and parent_user.profile
+                and parent_user.profile.email_notifications is False
+            ):
+                return
+        except Exception:
+            pass
+
+        player_user = getattr(instance, "user", None)
+        player_name = ""
+        if player_user:
+            player_name = (
+                player_user.get_full_name() or player_user.username or ""
+            ).strip()
+
+        # In-app notification
+        try:
+            action_url = reverse("accounts:player_detail", args=[instance.pk])
+        except Exception:
+            action_url = "/panel/"
+
+        Notification.create_notification(
+            user=parent_user,
+            title="Jugador autorizado",
+            message=f"La verificación de edad de {player_name or 'tu jugador'} fue aprobada.",
+            notification_type="registration",
+            action_url=action_url,
+        )
+
+        # Email
+        site_url = (getattr(settings, "SITE_URL", "") or "").rstrip("/")
+        full_action_url = f"{site_url}{action_url}" if site_url else action_url
+
+        raw_from_email = (
+            getattr(settings, "DEFAULT_FROM_EMAIL", "")
+            or getattr(settings, "EMAIL_HOST_USER", "")
+            or "no-reply@localhost"
+        )
+        _name, _email = parseaddr(raw_from_email)
+        from_email = formataddr(("NCS INTERNATIONAL", _email or "no-reply@localhost"))
+
+        email_title = "Jugador autorizado"
+        preheader = "La verificación de edad fue aprobada"
+        html_message = render_to_string(
+            "emails/player_age_verification_approved_parent.html",
+            {
+                "email_title": email_title,
+                "preheader": preheader,
+                "headline": email_title,
+                "player_name": player_name,
+                "approved_date": getattr(
+                    instance, "age_verification_approved_date", None
+                ),
+                "action_url": full_action_url,
+            },
+        )
+        text_message = (
+            f"La verificación de edad de {player_name or 'tu jugador'} fue aprobada."
+        )
+        if full_action_url:
+            text_message += f"\n\nVer jugador: {full_action_url}\n"
+
+        email = EmailMultiAlternatives(
+            subject=email_title,
+            body=text_message,
+            from_email=from_email,
+            to=[parent_email],
+        )
+        email.attach_alternative(html_message, "text/html")
+        try:
+            email.send(fail_silently=False)
+        except Exception:
+            logger.exception(
+                "Error sending parent age-verification-approved email for player %s",
+                instance.pk,
+            )
+    except Exception:
+        logger.exception(
+            "Error notifying parent when player age verification is approved"
+        )
 
 
 @receiver(post_save, sender=get_user_model())

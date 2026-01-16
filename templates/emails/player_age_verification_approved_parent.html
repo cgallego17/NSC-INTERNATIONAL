@@ -1,0 +1,36 @@
+{% extends "emails/email_base.html" %}
+{% load i18n %}
+
+{% block email_title %}{{ email_title }}{% endblock %}
+
+{% block preheader %}{{ preheader|default:email_title }}{% endblock %}
+
+{% block headline %}{{ headline|default:email_title }}{% endblock %}
+
+{% block content %}
+<p style="margin:0 0 12px;">{% trans "Hello," %}</p>
+
+<p style="margin:0 0 12px;">
+  {% trans "Your player's verification has been approved." %}
+</p>
+
+{% if player_name %}
+<p style="margin:0 0 12px;"><strong>{% trans "Player" %}:</strong> {{ player_name }}</p>
+{% endif %}
+
+{% if approved_date %}
+<p style="margin:0 0 12px;"><strong>{% trans "Approved" %}:</strong> {{ approved_date }}</p>
+{% endif %}
+
+{% if action_url %}
+<div style="text-align:center;margin:18px 0 10px;">
+  <a href="{{ action_url }}" style="background:#d50032;color:#ffffff;display:inline-block;padding:12px 18px;border-radius:10px;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;letter-spacing:0.4px;">
+    {% trans "View player" %}
+  </a>
+</div>
+{% endif %}
+
+<p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;">
+  {% trans "If you have questions, please contact support." %}
+</p>
+{% endblock %}
