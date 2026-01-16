@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 17:54:15
+
+- **[f29d969]** ```
+  - *Fecha:* 2026-01-16 17:54:15
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/admin/email_send.html`
+  - *Detalles:*
+    - feat: Add country-level city loading fallback when no states are selected
+    - - Add countryIds parameter to loadCities function for direct country-to-city lookup
+    - - Filter empty values from stateIds and countryIds arrays before processing
+    - - Load cities directly from country when no states selected via /locations/cities/api/?country= endpoint
+    - - Update country change handler to trigger city loading with country IDs
+    - - Update state change handler to pass both state and country IDs to loadCities
+    - - Ad
+
+
+
 ### Actualizado: 2026-01-16 17:50:55
 
 - **[424fb50]** ```
