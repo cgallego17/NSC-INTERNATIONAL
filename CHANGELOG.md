@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 11:01:49
+
+- **[cdf6242]** ```
+  - *Fecha:* 2026-01-16 11:01:49
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `apps/accounts/templatetags/url_filters.py`
+  - *Detalles:*
+    - style: Format url_filters.py with consistent quote style and improve intcomma_dot robustness
+    - - Replace single quotes with double quotes throughout the file
+    - - Reorder imports to place standard library before third-party
+    - - Enhance intcomma_dot filter to handle multiple input formats (3435.68, 3,435.68, 3.435,68)
+    - - Add logic to detect decimal and thousands separators based on position and digit count
+    - - Normalize input by removing spaces and non-numeric characters except separators
+    - - Support negative
+
+
+
 ### Actualizado: 2026-01-15 15:34:36
 
 - **[0fea4c9]** feat: Add admin team management with CRUD operations and cascading location filters
