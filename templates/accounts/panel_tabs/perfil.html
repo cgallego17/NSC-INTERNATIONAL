@@ -7,7 +7,7 @@
 </div>
 {% if profile_form and user_form %}
     <div class="form-container">
-        <form method="post" action="{% url 'accounts:profile_edit' %}" enctype="multipart/form-data" id="profileForm">
+        <form method="post" action="{% url 'accounts:profile' %}?section=profile&next=panel" enctype="multipart/form-data" id="profileForm">
             {% csrf_token %}
 
             {% if user_form.non_field_errors or profile_form.non_field_errors %}
