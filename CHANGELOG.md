@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 11:17:44
+
+- **[f8ecfc7]** ```
+  - *Fecha:* 2026-01-16 11:17:44
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 3 archivo(s)
+    - `apps/accounts/urls.py`
+    - `apps/accounts/views_admin.py`
+    - `templates/accounts/admin/team_list.html`
+  - *Detalles:*
+    - feat: Add toggle active/inactive button for teams in admin list view
+    - - Add admin_team_toggle_active URL pattern for POST requests to toggle team status
+    - - Implement admin_team_toggle_active view with authentication and staff permission checks
+    - - Toggle team.is_active status and save with update_fields for efficiency
+    - - Display success message indicating whether team was activated or deactivated
+    - - Add inline form with pause/play icon buttons in team_list.html based on current status
+    - - Import get
+
+
+
 ### Actualizado: 2026-01-16 11:01:49
 
 - **[cdf6242]** ```
