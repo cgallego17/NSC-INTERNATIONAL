@@ -194,10 +194,13 @@
             if (!countryIds || !countryIds.length) return;
 
             const results = await Promise.all(countryIds.map(async (countryId) => {
-                const res = await fetch(`/locations/api/states/?country=${encodeURIComponent(countryId)}`, {
+                const res = await fetch(`/locations/states/api/?country=${encodeURIComponent(countryId)}`, {
                     headers: { 'Accept': 'application/json' },
                 });
-                if (!res.ok) return [];
+                if (!res.ok) {
+                    console.error('Failed to load states', { countryId, status: res.status });
+                    return [];
+                }
                 return await res.json();
             }));
 
@@ -228,10 +231,13 @@
             if (!stateIds || !stateIds.length) return;
 
             const results = await Promise.all(stateIds.map(async (stateId) => {
-                const res = await fetch(`/locations/api/cities/?state=${encodeURIComponent(stateId)}`, {
+                const res = await fetch(`/locations/cities/api/?state=${encodeURIComponent(stateId)}`, {
                     headers: { 'Accept': 'application/json' },
                 });
-                if (!res.ok) return [];
+                if (!res.ok) {
+                    console.error('Failed to load cities', { stateId, status: res.status });
+                    return [];
+                }
                 return await res.json();
             }));
 
