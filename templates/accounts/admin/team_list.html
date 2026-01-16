@@ -66,7 +66,9 @@
                         <tr>
                             <td>{{ team.pk }}</td>
                             <td>
-                                <div class="fw-semibold">{{ team.name }}</div>
+                                <div class="fw-semibold">
+                                    <a href="{% url 'accounts:admin_team_detail' pk=team.pk %}" class="text-decoration-none">{{ team.name }}</a>
+                                </div>
                                 <div class="text-muted" style="font-size: 0.85rem;">{{ team.city.name|default:"" }}</div>
                             </td>
                             <td>{{ team.manager.get_full_name|default:team.manager.username }}</td>

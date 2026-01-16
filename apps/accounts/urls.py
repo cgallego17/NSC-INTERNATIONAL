@@ -417,6 +417,11 @@ urlpatterns = [
         name="admin_team_create",
     ),
     path(
+        "admin/teams/<int:pk>/",
+        views_admin.AdminTeamDetailView.as_view(),
+        name="admin_team_detail",
+    ),
+    path(
         "admin/teams/<int:pk>/edit/",
         views_admin.AdminTeamUpdateView.as_view(),
         name="admin_team_edit",
