@@ -61,7 +61,7 @@
 
     <div class="card">
         <div class="card-body">
-            <form method="post" novalidate>
+            <form method="post" novalidate id="admin-email-send-form">
                 {% csrf_token %}
 
                 {% if form.non_field_errors %}
@@ -93,6 +93,10 @@
                     <div class="col-12">
                         <div class="fw-semibold mb-2">{% trans "Recipients" %}</div>
                         <div class="d-flex flex-wrap gap-3">
+                            <div class="form-check">
+                                {{ form.send_to_all }}
+                                <label class="form-check-label" for="{{ form.send_to_all.id_for_label }}">{% trans "All users" %}</label>
+                            </div>
                             <div class="form-check">
                                 {{ form.send_to_parents }}
                                 <label class="form-check-label" for="{{ form.send_to_parents.id_for_label }}">{% trans "Parents" %}</label>
@@ -132,8 +136,14 @@
                     </div>
 
                     <div class="col-12 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-send me-1"></i>{% trans "Send" %}
+                        <button type="submit" class="btn btn-primary" id="admin-email-send-btn">
+                            <span class="js-send-idle">
+                                <i class="bi bi-send me-1"></i>{% trans "Send" %}
+                            </span>
+                            <span class="js-send-loading" style="display:none;">
+                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                {% trans "Sending..." %}
+                            </span>
                         </button>
                         <a href="{% url 'accounts:admin_email_send' %}" class="btn btn-outline-secondary">
                             <i class="bi bi-x-circle me-1"></i>{% trans "Clear" %}
@@ -484,6 +494,22 @@
         } else {
             initQuillEmailBody();
         }
+    })();
+</script>
+
+<script>
+    (function () {
+        const form = document.getElementById('admin-email-send-form');
+        const btn = document.getElementById('admin-email-send-btn');
+        if (!form || !btn) return;
+
+        form.addEventListener('submit', function () {
+            btn.disabled = true;
+            const idle = btn.querySelector('.js-send-idle');
+            const loading = btn.querySelector('.js-send-loading');
+            if (idle) idle.style.display = 'none';
+            if (loading) loading.style.display = 'inline-flex';
+        });
     })();
 </script>
 {% endblock %}

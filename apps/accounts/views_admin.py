@@ -2,8 +2,10 @@
 Vistas administrativas de órdenes - Solo staff/superuser
 """
 
+import time
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
+from email.utils import formataddr, parseaddr
 
 from django import forms
 from django.conf import settings
@@ -54,6 +56,7 @@ def _get_admin_broadcast_recipients(form):
     Parents/Managers: by location and optionally division.
     """
 
+    send_to_all = bool(form.cleaned_data.get("send_to_all"))
     send_to_parents = bool(form.cleaned_data.get("send_to_parents"))
     send_to_managers = bool(form.cleaned_data.get("send_to_managers"))
     send_to_spectators = bool(form.cleaned_data.get("send_to_spectators"))
@@ -64,6 +67,17 @@ def _get_admin_broadcast_recipients(form):
     divisions = getattr(form, "_divisions", None) or form.cleaned_data.get("division")
 
     emails = set()
+
+    if send_to_all:
+        qs = (
+            User.objects.filter(is_active=True)
+            .exclude(email__isnull=True)
+            .exclude(email__exact="")
+        )
+        for u in qs:
+            if (u.email or "").strip():
+                emails.add(u.email.strip())
+        return sorted(emails)
 
     def apply_location_filters(qs):
         if countries:
@@ -142,26 +156,38 @@ def _send_admin_broadcast_email(request, subject, html_body, recipients):
         },
     )
 
-    from_email = (
-        getattr(settings, "DEFAULT_FROM_EMAIL", None)
-        or "NCS INTERNATIONAL <no-reply@localhost>"
+    raw_from_email = (
+        getattr(settings, "DEFAULT_FROM_EMAIL", None) or "no-reply@localhost"
     )
+    _name, _email = parseaddr(raw_from_email)
+    from_email = formataddr(("NCS INTERNATIONAL", _email or "no-reply@localhost"))
     safe_to = (request.user.email or "").strip() or "no-reply@localhost"
 
     message_text = strip_tags(wrapped_html_body or "")
     if not message_text.strip():
         message_text = subject
 
-    email = EmailMultiAlternatives(
-        subject=subject,
-        body=message_text,
-        from_email=from_email,
-        to=[safe_to],
-        bcc=recipients,
-    )
-    email.attach_alternative(wrapped_html_body, "text/html")
-    email.send(fail_silently=False)
-    return len(recipients)
+    batch_size = 50
+    throttle_seconds = 1.0
+
+    sent_total = 0
+    for i in range(0, len(recipients), batch_size):
+        batch = recipients[i : i + batch_size]
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=message_text,
+            from_email=from_email,
+            to=[safe_to],
+            bcc=batch,
+        )
+        email.attach_alternative(wrapped_html_body, "text/html")
+        email.send(fail_silently=False)
+        sent_total += len(batch)
+
+        if throttle_seconds and i + batch_size < len(recipients):
+            time.sleep(throttle_seconds)
+
+    return sent_total
 
 
 class AdminEmailBroadcastListView(StaffRequiredMixin, ListView):
@@ -235,7 +261,8 @@ class AdminEmailBroadcastSendView(StaffRequiredMixin, CreateView):
         html_body = form.cleaned_data.get("html_body") or ""
 
         if not (
-            form.cleaned_data.get("send_to_parents")
+            form.cleaned_data.get("send_to_all")
+            or form.cleaned_data.get("send_to_parents")
             or form.cleaned_data.get("send_to_managers")
             or form.cleaned_data.get("send_to_spectators")
         ):
@@ -327,6 +354,11 @@ def _send_todo_assigned_email(request, todo_obj):
         url = request.build_absolute_uri(
             reverse("accounts:admin_todo_detail", kwargs={"pk": todo_obj.pk})
         )
+        raw_from_email = (
+            getattr(settings, "DEFAULT_FROM_EMAIL", None) or "no-reply@localhost"
+        )
+        _name, _email = parseaddr(raw_from_email)
+        from_email = formataddr(("NCS INTERNATIONAL", _email or "no-reply@localhost"))
         subject = f"To-Do asignado: {todo_obj.title}"
         message_text = (
             f"Se te ha asignado un To-Do en el dashboard.\n\n"
@@ -352,9 +384,6 @@ def _send_todo_assigned_email(request, todo_obj):
         </div>
         """
 
-        from_email = getattr(settings, "DEFAULT_FROM_EMAIL", None)
-        if not from_email:
-            from_email = "NCS INTERNATIONAL <no-reply@localhost>"
         email = EmailMultiAlternatives(
             subject=subject,
             body=message_text,
@@ -382,6 +411,11 @@ def _send_todo_completed_email(request, todo_obj, completed_by_user):
         url = request.build_absolute_uri(
             reverse("accounts:admin_todo_detail", kwargs={"pk": todo_obj.pk})
         )
+        raw_from_email = (
+            getattr(settings, "DEFAULT_FROM_EMAIL", None) or "no-reply@localhost"
+        )
+        _name, _email = parseaddr(raw_from_email)
+        from_email = formataddr(("NCS INTERNATIONAL", _email or "no-reply@localhost"))
         completed_by_name = (
             completed_by_user.get_full_name() or completed_by_user.username
             if completed_by_user

@@ -1215,6 +1215,7 @@ class AdminTodoForm(forms.ModelForm):
 
 
 class AdminEmailBroadcastForm(forms.ModelForm):
+    send_to_all = forms.BooleanField(required=False)
     send_to_parents = forms.BooleanField(required=False)
     send_to_managers = forms.BooleanField(required=False)
     send_to_spectators = forms.BooleanField(required=False)
@@ -1245,6 +1246,7 @@ class AdminEmailBroadcastForm(forms.ModelForm):
         fields = [
             "subject",
             "html_body",
+            "send_to_all",
             "send_to_parents",
             "send_to_managers",
             "send_to_spectators",
