@@ -27,7 +27,8 @@ from django.views.generic import (
 )
 
 from apps.core.mixins import StaffRequiredMixin
-from apps.events.models import EventAttendance
+from apps.events.models import Division, EventAttendance
+from apps.locations.models import City, Country, State
 
 from .forms import AdminEmailBroadcastForm, AdminTeamForm, AdminTodoForm
 from .models import (
@@ -56,30 +57,30 @@ def _get_admin_broadcast_recipients(form):
     send_to_managers = bool(form.cleaned_data.get("send_to_managers"))
     send_to_spectators = bool(form.cleaned_data.get("send_to_spectators"))
 
-    country = form.cleaned_data.get("country")
-    state = form.cleaned_data.get("state")
-    city = form.cleaned_data.get("city")
-    division = form.cleaned_data.get("division")
+    countries = form.cleaned_data.get("country")
+    states = form.cleaned_data.get("state")
+    cities = form.cleaned_data.get("city")
+    divisions = form.cleaned_data.get("division")
 
     emails = set()
 
     def apply_location_filters(qs):
-        if country:
-            qs = qs.filter(profile__country=country)
-        if state:
-            qs = qs.filter(profile__state=state)
-        if city:
-            qs = qs.filter(profile__city=city)
+        if countries:
+            qs = qs.filter(profile__country__in=countries)
+        if states:
+            qs = qs.filter(profile__state__in=states)
+        if cities:
+            qs = qs.filter(profile__city__in=cities)
         return qs
 
     def eligible_profile_location_required(qs):
         # If a location filter is applied, users missing that field are excluded automatically
         # by the FK equality filters above. This extra guard keeps semantics clear.
-        if country:
+        if countries:
             qs = qs.exclude(profile__country__isnull=True)
-        if state:
+        if states:
             qs = qs.exclude(profile__state__isnull=True)
-        if city:
+        if cities:
             qs = qs.exclude(profile__city__isnull=True)
         return qs
 
@@ -103,8 +104,8 @@ def _get_admin_broadcast_recipients(form):
         )
         qs = apply_location_filters(qs)
         qs = eligible_profile_location_required(qs)
-        if division:
-            qs = qs.filter(children__player__division=division)
+        if divisions:
+            qs = qs.filter(children__player__division__in=divisions)
         for u in qs:
             if (u.email or "").strip():
                 emails.add(u.email.strip())
@@ -117,8 +118,8 @@ def _get_admin_broadcast_recipients(form):
         )
         qs = apply_location_filters(qs)
         qs = eligible_profile_location_required(qs)
-        if division:
-            qs = qs.filter(managed_teams__players__division=division)
+        if divisions:
+            qs = qs.filter(managed_teams__players__division__in=divisions)
         for u in qs:
             if (u.email or "").strip():
                 emails.add(u.email.strip())
@@ -181,6 +182,35 @@ class AdminEmailBroadcastDetailView(StaffRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["is_admin"] = True
+
+        broadcast = context.get("broadcast")
+        if broadcast:
+            country_ids = getattr(broadcast, "country_ids", None) or (
+                [] if not broadcast.country_id else [broadcast.country_id]
+            )
+            state_ids = getattr(broadcast, "state_ids", None) or (
+                [] if not broadcast.state_id else [broadcast.state_id]
+            )
+            city_ids = getattr(broadcast, "city_ids", None) or (
+                [] if not broadcast.city_id else [broadcast.city_id]
+            )
+            division_ids = getattr(broadcast, "division_ids", None) or (
+                [] if not broadcast.division_id else [broadcast.division_id]
+            )
+
+            context["filter_countries"] = Country.objects.filter(
+                id__in=country_ids
+            ).order_by("name")
+            context["filter_states"] = State.objects.filter(id__in=state_ids).order_by(
+                "name"
+            )
+            context["filter_cities"] = City.objects.filter(id__in=city_ids).order_by(
+                "name"
+            )
+            context["filter_divisions"] = Division.objects.filter(
+                id__in=division_ids
+            ).order_by("name")
+
         return context
 
 
@@ -213,6 +243,29 @@ class AdminEmailBroadcastSendView(StaffRequiredMixin, CreateView):
                 self.request,
                 f"Vas a enviar este correo a {len(recipients)} destinatarios. Esta acción es sincrónica y puede tardar.",
             )
+
+        countries = form.cleaned_data.get("country")
+        states = form.cleaned_data.get("state")
+        cities = form.cleaned_data.get("city")
+        divisions = form.cleaned_data.get("division")
+
+        form.instance.country_ids = (
+            list(countries.values_list("id", flat=True)) if countries else []
+        )
+        form.instance.state_ids = (
+            list(states.values_list("id", flat=True)) if states else []
+        )
+        form.instance.city_ids = (
+            list(cities.values_list("id", flat=True)) if cities else []
+        )
+        form.instance.division_ids = (
+            list(divisions.values_list("id", flat=True)) if divisions else []
+        )
+
+        form.instance.country = countries.first() if countries else None
+        form.instance.state = states.first() if states else None
+        form.instance.city = cities.first() if cities else None
+        form.instance.division = divisions.first() if divisions else None
 
         form.instance.created_by = self.request.user
         form.instance.total_recipients = len(recipients)

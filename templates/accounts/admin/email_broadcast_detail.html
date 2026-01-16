@@ -53,10 +53,38 @@
                     <div class="mb-0">
                         <div class="text-muted" style="font-size: 0.85rem;">{% trans "Filters" %}</div>
                         <div style="font-size: 0.95rem;">
-                            <div><strong>{% trans "Country" %}:</strong> {{ broadcast.country.name|default:"-" }}</div>
-                            <div><strong>{% trans "State" %}:</strong> {{ broadcast.state.name|default:"-" }}</div>
-                            <div><strong>{% trans "City" %}:</strong> {{ broadcast.city.name|default:"-" }}</div>
-                            <div><strong>{% trans "Division" %}:</strong> {{ broadcast.division.name|default:"-" }}</div>
+                            <div>
+                                <strong>{% trans "Country" %}:</strong>
+                                {% if filter_countries %}
+                                    {% for c in filter_countries %}<span class="badge bg-light text-dark border">{{ c.name }}</span>{% endfor %}
+                                {% else %}
+                                    {{ broadcast.country.name|default:"-" }}
+                                {% endif %}
+                            </div>
+                            <div>
+                                <strong>{% trans "State" %}:</strong>
+                                {% if filter_states %}
+                                    {% for s in filter_states %}<span class="badge bg-light text-dark border">{{ s.name }}</span>{% endfor %}
+                                {% else %}
+                                    {{ broadcast.state.name|default:"-" }}
+                                {% endif %}
+                            </div>
+                            <div>
+                                <strong>{% trans "City" %}:</strong>
+                                {% if filter_cities %}
+                                    {% for c in filter_cities %}<span class="badge bg-light text-dark border">{{ c.name }}</span>{% endfor %}
+                                {% else %}
+                                    {{ broadcast.city.name|default:"-" }}
+                                {% endif %}
+                            </div>
+                            <div>
+                                <strong>{% trans "Division" %}:</strong>
+                                {% if filter_divisions %}
+                                    {% for d in filter_divisions %}<span class="badge bg-light text-dark border">{{ d.name }}</span>{% endfor %}
+                                {% else %}
+                                    {{ broadcast.division.name|default:"-" }}
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>

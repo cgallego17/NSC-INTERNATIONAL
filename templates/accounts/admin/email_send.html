@@ -132,51 +132,87 @@
             });
         };
 
-        const loadStates = async (countryId, selectedStateId) => {
+        const getSelectedValues = (selectEl) => {
+            return Array.from(selectEl.selectedOptions || []).map(o => o.value).filter(Boolean);
+        };
+
+        const loadStates = async (countryIds, selectedStateIds) => {
             resetSelect(stateSelect, stateEmptyLabel);
             resetSelect(citySelect, cityEmptyLabel);
 
-            if (!countryId) return;
+            if (!countryIds || !countryIds.length) return;
 
-            const res = await fetch(`/locations/api/states/?country=${encodeURIComponent(countryId)}`, {
-                headers: { 'Accept': 'application/json' },
+            const results = await Promise.all(countryIds.map(async (countryId) => {
+                const res = await fetch(`/locations/api/states/?country=${encodeURIComponent(countryId)}`, {
+                    headers: { 'Accept': 'application/json' },
+                });
+                if (!res.ok) return [];
+                return await res.json();
+            }));
+
+            const merged = new Map();
+            results.flat().forEach(item => {
+                merged.set(String(item.id), item);
             });
-            if (!res.ok) return;
-            const data = await res.json();
-            fillSelect(stateSelect, data, selectedStateId);
+
+            fillSelect(stateSelect, Array.from(merged.values()), null);
+
+            if (selectedStateIds && selectedStateIds.length) {
+                Array.from(stateSelect.options).forEach(opt => {
+                    if (selectedStateIds.includes(String(opt.value))) {
+                        opt.selected = true;
+                    }
+                });
+            }
         };
 
-        const loadCities = async (stateId, selectedCityId) => {
+        const loadCities = async (stateIds, selectedCityIds) => {
             resetSelect(citySelect, cityEmptyLabel);
 
-            if (!stateId) return;
+            if (!stateIds || !stateIds.length) return;
 
-            const res = await fetch(`/locations/api/cities/?state=${encodeURIComponent(stateId)}`, {
-                headers: { 'Accept': 'application/json' },
+            const results = await Promise.all(stateIds.map(async (stateId) => {
+                const res = await fetch(`/locations/api/cities/?state=${encodeURIComponent(stateId)}`, {
+                    headers: { 'Accept': 'application/json' },
+                });
+                if (!res.ok) return [];
+                return await res.json();
+            }));
+
+            const merged = new Map();
+            results.flat().forEach(item => {
+                merged.set(String(item.id), item);
             });
-            if (!res.ok) return;
-            const data = await res.json();
-            fillSelect(citySelect, data, selectedCityId);
+
+            fillSelect(citySelect, Array.from(merged.values()), null);
+
+            if (selectedCityIds && selectedCityIds.length) {
+                Array.from(citySelect.options).forEach(opt => {
+                    if (selectedCityIds.includes(String(opt.value))) {
+                        opt.selected = true;
+                    }
+                });
+            }
         };
 
         countrySelect.addEventListener('change', async function () {
-            await loadStates(this.value, null);
+            await loadStates(getSelectedValues(countrySelect), []);
         });
 
         stateSelect.addEventListener('change', async function () {
-            await loadCities(this.value, null);
+            await loadCities(getSelectedValues(stateSelect), []);
         });
 
         (async function init() {
-            const initialCountryId = countrySelect.value;
-            const initialStateId = stateSelect.value;
-            const initialCityId = citySelect.value;
+            const initialCountryIds = getSelectedValues(countrySelect);
+            const initialStateIds = getSelectedValues(stateSelect);
+            const initialCityIds = getSelectedValues(citySelect);
 
-            if (initialCountryId) {
-                await loadStates(initialCountryId, initialStateId);
+            if (initialCountryIds.length) {
+                await loadStates(initialCountryIds, initialStateIds);
             }
-            if (initialStateId) {
-                await loadCities(initialStateId, initialCityId);
+            if (initialStateIds.length) {
+                await loadCities(initialStateIds, initialCityIds);
             }
         })();
     })();

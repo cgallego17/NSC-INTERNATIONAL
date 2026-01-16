@@ -1213,29 +1213,25 @@ class AdminEmailBroadcastForm(forms.ModelForm):
     send_to_managers = forms.BooleanField(required=False)
     send_to_spectators = forms.BooleanField(required=False)
 
-    country = forms.ModelChoiceField(
+    country = forms.ModelMultipleChoiceField(
         queryset=Country.objects.filter(is_active=True).order_by("name"),
         required=False,
-        empty_label=_("Select a country"),
-        widget=forms.Select(attrs={"class": "form-select"}),
+        widget=forms.SelectMultiple(attrs={"class": "form-select"}),
     )
-    state = forms.ModelChoiceField(
+    state = forms.ModelMultipleChoiceField(
         queryset=State.objects.none(),
         required=False,
-        empty_label=_("Select a state"),
-        widget=forms.Select(attrs={"class": "form-select"}),
+        widget=forms.SelectMultiple(attrs={"class": "form-select"}),
     )
-    city = forms.ModelChoiceField(
+    city = forms.ModelMultipleChoiceField(
         queryset=City.objects.none(),
         required=False,
-        empty_label=_("Select a city"),
-        widget=forms.Select(attrs={"class": "form-select"}),
+        widget=forms.SelectMultiple(attrs={"class": "form-select"}),
     )
-    division = forms.ModelChoiceField(
+    division = forms.ModelMultipleChoiceField(
         queryset=Division.objects.filter(is_active=True).order_by("name"),
         required=False,
-        empty_label=_("Select a division"),
-        widget=forms.Select(attrs={"class": "form-select"}),
+        widget=forms.SelectMultiple(attrs={"class": "form-select"}),
     )
 
     class Meta:
@@ -1259,33 +1255,38 @@ class AdminEmailBroadcastForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if self.instance and self.instance.pk:
-            if self.instance.country:
-                self.fields["state"].queryset = State.objects.filter(
-                    country=self.instance.country, is_active=True
-                ).order_by("name")
-            if self.instance.state:
-                self.fields["city"].queryset = City.objects.filter(
-                    state=self.instance.state, is_active=True
-                ).order_by("name")
+        country_ids = []
+        state_ids = []
 
         if "country" in self.data:
             try:
-                country_id = int(self.data.get("country"))
-                self.fields["state"].queryset = State.objects.filter(
-                    country_id=country_id, is_active=True
-                ).order_by("name")
-            except (ValueError, TypeError):
-                pass
+                country_ids = [int(x) for x in self.data.getlist("country") if x]
+            except (ValueError, TypeError, AttributeError):
+                country_ids = []
+        elif getattr(self.instance, "country_ids", None):
+            country_ids = [int(x) for x in (self.instance.country_ids or []) if x]
+        elif getattr(self.instance, "country_id", None):
+            country_ids = [self.instance.country_id]
+
+        if country_ids:
+            self.fields["state"].queryset = State.objects.filter(
+                country_id__in=country_ids, is_active=True
+            ).order_by("name")
 
         if "state" in self.data:
             try:
-                state_id = int(self.data.get("state"))
-                self.fields["city"].queryset = City.objects.filter(
-                    state_id=state_id, is_active=True
-                ).order_by("name")
-            except (ValueError, TypeError):
-                pass
+                state_ids = [int(x) for x in self.data.getlist("state") if x]
+            except (ValueError, TypeError, AttributeError):
+                state_ids = []
+        elif getattr(self.instance, "state_ids", None):
+            state_ids = [int(x) for x in (self.instance.state_ids or []) if x]
+        elif getattr(self.instance, "state_id", None):
+            state_ids = [self.instance.state_id]
+
+        if state_ids:
+            self.fields["city"].queryset = City.objects.filter(
+                state_id__in=state_ids, is_active=True
+            ).order_by("name")
 
 
 class AdminTeamForm(forms.ModelForm):

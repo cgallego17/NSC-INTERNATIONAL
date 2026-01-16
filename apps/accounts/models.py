@@ -332,6 +332,11 @@ class AdminEmailBroadcast(models.Model):
         related_name="admin_email_broadcasts",
     )
 
+    country_ids = models.JSONField(default=list, blank=True)
+    state_ids = models.JSONField(default=list, blank=True)
+    city_ids = models.JSONField(default=list, blank=True)
+    division_ids = models.JSONField(default=list, blank=True)
+
     total_recipients = models.PositiveIntegerField(default=0)
     recipient_emails = models.JSONField(default=list, blank=True)
 
