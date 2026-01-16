@@ -260,17 +260,29 @@
             }
         };
 
-        const loadCities = async (stateIds, selectedCityIds) => {
+        const loadCities = async (stateIds, selectedCityIds, countryIds) => {
             resetSelect(citySelect, cityEmptyLabel);
 
-            if (!stateIds || !stateIds.length) return;
+            const effectiveStateIds = (stateIds || []).filter(Boolean);
+            const effectiveCountryIds = (countryIds || []).filter(Boolean);
 
-            const results = await Promise.all(stateIds.map(async (stateId) => {
-                return await fetchJsonOrLog(
-                    `/locations/ajax/cities/${encodeURIComponent(stateId)}/`,
-                    { kind: 'cities', stateId }
-                );
-            }));
+            if (!effectiveStateIds.length && !effectiveCountryIds.length) return;
+
+            const results = await Promise.all(
+                (effectiveStateIds.length ? effectiveStateIds : effectiveCountryIds).map(async (id) => {
+                    if (effectiveStateIds.length) {
+                        return await fetchJsonOrLog(
+                            `/locations/ajax/cities/${encodeURIComponent(id)}/`,
+                            { kind: 'cities', stateId: id }
+                        );
+                    }
+
+                    return await fetchJsonOrLog(
+                        `/locations/cities/api/?country=${encodeURIComponent(id)}`,
+                        { kind: 'cities', countryId: id }
+                    );
+                })
+            );
 
             const merged = new Map();
             results.flat().forEach(item => {
@@ -293,11 +305,15 @@
         };
 
         countrySelect.addEventListener('change', async function () {
-            await loadStates(getSelectedValues(countrySelect), []);
+            const countryIds = getSelectedValues(countrySelect);
+            await loadStates(countryIds, []);
+            await loadCities([], [], countryIds);
         });
 
         stateSelect.addEventListener('change', async function () {
-            await loadCities(getSelectedValues(stateSelect), []);
+            const stateIds = getSelectedValues(stateSelect);
+            const countryIds = getSelectedValues(countrySelect);
+            await loadCities(stateIds, [], countryIds);
         });
 
         (async function init() {
@@ -309,9 +325,25 @@
                 await loadStates(initialCountryIds, initialStateIds);
             }
             if (initialStateIds.length) {
-                await loadCities(initialStateIds, initialCityIds);
+                await loadCities(initialStateIds, initialCityIds, initialCountryIds);
+            } else if (initialCountryIds.length) {
+                await loadCities([], initialCityIds, initialCountryIds);
             }
         })();
+
+        if (window.jQuery) {
+            window.jQuery(countrySelect).on('change', async function () {
+                const countryIds = getSelectedValues(countrySelect);
+                await loadStates(countryIds, []);
+                await loadCities([], [], countryIds);
+            });
+
+            window.jQuery(stateSelect).on('change', async function () {
+                const stateIds = getSelectedValues(stateSelect);
+                const countryIds = getSelectedValues(countrySelect);
+                await loadCities(stateIds, [], countryIds);
+            });
+        }
     })();
 </script>
 <script>
