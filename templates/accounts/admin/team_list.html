@@ -56,6 +56,7 @@
                         <th style="width: 60px;">{% trans "ID" %}</th>
                         <th>{% trans "Team" %}</th>
                         <th>{% trans "Manager" %}</th>
+                        <th style="width: 160px;">{% trans "Registered" %}</th>
                         <th style="width: 120px;">{% trans "Status" %}</th>
                         <th style="width: 220px;"></th>
                     </tr>
@@ -70,6 +71,10 @@
                             </td>
                             <td>{{ team.manager.get_full_name|default:team.manager.username }}</td>
                             <td>
+                                <div style="font-size: 0.875rem;">{{ team.created_at|date:"Y-m-d" }}</div>
+                                <div class="text-muted" style="font-size: 0.8rem;">{{ team.created_at|date:"H:i" }}</div>
+                            </td>
+                            <td>
                                 {% if team.is_active %}
                                     <span class="badge bg-success">{% trans "Active" %}</span>
                                 {% else %}
@@ -77,6 +82,9 @@
                                 {% endif %}
                             </td>
                             <td class="text-end">
+                                <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:admin_team_edit' pk=team.pk %}" title="{% trans 'Edit' %}">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
                                 <form method="post" action="{% url 'accounts:admin_team_toggle_active' pk=team.pk %}" class="d-inline">
                                     {% csrf_token %}
                                     {% if team.is_active %}
@@ -89,17 +97,14 @@
                                         </button>
                                     {% endif %}
                                 </form>
-                                <a class="btn btn-sm btn-outline-primary" href="{% url 'accounts:admin_team_edit' pk=team.pk %}">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a class="btn btn-sm btn-outline-danger" href="{% url 'accounts:admin_team_delete' pk=team.pk %}">
+                                <a class="btn btn-sm btn-outline-danger" href="{% url 'accounts:admin_team_delete' pk=team.pk %}" title="{% trans 'Delete' %}">
                                     <i class="bi bi-trash"></i>
                                 </a>
                             </td>
                         </tr>
                     {% empty %}
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">
+                            <td colspan="6" class="text-center text-muted py-4">
                                 {% trans "No teams found" %}
                             </td>
                         </tr>
