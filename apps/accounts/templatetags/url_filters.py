@@ -1,8 +1,10 @@
 """
 Filtros personalizados para URLs y números
 """
-from django import template
+
 import re
+
+from django import template
 
 register = template.Library()
 
@@ -18,13 +20,13 @@ def clean_localhost_url(url):
 
     url_str = str(url)
     # Remover http://127.0.0.1:8000
-    url_str = url_str.replace('http://127.0.0.1:8000', '')
+    url_str = url_str.replace("http://127.0.0.1:8000", "")
     # Remover http://localhost:8000
-    url_str = url_str.replace('http://localhost:8000', '')
+    url_str = url_str.replace("http://localhost:8000", "")
     # Remover https://127.0.0.1:8000 (por si acaso)
-    url_str = url_str.replace('https://127.0.0.1:8000', '')
+    url_str = url_str.replace("https://127.0.0.1:8000", "")
     # Remover https://localhost:8000 (por si acaso)
-    url_str = url_str.replace('https://localhost:8000', '')
+    url_str = url_str.replace("https://localhost:8000", "")
 
     return url_str
 
@@ -37,42 +39,89 @@ def intcomma_dot(value):
     Convierte: "5752.90" -> "5.752,90" o "1000" -> "1.000"
     Usa puntos para miles y comas para decimales.
     """
-    if value is None or value == '':
-        return '0,00'
+    if value is None or value == "":
+        return "0,00"
 
     try:
-        # Convertir a string (ya viene formateado con floatformat)
-        value_str = str(value).strip()
+        # Convertir a string (a veces viene ya con separadores de miles/decimales)
+        raw = str(value).strip()
 
-        # Si el valor es "0" o "0.00", retornar "0,00"
-        if value_str in ['0', '0.0', '0.00', '0,0', '0,00']:
-            return '0,00'
+        if raw in ["0", "0.0", "0.00", "0,0", "0,00"]:
+            return "0,00"
 
-        # Si es un número decimal, separar parte entera y decimal
-        if '.' in value_str:
-            parts = value_str.split('.')
-            integer_part = parts[0]
-            decimal_part = parts[1] if len(parts) > 1 else '00'
-            # Asegurar que siempre tenga 2 decimales
-            if len(decimal_part) == 1:
-                decimal_part = decimal_part + '0'
-            elif len(decimal_part) == 0:
-                decimal_part = '00'
+        # Normalizar a un formato numérico simple con '.' como separador decimal y sin miles
+        # Soporta entradas tipo: "3435.68", "3,435.68", "3.435,68", etc.
+        s = raw.replace(" ", "")
+        s = re.sub(r"[^0-9,\.-]", "", s)
+
+        last_dot = s.rfind(".")
+        last_comma = s.rfind(",")
+
+        decimal_sep = None
+        thousands_sep = None
+
+        if last_dot != -1 and last_comma != -1:
+            # El separador que aparece más a la derecha suele ser el decimal
+            if last_dot > last_comma:
+                decimal_sep = "."
+                thousands_sep = ","
+            else:
+                decimal_sep = ","
+                thousands_sep = "."
+        elif last_comma != -1:
+            # Solo comas: si la parte final parece decimal (1-2 dígitos), usar coma como decimal
+            tail = s.split(",")[-1]
+            if len(tail) in (1, 2):
+                decimal_sep = ","
+            elif s.count(",") > 1:
+                decimal_sep = ","
+            else:
+                thousands_sep = ","
+        elif last_dot != -1:
+            # Solo puntos: si la parte final parece decimal (1-2 dígitos), usar punto como decimal
+            tail = s.split(".")[-1]
+            if len(tail) in (1, 2):
+                decimal_sep = "."
+            elif s.count(".") > 1:
+                decimal_sep = "."
+            else:
+                thousands_sep = "."
+
+        if thousands_sep:
+            s = s.replace(thousands_sep, "")
+        if decimal_sep and decimal_sep != ".":
+            # Reemplazar el separador decimal a '.' para normalizar
+            s = s.replace(decimal_sep, ".")
+
+        # Extraer signo (si existiera)
+        sign = ""
+        if s.startswith("-"):
+            sign = "-"
+            s = s[1:]
+
+        if "." in s:
+            integer_part, decimal_part = s.split(".", 1)
         else:
-            integer_part = value_str
-            decimal_part = '00'
+            integer_part, decimal_part = s, "00"
+
+        decimal_part = (decimal_part or "")[:2]
+        if len(decimal_part) == 0:
+            decimal_part = "00"
+        elif len(decimal_part) == 1:
+            decimal_part = decimal_part + "0"
+
+        integer_part = integer_part or "0"
 
         # Agregar puntos como separadores de miles a la parte entera
-        # Invertir la cadena, agregar puntos cada 3 dígitos, y volver a invertir
-        if integer_part:
-            integer_part = integer_part[::-1]
-            integer_part = '.'.join(integer_part[i:i+3] for i in range(0, len(integer_part), 3))
-            integer_part = integer_part[::-1]
+        integer_part = integer_part[::-1]
+        integer_part = ".".join(
+            integer_part[i : i + 3] for i in range(0, len(integer_part), 3)
+        )
+        integer_part = integer_part[::-1]
 
-        # Reconstruir el número: usar punto para miles y coma para decimales (formato español)
-        return f"{integer_part},{decimal_part}"
+        return f"{sign}{integer_part},{decimal_part}"
     except (ValueError, TypeError):
-        return str(value) if value else '0,00'
+        return str(value) if value else "0,00"
 
 
 @register.filter
@@ -89,4 +138,3 @@ def make_range(value):
         return []
     except (ValueError, TypeError):
         return []
-
