@@ -7,6 +7,34 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 11:52:44
+
+- **[85b323e]** ```
+  - *Fecha:* 2026-01-16 11:52:44
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 11 archivo(s)
+    - `apps/accounts/forms.py`
+    - `apps/accounts/migrations/0053_admintodo.py`
+    - `apps/accounts/models.py`
+    - `apps/accounts/urls.py`
+    - `apps/accounts/views_admin.py`
+    - `apps/core/context_processors.py`
+    - `templates/accounts/admin/todo_confirm_delete.html`
+    - `templates/accounts/admin/todo_detail.html`
+    - `templates/accounts/admin/todo_form.html`
+    - `templates/accounts/admin/todo_list.html`
+    - ... y 1 archivo(s) más
+  - *Detalles:*
+    - feat: Add admin todo management system with CRUD operations and filtering
+    - - Add AdminTodo model with status, priority, due date, and assignment fields
+    - - Include STATUS_CHOICES (pending, in_progress, completed) and PRIORITY_CHOICES (low, medium, high)
+    - - Add created_by and assigned_to foreign keys to User model with related names
+    - - Create AdminTodoForm with form-control and form-select widgets for all fields
+    - - Implement AdminTodoListView with search, status, and priority filtering
+    - - Add AdminTodoDetail
+
+
+
 ### Actualizado: 2026-01-16 11:41:16
 
 - **[8e4c354]** ```
