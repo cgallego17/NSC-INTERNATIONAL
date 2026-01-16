@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 11:35:35
+
+- **[35d9197]** ```
+  - *Fecha:* 2026-01-16 11:35:35
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/admin/team_list.html`
+  - *Detalles:*
+    - feat: Add view button to team list actions for quick team detail access
+    - - Add view button with eye icon before edit button in team action column
+    - - Use btn-outline-info styling to distinguish from edit and delete actions
+    - - Link to admin_team_detail view with team primary key parameter
+    - - Include title attribute with "View" translation for accessibility
+    - ```
+
+
+
 ### Actualizado: 2026-01-16 11:33:37
 
 - **[378d23f]** ```
