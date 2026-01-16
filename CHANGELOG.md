@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 17:42:13
+
+- **[5214376]** ```
+  - *Fecha:* 2026-01-16 17:42:13
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/admin/email_send.html`
+  - *Detalles:*
+    - fix: Update location API endpoints and add error logging for failed requests
+    - - Change state API endpoint from /locations/api/states/ to /locations/states/api/
+    - - Change city API endpoint from /locations/api/cities/ to /locations/cities/api/
+    - - Add console.error logging for failed state fetch requests with countryId and status
+    - - Add console.error logging for failed city fetch requests with stateId and status
+    - - Expand error handling blocks from single-line to multi-line format
+    - ```
+
+
+
 ### Actualizado: 2026-01-16 17:15:31
 
 - **[0980999]** ```
