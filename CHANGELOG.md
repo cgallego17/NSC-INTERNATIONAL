@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 18:11:10
+
+- **[a9a4c52]** ```
+  - *Fecha:* 2026-01-16 18:11:09
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `apps/accounts/views_private.py`
+  - *Detalles:*
+    - feat: Add dynamic form prefix detection to handle both prefixed and non-prefixed POST data
+    - - Add _use_prefix helper function to detect if form data contains prefix tokens
+    - - Check for prefix in both request.POST.keys() and request.FILES.keys()
+    - - Apply conditional prefix to profile forms (UserProfileForm and UserProfileUpdateForm)
+    - - Apply conditional prefix to billing form (BillingAddressForm)
+    - - Apply conditional prefix to security form (CustomPasswordChangeForm)
+    - - Set prefix to None when prefix
+
+
+
 ### Actualizado: 2026-01-16 18:05:51
 
 - **[2d4cc1f]** ```
