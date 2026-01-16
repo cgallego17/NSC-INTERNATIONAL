@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 18:59:40
+
+- **[004df21]** ```
+  - *Fecha:* 2026-01-16 18:59:40
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `apps/accounts/signals.py`
+    - `templates/emails/player_age_verification_approved_parent.html`
+  - *Detalles:*
+    - feat: Add parent notification system for player age verification approval
+    - - Add pre_save signal to track previous age_verification_status on Player model
+    - - Add post_save signal to notify parent when player age verification is approved
+    - - Query PlayerParent relationship to find primary parent user with email
+    - - Respect parent's email_notifications preference from profile settings
+    - - Create in-app notification with "Jugador autorizado" title and player_detail action URL
+    - - Send HTML email using player
+
+
+
 ### Actualizado: 2026-01-16 18:54:25
 
 - **[80faff4]** ```
