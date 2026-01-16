@@ -1705,8 +1705,13 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
         self.parent = kwargs.pop("parent", None)
         super().__init__(*args, **kwargs)
 
+        country_key = self.add_prefix("country")
+        state_key = self.add_prefix("state")
+
         # Determinar el país seleccionado (prioridad: data de POST, luego instancia)
-        if "country" in self.data:
+        if country_key in self.data:
+            country_id = self.data.get(country_key)
+        elif "country" in self.data:
             country_id = self.data.get("country")
         elif self.instance.pk:
             if hasattr(self.instance, "user") and hasattr(
@@ -1728,7 +1733,11 @@ class ParentPlayerRegistrationForm(forms.ModelForm):
             self.fields["state"].queryset = State.objects.none()
 
         # Determinar el estado seleccionado
-        state_id = self.data.get("state")
+        state_id = None
+        if state_key in self.data:
+            state_id = self.data.get(state_key)
+        elif "state" in self.data:
+            state_id = self.data.get("state")
         if not state_id and self.instance.pk:
             if hasattr(self.instance, "user") and hasattr(
                 self.instance.user, "profile"

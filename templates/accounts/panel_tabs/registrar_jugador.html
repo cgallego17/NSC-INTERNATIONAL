@@ -7,7 +7,7 @@
 </div>
 {% if player_form %}
     <div class="form-container">
-        <form method="post" action="{% url 'accounts:player_register' %}" enctype="multipart/form-data" id="playerForm">
+        <form method="post" action="{% url 'accounts:player_register' %}?next=panel" enctype="multipart/form-data" id="playerForm">
             {% csrf_token %}
 
             {% if player_form.non_field_errors %}

@@ -18,7 +18,7 @@
     </div>
 
     <div class="form-container">
-        <form method="post" action="{% url 'accounts:parent_player_register' %}" enctype="multipart/form-data" id="parentPlayerForm" novalidate>
+        <form method="post" action="{% url 'accounts:parent_player_register' %}?next=panel" enctype="multipart/form-data" id="parentPlayerForm" novalidate>
             {% csrf_token %}
 
             {% if parent_player_form.non_field_errors %}

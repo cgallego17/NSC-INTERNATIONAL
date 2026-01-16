@@ -1387,7 +1387,22 @@ class PlayerRegistrationView(ManagerRequiredMixin, CreateView):
             self.request,
             _("Player %(name)s registered successfully.") % {"name": player_name},
         )
+        if self.request.GET.get("next") == "panel":
+            return redirect(reverse("panel") + "?tab=ver-jugadores")
         return redirect("accounts:player_list")
+
+    def form_invalid(self, form):
+        if self.request.GET.get("next") == "panel":
+            try:
+                dashboard_view = UserDashboardView()
+                dashboard_view.request = self.request
+                context = dashboard_view.get_context_data()
+                context["active_tab"] = "registrar-jugador"
+                context["player_form"] = form
+                return render(self.request, "accounts/panel_usuario.html", context)
+            except Exception:
+                pass
+        return super().form_invalid(form)
 
 
 class PlayerDeleteView(UserPassesTestMixin, DeleteView):
@@ -1435,6 +1450,19 @@ class ParentPlayerRegistrationView(LoginRequiredMixin, CreateView):
             extra_tags="player_registered",
         )
         return redirect("panel")
+
+    def form_invalid(self, form):
+        if self.request.GET.get("next") == "panel":
+            try:
+                dashboard_view = UserDashboardView()
+                dashboard_view.request = self.request
+                context = dashboard_view.get_context_data()
+                context["active_tab"] = "registrar-hijo"
+                context["parent_player_form"] = form
+                return render(self.request, "accounts/panel_usuario.html", context)
+            except Exception:
+                pass
+        return super().form_invalid(form)
 
 
 class PlayerUpdateView(LoginRequiredMixin, UpdateView):
