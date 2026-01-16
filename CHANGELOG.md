@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 18:02:48
+
+- **[14cd6bb]** ```
+  - *Fecha:* 2026-01-16 18:02:48
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `apps/accounts/views_admin.py`
+    - `templates/emails/admin_broadcast_wrapper.html`
+  - *Detalles:*
+    - feat: Wrap admin broadcast emails in branded HTML template
+    - - Import render_to_string from django.template.loader
+    - - Render html_body content through emails/admin_broadcast_wrapper.html template
+    - - Pass subject, content_html, brand_name, and email_tag context to wrapper template
+    - - Update strip_tags and attach_alternative calls to use wrapped_html_body instead of raw html_body
+    - - Maintain existing email sending logic with from_email, safe_to, bcc recipients
+    - ```
+
+
+
 ### Actualizado: 2026-01-16 17:54:15
 
 - **[f29d969]** ```
