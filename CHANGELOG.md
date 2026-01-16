@@ -7,6 +7,28 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 16:55:22
+
+- **[484962e]** ```
+  - *Fecha:* 2026-01-16 16:55:22
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 6 archivo(s)
+    - `apps/accounts/forms.py`
+    - `apps/accounts/migrations/0055_adminemailbroadcast_city_ids_and_more.py`
+    - `apps/accounts/models.py`
+    - `apps/accounts/views_admin.py`
+    - `templates/accounts/admin/email_broadcast_detail.html`
+    - `templates/accounts/admin/email_send.html`
+  - *Detalles:*
+    - feat: Convert email broadcast location filters from single to multiple selection
+    - - Change country, state, city, and division fields from ModelChoiceField to ModelMultipleChoiceField
+    - - Replace Select widgets with SelectMultiple and remove empty_label parameters
+    - - Add country_ids, state_ids, city_ids, and division_ids JSONField to AdminEmailBroadcast model
+    - - Update __init__ method to handle multiple selected values using getlist() and __in lookups
+    - - Modify _get_admin_broadcast_recipients to filter
+
+
+
 ### Actualizado: 2026-01-16 16:41:35
 
 - **[67ec0e5]** ```
