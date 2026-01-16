@@ -113,6 +113,7 @@
                                 <th style="width: 120px;">{% trans "Status" %}</th>
                                 <th style="width: 160px;">{% trans "Division" %}</th>
                                 <th style="width: 140px;">{% trans "Created" %}</th>
+                                <th style="width: 90px;"></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -132,10 +133,15 @@
                                     </td>
                                     <td>{{ p.division.name|default:"-" }}</td>
                                     <td>{{ p.created_at|date:"Y-m-d" }}</td>
+                                    <td class="text-end">
+                                        <a class="btn btn-sm btn-outline-info" href="{% url 'accounts:admin_player_detail' pk=p.pk %}" title="{% trans 'View' %}">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
                                 </tr>
                             {% empty %}
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">
+                                    <td colspan="6" class="text-center text-muted py-4">
                                         {% trans "No players registered for this team" %}
                                     </td>
                                 </tr>
