@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 18:29:20
+
+- **[789c2a3]** ```
+  - *Fecha:* 2026-01-16 18:29:20
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `apps/accounts/forms.py`
+    - `apps/accounts/views_admin.py`
+  - *Detalles:*
+    - feat: Add clean() method to AdminEmailBroadcastForm to preserve multi-select querysets while handling FK constraints
+    - - Add clean() method to AdminEmailBroadcastForm to store original querysets in _countries, _states, _cities, and _divisions attributes
+    - - Replace FK-mapped fields in cleaned_data with single instances using .first() to avoid QuerySet assignment errors
+    - - Update _get_admin_broadcast_recipients to retrieve preserved querysets via getattr with fallback to cleaned_data
+    - - Update Admin
+
+
+
 ### Actualizado: 2026-01-16 18:23:41
 
 - **[54eb087]** ```
