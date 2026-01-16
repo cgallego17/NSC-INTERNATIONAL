@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 16:41:35
+
+- **[67ec0e5]** ```
+  - *Fecha:* 2026-01-16 16:41:34
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `apps/accounts/forms.py`
+  - *Detalles:*
+    - feat: Add dynamic queryset filtering for state and city fields in admin email broadcast form
+    - - Initialize state and city querysets as empty (none()) by default
+    - - Add __init__ method to dynamically populate state queryset based on selected country
+    - - Populate city queryset based on selected state during form initialization
+    - - Handle both instance data (for editing) and POST data (for form submission)
+    - - Filter by is_active=True and order by name for active locations only
+    - - Add error handling for invalid country_
+
+
+
 ### Actualizado: 2026-01-16 16:38:35
 
 - **[ae8ff70]** ```
