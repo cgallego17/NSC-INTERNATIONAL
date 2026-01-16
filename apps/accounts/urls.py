@@ -436,6 +436,32 @@ urlpatterns = [
         views_admin.admin_team_toggle_active,
         name="admin_team_toggle_active",
     ),
+    # To-Dos (Admin)
+    path(
+        "admin/todos/",
+        views_admin.AdminTodoListView.as_view(),
+        name="admin_todo_list",
+    ),
+    path(
+        "admin/todos/create/",
+        views_admin.AdminTodoCreateView.as_view(),
+        name="admin_todo_create",
+    ),
+    path(
+        "admin/todos/<int:pk>/",
+        views_admin.AdminTodoDetailView.as_view(),
+        name="admin_todo_detail",
+    ),
+    path(
+        "admin/todos/<int:pk>/edit/",
+        views_admin.AdminTodoUpdateView.as_view(),
+        name="admin_todo_edit",
+    ),
+    path(
+        "admin/todos/<int:pk>/delete/",
+        views_admin.AdminTodoDeleteView.as_view(),
+        name="admin_todo_delete",
+    ),
     path(
         "dashboard-banners/<int:pk>/delete/",
         views_dashboard_banners.DashboardBannerDeleteView.as_view(),

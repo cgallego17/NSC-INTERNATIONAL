@@ -453,6 +453,10 @@
                 <i class="sb-ico bi bi-people-fill"></i>
                 <span class="hide-mini">Equipos</span>
             </a>
+            <a href="{% url 'accounts:admin_todo_list' %}" class="sb-item{% if active_section == 'todos' %} active{% endif %}" data-bs-title="To-Dos">
+                <i class="sb-ico bi bi-check2-square"></i>
+                <span class="hide-mini">To-Dos</span>
+            </a>
             {% endif %}
 
             <!-- Hoteles -->

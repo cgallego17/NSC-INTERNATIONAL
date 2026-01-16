@@ -26,8 +26,9 @@ from django.views.generic import (
 from apps.core.mixins import StaffRequiredMixin
 from apps.events.models import EventAttendance
 
-from .forms import AdminTeamForm
+from .forms import AdminTeamForm, AdminTodoForm
 from .models import (
+    AdminTodo,
     Order,
     Player,
     StaffWalletTopUp,
@@ -199,6 +200,92 @@ class AdminTeamCreateView(StaffRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse_lazy("accounts:admin_team_list")
+
+
+class AdminTodoListView(StaffRequiredMixin, ListView):
+    model = AdminTodo
+    template_name = "accounts/admin/todo_list.html"
+    context_object_name = "todos"
+    paginate_by = 25
+
+    def get_queryset(self):
+        qs = AdminTodo.objects.select_related("assigned_to", "created_by").all()
+        search = (self.request.GET.get("search") or "").strip()
+        status = (self.request.GET.get("status") or "").strip()
+        priority = (self.request.GET.get("priority") or "").strip()
+
+        if search:
+            qs = qs.filter(
+                Q(title__icontains=search) | Q(description__icontains=search)
+            )
+
+        if status:
+            qs = qs.filter(status=status)
+
+        if priority:
+            qs = qs.filter(priority=priority)
+
+        return qs.order_by("-created_at")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["search"] = self.request.GET.get("search", "")
+        context["status_filter"] = self.request.GET.get("status", "")
+        context["priority_filter"] = self.request.GET.get("priority", "")
+        context["status_choices"] = AdminTodo.STATUS_CHOICES
+        context["priority_choices"] = AdminTodo.PRIORITY_CHOICES
+        context["is_admin"] = True
+        return context
+
+
+class AdminTodoDetailView(StaffRequiredMixin, DetailView):
+    model = AdminTodo
+    template_name = "accounts/admin/todo_detail.html"
+    context_object_name = "todo"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["is_admin"] = True
+        return context
+
+
+class AdminTodoCreateView(StaffRequiredMixin, CreateView):
+    model = AdminTodo
+    form_class = AdminTodoForm
+    template_name = "accounts/admin/todo_form.html"
+
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        messages.success(self.request, "To-Do created successfully.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("accounts:admin_todo_list")
+
+
+class AdminTodoUpdateView(StaffRequiredMixin, UpdateView):
+    model = AdminTodo
+    form_class = AdminTodoForm
+    template_name = "accounts/admin/todo_form.html"
+
+    def form_valid(self, form):
+        messages.success(self.request, "To-Do updated successfully.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("accounts:admin_todo_list")
+
+
+class AdminTodoDeleteView(StaffRequiredMixin, DeleteView):
+    model = AdminTodo
+    template_name = "accounts/admin/todo_confirm_delete.html"
+
+    def form_valid(self, form):
+        messages.success(self.request, "To-Do deleted successfully.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy("accounts:admin_todo_list")
 
 
 @require_http_methods(["POST"])

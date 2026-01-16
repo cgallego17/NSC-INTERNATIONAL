@@ -183,6 +183,26 @@ def sidebar_context(request):
             "section": "teams",
             "subsection": "admin_team_list",
         },
+        "accounts:admin_todo_list": {
+            "section": "todos",
+            "subsection": "admin_todo_list",
+        },
+        "accounts:admin_todo_create": {
+            "section": "todos",
+            "subsection": "admin_todo_list",
+        },
+        "accounts:admin_todo_detail": {
+            "section": "todos",
+            "subsection": "admin_todo_list",
+        },
+        "accounts:admin_todo_edit": {
+            "section": "todos",
+            "subsection": "admin_todo_list",
+        },
+        "accounts:admin_todo_delete": {
+            "section": "todos",
+            "subsection": "admin_todo_list",
+        },
         "accounts:age_verification_list": {
             "section": "age_verifications",
             "subsection": "pending_verifications",
@@ -309,6 +329,9 @@ def sidebar_context(request):
             elif "/admin/teams" in current_path:
                 active_section = "teams"
                 active_subsection = "admin_team_list"
+            elif "/admin/todos" in current_path:
+                active_section = "todos"
+                active_subsection = "admin_todo_list"
             elif "/admin/wallet-topups" in current_path:
                 active_section = "orders"
                 active_subsection = "wallet_topups"

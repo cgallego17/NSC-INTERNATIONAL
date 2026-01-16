@@ -15,6 +15,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.locations.models import City, Country, State
 
 from .models import (
+    AdminTodo,
     HomeBanner,
     Player,
     PlayerParent,
@@ -1173,6 +1174,29 @@ class TeamForm(forms.ModelForm):
                 ).order_by("name")
             except (ValueError, TypeError):
                 pass
+
+
+class AdminTodoForm(forms.ModelForm):
+    class Meta:
+        model = AdminTodo
+        fields = [
+            "title",
+            "description",
+            "status",
+            "priority",
+            "due_date",
+            "assigned_to",
+        ]
+        widgets = {
+            "title": forms.TextInput(attrs={"class": "form-control"}),
+            "description": forms.Textarea(attrs={"class": "form-control", "rows": 4}),
+            "status": forms.Select(attrs={"class": "form-select"}),
+            "priority": forms.Select(attrs={"class": "form-select"}),
+            "due_date": forms.DateInput(
+                attrs={"class": "form-control", "type": "date"}
+            ),
+            "assigned_to": forms.Select(attrs={"class": "form-select"}),
+        }
 
 
 class AdminTeamForm(forms.ModelForm):
