@@ -1,10 +1,15 @@
 {% extends 'base.html' %}
+{% load static %}
 {% load i18n %}
 
 {% block title %}{% trans "Emails" %} - NCS International{% endblock %}
 
 {% block breadcrumb %}
     <span>{% trans "Emails" %}</span>
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'admin/css/vendor/select2/select2.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -101,11 +106,15 @@
     </div>
 </div>
 
+<script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+<script src="{% static 'admin/js/vendor/select2/select2.full.js' %}"></script>
+
 <script>
     (function () {
         const countrySelect = document.getElementById('id_country');
         const stateSelect = document.getElementById('id_state');
         const citySelect = document.getElementById('id_city');
+        const divisionSelect = document.getElementById('id_division');
 
         if (!countrySelect || !stateSelect || !citySelect) return;
 
@@ -114,10 +123,12 @@
 
         const resetSelect = (selectEl, emptyLabel) => {
             selectEl.innerHTML = '';
-            const emptyOpt = document.createElement('option');
-            emptyOpt.value = '';
-            emptyOpt.textContent = emptyLabel;
-            selectEl.appendChild(emptyOpt);
+            if (emptyLabel) {
+                const emptyOpt = document.createElement('option');
+                emptyOpt.value = '';
+                emptyOpt.textContent = emptyLabel;
+                selectEl.appendChild(emptyOpt);
+            }
         };
 
         const fillSelect = (selectEl, items, selectedValue) => {
@@ -164,6 +175,11 @@
                     }
                 });
             }
+
+            if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2) {
+                window.jQuery(stateSelect).trigger('change.select2');
+                window.jQuery(citySelect).trigger('change.select2');
+            }
         };
 
         const loadCities = async (stateIds, selectedCityIds) => {
@@ -193,6 +209,10 @@
                     }
                 });
             }
+
+            if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2) {
+                window.jQuery(citySelect).trigger('change.select2');
+            }
         };
 
         countrySelect.addEventListener('change', async function () {
@@ -215,6 +235,31 @@
                 await loadCities(initialStateIds, initialCityIds);
             }
         })();
+    })();
+</script>
+<script>
+    (function () {
+        if (!window.jQuery || !window.jQuery.fn || !window.jQuery.fn.select2) return;
+
+        const $ = window.jQuery;
+        const selects = ['#id_country', '#id_state', '#id_city', '#id_division'];
+
+        const initSelect2 = function () {
+            selects.forEach(sel => {
+                const el = document.querySelector(sel);
+                if (!el) return;
+                $(el).select2({
+                    width: '100%',
+                    closeOnSelect: false,
+                });
+            });
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initSelect2);
+        } else {
+            initSelect2();
+        }
     })();
 </script>
 {% endblock %}
