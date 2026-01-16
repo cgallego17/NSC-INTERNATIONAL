@@ -1,75 +1,32 @@
+{% extends "emails/email_base.html" %}
 {% load i18n %}
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>{% trans "Confirm your email" %} - NCS International</title>
-</head>
-<body style="margin:0;padding:0;background:#f5f7fb;">
-    <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
-        {% trans "Confirm your email to activate your account" %}
-    </div>
 
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#f5f7fb;padding:24px 0;">
-        <tr>
-            <td align="center" style="padding:0 12px;">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width:600px;width:100%;">
-                    <tr>
-                        <td style="background:#0d2c54;color:#ffffff;border-radius:14px 14px 0 0;padding:24px 24px 18px;">
-                            <div style="font-family:Arial,Helvetica,sans-serif;font-size:18px;font-weight:700;letter-spacing:0.5px;">
-                                NCS International
-                            </div>
-                            <div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;opacity:0.9;margin-top:6px;">
-                                {% trans "Email confirmation" %}
-                            </div>
-                        </td>
-                    </tr>
+{% block email_title %}{% trans "Confirm your email" %} - NCS International{% endblock %}
 
-                    <tr>
-                        <td style="background:#ffffff;border-radius:0 0 14px 14px;padding:24px;">
-                            <div style="font-family:Arial,Helvetica,sans-serif;font-size:16px;color:#1a1a1a;line-height:1.6;">
-                                <p style="margin:0 0 12px;">{% trans "Hello," %}</p>
-                                <p style="margin:0 0 12px;">
-                                    {% trans "Thanks for creating your NCS International account." %}
-                                </p>
-                                <p style="margin:0 0 18px;">
-                                    {% trans "Click the button below to confirm your email and activate your account." %}
-                                </p>
+{% block preheader %}{% trans "Confirm your email to activate your account" %}{% endblock %}
 
-                                {% url 'accounts:confirm_email' uidb64=uid token=token as confirm_path %}
-                                {% with confirm_url=protocol|add:"://"|add:domain|add:confirm_path %}
-                                <div style="text-align:center;margin:22px 0 18px;">
-                                    <a href="{{ confirm_url }}" style="background:#d50032;color:#ffffff;display:inline-block;padding:12px 18px;border-radius:10px;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;letter-spacing:0.4px;">
-                                        {% trans "Confirm email" %}
-                                    </a>
-                                </div>
+{% block headline %}{% trans "Email confirmation" %}{% endblock %}
 
-                                <p style="margin:0 0 10px;color:#4b5563;font-size:14px;">
-                                    {% trans "If the button doesn't work, copy and paste this link into your browser:" %}
-                                </p>
-                                <p style="margin:0 0 18px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.6;word-break:break-all;">
-                                    <a href="{{ confirm_url }}" style="color:#0d2c54;text-decoration:underline;">{{ confirm_url }}</a>
-                                </p>
+{% block content %}
+<p style="margin:0 0 12px;">{% trans "Hello," %}</p>
+<p style="margin:0 0 12px;">{% trans "Thanks for creating your NCS International account." %}</p>
+<p style="margin:0 0 18px;">{% trans "Click the button below to confirm your email and activate your account." %}</p>
 
-                                <hr style="border:none;border-top:1px solid #e5e7eb;margin:18px 0;">
+{% url 'accounts:confirm_email' uidb64=uid token=token as confirm_path %}
+{% with confirm_url=protocol|add:"://"|add:domain|add:confirm_path %}
+<div style="text-align:center;margin:22px 0 18px;">
+  <a href="{{ confirm_url }}" style="background:#d50032;color:#ffffff;display:inline-block;padding:12px 18px;border-radius:10px;text-decoration:none;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:700;letter-spacing:0.4px;">
+    {% trans "Confirm email" %}
+  </a>
+</div>
 
-                                <p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;">
-                                    {% trans "If you did not create this account, you can safely ignore this email." %}
-                                </p>
-                                {% endwith %}
-                            </div>
-                        </td>
-                    </tr>
+<p style="margin:0 0 10px;color:#4b5563;font-size:14px;">{% trans "If the button doesn't work, copy and paste this link into your browser:" %}</p>
+<p style="margin:0 0 18px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.6;word-break:break-all;">
+  <a href="{{ confirm_url }}" style="color:#0d2c54;text-decoration:underline;">{{ confirm_url }}</a>
+</p>
 
-                    <tr>
-                        <td align="center" style="padding:14px 8px 0;color:#6b7280;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.4;">
-                            &copy; 2026 NCS International
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-</body>
-</html>
+<hr style="border:none;border-top:1px solid #e5e7eb;margin:18px 0;">
+
+<p style="margin:0;color:#6b7280;font-size:13px;line-height:1.6;">{% trans "If you did not create this account, you can safely ignore this email." %}</p>
+{% endwith %}
+{% endblock %}
