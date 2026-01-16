@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 17:50:55
+
+- **[424fb50]** ```
+  - *Fecha:* 2026-01-16 17:50:54
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 1 archivo(s)
+    - `templates/accounts/admin/email_send.html`
+  - *Detalles:*
+    - refactor: Extract JSON fetch logic and update location API endpoints to AJAX URLs
+    - - Add fetchJsonOrLog helper function with comprehensive error handling and logging
+    - - Include credentials: 'same-origin' and Accept: application/json headers in fetch requests
+    - - Log detailed error information including URL, status, content-type, and response body preview
+    - - Validate JSON content-type before parsing response
+    - - Return empty array on fetch errors instead of throwing
+    - - Update state API endpoint from
+
+
+
 ### Actualizado: 2026-01-16 17:42:13
 
 - **[5214376]** ```
