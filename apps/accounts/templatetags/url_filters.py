@@ -3,6 +3,7 @@ Filtros personalizados para URLs y números
 """
 
 import re
+from decimal import Decimal, InvalidOperation
 
 from django import template
 
@@ -138,3 +139,11 @@ def make_range(value):
         return []
     except (ValueError, TypeError):
         return []
+
+
+@register.filter
+def mul(value, arg):
+    try:
+        return Decimal(str(value)) * Decimal(str(arg))
+    except (ValueError, TypeError, InvalidOperation):
+        return Decimal("0")

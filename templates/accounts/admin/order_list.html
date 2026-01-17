@@ -581,8 +581,8 @@
                                                 </td>
                                                 <td>
                                                     {% if order.is_payment_plan %}
-                                                        <div class="amount-value">${{ order.plan_monthly_amount|default:order.total_amount|floatformat:2|intcomma_dot }}</div>
-                                                        <div class="amount-currency">{{ order.currency|upper }}</div>
+                                                        <div class="amount-value">${{ order.plan_monthly_amount|default:0|mul:order.plan_payments_completed|floatformat:2|intcomma_dot }}/${{ order.plan_total_amount|default:order.total_amount|floatformat:2|intcomma_dot }}</div>
+                                                        <div class="amount-currency">{{ order.currency|upper }} - {% trans "Plan" %}</div>
                                                     {% else %}
                                                         <div class="amount-value">${{ order.total_amount|floatformat:2|intcomma_dot }}</div>
                                                         <div class="amount-currency">{{ order.currency|upper }}</div>
