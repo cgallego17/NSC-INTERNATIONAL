@@ -7,6 +7,23 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 19:09:35
+
+- **[3cfa8da]** ```
+  - *Fecha:* 2026-01-16 19:09:34
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `apps/accounts/views_admin.py`
+    - `apps/accounts/views_private.py`
+  - *Detalles:*
+    - feat: Add service fee calculation fallback and async payment webhook handling for Stripe checkouts
+    - - Add setdefault() calls for service_fee_percent, service_fee_amount, total_before_discount, and total in AdminOrderDetailView breakdown
+    - - Calculate service_fee_amount from service_fee_percent and subtotal when amount is zero but percent exists
+    - - Add total fallback to use order.total_amount when breakdown total is missing
+    - - Extend checkout.session.completed webhook handler to also process checkout
+
+
+
 ### Actualizado: 2026-01-16 18:59:40
 
 - **[004df21]** ```
