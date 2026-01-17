@@ -910,13 +910,21 @@
                                         <strong style="color: #28a745;">${{ breakdown.hotel_services_total|intcomma_dot }}</strong>
                                     </div>
                                     {% endif %}
-                                    {% if breakdown.hotel_iva %}
+                                    {% if breakdown.hotel_tax_items %}
+                                        {% for tax in breakdown.hotel_tax_items %}
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span style="color: #6c757d;">{{ tax.name }}:</span>
+                                            <strong style="color: #28a745;">${{ tax.amount|intcomma_dot }}</strong>
+                                        </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                    {% if breakdown.hotel_iva and breakdown.hotel_iva != '0.00' and breakdown.hotel_iva != '0' %}
                                     <div class="d-flex justify-content-between mb-2">
                                         <span style="color: #6c757d;">{% trans "IVA" %}:</span>
                                         <strong style="color: #28a745;">${{ breakdown.hotel_iva|intcomma_dot }}</strong>
                                     </div>
                                     {% endif %}
-                                    {% if breakdown.hotel_ish %}
+                                    {% if breakdown.hotel_ish and breakdown.hotel_ish != '0.00' and breakdown.hotel_ish != '0' %}
                                     <div class="d-flex justify-content-between mb-2">
                                         <span style="color: #6c757d;">{% trans "ISH" %}:</span>
                                         <strong style="color: #28a745;">${{ breakdown.hotel_ish|intcomma_dot }}</strong>

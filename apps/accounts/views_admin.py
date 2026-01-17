@@ -1054,15 +1054,45 @@ class AdminOrderDetailView(StaffRequiredMixin, DetailView):
             breakdown.setdefault("hotel_total", "0.00")
 
             try:
-                hotel_total = Decimal(str(breakdown.get("hotel_total") or "0"))
-                hotel_room_base = Decimal(str(breakdown.get("hotel_room_base") or "0"))
-                hotel_services_total = Decimal(
-                    str(breakdown.get("hotel_services_total") or "0")
+                import re
+
+                def _parse_decimal(val):
+                    if val is None:
+                        return Decimal("0")
+                    if isinstance(val, Decimal):
+                        return val
+                    s = str(val).strip()
+                    if not s:
+                        return Decimal("0")
+                    s = s.replace(" ", "")
+                    s = re.sub(r"[^0-9,\.-]", "", s)
+                    last_dot = s.rfind(".")
+                    last_comma = s.rfind(",")
+                    if last_dot != -1 and last_comma != -1:
+                        if last_dot > last_comma:
+                            s = s.replace(",", "")
+                        else:
+                            s = s.replace(".", "")
+                            s = s.replace(",", ".")
+                    elif last_comma != -1 and last_dot == -1:
+                        tail = s.split(",")[-1]
+                        if len(tail) in (1, 2):
+                            s = s.replace(",", ".")
+                        else:
+                            s = s.replace(",", "")
+                    return Decimal(s)
+
+                hotel_total = _parse_decimal(breakdown.get("hotel_total") or "0")
+                hotel_room_base = _parse_decimal(
+                    breakdown.get("hotel_room_base") or "0"
                 )
-                hotel_iva = Decimal(str(breakdown.get("hotel_iva") or "0"))
-                hotel_ish = Decimal(str(breakdown.get("hotel_ish") or "0"))
-                hotel_total_taxes = Decimal(
-                    str(breakdown.get("hotel_total_taxes") or "0")
+                hotel_services_total = _parse_decimal(
+                    breakdown.get("hotel_services_total") or "0"
+                )
+                hotel_iva = _parse_decimal(breakdown.get("hotel_iva") or "0")
+                hotel_ish = _parse_decimal(breakdown.get("hotel_ish") or "0")
+                hotel_total_taxes = _parse_decimal(
+                    breakdown.get("hotel_total_taxes") or "0"
                 )
 
                 if hotel_total > 0 and hotel_total_taxes == 0:
@@ -1077,6 +1107,7 @@ class AdminOrderDetailView(StaffRequiredMixin, DetailView):
                         taxes_iva = Decimal("0.00")
                         taxes_ish = Decimal("0.00")
                         taxes_other = Decimal("0.00")
+                        tax_items_map = {}
 
                         reservations_qs = getattr(order, "hotel_reservations", None)
                         if reservations_qs is not None and hasattr(
@@ -1099,12 +1130,20 @@ class AdminOrderDetailView(StaffRequiredMixin, DetailView):
 
                             for tax in getattr(room, "taxes", []).all():
                                 name = (getattr(tax, "name", "") or "").lower()
+                                display_name = (
+                                    getattr(tax, "name", "") or ""
+                                ).strip() or "Tax"
                                 amount = Decimal(
                                     str(getattr(tax, "amount", "0") or "0")
                                 )
                                 amount = (amount * Decimal(str(nights))).quantize(
                                     Decimal("0.01")
                                 )
+                                if display_name:
+                                    tax_items_map[display_name] = (
+                                        tax_items_map.get(display_name, Decimal("0.00"))
+                                        + amount
+                                    )
                                 if "iva" in name:
                                     taxes_iva += amount
                                 elif "ish" in name:
@@ -1118,6 +1157,14 @@ class AdminOrderDetailView(StaffRequiredMixin, DetailView):
                             hotel_ish = taxes_ish
                         if taxes_iva > 0 or taxes_ish > 0 or taxes_other > 0:
                             hotel_total_taxes = taxes_iva + taxes_ish + taxes_other
+
+                        if tax_items_map:
+                            breakdown["hotel_tax_items"] = [
+                                {"name": k, "amount": f"{v:.2f}"}
+                                for k, v in sorted(
+                                    tax_items_map.items(), key=lambda kv: kv[0].lower()
+                                )
+                            ]
                     except Exception:
                         pass
 
