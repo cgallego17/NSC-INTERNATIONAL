@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 19:36:55
+
+- **[26f4e17]** ```
+  - *Fecha:* 2026-01-16 19:36:55
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 4 archivo(s)
+    - `apps/accounts/urls.py`
+    - `apps/accounts/views_admin.py`
+    - `apps/accounts/views_private.py`
+    - `templates/accounts/admin/order_list.html`
+  - *Detalles:*
+    - feat: Add admin order reconciliation endpoint to finalize pending Stripe payments
+    - - Add admin_reconcile_pending_orders POST endpoint to check pending orders against Stripe
+    - - Query up to 50 pending/pending_registration orders with stripe_session_id
+    - - Retrieve Stripe session for each order and verify payment_status is "paid"
+    - - Call _finalize_stripe_event_checkout to complete order processing for confirmed payments
+    - - Add 8-second timeout and 10-order finalization limit to prevent long-running requests
+
+
+
 ### Actualizado: 2026-01-16 19:09:35
 
 - **[3cfa8da]** ```
