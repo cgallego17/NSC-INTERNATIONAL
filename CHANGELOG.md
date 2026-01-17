@@ -7,6 +7,26 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 20:20:08
+
+- **[393de9b]** ```
+  - *Fecha:* 2026-01-16 20:20:08
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `apps/accounts/templatetags/url_filters.py`
+    - `templates/accounts/admin/order_list.html`
+  - *Detalles:*
+    - feat: Add payment plan progress tracking with custom multiplication filter
+    - - Add mul template filter to multiply Decimal values safely in templates
+    - - Import Decimal and InvalidOperation for precise decimal arithmetic
+    - - Return Decimal("0") on ValueError, TypeError, or InvalidOperation
+    - - Display payment plan progress as "paid/total" format in order list
+    - - Calculate paid amount using plan_monthly_amount * plan_payments_completed
+    - - Show plan_total_amount as total with fallback to total_amount
+    - - Ad
+
+
+
 ### Actualizado: 2026-01-16 20:13:35
 
 - **[75ccc49]** ```
