@@ -563,7 +563,11 @@
                                                 </td>
                                                 <td>
                                                     <span class="status-badge status-{{ order.status }}">
-                                                        {{ order.get_status_display }}
+                                                        {% if order.is_payment_plan %}
+                                                            {% trans "Plan activo" %}: {% trans "pagó" %} {{ order.plan_payments_completed|default:0 }}/{{ order.plan_months|default:"-" }}
+                                                        {% else %}
+                                                            {{ order.get_status_display }}
+                                                        {% endif %}
                                                     </span>
                                                 </td>
                                                 <td>

@@ -199,7 +199,11 @@
                             <i class="fas fa-receipt me-2"></i>{% trans "Order Summary" %}
                         </div>
                         <span class="status-badge status-{{ order.status }}">
-                            {{ order.get_status_display }}
+                            {% if order.is_payment_plan %}
+                                {% trans "Plan activo" %}: {% trans "pagó" %} {{ order.plan_payments_completed|default:0 }}/{{ order.plan_months|default:"-" }}
+                            {% else %}
+                                {{ order.get_status_display }}
+                            {% endif %}
                         </span>
                     </div>
                     <div class="info-row">

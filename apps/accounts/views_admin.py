@@ -290,6 +290,67 @@ def admin_reconcile_pending_orders(request):
                 reconciled += 1
             except Exception:
                 continue
+
+        # Also reconcile payment plans that may not have Orders yet.
+        if time.monotonic() - start_ts <= max_seconds and reconciled < max_finalize:
+            try:
+                plan_candidates = (
+                    StripeEventCheckout.objects.filter(
+                        payment_mode="plan",
+                        status__in=["created", "registered"],
+                    )
+                    .exclude(stripe_session_id__isnull=True)
+                    .exclude(stripe_session_id__exact="")
+                    .select_related("event", "user")
+                    .order_by("-created_at")[:max_checked]
+                )
+            except Exception:
+                plan_candidates = []
+
+            for checkout in plan_candidates:
+                if time.monotonic() - start_ts > max_seconds:
+                    break
+                if reconciled >= max_finalize:
+                    break
+
+                try:
+                    already = Order.objects.filter(stripe_checkout=checkout).exists()
+                except Exception:
+                    already = False
+
+                if already and checkout.status == "paid":
+                    continue
+
+                session_id = (checkout.stripe_session_id or "").strip()
+                if not session_id:
+                    continue
+
+                stripe_account = None
+                try:
+                    if checkout.event and getattr(
+                        checkout.event, "stripe_payment_profile", None
+                    ):
+                        stripe_account = checkout.event.stripe_payment_profile
+                except Exception:
+                    stripe_account = None
+
+                try:
+                    session = stripe.checkout.Session.retrieve(
+                        session_id,
+                        stripe_account=stripe_account,
+                    )
+                except Exception:
+                    continue
+
+                payment_status = getattr(session, "payment_status", "") or ""
+                if payment_status != "paid":
+                    continue
+
+                try:
+                    _finalize_stripe_event_checkout(checkout)
+                    reconciled += 1
+                except Exception:
+                    continue
     except Exception:
         messages.error(request, "No se pudo ejecutar la reconciliación.")
         return redirect("accounts:admin_order_list")

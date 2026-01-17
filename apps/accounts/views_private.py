@@ -3968,7 +3968,7 @@ def create_stripe_event_checkout_session(request, pk):
                 ]
             )
     else:
-        StripeEventCheckout.objects.create(
+        checkout = StripeEventCheckout.objects.create(
             user=user,
             event=event,
             stripe_session_id=session.id,
@@ -4013,6 +4013,62 @@ def create_stripe_event_checkout_session(request, pk):
             status="created",
         )
 
+        # Ensure there's a pending order tied to this checkout (important for plan mode)
+        order = (
+            Order.objects.filter(user=user, stripe_checkout=checkout)
+            .order_by("-created_at")
+            .first()
+        )
+        if not order:
+            Order.objects.create(
+                user=user,
+                stripe_checkout=checkout,
+                event=event,
+                status="pending",
+                payment_method="stripe",
+                payment_mode=payment_mode,
+                stripe_session_id=session.id,
+                subtotal=subtotal,
+                total_amount=total_after_wallet,
+                currency=currency,
+                breakdown=checkout.breakdown or {},
+                registered_player_ids=checkout.player_ids or [],
+                plan_months=plan_months,
+                plan_monthly_amount=plan_monthly_amount,
+                plan_total_amount=(plan_monthly_amount * Decimal(str(plan_months))),
+                plan_payments_completed=0,
+                plan_payments_remaining=int(plan_months or 1),
+            )
+        else:
+            order.payment_mode = payment_mode
+            order.stripe_session_id = session.id
+            order.subtotal = subtotal
+            order.total_amount = total_after_wallet
+            order.currency = currency
+            order.breakdown = checkout.breakdown or {}
+            order.registered_player_ids = checkout.player_ids or []
+            order.plan_months = plan_months
+            order.plan_monthly_amount = plan_monthly_amount
+            order.plan_total_amount = plan_monthly_amount * Decimal(str(plan_months))
+            if order.status != "paid":
+                order.status = "pending"
+            order.save(
+                update_fields=[
+                    "payment_mode",
+                    "stripe_session_id",
+                    "subtotal",
+                    "total_amount",
+                    "currency",
+                    "breakdown",
+                    "registered_player_ids",
+                    "plan_months",
+                    "plan_monthly_amount",
+                    "plan_total_amount",
+                    "status",
+                    "updated_at",
+                ]
+            )
+
     return JsonResponse(
         {"success": True, "checkout_url": session.url, "session_id": session.id}
     )
@@ -4033,6 +4089,20 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
         existing_order.total_amount = checkout.amount_total
         existing_order.breakdown = checkout.breakdown or {}
         existing_order.registered_player_ids = checkout.player_ids or []
+        if existing_order.payment_mode == "plan" or checkout.payment_mode == "plan":
+            try:
+                months = int(existing_order.plan_months or checkout.plan_months or 1)
+            except Exception:
+                months = 1
+            existing_order.plan_months = months
+            existing_order.plan_monthly_amount = (
+                checkout.plan_monthly_amount or existing_order.plan_monthly_amount
+            )
+            existing_order.plan_total_amount = (
+                existing_order.plan_monthly_amount or Decimal("0")
+            ) * Decimal(str(months))
+            existing_order.plan_payments_completed = 1
+            existing_order.plan_payments_remaining = max(0, months - 1)
         existing_order.save(
             update_fields=[
                 "status",
@@ -4040,6 +4110,11 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
                 "total_amount",
                 "breakdown",
                 "registered_player_ids",
+                "plan_months",
+                "plan_monthly_amount",
+                "plan_total_amount",
+                "plan_payments_completed",
+                "plan_payments_remaining",
                 "updated_at",
             ]
         )
@@ -4133,9 +4208,7 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
     plan_total_amount = plan_monthly_amount * Decimal(str(plan_months))
 
     # Si es un plan de pagos, el primer pago ya se completó
-    plan_payments_completed = (
-        1 if checkout.payment_mode == "plan" and checkout.status == "paid" else 0
-    )
+    plan_payments_completed = 1 if checkout.payment_mode == "plan" else 0
     plan_payments_remaining = max(0, plan_months - plan_payments_completed)
 
     # Extraer información de huéspedes adicionales del hotel_cart_snapshot
@@ -4146,14 +4219,33 @@ def _create_order_from_stripe_checkout(checkout: StripeEventCheckout) -> Order:
     # Ordenar las habitaciones para mantener el orden de selección original
     # Usar room_order si está disponible, sino usar el orden de inserción del diccionario
     sorted_room_items = []
-    for room_key, item_data in hotel_cart.items():
-        if item_data.get("type") != "room":
-            continue
-        # Usar room_order si está disponible (preserva el orden de selección)
-        room_order = item_data.get(
-            "room_order", 999999
-        )  # Default alto para items sin order
-        sorted_room_items.append((room_order, room_key, item_data))
+    if isinstance(hotel_cart, list):
+        for idx, item_data in enumerate(hotel_cart):
+            if not isinstance(item_data, dict):
+                continue
+            if item_data.get("type") != "room":
+                continue
+            room_order = item_data.get("room_order")
+            try:
+                room_order = int(room_order) if room_order is not None else None
+            except Exception:
+                room_order = None
+            sorted_room_items.append((room_order or idx, f"room_{idx}", item_data))
+    else:
+        try:
+            items_iter = hotel_cart.items()
+        except Exception:
+            items_iter = []
+        for room_key, item_data in items_iter:
+            if not isinstance(item_data, dict):
+                continue
+            if item_data.get("type") != "room":
+                continue
+            # Usar room_order si está disponible (preserva el orden de selección)
+            room_order = item_data.get(
+                "room_order", 999999
+            )  # Default alto para items sin order
+            sorted_room_items.append((room_order, room_key, item_data))
 
     # Ordenar por room_order para mantener el orden de selección original
     sorted_room_items.sort(key=lambda x: x[0])
@@ -4425,7 +4517,10 @@ def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
 
             # Validar stock disponible: contar reservas activas en esas fechas vs stock total
             # El stock representa cuántas habitaciones físicas hay de ese tipo
-            # Si stock es None o 0, se asume que no hay límite de disponibilidad
+            # Si stock es 0, está sold out y no debe permitir reservar
+            if room.stock is not None and room.stock <= 0:
+                continue
+
             if room.stock is not None and room.stock > 0:
                 active_reservations_count = room.reservations.filter(
                     check_in__lt=check_out,
@@ -4626,7 +4721,12 @@ def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
                 and room.stock > 0
             ):
                 room.stock -= 1
-                room.save(update_fields=["stock"])
+                if room.stock <= 0:
+                    room.stock = 0
+                    room.is_available = False
+                    room.save(update_fields=["stock", "is_available"])
+                else:
+                    room.save(update_fields=["stock"])
 
         # Crear Order para esta transacción ANTES de marcar como paid
         # Si falla la creación de la Order, el checkout no se marca como paid
@@ -4989,6 +5089,7 @@ def stripe_webhook(request):
         if session_id:
             try:
                 checkout = StripeEventCheckout.objects.get(stripe_session_id=session_id)
+                payment_status = (obj.get("payment_status") or "").strip()
                 # Persist subscription + schedule for plan
                 subscription_id = obj.get("subscription") or ""
                 if subscription_id and not checkout.stripe_subscription_id:
@@ -5012,6 +5113,12 @@ def stripe_webhook(request):
                         "updated_at",
                     ]
                 )
+
+                # Only finalize after Stripe confirms the payment.
+                # For subscription (payment plans), checkout.session.completed can arrive
+                # before the first invoice is actually paid.
+                if payment_status != "paid":
+                    return HttpResponse(status=200)
 
                 # Confirmar y descontar fondos reservados del wallet
                 breakdown = checkout.breakdown or {}
@@ -5184,6 +5291,52 @@ def stripe_webhook(request):
                 logger.error(
                     f"Error processing subscription.deleted webhook: {e}", exc_info=True
                 )
+
+    if event_type == "invoice.payment_succeeded":
+        subscription_id = obj.get("subscription")
+        invoice_id = obj.get("id")
+        if subscription_id and invoice_id:
+            try:
+                checkout = StripeEventCheckout.objects.filter(
+                    stripe_subscription_id=str(subscription_id),
+                    payment_mode="plan",
+                ).first()
+                if checkout:
+                    try:
+                        from .models import Order
+
+                        order = Order.objects.filter(stripe_checkout=checkout).first()
+                        if order and order.payment_mode == "plan":
+                            breakdown = order.breakdown or {}
+                            last_invoice = (
+                                breakdown.get("last_paid_invoice_id") or ""
+                            ).strip()
+                            if last_invoice != str(invoice_id):
+                                try:
+                                    months = int(order.plan_months or 1)
+                                except Exception:
+                                    months = 1
+                                completed = int(order.plan_payments_completed or 0)
+                                if completed < months:
+                                    completed = min(months, completed + 1)
+                                order.plan_payments_completed = completed
+                                order.plan_payments_remaining = max(
+                                    0, months - completed
+                                )
+                                breakdown["last_paid_invoice_id"] = str(invoice_id)
+                                order.breakdown = breakdown
+                                order.save(
+                                    update_fields=[
+                                        "plan_payments_completed",
+                                        "plan_payments_remaining",
+                                        "breakdown",
+                                        "updated_at",
+                                    ]
+                                )
+                    except Exception:
+                        pass
+            except Exception:
+                pass
 
     # Manejar fallos de pago en suscripciones (planes de pago)
     if event_type == "invoice.payment_failed":
