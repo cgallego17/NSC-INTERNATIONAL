@@ -904,7 +904,7 @@
                                         <strong style="color: #28a745;">${{ breakdown.hotel_room_base|intcomma_dot }}</strong>
                                     </div>
                                     {% endif %}
-                                    {% if breakdown.hotel_services_total %}
+                                    {% if breakdown.hotel_services_total or breakdown.hotel_services_total == 0 or breakdown.hotel_services_total == '0.00' or breakdown.hotel_services_total == '0' %}
                                     <div class="d-flex justify-content-between mb-2">
                                         <span style="color: #6c757d;">{% trans "Services" %}:</span>
                                         <strong style="color: #28a745;">${{ breakdown.hotel_services_total|intcomma_dot }}</strong>

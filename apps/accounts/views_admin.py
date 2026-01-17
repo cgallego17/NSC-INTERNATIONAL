@@ -1171,6 +1171,7 @@ class AdminOrderDetailView(StaffRequiredMixin, DetailView):
                 breakdown["hotel_iva"] = f"{hotel_iva:.2f}"
                 breakdown["hotel_ish"] = f"{hotel_ish:.2f}"
                 breakdown["hotel_total_taxes"] = f"{hotel_total_taxes:.2f}"
+                breakdown["hotel_services_total"] = f"{hotel_services_total:.2f}"
             except Exception:
                 pass
 
