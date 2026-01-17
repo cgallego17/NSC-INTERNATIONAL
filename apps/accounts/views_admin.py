@@ -883,6 +883,11 @@ class AdminOrderDetailView(StaffRequiredMixin, DetailView):
             breakdown.setdefault("hotel_buy_out_fee", "0.00")
             breakdown.setdefault("wallet_deduction", "0.00")
 
+            breakdown.setdefault("service_fee_percent", "0.00")
+            breakdown.setdefault("service_fee_amount", "0.00")
+            breakdown.setdefault("total_before_discount", "0.00")
+            breakdown.setdefault("total", "0.00")
+
             breakdown.setdefault("hotel_room_base", "0.00")
             breakdown.setdefault("hotel_services_total", "0.00")
             breakdown.setdefault("hotel_iva", "0.00")
@@ -961,6 +966,33 @@ class AdminOrderDetailView(StaffRequiredMixin, DetailView):
                 breakdown["hotel_iva"] = f"{hotel_iva:.2f}"
                 breakdown["hotel_ish"] = f"{hotel_ish:.2f}"
                 breakdown["hotel_total_taxes"] = f"{hotel_total_taxes:.2f}"
+            except Exception:
+                pass
+
+            # Ensure service fee is present for admin breakdown display.
+            try:
+                subtotal = Decimal(str(breakdown.get("subtotal") or "0"))
+                service_fee_percent = Decimal(
+                    str(breakdown.get("service_fee_percent") or "0")
+                )
+                service_fee_amount = Decimal(
+                    str(breakdown.get("service_fee_amount") or "0")
+                )
+
+                if service_fee_amount == 0 and service_fee_percent > 0 and subtotal > 0:
+                    service_fee_amount = (
+                        subtotal * (service_fee_percent / Decimal("100"))
+                    ).quantize(Decimal("0.01"))
+
+                breakdown["service_fee_percent"] = f"{service_fee_percent:.2f}"
+                breakdown["service_fee_amount"] = f"{service_fee_amount:.2f}"
+            except Exception:
+                pass
+
+            # Total fallback: older breakdowns may not persist it.
+            try:
+                if not (str(breakdown.get("total") or "").strip()):
+                    breakdown["total"] = f"{Decimal(str(order.total_amount or 0)):.2f}"
             except Exception:
                 pass
         context["breakdown"] = breakdown

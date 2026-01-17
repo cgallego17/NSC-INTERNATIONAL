@@ -4960,7 +4960,10 @@ def stripe_webhook(request):
     event_type = evt.get("type")
     obj = (evt.get("data", {}) or {}).get("object", {}) or {}
 
-    if event_type == "checkout.session.completed":
+    if event_type in (
+        "checkout.session.completed",
+        "checkout.session.async_payment_succeeded",
+    ):
         session_id = obj.get("id")
         if session_id:
             try:
@@ -5017,6 +5020,27 @@ def stripe_webhook(request):
                     pass
 
                 _finalize_stripe_event_checkout(checkout)
+            except StripeEventCheckout.DoesNotExist:
+                pass
+
+    if event_type == "checkout.session.async_payment_failed":
+        session_id = obj.get("id")
+        if session_id:
+            try:
+                checkout = StripeEventCheckout.objects.get(stripe_session_id=session_id)
+                if checkout.status != "paid":
+                    checkout.status = "failed"
+                    checkout.save(update_fields=["status", "updated_at"])
+
+                try:
+                    from .models import Order
+
+                    order = Order.objects.filter(stripe_checkout=checkout).first()
+                    if order and order.status in ["pending", "pending_registration"]:
+                        order.status = "failed"
+                        order.save(update_fields=["status", "updated_at"])
+                except Exception:
+                    pass
             except StripeEventCheckout.DoesNotExist:
                 pass
 
