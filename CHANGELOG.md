@@ -7,6 +7,24 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-17 14:00:29
+
+- **[5f24eb0]** ```
+  - *Fecha:* 2026-01-17 14:00:28
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `apps/accounts/views_admin.py`
+    - `templates/accounts/admin/order_detail.html`
+  - *Detalles:*
+    - feat: Add hotel services total to breakdown data and improve zero value display
+    - - Add hotel_services_total to breakdown dictionary with 2-decimal formatting
+    - - Update template condition to display services row even when value is zero
+    - - Check for breakdown.hotel_services_total == 0, '0.00', or '0' in addition to truthy check
+    - - Ensure services line item appears in hotel breakdown regardless of amount
+    - ```
+
+
+
 ### Actualizado: 2026-01-16 20:35:48
 
 - **[32ead78]** ```
