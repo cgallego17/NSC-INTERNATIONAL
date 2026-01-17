@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 20:35:48
+
+- **[32ead78]** ```
+  - *Fecha:* 2026-01-16 20:35:47
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `apps/accounts/views_admin.py`
+    - `templates/accounts/admin/order_detail.html`
+  - *Detalles:*
+    - feat: Add robust decimal parsing and itemized tax display for hotel breakdowns
+    - - Add _parse_decimal helper function to handle various number formats in breakdown data
+    - - Strip whitespace and remove non-numeric characters except digits, commas, dots, and minus
+    - - Detect decimal separator by position (last dot vs last comma) and normalize to dot
+    - - Handle comma as decimal separator when followed by 1-2 digits
+    - - Replace direct Decimal(str()) calls with _parse_decimal for all hotel breakdown fields
+    - - Calculate
+
+
+
 ### Actualizado: 2026-01-16 20:20:08
 
 - **[393de9b]** ```
