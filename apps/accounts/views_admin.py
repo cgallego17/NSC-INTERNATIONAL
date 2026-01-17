@@ -207,8 +207,105 @@ class AdminEmailBroadcastListView(StaffRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         context["is_admin"] = True
         return context
+
+
+@require_http_methods(["POST"])
+def admin_reconcile_pending_orders(request):
+    if not (
+        getattr(request.user, "is_staff", False)
+        or getattr(request.user, "is_superuser", False)
+    ):
+        messages.error(request, "No autorizado.")
+        return redirect("accounts:admin_order_list")
+
+    try:
+        import stripe  # type: ignore
+
+        stripe.api_key = getattr(settings, "STRIPE_SECRET_KEY", None)
+    except Exception:
+        messages.error(request, "Stripe no está configurado.")
+        return redirect("accounts:admin_order_list")
+
+    if not getattr(settings, "STRIPE_SECRET_KEY", None):
+        messages.error(request, "Stripe no está configurado.")
+        return redirect("accounts:admin_order_list")
+
+    reconciled = 0
+    checked = 0
+    start_ts = time.monotonic()
+    max_seconds = 8.0
+    max_checked = 50
+    max_finalize = 10
+    try:
+        candidates = (
+            Order.objects.filter(
+                status__in=["pending", "pending_registration"],
+                payment_method="stripe",
+            )
+            .exclude(stripe_session_id__isnull=True)
+            .exclude(stripe_session_id__exact="")
+            .select_related("stripe_checkout", "event")
+            .order_by("-created_at")[:max_checked]
+        )
+
+        from apps.accounts.views_private import _finalize_stripe_event_checkout
+
+        for order in candidates:
+            if time.monotonic() - start_ts > max_seconds:
+                break
+            if reconciled >= max_finalize:
+                break
+            checked += 1
+            if not order.stripe_checkout:
+                continue
+
+            session_id = (order.stripe_session_id or "").strip()
+            if not session_id:
+                continue
+
+            stripe_account = None
+            try:
+                if order.event and getattr(order.event, "stripe_payment_profile", None):
+                    stripe_account = order.event.stripe_payment_profile
+            except Exception:
+                stripe_account = None
+
+            try:
+                session = stripe.checkout.Session.retrieve(
+                    session_id,
+                    stripe_account=stripe_account,
+                )
+            except Exception:
+                continue
+
+            payment_status = getattr(session, "payment_status", "") or ""
+            if payment_status != "paid":
+                continue
+
+            try:
+                _finalize_stripe_event_checkout(order.stripe_checkout)
+                reconciled += 1
+            except Exception:
+                continue
+    except Exception:
+        messages.error(request, "No se pudo ejecutar la reconciliación.")
+        return redirect("accounts:admin_order_list")
+
+    if reconciled:
+        messages.success(
+            request,
+            f"Reconciliación completada: {reconciled} orden(es) finalizadas (revisadas: {checked}).",
+        )
+    else:
+        messages.info(
+            request,
+            f"No se encontraron pagos pendientes confirmados en Stripe (revisadas: {checked}).",
+        )
+
+    return redirect("accounts:admin_order_list")
 
 
 class AdminEmailBroadcastDetailView(StaffRequiredMixin, DetailView):

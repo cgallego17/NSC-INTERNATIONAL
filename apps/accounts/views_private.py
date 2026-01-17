@@ -4367,17 +4367,38 @@ def _finalize_stripe_event_checkout(checkout: StripeEventCheckout) -> None:
         reservations_to_update = []  # Lista de reservas para asignar a la orden después
         cart = checkout.hotel_cart_snapshot or {}
 
-        # Ordenar las habitaciones para mantener el orden de selección original
-        # Usar room_order si está disponible, sino usar el orden de inserción del diccionario
+        # Ordenar las habitaciones para mantener el orden de selección original.
+        # Soporta snapshots legacy guardados como list (items dict) o dict.
         sorted_room_items_for_reservations = []
-        for room_key, item_data in cart.items():
-            if item_data.get("type") != "room":
-                continue
-            # Usar room_order si está disponible (preserva el orden de selección)
-            room_order = item_data.get(
-                "room_order", 999999
-            )  # Default alto para items sin order
-            sorted_room_items_for_reservations.append((room_order, item_data))
+        if isinstance(cart, list):
+            for idx, item_data in enumerate(cart):
+                if not isinstance(item_data, dict):
+                    continue
+                if item_data.get("type") != "room":
+                    continue
+                room_order = item_data.get("room_order")
+                try:
+                    room_order = int(room_order) if room_order is not None else None
+                except Exception:
+                    room_order = None
+                sorted_room_items_for_reservations.append(
+                    (room_order or idx, item_data)
+                )
+        else:
+            # Dict snapshot: preserve insertion order unless room_order is provided
+            try:
+                items_iter = cart.items()
+            except Exception:
+                items_iter = []
+            for _room_key, item_data in items_iter:
+                if not isinstance(item_data, dict):
+                    continue
+                if item_data.get("type") != "room":
+                    continue
+                room_order = item_data.get(
+                    "room_order", 999999
+                )  # Default alto para items sin order
+                sorted_room_items_for_reservations.append((room_order, item_data))
 
         # Ordenar por room_order para mantener el orden de selección original
         sorted_room_items_for_reservations.sort(key=lambda x: x[0])

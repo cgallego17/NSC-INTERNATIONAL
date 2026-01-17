@@ -386,6 +386,11 @@ urlpatterns = [
         name="admin_order_list",
     ),
     path(
+        "admin/orders/reconcile/",
+        views_admin.admin_reconcile_pending_orders,
+        name="admin_order_reconcile_pending",
+    ),
+    path(
         "admin/orders/<int:pk>/",
         views_admin.AdminOrderDetailView.as_view(),
         name="admin_order_detail",
