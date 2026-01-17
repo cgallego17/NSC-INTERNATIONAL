@@ -7,6 +7,25 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 20:13:35
+
+- **[75ccc49]** ```
+  - *Fecha:* 2026-01-16 20:13:34
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 2 archivo(s)
+    - `apps/accounts/signals.py`
+    - `templates/accounts/admin/order_list.html`
+  - *Detalles:*
+    - feat: Add branded sender name to order notifications and display monthly amount for payment plans
+    - - Parse DEFAULT_FROM_EMAIL to extract email address using parseaddr
+    - - Format from_email with "NCS INTERNATIONAL" display name using formataddr
+    - - Fallback to "no-reply@localhost" if email extraction fails
+    - - Display plan_monthly_amount instead of total_amount in order list for payment plan orders
+    - - Add is_payment_plan conditional to show appropriate amount in order table
+    - ```
+
+
+
 ### Actualizado: 2026-01-16 20:07:01
 
 - **[1d3d4e0]** ```
