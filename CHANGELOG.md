@@ -7,6 +7,27 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ## [Sin versión]
 
+### Actualizado: 2026-01-16 20:07:01
+
+- **[1d3d4e0]** ```
+  - *Fecha:* 2026-01-16 20:07:00
+  - *Autor:* cgallego17
+  - *Archivos modificados:* 4 archivo(s)
+    - `apps/accounts/views_admin.py`
+    - `apps/accounts/views_private.py`
+    - `templates/accounts/admin/order_detail.html`
+    - `templates/accounts/admin/order_list.html`
+  - *Detalles:*
+    - feat: Add payment plan reconciliation and improve plan order tracking
+    - - Extend admin_reconcile_pending_orders to reconcile StripeEventCheckout records in plan mode without Orders
+    - - Query up to 50 created/registered plan checkouts with stripe_session_id
+    - - Skip plan checkouts that already have paid Orders
+    - - Retrieve Stripe session and verify payment_status is "paid" before finalizing
+    - - Create or update Order when creating Stripe checkout session for payment plans
+    - - Set plan_months, plan_monthly
+
+
+
 ### Actualizado: 2026-01-16 19:36:55
 
 - **[26f4e17]** ```
