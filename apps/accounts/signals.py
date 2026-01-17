@@ -44,11 +44,13 @@ def create_order_notification(sender, instance, created, **kwargs):
             .values_list("email", flat=True)
             .distinct()
         )
-        from_email = (
+        raw_from_email = (
             getattr(settings, "DEFAULT_FROM_EMAIL", "")
             or getattr(settings, "EMAIL_HOST_USER", "")
             or "no-reply@localhost"
         )
+        _name, _email = parseaddr(raw_from_email)
+        from_email = formataddr(("NCS INTERNATIONAL", _email or "no-reply@localhost"))
 
         site_url = (getattr(settings, "SITE_URL", "") or "").rstrip("/")
 

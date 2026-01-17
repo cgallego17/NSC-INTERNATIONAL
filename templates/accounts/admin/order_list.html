@@ -580,8 +580,13 @@
                                                     {% endif %}
                                                 </td>
                                                 <td>
-                                                    <div class="amount-value">${{ order.total_amount|floatformat:2|intcomma_dot }}</div>
-                                                    <div class="amount-currency">{{ order.currency|upper }}</div>
+                                                    {% if order.is_payment_plan %}
+                                                        <div class="amount-value">${{ order.plan_monthly_amount|default:order.total_amount|floatformat:2|intcomma_dot }}</div>
+                                                        <div class="amount-currency">{{ order.currency|upper }}</div>
+                                                    {% else %}
+                                                        <div class="amount-value">${{ order.total_amount|floatformat:2|intcomma_dot }}</div>
+                                                        <div class="amount-currency">{{ order.currency|upper }}</div>
+                                                    {% endif %}
                                                 </td>
                                                 <td>
                                                     {% if order.event %}
